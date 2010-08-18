@@ -70,4 +70,6 @@ struct EXIStream
 	unsigned char bitPointer;
 };
 
+typedef struct EXIStream EXIStream;
+
 #endif /* PROCTYPES_H_ */

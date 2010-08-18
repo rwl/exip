@@ -33,30 +33,23 @@
 \===================================================================================*/
 
 /**
- * @file errorHandle.h
- * @brief Error handling codes and function definitions
+ * @file streamRead.c
+ * @brief Implementing the interface to a low-level EXI stream reader
  *
- * @date Jul 7, 2010
+ * @date Aug 18, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#ifndef ERRORHANDLE_H_
-#define ERRORHANDLE_H_
+#include "../include/streamRead.h"
 
-typedef char errorCode;
+errorCode readNextBit(EXIStream* strm, unsigned char* bit_val)
+{
+	return NOT_IMPLEMENTED_YET;
+}
 
-//TODO: define the rest of the error codes
-
-/* Definitions for error constants. */
-/** No error, everything OK. */
-#define ERR_OK    0
-
-/** Any error that does not fall into the other categories */
-#define UNEXPECTED_ERROR -126
-
-/** The code for this function is not yet implemented. */
-#define NOT_IMPLEMENTED_YET -127
-
-#endif /* ERRORHANDLE_H_ */
+errorCode readBits(EXIStream* strm, unsigned char n, int* bits_val)
+{
+	return NOT_IMPLEMENTED_YET;
+}
