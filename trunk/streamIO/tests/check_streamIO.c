@@ -33,30 +33,69 @@
 \===================================================================================*/
 
 /**
- * @file errorHandle.h
- * @brief Error handling codes and function definitions
+ * @file check_streamIO.c
+ * @brief Tests the interface to the EXI stream reader/decoder
  *
- * @date Jul 7, 2010
+ * @date Aug 18, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#ifndef ERRORHANDLE_H_
-#define ERRORHANDLE_H_
+#include <stdlib.h>
+#include <check.h>
+#include "../include/streamRead.h"
+#include "procTypes.h"
+#include "errorHandle.h"
 
-typedef char errorCode;
+START_TEST (test_readNextBit)
+{
+  EXIStream testStream;
+  testStream.bitPointer = 0;
 
-//TODO: define the rest of the error codes
+  char buf[2];
+  buf[0] = (char) 0b11010101;
+  buf[1] = (char) 0b00000000;
+  testStream.buffer = buf;
 
-/* Definitions for error constants. */
-/** No error, everything OK. */
-#define ERR_OK    0
+  testStream.bufferIndx = 0;
+  unsigned char bit_val = 0;
+  errorCode err = UNEXPECTED_ERROR;
 
-/** Any error that does not fall into the other categories */
-#define UNEXPECTED_ERROR -126
+  err = readNextBit(&testStream, &bit_val);
 
-/** The code for this function is not yet implemented. */
-#define NOT_IMPLEMENTED_YET -127
 
-#endif /* ERRORHANDLE_H_ */
+  fail_unless (bit_val == 1,
+	       "The bit 1 from the stream is read as 0");
+  fail_unless (err == ERR_OK,
+	       "readNextBit returns error code %d", err);
+}
+END_TEST
+
+Suite * streamIO_suite (void)
+{
+  Suite *s = suite_create ("StreamIO");
+
+  /* StreamRead test case */
+  TCase *tc_sRead = tcase_create ("StreamRead");
+  tcase_add_test (tc_sRead, test_readNextBit);
+  suite_add_tcase (s, tc_sRead);
+
+  /* StreamDecode test case */
+  TCase *tc_sDecode = tcase_create ("StreamDecode");
+//  tcase_add_test (tc_sDecode, test_);
+  suite_add_tcase (s, tc_sDecode);
+
+  return s;
+}
+
+int main (void)
+{
+	int number_failed;
+	Suite *s = streamIO_suite();
+	SRunner *sr = srunner_create (s);
+	srunner_run_all (sr, CK_NORMAL);
+	number_failed = srunner_ntests_failed (sr);
+	srunner_free (sr);
+	return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+}

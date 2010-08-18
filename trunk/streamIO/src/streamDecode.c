@@ -33,30 +33,53 @@
 \===================================================================================*/
 
 /**
- * @file errorHandle.h
- * @brief Error handling codes and function definitions
+ * @file streamDecode.c
+ * @brief Implementing the interface to a higher-level EXI stream decoder - decode basic EXI types
  *
- * @date Jul 7, 2010
+ * @date Aug 18, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#ifndef ERRORHANDLE_H_
-#define ERRORHANDLE_H_
+#include "../include/streamDecode.h"
 
-typedef char errorCode;
+errorCode decodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, unsigned int* int_val)
+{
+	return NOT_IMPLEMENTED_YET;
+}
 
-//TODO: define the rest of the error codes
+errorCode decodeBoolean(EXIStream* strm, unsigned char* bool_val)
+{
+	return NOT_IMPLEMENTED_YET;
+}
 
-/* Definitions for error constants. */
-/** No error, everything OK. */
-#define ERR_OK    0
+errorCode decodeUnsignedInteger(EXIStream* strm, unsigned int* int_val)
+{
+	return NOT_IMPLEMENTED_YET;
+}
 
-/** Any error that does not fall into the other categories */
-#define UNEXPECTED_ERROR -126
+errorCode decodeString(EXIStream* strm, char* string_val)
+{
+	return NOT_IMPLEMENTED_YET;
+}
 
-/** The code for this function is not yet implemented. */
-#define NOT_IMPLEMENTED_YET -127
+errorCode decodeBinary(EXIStream* strm, char* binary_val)
+{
+	return NOT_IMPLEMENTED_YET;
+}
 
-#endif /* ERRORHANDLE_H_ */
+errorCode decodeIntegerValue(EXIStream* strm, int* sint_val)
+{
+	return NOT_IMPLEMENTED_YET;
+}
+
+errorCode decodeDecimalValue(EXIStream* strm, float* dec_val)
+{
+	return NOT_IMPLEMENTED_YET;
+}
+
+errorCode decodeFloatValue()
+{
+	return NOT_IMPLEMENTED_YET;
+}
