@@ -49,6 +49,8 @@
 #define NULL ((void *)0)
 #endif
 
+#define REVERSE_BIT_POSITION(p) (7 - p)
+
 /**
  * Represents an EXI stream
  */
@@ -66,6 +68,7 @@ struct EXIStream
 
 	/**
 	 * Value between 0 and 7; shows the current position within the current byte
+	 * 7 is the least significant bit position in the byte
 	 */
 	unsigned char bitPointer;
 };
