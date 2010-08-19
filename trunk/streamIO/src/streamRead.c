@@ -44,12 +44,87 @@
 
 #include "../include/streamRead.h"
 
+/**
+ * @brief Moves the BitPointer with certain positions. Takes care of byteIndex increasing when
+ *        the movement cross a byte boundary
+ * @param[in] strm EXI stream of bits
+ * @param[in] bitPositions the number of bit positions to move the pointer
+ * @return Error handling code
+ */
+static errorCode moveBitPointer(EXIStream* strm, int bitPositions);
+
+const unsigned char BIT_MASK[] = {(char) 0b00000000,
+								  (char) 0b00000001,
+								  (char) 0b00000011,
+							  	  (char) 0b00000111,
+								  (char) 0b00001111,
+								  (char) 0b00011111,
+								  (char) 0b00111111,
+								  (char) 0b01111111,
+								  (char) 0b11111111};
+
+static errorCode moveBitPointer(EXIStream* strm, int bitPositions)
+{
+	//TODO: Handle error cases i.e. end of the stream and so on
+	strm->bufferIndx = strm->bufferIndx + bitPositions/8;
+	int nbits = 0;
+	if(bitPositions < 8)
+		nbits = bitPositions;
+	else
+		nbits = bitPositions % 8;
+	if(nbits < 8 - strm->bitPointer) // The remaining (0-7) bit positions can be moved within the current byte
+	{
+		strm->bitPointer += nbits;
+	}
+	else
+	{
+		strm->bufferIndx += 1;
+		strm->bitPointer = nbits - (8 - strm->bitPointer);
+	}
+	return ERR_OK;
+}
+
+
 errorCode readNextBit(EXIStream* strm, unsigned char* bit_val)
 {
-	return NOT_IMPLEMENTED_YET;
+	//TODO: Handle error cases i.e. end of the stream and so on
+	*bit_val = 0;
+	*bit_val = (strm->buffer[strm->bufferIndx] & (1<<REVERSE_BIT_POSITION(strm->bitPointer))) != 0;
+
+	moveBitPointer(strm, 1);
+
+	return ERR_OK;
 }
 
 errorCode readBits(EXIStream* strm, unsigned char n, int* bits_val)
 {
-	return NOT_IMPLEMENTED_YET;
+	//TODO: Handle error cases i.e. end of the stream and so on
+	*bits_val = 0;
+	int numBitsRead = 0; // Number of the bits read so far
+	int tmp = 0;
+	int shift = 0;
+	int bits_in_byte = 0; // Number of bits read in one iteration
+	while(numBitsRead < n)
+	{
+		tmp = 0;
+		if(n - numBitsRead <= 8 - strm->bitPointer) // The rest of the unread bits are located in the current byte from the stream
+		{
+			bits_in_byte = n - numBitsRead;
+			int tmp_shift = 8 - strm->bitPointer - (n - numBitsRead);
+			tmp = (strm->buffer[strm->bufferIndx] & BIT_MASK[bits_in_byte]<<tmp_shift) >> tmp_shift;
+		}
+		else // The rest of the unread bits are located in multiple bytes from the stream
+		{
+			bits_in_byte = 8 - strm->bitPointer;
+			tmp = strm->buffer[strm->bufferIndx] & BIT_MASK[bits_in_byte];
+		}
+		numBitsRead += bits_in_byte;
+		shift = n - (numBitsRead);
+		tmp = tmp << shift;
+		*bits_val = *bits_val | tmp;
+
+		moveBitPointer(strm, bits_in_byte);
+	}
+	return ERR_OK;
 }
+

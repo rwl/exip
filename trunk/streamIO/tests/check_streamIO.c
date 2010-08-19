@@ -54,8 +54,8 @@ START_TEST (test_readNextBit)
   testStream.bitPointer = 0;
 
   char buf[2];
-  buf[0] = (char) 0b11010101;
-  buf[1] = (char) 0b00000000;
+  buf[0] = (char) 0b11010100;
+  buf[1] = (char) 0b01100000;
   testStream.buffer = buf;
 
   testStream.bufferIndx = 0;
@@ -64,13 +64,66 @@ START_TEST (test_readNextBit)
 
   err = readNextBit(&testStream, &bit_val);
 
-
   fail_unless (bit_val == 1,
 	       "The bit 1 from the stream is read as 0");
   fail_unless (err == ERR_OK,
 	       "readNextBit returns error code %d", err);
+  fail_unless (testStream.bitPointer == 1,
+    	       "The readNextBit function did not move the bit Pointer of the stream correctly");
+
+  // Set the bit pointer to the first byte boundary
+  testStream.bitPointer = 7;
+
+  err = readNextBit(&testStream, &bit_val);
+
+  fail_unless (bit_val == 0,
+  	       "The bit 0 from the stream is read as 1");
+  fail_unless (err == ERR_OK,
+  	       "readNextBit returns error code %d", err);
+  fail_unless (testStream.bitPointer == 0 && testStream.bufferIndx == 1,
+   	       "The readNextBit function did not move the bit Pointer of the stream correctly");
+
 }
 END_TEST
+
+START_TEST (test_readBits)
+{
+  EXIStream testStream;
+  testStream.bitPointer = 0;
+
+  char buf[2];
+  buf[0] = (char) 0b11010100;
+  buf[1] = (char) 0b01100000;
+  testStream.buffer = buf;
+
+  testStream.bufferIndx = 0;
+  int bits_val = 0;
+  errorCode err = UNEXPECTED_ERROR;
+
+  err = readBits(&testStream, 4, &bits_val);
+
+  fail_unless (bits_val == 13,
+	       "The bits 1101 from the stream are read as %d", bits_val);
+  fail_unless (err == ERR_OK,
+	       "readBits returns error code %d", err);
+  fail_unless (testStream.bitPointer == 4,
+  	       "The readBits function did not move the bit Pointer of the stream correctly");
+
+  // Set the bit pointer to the first byte boundary
+  testStream.bitPointer = 7;
+
+  err = readBits(&testStream, 5, &bits_val);
+
+  fail_unless (bits_val == 6,
+		      "The bits 00110 from the stream are read as %d", bits_val);
+  fail_unless (err == ERR_OK,
+    	       "readNextBit returns error code %d", err);
+  fail_unless (testStream.bitPointer == 4 && testStream.bufferIndx == 1,
+     	       "The readBits function did not move the bit Pointer of the stream correctly");
+
+}
+END_TEST
+
 
 Suite * streamIO_suite (void)
 {
@@ -79,6 +132,7 @@ Suite * streamIO_suite (void)
   /* StreamRead test case */
   TCase *tc_sRead = tcase_create ("StreamRead");
   tcase_add_test (tc_sRead, test_readNextBit);
+  tcase_add_test (tc_sRead, test_readBits);
   suite_add_tcase (s, tc_sRead);
 
   /* StreamDecode test case */
