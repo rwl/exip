@@ -33,37 +33,23 @@
 \===================================================================================*/
 
 /**
- * @file streamRead.h
- * @brief Interface to a low-level EXI stream reader
+ * @file streamWrite.c
+ * @brief Implementing the interface to a low-level EXI stream writer
  *
- * @date Jul 7, 2010
+ * @date Aug 23, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#ifndef STREAMREADER_H_
-#define STREAMREADER_H_
+#include "../include/streamWrite.h"
 
-#include "errorHandle.h"
-#include "procTypes.h"
+errorCode writeNextBit(EXIStream* strm, unsigned char bit_val)
+{
+	return NOT_IMPLEMENTED_YET;
+}
 
-/**
- * @brief Reads the next single bit from a buffer and moves its current bit pointer
- * @param[in] strm EXI stream of bits
- * @param[out] value of the next bit: 0 or 1
- * @return Error handling code
- */
-errorCode readNextBit(EXIStream* strm, unsigned char* bit_val);
-
-//TODO: consider using long for bits_val
-/**
- * @brief Read the next n bits and return the result as an integer. Moves the stream current bit pointer
- * with the number of bits read
- * @param[in] strm EXI stream of bits
- * @param[in] n The number of bits in the range [1,32].
- * @param[out] bits_val resulting bits value
- */
-errorCode readBits(EXIStream* strm, unsigned char n, unsigned int* bits_val);
-
-#endif /* STREAMREADER_H_ */
+errorCode writeBits(EXIStream* strm, unsigned char* n, unsigned int bits_val)
+{
+	return NOT_IMPLEMENTED_YET;
+}
