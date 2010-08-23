@@ -97,7 +97,7 @@ START_TEST (test_readBits)
   testStream.buffer = buf;
 
   testStream.bufferIndx = 0;
-  int bits_val = 0;
+  unsigned int bits_val = 0;
   errorCode err = UNEXPECTED_ERROR;
 
   err = readBits(&testStream, 4, &bits_val);

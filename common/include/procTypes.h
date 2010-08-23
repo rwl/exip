@@ -52,6 +52,13 @@
 #define REVERSE_BIT_POSITION(p) (7 - p)
 
 /**
+ * EXI header related macros
+ */
+#define BIT_PACKED 0
+#define BYTE_ALIGNMENT 1
+#define PRE_COMPRESSION 2
+
+/**
  * Represents an EXI stream
  */
 struct EXIStream
@@ -74,5 +81,45 @@ struct EXIStream
 };
 
 typedef struct EXIStream EXIStream;
+
+struct EXIOptions
+{
+	/**
+	 * The alignment option - BIT-PACKED, BYTE-ALIGNMENT or PRE-COMPRESSION
+	 */
+	unsigned char alignment;
+
+	/**
+	 *  The blockSize option
+	 */
+	long blockSize;
+
+	//TODO: include the other options too
+};
+
+/**
+ * Represents an EXI header
+ */
+struct EXIheader
+{
+	/**
+	 * Boolean value - 0 for lack of EXI cookie, otherwise 1
+	 */
+	unsigned char has_cookie;
+
+	/**
+	 * Boolean value - 0 for lack of EXI Options, otherwise 1
+	 */
+	unsigned char has_options;
+
+	/**
+	 * EXI stream version
+	 */
+	int version_number;
+
+	struct EXIOptions* opts;
+};
+
+typedef struct EXIheader EXIheader;
 
 #endif /* PROCTYPES_H_ */

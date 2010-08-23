@@ -33,37 +33,38 @@
 \===================================================================================*/
 
 /**
- * @file streamRead.h
- * @brief Interface to a low-level EXI stream reader
+ * @file streamWrite.h
+ * @brief Interface to a low-level EXI stream writer
  *
- * @date Jul 7, 2010
+ * @date Aug 23, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#ifndef STREAMREADER_H_
-#define STREAMREADER_H_
+#ifndef STREAMWRITE_H_
+#define STREAMWRITE_H_
 
 #include "errorHandle.h"
 #include "procTypes.h"
 
 /**
- * @brief Reads the next single bit from a buffer and moves its current bit pointer
- * @param[in] strm EXI stream of bits
- * @param[out] value of the next bit: 0 or 1
+ * @brief Writes a single bit to an EXI stream and moves its current bit pointer
+ * @param[out] strm EXI stream of bits
+ * @param[in] value of the next bit: 0 or 1
  * @return Error handling code
  */
-errorCode readNextBit(EXIStream* strm, unsigned char* bit_val);
+errorCode writeNextBit(EXIStream* strm, unsigned char bit_val);
 
 //TODO: consider using long for bits_val
 /**
- * @brief Read the next n bits and return the result as an integer. Moves the stream current bit pointer
- * with the number of bits read
- * @param[in] strm EXI stream of bits
- * @param[in] n The number of bits in the range [1,32].
- * @param[out] bits_val resulting bits value
+ * @brief Writes and unsigned integer value to an EXI stream with the least possible bits
+ * and moves the stream current bit pointer to the last bit written. The number of bits
+ * written is saved in the second parameter - n
+ * @param[out] strm EXI stream of bits
+ * @param[out] n The number of bits in the range [1,32].
+ * @param[in] bits_val resulting bits value
  */
-errorCode readBits(EXIStream* strm, unsigned char n, unsigned int* bits_val);
+errorCode writeBits(EXIStream* strm, unsigned char* n, unsigned int bits_val);
 
-#endif /* STREAMREADER_H_ */
+#endif /* STREAMWRITE_H_ */

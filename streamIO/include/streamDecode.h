@@ -52,7 +52,7 @@
 /**
  * @brief Decode EXI n-bit Unsigned Integer
  * Decodes and returns an n-bit unsigned integer.
- * @param[in,out] strm EXI stream of bits
+ * @param[in] strm EXI stream of bits
  * @param[in] n The number of bits in the range [1,32].
  * @param[out] int_val resulting n-bit unsigned integer value
  * @return Error handling code

@@ -96,7 +96,7 @@ errorCode readNextBit(EXIStream* strm, unsigned char* bit_val)
 	return ERR_OK;
 }
 
-errorCode readBits(EXIStream* strm, unsigned char n, int* bits_val)
+errorCode readBits(EXIStream* strm, unsigned char n, unsigned int* bits_val)
 {
 	//TODO: Handle error cases i.e. end of the stream and so on
 	*bits_val = 0;
