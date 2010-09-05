@@ -144,5 +144,5 @@ errorCode decodeDecimalValue(EXIStream* strm, float* dec_val);
  * @param[out] dec_val decoded decimal value as float
  * @return Error handling code
  */
-errorCode decodeFloatValue();
+errorCode decodeFloatValue(EXIStream* strm, double* dec_val);
 #endif /* STREAMDECODE_H_ */
