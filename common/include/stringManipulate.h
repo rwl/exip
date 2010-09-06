@@ -33,28 +33,28 @@
 \===================================================================================*/
 
 /**
- * @file headerDecode.h
- * @brief Interface for parsing an EXI header
- *
- * @date Aug 23, 2010
+ * @file stringManipulate.h
+ * @brief String manipulation functions
+ * @date Sep 3, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#ifndef HEADERDECODE_H_
-#define HEADERDECODE_H_
+#ifndef STRINGMANIPULATE_H_
+#define STRINGMANIPULATE_H_
 
-#include "errorHandle.h"
 #include "procTypes.h"
+#include "errorHandle.h"
 
 /**
- * @brief Decode the header of an EXI stream. The current position in the stream is set to
- * the first bit after the header. The EXIStream.EXIOptions* are set accordingly
- * @param[in] strm EXI stream of bits
- * @param[out] header the parsed header values
+ * @brief Translate the UCS [ISO/IEC 10646] code point to CharType
+ * Note! The implementation of this function is platform-specific.
+ * It depends on the representation of the characters
+ * @param[in] code_point  UCS [ISO/IEC 10646] code point
+ * @param[out] ch the character corresponding to the code_point
  * @return Error handling code
  */
-errorCode decodeHeader(EXIStream* strm, EXIheader* header);
+errorCode UCSToChar(unsigned int code_point, CharType* ch);
 
-#endif /* HEADERDECODE_H_ */
+#endif /* STRINGMANIPULATE_H_ */

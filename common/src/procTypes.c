@@ -33,28 +33,26 @@
 \===================================================================================*/
 
 /**
- * @file headerDecode.h
- * @brief Interface for parsing an EXI header
+ * @file procTypes.c
+ * @brief Support functions for the common types
  *
- * @date Aug 23, 2010
+ * @date Sep 6, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#ifndef HEADERDECODE_H_
-#define HEADERDECODE_H_
-
-#include "errorHandle.h"
 #include "procTypes.h"
 
-/**
- * @brief Decode the header of an EXI stream. The current position in the stream is set to
- * the first bit after the header. The EXIStream.EXIOptions* are set accordingly
- * @param[in] strm EXI stream of bits
- * @param[out] header the parsed header values
- * @return Error handling code
- */
-errorCode decodeHeader(EXIStream* strm, EXIheader* header);
-
-#endif /* HEADERDECODE_H_ */
+errorCode makeDefaultOpts(struct EXIOptions* opts)
+{
+	opts->alignment = BIT_PACKED;
+	opts->compression = 0;
+	opts->strict = 0;
+	opts->fragment = 0;
+	opts->preserve = 0; //TODO: fix this when the bit mask for this option is defined
+	opts->selfContained = 0;
+	opts->blockSize = 1000000;
+	opts->valueMaxLength = 0;
+	opts->valuePartitionCapacity = 0;
+}
