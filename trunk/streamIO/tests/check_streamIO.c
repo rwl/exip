@@ -48,6 +48,8 @@
 #include "procTypes.h"
 #include "errorHandle.h"
 
+/* BEGIN: streamRead tests */
+
 START_TEST (test_readNextBit)
 {
   EXIStream testStream;
@@ -124,6 +126,147 @@ START_TEST (test_readBits)
 }
 END_TEST
 
+/* END: streamRead tests */
+
+
+/* BEGIN: streamDecode tests */
+
+START_TEST (test_decodeNBitUnsignedInteger)
+{
+  EXIStream testStream;
+  testStream.bitPointer = 0;
+  struct EXIOptions options;
+  makeDefaultOpts(&options);
+  testStream.opts = &options;
+
+  char buf[2];
+  buf[0] = (char) 0b11010100;
+  buf[1] = (char) 0b01100000;
+  testStream.buffer = buf;
+
+  testStream.bufferIndx = 0;
+  unsigned int bit_val = 0;
+  errorCode err = UNEXPECTED_ERROR;
+
+  err = decodeNBitUnsignedInteger(&testStream, 6, &bit_val);
+
+  fail_unless (bit_val == 53,
+	       "The 110101 from the stream is read as %d", bit_val);
+  fail_unless (err == ERR_OK,
+	       "decodeNBitUnsignedInteger returns error code %d", err);
+  fail_unless (testStream.bitPointer == 6,
+    	       "The decodeNBitUnsignedInteger function did not move the bit Pointer of the stream correctly");
+
+  // TODO: write more extensive tests: in particular handle the situation of non-bit-packed streams
+
+}
+END_TEST
+
+START_TEST (test_decodeBoolean)
+{
+  EXIStream testStream;
+  testStream.bitPointer = 0;
+  struct EXIOptions options;
+  makeDefaultOpts(&options);
+  testStream.opts = &options;
+
+  char buf[2];
+  buf[0] = (char) 0b11010100;
+  buf[1] = (char) 0b01100000;
+  testStream.buffer = buf;
+
+  testStream.bufferIndx = 0;
+  unsigned char bit_val = 0;
+  errorCode err = UNEXPECTED_ERROR;
+
+  err = decodeBoolean(&testStream, &bit_val);
+
+  fail_unless (bit_val == 1,
+	       "The the bit 1 from the stream is read as %d", bit_val);
+  fail_unless (err == ERR_OK,
+	       "decodeBoolean returns error code %d", err);
+  fail_unless (testStream.bitPointer == 1,
+    	       "The decodeBoolean function did not move the bit Pointer of the stream correctly");
+}
+END_TEST
+
+START_TEST (test_decodeUnsignedInteger)
+{
+  EXIStream testStream;
+  testStream.bitPointer = 0;
+  struct EXIOptions options;
+  makeDefaultOpts(&options);
+  testStream.opts = &options;
+
+  char buf[3];
+  buf[0] = (char) 0b11010100;
+  buf[1] = (char) 0b01100000;
+  buf[2] = (char) 0b01001000;
+  testStream.buffer = buf;
+
+  testStream.bufferIndx = 0;
+  unsigned int bit_val = 0;
+  errorCode err = UNEXPECTED_ERROR;
+
+  err = decodeUnsignedInteger(&testStream, &bit_val);
+
+  fail_unless (bit_val == 12372,
+	       "The UnsignedInteger 12372 from the stream is read as %d", bit_val);
+  fail_unless (err == ERR_OK,
+	       "decodeUnsignedInteger returns error code %d", err);
+  fail_unless (testStream.bitPointer == 0,
+    	       "The decodeUnsignedInteger function did not move the bit Pointer of the stream correctly");
+  fail_unless (testStream.bufferIndx == 2,
+      	       "The decodeUnsignedInteger function did not move the byte Pointer of the stream correctly");
+
+  // TODO: write more extensive tests
+
+}
+END_TEST
+
+
+START_TEST (test_decodeString)
+{
+  EXIStream testStream;
+  testStream.bitPointer = 0;
+  struct EXIOptions options;
+  makeDefaultOpts(&options);
+  testStream.opts = &options;
+
+  char buf[4];
+  buf[0] = (char) 0b00000010;
+  buf[1] = (char) 0b01100101; // e - ASCII
+  buf[2] = (char) 0b01010100; // T - ASCII
+  buf[3] = (char) 0b01010010;
+  testStream.buffer = buf;
+
+  testStream.bufferIndx = 0;
+  StringType bit_val;
+  CharType cht[100];
+  bit_val.length = 0;
+  bit_val.str = cht;
+  errorCode err = UNEXPECTED_ERROR;
+
+  err = decodeString(&testStream, &bit_val);
+
+  fail_unless (bit_val.length == 2,
+	       "The String length of 2 is reported as %d from decodeString", bit_val.length);
+  fail_unless (bit_val.str[0] == 'e' && bit_val.str[1] == 'T',
+  	       "The String \"eT\" is decoded wrong by decodeString");
+  fail_unless (err == ERR_OK,
+	       "decodeString returns error code %d", err);
+  fail_unless (testStream.bitPointer == 0,
+    	       "The decodeString function did not move the bit Pointer of the stream correctly");
+  fail_unless (testStream.bufferIndx == 3,
+      	       "The decodeString function did not move the byte Pointer of the stream correctly");
+
+  // TODO: write more extensive tests
+
+}
+END_TEST
+
+
+/* END: streamDecode tests */
 
 Suite * streamIO_suite (void)
 {
@@ -137,7 +280,10 @@ Suite * streamIO_suite (void)
 
   /* StreamDecode test case */
   TCase *tc_sDecode = tcase_create ("StreamDecode");
-//  tcase_add_test (tc_sDecode, test_);
+  tcase_add_test (tc_sDecode, test_decodeNBitUnsignedInteger);
+  tcase_add_test (tc_sDecode, test_decodeBoolean);
+  tcase_add_test (tc_sDecode, test_decodeUnsignedInteger);
+  tcase_add_test (tc_sDecode, test_decodeString);
   suite_add_tcase (s, tc_sDecode);
 
   return s;

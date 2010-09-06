@@ -34,7 +34,7 @@
 
 /**
  * @file procTypes.h
- * @brief Error handling codes and function definitions
+ * @brief Common structure types used throughout the project
  *
  * @date Jul 7, 2010
  * @author Rumen Kyusakov
@@ -44,6 +44,8 @@
 
 #ifndef PROCTYPES_H_
 #define PROCTYPES_H_
+
+#include "errorHandle.h"
 
 #ifndef NULL
 #define NULL ((void *)0)
@@ -57,6 +59,25 @@
 #define BIT_PACKED 0
 #define BYTE_ALIGNMENT 1
 #define PRE_COMPRESSION 2
+
+/**
+ * Since we are working with embedded systems - exclude the UTF-8 support
+ */
+#ifndef CHAR_TYPE
+# define CHAR_TYPE unsigned char
+#endif
+// TODO: document this macro - it must be set during source build to overwrite the default behavior
+
+
+typedef CHAR_TYPE CharType;
+
+struct StringType
+{
+	CharType* str;
+	unsigned int length;
+};
+
+typedef struct StringType StringType;
 
 /**
  * Represents an EXI stream
@@ -78,9 +99,23 @@ struct EXIStream
 	 * 7 is the least significant bit position in the byte
 	 */
 	unsigned char bitPointer;
+
+	/**
+	 * The EXI Options which are derived from the EXI header. They control the
+	 * parsing and serialization of the stream.
+	 */
+	struct EXIOptions* opts;
 };
 
 typedef struct EXIStream EXIStream;
+
+
+struct DatatypeRepresentationMap
+{
+	void* TODO; //TODO: fill in the information for this structure
+};
+
+typedef struct DatatypeRepresentationMap DatatypeRepresentationMap;
 
 struct EXIOptions
 {
@@ -90,11 +125,63 @@ struct EXIOptions
 	unsigned char alignment;
 
 	/**
-	 *  The blockSize option
+	 * 0 - false; 1 - true
+	 */
+	unsigned char compression;
+
+	/**
+	 * Strict interpretation of schemas: 0 - false; 1 - true
+	 */
+	unsigned char strict;
+
+	/**
+	 * EXI fragment instead of an EXI document: 0 - false; 1 - true
+	 */
+	unsigned char fragment;
+
+
+	//TODO: define the bit mask of booleans for preserve option
+	/**
+	 * Specifies whether comments, pis, etc. are preserved - bit mask of booleans
+	 */
+	unsigned char preserve;
+
+	/**
+	 * Enables self-contained elements: 0 - false; 1 - true
+	 */
+	unsigned char selfContained;
+
+	/**
+	 * Identify the schema information, if any, used to encode the body
+	 */
+	char* schemaID;
+
+	/**
+	 * Specify alternate datatype representations for typed values in the EXI body
+	 */
+	DatatypeRepresentationMap* drMap;
+
+	/**
+	 *  Specifies the block size used for EXI compression
 	 */
 	long blockSize;
 
-	//TODO: include the other options too
+	/**
+	 * Specifies the maximum string length of value content items to be considered for addition to the string table.
+	 * 0 - unbounded
+	 */
+	long valueMaxLength;
+
+	/**
+	 * Specifies the total capacity of value partitions in a string table
+	 * 0 - unbounded
+	 */
+	long valuePartitionCapacity;
+
+	/**
+	 * User defined meta-data may be added
+	 */
+	void* user_defined_data;
 };
 
 /**
@@ -121,5 +208,16 @@ struct EXIheader
 };
 
 typedef struct EXIheader EXIheader;
+
+
+/**********************Function definitions************************/
+
+/**
+ * @brief Set the EXI options to their default values
+ *
+ * @param[in] strm EXI stream of bits
+ * @return Error handling code
+ */
+errorCode makeDefaultOpts(struct EXIOptions* opts);
 
 #endif /* PROCTYPES_H_ */

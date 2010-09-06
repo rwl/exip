@@ -92,7 +92,7 @@ errorCode decodeUnsignedInteger(EXIStream* strm, unsigned int* int_val);
  * @param[out] string_val null-terminated decoded string
  * @return Error handling code
  */
-errorCode decodeString(EXIStream* strm, char* string_val);
+errorCode decodeString(EXIStream* strm, StringType* string_val);
 
 /**
  * @brief Decode EXI Binary type
