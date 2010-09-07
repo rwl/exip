@@ -100,9 +100,10 @@ errorCode decodeString(EXIStream* strm, StringType* string_val);
  *
  * @param[in] strm EXI stream of bits
  * @param[out] binary_val decoded binary value
+ * @param[out] bytes length of decoded binary content
  * @return Error handling code
  */
-errorCode decodeBinary(EXIStream* strm, char* binary_val);
+errorCode decodeBinary(EXIStream* strm, char* binary_val, unsigned int* bytes);
 
 /**
  * @brief Decode EXI (signed) Integer type
@@ -144,5 +145,5 @@ errorCode decodeDecimalValue(EXIStream* strm, float* dec_val);
  * @param[out] dec_val decoded decimal value as float
  * @return Error handling code
  */
-errorCode decodeFloatValue(EXIStream* strm, double* dec_val);
+errorCode decodeFloatValue(EXIStream* strm, long double* double_val);
 #endif /* STREAMDECODE_H_ */
