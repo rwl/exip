@@ -129,9 +129,19 @@ errorCode decodeString(EXIStream* strm, StringType* string_val)
 	return ERR_OK;
 }
 
-errorCode decodeBinary(EXIStream* strm, char* binary_val)
+//TODO : add an [out] param for the length read
+	//TODO : Check for output buffer size
+errorCode decodeBinary(EXIStream* strm, char* binary_val, unsigned int *bytes)
 {
-	return NOT_IMPLEMENTED_YET;
+	errorcode err;
+	unsigned int length=0;
+	if(!err = decodeUnsignedInteger(strm,&length)) return err;
+	bytes = length;
+	while(length--)
+	{
+		if(!err = readBits(strm,8,binary_val++)) return err;
+	}
+	return ERR_OK;
 }
 
 errorCode decodeIntegerValue(EXIStream* strm, int* sint_val)
@@ -144,7 +154,57 @@ errorCode decodeDecimalValue(EXIStream* strm, float* dec_val)
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode decodeFloatValue(EXIStream* strm, double* dec_val)
+//Changed : 'Float Values' in EXI mean extended double precision values(80 bits - long double)
+//TODO : verify if long doubles can be supported
+errorCode decodeFloatValue(EXIStream* strm, long double* double_val)
 {
-	return NOT_IMPLEMENTED_YET;
+//refer : http://www.linuxquestions.org/questions/programming-9/c-language-inf-and-nan-437323/
+	errorcode err;
+	long double val;	// val = man * 10^exp
+	long int man;	//mantissa
+	long int exp;	//exponent
+	if(!err = decodeIntegerValue(strm,&man)) return err;
+	if(!err = decodeIntegerValue(strm,&exp)) return err;
+	if(exp == -(0x1<<14))	//if exp == -2^14
+	{
+		if(man==1)
+		{
+			//val =  +INF
+			val=0x7f800000;
+		}
+		else if(man==-1)
+		{
+			//val =  -INF
+			val=0xff800000;
+		}
+		else
+		{
+			//val = NaN
+			val=0x7fc00000;
+		}
+		return val;
+	}
+	else
+	{
+		val=man;
+		//apply the exponent  (man * 10^exp)
+		if(exp<0)
+		{
+			while(exp)
+			{
+				val*=10;
+				exp--;
+			}
+		}
+		else
+		{
+			while(exp)
+			{
+				val/=10;
+				exp++;
+			}
+		}
+	}
+	*double_val=val;
+	return ERR_OK;
 }
