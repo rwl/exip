@@ -265,6 +265,131 @@ START_TEST (test_decodeString)
 }
 END_TEST
 
+START_TEST (test_decodeBinary)
+{
+  EXIStream testStream;
+  testStream.bitPointer = 0;
+  struct EXIOptions options;
+  makeDefaultOpts(&options);
+  testStream.opts = &options;
+
+  char buf[20];
+  buf[0] = (char) 0b00000101;		//5
+  buf[1] = (char) 0b11110000;
+  buf[2] = (char) 0b11001100;
+  buf[3] = (char) 0b10101010;
+  buf[4] = (char) 0b01010101;
+  buf[5] = (char) 0b00110011;
+  buf[6] = (char) 0b00001000;		//8
+  buf[7] = (char) 0b01101110;
+  buf[8] = (char) 0b11001010;
+  buf[9] = (char) 0b01011001;
+  buf[10] = (char) 0b11011000;
+  buf[11] = (char) 0b01011001;
+  buf[12] = (char) 0b11001010;
+  buf[13] = (char) 0b01101100;
+  buf[14] = (char) 0b11011000;
+  buf[15] = (char) 0b00000111;
+  testStream.buffer = buf;
+  char testbuf[20];
+  int i;
+  for(i=0;i<21;i++) testbuf[i]=buf[i];
+  char res[20]={0};
+
+  testStream.bufferIndx = 0;
+  unsigned int bytes = 0;
+  errorCode err = UNEXPECTED_ERROR;
+//Test1:
+  err = decodeBinary(&testStream, res, &bytes);
+
+  int same=1;
+  for(i=0;i<5;i++)
+  {
+    if(res[i]!=testbuf[i+1])
+	{
+	  same=0;
+	  break;
+	}
+  }
+  
+  fail_unless (same == 1,
+	       "The binary content is read wrongly");
+  fail_unless (bytes == 5,
+	       "The length of the binary content is read as %d (actual : %d)", bytes,5);
+  fail_unless (err == ERR_OK,
+	       "decodeBinary returns error code %d", err);
+  fail_unless (testStream.bitPointer == 0,
+    	       "The decodeBinary function did not move the bit Pointer of the stream correctly");
+  fail_unless (testStream.bufferIndx == 6,
+      	       "The decodeBinary function did not move the byte Pointer of the stream correctly");
+
+//Test2:
+  bytes=0;
+  err = UNEXPECTED_ERROR;
+
+  err = decodeBinary(&testStream, res, &bytes);
+
+  int same=1;
+  for(i=0;i<8;i++)
+  {
+    if(res[i]!=testbuf[i+7])
+	{
+	  same=0;
+	  break;
+	}
+  }
+  
+  fail_unless (same == 1,
+	       "The binary content is read wrongly");
+  fail_unless (bytes == 8,
+	       "The length of the binary content is read as %d (actual : %d)", bytes,5);
+  fail_unless (err == ERR_OK,
+	       "decodeBinary returns error code %d", err);
+  fail_unless (testStream.bitPointer == 0,
+    	       "The decodeBinary function did not move the bit Pointer of the stream correctly");
+  fail_unless (testStream.bufferIndx == 15,
+      	       "The decodeBinary function did not move the byte Pointer of the stream correctly");
+
+  // TODO: write more extensive tests
+
+}
+END_TEST
+
+START_TEST (test_decodeFloat)
+{
+  EXIStream testStream;
+  testStream.bitPointer = 0;
+  struct EXIOptions options;
+  makeDefaultOpts(&options);
+  testStream.opts = &options;
+
+  char buf[3];
+  buf[0] = (char) 0b00000101;	//5
+  buf[1] = (char) 0b00000010;	//2
+  buf[2] = (char) 0b01010010;
+  testStream.buffer = buf;
+
+  testStream.bufferIndx = 0;
+  long double dbl_val = 0;
+  long double res = 500;		// 5 x 10^2
+  errorCode err = UNEXPECTED_ERROR;
+
+  err = decodeFloatValue(&testStream, &dbl_val);
+
+  fail_unless (dbl_val == res,
+	       "The float value is read as %Lf (actual : %Lf)", dbl_val, res);
+  fail_unless (err == ERR_OK,
+	       "decodeBinary returns error code %d", err);
+  fail_unless (testStream.bitPointer == 0,
+    	       "The decodeBinary function did not move the bit Pointer of the stream correctly");
+  fail_unless (testStream.bufferIndx == 2,
+      	       "The decodeBinary function did not move the byte Pointer of the stream correctly");
+
+  // TODO: write more extensive tests
+
+}
+END_TEST
+
 
 /* END: streamDecode tests */
 
