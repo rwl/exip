@@ -33,38 +33,46 @@
 \===================================================================================*/
 
 /**
- * @file streamRead.h
- * @brief Interface to a low-level EXI stream reader
- *
- * @date Jul 7, 2010
+ * @file eventTypesEXI.h
+ * @brief Definition and functions for EXI Event Types
+ * @date Sep 7, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
+#ifndef EVENTTYPESEXI_H_
+#define EVENTTYPESEXI_H_
 
-#ifndef STREAMREADER_H_
-#define STREAMREADER_H_
+struct EventType
+{
+	/**
+	 * Name           | Notation | Value
+	 * ---------------------------------
+	 * Start Document |    SD    | 0
+	 * End Document   |    ED	 | 1
+     * Start Element  |    SE ( qname )	[prefix]
+	 * SE ( uri:* )	local-name, [prefix]
+	 * SE ( * )	qname, [prefix]
+	 * End Element	EE
+	 * Attribute	AT ( qname )	[prefix]	value
+	 * AT ( uri:* )	local-name, [prefix]
+	 * AT ( * )	qname, [prefix]
+	 * Characters	CH	 	value
+	 * Namespace Declaration¹	NS	uri, prefix, local-element-ns
+	 * Comment	CM	text
+	 * Processing Instruction¹	PI	name, text
+	 * DOCTYPE	DT	name, public, system, text
+	 * Entity Reference	ER	name
+	 * Self Contained	SC */
+	unsigned char code;  // TODO: finish the description
+};
 
-#include "errorHandle.h"
-#include "procTypes.h"
+typedef struct EventType EventType;
 
-/**
- * @brief Reads the next single bit from a buffer and moves its current bit pointer
- * @param[in] strm EXI stream of bits
- * @param[out] value of the next bit: 0 or 1
- * @return Error handling code
- */
-errorCode readNextBit(EXIStream* strm, unsigned char* bit_val);
 
-//TODO: consider using long for bits_val
-/**
- * @brief Read the next n bits and return the result as an integer. Moves the stream current bit pointer
- * with the number of bits read
- * @param[in] strm EXI stream of bits
- * @param[in] n The number of bits in the range [1,32].
- * @param[out] bits_val resulting bits value
- * @return Error handling code
- */
-errorCode readBits(EXIStream* strm, unsigned char n, unsigned int* bits_val);
+struct EventCode
+{
+	void * v; //TODO: define;
+};
 
-#endif /* STREAMREADER_H_ */
+#endif /* EVENTTYPESEXI_H_ */

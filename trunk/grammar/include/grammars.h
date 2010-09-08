@@ -33,38 +33,54 @@
 \===================================================================================*/
 
 /**
- * @file streamRead.h
- * @brief Interface to a low-level EXI stream reader
- *
- * @date Jul 7, 2010
+ * @file grammars.h
+ * @brief Types and functions describing EXI grammars
+ * @date Sep 7, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#ifndef STREAMREADER_H_
-#define STREAMREADER_H_
+#ifndef GRAMMARS_H_
+#define GRAMMARS_H_
 
 #include "errorHandle.h"
-#include "procTypes.h"
+#include "eventsEXI.h"
+#include "grammarRules.h"
+
+struct EXIGrammar
+{
+	GrammarRule* ruleArray; // Array of grammar rules which constitute that grammar
+	unsigned int rulesDimension; // The size of the array
+	struct EXIGrammar* nextInStack;
+};
+
+typedef struct EXIGrammar EXIGrammarStack; // Used to differentiate between single grammar (nextInStack == NULL) and stack of grammars
 
 /**
- * @brief Reads the next single bit from a buffer and moves its current bit pointer
+ * @brief Process the next grammar production in the Current Grammar
+ * Returns the terminal symbol of the production i.e. the EXI Event Type;
  * @param[in] strm EXI stream of bits
- * @param[out] value of the next bit: 0 or 1
+ * @param[in, out] grStack Current Grammar stack
+ * @param[out] eType the terminal part of the production
  * @return Error handling code
  */
-errorCode readNextBit(EXIStream* strm, unsigned char* bit_val);
+errorCode processNextProduction(EXIStream* strm, EXIGrammarStack* grStack, EventType* eType);
 
-//TODO: consider using long for bits_val
 /**
- * @brief Read the next n bits and return the result as an integer. Moves the stream current bit pointer
- * with the number of bits read
- * @param[in] strm EXI stream of bits
- * @param[in] n The number of bits in the range [1,32].
- * @param[out] bits_val resulting bits value
+ * @brief Push a grammar on top of the Grammar Stack
+ * @param[in, out] gStack the Grammar Stack
+ * @param[in] grammar a grammar
  * @return Error handling code
  */
-errorCode readBits(EXIStream* strm, unsigned char n, unsigned int* bits_val);
+errorCode pushGrammar(EXIGrammarStack* gStack, struct EXIGrammar* grammar);
 
-#endif /* STREAMREADER_H_ */
+/**
+ * @brief Pop a grammar off the top of the Grammar Stack
+ * @param[in, out] grStack the Grammar stack
+ * @param[out] grammar the terminal part of the production
+ * @return Error handling code
+ */
+errorCode popGrammar(EXIGrammarStack* gStack, struct EXIGrammar* grammar);
+
+#endif /* GRAMMARS_H_ */

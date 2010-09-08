@@ -33,38 +33,19 @@
 \===================================================================================*/
 
 /**
- * @file streamRead.h
- * @brief Interface to a low-level EXI stream reader
- *
- * @date Jul 7, 2010
+ * @file bodyDecode.h
+ * @brief API for decoding EXI stream body
+ * @date Sep 7, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#ifndef STREAMREADER_H_
-#define STREAMREADER_H_
+#ifndef BODYDECODE_H_
+#define BODYDECODE_H_
 
-#include "errorHandle.h"
-#include "procTypes.h"
+#include "contentHandler.h"
 
-/**
- * @brief Reads the next single bit from a buffer and moves its current bit pointer
- * @param[in] strm EXI stream of bits
- * @param[out] value of the next bit: 0 or 1
- * @return Error handling code
- */
-errorCode readNextBit(EXIStream* strm, unsigned char* bit_val);
+void parseEXI(EXIStream* strm, ContentHandler* handler);
 
-//TODO: consider using long for bits_val
-/**
- * @brief Read the next n bits and return the result as an integer. Moves the stream current bit pointer
- * with the number of bits read
- * @param[in] strm EXI stream of bits
- * @param[in] n The number of bits in the range [1,32].
- * @param[out] bits_val resulting bits value
- * @return Error handling code
- */
-errorCode readBits(EXIStream* strm, unsigned char n, unsigned int* bits_val);
-
-#endif /* STREAMREADER_H_ */
+#endif /* BODYDECODE_H_ */

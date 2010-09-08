@@ -33,38 +33,38 @@
 \===================================================================================*/
 
 /**
- * @file streamRead.h
- * @brief Interface to a low-level EXI stream reader
- *
- * @date Jul 7, 2010
+ * @file contentHandler.h
+ * @brief SAX-like interface for parsing the content of an EXI stream
+ * The applications should register to this handlers with callback functions
+ * invoked when the processor pass through the stream
+ * @date Sep 7, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#ifndef STREAMREADER_H_
-#define STREAMREADER_H_
+#ifndef CONTENTHANDLER_H_
+#define CONTENTHANDLER_H_
 
-#include "errorHandle.h"
-#include "procTypes.h"
+struct ContentHandler
+{
+	void (*startDocument)();
+	void (*endDocument)();
+	void (*startElement)(); // TODO: define the parameters. Attributes included!
+	void (*endElement)(); // TODO: define the parameters!
+	void (*intData)(); // TODO: define the parameters!
+	void (*stringData)(); // TODO: define the parameters!
+	void (*floatData)(); // TODO: define the parameters!
+	void (*binaryData)(); // TODO: define the parameters!
 
-/**
- * @brief Reads the next single bit from a buffer and moves its current bit pointer
- * @param[in] strm EXI stream of bits
- * @param[out] value of the next bit: 0 or 1
- * @return Error handling code
- */
-errorCode readNextBit(EXIStream* strm, unsigned char* bit_val);
+	void (*processingInstruction)(); // TODO: define the parameters!
 
-//TODO: consider using long for bits_val
-/**
- * @brief Read the next n bits and return the result as an integer. Moves the stream current bit pointer
- * with the number of bits read
- * @param[in] strm EXI stream of bits
- * @param[in] n The number of bits in the range [1,32].
- * @param[out] bits_val resulting bits value
- * @return Error handling code
- */
-errorCode readBits(EXIStream* strm, unsigned char n, unsigned int* bits_val);
+	void (*warning)(); // TODO: define the parameters!
+	void (*error)(); // TODO: define the parameters!
+	void (*fatalError)(); // TODO: define the parameters!
+};
 
-#endif /* STREAMREADER_H_ */
+typedef struct ContentHandler ContentHandler;
+
+
+#endif /* CONTENTHANDLER_H_ */
