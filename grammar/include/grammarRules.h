@@ -33,38 +33,35 @@
 \===================================================================================*/
 
 /**
- * @file streamRead.h
- * @brief Interface to a low-level EXI stream reader
- *
- * @date Jul 7, 2010
+ * @file grammarRules.h
+ * @brief Types and functions describing EXI grammar rules
+ * @date Sep 8, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#ifndef STREAMREADER_H_
-#define STREAMREADER_H_
+#ifndef GRAMMARRULES_H_
+#define GRAMMARRULES_H_
 
-#include "errorHandle.h"
-#include "procTypes.h"
+#include "eventsEXI.h"
 
-/**
- * @brief Reads the next single bit from a buffer and moves its current bit pointer
- * @param[in] strm EXI stream of bits
- * @param[out] value of the next bit: 0 or 1
- * @return Error handling code
- */
-errorCode readNextBit(EXIStream* strm, unsigned char* bit_val);
+struct Production
+{
+	EventCode code;
+	EventType eType;
+	unsigned int nonTermID; // unique identifier of right-hand side Non-terminal
+};
 
-//TODO: consider using long for bits_val
-/**
- * @brief Read the next n bits and return the result as an integer. Moves the stream current bit pointer
- * with the number of bits read
- * @param[in] strm EXI stream of bits
- * @param[in] n The number of bits in the range [1,32].
- * @param[out] bits_val resulting bits value
- * @return Error handling code
- */
-errorCode readBits(EXIStream* strm, unsigned char n, unsigned int* bits_val);
+typedef struct Production Production;
 
-#endif /* STREAMREADER_H_ */
+struct GrammarRule
+{
+	unsigned int nonTermID; // unique identifier of left-hand side Non-terminal
+	Production* prodArray; // Array of grammar productions included in that rule
+	unsigned int prodDimension; // The size of the productions' array
+};
+
+typedef struct GrammarRule GrammarRule;
+
+#endif /* GRAMMARRULES_H_ */

@@ -409,6 +409,8 @@ Suite * streamIO_suite (void)
   tcase_add_test (tc_sDecode, test_decodeBoolean);
   tcase_add_test (tc_sDecode, test_decodeUnsignedInteger);
   tcase_add_test (tc_sDecode, test_decodeString);
+  tcase_add_test (tc_sDecode, test_decodeBinary);
+  tcase_add_test (tc_sDecode, test_decodeFloat);
   suite_add_tcase (s, tc_sDecode);
 
   return s;

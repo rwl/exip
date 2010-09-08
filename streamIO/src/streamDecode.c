@@ -133,7 +133,7 @@ errorCode decodeString(EXIStream* strm, StringType* string_val)
 	//TODO : Check for output buffer size
 errorCode decodeBinary(EXIStream* strm, char* binary_val, unsigned int *bytes)
 {
-	errorcode err;
+	errorCode err;
 	unsigned int length=0;
 	if(!err = decodeUnsignedInteger(strm,&length)) return err;
 	bytes = length;
