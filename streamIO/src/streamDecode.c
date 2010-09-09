@@ -129,17 +129,23 @@ errorCode decodeString(EXIStream* strm, StringType* string_val)
 	return ERR_OK;
 }
 
-//TODO : add an [out] param for the length read
+//TODO : add an [in] param for buffer size
 	//TODO : Check for output buffer size
 errorCode decodeBinary(EXIStream* strm, char* binary_val, unsigned int *bytes)
 {
 	errorCode err;
 	unsigned int length=0;
-	if(!err = decodeUnsignedInteger(strm,&length)) return err;
-	bytes = length;
+	int int_val=0;
+
+	err = decodeUnsignedInteger(strm,&length);
+	if(err!=ERR_OK) return err;
+	*bytes = length;
 	while(length--)
 	{
-		if(!err = readBits(strm,8,binary_val++)) return err;
+		err = readBits(strm,8,&int_val);
+		if(err!=ERR_OK) return err;
+		*binary_val=(char)int_val;
+		binary_val++;
 	}
 	return ERR_OK;
 }
@@ -159,12 +165,17 @@ errorCode decodeDecimalValue(EXIStream* strm, float* dec_val)
 errorCode decodeFloatValue(EXIStream* strm, long double* double_val)
 {
 //refer : http://www.linuxquestions.org/questions/programming-9/c-language-inf-and-nan-437323/
-	errorcode err;
+	errorCode err;
+
 	long double val;	// val = man * 10^exp
-	long int man;	//mantissa
-	long int exp;	//exponent
-	if(!err = decodeIntegerValue(strm,&man)) return err;
-	if(!err = decodeIntegerValue(strm,&exp)) return err;
+	int man;	//mantissa
+	int exp;	//exponent
+
+	err = decodeIntegerValue(strm,&man);	//decode mantissa
+	if(err!=ERR_OK) return err;
+	err = decodeIntegerValue(strm,&exp);	//decode exponent
+	if(err!=ERR_OK) return err;
+
 	if(exp == -(0x1<<14))	//if exp == -2^14
 	{
 		if(man==1)
@@ -182,13 +193,12 @@ errorCode decodeFloatValue(EXIStream* strm, long double* double_val)
 			//val = NaN
 			val=0x7fc00000;
 		}
-		return val;
 	}
 	else
 	{
 		val=man;
 		//apply the exponent  (man * 10^exp)
-		if(exp<0)
+		if(exp>0)
 		{
 			while(exp)
 			{
