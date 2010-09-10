@@ -38,6 +38,7 @@
  *
  * @date Aug 18, 2010
  * @author Rumen Kyusakov
+ * @author Ashok Gowtham
  * @version 0.1
  * @par[Revision] $Id$
  */
@@ -376,10 +377,6 @@ START_TEST (test_decodeFloat)
 
   err = decodeFloatValue(&testStream, &dbl_val);
 
-
-//decodeIntegervalue not yet implemented
-//TODO: uncomment after implementing decodeIntegervalue
-/*
   fail_unless (err == ERR_OK,
 	       "decodeFloat returns error code %d", err);
   fail_unless (dbl_val == res,
@@ -388,8 +385,40 @@ START_TEST (test_decodeFloat)
     	       "The decodeBinary function did not move the bit Pointer of the stream correctly");
   fail_unless (testStream.bufferIndx == 2,
       	       "The decodeBinary function did not move the byte Pointer of the stream correctly");
-*/
 
+  // TODO: write more extensive tests
+
+}
+END_TEST
+
+START_TEST (test_decodeIntegerValue)
+{
+  EXIStream testStream;
+  testStream.bitPointer = 0;
+  struct EXIOptions options;
+  makeDefaultOpts(&options);
+  testStream.opts = &options;
+
+  char buf[3];
+  buf[0] = (char) 0b10010100;
+  buf[1] = (char) 0b01100000;
+  buf[2] = (char) 0b01001000;
+  testStream.buffer = buf;
+
+  testStream.bufferIndx = 0;
+  int bit_val = 0;
+  errorCode err = UNEXPECTED_ERROR;
+
+  err = decodeIntegerValue(&testStream, &bit_val);
+
+  fail_unless (bit_val == -40,
+	       "The IntegerValue -40 from the stream is read as %d", bit_val);
+  fail_unless (err == ERR_OK,
+	       "decodeIntegerValue returns error code %d", err);
+  fail_unless (testStream.bitPointer == 1,
+    	       "The decodeIntegerValue function did not move the bit Pointer of the stream correctly");
+  fail_unless (testStream.bufferIndx == 1,
+      	       "The decodeIntegerValue function did not move the byte Pointer of the stream correctly");
 
   // TODO: write more extensive tests
 
@@ -416,6 +445,7 @@ Suite * streamIO_suite (void)
   tcase_add_test (tc_sDecode, test_decodeString);
   tcase_add_test (tc_sDecode, test_decodeBinary);
   tcase_add_test (tc_sDecode, test_decodeFloat);
+  tcase_add_test (tc_sDecode, test_decodeIntegerValue);
   suite_add_tcase (s, tc_sDecode);
 
   return s;
