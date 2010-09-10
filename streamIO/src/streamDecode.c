@@ -38,6 +38,7 @@
  *
  * @date Aug 18, 2010
  * @author Rumen Kyusakov
+ * @author Ashok Gowtham
  * @version 0.1
  * @par[Revision] $Id$
  */
@@ -152,7 +153,29 @@ errorCode decodeBinary(EXIStream* strm, char* binary_val, unsigned int *bytes)
 
 errorCode decodeIntegerValue(EXIStream* strm, int* sint_val)
 {
-	return NOT_IMPLEMENTED_YET;
+	// TODO: If there is associated schema datatype handle differently!
+	// TODO: check if the result fit into int type
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	unsigned char bool_val = 0;
+	tmp_err_code = decodeBoolean(strm, &bool_val);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+	if(bool_val == 0) // A sign value of zero (0) is used to represent positive integers
+	{
+		tmp_err_code = decodeUnsignedInteger(strm, sint_val);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else if(bool_val == 1) // A sign value of one (1) is used to represent negative integers
+	{
+		tmp_err_code = decodeUnsignedInteger(strm, sint_val);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		*sint_val = -*sint_val;
+	}
+	else
+		return UNEXPECTED_ERROR;
+	return ERR_OK;
 }
 
 errorCode decodeDecimalValue(EXIStream* strm, float* dec_val)
