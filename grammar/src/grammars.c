@@ -33,64 +33,102 @@
 \===================================================================================*/
 
 /**
- * @file grammars.h
- * @brief Types and functions describing EXI grammars
- * @date Sep 7, 2010
+ * @file grammars.c
+ * @brief Defines grammar related functions
+ * @date Sep 13, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#ifndef GRAMMARS_H_
-#define GRAMMARS_H_
+#ifndef BUILTINDOCGRAMMAR_H_
+#define BUILTINDOCGRAMMAR_H_
 
-#include "errorHandle.h"
-#include "eventsEXI.h"
-#include "grammarRules.h"
+#include "../include/grammars.h"
 #include "procTypes.h"
 
-struct EXIGrammar
+#define DEF_GRAMMAR_RULE_NUMBER 3
+
+errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar)
 {
-	GrammarRule* ruleArray; // Array of grammar rules which constitute that grammar
-	unsigned int rulesDimension; // The size of the array
-	struct EXIGrammar* nextInStack;
-};
+	//TODO: depends on the EXI fidelity options! Take this into account
 
-typedef struct EXIGrammar EXIGrammarStack; // Used to differentiate between single grammar (nextInStack == NULL) and stack of grammars
+	buildInGrammar->nextInStack = NULL;
+	buildInGrammar->rulesDimension = DEF_GRAMMAR_RULE_NUMBER;
+	buildInGrammar->ruleArray = (GrammarRule*) EXIP_MALLOC(sizeof(buildInGrammar->ruleArray)*DEF_GRAMMAR_RULE_NUMBER);
+	if(buildInGrammar->ruleArray == NULL)
+		return MEMORY_ALLOCATION_ERROR;
 
-/**
- * @brief Process the next grammar production in the Current Grammar
- * Returns the terminal symbol of the production i.e. the EXI Event Type;
- * @param[in] strm EXI stream of bits
- * @param[in, out] grStack Current Grammar stack
- * @param[out] eType the terminal part of the production
- * @return Error handling code
- */
-errorCode processNextProduction(EXIStream* strm, EXIGrammarStack* grStack, EventType* eType);
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
-/**
- * @brief Push a grammar on top of the Grammar Stack
- * @param[in, out] gStack the Grammar Stack
- * @param[in] grammar a grammar
- * @return Error handling code
- */
-errorCode pushGrammar(EXIGrammarStack* gStack, struct EXIGrammar* grammar);
+	/* Document : SD DocContent	0 */
+	tmp_err_code = initGrammarRule(&(buildInGrammar->ruleArray[0]));
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+	buildInGrammar->ruleArray[0].nonTermID = GR_DOCUMENT;
+	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[0]), getEventCode1(0), EVENT_SD, GR_DOC_CONTENT);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
-/**
- * @brief Pop a grammar off the top of the Grammar Stack
- * @param[in, out] grStack the Grammar stack
- * @param[out] grammar the terminal part of the production
- * @return Error handling code
- */
-errorCode popGrammar(EXIGrammarStack* gStack, struct EXIGrammar* grammar);
+	/*
+	   DocContent :
+					SE (*) DocEnd	0
+					DT DocContent	1.0
+					CM DocContent	1.1.0
+					PI DocContent	1.1.1
+	 */
+	tmp_err_code = initGrammarRule(&(buildInGrammar->ruleArray[1]));
+	if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	buildInGrammar->ruleArray[1].nonTermID = GR_DOC_CONTENT;
+
+	/* SE (*) DocEnd	0 */
+	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[1]), getEventCode1(0), EVENT_SE_ALL, GR_DOC_END);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	/* DT DocContent	1.0 */
+	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[1]), getEventCode2(1,0), EVENT_DT, GR_DOC_CONTENT);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	/* CM DocContent	1.1.0 */
+	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[1]), getEventCode3(1,1,0), EVENT_CM, GR_DOC_CONTENT);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	/* PI DocContent	1.1.1 */
+	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[1]), getEventCode3(1,1,1), EVENT_PI, GR_DOC_CONTENT);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 
-//TODO: depends on the EXI fidelity options! Take this into account
-/**
- * @brief Creates an instance of the EXI Built-in Document Grammar
- * @param[in] buildInGrammar empty grammar container
- * @return Error handling code
- */
-errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar);
+	/* DocEnd :
+				ED	0
+				CM DocEnd	1.0
+				PI DocEnd	1.1 */
+	tmp_err_code = initGrammarRule(&(buildInGrammar->ruleArray[2]));
+	if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	buildInGrammar->ruleArray[2].nonTermID = GR_DOC_END;
 
-#endif /* GRAMMARS_H_ */
+	/* ED	0 */
+	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[2]), getEventCode1(0), EVENT_ED, GR_VOID_NON_TERMINAL);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	/* CM DocEnd	1.0  */
+	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[2]), getEventCode2(1,0), EVENT_CM, GR_DOC_END);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	/* PI DocEnd	1.1 */
+	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[2]), getEventCode2(1,1), EVENT_PI, GR_DOC_END);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	return ERR_OK;
+}
+
+
+#endif /* BUILTINDOCGRAMMAR_H_ */

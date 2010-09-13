@@ -45,6 +45,16 @@
 #define GRAMMARRULES_H_
 
 #include "eventsEXI.h"
+#include "errorHandle.h"
+
+// Defines the initial dimension of the dynamic array - prodArray
+#define DEFAULT_PROD_ARRAY_DIM 10
+
+// Define Built-in Document Grammar non-terminals
+#define GR_VOID_NON_TERMINAL 0 // Used to indicate that the production does not have NON_TERMINAL
+#define GR_DOCUMENT 1
+#define GR_DOC_CONTENT 2
+#define GR_DOC_END 3
 
 struct Production
 {
@@ -59,9 +69,27 @@ struct GrammarRule
 {
 	unsigned int nonTermID; // unique identifier of left-hand side Non-terminal
 	Production* prodArray; // Array of grammar productions included in that rule
-	unsigned int prodDimension; // The size of the productions' array
+	unsigned int prodCount; // The number of productions in this Grammar Rule
+	unsigned int prodDimension; // The size of the productions' array /allocated space for Productions/
 };
 
 typedef struct GrammarRule GrammarRule;
+
+/**
+ * @brief Initialize the dynamic array prodArray with the default size
+ * @param[in, out] rule a Grammar Rule
+ * @return Error handling code
+ */
+errorCode initGrammarRule(GrammarRule* rule);
+
+/**
+ * @brief Adds a Production to a Grammar Rule
+ * @param[in, out] rule a Grammar Rule
+ * @param[in] eCode event code
+ * @param[in] eType event type
+ * @param[in] nonTermID unique identifier of right-hand side Non-terminal
+ * @return Error handling code
+ */
+errorCode addProduction(GrammarRule* rule, EventCode eCode, EventType eType, unsigned int nonTermID);
 
 #endif /* GRAMMARRULES_H_ */

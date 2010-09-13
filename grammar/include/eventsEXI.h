@@ -43,36 +43,79 @@
 #ifndef EVENTTYPESEXI_H_
 #define EVENTTYPESEXI_H_
 
-struct EventType
-{
-	/**
-	 * Name           | Notation | Value
-	 * ---------------------------------
-	 * Start Document |    SD    | 0
-	 * End Document   |    ED	 | 1
-     * Start Element  |    SE ( qname )	[prefix]
-	 * SE ( uri:* )	local-name, [prefix]
-	 * SE ( * )	qname, [prefix]
-	 * End Element	EE
-	 * Attribute	AT ( qname )	[prefix]	value
-	 * AT ( uri:* )	local-name, [prefix]
-	 * AT ( * )	qname, [prefix]
-	 * Characters	CH	 	value
-	 * Namespace Declaration¹	NS	uri, prefix, local-element-ns
-	 * Comment	CM	text
-	 * Processing Instruction¹	PI	name, text
-	 * DOCTYPE	DT	name, public, system, text
-	 * Entity Reference	ER	name
-	 * Self Contained	SC */
-	unsigned char code;  // TODO: finish the description
-};
+#include "errorHandle.h"
 
-typedef struct EventType EventType;
+#define EVENT_SD       0
+#define EVENT_ED       1
+#define EVENT_SE_QNAME 2
+#define EVENT_SE_URI   3
+#define EVENT_SE_ALL   4
+#define EVENT_EE       5
+#define EVENT_AT_QNAME 6
+#define EVENT_AT_URI   7
+#define EVENT_AT_ALL   8
+#define EVENT_CH       9
+#define EVENT_NS      10
+#define EVENT_CM      11
+#define EVENT_PI      12
+#define EVENT_DT      13
+#define EVENT_ER      14
+#define EVENT_SC      15
+
+
+/****************************************
+ * Name           |   Notation   | Value
+ * -------------------------------------
+ * Start Document |      SD      |  0
+ * End Document   |      ED      |  1
+ * Start Element  |  SE( qname ) |  2
+ * Start Element  |  SE( uri:* ) |  3
+ * Start Element  |  SE( * )	 |  4
+ * End Element	  |      EE      |  5
+ * Attribute	  |  AT( qname ) |  6
+ * Attribute      |  AT( uri:* ) |  7
+ * Attribute      |  AT( * )     |  8
+ * Characters	  |      CH      |  9
+ * Nm-space Decl  |	     NS	     | 10
+ * Comment	      |      CM      | 11
+ * Proc. Instr.   |      PI      | 12
+ * DOCTYPE	      |      DT      | 13
+ * Entity Ref.    |      ER      | 14
+ * Self Contained |      SC      | 15
+ ****************************************/
+typedef unsigned char EventType;
 
 
 struct EventCode
 {
-	void * v; //TODO: define;
+	unsigned int code[3];
+	unsigned char size; // The number of integers constituting the EventCode
 };
+
+typedef struct EventCode EventCode;
+
+/**
+ * @brief Creates an EventCode instance giving its 3 integer parts
+ * @param[in] first first part
+ * @param[in] second second part
+ * @param[in] third third part
+ * @return EventCode the newly created Event Code
+ */
+EventCode getEventCode3(unsigned int first, unsigned int second, unsigned int third);
+
+/**
+ * @brief Creates an EventCode instance giving its 2 integer parts
+ * @param[in] first first part
+ * @param[in] second second part
+ * @return EventCode the newly created Event Code
+ */
+EventCode getEventCode2(unsigned int first, unsigned int second);
+
+/**
+ * @brief Creates an EventCode instance giving its 1 integer parts
+ * @param[in] first first part
+ * @return EventCode the newly created Event Code
+ */
+EventCode getEventCode1(unsigned int first);
 
 #endif /* EVENTTYPESEXI_H_ */
