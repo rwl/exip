@@ -33,64 +33,39 @@
 \===================================================================================*/
 
 /**
- * @file grammars.h
- * @brief Types and functions describing EXI grammars
- * @date Sep 7, 2010
+ * @file eventsEXI.c
+ * @brief Defines events related functions
+ * @date Sep 13, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#ifndef GRAMMARS_H_
-#define GRAMMARS_H_
+#include "../include/eventsEXI.h"
 
-#include "errorHandle.h"
-#include "eventsEXI.h"
-#include "grammarRules.h"
-#include "procTypes.h"
-
-struct EXIGrammar
+EventCode getEventCode3(unsigned int first, unsigned int second, unsigned int third)
 {
-	GrammarRule* ruleArray; // Array of grammar rules which constitute that grammar
-	unsigned int rulesDimension; // The size of the array
-	struct EXIGrammar* nextInStack;
-};
+	EventCode res;
+	res.size = 3;
+	res.code[0] = first;
+	res.code[1] = second;
+	res.code[2] = third;
+	return res;
+}
 
-typedef struct EXIGrammar EXIGrammarStack; // Used to differentiate between single grammar (nextInStack == NULL) and stack of grammars
+EventCode getEventCode2(unsigned int first, unsigned int second)
+{
+	EventCode res;
+	res.size = 2;
+	res.code[0] = first;
+	res.code[1] = second;
+	return res;
+}
 
-/**
- * @brief Process the next grammar production in the Current Grammar
- * Returns the terminal symbol of the production i.e. the EXI Event Type;
- * @param[in] strm EXI stream of bits
- * @param[in, out] grStack Current Grammar stack
- * @param[out] eType the terminal part of the production
- * @return Error handling code
- */
-errorCode processNextProduction(EXIStream* strm, EXIGrammarStack* grStack, EventType* eType);
-
-/**
- * @brief Push a grammar on top of the Grammar Stack
- * @param[in, out] gStack the Grammar Stack
- * @param[in] grammar a grammar
- * @return Error handling code
- */
-errorCode pushGrammar(EXIGrammarStack* gStack, struct EXIGrammar* grammar);
-
-/**
- * @brief Pop a grammar off the top of the Grammar Stack
- * @param[in, out] grStack the Grammar stack
- * @param[out] grammar the terminal part of the production
- * @return Error handling code
- */
-errorCode popGrammar(EXIGrammarStack* gStack, struct EXIGrammar* grammar);
-
-
-//TODO: depends on the EXI fidelity options! Take this into account
-/**
- * @brief Creates an instance of the EXI Built-in Document Grammar
- * @param[in] buildInGrammar empty grammar container
- * @return Error handling code
- */
-errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar);
-
-#endif /* GRAMMARS_H_ */
+EventCode getEventCode1(unsigned int first)
+{
+	EventCode res;
+	res.size = 1;
+	res.code[0] = first;
+	return res;
+}

@@ -53,6 +53,9 @@ typedef char errorCode;
 /** No error, everything OK. */
 #define ERR_OK    0
 
+/** Unsuccessful memory allocation */
+#define MEMORY_ALLOCATION_ERROR -1;
+
 /** Any error that does not fall into the other categories */
 #define UNEXPECTED_ERROR -126
 

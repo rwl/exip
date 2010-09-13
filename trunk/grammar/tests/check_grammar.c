@@ -33,64 +33,52 @@
 \===================================================================================*/
 
 /**
- * @file grammars.h
- * @brief Types and functions describing EXI grammars
- * @date Sep 7, 2010
+ * @file check_grammar.c
+ * @brief Tests the EXI grammar module
+ *
+ * @date Sep 13, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#ifndef GRAMMARS_H_
-#define GRAMMARS_H_
+#include <stdlib.h>
+#include <check.h>
+#include "../include/grammars.h"
 
-#include "errorHandle.h"
-#include "eventsEXI.h"
-#include "grammarRules.h"
-#include "procTypes.h"
+/* BEGIN: grammars tests */
 
-struct EXIGrammar
+START_TEST (test_getBuildInDocGrammar)
 {
-	GrammarRule* ruleArray; // Array of grammar rules which constitute that grammar
-	unsigned int rulesDimension; // The size of the array
-	struct EXIGrammar* nextInStack;
-};
+  fail("Not implemented yet!");
+}
+END_TEST
 
-typedef struct EXIGrammar EXIGrammarStack; // Used to differentiate between single grammar (nextInStack == NULL) and stack of grammars
+/* END: grammars tests */
 
-/**
- * @brief Process the next grammar production in the Current Grammar
- * Returns the terminal symbol of the production i.e. the EXI Event Type;
- * @param[in] strm EXI stream of bits
- * @param[in, out] grStack Current Grammar stack
- * @param[out] eType the terminal part of the production
- * @return Error handling code
- */
-errorCode processNextProduction(EXIStream* strm, EXIGrammarStack* grStack, EventType* eType);
+Suite * grammar_suite (void)
+{
+  Suite *s = suite_create ("grammar");
 
-/**
- * @brief Push a grammar on top of the Grammar Stack
- * @param[in, out] gStack the Grammar Stack
- * @param[in] grammar a grammar
- * @return Error handling code
- */
-errorCode pushGrammar(EXIGrammarStack* gStack, struct EXIGrammar* grammar);
+  /* Grammars test case */
+  TCase *tc_gGrammars = tcase_create ("Grammars");
+  tcase_add_test (tc_gGrammars, test_getBuildInDocGrammar);
+  suite_add_tcase (s, tc_gGrammars);
 
-/**
- * @brief Pop a grammar off the top of the Grammar Stack
- * @param[in, out] grStack the Grammar stack
- * @param[out] grammar the terminal part of the production
- * @return Error handling code
- */
-errorCode popGrammar(EXIGrammarStack* gStack, struct EXIGrammar* grammar);
+  /* Events test case */
+//  TCase *tc_gEvents = tcase_create ("Events");
+//  suite_add_tcase (s, tc_gEvents);
 
+  return s;
+}
 
-//TODO: depends on the EXI fidelity options! Take this into account
-/**
- * @brief Creates an instance of the EXI Built-in Document Grammar
- * @param[in] buildInGrammar empty grammar container
- * @return Error handling code
- */
-errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar);
-
-#endif /* GRAMMARS_H_ */
+int main (void)
+{
+	int number_failed;
+	Suite *s = grammar_suite();
+	SRunner *sr = srunner_create (s);
+	srunner_run_all (sr, CK_NORMAL);
+	number_failed = srunner_ntests_failed (sr);
+	srunner_free (sr);
+	return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+}

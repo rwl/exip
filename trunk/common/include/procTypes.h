@@ -77,6 +77,18 @@ struct StringType
 	unsigned int length;
 };
 
+/**
+ * Define the memory allocation function
+ */
+#define EXIP_MALLOC malloc  //TODO: document this macro
+#include <stdlib.h>         //TODO: make it conditional!
+
+/**
+ * Define the memory freeing function
+ */
+#define EXIP_MFREE free  //TODO: document this macro
+
+
 typedef struct StringType StringType;
 
 /**
