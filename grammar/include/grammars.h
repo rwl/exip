@@ -63,10 +63,12 @@ typedef struct EXIGrammar EXIGrammarStack; // Used to differentiate between sing
  * Returns the terminal symbol of the production i.e. the EXI Event Type;
  * @param[in] strm EXI stream of bits
  * @param[in, out] grStack Current Grammar stack
+ * @param[in] nonTermID_in unique identifier of left-hand side Non-terminal
  * @param[out] eType the terminal part of the production
+ * @param[out] nonTermID_out unique identifier of right-hand side Non-terminal
  * @return Error handling code
  */
-errorCode processNextProduction(EXIStream* strm, EXIGrammarStack* grStack, EventType* eType);
+errorCode processNextProduction(EXIStream* strm, EXIGrammarStack* grStack, unsigned int nonTermID_in, EventType* eType, unsigned int* nonTermID_out);
 
 /**
  * @brief Push a grammar on top of the Grammar Stack

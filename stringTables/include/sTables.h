@@ -33,64 +33,80 @@
 \===================================================================================*/
 
 /**
- * @file grammarRules.h
- * @brief Types and functions describing EXI grammar rules
- * @date Sep 8, 2010
+ * @file sTables.h
+ * @brief Types and functions describing EXI sting tables
+ * @date Sep 14, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#ifndef GRAMMARRULES_H_
-#define GRAMMARRULES_H_
+#ifndef STABLES_H_
+#define STABLES_H_
 
-#include "eventsEXI.h"
-#include "errorHandle.h"
+#include "procTypes.h"
 
-// Defines the initial dimension of the dynamic array - prodArray
-#define DEFAULT_PROD_ARRAY_DIM 10
-
-// Define Built-in Document Grammar non-terminals
-#define GR_VOID_NON_TERMINAL 0 // Used to indicate that the production does not have NON_TERMINAL
-#define GR_DOCUMENT 1
-#define GR_DOC_CONTENT 2
-#define GR_DOC_END 3
-
-struct Production
-{
-	EventCode code;
-	EventType eType;
-	unsigned int nonTermID; // unique identifier of right-hand side Non-terminal
+struct ValueRow {
+	unsigned int globalId;
+	StringType* string_val;
 };
 
-typedef struct Production Production;
-
-struct GrammarRule
-{
-	unsigned int nonTermID; // unique identifier of left-hand side Non-terminal
-	Production* prodArray; // Array of grammar productions included in that rule
-	unsigned int prodCount; // The number of productions in this Grammar Rule
-	unsigned int prodDimension; // The size of the productions' array /allocated space for Productions/
-	unsigned char bits[3]; // The number of bits used for the integers constituting the EventCode
+struct ValueTable {
+	struct ValueRow* rows; // Dynamic array
+	unsigned int rowCount; // The number of rows
+	unsigned int arrayDimension; // The size of the Dynamic array
 };
 
-typedef struct GrammarRule GrammarRule;
+typedef struct ValueTable ValueTable;
 
-/**
- * @brief Initialize the dynamic array prodArray with the default size
- * @param[in, out] rule a Grammar Rule
- * @return Error handling code
- */
-errorCode initGrammarRule(GrammarRule* rule);
+struct ValueLocalCrossTable {
+	unsigned int* valueRowIds; // Dynamic array
+	unsigned int rowCount; // The number of rows
+	unsigned int arrayDimension; // The size of the Dynamic array
+};
 
-/**
- * @brief Adds a Production to a Grammar Rule
- * @param[in, out] rule a Grammar Rule
- * @param[in] eCode event code
- * @param[in] eType event type
- * @param[in] nonTermID unique identifier of right-hand side Non-terminal
- * @return Error handling code
- */
-errorCode addProduction(GrammarRule* rule, EventCode eCode, EventType eType, unsigned int nonTermID);
+typedef struct ValueLocalCrossTable ValueLocalCrossTable;
 
-#endif /* GRAMMARRULES_H_ */
+struct PrefixRow {
+	unsigned int id;
+	StringType* string_val;
+};
+
+struct PrefixTable {
+	struct PrefixRow* rows; // Dynamic array
+	unsigned int rowCount; // The number of rows
+	unsigned int arrayDimension; // The size of the Dynamic array
+};
+
+typedef struct PrefixTable PrefixTable;
+
+struct LocalNamesRow {
+	unsigned int id;
+	ValueLocalCrossTable* vCrossTable;
+	StringType* string_val;
+};
+
+struct LocalNamesTable {
+	struct LocalNamesRow* rows; // Dynamic array
+	unsigned int rowCount; // The number of rows
+	unsigned int arrayDimension; // The size of the Dynamic array
+};
+
+typedef struct LocalNamesTable LocalNamesTable;
+
+struct URIRow {
+	unsigned int id;
+	PrefixTable* pTable;
+	LocalNamesTable* lTable;
+	StringType* string_val;
+};
+
+struct URITable {
+	struct URIRow* rows; // Dynamic array
+	unsigned int rowCount; // The number of rows
+	unsigned int arrayDimension; // The size of the Dynamic array
+};
+
+typedef struct URITable URITable;
+
+#endif /* STABLES_H_ */
