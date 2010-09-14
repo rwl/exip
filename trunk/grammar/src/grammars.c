@@ -66,6 +66,7 @@ errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	buildInGrammar->ruleArray[0].nonTermID = GR_DOCUMENT;
+	buildInGrammar->ruleArray[0].bits[0] = 0;
 	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[0]), getEventCode1(0), EVENT_SD, GR_DOC_CONTENT);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -81,6 +82,9 @@ errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar)
 	if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	buildInGrammar->ruleArray[1].nonTermID = GR_DOC_CONTENT;
+	buildInGrammar->ruleArray[1].bits[0] = 1;
+	buildInGrammar->ruleArray[1].bits[1] = 1;
+	buildInGrammar->ruleArray[1].bits[2] = 1;
 
 	/* SE (*) DocEnd	0 */
 	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[1]), getEventCode1(0), EVENT_SE_ALL, GR_DOC_END);
@@ -88,17 +92,17 @@ errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar)
 		return tmp_err_code;
 
 	/* DT DocContent	1.0 */
-	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[1]), getEventCode2(1,0), EVENT_DT, GR_DOC_CONTENT);
+	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[1]), getEventCode2(1, 0), EVENT_DT, GR_DOC_CONTENT);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
 	/* CM DocContent	1.1.0 */
-	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[1]), getEventCode3(1,1,0), EVENT_CM, GR_DOC_CONTENT);
+	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[1]), getEventCode3(1, 1, 0), EVENT_CM, GR_DOC_CONTENT);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
 	/* PI DocContent	1.1.1 */
-	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[1]), getEventCode3(1,1,1), EVENT_PI, GR_DOC_CONTENT);
+	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[1]), getEventCode3(1, 1, 1), EVENT_PI, GR_DOC_CONTENT);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -111,6 +115,8 @@ errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar)
 	if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	buildInGrammar->ruleArray[2].nonTermID = GR_DOC_END;
+	buildInGrammar->ruleArray[2].bits[0] = 1;
+	buildInGrammar->ruleArray[2].bits[1] = 1;
 
 	/* ED	0 */
 	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[2]), getEventCode1(0), EVENT_ED, GR_VOID_NON_TERMINAL);
@@ -118,17 +124,78 @@ errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar)
 		return tmp_err_code;
 
 	/* CM DocEnd	1.0  */
-	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[2]), getEventCode2(1,0), EVENT_CM, GR_DOC_END);
+	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[2]), getEventCode2(1, 0), EVENT_CM, GR_DOC_END);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
 	/* PI DocEnd	1.1 */
-	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[2]), getEventCode2(1,1), EVENT_PI, GR_DOC_END);
+	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[2]), getEventCode2(1, 1), EVENT_PI, GR_DOC_END);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
 	return ERR_OK;
 }
 
+errorCode pushGrammar(EXIGrammarStack* gStack, struct EXIGrammar* grammar)
+{
+	grammar->nextInStack = gStack;
+	gStack = grammar;
+}
+
+errorCode popGrammar(EXIGrammarStack* gStack, struct EXIGrammar* grammar)
+{
+	grammar = gStack;
+	gStack = gStack->nextInStack;
+	grammar->nextInStack = NULL;
+}
+
+errorCode processNextProduction(EXIStream* strm, EXIGrammarStack* grStack, unsigned int nonTermID_in, EventType* eType, unsigned int* nonTermID_out)
+{
+	// TODO: it is not finished - only simple productions are handled!
+
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	unsigned int tmp_bits_val = 0;
+	int currProduction = 0;
+	int i = 0;
+	int j = 0;
+	int b = 0;
+	for(i = 0; i < grStack->rulesDimension; i++)
+	{
+		if(nonTermID_in == grStack->ruleArray[i].nonTermID)
+		{
+			for(b = 0; b < 3; b++)
+			{
+				if(grStack->ruleArray[i].bits[b] == 0) // encoded with zero bits
+				{
+					*eType = grStack->ruleArray[i].prodArray[currProduction].eType;
+					*nonTermID_out = grStack->ruleArray[i].prodArray[currProduction].nonTermID;
+				}
+				else
+				{
+					tmp_err_code = decodeNBitUnsignedInteger(strm, grStack->ruleArray[i].bits[b], &tmp_bits_val);
+					if(tmp_err_code != ERR_OK)
+						return tmp_err_code;
+					for(j = 0; j < grStack->ruleArray[i].prodCount && grStack->ruleArray[i].prodArray[j].code.size >= b + 1; j++)
+					{
+						if(grStack->ruleArray[i].prodArray[j].code.code[b] == tmp_bits_val)
+						{
+							if(grStack->ruleArray[i].prodArray[j].code.size == b + 1)
+							{
+								*eType = grStack->ruleArray[i].prodArray[j].eType;
+								*nonTermID_out = grStack->ruleArray[i].prodArray[j].nonTermID;
+							}
+							else
+							{
+								currProduction = j;
+							}
+							break;
+						}
+					}
+				}
+			}
+			break;
+		}
+	}
+}
 
 #endif /* BUILTINDOCGRAMMAR_H_ */
