@@ -49,6 +49,13 @@
 #include "grammarRules.h"
 #include "procTypes.h"
 
+/** This is the type of the "value" content of EXI events.
+ *  It is used when schema is available.
+ * 0 - there is no value content for the event
+ * 1 - the type is String
+ * */
+typedef unsigned char ValueType;
+
 struct EXIGrammar
 {
 	GrammarRule* ruleArray; // Array of grammar rules which constitute that grammar
@@ -68,7 +75,7 @@ typedef struct EXIGrammar EXIGrammarStack; // Used to differentiate between sing
  * @param[out] nonTermID_out unique identifier of right-hand side Non-terminal
  * @return Error handling code
  */
-errorCode processNextProduction(EXIStream* strm, EXIGrammarStack* grStack, unsigned int nonTermID_in, EventType* eType, unsigned int* nonTermID_out);
+errorCode processNextProduction(EXIStream* strm, EXIGrammarStack* grStack, unsigned int nonTermID_in, EventType* eType, unsigned int* nonTermID_out, ContentHandler* handler);
 
 /**
  * @brief Push a grammar on top of the Grammar Stack

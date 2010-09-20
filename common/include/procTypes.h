@@ -77,6 +77,8 @@ struct StringType
 	unsigned int length;
 };
 
+typedef struct StringType StringType;
+
 /**
  * Define the memory allocation function
  */
@@ -88,8 +90,76 @@ struct StringType
  */
 #define EXIP_MFREE free  //TODO: document this macro
 
+/********* BEGIN: String Table Types ***************/
 
-typedef struct StringType StringType;
+struct ValueRow {
+	StringType string_val;
+};
+
+struct ValueTable {
+	struct ValueRow* rows; // Dynamic array
+	unsigned int rowCount; // The number of rows
+	unsigned int arrayDimension; // The size of the Dynamic array
+};
+
+typedef struct ValueTable ValueTable;
+
+struct ValueLocalCrossTable {
+	unsigned int* valueRowIds; // Dynamic array
+	unsigned int rowCount; // The number of rows
+	unsigned int arrayDimension; // The size of the Dynamic array
+};
+
+typedef struct ValueLocalCrossTable ValueLocalCrossTable;
+
+struct PrefixRow {
+	StringType string_val;
+};
+
+struct PrefixTable {
+	struct PrefixRow* rows; // Dynamic array
+	unsigned int rowCount; // The number of rows
+	unsigned int arrayDimension; // The size of the Dynamic array
+};
+
+typedef struct PrefixTable PrefixTable;
+
+struct LocalNamesRow {
+	ValueLocalCrossTable* vCrossTable;
+	StringType string_val;
+};
+
+struct LocalNamesTable {
+	struct LocalNamesRow* rows; // Dynamic array
+	unsigned int rowCount; // The number of rows
+	unsigned int arrayDimension; // The size of the Dynamic array
+};
+
+typedef struct LocalNamesTable LocalNamesTable;
+
+struct URIRow {
+	PrefixTable* pTable;
+	LocalNamesTable* lTable;
+	StringType string_val;
+};
+
+struct URITable {
+	struct URIRow* rows; // Dynamic array
+	unsigned int rowCount; // The number of rows
+	unsigned int arrayDimension; // The size of the Dynamic array
+};
+
+typedef struct URITable URITable;
+
+/********* END: String Table Types ***************/
+
+
+struct QName {
+	StringType* uri;       // Pointer to a String value in the string table
+	StringType* localName; // Pointer to a String value in the string table
+};
+
+typedef struct QName QName;
 
 /**
  * Represents an EXI stream
@@ -117,6 +187,16 @@ struct EXIStream
 	 * parsing and serialization of the stream.
 	 */
 	struct EXIOptions* opts;
+
+	/**
+	 * The value string table
+	 */
+	ValueTable* vTable;
+
+	/**
+	 * The URI string table
+	 */
+	URITable* uriTable;
 };
 
 typedef struct EXIStream EXIStream;
@@ -231,5 +311,13 @@ typedef struct EXIheader EXIheader;
  * @return Error handling code
  */
 errorCode makeDefaultOpts(struct EXIOptions* opts);
+
+/**
+ * @brief Determine the number of bits needed to encode a unsigned integer value
+ * @param[in] val unsigned integer value
+ *
+ * @return The number of bits needed
+ */
+unsigned char getBitsNumber(unsigned int val);
 
 #endif /* PROCTYPES_H_ */
