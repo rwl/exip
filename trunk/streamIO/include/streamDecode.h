@@ -95,6 +95,18 @@ errorCode decodeUnsignedInteger(EXIStream* strm, unsigned int* int_val);
 errorCode decodeString(EXIStream* strm, StringType* string_val);
 
 /**
+ * @brief Decode String with the length of the String specified
+ * This function is used for Partitions Optimized for Frequent use of String Literals
+ * when there is a local name miss. The Length part is read first.
+ *
+ * @param[in] strm EXI stream of bits
+ * @param[in] str_length the length of the string
+ * @param[out] string_val null-terminated decoded string
+ * @return Error handling code
+ */
+errorCode decodeStringOnly(EXIStream* strm, unsigned int str_length, StringType* string_val);
+
+/**
  * @brief Decode EXI Binary type
  * Decode a binary value as a length-prefixed sequence of octets.
  *

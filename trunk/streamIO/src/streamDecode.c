@@ -116,16 +116,32 @@ errorCode decodeString(EXIStream* strm, StringType* string_val)
 		return tmp_err_code;
 
 	string_val->length = string_length;
+
+	tmp_err_code = decodeStringOnly(strm, string_length, string_val);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+	return ERR_OK;
+}
+
+errorCode decodeStringOnly(EXIStream* strm, unsigned int str_length, StringType* string_val)
+{
 	// Assume no Restricted Character Set is defined
 	//TODO: Handle the case when Restricted Character Set is defined
+
+	// The exact size of the string is known at this point. This means that
+	// this is the place to allocate the memory for the  { CharType* str; }!!!
+	string_val->str = EXIP_MALLOC(sizeof(string_val->str)*str_length);
+	if(string_val->str == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	int i = 0;
 	unsigned int tmp_code_point = 0;
-	for(i = 0; i < string_length; i++)
+	for(i = 0; i < str_length; i++)
 	{
 		tmp_err_code = decodeUnsignedInteger(strm, &tmp_code_point);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		UCSToChar(tmp_code_point, &string_val->str[i]);
+		UCSToChar(tmp_code_point, &(string_val->str[i]));
 	}
 	return ERR_OK;
 }

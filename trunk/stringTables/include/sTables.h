@@ -34,7 +34,7 @@
 
 /**
  * @file sTables.h
- * @brief Types and functions describing EXI sting tables
+ * @brief Functions describing EXI sting tables operations
  * @date Sep 14, 2010
  * @author Rumen Kyusakov
  * @version 0.1
@@ -46,67 +46,24 @@
 
 #include "procTypes.h"
 
-struct ValueRow {
-	unsigned int globalId;
-	StringType* string_val;
-};
+/**
+ * @brief Add new row into the URI string table
+ *
+ * @param[in, out] uTable URI string table
+ * @param[in] uri the string representing this uri. The StringType can be allocated on the stack.
+ * @param[out] rowID the ID of the row inserted
+ * @return Error handling code
+ */
+errorCode addURIRow(URITable* uTable, StringType uri, unsigned int* rowID);
 
-struct ValueTable {
-	struct ValueRow* rows; // Dynamic array
-	unsigned int rowCount; // The number of rows
-	unsigned int arrayDimension; // The size of the Dynamic array
-};
-
-typedef struct ValueTable ValueTable;
-
-struct ValueLocalCrossTable {
-	unsigned int* valueRowIds; // Dynamic array
-	unsigned int rowCount; // The number of rows
-	unsigned int arrayDimension; // The size of the Dynamic array
-};
-
-typedef struct ValueLocalCrossTable ValueLocalCrossTable;
-
-struct PrefixRow {
-	unsigned int id;
-	StringType* string_val;
-};
-
-struct PrefixTable {
-	struct PrefixRow* rows; // Dynamic array
-	unsigned int rowCount; // The number of rows
-	unsigned int arrayDimension; // The size of the Dynamic array
-};
-
-typedef struct PrefixTable PrefixTable;
-
-struct LocalNamesRow {
-	unsigned int id;
-	ValueLocalCrossTable* vCrossTable;
-	StringType* string_val;
-};
-
-struct LocalNamesTable {
-	struct LocalNamesRow* rows; // Dynamic array
-	unsigned int rowCount; // The number of rows
-	unsigned int arrayDimension; // The size of the Dynamic array
-};
-
-typedef struct LocalNamesTable LocalNamesTable;
-
-struct URIRow {
-	unsigned int id;
-	PrefixTable* pTable;
-	LocalNamesTable* lTable;
-	StringType* string_val;
-};
-
-struct URITable {
-	struct URIRow* rows; // Dynamic array
-	unsigned int rowCount; // The number of rows
-	unsigned int arrayDimension; // The size of the Dynamic array
-};
-
-typedef struct URITable URITable;
+/**
+ * @brief Add new row into the Local-Names string table
+ *
+ * @param[out] lTable Local-Names string table
+ * @param[in] local_name the string representing this Local-Names. The StringType can be allocated on the stack.
+ * @param[out] rowID the ID of the row inserted
+ * @return Error handling code
+ */
+errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, unsigned int* rowID);
 
 #endif /* STABLES_H_ */

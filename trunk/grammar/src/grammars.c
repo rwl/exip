@@ -149,9 +149,89 @@ errorCode popGrammar(EXIGrammarStack* gStack, struct EXIGrammar* grammar)
 	grammar->nextInStack = NULL;
 }
 
-errorCode processNextProduction(EXIStream* strm, EXIGrammarStack* grStack, unsigned int nonTermID_in, EventType* eType, unsigned int* nonTermID_out)
+static errorCode decodeQName(EXIStream* strm, QName *qname);
+
+static errorCode decodeQName(EXIStream* strm, QName *qname)
+{
+	//TODO: add the case when Preserve.prefixes is true
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	unsigned int tmp_val_buf = 0;
+	unsigned char uriBits = getBitsNumber(strm->uriTable->rowCount - 1);
+	tmp_err_code = decodeNBitUnsignedInteger(strm, uriBits, &tmp_val_buf);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	unsigned int uriID = 0; // The URI id in the URI string table
+	if(tmp_val_buf == 0) // uri miss
+	{
+		StringType str;
+		tmp_err_code = decodeString(strm, &str);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = addURIRow(strm->uriTable, str, &uriID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		qname->uri = &(strm->uriTable->rows[uriID].string_val);
+	}
+	else // uri hit
+	{
+		qname->uri = &(strm->uriTable->rows[tmp_val_buf-1].string_val);
+		uriID = tmp_val_buf-1;
+	}
+
+	unsigned int flag_StringLiteralsPartition = 0;
+	tmp_err_code = decodeUnsignedInteger(strm, &flag_StringLiteralsPartition);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	unsigned int lnID = 0;
+	if(flag_StringLiteralsPartition == 0) // local-name table hit
+	{
+		unsigned char lnBits = getBitsNumber(strm->uriTable->rows[uriID].lTable->rowCount - 1);
+		tmp_err_code = decodeNBitUnsignedInteger(strm, lnBits, &lnID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		qname->localName = &(strm->uriTable->rows[uriID].lTable->rows[lnID].string_val);
+	}
+	else // local-name table miss
+	{
+		StringType lnStr;
+		tmp_err_code = decodeStringOnly(strm, flag_StringLiteralsPartition - 1, &lnStr);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = addLNRow(strm->uriTable->rows[uriID].lTable, lnStr, &lnID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		qname->localName = &(strm->uriTable->rows[uriID].lTable->rows[lnID].string_val);
+	}
+	return ERR_OK;
+}
+
+static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHandler* handler, ValueType vType);
+
+static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHandler* handler, ValueType vType)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	if(eType != EVENT_SD && eType != EVENT_ED && eType != EVENT_EE && eType != EVENT_SC) // The event has content!
+	{
+		// TODO: implement all cases
+		if(eType == EVENT_SE_ALL)
+		{
+			QName qname;
+			// The content of SE event is the element qname
+			tmp_err_code = decodeQName(strm, &qname);
+			//TODO: Invoke handler method passing the element qname
+		}
+	}
+	return ERR_OK;
+}
+
+errorCode processNextProduction(EXIStream* strm, EXIGrammarStack* grStack, unsigned int nonTermID_in, EventType* eType, unsigned int* nonTermID_out, ContentHandler* handler)
 {
 	// TODO: it is not finished - only simple productions are handled!
+	ValueType vType = 1; //TODO: This sets the value content type to String. This is only valid for schema-less decoding
 
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int tmp_bits_val = 0;
@@ -159,16 +239,21 @@ errorCode processNextProduction(EXIStream* strm, EXIGrammarStack* grStack, unsig
 	int i = 0;
 	int j = 0;
 	int b = 0;
+	unsigned char founded = 0;
 	for(i = 0; i < grStack->rulesDimension; i++)
 	{
 		if(nonTermID_in == grStack->ruleArray[i].nonTermID)
 		{
-			for(b = 0; b < 3; b++)
+			founded = 0;
+			for(b = 0; b < 3 && !founded; b++)
 			{
 				if(grStack->ruleArray[i].bits[b] == 0) // encoded with zero bits
 				{
 					*eType = grStack->ruleArray[i].prodArray[currProduction].eType;
 					*nonTermID_out = grStack->ruleArray[i].prodArray[currProduction].nonTermID;
+					tmp_err_code = decodeEventContent(strm, *eType, handler, vType);
+					if(tmp_err_code != ERR_OK)
+						return tmp_err_code;
 				}
 				else
 				{
@@ -183,6 +268,10 @@ errorCode processNextProduction(EXIStream* strm, EXIGrammarStack* grStack, unsig
 							{
 								*eType = grStack->ruleArray[i].prodArray[j].eType;
 								*nonTermID_out = grStack->ruleArray[i].prodArray[j].nonTermID;
+								founded = 1;
+								tmp_err_code = decodeEventContent(strm, *eType, handler, vType);
+								if(tmp_err_code != ERR_OK)
+									return tmp_err_code;
 							}
 							else
 							{
