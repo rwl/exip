@@ -50,11 +50,14 @@ errorCode makeDefaultOpts(struct EXIOptions* opts)
 	opts->compression = 0;
 	opts->strict = 0;
 	opts->fragment = 0;
-	opts->preserve = 0; //TODO: fix this when the bit mask for this option is defined
+	opts->preserve = 0; // all preserve flags are false by default
 	opts->selfContained = 0;
 	opts->blockSize = 1000000;
 	opts->valueMaxLength = 0;
 	opts->valuePartitionCapacity = 0;
+	opts->user_defined_data = NULL;
+	opts->schemaID = NULL;
+	opts->drMap = NULL;
 }
 
 /**
@@ -64,9 +67,9 @@ errorCode makeDefaultOpts(struct EXIOptions* opts)
  *
  * @return The number of bits needed
  */
-static unsigned int log2(unsigned int val);
+static unsigned int log2INT(unsigned int val);
 
-static unsigned int log2(unsigned int val)
+static unsigned int log2INT(unsigned int val)
 {
 	// TODO: modify to check if the int is not 32 bit
 //	unsigned int v;  // 32-bit value to find the log2 of
@@ -90,5 +93,5 @@ unsigned char getBitsNumber(unsigned int val)
 {
 	if(val == 0)
 		return 1;
-	return log2(val) + 1;
+	return log2INT(val) + 1;
 }

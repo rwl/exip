@@ -45,6 +45,119 @@
 #define STABLES_H_
 
 #include "procTypes.h"
+#include "errorHandle.h"
+
+/********* BEGIN: String table default entries ***************/
+
+#define URI_1 "http://www.w3.org/XML/1998/namespace"
+#define URI_2 "http://www.w3.org/2001/XMLSchema-instance"
+#define URI_3 "http://www.w3.org/2001/XMLSchema"
+
+#define URI_1_PREFIX "xml"
+#define URI_2_PREFIX "xsi"
+
+#define URI_1_LOCALNAME_SIZE 4
+
+const char** URI_1_LOCALNAME = {"base", "id", "lang", "space"};
+
+#define URI_2_LOCALNAME_SIZE 2
+
+const char** URI_2_LOCALNAME = {"nil", "type"};
+
+
+/* ONLY USED WHEN SCHEMA IS DEFINED.
+ * Make it conditional and document it*/
+#define URI_3_LOCALNAME_SIZE 46 // #DOCUMENT#
+
+const char** URI_3_LOCALNAME = {  // #DOCUMENT#
+		"ENTITIES",
+		"ENTITY",
+		"ID",
+		"IDREF",
+		"IDREFS",
+		"NCName",
+		"NMTOKEN",
+		"NMTOKENS",
+		"NOTATION",
+		"Name",
+		"QName",
+		"anySimpleType",
+		"anyType",
+		"anyURI",
+		"base64Binary",
+		"boolean",
+		"byte",
+		"date",
+		"dateTime",
+		"decimal",
+		"double",
+		"duration",
+		"float",
+		"gDay",
+		"gMonth",
+		"gMonthDay",
+		"gYear",
+		"gYearMonth",
+		"hexBinary",
+		"int",
+		"integer",
+		"language",
+		"long",
+		"negativeInteger",
+		"nonNegativeInteger",
+		"nonPositiveInteger",
+		"normalizedString",
+		"positiveInteger",
+		"short",
+		"string",
+		"time",
+		"token",
+		"unsignedByte",
+		"unsignedInt",
+		"unsignedLong",
+		"unsignedShort"
+};
+
+/********* END: String table default entries ***************/
+
+
+#define DEFAULT_VALUE_ROWS_NUMBER      10
+#define DEFAULT_URI_ROWS_NUMBER        10
+#define DEFAULT_PREFIX_ROWS_NUMBER     10
+#define DEFAULT_LOCALNAMES_ROWS_NUMBER 10
+
+/**
+ * @brief Creates fresh empty ValueTable (value partition of EXI string table)
+ * This operation includes allocation of memory for DEFAULT_VALUE_ROWS_NUMBER number of value rows
+ * @param[out] vTable ValueTable string table
+ * @return Error handling code
+ */
+errorCode createValueTable(ValueTable* vTable);
+
+/**
+ * @brief Creates fresh empty URITable (uri partition of EXI string table)
+ * This operation includes allocation of memory for DEFAULT_URI_ROWS_NUMBER number of uri rows
+ * @param[out] uTable URITable string table
+ * @return Error handling code
+ */
+errorCode createURITable(URITable* uTable);
+
+/**
+ * @brief Creates fresh empty PrefixTable (prefix partition of EXI string table)
+ * This operation includes allocation of memory for DEFAULT_PREFIX_ROWS_NUMBER number of prefix rows
+ * @param[out] pTable PrefixTable string table
+ * @return Error handling code
+ */
+errorCode createPrefixTable(PrefixTable* pTable);
+
+/**
+ * @brief Creates fresh empty LocalNamesTable (local names partition of EXI string table)
+ * This operation includes allocation of memory for DEFAULT_LOCALNAMES_ROWS_NUMBER number of local names rows
+ * @param[out] lTable LocalNamesTable string table
+ * @return Error handling code
+ */
+errorCode createLocalNamesTable(LocalNamesTable* lTable);
+
 
 /**
  * @brief Add new row into the URI string table
@@ -65,5 +178,17 @@ errorCode addURIRow(URITable* uTable, StringType uri, unsigned int* rowID);
  * @return Error handling code
  */
 errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, unsigned int* rowID);
+
+/**
+ * @brief Create string tables for an EXI stream.
+ * It also inserts the default entries in the table.
+ * Because the behavior depends on the EXI options of the stream
+ * it is important that the options are initialized before
+ * calling this function.
+ *
+ * @param[in, out] strm EXI stream of bits
+ * @return Error handling code
+ */
+errorCode createInitialStringTables(EXIStream* strm);
 
 #endif /* STABLES_H_ */
