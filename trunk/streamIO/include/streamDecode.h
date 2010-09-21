@@ -97,7 +97,8 @@ errorCode decodeString(EXIStream* strm, StringType* string_val);
 /**
  * @brief Decode String with the length of the String specified
  * This function is used for Partitions Optimized for Frequent use of String Literals
- * when there is a local name miss. The Length part is read first.
+ * when there is a local name miss => the Length part is read first.
+ * The memory to hold the string data is allocated dynamically
  *
  * @param[in] strm EXI stream of bits
  * @param[in] str_length the length of the string

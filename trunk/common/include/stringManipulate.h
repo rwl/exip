@@ -57,4 +57,21 @@
  */
 errorCode UCSToChar(unsigned int code_point, CharType* ch);
 
+/**
+ * @brief Creates an empty string
+ * Note! The implementation of this function is platform-specific.
+ * @param[in, out] emptyStr empty string
+ * @return Error handling code
+ */
+errorCode getEmptyString(StringType emptyStr);
+
+/**
+ * @brief Transform a NULL terminated string of ASCII chars to StringType allocating memory for the CharType*.
+ * Note! The implementation of this function is platform-specific.
+ * @param[in] inStr ASCII stream
+ * @param[in, out] outStr resulted string
+ * @return Error handling code
+ */
+errorCode asciiToString(char* inStr, StringType outStr);
+
 #endif /* STRINGMANIPULATE_H_ */

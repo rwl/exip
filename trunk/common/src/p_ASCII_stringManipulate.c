@@ -43,6 +43,7 @@
  */
 
 #include "../include/stringManipulate.h"
+#include <string.h>
 
 /**
  * Simple translation working only for ASCII characters
@@ -50,5 +51,28 @@
 errorCode UCSToChar(unsigned int code_point, CharType* ch)
 {
 	*ch = (CharType) code_point;
+	return ERR_OK;
+}
+
+errorCode getEmptyString(StringType emptyStr)
+{
+	emptyStr.length = 0;
+	emptyStr.str = NULL;
+
+	return ERR_OK;
+}
+
+errorCode asciiToString(char* inStr, StringType outStr)
+{
+	outStr.length = strlen(inStr);
+	if(outStr.length > 0)  // If == 0 -> empty string
+	{
+		outStr.str = EXIP_MALLOC(sizeof(outStr.str)*outStr.length);
+		if(outStr.str == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+		memcpy(outStr.str, inStr, outStr.length);
+	}
+	else
+		outStr.str = NULL;
 	return ERR_OK;
 }

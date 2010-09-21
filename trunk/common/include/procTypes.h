@@ -60,10 +60,29 @@
 #define BYTE_ALIGNMENT 1
 #define PRE_COMPRESSION 2
 
+
+/**
+ *	Fidelity option	Effect
+ *---------------------------------------------
+ *	Preserve.comments	CM events are preserved
+ *	Preserve.pis	PI events are preserved
+ *	Preserve.dtd	DOCTYPE and ER events are preserved
+ *	Preserve.prefixes	NS events and namespace prefixes are preserved
+ *	Preserve.lexicalValues	Lexical form of element and attribute values is preserved in value content items
+ *
+ **/
+#define PRESERVE_COMMENTS  0b00000001
+#define PRESERVE_PIS       0b00000010
+#define PRESERVE_DTD       0b00000100
+#define PRESERVE_PREFIXES  0b00001000
+#define PRESERVE_LEXVALUES 0b00010000
+
+#define IS_PRESERVED(p, mask) ((p & mask) != 0)
+
 /**
  * Since we are working with embedded systems - exclude the UTF-8 support
  */
-#ifndef CHAR_TYPE
+#ifndef CHAR_TYPE  // #DOCUMENT#
 # define CHAR_TYPE unsigned char
 #endif
 // TODO: document this macro - it must be set during source build to overwrite the default behavior
@@ -82,13 +101,15 @@ typedef struct StringType StringType;
 /**
  * Define the memory allocation function
  */
-#define EXIP_MALLOC malloc  //TODO: document this macro
-#include <stdlib.h>         //TODO: make it conditional!
+#define EXIP_MALLOC malloc   //TODO: document this macro #DOCUMENT#
+#define EXIP_REALLOC realloc //TODO: document this macro #DOCUMENT#
+#include <stdlib.h>          //TODO: make it conditional!
 
 /**
  * Define the memory freeing function
  */
-#define EXIP_MFREE free  //TODO: document this macro
+#define EXIP_MFREE free  //TODO: document this macro #DOCUMENT#
+
 
 /********* BEGIN: String Table Types ***************/
 
@@ -231,10 +252,9 @@ struct EXIOptions
 	 */
 	unsigned char fragment;
 
-
-	//TODO: define the bit mask of booleans for preserve option
 	/**
 	 * Specifies whether comments, pis, etc. are preserved - bit mask of booleans
+	 * Use IS_PRESERVED macro to retrieve the values different preserve options
 	 */
 	unsigned char preserve;
 
@@ -311,6 +331,7 @@ typedef struct EXIheader EXIheader;
  * @return Error handling code
  */
 errorCode makeDefaultOpts(struct EXIOptions* opts);
+
 
 /**
  * @brief Determine the number of bits needed to encode a unsigned integer value
