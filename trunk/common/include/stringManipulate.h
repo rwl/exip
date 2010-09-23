@@ -74,4 +74,13 @@ errorCode getEmptyString(StringType emptyStr);
  */
 errorCode asciiToString(char* inStr, StringType outStr);
 
+/**
+ * @brief Tests if two strings are equal
+ * Note! The implementation of this function is platform-specific.
+ * @param[str1] inStr ASCII stream
+ * @param[str2] outStr resulted string
+ * @return 1 if the strings are equal, 0 - otherwise
+ */
+char str_equal(StringType str1, StringType str2);
+
 #endif /* STRINGMANIPULATE_H_ */

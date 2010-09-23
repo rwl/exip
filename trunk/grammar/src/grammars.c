@@ -55,7 +55,7 @@ errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar)
 
 	buildInGrammar->nextInStack = NULL;
 	buildInGrammar->rulesDimension = DEF_GRAMMAR_RULE_NUMBER;
-	buildInGrammar->ruleArray = (GrammarRule*) EXIP_MALLOC(sizeof(buildInGrammar->ruleArray)*DEF_GRAMMAR_RULE_NUMBER);
+	buildInGrammar->ruleArray = (GrammarRule*) EXIP_MALLOC(sizeof(GrammarRule)*DEF_GRAMMAR_RULE_NUMBER);
 	if(buildInGrammar->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 

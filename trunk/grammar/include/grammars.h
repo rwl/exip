@@ -48,6 +48,7 @@
 #include "eventsEXI.h"
 #include "grammarRules.h"
 #include "procTypes.h"
+#include "contentHandler.h"
 
 /** This is the type of the "value" content of EXI events.
  *  It is used when schema is available.
