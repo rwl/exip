@@ -15,5 +15,21 @@ More information about Efficient XML Interchange format can be found on - http:/
 
 The platform-dependent code is separated in source files with prefix "p_"
 
-The artifacts in the source code which needs to be commented (some macro definitions for example)
+The artifacts in the source code which need to be commented (some macro definitions for example)
 are marked with #DOCUMENT# comment
+
+
+Modules dependencies:
+===========================================================
+    Module    |                 References                |
+===========================================================
+    common    |                     N/A                   |
+-----------------------------------------------------------
+   streamIO   |                   common                  |
+-----------------------------------------------------------
+    grammar   | common, contentIO, streamIO, stringTables |
+-----------------------------------------------------------
+ stringTables |                   common                  |
+-----------------------------------------------------------
+  contentIO   |                      -                    |
+ ----------------------------------------------------------

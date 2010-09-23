@@ -85,6 +85,8 @@ errorCode initGrammarRule(GrammarRule* rule);
 
 /**
  * @brief Adds a Production to a Grammar Rule
+ * Note! The number of bits used for the integers constituting the EventCode must be set
+ * separately. This function does not set them.
  * @param[in, out] rule a Grammar Rule
  * @param[in] eCode event code
  * @param[in] eType event type

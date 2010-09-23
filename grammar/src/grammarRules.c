@@ -46,26 +46,32 @@
 
 errorCode initGrammarRule(GrammarRule* rule)
 {
-	rule->prodArray = (Production*) EXIP_MALLOC(sizeof(rule->prodArray)*DEFAULT_PROD_ARRAY_DIM);
+	rule->prodArray = (Production*) EXIP_MALLOC(sizeof(Production)*DEFAULT_PROD_ARRAY_DIM);
 	if(rule->prodArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 	rule->prodCount = 0;
 	rule->prodDimension = DEFAULT_PROD_ARRAY_DIM;
+	rule->bits[0] = 0;
+	rule->bits[1] = 0;
+	rule->bits[2] = 0;
+	rule->nonTermID = GR_VOID_NON_TERMINAL;
 	return ERR_OK;
 }
 
 errorCode addProduction(GrammarRule* rule, EventCode eCode, EventType eType, unsigned int nonTermID)
 {
-	if(rule->prodCount < rule->prodDimension) // There is free space in the array
+	if(rule->prodCount == rule->prodDimension) // The dynamic array prodArray needs to be resized
 	{
-		rule->prodArray[rule->prodCount].code = eCode;
-		rule->prodArray[rule->prodCount].eType = eType;
-		rule->prodArray[rule->prodCount].nonTermID = nonTermID;
-		rule->prodCount = rule->prodCount + 1;
+		void* new_ptr = EXIP_REALLOC(rule->prodArray, sizeof(Production)*(rule->prodCount + DEFAULT_PROD_ARRAY_DIM));
+		if(new_ptr == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+		rule->prodArray = new_ptr;
+		rule->prodDimension = rule->prodDimension + DEFAULT_PROD_ARRAY_DIM;
 	}
-	else // The dynamic array prodArray needs to be resized
-	{
-		//TODO: implement this
-	}
+
+	rule->prodArray[rule->prodCount].code = eCode;
+	rule->prodArray[rule->prodCount].eType = eType;
+	rule->prodArray[rule->prodCount].nonTermID = nonTermID;
+	rule->prodCount = rule->prodCount + 1;
 	return ERR_OK;
 }

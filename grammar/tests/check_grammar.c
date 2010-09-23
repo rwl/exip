@@ -50,15 +50,112 @@
 
 START_TEST (test_getBuildInDocGrammar)
 {
-  fail("Not implemented yet!");
+	errorCode err = UNEXPECTED_ERROR;
+	struct EXIGrammar testGrammar;
+
+	err = getBuildInDocGrammar(&testGrammar);
+
+	fail_unless (err == ERR_OK, "getBuildInDocGrammar returns error code %d", err);
+
+	//TODO: add more tests!
 }
 END_TEST
 
 /* END: grammars tests */
 
+
+/* BEGIN: events tests */
+
+START_TEST (test_getEventCode1)
+{
+	EventCode test_code = getEventCode1(101);
+	fail_unless(test_code.size == 1, "getEventCode1 creates event with unexpected number of parts");
+	fail_unless(test_code.code[0] == 101, "getEventCode1 creates event code with wrong code number");
+}
+END_TEST
+
+START_TEST (test_getEventCode2)
+{
+	EventCode test_code = getEventCode2(101, 203);
+	fail_unless(test_code.size == 2, "test_getEventCode2 creates event with unexpected number of parts");
+	fail_unless(test_code.code[0] == 101 && test_code.code[1] == 203, "getEventCode2 creates event code with wrong code number");
+}
+END_TEST
+
+START_TEST (test_getEventCode3)
+{
+	EventCode test_code = getEventCode3(101, 203, 51);
+	fail_unless(test_code.size == 3, "getEventCode3 creates event with unexpected number of parts");
+	fail_unless(test_code.code[0] == 101 && test_code.code[1] == 203 && test_code.code[2] == 51,
+			    "getEventCode3 creates event code with wrong code number");
+}
+END_TEST
+
+/* END: events tests */
+
+
+/* BEGIN: rules tests */
+
+START_TEST (test_initGrammarRule)
+{
+	errorCode err = UNEXPECTED_ERROR;
+	GrammarRule rule;
+	err = initGrammarRule(&rule);
+
+	fail_unless (err == ERR_OK, "initGrammarRule returns error code %d", err);
+
+	fail_unless(rule.bits[0] == 0 && rule.bits[1] == 0 && rule.bits[2] == 0,
+				"initGrammarRule does not initialize the number of bits used for the integers constituting the EventCode");
+	fail_unless(rule.nonTermID == GR_VOID_NON_TERMINAL && rule.prodCount == 0 && rule.prodDimension == DEFAULT_PROD_ARRAY_DIM,
+			    "initGrammarRule doesn't initialize the GrammarRule structure correctly");
+	fail_if(rule.prodArray == NULL);
+}
+END_TEST
+
+START_TEST (test_addProduction)
+{
+	errorCode err = UNEXPECTED_ERROR;
+	GrammarRule rule;
+	err = initGrammarRule(&rule);
+	fail_unless (err == ERR_OK, "initGrammarRule returns error code %d", err);
+	EventCode eCode = getEventCode2(20,12);
+	EventType eType = EVENT_SE_ALL;
+	unsigned int nonTermID = GR_DOC_CONTENT;
+
+	err = addProduction(&rule, eCode, eType, nonTermID);
+	fail_unless (err == ERR_OK, "addProduction returns error code %d", err);
+
+	fail_unless(rule.prodCount == 1 && rule.prodDimension == DEFAULT_PROD_ARRAY_DIM,
+				"addProduction does not initialize prodCount and/or prodDimension correctly");
+	fail_unless(rule.prodArray[0].code.size == 2 && rule.prodArray[0].code.code[0] == 20 &&
+			    rule.prodArray[0].code.code[1] == 12,
+			    "addProduction does not set the EventCode correctly");
+
+	fail_unless(rule.prodArray[0].eType == EVENT_SE_ALL, "addProduction does not set the EventType correctly");
+	fail_unless(rule.prodArray[0].nonTermID == GR_DOC_CONTENT, "addProduction does not set the nonTermID correctly");
+
+	rule.prodCount = DEFAULT_PROD_ARRAY_DIM;
+
+	err = addProduction(&rule, eCode, eType, nonTermID);
+	fail_unless (err == ERR_OK, "addProduction returns error code %d", err);
+
+	fail_unless(rule.prodCount == DEFAULT_PROD_ARRAY_DIM + 1 && rule.prodDimension == 2*DEFAULT_PROD_ARRAY_DIM,
+				"addProduction does not initialize prodCount and/or prodDimension correctly");
+	fail_unless(rule.prodArray[DEFAULT_PROD_ARRAY_DIM].code.size == 2 && rule.prodArray[DEFAULT_PROD_ARRAY_DIM].code.code[0] == 20 &&
+				rule.prodArray[DEFAULT_PROD_ARRAY_DIM].code.code[1] == 12,
+				"addProduction does not set the EventCode correctly");
+
+	fail_unless(rule.prodArray[DEFAULT_PROD_ARRAY_DIM].eType == EVENT_SE_ALL, "addProduction does not set the EventType correctly");
+	fail_unless(rule.prodArray[DEFAULT_PROD_ARRAY_DIM].nonTermID == GR_DOC_CONTENT, "addProduction does not set the nonTermID correctly");
+}
+END_TEST
+
+/* END: rules tests */
+
+
 Suite * grammar_suite (void)
 {
-  Suite *s = suite_create ("grammar");
+  Suite *s = suite_create ("Grammar");
 
   /* Grammars test case */
   TCase *tc_gGrammars = tcase_create ("Grammars");
@@ -66,8 +163,17 @@ Suite * grammar_suite (void)
   suite_add_tcase (s, tc_gGrammars);
 
   /* Events test case */
-//  TCase *tc_gEvents = tcase_create ("Events");
-//  suite_add_tcase (s, tc_gEvents);
+  TCase *tc_gEvents = tcase_create ("Events");
+  tcase_add_test (tc_gEvents, test_getEventCode1);
+  tcase_add_test (tc_gEvents, test_getEventCode2);
+  tcase_add_test (tc_gEvents, test_getEventCode3);
+  suite_add_tcase (s, tc_gEvents);
+
+  /* Rules test case */
+  TCase *tc_gRules = tcase_create ("Rules");
+  tcase_add_test (tc_gRules, test_initGrammarRule);
+  tcase_add_test (tc_gRules, test_addProduction);
+  suite_add_tcase (s, tc_gRules);
 
   return s;
 }

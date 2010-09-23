@@ -67,12 +67,33 @@ errorCode asciiToString(char* inStr, StringType outStr)
 	outStr.length = strlen(inStr);
 	if(outStr.length > 0)  // If == 0 -> empty string
 	{
-		outStr.str = EXIP_MALLOC(sizeof(outStr.str)*outStr.length);
+		outStr.str = EXIP_MALLOC(sizeof(CharType)*(outStr.length + 1));  // Add the '\0' byte at the end
 		if(outStr.str == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 		memcpy(outStr.str, inStr, outStr.length);
+		outStr.str[outStr.length + 1] = '\0';
 	}
 	else
 		outStr.str = NULL;
 	return ERR_OK;
+}
+
+char str_equal(StringType str1, StringType str2)
+{
+	if(str1.length != str2.length)
+		return 0;
+	else
+	{
+		if(str1.length == 0)
+		{
+			if(str1.str == NULL && str2.str == NULL)
+				return 1;
+			else
+				return 0;
+		}
+		else
+		{
+			return !strcmp(str1.str, str2.str);
+		}
+	}
 }

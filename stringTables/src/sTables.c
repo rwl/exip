@@ -43,72 +43,143 @@
 
 #include "../include/sTables.h"
 
-errorCode createValueTable(ValueTable* vTable)
+/********* BEGIN: String table default entries ***************/
+
+#define URI_1 "http://www.w3.org/XML/1998/namespace"
+#define URI_2 "http://www.w3.org/2001/XMLSchema-instance"
+#define URI_3 "http://www.w3.org/2001/XMLSchema"
+
+#define URI_1_PREFIX "xml"
+#define URI_2_PREFIX "xsi"
+
+#define URI_1_LOCALNAME_SIZE 4
+const char* URI_1_LOCALNAME[] = {"base", "id", "lang", "space"};
+
+#define URI_2_LOCALNAME_SIZE 2
+const char* URI_2_LOCALNAME[] = {"nil", "type"};
+
+/* ONLY USED WHEN SCHEMA IS DEFINED.
+ * Make it conditional and document it*/
+#define URI_3_LOCALNAME_SIZE 46 // #DOCUMENT#
+const char* URI_3_LOCALNAME[] = {  // #DOCUMENT#
+			"ENTITIES",
+			"ENTITY",
+			"ID",
+			"IDREF",
+			"IDREFS",
+			"NCName",
+			"NMTOKEN",
+			"NMTOKENS",
+			"NOTATION",
+			"Name",
+			"QName",
+			"anySimpleType",
+			"anyType",
+			"anyURI",
+			"base64Binary",
+			"boolean",
+			"byte",
+			"date",
+			"dateTime",
+			"decimal",
+			"double",
+			"duration",
+			"float",
+			"gDay",
+			"gMonth",
+			"gMonthDay",
+			"gYear",
+			"gYearMonth",
+			"hexBinary",
+			"int",
+			"integer",
+			"language",
+			"long",
+			"negativeInteger",
+			"nonNegativeInteger",
+			"nonPositiveInteger",
+			"normalizedString",
+			"positiveInteger",
+			"short",
+			"string",
+			"time",
+			"token",
+			"unsignedByte",
+			"unsignedInt",
+			"unsignedLong",
+			"unsignedShort"
+	};
+
+/********* END: String table default entries ***************/
+
+errorCode createValueTable(ValueTable** vTable)
 {
-	vTable = EXIP_MALLOC(sizeof(vTable));
-	if(vTable == NULL)
+	*vTable = EXIP_MALLOC(sizeof(ValueTable));
+	if(*vTable == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	vTable->rows = EXIP_MALLOC(sizeof(vTable->rows)*DEFAULT_VALUE_ROWS_NUMBER);
-	if(vTable->rows == NULL)
+	(*vTable)->rows = EXIP_MALLOC(sizeof(struct ValueRow)*DEFAULT_VALUE_ROWS_NUMBER);
+	if((*vTable)->rows == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	vTable->arrayDimension = DEFAULT_VALUE_ROWS_NUMBER;
-	vTable->rowCount = 0;
+	(*vTable)->arrayDimension = DEFAULT_VALUE_ROWS_NUMBER;
+	(*vTable)->rowCount = 0;
 	return ERR_OK;
 }
 
-errorCode createURITable(URITable* uTable)
+errorCode createURITable(URITable** uTable)
 {
-	uTable = EXIP_MALLOC(sizeof(uTable));
-	if(uTable == NULL)
+	*uTable = EXIP_MALLOC(sizeof(URITable));
+	if(*uTable == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	uTable->rows = EXIP_MALLOC(sizeof(uTable->rows)*DEFAULT_URI_ROWS_NUMBER);
-	if(uTable->rows == NULL)
+	(*uTable)->rows = EXIP_MALLOC(sizeof(struct URIRow)*DEFAULT_URI_ROWS_NUMBER);
+	if((*uTable)->rows == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	uTable->arrayDimension = DEFAULT_URI_ROWS_NUMBER;
-	uTable->rowCount = 0;
+	(*uTable)->arrayDimension = DEFAULT_URI_ROWS_NUMBER;
+	(*uTable)->rowCount = 0;
 	return ERR_OK;
 }
 
-errorCode createPrefixTable(PrefixTable* pTable)
+errorCode createPrefixTable(PrefixTable** pTable)
 {
-	pTable = EXIP_MALLOC(sizeof(pTable));
+	(*pTable) = EXIP_MALLOC(sizeof(PrefixTable));
 	if(pTable == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	pTable->rows = EXIP_MALLOC(sizeof(pTable->rows)*DEFAULT_PREFIX_ROWS_NUMBER);
-	if(pTable->rows == NULL)
+	(*pTable)->rows = EXIP_MALLOC(sizeof(struct PrefixRow)*DEFAULT_PREFIX_ROWS_NUMBER);
+	if((*pTable)->rows == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	pTable->arrayDimension = DEFAULT_PREFIX_ROWS_NUMBER;
-	pTable->rowCount = 0;
+	(*pTable)->arrayDimension = DEFAULT_PREFIX_ROWS_NUMBER;
+	(*pTable)->rowCount = 0;
 	return ERR_OK;
 }
 
-errorCode createLocalNamesTable(LocalNamesTable* lTable)
+errorCode createLocalNamesTable(LocalNamesTable** lTable)
 {
-	lTable = EXIP_MALLOC(sizeof(lTable));
-	if(lTable == NULL)
+	*lTable = EXIP_MALLOC(sizeof(LocalNamesTable));
+	if(*lTable == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	lTable->rows = EXIP_MALLOC(sizeof(lTable->rows)*DEFAULT_LOCALNAMES_ROWS_NUMBER);
-	if(lTable->rows == NULL)
+	(*lTable)->rows = EXIP_MALLOC(sizeof(struct LocalNamesRow)*DEFAULT_LOCALNAMES_ROWS_NUMBER);
+	if((*lTable)->rows == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	lTable->arrayDimension = DEFAULT_LOCALNAMES_ROWS_NUMBER;
-	lTable->rowCount = 0;
+	(*lTable)->arrayDimension = DEFAULT_LOCALNAMES_ROWS_NUMBER;
+	(*lTable)->rowCount = 0;
 	return ERR_OK;
 }
 
 errorCode addURIRow(URITable* uTable, StringType uri, unsigned int* rowID)
 {
+	if(uTable == NULL)
+		return NULL_POINTER_REF;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	if(uTable->arrayDimension == uTable->rowCount)   // The dynamic array must be extended first
 	{
-		void* new_ptr = EXIP_REALLOC(uTable->rows, sizeof(uTable->rows)*(uTable->rowCount + DEFAULT_URI_ROWS_NUMBER));
+		void* new_ptr = EXIP_REALLOC(uTable->rows, sizeof(struct URIRow)*(uTable->rowCount + DEFAULT_URI_ROWS_NUMBER));
 		if(new_ptr == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 		uTable->rows = new_ptr;
@@ -117,17 +188,17 @@ errorCode addURIRow(URITable* uTable, StringType uri, unsigned int* rowID)
 	uTable->rows[uTable->rowCount].string_val.length = uri.length;
 	uTable->rows[uTable->rowCount].string_val.str = uri.str;
 
-	tmp_err_code = createLocalNamesTable(uTable->rows[uTable->rowCount].lTable);
+	tmp_err_code = createLocalNamesTable(&(uTable->rows[uTable->rowCount].lTable));
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = createPrefixTable(uTable->rows[uTable->rowCount].pTable);
+	tmp_err_code = createPrefixTable(&(uTable->rows[uTable->rowCount].pTable));
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-
-	uTable->rowCount += 1;
 
 	*rowID = uTable->rowCount;
+
+	uTable->rowCount += 1;
 	return ERR_OK;
 }
 
@@ -136,7 +207,7 @@ errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, unsigned int*
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	if(lTable->arrayDimension == lTable->rowCount)   // The dynamic array must be extended first
 	{
-		void* new_ptr = EXIP_REALLOC(lTable->rows, sizeof(lTable->rows)*(lTable->rowCount + DEFAULT_LOCALNAMES_ROWS_NUMBER));
+		void* new_ptr = EXIP_REALLOC(lTable->rows, sizeof(struct LocalNamesRow)*(lTable->rowCount + DEFAULT_LOCALNAMES_ROWS_NUMBER));
 		if(new_ptr == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 		lTable->rows = new_ptr;
@@ -156,11 +227,11 @@ errorCode createInitialStringTables(EXIStream* strm)
 {
 	int i = 0;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	tmp_err_code = createValueTable(strm->vTable);
+	tmp_err_code = createValueTable(&(strm->vTable));
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = createURITable(strm->uriTable);
+	tmp_err_code = createURITable(&(strm->uriTable));
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -176,7 +247,7 @@ errorCode createInitialStringTables(EXIStream* strm)
 	strm->uriTable->rows[0].string_val.length = emptyStr.length;
 	strm->uriTable->rows[0].string_val.str = emptyStr.str;
 
-	tmp_err_code = createPrefixTable(strm->uriTable->rows[0].pTable);
+	tmp_err_code = createPrefixTable(&(strm->uriTable->rows[0].pTable));
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -194,7 +265,7 @@ errorCode createInitialStringTables(EXIStream* strm)
 	strm->uriTable->rows[1].string_val.str = tmp_str.str;
 	strm->uriTable->rows[1].string_val.length = tmp_str.length;
 
-	tmp_err_code = createPrefixTable(strm->uriTable->rows[1].pTable);
+	tmp_err_code = createPrefixTable(&(strm->uriTable->rows[1].pTable));
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -205,7 +276,7 @@ errorCode createInitialStringTables(EXIStream* strm)
 	strm->uriTable->rows[1].pTable->rows[0].string_val.str = tmp_str.str;
 	strm->uriTable->rows[1].pTable->rowCount = 1;
 
-	tmp_err_code = createLocalNamesTable(strm->uriTable->rows[1].lTable);
+	tmp_err_code = createLocalNamesTable(&(strm->uriTable->rows[1].lTable));
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -230,7 +301,7 @@ errorCode createInitialStringTables(EXIStream* strm)
 	strm->uriTable->rows[2].string_val.str = tmp_str.str;
 	strm->uriTable->rows[2].string_val.length = tmp_str.length;
 
-	tmp_err_code = createPrefixTable(strm->uriTable->rows[2].pTable);
+	tmp_err_code = createPrefixTable(&(strm->uriTable->rows[2].pTable));
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -241,7 +312,7 @@ errorCode createInitialStringTables(EXIStream* strm)
 	strm->uriTable->rows[2].pTable->rows[0].string_val.str = tmp_str.str;
 	strm->uriTable->rows[2].pTable->rowCount = 1;
 
-	tmp_err_code = createLocalNamesTable(strm->uriTable->rows[2].lTable);
+	tmp_err_code = createLocalNamesTable(&(strm->uriTable->rows[2].lTable));
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -269,7 +340,7 @@ errorCode createInitialStringTables(EXIStream* strm)
 
 		strm->uriTable->rows[3].pTable = NULL;
 
-		tmp_err_code = createLocalNamesTable(strm->uriTable->rows[3].lTable);
+		tmp_err_code = createLocalNamesTable(&(strm->uriTable->rows[3].lTable));
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
