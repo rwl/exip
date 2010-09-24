@@ -50,13 +50,6 @@
 #include "procTypes.h"
 #include "contentHandler.h"
 
-/** This is the type of the "value" content of EXI events.
- *  It is used when schema is available.
- * 0 - there is no value content for the event
- * 1 - the type is String
- * */
-typedef unsigned char ValueType;
-
 struct EXIGrammar
 {
 	GrammarRule* ruleArray; // Array of grammar rules which constitute that grammar
@@ -65,6 +58,25 @@ struct EXIGrammar
 };
 
 typedef struct EXIGrammar EXIGrammarStack; // Used to differentiate between single grammar (nextInStack == NULL) and stack of grammars
+
+struct ElementGrammarLabel
+{
+	unsigned int uriRowID;
+	unsigned int lnRowID;
+	struct EXIGrammar* elementGrammar;
+};
+
+struct ElementGrammarPool
+{
+	struct ElementGrammarLabel* refs; // Dynamic array
+	unsigned int refsCount; // The number of rows
+	unsigned int refsDimension; // The size of the Dynamic array
+};
+
+/* TODO: Create a unique index for the ElementGrammarPool. The index should work as follows:
+ * Given an uriRowID it should return an array of refs row ids which has that uriRowID.
+ * and then using lnRowID it should return the exact refs (element number of the array)
+ */
 
 /**
  * @brief Process the next grammar production in the Current Grammar
@@ -102,5 +114,12 @@ errorCode popGrammar(EXIGrammarStack* gStack, struct EXIGrammar* grammar);
  * @return Error handling code
  */
 errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar);
+
+/**
+ * @brief Creates an instance of EXI Built-in Element Grammar
+ * @param[in] elementGrammar empty grammar container
+ * @return Error handling code
+ */
+errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar);
 
 #endif /* GRAMMARS_H_ */

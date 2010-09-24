@@ -176,8 +176,8 @@ typedef struct URITable URITable;
 
 
 struct QName {
-	StringType* uri;       // Pointer to a String value in the string table
-	StringType* localName; // Pointer to a String value in the string table
+	const StringType* uri;       // Pointer to a String value in the string table. It is not allowed to modify the string table content from this pointer.
+	const StringType* localName; // Pointer to a String value in the string table. It is not allowed to modify the string table content from this pointer.
 };
 
 typedef struct QName QName;

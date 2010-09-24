@@ -61,6 +61,13 @@ struct Production
 	EventCode code;
 	EventType eType;
 	unsigned int nonTermID; // unique identifier of right-hand side Non-terminal
+
+	/**
+	 * For SE(qname), SE(uri:*), AT(qname) and AT(uri:*). Points to the qname or its local name
+	 * of the element/attribute
+	 */
+	unsigned int uriRowID;
+	unsigned int lnRowID;
 };
 
 typedef struct Production Production;

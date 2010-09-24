@@ -360,3 +360,13 @@ errorCode createInitialStringTables(EXIStream* strm)
 
 	return ERR_OK;
 }
+
+errorCode addGVRow(ValueTable* vTable, StringType global_value, unsigned int* rowID)
+{
+	return NOT_IMPLEMENTED_YET;
+}
+
+errorCode addLVRow(struct LocalNamesRow* lnRow, unsigned int globalValueRowID)
+{
+	return NOT_IMPLEMENTED_YET;
+}

@@ -36,7 +36,8 @@
  * @file contentHandler.h
  * @brief SAX-like interface for parsing the content of an EXI stream
  * The applications should register to this handlers with callback functions
- * invoked when the processor pass through the stream
+ * invoked when the processor pass through the stream. This interface is lower level that SAX.
+ * If you want to use SAX API you should wrap this interface.
  * @date Sep 7, 2010
  * @author Rumen Kyusakov
  * @version 0.1
@@ -50,8 +51,9 @@ struct ContentHandler
 {
 	void (*startDocument)();
 	void (*endDocument)();
-	void (*startElement)(); // TODO: define the parameters. Attributes included!
-	void (*endElement)(); // TODO: define the parameters!
+	void (*startElement)(QName qname); // TODO: define the parameters. Attributes inside won't be included!
+	void (*endElement)(); // TODO: define the parameters if needed. Most probably not. The element should be known from the context
+	void (*attributeString)(QName qname, const StringType value);
 	void (*intData)(); // TODO: define the parameters!
 	void (*stringData)(); // TODO: define the parameters!
 	void (*floatData)(); // TODO: define the parameters!
@@ -62,6 +64,9 @@ struct ContentHandler
 	void (*warning)(); // TODO: define the parameters!
 	void (*error)(); // TODO: define the parameters!
 	void (*fatalError)(); // TODO: define the parameters!
+
+	// EXI specific
+	void (*selfContained)();  // Used for indexing the independent elements for random access
 };
 
 typedef struct ContentHandler ContentHandler;

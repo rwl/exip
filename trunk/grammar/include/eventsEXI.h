@@ -85,6 +85,27 @@
  ****************************************/
 typedef unsigned char EventType;
 
+/** This is the type of the "value" content of EXI events.
+ *  It is used when schema is available.
+ * 0 - there is no value content for the event
+ * 1 - the type is String
+ * 2 - Integer
+ * 3 - Float
+ * 4 - Decimal
+ * 5 - Date-Time
+ * 6 - Boolean
+ * 7 - Binary
+ * */
+typedef unsigned char ValueType;
+
+#define VALUE_TYPE_NONE      0
+#define VALUE_TYPE_STRING    1
+#define VALUE_TYPE_INTEGER   2
+#define VALUE_TYPE_FLOAT     3
+#define VALUE_TYPE_DECIMAL   4
+#define VALUE_TYPE_DATE_TIME 5
+#define VALUE_TYPE_BOOLEAN   6
+#define VALUE_TYPE_BINARY    7
 
 struct EventCode
 {

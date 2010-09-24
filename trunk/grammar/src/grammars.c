@@ -136,6 +136,11 @@ errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar)
 	return ERR_OK;
 }
 
+errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar)
+{
+	return NOT_IMPLEMENTED_YET;
+}
+
 errorCode pushGrammar(EXIGrammarStack* gStack, struct EXIGrammar* grammar)
 {
 	grammar->nextInStack = gStack;
@@ -149,9 +154,9 @@ errorCode popGrammar(EXIGrammarStack* gStack, struct EXIGrammar* grammar)
 	grammar->nextInStack = NULL;
 }
 
-static errorCode decodeQName(EXIStream* strm, QName *qname);
+static errorCode decodeQName(EXIStream* strm, QName* qname, unsigned int* p_uriID, unsigned int* p_lnID);
 
-static errorCode decodeQName(EXIStream* strm, QName *qname)
+static errorCode decodeQName(EXIStream* strm, QName* qname, unsigned int* p_uriID, unsigned int* p_lnID)
 {
 	//TODO: add the case when Preserve.prefixes is true
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -206,23 +211,114 @@ static errorCode decodeQName(EXIStream* strm, QName *qname)
 			return tmp_err_code;
 		qname->localName = &(strm->uriTable->rows[uriID].lTable->rows[lnID].string_val);
 	}
+	*p_uriID = uriID;
+	*p_lnID = lnID;
 	return ERR_OK;
 }
 
-static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHandler* handler, ValueType vType);
+static errorCode decodeStringValue(EXIStream* strm, StringType** value, unsigned int uriID, unsigned int lnID);
 
-static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHandler* handler, ValueType vType)
+static errorCode decodeStringValue(EXIStream* strm, StringType** value, unsigned int uriID, unsigned int lnID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	if(eType != EVENT_SD && eType != EVENT_ED && eType != EVENT_EE && eType != EVENT_SC) // The event has content!
+	unsigned int flag_StringLiteralsPartition = 0;
+	tmp_err_code = decodeUnsignedInteger(strm, &flag_StringLiteralsPartition);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	if(flag_StringLiteralsPartition == 0) // "local" value partition table hit
 	{
-		// TODO: implement all cases
-		if(eType == EVENT_SE_ALL)
+		unsigned int lvID = 0;
+		unsigned char lvBits = getBitsNumber(strm->uriTable->rows[uriID].lTable->rows[lnID].vCrossTable->rowCount - 1);
+		tmp_err_code = decodeNBitUnsignedInteger(strm, lvBits, &lvID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		unsigned int value_table_rowID = strm->uriTable->rows[uriID].lTable->rows[lnID].vCrossTable->valueRowIds[lvID];
+		(*value) = &(strm->vTable->rows[value_table_rowID].string_val);
+	}
+	else if(flag_StringLiteralsPartition == 1)// global value partition table hit
+	{
+		unsigned int gvID = 0;
+		unsigned char gvBits = getBitsNumber(strm->vTable->rowCount - 1);
+		tmp_err_code = decodeNBitUnsignedInteger(strm, gvBits, &gvID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		(*value) = &(strm->vTable->rows[gvID].string_val);
+	}
+	else  // "local" value partition and global value partition table miss
+	{
+		StringType gvStr;
+		unsigned int gvID = 0;
+		tmp_err_code = decodeStringOnly(strm, flag_StringLiteralsPartition - 2, &gvStr);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = addGVRow(strm->vTable, gvStr, &gvID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = addLVRow(&(strm->uriTable->rows[uriID].lTable->rows[lnID]), gvID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		(*value) = &(strm->vTable->rows[gvID].string_val);
+	}
+	return ERR_OK;
+}
+
+static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHandler* handler, ValueType vType, unsigned int uriRowID, unsigned int lnRowID);
+
+static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHandler* handler, ValueType vType, unsigned int uriRowID, unsigned int lnRowID)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	// TODO: implement all cases
+	unsigned int uriID = 0;
+	unsigned int lnID = 0;
+	QName qname;
+	if(eType == EVENT_SE_ALL)
+	{
+		// The content of SE event is the element qname
+		tmp_err_code = decodeQName(strm, &qname, &uriID, &lnID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		if(handler->startElement != NULL)  // Invoke handler method passing the element qname
+			handler->startElement(qname);
+	}
+	else if(eType == EVENT_AT_ALL)
+	{
+		// The content of SE event is the element qname
+		tmp_err_code = decodeQName(strm, &qname, &uriID, &lnID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		if(vType == VALUE_TYPE_STRING)
 		{
-			QName qname;
-			// The content of SE event is the element qname
-			tmp_err_code = decodeQName(strm, &qname);
-			//TODO: Invoke handler method passing the element qname
+			StringType* value;
+			tmp_err_code = decodeStringValue(strm, &value, uriID, lnID);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+			if(handler->attributeString != NULL)  // Invoke handler method
+				handler->attributeString(qname, *value);
+		}
+	}
+	else if(eType == EVENT_SE_QNAME)
+	{
+		qname.uri = &(strm->uriTable->rows[uriRowID].string_val);
+		qname.localName = &(strm->uriTable->rows[uriRowID].lTable->rows[lnRowID].string_val);
+		if(handler->startElement != NULL)  // Invoke handler method passing the element qname
+			handler->startElement(qname);
+	}
+	else if(eType == EVENT_AT_QNAME)
+	{
+		qname.uri = &(strm->uriTable->rows[uriRowID].string_val);
+		qname.localName = &(strm->uriTable->rows[uriRowID].lTable->rows[lnRowID].string_val);
+		if(vType == VALUE_TYPE_STRING)
+		{
+			StringType* value;
+			tmp_err_code = decodeStringValue(strm, &value, uriID, lnID);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+			if(handler->attributeString != NULL)  // Invoke handler method
+				handler->attributeString(qname, *value);
 		}
 	}
 	return ERR_OK;
@@ -231,7 +327,7 @@ static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHan
 errorCode processNextProduction(EXIStream* strm, EXIGrammarStack* grStack, unsigned int nonTermID_in, EventType* eType, unsigned int* nonTermID_out, ContentHandler* handler)
 {
 	// TODO: it is not finished - only simple productions are handled!
-	ValueType vType = 1; //TODO: This sets the value content type to String. This is only valid for schema-less decoding
+	ValueType vType = VALUE_TYPE_STRING; //TODO: This sets the value content type to String. This is only valid for schema-less decoding
 
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int tmp_bits_val = 0;
@@ -251,9 +347,34 @@ errorCode processNextProduction(EXIStream* strm, EXIGrammarStack* grStack, unsig
 				{
 					*eType = grStack->ruleArray[i].prodArray[currProduction].eType;
 					*nonTermID_out = grStack->ruleArray[i].prodArray[currProduction].nonTermID;
-					tmp_err_code = decodeEventContent(strm, *eType, handler, vType);
-					if(tmp_err_code != ERR_OK)
-						return tmp_err_code;
+					founded = 1;
+					if(*eType == EVENT_SD)
+					{
+						if(handler->startDocument != NULL)
+							handler->startDocument();
+					}
+					else if(*eType == EVENT_ED)
+					{
+						if(handler->endDocument != NULL)
+							handler->endDocument();
+					}
+					else if(*eType == EVENT_EE)
+					{
+						if(handler->endElement != NULL)
+							handler->endElement();
+					}
+					else if(*eType == EVENT_SC)
+					{
+						if(handler->selfContained != NULL)
+							handler->selfContained();
+					}
+					else // The event has content!
+					{
+						tmp_err_code = decodeEventContent(strm, *eType, handler, vType,
+								       grStack->ruleArray[i].prodArray[currProduction].uriRowID, grStack->ruleArray[i].prodArray[currProduction].lnRowID);
+						if(tmp_err_code != ERR_OK)
+							return tmp_err_code;
+					}
 				}
 				else
 				{
@@ -269,9 +390,33 @@ errorCode processNextProduction(EXIStream* strm, EXIGrammarStack* grStack, unsig
 								*eType = grStack->ruleArray[i].prodArray[j].eType;
 								*nonTermID_out = grStack->ruleArray[i].prodArray[j].nonTermID;
 								founded = 1;
-								tmp_err_code = decodeEventContent(strm, *eType, handler, vType);
-								if(tmp_err_code != ERR_OK)
-									return tmp_err_code;
+								if(*eType == EVENT_SD)
+								{
+									if(handler->startDocument != NULL)
+										handler->startDocument();
+								}
+								else if(*eType == EVENT_ED)
+								{
+									if(handler->endDocument != NULL)
+										handler->endDocument();
+								}
+								else if(*eType == EVENT_EE)
+								{
+									if(handler->endElement != NULL)
+										handler->endElement();
+								}
+								else if(*eType == EVENT_SC)
+								{
+									if(handler->selfContained != NULL)
+										handler->selfContained();
+								}
+								else // The event has content!
+								{
+									tmp_err_code = decodeEventContent(strm, *eType, handler, vType,
+											       grStack->ruleArray[i].prodArray[j].uriRowID, grStack->ruleArray[i].prodArray[j].lnRowID);
+									if(tmp_err_code != ERR_OK)
+										return tmp_err_code;
+								}
 							}
 							else
 							{
