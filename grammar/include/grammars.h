@@ -57,8 +57,6 @@ struct EXIGrammar
 	struct EXIGrammar* nextInStack;
 };
 
-typedef struct EXIGrammar EXIGrammarStack; // Used to differentiate between single grammar (nextInStack == NULL) and stack of grammars
-
 struct ElementGrammarLabel
 {
 	unsigned int uriRowID;
@@ -75,8 +73,10 @@ struct ElementGrammarPool
 
 /* TODO: Create a unique index for the ElementGrammarPool. The index should work as follows:
  * Given an uriRowID it should return an array of refs row ids which has that uriRowID.
- * and then using lnRowID it should return the exact refs (element number of the array)
+ * and then using lnRowID it should return the exact ref (element number of the array)
  */
+
+typedef struct EXIGrammar EXIGrammarStack; // Used to differentiate between single grammar (nextInStack == NULL) and stack of grammars
 
 /**
  * @brief Process the next grammar production in the Current Grammar
@@ -111,15 +111,17 @@ errorCode popGrammar(EXIGrammarStack* gStack, struct EXIGrammar* grammar);
 /**
  * @brief Creates an instance of the EXI Built-in Document Grammar
  * @param[in] buildInGrammar empty grammar container
+ * @param[in] fidelity_opts Fidelity options /EXI header preserve opts/
  * @return Error handling code
  */
-errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar);
+errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, unsigned char fidelity_opts);
 
 /**
  * @brief Creates an instance of EXI Built-in Element Grammar
  * @param[in] elementGrammar empty grammar container
+ * @param[in] fidelity_opts Fidelity options /EXI header preserve opts/
  * @return Error handling code
  */
-errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar);
+errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, unsigned char fidelity_opts);
 
 #endif /* GRAMMARS_H_ */
