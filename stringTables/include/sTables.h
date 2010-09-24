@@ -117,4 +117,23 @@ errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, unsigned int*
  */
 errorCode createInitialStringTables(EXIStream* strm);
 
+/**
+ * @brief Add a new row into the ValueTable string table
+ *
+ * @param[out] vTable ValueTable string table
+ * @param[in] global_value the string representing this global value. The StringType can be allocated on the stack.
+ * @param[out] rowID the ID of the row inserted
+ * @return Error handling code
+ */
+errorCode addGVRow(ValueTable* vTable, StringType global_value, unsigned int* rowID);
+
+/**
+ * @brief Add a new row into the Local value cross string table
+ *
+ * @param[in, out] lnRow The local name row at which the Local value cross string table is attached
+ * @param[in] globalValueRowID the rowID of the string in the global value string table
+ * @return Error handling code
+ */
+errorCode addLVRow(struct LocalNamesRow* lnRow, unsigned int globalValueRowID);
+
 #endif /* STABLES_H_ */
