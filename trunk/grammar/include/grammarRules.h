@@ -52,9 +52,13 @@
 
 // Define Built-in Document Grammar non-terminals
 #define GR_VOID_NON_TERMINAL 0 // Used to indicate that the production does not have NON_TERMINAL
-#define GR_DOCUMENT 1
-#define GR_DOC_CONTENT 2
-#define GR_DOC_END 3
+#define GR_DOCUMENT          1
+#define GR_DOC_CONTENT       2
+#define GR_DOC_END           3
+#define GR_START_TAG_CONTENT 4
+#define GR_ELEMENT_CONTENT   5
+#define GR_FRAGMENT          6
+
 
 struct Production
 {
