@@ -50,9 +50,14 @@
 #define DEF_GRAMMAR_RULE_NUMBER 3
 #define DEF_ELEMENT_GRAMMAR_RULE_NUMBER 2
 
-errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, unsigned char fidelity_opts)
+errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOptions* opts)
 {
 	//TODO: depends on the EXI fidelity options! Take this into account
+	// For now only the default fidelity_opts pruning is supported - all preserve opts are false
+	char is_default_fidelity = 0;
+
+	if(opts->preserve == 0) //all preserve opts are false
+		is_default_fidelity = 1;
 
 	buildInGrammar->nextInStack = NULL;
 	buildInGrammar->rulesDimension = DEF_GRAMMAR_RULE_NUMBER;
@@ -83,63 +88,89 @@ errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, unsigned char 
 	if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	buildInGrammar->ruleArray[1].nonTermID = GR_DOC_CONTENT;
-	buildInGrammar->ruleArray[1].bits[0] = 1;
-	buildInGrammar->ruleArray[1].bits[1] = 1;
-	buildInGrammar->ruleArray[1].bits[2] = 1;
+	if(is_default_fidelity)
+	{
+		buildInGrammar->ruleArray[1].bits[0] = 0;
+	}
+	else
+	{
+		buildInGrammar->ruleArray[1].bits[0] = 1;
+		buildInGrammar->ruleArray[1].bits[1] = 1;
+		buildInGrammar->ruleArray[1].bits[2] = 1;
+	}
 
 	/* SE (*) DocEnd	0 */
 	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[1]), getEventCode1(0), EVENT_SE_ALL, GR_DOC_END);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	/* DT DocContent	1.0 */
-	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[1]), getEventCode2(1, 0), EVENT_DT, GR_DOC_CONTENT);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	if(is_default_fidelity == 0)
+	{
+		/* DT DocContent	1.0 */
+		tmp_err_code = addProduction(&(buildInGrammar->ruleArray[1]), getEventCode2(1, 0), EVENT_DT, GR_DOC_CONTENT);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 
-	/* CM DocContent	1.1.0 */
-	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[1]), getEventCode3(1, 1, 0), EVENT_CM, GR_DOC_CONTENT);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+		/* CM DocContent	1.1.0 */
+		tmp_err_code = addProduction(&(buildInGrammar->ruleArray[1]), getEventCode3(1, 1, 0), EVENT_CM, GR_DOC_CONTENT);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 
-	/* PI DocContent	1.1.1 */
-	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[1]), getEventCode3(1, 1, 1), EVENT_PI, GR_DOC_CONTENT);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+		/* PI DocContent	1.1.1 */
+		tmp_err_code = addProduction(&(buildInGrammar->ruleArray[1]), getEventCode3(1, 1, 1), EVENT_PI, GR_DOC_CONTENT);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
 
 
 	/* DocEnd :
-				ED	0
+				ED	        0
 				CM DocEnd	1.0
 				PI DocEnd	1.1 */
 	tmp_err_code = initGrammarRule(&(buildInGrammar->ruleArray[2]));
 	if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	buildInGrammar->ruleArray[2].nonTermID = GR_DOC_END;
-	buildInGrammar->ruleArray[2].bits[0] = 1;
-	buildInGrammar->ruleArray[2].bits[1] = 1;
+	if(is_default_fidelity == 1)
+	{
+		buildInGrammar->ruleArray[2].bits[0] = 0;
+	}
+	else
+	{
+		buildInGrammar->ruleArray[2].bits[0] = 1;
+		buildInGrammar->ruleArray[2].bits[1] = 1;
+	}
 
 	/* ED	0 */
 	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[2]), getEventCode1(0), EVENT_ED, GR_VOID_NON_TERMINAL);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	/* CM DocEnd	1.0  */
-	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[2]), getEventCode2(1, 0), EVENT_CM, GR_DOC_END);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	if(is_default_fidelity == 0)
+	{
+		/* CM DocEnd	1.0  */
+		tmp_err_code = addProduction(&(buildInGrammar->ruleArray[2]), getEventCode2(1, 0), EVENT_CM, GR_DOC_END);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 
-	/* PI DocEnd	1.1 */
-	tmp_err_code = addProduction(&(buildInGrammar->ruleArray[2]), getEventCode2(1, 1), EVENT_PI, GR_DOC_END);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+		/* PI DocEnd	1.1 */
+		tmp_err_code = addProduction(&(buildInGrammar->ruleArray[2]), getEventCode2(1, 1), EVENT_PI, GR_DOC_END);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
 
 	return ERR_OK;
 }
 
-errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, unsigned char fidelity_opts)
+errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, struct EXIOptions* opts)
 {
 	//TODO: depends on the EXI fidelity options! Take this into account
+	// For now only the default fidelity_opts pruning is supported - all preserve opts are false
+	// and selfContained is also false
+	char is_default_fidelity = 0;
+
+	if(opts->preserve == 0 && opts->selfContained == 0) //all preserve opts are false and selfContained is also false
+		is_default_fidelity = 1;
 
 	elementGrammar->nextInStack = NULL;
 	elementGrammar->rulesDimension = DEF_ELEMENT_GRAMMAR_RULE_NUMBER;
@@ -163,9 +194,17 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, unsigne
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	elementGrammar->ruleArray[0].nonTermID = GR_START_TAG_CONTENT;
-	elementGrammar->ruleArray[0].bits[0] = 0;
-	elementGrammar->ruleArray[0].bits[1] = 4;
-	elementGrammar->ruleArray[0].bits[2] = 1;
+	if(is_default_fidelity == 1)
+	{
+		elementGrammar->ruleArray[0].bits[0] = 0;
+		elementGrammar->ruleArray[0].bits[1] = 2;
+	}
+	else
+	{
+		elementGrammar->ruleArray[0].bits[0] = 0;
+		elementGrammar->ruleArray[0].bits[1] = 4;
+		elementGrammar->ruleArray[0].bits[2] = 1;
+	}
 
 	/* EE	                    0.0 */
 	tmp_err_code = addProduction(&(elementGrammar->ruleArray[0]), getEventCode2(0,0), EVENT_EE, GR_VOID_NON_TERMINAL);
@@ -177,40 +216,56 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, unsigne
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	/* NS StartTagContent	    0.2 */
-	tmp_err_code = addProduction(&(elementGrammar->ruleArray[0]), getEventCode2(0,2), EVENT_NS, GR_START_TAG_CONTENT);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	if(is_default_fidelity == 1)
+	{
+		/* SE (*) ElementContent	0.2 */
+		tmp_err_code = addProduction(&(elementGrammar->ruleArray[0]), getEventCode2(0,2), EVENT_SE_ALL, GR_ELEMENT_CONTENT);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 
-	/* SC Fragment	            0.3 */
-	tmp_err_code = addProduction(&(elementGrammar->ruleArray[0]), getEventCode2(0,3), EVENT_SC, GR_FRAGMENT);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+		/* CH ElementContent	    0.3 */
+		tmp_err_code = addProduction(&(elementGrammar->ruleArray[0]), getEventCode2(0,3), EVENT_CH, GR_ELEMENT_CONTENT);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 
-	/* SE (*) ElementContent	0.4 */
-	tmp_err_code = addProduction(&(elementGrammar->ruleArray[0]), getEventCode2(0,4), EVENT_SE_ALL, GR_ELEMENT_CONTENT);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	}
+	else
+	{
+		/* NS StartTagContent	    0.2 */
+		tmp_err_code = addProduction(&(elementGrammar->ruleArray[0]), getEventCode2(0,2), EVENT_NS, GR_START_TAG_CONTENT);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 
-	/* CH ElementContent	    0.5 */
-	tmp_err_code = addProduction(&(elementGrammar->ruleArray[0]), getEventCode2(0,5), EVENT_CH, GR_ELEMENT_CONTENT);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+		/* SC Fragment	            0.3 */
+		tmp_err_code = addProduction(&(elementGrammar->ruleArray[0]), getEventCode2(0,3), EVENT_SC, GR_FRAGMENT);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 
-	/* ER ElementContent	    0.6 */
-	tmp_err_code = addProduction(&(elementGrammar->ruleArray[0]), getEventCode2(0,6), EVENT_ER, GR_ELEMENT_CONTENT);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+		/* SE (*) ElementContent	0.4 */
+		tmp_err_code = addProduction(&(elementGrammar->ruleArray[0]), getEventCode2(0,4), EVENT_SE_ALL, GR_ELEMENT_CONTENT);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 
-	/* CM ElementContent	    0.7.0 */
-	tmp_err_code = addProduction(&(elementGrammar->ruleArray[0]), getEventCode3(0,7,0), EVENT_CM, GR_ELEMENT_CONTENT);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+		/* CH ElementContent	    0.5 */
+		tmp_err_code = addProduction(&(elementGrammar->ruleArray[0]), getEventCode2(0,5), EVENT_CH, GR_ELEMENT_CONTENT);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 
-	/* PI ElementContent	    0.7.1 */
-	tmp_err_code = addProduction(&(elementGrammar->ruleArray[0]), getEventCode3(0,7,1), EVENT_PI, GR_ELEMENT_CONTENT);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+		/* ER ElementContent	    0.6 */
+		tmp_err_code = addProduction(&(elementGrammar->ruleArray[0]), getEventCode2(0,6), EVENT_ER, GR_ELEMENT_CONTENT);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		/* CM ElementContent	    0.7.0 */
+		tmp_err_code = addProduction(&(elementGrammar->ruleArray[0]), getEventCode3(0,7,0), EVENT_CM, GR_ELEMENT_CONTENT);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		/* PI ElementContent	    0.7.1 */
+		tmp_err_code = addProduction(&(elementGrammar->ruleArray[0]), getEventCode3(0,7,1), EVENT_PI, GR_ELEMENT_CONTENT);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
 
 	/* ElementContent :
 							EE	                    0
@@ -223,9 +278,17 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, unsigne
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	elementGrammar->ruleArray[1].nonTermID = GR_ELEMENT_CONTENT;
-	elementGrammar->ruleArray[1].bits[0] = 1;
-	elementGrammar->ruleArray[1].bits[1] = 2;
-	elementGrammar->ruleArray[1].bits[2] = 1;
+	if(is_default_fidelity == 1)
+	{
+		elementGrammar->ruleArray[1].bits[0] = 1;
+		elementGrammar->ruleArray[1].bits[1] = 1;
+	}
+	else
+	{
+		elementGrammar->ruleArray[1].bits[0] = 1;
+		elementGrammar->ruleArray[1].bits[1] = 2;
+		elementGrammar->ruleArray[1].bits[2] = 1;
+	}
 
 	/* EE	                  0 */
 	tmp_err_code = addProduction(&(elementGrammar->ruleArray[1]), getEventCode1(0), EVENT_EE, GR_VOID_NON_TERMINAL);
@@ -242,20 +305,23 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, unsigne
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	/* ER ElementContent	    1.2 */
-	tmp_err_code = addProduction(&(elementGrammar->ruleArray[1]), getEventCode2(1,2), EVENT_ER, GR_ELEMENT_CONTENT);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	if(is_default_fidelity == 0)
+	{
+		/* ER ElementContent	    1.2 */
+		tmp_err_code = addProduction(&(elementGrammar->ruleArray[1]), getEventCode2(1,2), EVENT_ER, GR_ELEMENT_CONTENT);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 
-	/* CM ElementContent	    1.3.0 */
-	tmp_err_code = addProduction(&(elementGrammar->ruleArray[1]), getEventCode3(1,3,0), EVENT_CM, GR_ELEMENT_CONTENT);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+		/* CM ElementContent	    1.3.0 */
+		tmp_err_code = addProduction(&(elementGrammar->ruleArray[1]), getEventCode3(1,3,0), EVENT_CM, GR_ELEMENT_CONTENT);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 
-	/* PI ElementContent	    1.3.1 */
-	tmp_err_code = addProduction(&(elementGrammar->ruleArray[1]), getEventCode3(1,3,1), EVENT_PI, GR_ELEMENT_CONTENT);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+		/* PI ElementContent	    1.3.1 */
+		tmp_err_code = addProduction(&(elementGrammar->ruleArray[1]), getEventCode3(1,3,1), EVENT_PI, GR_ELEMENT_CONTENT);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
 
 	return ERR_OK;
 }

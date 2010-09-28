@@ -46,5 +46,90 @@
 
 errorCode decodeHeader(EXIStream* strm, EXIheader* header)
 {
-	return NOT_IMPLEMENTED_YET;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	unsigned int bits_val = 0;
+	tmp_err_code = readBits(strm, 2, &bits_val);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+	if(bits_val == 2)  // The header Distinguishing Bits i.e. no EXI Cookie
+	{
+		header->has_cookie = 0;
+	}
+	else if(bits_val == 0)// ASCII code for $ = 00100100  (36)
+	{
+		tmp_err_code = readBits(strm, 6, &bits_val);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		if(bits_val != 36)
+			return INVALID_EXI_HEADER;
+
+		tmp_err_code = readBits(strm, 8, &bits_val);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		if(bits_val != 69)   // ASCII code for E = 01000101  (69)
+			return INVALID_EXI_HEADER;
+
+		tmp_err_code = readBits(strm, 8, &bits_val);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		if(bits_val != 88)   // ASCII code for X = 01011000  (88)
+			return INVALID_EXI_HEADER;
+
+		tmp_err_code = readBits(strm, 8, &bits_val);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		if(bits_val != 73)   // ASCII code for I = 01001001  (73)
+			return INVALID_EXI_HEADER;
+
+		header->has_cookie = 1;
+		tmp_err_code = readBits(strm, 2, &bits_val);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		if(bits_val != 2)  // The header Distinguishing Bits are required
+			return INVALID_EXI_HEADER;
+	}
+	else
+	{
+		return INVALID_EXI_HEADER;
+	}
+
+	// Read the Presence Bit for EXI Options
+	tmp_err_code = readNextBit(strm, &bits_val);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	strm->opts = EXIP_MALLOC(sizeof(struct EXIOptions));
+	if(strm->opts == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	if(bits_val == 1) // There are EXI options
+	{
+		header->has_options = 1;
+		return NOT_IMPLEMENTED_YET; // TODO: Handle EXI streams with options. This includes Padding Bits in some cases
+	}
+	else // The default values for EXI options
+	{
+		header->has_options = 0;
+	    makeDefaultOpts(strm->opts);
+	}
+
+	// Read the Version type
+	tmp_err_code = readNextBit(strm, &bits_val);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	header->is_preview_version = bits_val;
+	header->version_number = 1;
+
+	do
+	{
+		tmp_err_code = readBits(strm, 4, &bits_val);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		header->version_number += bits_val;
+		if(bits_val < 15)
+			break;
+	} while(1);
+
+	return ERR_OK;
 }

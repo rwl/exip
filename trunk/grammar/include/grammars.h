@@ -114,7 +114,7 @@ errorCode popGrammar(EXIGrammarStack* gStack, struct EXIGrammar* grammar);
  * @param[in] fidelity_opts Fidelity options /EXI header preserve opts/
  * @return Error handling code
  */
-errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, unsigned char fidelity_opts);
+errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOptions* opts);
 
 /**
  * @brief Creates an instance of EXI Built-in Element Grammar
@@ -122,6 +122,6 @@ errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, unsigned char 
  * @param[in] fidelity_opts Fidelity options /EXI header preserve opts/
  * @return Error handling code
  */
-errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, unsigned char fidelity_opts);
+errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, struct EXIOptions* opts);
 
 #endif /* GRAMMARS_H_ */

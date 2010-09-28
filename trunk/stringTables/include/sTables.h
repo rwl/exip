@@ -47,10 +47,11 @@
 #include "procTypes.h"
 #include "errorHandle.h"
 
-#define DEFAULT_VALUE_ROWS_NUMBER      10
-#define DEFAULT_URI_ROWS_NUMBER        10
-#define DEFAULT_PREFIX_ROWS_NUMBER     10
-#define DEFAULT_LOCALNAMES_ROWS_NUMBER 10
+#define DEFAULT_VALUE_ROWS_NUMBER             10
+#define DEFAULT_URI_ROWS_NUMBER               10
+#define DEFAULT_PREFIX_ROWS_NUMBER            10
+#define DEFAULT_LOCALNAMES_ROWS_NUMBER        10
+#define DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER 10
 
 /**
  * @brief Creates fresh empty ValueTable (value partition of EXI string table)
@@ -84,6 +85,13 @@ errorCode createPrefixTable(PrefixTable** pTable);
  */
 errorCode createLocalNamesTable(LocalNamesTable** lTable);
 
+/**
+ * @brief Creates fresh empty ValueLocalCrossTable
+ * This operation includes allocation of memory for DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER number of rows
+ * @param[out] vlTable ValueLocalCrossTable string table
+ * @return Error handling code
+ */
+errorCode createValueLocalCrossTable(ValueLocalCrossTable** vlTable);
 
 /**
  * @brief Add new row into the URI string table
