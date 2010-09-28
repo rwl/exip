@@ -51,9 +51,20 @@
 START_TEST (test_getBuildInDocGrammar)
 {
 	errorCode err = UNEXPECTED_ERROR;
+	EXIStream testStream;
+	testStream.bitPointer = 0;
+	struct EXIOptions options;
+	makeDefaultOpts(&options);
+	testStream.opts = &options;
+	char buf[2];
+	buf[0] = (char) 0b11010100;
+	buf[1] = (char) 0b01100000;
+	testStream.buffer = buf;
+	testStream.bufferIndx = 0;
+
 	struct EXIGrammar testGrammar;
 
-	err = getBuildInDocGrammar(&testGrammar);
+	err = getBuildInDocGrammar(&testGrammar, &options);
 
 	fail_unless (err == ERR_OK, "getBuildInDocGrammar returns error code %d", err);
 

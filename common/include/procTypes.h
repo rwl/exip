@@ -311,6 +311,9 @@ struct EXIheader
 	 */
 	unsigned char has_options;
 
+	/** Boolean value - 1 preview version, 0 final version */
+	unsigned char is_preview_version;
+
 	/**
 	 * EXI stream version
 	 */

@@ -46,6 +46,9 @@
 #ifndef HEADERENCODE_H_
 #define HEADERENCODE_H_
 
+#include "errorHandle.h"
+#include "procTypes.h"
+
 /**
  * @brief Encode the header of an EXI stream. The current position in the stream is set to
  * the first bit after the header. The EXIStream.EXIOptions* are set accordingly

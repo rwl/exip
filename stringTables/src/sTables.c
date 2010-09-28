@@ -172,6 +172,21 @@ errorCode createLocalNamesTable(LocalNamesTable** lTable)
 	return ERR_OK;
 }
 
+errorCode createValueLocalCrossTable(ValueLocalCrossTable** vlTable)
+{
+	*vlTable = EXIP_MALLOC(sizeof(ValueLocalCrossTable));
+	if(*vlTable == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	(*vlTable)->valueRowIds = EXIP_MALLOC(sizeof(unsigned int)*DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER);
+	if((*vlTable)->valueRowIds == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	(*vlTable)->arrayDimension = DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER;
+	(*vlTable)->rowCount = 0;
+	return ERR_OK;
+}
+
 errorCode addURIRow(URITable* uTable, StringType uri, unsigned int* rowID)
 {
 	if(uTable == NULL)
@@ -220,6 +235,9 @@ errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, unsigned int*
 	/* Additions to value cross table are done when a value is inserted
 	 * in the value string table*/
 	lTable->rows[lTable->rowCount].vCrossTable = NULL;
+
+	*rowID = lTable->rowCount;
+	lTable->rowCount += 1;
 	return ERR_OK;
 }
 
@@ -363,10 +381,42 @@ errorCode createInitialStringTables(EXIStream* strm)
 
 errorCode addGVRow(ValueTable* vTable, StringType global_value, unsigned int* rowID)
 {
-	return NOT_IMPLEMENTED_YET;
+	if(vTable->arrayDimension == vTable->rowCount)   // The dynamic array must be extended first
+	{
+		void* new_ptr = EXIP_REALLOC(vTable->rows, sizeof(struct ValueRow)*(vTable->rowCount + DEFAULT_VALUE_ROWS_NUMBER));
+		if(new_ptr == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+		vTable->rows = new_ptr;
+		vTable->arrayDimension = vTable->arrayDimension + DEFAULT_VALUE_ROWS_NUMBER;
+	}
+
+	vTable->rows[vTable->rowCount].string_val.length = global_value.length;
+	vTable->rows[vTable->rowCount].string_val.str = global_value.str;
+
+	*rowID = vTable->rowCount;
+	vTable->rowCount += 1;
+	return ERR_OK;
 }
 
 errorCode addLVRow(struct LocalNamesRow* lnRow, unsigned int globalValueRowID)
 {
-	return NOT_IMPLEMENTED_YET;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	if(lnRow->vCrossTable == NULL)
+	{
+		tmp_err_code = createValueLocalCrossTable(&(lnRow->vCrossTable));
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else if(lnRow->vCrossTable->rowCount == lnRow->vCrossTable->arrayDimension)   // The dynamic array must be extended first
+	{
+		void* new_ptr = EXIP_REALLOC(lnRow->vCrossTable->valueRowIds, sizeof(unsigned int)*(lnRow->vCrossTable->rowCount + DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER));
+		if(new_ptr == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+		lnRow->vCrossTable->valueRowIds = new_ptr;
+		lnRow->vCrossTable->arrayDimension += DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER;
+	}
+
+	lnRow->vCrossTable->valueRowIds[lnRow->vCrossTable->rowCount] = globalValueRowID;
+	lnRow->vCrossTable->rowCount += 1;
+	return ERR_OK;
 }

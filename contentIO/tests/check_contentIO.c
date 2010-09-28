@@ -33,39 +33,93 @@
 \===================================================================================*/
 
 /**
- * @file errorHandle.h
- * @brief Error handling codes and function definitions
+ * @file check_ContentIO.c
+ * @brief Tests the Content IO module
  *
- * @date Jul 7, 2010
+ * @date Sep 28, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#ifndef ERRORHANDLE_H_
-#define ERRORHANDLE_H_
+#include <stdlib.h>
+#include <check.h>
+#include "../include/headerDecode.h"
+#include "../include/bodyDecode.h"
 
-typedef char errorCode;
+/* BEGIN: header tests */
 
-//TODO: define the rest of the error codes
+START_TEST (test_decodeHeader)
+{
+	EXIStream testStream;  // Default options, no EXI cookie
+	testStream.bitPointer = 0;
+	char buf[2];
+	buf[0] = (char) 0b10000000;
+	buf[1] = (char) 0b01100000;
+	testStream.buffer = buf;
+	testStream.bufferIndx = 0;
+	EXIheader header;
+	errorCode err = UNEXPECTED_ERROR;
 
-/* Definitions for error constants. */
-/** No error, everything OK. */
-#define ERR_OK    0
+	err = decodeHeader(&testStream, &header);
+	fail_unless (err == ERR_OK, "decodeHeader returns error code %d", err);
+	fail_if(header.opts == NULL);
+	fail_unless (header.has_cookie == 0,
+				"decodeHeader founds EXI cookie");
+	fail_unless (header.has_options == 0,
+					"decodeHeader founds options");
+	fail_unless (header.is_preview_version == 0,
+					"decodeHeader founds preview version");
+	fail_unless (header.version_number == 1,
+					"decodeHeader does not recognize version 1 of the stream");
 
-/** Error in the EXI header */
-#define INVALID_EXI_HEADER    1
+	EXIStream testStream2;  // Default options, with EXI cookie
+	testStream2.bitPointer = 0;
+	char buf2[6];
+	buf2[0] = (char) 36;
+	buf2[1] = (char) 69;
+	buf2[2] = (char) 88;
+	buf2[3] = (char) 73;
+	buf2[4] = (char) 0b10000000;
+	buf2[5] = (char) 0b01100000;
+	testStream2.buffer = buf2;
+	testStream2.bufferIndx = 0;
 
-/** Unsuccessful memory allocation */
-#define MEMORY_ALLOCATION_ERROR -1;
+	EXIheader header2;
+	err = decodeHeader(&testStream2, &header2);
+	fail_unless (err == ERR_OK, "decodeHeader returns error code %d", err);
+	fail_if(header2.opts == NULL);
+	fail_unless (header2.has_cookie == 1,
+				"decodeHeader does not found EXI cookie");
+	fail_unless (header2.has_options == 0,
+					"decodeHeader founds options");
+	fail_unless (header2.is_preview_version == 0,
+					"decodeHeader founds preview version");
+	fail_unless (header2.version_number == 1,
+					"decodeHeader does not recognize version 1 of the stream");
+}
+END_TEST
 
-/** Try to access null pointer */
-#define NULL_POINTER_REF -2;
+/* END: header tests */
 
-/** Any error that does not fall into the other categories */
-#define UNEXPECTED_ERROR -126
+Suite * contentio_suite (void)
+{
+  Suite *s = suite_create ("ContentIO");
 
-/** The code for this function is not yet implemented. */
-#define NOT_IMPLEMENTED_YET -127
+  /* Header test case */
+  TCase *tc_header = tcase_create ("EXI Header");
+  tcase_add_test (tc_header, test_decodeHeader);
+  suite_add_tcase (s, tc_header);
+  return s;
+}
 
-#endif /* ERRORHANDLE_H_ */
+int main (void)
+{
+	int number_failed;
+	Suite *s = contentio_suite();
+	SRunner *sr = srunner_create (s);
+	srunner_run_all (sr, CK_NORMAL);
+	number_failed = srunner_ntests_failed (sr);
+	srunner_free (sr);
+	return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+}
