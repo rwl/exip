@@ -98,9 +98,8 @@ errorCode decodeHeader(EXIStream* strm, EXIheader* header)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	strm->opts = EXIP_MALLOC(sizeof(struct EXIOptions));
 	if(strm->opts == NULL)
-		return MEMORY_ALLOCATION_ERROR;
+		return NULL_POINTER_REF;
 
 	if(bits_val == 1) // There are EXI options
 	{

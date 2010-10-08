@@ -49,6 +49,7 @@
 
 #define DEF_GRAMMAR_RULE_NUMBER 3
 #define DEF_ELEMENT_GRAMMAR_RULE_NUMBER 2
+#define GRAMMAR_POOL_DIMENSION 5
 
 errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOptions* opts)
 {
@@ -59,6 +60,7 @@ errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOpti
 	if(opts->preserve == 0) //all preserve opts are false
 		is_default_fidelity = 1;
 
+	buildInGrammar->lastNonTermID = GR_VOID_NON_TERMINAL;
 	buildInGrammar->nextInStack = NULL;
 	buildInGrammar->rulesDimension = DEF_GRAMMAR_RULE_NUMBER;
 	buildInGrammar->ruleArray = (GrammarRule*) EXIP_MALLOC(sizeof(GrammarRule)*DEF_GRAMMAR_RULE_NUMBER);
@@ -172,6 +174,7 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, struct 
 	if(opts->preserve == 0 && opts->selfContained == 0) //all preserve opts are false and selfContained is also false
 		is_default_fidelity = 1;
 
+	elementGrammar->lastNonTermID = GR_VOID_NON_TERMINAL;
 	elementGrammar->nextInStack = NULL;
 	elementGrammar->rulesDimension = DEF_ELEMENT_GRAMMAR_RULE_NUMBER;
 	elementGrammar->ruleArray = (GrammarRule*) EXIP_MALLOC(sizeof(GrammarRule)*DEF_ELEMENT_GRAMMAR_RULE_NUMBER);
@@ -326,16 +329,16 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, struct 
 	return ERR_OK;
 }
 
-errorCode pushGrammar(EXIGrammarStack* gStack, struct EXIGrammar* grammar)
+errorCode pushGrammar(EXIGrammarStack** gStack, struct EXIGrammar* grammar)
 {
-	grammar->nextInStack = gStack;
-	gStack = grammar;
+	grammar->nextInStack = *gStack;
+	*gStack = grammar;
 }
 
-errorCode popGrammar(EXIGrammarStack* gStack, struct EXIGrammar* grammar)
+errorCode popGrammar(EXIGrammarStack** gStack, struct EXIGrammar* grammar)
 {
-	grammar = gStack;
-	gStack = gStack->nextInStack;
+	grammar = *gStack;
+	*gStack = (*gStack)->nextInStack;
 	grammar->nextInStack = NULL;
 }
 
@@ -451,9 +454,15 @@ static errorCode decodeStringValue(EXIStream* strm, StringType** value, unsigned
 	return ERR_OK;
 }
 
-static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHandler* handler, ValueType vType, unsigned int uriRowID, unsigned int lnRowID);
+static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHandler* handler,
+									ValueType vType, unsigned int uriRowID, unsigned int lnRowID,
+									struct ElementGrammarPool* gPool, unsigned int* nonTermID_out,
+									EXIGrammarStack** grStack);
 
-static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHandler* handler, ValueType vType, unsigned int uriRowID, unsigned int lnRowID)
+static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHandler* handler,
+									ValueType vType, unsigned int uriRowID, unsigned int lnRowID,
+									struct ElementGrammarPool* gPool, unsigned int* nonTermID_out,
+									EXIGrammarStack** grStack)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	// TODO: implement all cases
@@ -468,6 +477,38 @@ static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHan
 			return tmp_err_code;
 		if(handler->startElement != NULL)  // Invoke handler method passing the element qname
 			handler->startElement(qname);
+
+		// New element grammar is pushed on the stack
+		struct EXIGrammar* res = NULL;
+		char is_found = 0;
+		tmp_err_code = checkElementGrammarInPool(gPool, uriID, lnID, &is_found, &res);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		(*grStack)->lastNonTermID = *nonTermID_out;
+		if(is_found)
+		{
+			*nonTermID_out = GR_START_TAG_CONTENT;
+			tmp_err_code = pushGrammar(grStack, res);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+		else
+		{
+			struct EXIGrammar* elementGrammar = EXIP_MALLOC(sizeof(struct EXIGrammar));
+			if(elementGrammar == NULL)
+				return MEMORY_ALLOCATION_ERROR;
+			tmp_err_code = createBuildInElementGrammar(elementGrammar, strm->opts);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+			tmp_err_code = addElementGrammarInPool(gPool, uriID, lnID, elementGrammar);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+			*nonTermID_out = GR_START_TAG_CONTENT;
+			tmp_err_code = pushGrammar(grStack, elementGrammar);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+
 	}
 	else if(eType == EVENT_AT_ALL)
 	{
@@ -509,7 +550,9 @@ static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHan
 	return ERR_OK;
 }
 
-errorCode processNextProduction(EXIStream* strm, EXIGrammarStack* grStack, unsigned int nonTermID_in, EventType* eType, unsigned int* nonTermID_out, ContentHandler* handler)
+errorCode processNextProduction(EXIStream* strm, EXIGrammarStack** grStack, unsigned int nonTermID_in,
+								EventType* eType, unsigned int* nonTermID_out, ContentHandler* handler,
+								struct ElementGrammarPool* gPool)
 {
 	// TODO: it is not finished - only simple productions are handled!
 	ValueType vType = VALUE_TYPE_STRING; //TODO: This sets the value content type to String. This is only valid for schema-less decoding
@@ -521,17 +564,17 @@ errorCode processNextProduction(EXIStream* strm, EXIGrammarStack* grStack, unsig
 	int j = 0;
 	int b = 0;
 	unsigned char founded = 0;
-	for(i = 0; i < grStack->rulesDimension; i++)
+	for(i = 0; i < (*grStack)->rulesDimension; i++)
 	{
-		if(nonTermID_in == grStack->ruleArray[i].nonTermID)
+		if(nonTermID_in == (*grStack)->ruleArray[i].nonTermID)
 		{
 			founded = 0;
 			for(b = 0; b < 3 && !founded; b++)
 			{
-				if(grStack->ruleArray[i].bits[b] == 0) // encoded with zero bits
+				if((*grStack)->ruleArray[i].bits[b] == 0) // encoded with zero bits
 				{
-					*eType = grStack->ruleArray[i].prodArray[currProduction].eType;
-					*nonTermID_out = grStack->ruleArray[i].prodArray[currProduction].nonTermID;
+					*eType = (*grStack)->ruleArray[i].prodArray[currProduction].eType;
+					*nonTermID_out = (*grStack)->ruleArray[i].prodArray[currProduction].nonTermID;
 					founded = 1;
 					if(*eType == EVENT_SD)
 					{
@@ -556,24 +599,26 @@ errorCode processNextProduction(EXIStream* strm, EXIGrammarStack* grStack, unsig
 					else // The event has content!
 					{
 						tmp_err_code = decodeEventContent(strm, *eType, handler, vType,
-								       grStack->ruleArray[i].prodArray[currProduction].uriRowID, grStack->ruleArray[i].prodArray[currProduction].lnRowID);
+									   (*grStack)->ruleArray[i].prodArray[currProduction].uriRowID,
+									   (*grStack)->ruleArray[i].prodArray[currProduction].lnRowID,
+								       gPool, nonTermID_out, grStack);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
 					}
 				}
 				else
 				{
-					tmp_err_code = decodeNBitUnsignedInteger(strm, grStack->ruleArray[i].bits[b], &tmp_bits_val);
+					tmp_err_code = decodeNBitUnsignedInteger(strm, (*grStack)->ruleArray[i].bits[b], &tmp_bits_val);
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
-					for(j = 0; j < grStack->ruleArray[i].prodCount && grStack->ruleArray[i].prodArray[j].code.size >= b + 1; j++)
+					for(j = 0; j < (*grStack)->ruleArray[i].prodCount && (*grStack)->ruleArray[i].prodArray[j].code.size >= b + 1; j++)
 					{
-						if(grStack->ruleArray[i].prodArray[j].code.code[b] == tmp_bits_val)
+						if((*grStack)->ruleArray[i].prodArray[j].code.code[b] == tmp_bits_val)
 						{
-							if(grStack->ruleArray[i].prodArray[j].code.size == b + 1)
+							if((*grStack)->ruleArray[i].prodArray[j].code.size == b + 1)
 							{
-								*eType = grStack->ruleArray[i].prodArray[j].eType;
-								*nonTermID_out = grStack->ruleArray[i].prodArray[j].nonTermID;
+								*eType = (*grStack)->ruleArray[i].prodArray[j].eType;
+								*nonTermID_out = (*grStack)->ruleArray[i].prodArray[j].nonTermID;
 								founded = 1;
 								if(*eType == EVENT_SD)
 								{
@@ -598,7 +643,9 @@ errorCode processNextProduction(EXIStream* strm, EXIGrammarStack* grStack, unsig
 								else // The event has content!
 								{
 									tmp_err_code = decodeEventContent(strm, *eType, handler, vType,
-											       grStack->ruleArray[i].prodArray[j].uriRowID, grStack->ruleArray[i].prodArray[j].lnRowID);
+												   (*grStack)->ruleArray[i].prodArray[j].uriRowID,
+												   (*grStack)->ruleArray[i].prodArray[j].lnRowID,
+											       gPool, nonTermID_out, grStack);
 									if(tmp_err_code != ERR_OK)
 										return tmp_err_code;
 								}
@@ -615,6 +662,57 @@ errorCode processNextProduction(EXIStream* strm, EXIGrammarStack* grStack, unsig
 			break;
 		}
 	}
+}
+
+errorCode createElementGrammarPool(struct ElementGrammarPool* pool)
+{
+	pool->refsDimension = GRAMMAR_POOL_DIMENSION;
+	pool->refsCount = 0;
+	pool->refs = EXIP_MALLOC(sizeof(struct ElementGrammarLabel)*GRAMMAR_POOL_DIMENSION);
+	if(pool->refs == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	return ERR_OK;
+}
+
+//TODO: Smarter algorithm must be employed here
+errorCode checkElementGrammarInPool(struct ElementGrammarPool* pool, unsigned int uriRowID,
+									unsigned int lnRowID, unsigned char* is_found, struct EXIGrammar** result)
+{
+	int i = 0;
+	for(i = 0; i < pool->refsCount; i++)
+	{
+		if(pool->refs[i].uriRowID == uriRowID && pool->refs[i].lnRowID == lnRowID)
+		{
+			*is_found = 1;
+			*result = pool->refs[i].elementGrammar;
+			return ERR_OK;
+		}
+	}
+	*is_found = 0;
+	*result = NULL;
+	return ERR_OK;
+}
+
+errorCode addElementGrammarInPool(struct ElementGrammarPool* pool, unsigned int uriRowID,
+									unsigned int lnRowID, struct EXIGrammar* newGr)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	if(pool->refsCount == pool->refsDimension) // The dynamic array must be extended first
+	{
+		void* new_ptr = EXIP_REALLOC(pool->refs, sizeof(struct ElementGrammarLabel)*(pool->refsCount + GRAMMAR_POOL_DIMENSION));
+		if(new_ptr == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+		pool->refs = new_ptr;
+		pool->refsDimension += GRAMMAR_POOL_DIMENSION;
+	}
+
+	pool->refs[pool->refsCount].lnRowID = lnRowID;
+	pool->refs[pool->refsCount].uriRowID = uriRowID;
+	pool->refs[pool->refsCount].elementGrammar = newGr;
+
+	pool->refsCount += 1;
+	return ERR_OK;
 }
 
 #endif /* BUILTINDOCGRAMMAR_H_ */

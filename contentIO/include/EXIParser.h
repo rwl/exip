@@ -33,19 +33,26 @@
 \===================================================================================*/
 
 /**
- * @file bodyDecode.h
- * @brief API for decoding EXI stream body
- * @date Sep 7, 2010
+ * @file EXIParser.h
+ * @brief Interface for parsing an EXI stream
+ * Application will use this interface to work with the EXIP parser
+ *
+ * @date Sep 30, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#ifndef BODYDECODE_H_
-#define BODYDECODE_H_
+#ifndef EXIPARSER_H_
+#define EXIPARSER_H_
 
 #include "contentHandler.h"
 
-void decodeBody(EXIStream* strm, ContentHandler* handler);
+/**
+ * @brief The EXIP parser API
+ * @param[in] binaryStream the binary representation of EXI stream
+ * @param[in] handler collection of callback functions for parsing events
+ */
+void parseEXI(char* binaryStream, ContentHandler* handler);
 
-#endif /* BODYDECODE_H_ */
+#endif /* EXIPARSER_H_ */

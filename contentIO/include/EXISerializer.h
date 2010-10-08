@@ -33,19 +33,18 @@
 \===================================================================================*/
 
 /**
- * @file bodyDecode.h
- * @brief API for decoding EXI stream body
- * @date Sep 7, 2010
+ * @file EXISerializer.h
+ * @brief Interface for serializing an EXI stream
+ * Application will use this interface to work with the EXIP serializer
+ *
+ * @date Sep 30, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#ifndef BODYDECODE_H_
-#define BODYDECODE_H_
+#ifndef EXISERIALIZER_H_
+#define EXISERIALIZER_H_
 
-#include "contentHandler.h"
 
-void decodeBody(EXIStream* strm, ContentHandler* handler);
-
-#endif /* BODYDECODE_H_ */
+#endif /* EXISERIALIZER_H_ */

@@ -33,43 +33,95 @@
 \===================================================================================*/
 
 /**
- * @file contentHandler.h
- * @brief SAX-like interface for parsing the content of an EXI stream
- * The applications should register to this handlers with callback functions
- * invoked when the processor pass through the stream. This interface is lower level that SAX.
- * If you want to use SAX API you should wrap this interface.
- * @date Sep 7, 2010
+ * @file bodyDecode.c
+ * @brief Implementing an API for decoding EXI stream body
+ * @date Oct 1, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#ifndef CONTENTHANDLER_H_
-#define CONTENTHANDLER_H_
+#include "../include/bodyDecode.h"
+#include "grammars.h"
+#include "sTables.h"
 
-struct ContentHandler
+// TODO: use macros for conditional debugging for error messages
+
+void decodeBody(EXIStream* strm, ContentHandler* handler)
 {
-	void (*startDocument)();
-	void (*endDocument)();
-	void (*startElement)(QName qname); // TODO: define the parameters. Attributes inside won't be included!
-	void (*endElement)(); // TODO: define the parameters if needed. Most probably not. The element should be known from the context
-	void (*attributeString)(QName qname, const StringType value);
-	void (*intData)(); // TODO: define the parameters!
-	void (*stringData)(); // TODO: define the parameters!
-	void (*floatData)(); // TODO: define the parameters!
-	void (*binaryData)(); // TODO: define the parameters!
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	EXIGrammarStack docGr;
+	EXIGrammarStack* gStack = &docGr;
+	tmp_err_code = getBuildInDocGrammar(gStack, strm->opts);
+	if(tmp_err_code != ERR_OK)
+	{
+		if(handler->fatalError != NULL)
+		{
+			handler->fatalError(tmp_err_code, "Cannot create BuildInDocGrammar");
+		}
+		return;
+	}
 
-	void (*processingInstruction)(); // TODO: define the parameters!
+	tmp_err_code = createInitialStringTables(strm);
+	if(tmp_err_code != ERR_OK)
+	{
+		if(handler->fatalError != NULL)
+		{
+			handler->fatalError(tmp_err_code, "Cannot create InitialStringTables");
+		}
+		return;
+	}
 
-	void (*warning)(); // TODO: define the parameters!
-	void (*error)(); // TODO: define the parameters!
-	void (*fatalError)(); // TODO: define the parameters!
+	struct ElementGrammarPool gPool;
+	tmp_err_code = createElementGrammarPool(&gPool);
+	if(tmp_err_code != ERR_OK)
+	{
+		if(handler->fatalError != NULL)
+		{
+			handler->fatalError(tmp_err_code, "Cannot create ElementGrammarPool");
+		}
+		return;
+	}
 
-	// EXI specific
-	void (*selfContained)();  // Used for indexing the independent elements for random access
-};
-
-typedef struct ContentHandler ContentHandler;
-
-
-#endif /* CONTENTHANDLER_H_ */
+	unsigned int currNonTermID = GR_DOCUMENT;
+	unsigned int tmpNonTermID = GR_VOID_NON_TERMINAL;
+	EventType eType;
+	while(currNonTermID != GR_VOID_NON_TERMINAL)  // Process grammar productions until gets to the end of the stream
+	{
+		tmp_err_code = processNextProduction(strm, &gStack, currNonTermID, &eType, &tmpNonTermID, handler, &gPool);
+		if(tmp_err_code != ERR_OK)
+		{
+			if(handler->fatalError != NULL)
+			{
+				handler->fatalError(tmp_err_code, "Cannot create InitialStringTables");
+			}
+			return;
+		}
+		if(tmpNonTermID == GR_VOID_NON_TERMINAL)
+		{
+			struct EXIGrammar* grammar; // TODO: check when the memory should be freed
+			tmp_err_code = popGrammar(&gStack, grammar);
+			if(tmp_err_code != ERR_OK)
+			{
+				if(handler->fatalError != NULL)
+				{
+					handler->fatalError(tmp_err_code, "popGrammar failed");
+				}
+				return;
+			}
+			if(gStack == NULL) // There is no more grammars in the stack
+			{
+				currNonTermID = GR_VOID_NON_TERMINAL; // The stream is parsed
+			}
+			else
+			{
+				currNonTermID = gStack->lastNonTermID;
+			}
+		}
+		else
+		{
+			currNonTermID = tmpNonTermID;
+		}
+		tmpNonTermID = GR_VOID_NON_TERMINAL;
+	}
+}
