@@ -27,7 +27,7 @@ Modules dependencies:
 -----------------------------------------------------------
    streamIO   |                   common                  |
 -----------------------------------------------------------
-    grammar   | common, contentIO, streamIO, stringTables |
+    grammar   |       common, streamIO, stringTables      |
 -----------------------------------------------------------
  stringTables |                   common                  |
 -----------------------------------------------------------

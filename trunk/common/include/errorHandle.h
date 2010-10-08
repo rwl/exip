@@ -57,10 +57,10 @@ typedef char errorCode;
 #define INVALID_EXI_HEADER    1
 
 /** Unsuccessful memory allocation */
-#define MEMORY_ALLOCATION_ERROR -1;
+#define MEMORY_ALLOCATION_ERROR -1
 
 /** Try to access null pointer */
-#define NULL_POINTER_REF -2;
+#define NULL_POINTER_REF -2
 
 /** Any error that does not fall into the other categories */
 #define UNEXPECTED_ERROR -126

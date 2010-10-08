@@ -55,6 +55,7 @@ struct EXIGrammar
 	GrammarRule* ruleArray; // Array of grammar rules which constitute that grammar
 	unsigned int rulesDimension; // The size of the array
 	struct EXIGrammar* nextInStack;
+	unsigned int lastNonTermID; // Stores the last NonTermID before another grammar is added on top of the stack
 };
 
 struct ElementGrammarLabel
@@ -88,7 +89,9 @@ typedef struct EXIGrammar EXIGrammarStack; // Used to differentiate between sing
  * @param[out] nonTermID_out unique identifier of right-hand side Non-terminal
  * @return Error handling code
  */
-errorCode processNextProduction(EXIStream* strm, EXIGrammarStack* grStack, unsigned int nonTermID_in, EventType* eType, unsigned int* nonTermID_out, ContentHandler* handler);
+errorCode processNextProduction(EXIStream* strm, EXIGrammarStack** grStack, unsigned int nonTermID_in,
+								EventType* eType, unsigned int* nonTermID_out, ContentHandler* handler,
+								struct ElementGrammarPool* gPool);
 
 /**
  * @brief Push a grammar on top of the Grammar Stack
@@ -96,7 +99,7 @@ errorCode processNextProduction(EXIStream* strm, EXIGrammarStack* grStack, unsig
  * @param[in] grammar a grammar
  * @return Error handling code
  */
-errorCode pushGrammar(EXIGrammarStack* gStack, struct EXIGrammar* grammar);
+errorCode pushGrammar(EXIGrammarStack** gStack, struct EXIGrammar* grammar);
 
 /**
  * @brief Pop a grammar off the top of the Grammar Stack
@@ -104,7 +107,7 @@ errorCode pushGrammar(EXIGrammarStack* gStack, struct EXIGrammar* grammar);
  * @param[out] grammar the terminal part of the production
  * @return Error handling code
  */
-errorCode popGrammar(EXIGrammarStack* gStack, struct EXIGrammar* grammar);
+errorCode popGrammar(EXIGrammarStack** gStack, struct EXIGrammar* grammar);
 
 
 //TODO: depends on the EXI fidelity options! Take this into account
@@ -124,4 +127,34 @@ errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOpti
  */
 errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, struct EXIOptions* opts);
 
+/**
+ * @brief Creates empty Element Grammar pool
+ * @param[in, out] pool empty pool container
+ * @return Error handling code
+ */
+errorCode createElementGrammarPool(struct ElementGrammarPool* pool);
+
+/**
+ * @brief Checks if a specific element grammar is already in the Element Grammar pool
+ * @param[in] pool Element Grammar pool
+ * @param[in] uriRowID Row id in the URI string table
+ * @param[in] lnRowID Row id in the Local names string table
+ * @param[out] is_found 0 is not found; 1 otherwise
+ * @param[out] result if found - a pointer to the searched grammar
+ * @return Error handling code
+ */
+errorCode checkElementGrammarInPool(struct ElementGrammarPool* pool, unsigned int uriRowID,
+									unsigned int lnRowID, unsigned char* is_found, struct EXIGrammar** result);
+
+
+/**
+ * @brief Adds a specific element grammar in the Element Grammar pool
+ * @param[in, out] pool Element Grammar pool
+ * @param[in] uriRowID Row id in the URI string table
+ * @param[in] lnRowID Row id in the Local names string table
+ * @param[in] newGr the grammar to be added
+ * @return Error handling code
+ */
+errorCode addElementGrammarInPool(struct ElementGrammarPool* pool, unsigned int uriRowID,
+									unsigned int lnRowID, struct EXIGrammar* newGr);
 #endif /* GRAMMARS_H_ */

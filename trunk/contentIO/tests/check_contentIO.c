@@ -52,6 +52,8 @@
 START_TEST (test_decodeHeader)
 {
 	EXIStream testStream;  // Default options, no EXI cookie
+	struct EXIOptions options;
+	testStream.opts = &options;
 	testStream.bitPointer = 0;
 	char buf[2];
 	buf[0] = (char) 0b10000000;
@@ -74,6 +76,8 @@ START_TEST (test_decodeHeader)
 					"decodeHeader does not recognize version 1 of the stream");
 
 	EXIStream testStream2;  // Default options, with EXI cookie
+	struct EXIOptions options2;
+	testStream2.opts = &options2;
 	testStream2.bitPointer = 0;
 	char buf2[6];
 	buf2[0] = (char) 36;

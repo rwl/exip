@@ -33,19 +33,45 @@
 \===================================================================================*/
 
 /**
- * @file bodyDecode.h
- * @brief API for decoding EXI stream body
+ * @file contentHandler.h
+ * @brief SAX-like interface for parsing the content of an EXI stream
+ * The applications should register to this handlers with callback functions
+ * invoked when the processor pass through the stream. This interface is lower level than SAX.
+ * If you want to use SAX API you should wrap this interface.
  * @date Sep 7, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#ifndef BODYDECODE_H_
-#define BODYDECODE_H_
+#ifndef CONTENTHANDLER_H_
+#define CONTENTHANDLER_H_
 
-#include "contentHandler.h"
+#include "procTypes.h"
 
-void decodeBody(EXIStream* strm, ContentHandler* handler);
+struct ContentHandler
+{
+	void (*startDocument)();
+	void (*endDocument)();
+	void (*startElement)(QName qname);
+	void (*endElement)(); // TODO: define the parameters if needed. Most probably not. The element should be known from the context
+	void (*attributeString)(QName qname, const StringType value);
+	void (*intData)(); // TODO: define the parameters!
+	void (*stringData)(); // TODO: define the parameters!
+	void (*floatData)(); // TODO: define the parameters!
+	void (*binaryData)(); // TODO: define the parameters!
 
-#endif /* BODYDECODE_H_ */
+	void (*processingInstruction)(); // TODO: define the parameters!
+
+	void (*warning)(const char code, const char* msg);
+	void (*error)(const char code, const char* msg);
+	void (*fatalError)(const char code, const char* msg);
+
+	// EXI specific
+	void (*selfContained)();  // Used for indexing independent elements for random access
+};
+
+typedef struct ContentHandler ContentHandler;
+
+
+#endif /* CONTENTHANDLER_H_ */

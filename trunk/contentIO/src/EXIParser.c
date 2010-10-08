@@ -33,19 +33,38 @@
 \===================================================================================*/
 
 /**
- * @file bodyDecode.h
- * @brief API for decoding EXI stream body
- * @date Sep 7, 2010
+ * @file EXIParser.c
+ * @brief Implementation of a parser of EXI streams
+ *
+ * @date Sep 30, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#ifndef BODYDECODE_H_
-#define BODYDECODE_H_
+#include "../include/EXIParser.h"
+#include "procTypes.h"
+#include "errorHandle.h"
+#include "../include/bodyDecode.h"
 
-#include "contentHandler.h"
+void parseEXI(char* binaryStream, ContentHandler* handler)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	EXIStream strm;
+	strm.buffer = binaryStream;
+	strm.bitPointer = 0;
+	strm.bufferIndx = 0;
+	struct EXIOptions options;
+	strm.opts = &options;
 
-void decodeBody(EXIStream* strm, ContentHandler* handler);
+	EXIheader header;
+	tmp_err_code = decodeHeader(&strm, &header);
+	if(tmp_err_code != ERR_OK)
+	{
+		if(handler->fatalError != NULL)
+			handler->fatalError(tmp_err_code, "Error parsing EXI header");
+		return;
+	}
 
-#endif /* BODYDECODE_H_ */
+	decodeBody(&strm, handler);
+}
