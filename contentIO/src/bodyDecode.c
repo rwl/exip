@@ -93,7 +93,7 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 		{
 			if(handler->fatalError != NULL)
 			{
-				handler->fatalError(tmp_err_code, "Cannot create InitialStringTables");
+				handler->fatalError(tmp_err_code, "Error processing next production");
 			}
 			return;
 		}

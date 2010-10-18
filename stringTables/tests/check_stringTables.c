@@ -108,6 +108,12 @@ START_TEST (test_createLocalNamesTable)
 }
 END_TEST
 
+START_TEST (test_createValueLocalCrossTable)
+{
+	fail("Test not implemented yet!");
+}
+END_TEST
+
 START_TEST (test_addURIRow)
 {
 	errorCode err = UNEXPECTED_ERROR;
@@ -154,6 +160,12 @@ START_TEST (test_addURIRow)
 }
 END_TEST
 
+START_TEST (test_addLNRow)
+{
+	fail("Test not implemented yet!");
+}
+END_TEST
+
 START_TEST (test_createInitialStringTables)
 {
 	errorCode err = UNEXPECTED_ERROR;
@@ -180,6 +192,18 @@ START_TEST (test_createInitialStringTables)
 }
 END_TEST
 
+START_TEST (test_addGVRow)
+{
+	fail("Test not implemented yet!");
+}
+END_TEST
+
+START_TEST (test_addLVRow)
+{
+	fail("Test not implemented yet!");
+}
+END_TEST
+
 /* END: table tests */
 
 Suite * tables_suite (void)
@@ -194,6 +218,11 @@ Suite * tables_suite (void)
   tcase_add_test (tc_tables, test_createLocalNamesTable);
   tcase_add_test (tc_tables, test_addURIRow);
   tcase_add_test (tc_tables, test_createInitialStringTables);
+  tcase_add_test (tc_tables, test_createValueLocalCrossTable);
+  tcase_add_test (tc_tables, test_addLNRow);
+  tcase_add_test (tc_tables, test_addGVRow);
+  tcase_add_test (tc_tables, test_addLVRow);
+
   suite_add_tcase (s, tc_tables);
   return s;
 }

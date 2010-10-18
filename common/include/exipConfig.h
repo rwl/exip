@@ -33,79 +33,17 @@
 \===================================================================================*/
 
 /**
- * @file p_ASCII_stringManipulate.c
- * @brief String manipulation functions used for UCS <-> ASCII transformations
- * Note! This file is platform dependent.
- * @date Sep 3, 2010
+ * @file exipConfig.h
+ * @brief Configuration parameters of the EXIP library
+ *
+ * @date Oct 13, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
+#ifndef EXIPCONFIG_H_
+#define EXIPCONFIG_H_
 
-#include "../include/stringManipulate.h"
-#include <string.h>
-#include <stdio.h>
+#define EXIP_DEBUG
 
-/**
- * Simple translation working only for ASCII characters
- */
-errorCode UCSToChar(unsigned int code_point, CharType* ch)
-{
-	*ch = (CharType) code_point;
-	return ERR_OK;
-}
-
-errorCode getEmptyString(StringType emptyStr)
-{
-	emptyStr.length = 0;
-	emptyStr.str = NULL;
-
-	return ERR_OK;
-}
-
-errorCode asciiToString(char* inStr, StringType outStr)
-{
-	outStr.length = strlen(inStr);
-	if(outStr.length > 0)  // If == 0 -> empty string
-	{
-		outStr.str = EXIP_MALLOC(sizeof(CharType)*(outStr.length + 1));  // Add the '\0' byte at the end
-		if(outStr.str == NULL)
-			return MEMORY_ALLOCATION_ERROR;
-		memcpy(outStr.str, inStr, outStr.length);
-		outStr.str[outStr.length + 1] = '\0';
-	}
-	else
-		outStr.str = NULL;
-	return ERR_OK;
-}
-
-char str_equal(StringType str1, StringType str2)
-{
-	if(str1.length != str2.length)
-		return 0;
-	else
-	{
-		if(str1.length == 0)
-		{
-			if(str1.str == NULL && str2.str == NULL)
-				return 1;
-			else
-				return 0;
-		}
-		else
-		{
-			return !strcmp(str1.str, str2.str);
-		}
-	}
-}
-
-void printString(StringType* inStr)
-{
-	if(inStr->length == 0)
-		return;
-	int i = 0;
-	for(i = 0; i < inStr->length; i++)
-	{
-		putchar(inStr->str[i]);
-	}
-}
+#endif /* EXIPCONFIG_H_ */

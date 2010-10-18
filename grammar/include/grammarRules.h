@@ -106,4 +106,18 @@ errorCode initGrammarRule(GrammarRule* rule);
  */
 errorCode addProduction(GrammarRule* rule, EventCode eCode, EventType eType, unsigned int nonTermID);
 
+/**
+ * @brief Inserts a Production to a Grammar Rule (with LeftHandSide) with an event code 0
+ * Note! It increments the first part of the event code of each production
+ * in the current grammar with the non-terminal LeftHandSide on the left-hand side
+ * @param[in, out] rule a Grammar Rule
+ * @param[in] eType event type
+ * @param[in] nonTermID unique identifier of right-hand side Non-terminal
+ * @param[in] lnRowID Local name part of the qname of the Event Type corresponding to the inserted production
+ * @param[in] uriRowID URI part of the qname of the Event Type corresponding to the inserted production
+ * @return Error handling code
+ */
+errorCode insertZeroProduction(GrammarRule* rule, EventType eType, unsigned int nonTermID,
+							   unsigned int lnRowID, unsigned int uriRowID);
+
 #endif /* GRAMMARRULES_H_ */

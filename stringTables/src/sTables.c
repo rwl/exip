@@ -275,6 +275,8 @@ errorCode createInitialStringTables(EXIStream* strm)
 
 	strm->uriTable->rows[0].lTable = NULL; // There are no initial entries here
 
+	strm->uriTable->rowCount += 1;
+
 	/**** URI	1	"http://www.w3.org/XML/1998/namespace" */
 
 	tmp_err_code = asciiToString(URI_1, tmp_str);
@@ -310,6 +312,8 @@ errorCode createInitialStringTables(EXIStream* strm)
 
 		strm->uriTable->rows[1].lTable->rowCount += 1;
 	}
+
+	strm->uriTable->rowCount += 1;
 
 	/**** URI	2	"http://www.w3.org/2001/XMLSchema-instance" */
 
@@ -347,6 +351,8 @@ errorCode createInitialStringTables(EXIStream* strm)
 		strm->uriTable->rows[2].lTable->rowCount += 1;
 	}
 
+	strm->uriTable->rowCount += 1;
+
 	/**** URI	3	"http://www.w3.org/2001/XMLSchema"  */
 	if(strm->opts->schemaID != NULL)
 	{
@@ -374,6 +380,8 @@ errorCode createInitialStringTables(EXIStream* strm)
 
 			strm->uriTable->rows[3].lTable->rowCount += 1;
 		}
+
+		strm->uriTable->rowCount += 1;
 	}
 
 	return ERR_OK;

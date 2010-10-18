@@ -130,9 +130,10 @@ errorCode decodeStringOnly(EXIStream* strm, unsigned int str_length, StringType*
 
 	// The exact size of the string is known at this point. This means that
 	// this is the place to allocate the memory for the  { CharType* str; }!!!
-	string_val->str = EXIP_MALLOC(sizeof(CharType)*str_length);  //TODO: Consider null terminating byte
+	string_val->str = EXIP_MALLOC(sizeof(CharType)*str_length);
 	if(string_val->str == NULL)
 		return MEMORY_ALLOCATION_ERROR;
+	string_val->length = str_length;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	int i = 0;
 	unsigned int tmp_code_point = 0;

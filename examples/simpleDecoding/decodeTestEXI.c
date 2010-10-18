@@ -33,79 +33,131 @@
 \===================================================================================*/
 
 /**
- * @file p_ASCII_stringManipulate.c
- * @brief String manipulation functions used for UCS <-> ASCII transformations
- * Note! This file is platform dependent.
- * @date Sep 3, 2010
+ * @file decodeTestEXI.c
+ * @brief Testing the EXI decoder
+ *
+ * @date Oct 13, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
-
-#include "../include/stringManipulate.h"
-#include <string.h>
+#include "EXIParser.h"
+#include "procTypes.h"
 #include <stdio.h>
+#include <string.h>
 
-/**
- * Simple translation working only for ASCII characters
- */
-errorCode UCSToChar(unsigned int code_point, CharType* ch)
+static void printfHelp();
+
+// Content Handler API
+void sample_fatalError(const char code, const char* msg);
+void sample_startDocument();
+void sample_endDocument();
+void sample_startElement(QName qname);
+void sample_endElement();
+void sample_attributeString(QName qname, const StringType value);
+
+
+int main(int argc, char *argv[])
 {
-	*ch = (CharType) code_point;
-	return ERR_OK;
-}
+	ContentHandler sampleHandler;
+	sampleHandler.fatalError = sample_fatalError;
+	sampleHandler.startDocument = sample_startDocument;
+	sampleHandler.endDocument = sample_endDocument;
+	sampleHandler.startElement = sample_startElement;
+	sampleHandler.attributeString = sample_attributeString;
 
-errorCode getEmptyString(StringType emptyStr)
-{
-	emptyStr.length = 0;
-	emptyStr.str = NULL;
-
-	return ERR_OK;
-}
-
-errorCode asciiToString(char* inStr, StringType outStr)
-{
-	outStr.length = strlen(inStr);
-	if(outStr.length > 0)  // If == 0 -> empty string
+	FILE *infile;
+	unsigned long fileLen;
+	char *buffer;
+	char sourceFile[50];
+	if(argc > 1)
 	{
-		outStr.str = EXIP_MALLOC(sizeof(CharType)*(outStr.length + 1));  // Add the '\0' byte at the end
-		if(outStr.str == NULL)
-			return MEMORY_ALLOCATION_ERROR;
-		memcpy(outStr.str, inStr, outStr.length);
-		outStr.str[outStr.length + 1] = '\0';
-	}
-	else
-		outStr.str = NULL;
-	return ERR_OK;
-}
-
-char str_equal(StringType str1, StringType str2)
-{
-	if(str1.length != str2.length)
-		return 0;
-	else
-	{
-		if(str1.length == 0)
+		if(strcmp(argv[1], "help") == 0)
 		{
-			if(str1.str == NULL && str2.str == NULL)
-				return 1;
-			else
-				return 0;
+			printfHelp();
+			return 0;
+		}
+		strcpy(sourceFile, argv[1]);
+		infile = fopen(sourceFile, "rb" );
+		if(!infile)
+		{
+			fprintf(stderr, "Unable to open file %s", sourceFile);
+			return 1;
 		}
 		else
 		{
-			return !strcmp(str1.str, str2.str);
+			//Get file length
+			fseek(infile, 0, SEEK_END);
+			fileLen=ftell(infile);
+			fseek(infile, 0, SEEK_SET);
+
+			//Allocate memory
+			buffer=(char *)malloc(fileLen+1);
+			if (!buffer)
+			{
+				fprintf(stderr, "Memory allocation error!");
+				fclose(infile);
+				return 1;
+			}
+
+			//Read file contents into buffer
+			fread(buffer, fileLen, 1, infile);
+			fclose(infile);
+
+			// Parse the EXI string
+			parseEXI(buffer, &sampleHandler);
+
+			free(buffer);
 		}
+	}
+	else
+	{
+		printfHelp();
+		return 1;
 	}
 }
 
-void printString(StringType* inStr)
+static void printfHelp()
 {
-	if(inStr->length == 0)
-		return;
-	int i = 0;
-	for(i = 0; i < inStr->length; i++)
-	{
-		putchar(inStr->str[i]);
-	}
+    printf("\n" );
+    printf("  EXIP     Efficient XML Interchange Processor, Rumen Kyusakov, 13.10.2010 \n");
+    printf("           Copyright (c) 2010, EISLAB - Luleå University of Technology Version 0.1 \n");
+    printf("  Usage:   decode <EXI_FileIn> | help  \n");
+    printf("  Purpose: This program tests the EXIP decoding functionality\n");
+    printf("\n" );
+}
+
+void sample_fatalError(const char code, const char* msg)
+{
+	printf("\n%d : FATAL ERROR: %s", code, msg);
+}
+void sample_startDocument()
+{
+	printf("\nstartDocument\n");
+}
+void sample_endDocument()
+{
+	printf("\nendDocument\n");
+}
+void sample_startElement(QName qname)
+{
+	printf("\nSTART ELEMENT: \nURI:");
+	printString(qname.uri);
+	printf("\nLN:");
+	printString(qname.localName);
+	printf("\n");
+}
+void sample_endElement()
+{
+	printf("\nendElement\n");
+}
+void sample_attributeString(QName qname, const StringType value)
+{
+	printf("\nATTRIBUTE: \nURI:");
+	printString(qname.uri);
+	printf("\nLN: ");
+	printString(qname.localName);
+	printf("\nVALUE: ");
+	printString(&value);
+	printf("\n");
 }
