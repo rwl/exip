@@ -83,4 +83,15 @@ errorCode asciiToString(char* inStr, StringType outStr);
  */
 char str_equal(StringType str1, StringType str2);
 
+
+//TODO: At first glance this function is only useful for debugging. If so consider
+//      removing it with the preprocessor macro EXIP_DEBUG
+/**
+ * @brief Prints out a StringType
+ * Note! The implementation of this function is platform-specific.
+ * Used for debugging purposes.
+ * @param[in] inStr Input string to be printed
+ */
+void printString(StringType* inStr);
+
 #endif /* STRINGMANIPULATE_H_ */

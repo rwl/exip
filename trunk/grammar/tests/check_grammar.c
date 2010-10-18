@@ -72,6 +72,48 @@ START_TEST (test_getBuildInDocGrammar)
 }
 END_TEST
 
+START_TEST (test_processNextProduction)
+{
+	fail("Test not implemented yet!");
+}
+END_TEST
+
+START_TEST (test_pushGrammar)
+{
+	fail("Test not implemented yet!");
+}
+END_TEST
+
+START_TEST (test_popGrammar)
+{
+	fail("Test not implemented yet!");
+}
+END_TEST
+
+START_TEST (test_createBuildInElementGrammar)
+{
+	fail("Test not implemented yet!");
+}
+END_TEST
+
+START_TEST (test_createElementGrammarPool)
+{
+	fail("Test not implemented yet!");
+}
+END_TEST
+
+START_TEST (test_checkElementGrammarInPool)
+{
+	fail("Test not implemented yet!");
+}
+END_TEST
+
+START_TEST (test_addElementGrammarInPool)
+{
+	fail("Test not implemented yet!");
+}
+END_TEST
+
 /* END: grammars tests */
 
 
@@ -161,6 +203,12 @@ START_TEST (test_addProduction)
 }
 END_TEST
 
+START_TEST (test_insertZeroProduction)
+{
+	fail("Test not implemented yet!");
+}
+END_TEST
+
 /* END: rules tests */
 
 
@@ -171,6 +219,13 @@ Suite * grammar_suite (void)
   /* Grammars test case */
   TCase *tc_gGrammars = tcase_create ("Grammars");
   tcase_add_test (tc_gGrammars, test_getBuildInDocGrammar);
+  tcase_add_test (tc_gGrammars, test_processNextProduction);
+  tcase_add_test (tc_gGrammars, test_pushGrammar);
+  tcase_add_test (tc_gGrammars, test_popGrammar);
+  tcase_add_test (tc_gGrammars, test_createBuildInElementGrammar);
+  tcase_add_test (tc_gGrammars, test_createElementGrammarPool);
+  tcase_add_test (tc_gGrammars, test_checkElementGrammarInPool);
+  tcase_add_test (tc_gGrammars, test_addElementGrammarInPool);
   suite_add_tcase (s, tc_gGrammars);
 
   /* Events test case */
@@ -184,6 +239,7 @@ Suite * grammar_suite (void)
   TCase *tc_gRules = tcase_create ("Rules");
   tcase_add_test (tc_gRules, test_initGrammarRule);
   tcase_add_test (tc_gRules, test_addProduction);
+  tcase_add_test (tc_gRules, test_insertZeroProduction);
   suite_add_tcase (s, tc_gRules);
 
   return s;

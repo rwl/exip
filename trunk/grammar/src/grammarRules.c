@@ -75,3 +75,33 @@ errorCode addProduction(GrammarRule* rule, EventCode eCode, EventType eType, uns
 	rule->prodCount = rule->prodCount + 1;
 	return ERR_OK;
 }
+
+errorCode insertZeroProduction(GrammarRule* rule, EventType eType, unsigned int nonTermID,
+							   unsigned int lnRowID, unsigned int uriRowID)
+{
+	if(rule->prodCount == rule->prodDimension) // The dynamic array prodArray needs to be resized
+	{
+		void* new_ptr = EXIP_REALLOC(rule->prodArray, sizeof(Production)*(rule->prodCount + DEFAULT_PROD_ARRAY_DIM));
+		if(new_ptr == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+		rule->prodArray = new_ptr;
+		rule->prodDimension = rule->prodDimension + DEFAULT_PROD_ARRAY_DIM;
+	}
+	int i = 0;
+	unsigned int maxCodePart = 0;
+	for(i = 0; i < rule->prodCount; i++)
+	{
+		rule->prodArray[i].code.code[0] += 1;
+		if(rule->prodArray[i].code.code[0] > maxCodePart)
+			maxCodePart = rule->prodArray[i].code.code[0];
+	}
+	rule->bits[0] = getBitsNumber(maxCodePart - 1);
+
+	rule->prodArray[rule->prodCount].code = getEventCode1(0);
+	rule->prodArray[rule->prodCount].eType = eType;
+	rule->prodArray[rule->prodCount].nonTermID = nonTermID;
+	rule->prodArray[rule->prodCount].lnRowID = lnRowID;
+	rule->prodArray[rule->prodCount].uriRowID = uriRowID;
+	rule->prodCount = rule->prodCount + 1;
+	return ERR_OK;
+}

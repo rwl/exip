@@ -45,6 +45,31 @@
 #ifndef ERRORHANDLE_H_
 #define ERRORHANDLE_H_
 
+#include "exipConfig.h"
+
+#define INFO 1
+#define WARNING 2
+#define ERROR 3
+
+
+/* Platform specific debugging output */
+#ifndef DEBUG_OUTPUT	// TODO: document this macro #DOCUMENT#
+#  define DEBUG_OUTPUT(msg)	do {printf msg;} while(0)
+#endif
+
+#ifdef EXIP_DEBUG // TODO: document this macro #DOCUMENT#
+
+#include <stdio.h>
+
+#ifndef EXIP_DEBUG_LEVEL // TODO: document this macro #DOCUMENT#
+# define EXIP_DEBUG_LEVEL INFO
+#endif
+
+#  define DEBUG_MSG(level,msg) do { if (level >= EXIP_DEBUG_LEVEL) { DEBUG_OUTPUT(msg); } } while(0)
+#else
+#  define DEBUG_MSG(level,msg)
+#endif /* EXIP_DEBUG */
+
 typedef char errorCode;
 
 //TODO: define the rest of the error codes
@@ -61,6 +86,9 @@ typedef char errorCode;
 
 /** Try to access null pointer */
 #define NULL_POINTER_REF -2
+
+/** Array out of bound  */
+#define OUT_OF_BOUND_BUFFER -3
 
 /** Any error that does not fall into the other categories */
 #define UNEXPECTED_ERROR -126
