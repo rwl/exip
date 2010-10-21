@@ -80,37 +80,88 @@ END_TEST
 
 START_TEST (test_pushGrammar)
 {
-	fail("Test not implemented yet!");
+	errorCode err = UNEXPECTED_ERROR;
+	EXIGrammarStack testGr;
+	EXIGrammarStack* testGrStack = &testGr;
+	struct EXIOptions options;
+	makeDefaultOpts(&options);
+
+	err = getBuildInDocGrammar(testGrStack, &options);
+	fail_if(err != ERR_OK);
+
+	struct EXIGrammar testElementGrammar;
+	err = createBuildInElementGrammar(&testElementGrammar, &options);
+	fail_if(err != ERR_OK);
+
+	err = pushGrammar(&testGrStack, &testElementGrammar);
+	fail_unless (err == ERR_OK, "pushGrammar returns error code %d", err);
+	fail_if(testGrStack->nextInStack == NULL);
 }
 END_TEST
 
 START_TEST (test_popGrammar)
 {
-	fail("Test not implemented yet!");
+	errorCode err = UNEXPECTED_ERROR;
+	EXIGrammarStack testGr;
+	EXIGrammarStack* testGrStack = &testGr;
+	struct EXIOptions options;
+	makeDefaultOpts(&options);
+
+	err = getBuildInDocGrammar(testGrStack, &options);
+	fail_if(err != ERR_OK);
+
+	struct EXIGrammar testElementGrammar;
+	err = createBuildInElementGrammar(&testElementGrammar, &options);
+	fail_if(err != ERR_OK);
+
+	err = pushGrammar(&testGrStack, &testElementGrammar);
+	fail_unless (err == ERR_OK, "pushGrammar returns error code %d", err);
+	fail_if(testGrStack->nextInStack == NULL);
+
+	struct EXIGrammar* testGR;
+	err = popGrammar(&testGrStack, &testGR);
+	fail_unless (err == ERR_OK, "popGrammar returns error code %d", err);
+	fail_if(testGrStack->nextInStack != NULL);
+	fail_if(testGR == NULL);
+	fail_if(testGR->nextInStack != NULL);
 }
 END_TEST
 
 START_TEST (test_createBuildInElementGrammar)
 {
-	fail("Test not implemented yet!");
+	errorCode err = UNEXPECTED_ERROR;
+	struct EXIGrammar testElementGrammar;
+	struct EXIOptions options;
+	makeDefaultOpts(&options);
+
+	err = createBuildInElementGrammar(&testElementGrammar);
+	fail_unless (err == ERR_OK, "createBuildInElementGrammar returns error code %d", err);
+
+	//TODO: add more tests!
 }
 END_TEST
 
 START_TEST (test_createElementGrammarPool)
 {
-	fail("Test not implemented yet!");
+	errorCode err = UNEXPECTED_ERROR;
+	struct ElementGrammarPool testPool;
+
+	err = createElementGrammarPool(&testPool);
+	fail_unless (err == ERR_OK, "createElementGrammarPool returns error code %d", err);
+	fail_unless (testPool.refsCount == 0, "createElementGrammarPool does not initialize the pool refsCount");
+	fail_unless (testPool.refsDimension > 0, "createElementGrammarPool does not initialize the pool refsDimension");
 }
 END_TEST
 
 START_TEST (test_checkElementGrammarInPool)
 {
-	fail("Test not implemented yet!");
+	fail("Test not implemented yet! The Grammar Pool must be re-implemented!");
 }
 END_TEST
 
 START_TEST (test_addElementGrammarInPool)
 {
-	fail("Test not implemented yet!");
+	fail("Test not implemented yet! The Grammar Pool must be re-implemented!");
 }
 END_TEST
 
@@ -205,7 +256,40 @@ END_TEST
 
 START_TEST (test_insertZeroProduction)
 {
-	fail("Test not implemented yet!");
+	errorCode err = UNEXPECTED_ERROR;
+	GrammarRule rule;
+	err = initGrammarRule(&rule);
+	fail_unless (err == ERR_OK, "initGrammarRule returns error code %d", err);
+	EventCode eCode = getEventCode2(0,0);
+	EventType eType = EVENT_SE_ALL;
+	rule.bits[0] = 0;
+	rule.bits[1] = 0;
+	unsigned int nonTermID = GR_DOC_CONTENT;
+	err = addProduction(&rule, eCode, eType, nonTermID);
+	fail_unless (err == ERR_OK, "addProduction returns error code %d", err);
+	fail_unless(rule.prodCount == 1 && rule.prodDimension == DEFAULT_PROD_ARRAY_DIM,
+				"addProduction does not initialize prodCount and/or prodDimension correctly");
+	fail_unless(rule.prodArray[0].code.size == 2 && rule.prodArray[0].code.code[0] == 0 &&
+				rule.prodArray[0].code.code[1] == 0,
+				"addProduction does not set the EventCode correctly");
+	fail_unless(rule.prodArray[0].eType == EVENT_SE_ALL, "addProduction does not set the EventType correctly");
+	fail_unless(rule.prodArray[0].nonTermID == GR_DOC_CONTENT, "addProduction does not set the nonTermID correctly");
+
+	err = insertZeroProduction(&rule, eType, nonTermID, 0, 0);
+	fail_unless (err == ERR_OK, "insertZeroProduction returns error code %d", err);
+	fail_unless (rule.prodCount == 2, "insertZeroProduction does not set prodCount properly");
+	fail_unless (rule.bits[0] == 1 && rule.bits[1] == 0, "insertZeroProduction does not set rule.bits properly");
+	fail_unless (rule.prodArray[1].lnRowID == 0 && rule.prodArray[1].uriRowID == 0,
+				"insertZeroProduction does not set lnRowID and uriRowID properly" );
+	fail_unless(rule.prodArray[1].code.size == 1 && rule.prodArray[1].code.code[0] == 0,
+					"insertZeroProduction does not set the EventCode correctly");
+	fail_unless(rule.prodArray[1].eType == EVENT_SE_ALL, "insertZeroProduction does not set the EventType correctly");
+	fail_unless(rule.prodArray[1].nonTermID == GR_DOC_CONTENT, "insertZeroProduction does not set the nonTermID correctly");
+
+	fail_unless(rule.prodArray[0].code.size == 2 && rule.prodArray[0].code.code[0] == 1 &&
+					rule.prodArray[0].code.code[1] == 0,
+					"insertZeroProduction does not set the EventCode of other productions correctly");
+
 }
 END_TEST
 

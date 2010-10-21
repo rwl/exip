@@ -86,6 +86,7 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 	unsigned int currNonTermID = GR_DOCUMENT;
 	unsigned int tmpNonTermID = GR_VOID_NON_TERMINAL;
 	EventType eType;
+
 	while(currNonTermID != GR_VOID_NON_TERMINAL)  // Process grammar productions until gets to the end of the stream
 	{
 		tmp_err_code = processNextProduction(strm, &gStack, currNonTermID, &eType, &tmpNonTermID, handler, &gPool);
@@ -100,7 +101,7 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 		if(tmpNonTermID == GR_VOID_NON_TERMINAL)
 		{
 			struct EXIGrammar* grammar; // TODO: check when the memory should be freed
-			tmp_err_code = popGrammar(&gStack, grammar);
+			tmp_err_code = popGrammar(&gStack, &grammar);
 			if(tmp_err_code != ERR_OK)
 			{
 				if(handler->fatalError != NULL)

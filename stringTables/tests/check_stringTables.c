@@ -110,7 +110,16 @@ END_TEST
 
 START_TEST (test_createValueLocalCrossTable)
 {
-	fail("Test not implemented yet!");
+	ValueLocalCrossTable* vlTable;
+	errorCode err = UNEXPECTED_ERROR;
+	err = createValueLocalCrossTable(&vlTable);
+
+	fail_unless (err == ERR_OK, "createValueLocalCrossTable returns error code %d", err);
+	fail_unless (vlTable->rowCount == 0,
+				"createValueLocalCrossTable populates the vlTable with rows: %d", vlTable->rowCount);
+	fail_unless (vlTable->arrayDimension == DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER,
+					"createValueLocalCrossTable creates dynamic array with %d rows", vlTable->arrayDimension);
+	fail_if(vlTable->valueRowIds == NULL);
 }
 END_TEST
 
@@ -122,7 +131,7 @@ START_TEST (test_addURIRow)
 	fail_if(err != ERR_OK);
 
 	StringType test_uri;
-	asciiToString("test_uri_string", test_uri);
+	asciiToString("test_uri_string", &test_uri);
 
 	unsigned int rowID = 55;
 
@@ -162,7 +171,45 @@ END_TEST
 
 START_TEST (test_addLNRow)
 {
-	fail("Test not implemented yet!");
+	errorCode err = UNEXPECTED_ERROR;
+	LocalNamesTable* lnTable;
+	err = createLocalNamesTable(&lnTable);
+	fail_if(err != ERR_OK);
+
+	StringType test_ln;
+	asciiToString("test_ln_string", &test_ln);
+
+	unsigned int rowID = 55;
+
+	err = addLNRow(lnTable, test_ln, &rowID);
+
+	fail_unless (err == ERR_OK, "addLNRow returns error code %d", err);
+	fail_unless (lnTable->arrayDimension == DEFAULT_LOCALNAMES_ROWS_NUMBER,
+				"addLNRow changed the arrayDimension unnecessary");
+	fail_unless (lnTable->rowCount == 1,
+					"addLNRow did not update rowCount properly");
+	fail_unless (str_equal(lnTable->rows[0].string_val, test_ln) == 1,
+						"addLNRow changed the ln_string");
+	fail_unless (rowID == 0,
+				"addLNRow returned wrong rowID: %d", rowID);
+
+	fail_if(lnTable->rows[0].vCrossTable != NULL);
+
+	lnTable->rowCount = DEFAULT_LOCALNAMES_ROWS_NUMBER;
+
+	err = addLNRow(lnTable, test_ln, &rowID);
+
+	fail_unless (err == ERR_OK, "addLNRow returns error code %d", err);
+	fail_unless (lnTable->arrayDimension == DEFAULT_LOCALNAMES_ROWS_NUMBER*2,
+				"addLNRow changed the arrayDimension unnecessary");
+	fail_unless (lnTable->rowCount == DEFAULT_LOCALNAMES_ROWS_NUMBER + 1,
+					"addLNRow did not update rowCount properly");
+	fail_unless (str_equal(lnTable->rows[DEFAULT_LOCALNAMES_ROWS_NUMBER].string_val, test_ln) == 1,
+						"addLNRow changed the ln_string");
+	fail_unless (rowID == DEFAULT_LOCALNAMES_ROWS_NUMBER,
+				"addLNRow returned wrong rowID: %d", rowID);
+
+	fail_if(lnTable->rows[DEFAULT_LOCALNAMES_ROWS_NUMBER].vCrossTable != NULL);
 }
 END_TEST
 
@@ -194,13 +241,78 @@ END_TEST
 
 START_TEST (test_addGVRow)
 {
-	fail("Test not implemented yet!");
+	errorCode err = UNEXPECTED_ERROR;
+	ValueTable* vTable;
+	err = createValueTable(&vTable);
+	fail_if(err != ERR_OK);
+
+	StringType test_val;
+	asciiToString("test_val_string", &test_val);
+
+	unsigned int rowID = 55;
+
+	err = addGVRow(vTable, test_val, &rowID);
+
+	fail_unless (err == ERR_OK, "addGVRow returns error code %d", err);
+	fail_unless (vTable->arrayDimension == DEFAULT_VALUE_ROWS_NUMBER,
+				"addGVRow changed the arrayDimension unnecessary");
+	fail_unless (vTable->rowCount == 1,
+					"addGVRow did not update rowCount properly");
+	fail_unless (str_equal(vTable->rows[0].string_val, test_val) == 1,
+						"addGVRow changed the val_string");
+	fail_unless (rowID == 0,
+				"addGVRow returned wrong rowID: %d", rowID);
+
+	vTable->rowCount = DEFAULT_VALUE_ROWS_NUMBER;
+
+	err = addGVRow(vTable, test_val, &rowID);
+
+	fail_unless (err == ERR_OK, "addGVRow returns error code %d", err);
+	fail_unless (vTable->arrayDimension == DEFAULT_VALUE_ROWS_NUMBER*2,
+				"addGVRow changed the arrayDimension unnecessary");
+	fail_unless (vTable->rowCount == DEFAULT_VALUE_ROWS_NUMBER + 1,
+					"addGVRow did not update rowCount properly");
+	fail_unless (str_equal(vTable->rows[DEFAULT_VALUE_ROWS_NUMBER].string_val, test_val) == 1,
+						"addGVRow changed the val_string");
+	fail_unless (rowID == DEFAULT_VALUE_ROWS_NUMBER,
+				"addGVRow returned wrong rowID: %d", rowID);
 }
 END_TEST
 
 START_TEST (test_addLVRow)
 {
-	fail("Test not implemented yet!");
+	errorCode err = UNEXPECTED_ERROR;
+	LocalNamesTable* lnTable;
+	err = createLocalNamesTable(&lnTable);
+	fail_if(err != ERR_OK);
+	StringType test_ln;
+	asciiToString("test_ln_string", &test_ln);
+	unsigned int rowID = 55;
+	err = addLNRow(lnTable, test_ln, &rowID);
+	fail_unless (err == ERR_OK, "addLNRow returns error code %d", err);
+	fail_unless (lnTable->arrayDimension == DEFAULT_LOCALNAMES_ROWS_NUMBER,
+				"addLNRow changed the arrayDimension unnecessary");
+	fail_unless (lnTable->rowCount == 1,
+					"addLNRow did not update rowCount properly");
+
+	fail_unless (str_equal(lnTable->rows[0].string_val, test_ln) == 1,
+						"addLNRow changed the ln_string");
+	fail_unless (rowID == 0,
+				"addLNRow returned wrong rowID: %d", rowID);
+	fail_if(lnTable->rows[0].vCrossTable != NULL);
+
+	unsigned int globalValueRowID = 101;
+
+	err = addLVRow(&(lnTable->rows[0]), globalValueRowID);
+	fail_unless (err == ERR_OK, "addLVRow returns error code %d", err);
+	fail_if(lnTable->rows[0].vCrossTable == NULL);
+	fail_if(lnTable->rows[0].vCrossTable->valueRowIds == NULL);
+	fail_unless (lnTable->rows[0].vCrossTable->rowCount == 1,
+				 "addLVRow did not update vCrossTable.rowCount properly");
+	fail_unless (lnTable->rows[0].vCrossTable->arrayDimension == DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER,
+					 "addLVRow did not update the arrayDimension");
+	fail_unless (lnTable->rows[0].vCrossTable->valueRowIds[0] == 101,
+						 "addLVRow did not set the valueRowIds properly");
 }
 END_TEST
 

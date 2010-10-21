@@ -255,7 +255,7 @@ errorCode createInitialStringTables(EXIStream* strm)
 
     // Insert initial entries in the URI partition
 	StringType emptyStr;
-	tmp_err_code = getEmptyString(emptyStr);
+	tmp_err_code = getEmptyString(&emptyStr);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -279,7 +279,7 @@ errorCode createInitialStringTables(EXIStream* strm)
 
 	/**** URI	1	"http://www.w3.org/XML/1998/namespace" */
 
-	tmp_err_code = asciiToString(URI_1, tmp_str);
+	tmp_err_code = asciiToString(URI_1, &tmp_str);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	strm->uriTable->rows[1].string_val.str = tmp_str.str;
@@ -289,7 +289,7 @@ errorCode createInitialStringTables(EXIStream* strm)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = asciiToString(URI_1_PREFIX, tmp_str);
+	tmp_err_code = asciiToString(URI_1_PREFIX, &tmp_str);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	strm->uriTable->rows[1].pTable->rows[0].string_val.length = tmp_str.length;
@@ -302,7 +302,7 @@ errorCode createInitialStringTables(EXIStream* strm)
 
 	for(i = 0; i < URI_1_LOCALNAME_SIZE; i++)
 	{
-		tmp_err_code = asciiToString(URI_1_LOCALNAME[i], tmp_str);
+		tmp_err_code = asciiToString(URI_1_LOCALNAME[i], &tmp_str);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -317,7 +317,7 @@ errorCode createInitialStringTables(EXIStream* strm)
 
 	/**** URI	2	"http://www.w3.org/2001/XMLSchema-instance" */
 
-	tmp_err_code = asciiToString(URI_2, tmp_str);
+	tmp_err_code = asciiToString(URI_2, &tmp_str);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	strm->uriTable->rows[2].string_val.str = tmp_str.str;
@@ -327,7 +327,7 @@ errorCode createInitialStringTables(EXIStream* strm)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = asciiToString(URI_2_PREFIX, tmp_str);
+	tmp_err_code = asciiToString(URI_2_PREFIX, &tmp_str);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	strm->uriTable->rows[2].pTable->rows[0].string_val.length = tmp_str.length;
@@ -340,7 +340,7 @@ errorCode createInitialStringTables(EXIStream* strm)
 
 	for(i = 0; i < URI_2_LOCALNAME_SIZE; i++)
 	{
-		tmp_err_code = asciiToString(URI_2_LOCALNAME[i], tmp_str);
+		tmp_err_code = asciiToString(URI_2_LOCALNAME[i], &tmp_str);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -356,7 +356,7 @@ errorCode createInitialStringTables(EXIStream* strm)
 	/**** URI	3	"http://www.w3.org/2001/XMLSchema"  */
 	if(strm->opts->schemaID != NULL)
 	{
-		tmp_err_code = asciiToString(URI_3, tmp_str);
+		tmp_err_code = asciiToString(URI_3, &tmp_str);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		strm->uriTable->rows[3].string_val.str = tmp_str.str;
@@ -370,7 +370,7 @@ errorCode createInitialStringTables(EXIStream* strm)
 
 		for(i = 0; i < URI_3_LOCALNAME_SIZE; i++)
 		{
-			tmp_err_code = asciiToString(URI_3_LOCALNAME[i], tmp_str);
+			tmp_err_code = asciiToString(URI_3_LOCALNAME[i], &tmp_str);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 

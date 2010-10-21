@@ -54,10 +54,10 @@ struct ContentHandler
 	void (*startDocument)();
 	void (*endDocument)();
 	void (*startElement)(QName qname);
-	void (*endElement)(); // TODO: define the parameters if needed. Most probably not. The element should be known from the context
+	void (*endElement)();
 	void (*attributeString)(QName qname, const StringType value);
 	void (*intData)(); // TODO: define the parameters!
-	void (*stringData)(); // TODO: define the parameters!
+	void (*stringData)(const StringType value);
 	void (*floatData)(); // TODO: define the parameters!
 	void (*binaryData)(); // TODO: define the parameters!
 

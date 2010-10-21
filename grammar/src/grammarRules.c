@@ -68,7 +68,6 @@ errorCode addProduction(GrammarRule* rule, EventCode eCode, EventType eType, uns
 		rule->prodArray = new_ptr;
 		rule->prodDimension = rule->prodDimension + DEFAULT_PROD_ARRAY_DIM;
 	}
-
 	rule->prodArray[rule->prodCount].code = eCode;
 	rule->prodArray[rule->prodCount].eType = eType;
 	rule->prodArray[rule->prodCount].nonTermID = nonTermID;
@@ -95,9 +94,10 @@ errorCode insertZeroProduction(GrammarRule* rule, EventType eType, unsigned int 
 		if(rule->prodArray[i].code.code[0] > maxCodePart)
 			maxCodePart = rule->prodArray[i].code.code[0];
 	}
-	rule->bits[0] = getBitsNumber(maxCodePart - 1);
+	rule->bits[0] = getBitsNumber(maxCodePart);
+	EventCode eCode = getEventCode1(0);
 
-	rule->prodArray[rule->prodCount].code = getEventCode1(0);
+	rule->prodArray[rule->prodCount].code = eCode;
 	rule->prodArray[rule->prodCount].eType = eType;
 	rule->prodArray[rule->prodCount].nonTermID = nonTermID;
 	rule->prodArray[rule->prodCount].lnRowID = lnRowID;
@@ -105,3 +105,132 @@ errorCode insertZeroProduction(GrammarRule* rule, EventType eType, unsigned int 
 	rule->prodCount = rule->prodCount + 1;
 	return ERR_OK;
 }
+
+#ifdef EXIP_DEBUG // TODO: document this macro #DOCUMENT#
+
+errorCode printGrammarRule(GrammarRule* rule)
+{
+	DEBUG_MSG(INFO,("\n>RULE\n"));
+	switch(rule->nonTermID)
+	{
+		case GR_VOID_NON_TERMINAL:
+			DEBUG_MSG(INFO,("VOID:"));
+			break;
+		case GR_DOCUMENT:
+			DEBUG_MSG(INFO,("Document:"));
+			break;
+		case GR_DOC_CONTENT:
+			DEBUG_MSG(INFO,("DocContent:"));
+			break;
+		case GR_DOC_END:
+			DEBUG_MSG(INFO,("DocEnd:"));
+			break;
+		case GR_START_TAG_CONTENT:
+			DEBUG_MSG(INFO,("StartTagContent:"));
+			break;
+		case GR_ELEMENT_CONTENT:
+			DEBUG_MSG(INFO,("ElementContent:"));
+			break;
+		case GR_FRAGMENT:
+			DEBUG_MSG(INFO,("Fragment:"));
+			break;
+		default:
+			return UNEXPECTED_ERROR;
+	}
+	DEBUG_MSG(INFO,("\n"));
+	int i = 0;
+	for(i = 0; i < rule->prodCount; i++)
+	{
+		DEBUG_MSG(INFO,("\t"));
+		switch(rule->prodArray[i].eType)
+		{
+			case EVENT_SD:
+				DEBUG_MSG(INFO,("SD "));
+				break;
+			case EVENT_ED:
+				DEBUG_MSG(INFO,("ED "));
+				break;
+			case EVENT_SE_QNAME:
+				DEBUG_MSG(INFO,("SE (qname) "));
+				break;
+			case EVENT_SE_URI:
+				DEBUG_MSG(INFO,("SE (uri) "));
+				break;
+			case EVENT_SE_ALL:
+				DEBUG_MSG(INFO,("SE (*) "));
+				break;
+			case EVENT_EE:
+				DEBUG_MSG(INFO,("EE "));
+				break;
+			case EVENT_AT_QNAME:
+				DEBUG_MSG(INFO,("AT (qname) "));
+				break;
+			case EVENT_AT_URI:
+				DEBUG_MSG(INFO,("AT (uri) "));
+				break;
+			case EVENT_AT_ALL:
+				DEBUG_MSG(INFO,("AT (*) "));
+				break;
+			case EVENT_CH:
+				DEBUG_MSG(INFO,("CH "));
+				break;
+			case EVENT_NS:
+				DEBUG_MSG(INFO,("NS "));
+				break;
+			case EVENT_CM:
+				DEBUG_MSG(INFO,("CM "));
+				break;
+			case EVENT_PI:
+				DEBUG_MSG(INFO,("PI "));
+				break;
+			case EVENT_DT:
+				DEBUG_MSG(INFO,("DT "));
+				break;
+			case EVENT_ER:
+				DEBUG_MSG(INFO,("ER "));
+				break;
+			case EVENT_SC:
+				DEBUG_MSG(INFO,("SC "));
+				break;
+			default:
+				return UNEXPECTED_ERROR;
+		}
+		switch(rule->prodArray[i].nonTermID)
+		{
+			case GR_VOID_NON_TERMINAL:
+				DEBUG_MSG(INFO,("VOID:"));
+				break;
+			case GR_DOCUMENT:
+				DEBUG_MSG(INFO,("Document:"));
+				break;
+			case GR_DOC_CONTENT:
+				DEBUG_MSG(INFO,("DocContent:"));
+				break;
+			case GR_DOC_END:
+				DEBUG_MSG(INFO,("DocEnd:"));
+				break;
+			case GR_START_TAG_CONTENT:
+				DEBUG_MSG(INFO,("StartTagContent:"));
+				break;
+			case GR_ELEMENT_CONTENT:
+				DEBUG_MSG(INFO,("ElementContent:"));
+				break;
+			case GR_FRAGMENT:
+				DEBUG_MSG(INFO,("Fragment:"));
+				break;
+			default:
+				return UNEXPECTED_ERROR;
+
+		}
+		DEBUG_MSG(INFO,(" Event Code: "));
+		int j = 0;
+		for(j = 0; j < rule->prodArray[i].code.size; j++)
+		{
+			DEBUG_MSG(INFO,(".%d", rule->prodArray[i].code.code[j]));
+		}
+		DEBUG_MSG(INFO,("\n"));
+	}
+	return ERR_OK;
+}
+
+#endif // EXIP_DEBUG

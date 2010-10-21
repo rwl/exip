@@ -47,14 +47,14 @@
 
 #include "exipConfig.h"
 
-#define INFO 1
-#define WARNING 2
-#define ERROR 3
-
-
 /* Platform specific debugging output */
 #ifndef DEBUG_OUTPUT	// TODO: document this macro #DOCUMENT#
 #  define DEBUG_OUTPUT(msg)	do {printf msg;} while(0)
+#endif
+
+/* Platform specific debugging character output */
+#ifndef DEBUG_CHAR_OUTPUT	// TODO: document this macro #DOCUMENT#
+#  define DEBUG_CHAR_OUTPUT(character)	do {putchar (character);} while(0)
 #endif
 
 #ifdef EXIP_DEBUG // TODO: document this macro #DOCUMENT#
@@ -77,6 +77,12 @@ typedef char errorCode;
 /* Definitions for error constants. */
 /** No error, everything OK. */
 #define ERR_OK    0
+
+/** Stream value bigger than a processor type boundary */
+#define BIGGER_TYPE_REQUIRED 3
+
+/** Processor state is inconsistent with the stream events  */
+#define INCONSISTENT_PROC_STATE 2
 
 /** Error in the EXI header */
 #define INVALID_EXI_HEADER    1

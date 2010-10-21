@@ -44,6 +44,12 @@
 #ifndef EXIPCONFIG_H_
 #define EXIPCONFIG_H_
 
+#define INFO 1
+#define WARNING 2
+#define ERROR 3
+/*
 #define EXIP_DEBUG
+#define EXIP_DEBUG_LEVEL INFO
+*/
 
 #endif /* EXIPCONFIG_H_ */

@@ -48,6 +48,31 @@
 
 static void printfHelp();
 
+#define OUT_EXI 0
+#define OUT_XML 1
+
+// Default output option
+unsigned char outputFormat = OUT_EXI;
+
+// Stuff needed for the OUT_XML Output Format
+// ******************************************
+unsigned char unclosedElement = 0;
+struct element {
+	struct element* next;
+	char* name;
+};
+
+char nameBuf[100];
+
+struct element* stack = NULL;
+
+static void push(struct element* el);
+static struct element* pop();
+static struct element* createElement(char* name);
+static void destroyElement(struct element* el);
+
+// ******************************************
+
 // Content Handler API
 void sample_fatalError(const char code, const char* msg);
 void sample_startDocument();
@@ -55,6 +80,7 @@ void sample_endDocument();
 void sample_startElement(QName qname);
 void sample_endElement();
 void sample_attributeString(QName qname, const StringType value);
+void sample_stringData(const StringType value);
 
 
 int main(int argc, char *argv[])
@@ -65,6 +91,19 @@ int main(int argc, char *argv[])
 	sampleHandler.endDocument = sample_endDocument;
 	sampleHandler.startElement = sample_startElement;
 	sampleHandler.attributeString = sample_attributeString;
+	sampleHandler.stringData = sample_stringData;
+	sampleHandler.endElement = sample_endElement;
+
+
+	// NOTE: It is mandatory to initialize the callbacks you don't explicitly implement as NULL
+	sampleHandler.binaryData = NULL;
+	sampleHandler.error = NULL;
+	sampleHandler.floatData = NULL;
+	sampleHandler.intData = NULL;
+	sampleHandler.processingInstruction = NULL;
+	sampleHandler.selfContained = NULL;
+	sampleHandler.warning = NULL;
+
 
 	FILE *infile;
 	unsigned long fileLen;
@@ -72,12 +111,37 @@ int main(int argc, char *argv[])
 	char sourceFile[50];
 	if(argc > 1)
 	{
-		if(strcmp(argv[1], "help") == 0)
+		if(strcmp(argv[1], "-help") == 0)
 		{
 			printfHelp();
 			return 0;
 		}
-		strcpy(sourceFile, argv[1]);
+		else if(strcmp(argv[1], "-exi") == 0)
+		{
+			outputFormat = OUT_EXI;
+			if(argc == 2)
+			{
+				printfHelp();
+				return 0;
+			}
+			else
+				strcpy(sourceFile, argv[2]);
+		}
+		else if(strcmp(argv[1], "-xml") == 0)
+		{
+			outputFormat = OUT_XML;
+			if(argc == 2)
+			{
+				printfHelp();
+				return 0;
+			}
+			else
+				strcpy(sourceFile, argv[2]);
+		}
+		else
+		{
+			strcpy(sourceFile, argv[1]);
+		}
 		infile = fopen(sourceFile, "rb" );
 		if(!infile)
 		{
@@ -122,42 +186,157 @@ static void printfHelp()
     printf("\n" );
     printf("  EXIP     Efficient XML Interchange Processor, Rumen Kyusakov, 13.10.2010 \n");
     printf("           Copyright (c) 2010, EISLAB - Luleå University of Technology Version 0.1 \n");
-    printf("  Usage:   decode <EXI_FileIn> | help  \n");
+    printf("  Usage:   exipd [options] <EXI_FileIn>\n\n");
+    printf("           Options:\n");
+    printf("           -exi   :   EXI formated output [default]\n");
+    printf("           -xml   :   XML formated output\n");
+    printf("           -help  :   Prints this help message\n\n");
     printf("  Purpose: This program tests the EXIP decoding functionality\n");
     printf("\n" );
 }
 
 void sample_fatalError(const char code, const char* msg)
 {
-	printf("\n%d : FATAL ERROR: %s", code, msg);
+	printf("\n%d : FATAL ERROR: %s\n", code, msg);
 }
+
 void sample_startDocument()
 {
-	printf("\nstartDocument\n");
+	if(outputFormat == OUT_EXI)
+		printf("SD\n");
+	else if(outputFormat == OUT_XML)
+		printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 }
+
 void sample_endDocument()
 {
-	printf("\nendDocument\n");
+	if(outputFormat == OUT_EXI)
+		printf("ED\n");
+	else if(outputFormat == OUT_XML)
+		printf("\n");
 }
+
 void sample_startElement(QName qname)
 {
-	printf("\nSTART ELEMENT: \nURI:");
-	printString(qname.uri);
-	printf("\nLN:");
-	printString(qname.localName);
-	printf("\n");
+	if(outputFormat == OUT_EXI)
+	{
+		printf("SE ");
+		printString(qname.uri);
+		printf(" ");
+		printString(qname.localName);
+		printf("\n");
+	}
+	else if(outputFormat == OUT_XML)
+	{
+		memcpy(nameBuf, qname.uri->str, qname.uri->length);
+		memcpy(nameBuf + qname.uri->length, qname.localName->str, qname.localName->length);
+		nameBuf[qname.uri->length + qname.localName->length] = '\0';
+		push(createElement(nameBuf));
+		if(unclosedElement)
+			printf(">\n");
+		printf("<");
+		printString(qname.uri);
+		printString(qname.localName);
+		unclosedElement = 1;
+	}
 }
+
 void sample_endElement()
 {
-	printf("\nendElement\n");
+	if(outputFormat == OUT_EXI)
+		printf("EE\n");
+	else if(outputFormat == OUT_XML)
+	{
+		struct element* el = pop();
+		printf("</%s>\n", el->name);
+		destroyElement(el);
+	}
 }
+
 void sample_attributeString(QName qname, const StringType value)
 {
-	printf("\nATTRIBUTE: \nURI:");
-	printString(qname.uri);
-	printf("\nLN: ");
-	printString(qname.localName);
-	printf("\nVALUE: ");
-	printString(&value);
-	printf("\n");
+	if(outputFormat == OUT_EXI)
+	{
+		printf("AT ");
+		printString(qname.uri);
+		printf(" ");
+		printString(qname.localName);
+		printf("=\"");
+		printString(&value);
+		printf("\"\n");
+	}
+	else if(outputFormat == OUT_XML)
+	{
+		printf(" ");
+		printString(qname.uri);
+		printString(qname.localName);
+		printf("=\"");
+		printString(&value);
+		printf("\"");
+	}
 }
+
+void sample_stringData(const StringType value)
+{
+	if(outputFormat == OUT_EXI)
+	{
+		printf("CH ");
+		printString(&value);
+		printf("\n");
+	}
+	else if(outputFormat == OUT_XML)
+	{
+		if(unclosedElement)
+			printf(">\n");
+		unclosedElement = 0;
+		printString(&value);
+		printf("\n");
+	}
+}
+
+// Stuff needed for the OUT_XML Output Format
+// ******************************************
+static void push(struct element* el)
+{
+	if(stack == NULL)
+		stack = el;
+	else
+	{
+		el->next = stack;
+		stack = el;
+	}
+}
+
+static struct element* pop()
+{
+	if(stack == NULL)
+		return NULL;
+	else
+	{
+		struct element* result;
+		result = stack;
+		stack = stack->next;
+		return result;
+	}
+}
+
+static struct element* createElement(char* name)
+{
+	struct element* el;
+	el = malloc(sizeof(struct element));
+	if(el == NULL)
+		exit(1);
+	el->next == NULL;
+	el->name = malloc(strlen(name));
+	if(el->name == NULL)
+		exit(1);
+	strcpy(el->name, name);
+	return el;
+}
+
+static void destroyElement(struct element* el)
+{
+	free(el->name);
+	free(el);
+}
+// ******************************************
