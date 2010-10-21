@@ -48,7 +48,6 @@
 #include "errorHandle.h"
 #include "procTypes.h"
 
-//TODO: consider using long for int_val
 /**
  * @brief Decode EXI n-bit Unsigned Integer
  * Decodes and returns an n-bit unsigned integer.
@@ -57,7 +56,7 @@
  * @param[out] int_val resulting n-bit unsigned integer value
  * @return Error handling code
  */
-errorCode decodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, unsigned int* int_val);
+errorCode decodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, uint32_t* int_val);
 
 /**
  * @brief Decode EXI Boolean
@@ -79,9 +78,20 @@ errorCode decodeBoolean(EXIStream* strm, unsigned char* bool_val);
  *
  * @param[in] strm EXI stream of bits
  * @param[out] int_val resulting unsigned integer value
+ * @return Error handling code. It returns BIGGER_TYPE_REQUIRED indicating that
+ * the integer is bigger than 32 bits. The processor MUST invoke the function
+ * that handles larger unsigned integers
+ */
+errorCode decodeUnsignedInteger(EXIStream* strm, uint32_t* int_val);
+
+/**
+ * @brief Decode EXI Unsigned Integer type when the value is bigger than 32 bits
+ *
+ * @param[in] strm EXI stream of bits
+ * @param[out] int_val resulting big unsigned integer value
  * @return Error handling code
  */
-errorCode decodeUnsignedInteger(EXIStream* strm, unsigned int* int_val);
+errorCode decodeBigUnsignedInteger(EXIStream* strm, BigUnsignedInt* int_val);
 
 /**
  * @brief Decode EXI String type

@@ -47,9 +47,8 @@
 #include "../include/streamRead.h"
 #include "stringManipulate.h"
 
-errorCode decodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, unsigned int* int_val)
+errorCode decodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, uint32_t* int_val)
 {
-	// TODO: handle situations where the NBitUnsignedInteger cannot fit into unsigned int type!
 	if(strm->opts->compression == 0 && strm->opts->alignment == BIT_PACKED)
 	{
 		return readBits(strm, n, int_val);
@@ -77,12 +76,13 @@ errorCode decodeBoolean(EXIStream* strm, unsigned char* bool_val)
 {
 	//TODO:  when pattern facets are available in the schema datatype - handle it differently
 	return readNextBit(strm, bool_val);
-
 }
 
-errorCode decodeUnsignedInteger(EXIStream* strm, unsigned int* int_val)
+errorCode decodeUnsignedInteger(EXIStream* strm, uint32_t* int_val)
 {
 	// TODO: handle situations where the UnsignedInteger cannot fit into unsigned int type!
+	//       In this case it should return BIGGER_TYPE_REQUIRED error and position the
+	//       stream pointer at initial position
 	int mask_7bits = 127;
 	int mask_8th_bit = 128;
 	int initial_multiplier = 1;
@@ -105,6 +105,11 @@ errorCode decodeUnsignedInteger(EXIStream* strm, unsigned int* int_val)
 	while(more_bytes_to_read != 0);
 
 	return ERR_OK;
+}
+
+errorCode decodeBigUnsignedInteger(EXIStream* strm, BigUnsignedInt* int_val)
+{
+	return NOT_IMPLEMENTED_YET;
 }
 
 errorCode decodeString(EXIStream* strm, StringType* string_val)

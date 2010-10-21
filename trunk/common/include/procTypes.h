@@ -46,6 +46,7 @@
 #define PROCTYPES_H_
 
 #include "errorHandle.h"
+#include <stdint.h>
 
 #ifndef NULL
 #define NULL ((void *)0)
@@ -80,7 +81,21 @@
 #define IS_PRESERVED(p, mask) ((p & mask) != 0)
 
 /**
- * Since we are working with embedded systems - exclude the UTF-8 support
+ * EXI processors SHOULD support arbitrarily large Unsigned Integer values.
+ * EXI processors MUST support Unsigned Integer values less than 2147483648.
+ * This macro is used to support unsigned integers bigger than 32 bits.
+ * Applications which require support for larger than 64 bits unsigned integers must
+ * override this macro
+ */
+#ifndef BIG_UNSIGNED_INT
+# define BIG_UNSIGNED_INT uint64_t
+#endif
+
+typedef BIG_UNSIGNED_INT BigUnsignedInt;
+
+/**
+ * Defines the encoding used for characters.
+ * It is dependent on the implementation of the stringManipulate.h functions
  */
 #ifndef CHAR_TYPE  // #DOCUMENT#
 # define CHAR_TYPE unsigned char
@@ -93,7 +108,7 @@ typedef CHAR_TYPE CharType;
 struct StringType
 {
 	CharType* str;
-	unsigned int length;
+	uint32_t length;
 };
 
 typedef struct StringType StringType;
@@ -119,16 +134,16 @@ struct ValueRow {
 
 struct ValueTable {
 	struct ValueRow* rows; // Dynamic array
-	unsigned int rowCount; // The number of rows
-	unsigned int arrayDimension; // The size of the Dynamic array
+	uint32_t rowCount; // The number of rows
+	uint32_t arrayDimension; // The size of the Dynamic array
 };
 
 typedef struct ValueTable ValueTable;
 
 struct ValueLocalCrossTable {
-	unsigned int* valueRowIds; // Dynamic array
-	unsigned int rowCount; // The number of rows
-	unsigned int arrayDimension; // The size of the Dynamic array
+	uint32_t* valueRowIds; // Dynamic array
+	uint16_t rowCount; // The number of rows
+	uint16_t arrayDimension; // The size of the Dynamic array
 };
 
 typedef struct ValueLocalCrossTable ValueLocalCrossTable;
@@ -139,8 +154,8 @@ struct PrefixRow {
 
 struct PrefixTable {
 	struct PrefixRow* rows; // Dynamic array
-	unsigned int rowCount; // The number of rows
-	unsigned int arrayDimension; // The size of the Dynamic array
+	uint16_t rowCount; // The number of rows
+	uint16_t arrayDimension; // The size of the Dynamic array
 };
 
 typedef struct PrefixTable PrefixTable;
@@ -152,8 +167,8 @@ struct LocalNamesRow {
 
 struct LocalNamesTable {
 	struct LocalNamesRow* rows; // Dynamic array
-	unsigned int rowCount; // The number of rows
-	unsigned int arrayDimension; // The size of the Dynamic array
+	uint32_t rowCount; // The number of rows
+	uint32_t arrayDimension; // The size of the Dynamic array
 };
 
 typedef struct LocalNamesTable LocalNamesTable;
@@ -166,8 +181,8 @@ struct URIRow {
 
 struct URITable {
 	struct URIRow* rows; // Dynamic array
-	unsigned int rowCount; // The number of rows
-	unsigned int arrayDimension; // The size of the Dynamic array
+	uint16_t rowCount; // The number of rows
+	uint16_t arrayDimension; // The size of the Dynamic array
 };
 
 typedef struct URITable URITable;
@@ -195,7 +210,7 @@ struct EXIStream
 	/**
 	 * Current position in the buffer - bytewise
 	 */
-	int bufferIndx;
+	uint32_t bufferIndx;
 
 	/**
 	 * Value between 0 and 7; shows the current position within the current byte
@@ -276,19 +291,19 @@ struct EXIOptions
 	/**
 	 *  Specifies the block size used for EXI compression
 	 */
-	long blockSize;
+	uint32_t blockSize;
 
 	/**
 	 * Specifies the maximum string length of value content items to be considered for addition to the string table.
 	 * 0 - unbounded
 	 */
-	long valueMaxLength;
+	uint32_t valueMaxLength;
 
 	/**
 	 * Specifies the total capacity of value partitions in a string table
 	 * 0 - unbounded
 	 */
-	long valuePartitionCapacity;
+	uint32_t valuePartitionCapacity;
 
 	/**
 	 * User defined meta-data may be added

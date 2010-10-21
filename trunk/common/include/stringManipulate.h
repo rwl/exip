@@ -63,7 +63,7 @@ errorCode UCSToChar(unsigned int code_point, CharType* ch);
  * @param[in, out] emptyStr empty string
  * @return Error handling code
  */
-errorCode getEmptyString(StringType emptyStr);
+errorCode getEmptyString(StringType* emptyStr);
 
 /**
  * @brief Transform a NULL terminated string of ASCII chars to StringType allocating memory for the CharType*.
@@ -72,7 +72,7 @@ errorCode getEmptyString(StringType emptyStr);
  * @param[in, out] outStr resulted string
  * @return Error handling code
  */
-errorCode asciiToString(char* inStr, StringType outStr);
+errorCode asciiToString(char* inStr, StringType* outStr);
 
 /**
  * @brief Tests if two strings are equal

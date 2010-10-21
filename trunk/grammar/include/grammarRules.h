@@ -120,4 +120,15 @@ errorCode addProduction(GrammarRule* rule, EventCode eCode, EventType eType, uns
 errorCode insertZeroProduction(GrammarRule* rule, EventType eType, unsigned int nonTermID,
 							   unsigned int lnRowID, unsigned int uriRowID);
 
+#ifdef EXIP_DEBUG // TODO: document this macro #DOCUMENT#
+/**
+ * @brief Prints a grammar rule
+ * Note! This is only for debugging purposes!
+ * @param[in] rule a Grammar Rule to be printed
+ * @return Error handling code
+ */
+errorCode printGrammarRule(GrammarRule* rule);
+
+#endif // EXIP_DEBUG
+
 #endif /* GRAMMARRULES_H_ */

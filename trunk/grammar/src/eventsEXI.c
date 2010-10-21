@@ -43,6 +43,8 @@
 
 #include "../include/eventsEXI.h"
 
+#define UNUSED_CODE_PART_VALUE 9999
+
 EventCode getEventCode3(unsigned int first, unsigned int second, unsigned int third)
 {
 	EventCode res;
@@ -59,6 +61,7 @@ EventCode getEventCode2(unsigned int first, unsigned int second)
 	res.size = 2;
 	res.code[0] = first;
 	res.code[1] = second;
+	res.code[2] = UNUSED_CODE_PART_VALUE;
 	return res;
 }
 
@@ -67,5 +70,7 @@ EventCode getEventCode1(unsigned int first)
 	EventCode res;
 	res.size = 1;
 	res.code[0] = first;
+	res.code[1] = UNUSED_CODE_PART_VALUE;
+	res.code[2] = UNUSED_CODE_PART_VALUE;
 	return res;
 }

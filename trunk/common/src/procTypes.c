@@ -92,6 +92,6 @@ static unsigned int log2INT(unsigned int val)
 unsigned char getBitsNumber(unsigned int val)
 {
 	if(val == 0)
-		return 1;
+		return 0;
 	return log2INT(val) + 1;
 }

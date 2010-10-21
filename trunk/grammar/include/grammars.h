@@ -107,7 +107,7 @@ errorCode pushGrammar(EXIGrammarStack** gStack, struct EXIGrammar* grammar);
  * @param[out] grammar the terminal part of the production
  * @return Error handling code
  */
-errorCode popGrammar(EXIGrammarStack** gStack, struct EXIGrammar* grammar);
+errorCode popGrammar(EXIGrammarStack** gStack, struct EXIGrammar** grammar);
 
 
 //TODO: depends on the EXI fidelity options! Take this into account
@@ -157,4 +157,13 @@ errorCode checkElementGrammarInPool(struct ElementGrammarPool* pool, unsigned in
  */
 errorCode addElementGrammarInPool(struct ElementGrammarPool* pool, unsigned int uriRowID,
 									unsigned int lnRowID, struct EXIGrammar* newGr);
+
+/**
+ * @brief Checks if particular grammar is a Document grammar (not Element grammar)
+ * @param[in] grammar EXI Grammar to be tested
+ * @param[out] bool_result 0 - false, 1 - true
+ * @return Error handling code
+ */
+errorCode isDocumentGrammar(struct EXIGrammar* grammar, unsigned char* bool_result);
+
 #endif /* GRAMMARS_H_ */

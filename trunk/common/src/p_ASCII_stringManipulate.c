@@ -55,27 +55,26 @@ errorCode UCSToChar(unsigned int code_point, CharType* ch)
 	return ERR_OK;
 }
 
-errorCode getEmptyString(StringType emptyStr)
+errorCode getEmptyString(StringType* emptyStr)
 {
-	emptyStr.length = 0;
-	emptyStr.str = NULL;
+	emptyStr->length = 0;
+	emptyStr->str = NULL;
 
 	return ERR_OK;
 }
 
-errorCode asciiToString(char* inStr, StringType outStr)
+errorCode asciiToString(char* inStr, StringType* outStr)
 {
-	outStr.length = strlen(inStr);
-	if(outStr.length > 0)  // If == 0 -> empty string
+	outStr->length = strlen(inStr);
+	if(outStr->length > 0)  // If == 0 -> empty string
 	{
-		outStr.str = EXIP_MALLOC(sizeof(CharType)*(outStr.length + 1));  // Add the '\0' byte at the end
-		if(outStr.str == NULL)
+		outStr->str = EXIP_MALLOC(sizeof(CharType)*(outStr->length));
+		if(outStr->str == NULL)
 			return MEMORY_ALLOCATION_ERROR;
-		memcpy(outStr.str, inStr, outStr.length);
-		outStr.str[outStr.length + 1] = '\0';
+		memcpy(outStr->str, inStr, outStr->length);
 	}
 	else
-		outStr.str = NULL;
+		outStr->str = NULL;
 	return ERR_OK;
 }
 
@@ -94,7 +93,13 @@ char str_equal(StringType str1, StringType str2)
 		}
 		else
 		{
-			return !strcmp(str1.str, str2.str);
+			int i = 0;
+			for(i = 0; i < str1.length; i++)
+			{
+				if(str1.str[i] != str2.str[i])
+					return 0;
+			}
+			return 1;
 		}
 	}
 }
@@ -106,6 +111,6 @@ void printString(StringType* inStr)
 	int i = 0;
 	for(i = 0; i < inStr->length; i++)
 	{
-		putchar(inStr->str[i]);
+		DEBUG_CHAR_OUTPUT(inStr->str[i]);
 	}
 }
