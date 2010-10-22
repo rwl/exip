@@ -60,8 +60,8 @@ struct EXIGrammar
 
 struct ElementGrammarLabel
 {
-	unsigned int uriRowID;
-	unsigned int lnRowID;
+	uint32_t uriRowID;
+	uint32_t lnRowID;
 	struct EXIGrammar* elementGrammar;
 };
 
@@ -143,8 +143,8 @@ errorCode createElementGrammarPool(struct ElementGrammarPool* pool);
  * @param[out] result if found - a pointer to the searched grammar
  * @return Error handling code
  */
-errorCode checkElementGrammarInPool(struct ElementGrammarPool* pool, unsigned int uriRowID,
-									unsigned int lnRowID, unsigned char* is_found, struct EXIGrammar** result);
+errorCode checkElementGrammarInPool(struct ElementGrammarPool* pool, uint32_t uriRowID,
+									uint32_t lnRowID, unsigned char* is_found, struct EXIGrammar** result);
 
 
 /**
@@ -155,8 +155,8 @@ errorCode checkElementGrammarInPool(struct ElementGrammarPool* pool, unsigned in
  * @param[in] newGr the grammar to be added
  * @return Error handling code
  */
-errorCode addElementGrammarInPool(struct ElementGrammarPool* pool, unsigned int uriRowID,
-									unsigned int lnRowID, struct EXIGrammar* newGr);
+errorCode addElementGrammarInPool(struct ElementGrammarPool* pool, uint32_t uriRowID,
+									uint32_t lnRowID, struct EXIGrammar* newGr);
 
 /**
  * @brief Checks if particular grammar is a Document grammar (not Element grammar)

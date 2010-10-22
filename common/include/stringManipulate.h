@@ -48,14 +48,45 @@
 #include "errorHandle.h"
 
 /**
+ * @brief Allocate a memory for a string with UCSchars number of UCS characters
+ * Note! The implementation of this function is platform-specific.
+ * It depends on the representation of the characters
+ *
+ * @param[in, out] str a pointer to the uninitialized string
+ * @param[in] UCSchars the number of characters (as described by UCS [ISO/IEC 10646])
+ */
+errorCode allocateStringMemory(CharType** str, uint32_t UCSchars);
+
+/**
  * @brief Translate the UCS [ISO/IEC 10646] code point to CharType
  * Note! The implementation of this function is platform-specific.
  * It depends on the representation of the characters
+ *
+ * @deprecated In some encodings (ex. UTF-8) there is no direct correspondence
+ * 			   between the character in UCS and the number of CharTypes that it
+ * 			   takes in the encoding. For example 1 UCS character may require 2 or
+ * 			   3  CharTypes to be encoded.
+ *             Use writeCharToString() instead.
+ *
  * @param[in] code_point  UCS [ISO/IEC 10646] code point
  * @param[out] ch the character corresponding to the code_point
  * @return Error handling code
  */
-errorCode UCSToChar(unsigned int code_point, CharType* ch);
+errorCode UCSToChar(uint32_t code_point, CharType* ch);
+
+/**
+ * @brief Writes a UCS [ISO/IEC 10646] code point to a string
+ * Note! The implementation of this function is platform-specific.
+ * It depends on the representation of the characters.
+ * The memory needed for str should be allocated before the invocation
+ * of this function
+ *
+ * @param[in, out] str string to be written on
+ * @param[in] code_point UCS [ISO/IEC 10646] code point
+ * @param[in] UCSposition the position of the code point relatively to the beginning of the string
+ * @return Error handling code
+ */
+errorCode writeCharToString(StringType* str, uint32_t code_point, uint32_t UCSposition);
 
 /**
  * @brief Creates an empty string

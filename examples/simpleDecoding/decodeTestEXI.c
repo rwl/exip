@@ -53,6 +53,7 @@ static void printfHelp();
 
 // Default output option
 unsigned char outputFormat = OUT_EXI;
+unsigned char expectAttributeData = 0;
 
 // Stuff needed for the OUT_XML Output Format
 // ******************************************
@@ -79,31 +80,22 @@ void sample_startDocument();
 void sample_endDocument();
 void sample_startElement(QName qname);
 void sample_endElement();
-void sample_attributeString(QName qname, const StringType value);
+void sample_attribute(QName qname);
 void sample_stringData(const StringType value);
 
 
 int main(int argc, char *argv[])
 {
 	ContentHandler sampleHandler;
+	initContentHandler(&sampleHandler); // NOTE: It is mandatory to initialize the callbacks you don't explicitly implement as NULL
 	sampleHandler.fatalError = sample_fatalError;
+	sampleHandler.error = sample_fatalError;
 	sampleHandler.startDocument = sample_startDocument;
 	sampleHandler.endDocument = sample_endDocument;
 	sampleHandler.startElement = sample_startElement;
-	sampleHandler.attributeString = sample_attributeString;
+	sampleHandler.attribute = sample_attribute;
 	sampleHandler.stringData = sample_stringData;
 	sampleHandler.endElement = sample_endElement;
-
-
-	// NOTE: It is mandatory to initialize the callbacks you don't explicitly implement as NULL
-	sampleHandler.binaryData = NULL;
-	sampleHandler.error = NULL;
-	sampleHandler.floatData = NULL;
-	sampleHandler.intData = NULL;
-	sampleHandler.processingInstruction = NULL;
-	sampleHandler.selfContained = NULL;
-	sampleHandler.warning = NULL;
-
 
 	FILE *infile;
 	unsigned long fileLen;
@@ -168,7 +160,7 @@ int main(int argc, char *argv[])
 			fread(buffer, fileLen, 1, infile);
 			fclose(infile);
 
-			// Parse the EXI string
+			// Parse the EXI stream
 			parseEXI(buffer, &sampleHandler);
 
 			free(buffer);
@@ -253,7 +245,7 @@ void sample_endElement()
 	}
 }
 
-void sample_attributeString(QName qname, const StringType value)
+void sample_attribute(QName qname)
 {
 	if(outputFormat == OUT_EXI)
 	{
@@ -262,8 +254,6 @@ void sample_attributeString(QName qname, const StringType value)
 		printf(" ");
 		printString(qname.localName);
 		printf("=\"");
-		printString(&value);
-		printf("\"\n");
 	}
 	else if(outputFormat == OUT_XML)
 	{
@@ -271,26 +261,43 @@ void sample_attributeString(QName qname, const StringType value)
 		printString(qname.uri);
 		printString(qname.localName);
 		printf("=\"");
-		printString(&value);
-		printf("\"");
 	}
+	expectAttributeData = 1;
 }
 
 void sample_stringData(const StringType value)
 {
 	if(outputFormat == OUT_EXI)
 	{
-		printf("CH ");
-		printString(&value);
-		printf("\n");
+		if(expectAttributeData)
+		{
+			printString(&value);
+			printf("\"\n");
+			expectAttributeData = 0;
+		}
+		else
+		{
+			printf("CH ");
+			printString(&value);
+			printf("\n");
+		}
 	}
 	else if(outputFormat == OUT_XML)
 	{
-		if(unclosedElement)
-			printf(">\n");
-		unclosedElement = 0;
-		printString(&value);
-		printf("\n");
+		if(expectAttributeData)
+		{
+			printString(&value);
+			printf("\"");
+			expectAttributeData = 0;
+		}
+		else
+		{
+			if(unclosedElement)
+				printf(">\n");
+			unclosedElement = 0;
+			printString(&value);
+			printf("\n");
+		}
 	}
 }
 

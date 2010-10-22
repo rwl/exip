@@ -295,13 +295,13 @@ START_TEST (test_decodeBinary)
   char testbuf[20];
   int i;
   for(i=0;i<20;i++) testbuf[i]=buf[i];
-  char res[20]={0};
+  char* res;
 
   testStream.bufferIndx = 0;
   unsigned int bytes = 0;
   errorCode err = UNEXPECTED_ERROR;
 //Test1:
-  err = decodeBinary(&testStream, res, &bytes);
+  err = decodeBinary(&testStream, &res, &bytes);
 
   int same=1;
   for(i=0;i<5;i++)
@@ -328,7 +328,7 @@ START_TEST (test_decodeBinary)
   bytes=0;
   err = UNEXPECTED_ERROR;
 
-  err = decodeBinary(&testStream, res, &bytes);
+  err = decodeBinary(&testStream, &res, &bytes);
 
   same = 1;
   for(i=0;i<8;i++)

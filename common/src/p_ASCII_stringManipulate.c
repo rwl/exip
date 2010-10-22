@@ -46,12 +46,29 @@
 #include <string.h>
 #include <stdio.h>
 
+errorCode allocateStringMemory(CharType** str, uint32_t UCSchars)
+{
+	(*str) = EXIP_MALLOC(sizeof(CharType)*UCSchars);
+	if((*str) == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+	return ERR_OK;
+}
+
 /**
  * Simple translation working only for ASCII characters
  */
-errorCode UCSToChar(unsigned int code_point, CharType* ch)
+errorCode UCSToChar(uint32_t code_point, CharType* ch)
 {
 	*ch = (CharType) code_point;
+	return ERR_OK;
+}
+
+/**
+ * Simple translation working only for ASCII characters
+ */
+errorCode writeCharToString(StringType* str, uint32_t code_point, uint32_t UCSposition)
+{
+	str->str[UCSposition] = (CharType) code_point;
 	return ERR_OK;
 }
 

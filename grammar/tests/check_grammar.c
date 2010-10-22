@@ -134,7 +134,7 @@ START_TEST (test_createBuildInElementGrammar)
 	struct EXIOptions options;
 	makeDefaultOpts(&options);
 
-	err = createBuildInElementGrammar(&testElementGrammar);
+	err = createBuildInElementGrammar(&testElementGrammar, &options);
 	fail_unless (err == ERR_OK, "createBuildInElementGrammar returns error code %d", err);
 
 	//TODO: add more tests!

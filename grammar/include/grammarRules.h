@@ -46,6 +46,7 @@
 
 #include "eventsEXI.h"
 #include "errorHandle.h"
+#include "procTypes.h"
 
 // Defines the initial dimension of the dynamic array - prodArray
 #define DEFAULT_PROD_ARRAY_DIM 10
@@ -118,7 +119,7 @@ errorCode addProduction(GrammarRule* rule, EventCode eCode, EventType eType, uns
  * @return Error handling code
  */
 errorCode insertZeroProduction(GrammarRule* rule, EventType eType, unsigned int nonTermID,
-							   unsigned int lnRowID, unsigned int uriRowID);
+								uint32_t lnRowID, uint32_t uriRowID);
 
 #ifdef EXIP_DEBUG // TODO: document this macro #DOCUMENT#
 /**
