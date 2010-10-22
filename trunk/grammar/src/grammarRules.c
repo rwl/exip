@@ -42,7 +42,6 @@
  */
 
 #include "../include/grammarRules.h"
-#include "procTypes.h"
 
 errorCode initGrammarRule(GrammarRule* rule)
 {
@@ -76,7 +75,7 @@ errorCode addProduction(GrammarRule* rule, EventCode eCode, EventType eType, uns
 }
 
 errorCode insertZeroProduction(GrammarRule* rule, EventType eType, unsigned int nonTermID,
-							   unsigned int lnRowID, unsigned int uriRowID)
+								uint32_t lnRowID, uint32_t uriRowID)
 {
 	if(rule->prodCount == rule->prodDimension) // The dynamic array prodArray needs to be resized
 	{
@@ -86,7 +85,7 @@ errorCode insertZeroProduction(GrammarRule* rule, EventType eType, unsigned int 
 		rule->prodArray = new_ptr;
 		rule->prodDimension = rule->prodDimension + DEFAULT_PROD_ARRAY_DIM;
 	}
-	int i = 0;
+	unsigned int i = 0;
 	unsigned int maxCodePart = 0;
 	for(i = 0; i < rule->prodCount; i++)
 	{
@@ -138,7 +137,7 @@ errorCode printGrammarRule(GrammarRule* rule)
 			return UNEXPECTED_ERROR;
 	}
 	DEBUG_MSG(INFO,("\n"));
-	int i = 0;
+	unsigned int i = 0;
 	for(i = 0; i < rule->prodCount; i++)
 	{
 		DEBUG_MSG(INFO,("\t"));

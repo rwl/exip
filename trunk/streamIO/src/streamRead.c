@@ -100,7 +100,7 @@ errorCode readBits(EXIStream* strm, unsigned char n, uint32_t* bits_val)
 {
 	//TODO: Handle error cases i.e. end of the stream and so on
 	*bits_val = 0;
-	uint32_t numBitsRead = 0; // Number of the bits read so far
+	unsigned int numBitsRead = 0; // Number of the bits read so far
 	int tmp = 0;
 	int shift = 0;
 	int bits_in_byte = 0; // Number of bits read in one iteration

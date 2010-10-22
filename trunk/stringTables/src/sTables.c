@@ -178,7 +178,7 @@ errorCode createValueLocalCrossTable(ValueLocalCrossTable** vlTable)
 	if(*vlTable == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*vlTable)->valueRowIds = EXIP_MALLOC(sizeof(unsigned int)*DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER);
+	(*vlTable)->valueRowIds = EXIP_MALLOC(sizeof(uint32_t)*DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER);
 	if((*vlTable)->valueRowIds == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -187,7 +187,7 @@ errorCode createValueLocalCrossTable(ValueLocalCrossTable** vlTable)
 	return ERR_OK;
 }
 
-errorCode addURIRow(URITable* uTable, StringType uri, unsigned int* rowID)
+errorCode addURIRow(URITable* uTable, StringType uri, uint32_t* rowID)
 {
 	if(uTable == NULL)
 		return NULL_POINTER_REF;
@@ -217,7 +217,7 @@ errorCode addURIRow(URITable* uTable, StringType uri, unsigned int* rowID)
 	return ERR_OK;
 }
 
-errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, unsigned int* rowID)
+errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, uint32_t* rowID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	if(lTable->arrayDimension == lTable->rowCount)   // The dynamic array must be extended first
@@ -243,7 +243,7 @@ errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, unsigned int*
 
 errorCode createInitialStringTables(EXIStream* strm)
 {
-	int i = 0;
+	unsigned int i = 0;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	tmp_err_code = createValueTable(&(strm->vTable));
 	if(tmp_err_code != ERR_OK)
@@ -387,7 +387,7 @@ errorCode createInitialStringTables(EXIStream* strm)
 	return ERR_OK;
 }
 
-errorCode addGVRow(ValueTable* vTable, StringType global_value, unsigned int* rowID)
+errorCode addGVRow(ValueTable* vTable, StringType global_value, uint32_t* rowID)
 {
 	if(vTable->arrayDimension == vTable->rowCount)   // The dynamic array must be extended first
 	{
@@ -406,7 +406,7 @@ errorCode addGVRow(ValueTable* vTable, StringType global_value, unsigned int* ro
 	return ERR_OK;
 }
 
-errorCode addLVRow(struct LocalNamesRow* lnRow, unsigned int globalValueRowID)
+errorCode addLVRow(struct LocalNamesRow* lnRow, uint32_t globalValueRowID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	if(lnRow->vCrossTable == NULL)

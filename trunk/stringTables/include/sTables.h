@@ -101,7 +101,7 @@ errorCode createValueLocalCrossTable(ValueLocalCrossTable** vlTable);
  * @param[out] rowID the ID of the row inserted
  * @return Error handling code
  */
-errorCode addURIRow(URITable* uTable, StringType uri, unsigned int* rowID);
+errorCode addURIRow(URITable* uTable, StringType uri, uint32_t* rowID);
 
 /**
  * @brief Add new row into the Local-Names string table
@@ -111,7 +111,7 @@ errorCode addURIRow(URITable* uTable, StringType uri, unsigned int* rowID);
  * @param[out] rowID the ID of the row inserted
  * @return Error handling code
  */
-errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, unsigned int* rowID);
+errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, uint32_t* rowID);
 
 /**
  * @brief Create string tables for an EXI stream.
@@ -133,7 +133,7 @@ errorCode createInitialStringTables(EXIStream* strm);
  * @param[out] rowID the ID of the row inserted
  * @return Error handling code
  */
-errorCode addGVRow(ValueTable* vTable, StringType global_value, unsigned int* rowID);
+errorCode addGVRow(ValueTable* vTable, StringType global_value, uint32_t* rowID);
 
 /**
  * @brief Add a new row into the Local value cross string table
@@ -142,6 +142,6 @@ errorCode addGVRow(ValueTable* vTable, StringType global_value, unsigned int* ro
  * @param[in] globalValueRowID the rowID of the string in the global value string table
  * @return Error handling code
  */
-errorCode addLVRow(struct LocalNamesRow* lnRow, unsigned int globalValueRowID);
+errorCode addLVRow(struct LocalNamesRow* lnRow, uint32_t globalValueRowID);
 
 #endif /* STABLES_H_ */

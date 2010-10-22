@@ -115,18 +115,19 @@ errorCode decodeString(EXIStream* strm, StringType* string_val);
  * @param[out] string_val null-terminated decoded string
  * @return Error handling code
  */
-errorCode decodeStringOnly(EXIStream* strm, unsigned int str_length, StringType* string_val);
+errorCode decodeStringOnly(EXIStream* strm, uint32_t str_length, StringType* string_val);
 
 /**
  * @brief Decode EXI Binary type
  * Decode a binary value as a length-prefixed sequence of octets.
+ * Dynamically allocate a memory for the buffer
  *
  * @param[in] strm EXI stream of bits
  * @param[out] binary_val decoded binary value
- * @param[out] bytes length of decoded binary content
+ * @param[out] nbytes length of decoded binary content
  * @return Error handling code
  */
-errorCode decodeBinary(EXIStream* strm, char* binary_val, unsigned int* bytes);
+errorCode decodeBinary(EXIStream* strm, char** binary_val, uint32_t* nbytes);
 
 /**
  * @brief Decode EXI (signed) Integer type
@@ -137,10 +138,24 @@ errorCode decodeBinary(EXIStream* strm, char* binary_val, unsigned int* bytes);
  *
  * @param[in] strm EXI stream of bits
  * @param[out] sint_val decoded signed integer value
- * @return Error handling code
+ * @return Error handling code. It returns BIGGER_TYPE_REQUIRED indicating that
+ * the integer is bigger than 32 bits. The processor MUST invoke the function
+ * that handles larger integers
  */
-errorCode decodeIntegerValue(EXIStream* strm, int* sint_val);
+errorCode decodeIntegerValue(EXIStream* strm, int32_t* sint_val);
 
+/**
+ * @brief Decode EXI (signed) Integer type bigger than 32 bits
+ * Decode an arbitrary precision integer using a sign bit followed by a
+ * sequence of octets. The most significant bit of the last octet is set to
+ * zero to indicate sequence termination. Only seven bits per octet are used
+ * to store the integer's value.
+ *
+ * @param[in] strm EXI stream of bits
+ * @param[out] sint_val decoded signed integer value
+ * @return Error handling code.
+ */
+errorCode decodeBigIntegerValue(EXIStream* strm, BigSignedInt* sint_val);
 
 /**
  * @brief Decode EXI Decimal type
@@ -153,9 +168,26 @@ errorCode decodeIntegerValue(EXIStream* strm, int* sint_val);
  *
  * @param[in] strm EXI stream of bits
  * @param[out] dec_val decoded decimal value as float
- * @return Error handling code
+ * @return Error handling code. It returns BIGGER_TYPE_REQUIRED indicating that
+ * the decimal is bigger than the parameter type provided. The processor MUST
+ * invoke the function that handles larger decimals
  */
-errorCode decodeDecimalValue(EXIStream* strm, float* dec_val);
+errorCode decodeDecimalValue(EXIStream* strm, decimal* dec_val);
+
+/**
+ * @brief Decode big Decimal value
+ * Decode a decimal represented as a Boolean sign followed by two Unsigned
+ * Integers. A sign value of zero (0) is used to represent positive Decimal
+ * values and a sign value of one (1) is used to represent negative Decimal
+ * values The first Integer represents the integral portion of the Decimal
+ * value. The second positive integer represents the fractional portion of
+ * the decimal with the digits in reverse order to preserve leading zeros.
+ *
+ * @param[in] strm EXI stream of bits
+ * @param[out] dec_val decoded decimal value as float
+ * @return Error handling code.
+ */
+errorCode decodeBigDecimalValue(EXIStream* strm, bigDecimal* dec_val);
 
 
 /**
@@ -166,7 +198,22 @@ errorCode decodeDecimalValue(EXIStream* strm, float* dec_val);
  *
  * @param[in] strm EXI stream of bits
  * @param[out] dec_val decoded decimal value as float
+ * @return Error handling code. It returns BIGGER_TYPE_REQUIRED indicating that
+ * the float is bigger than double. The processor MUST invoke the function
+ * that handles larger floats
+ */
+errorCode decodeFloatValue(EXIStream* strm, double* double_val);
+
+/**
+ * @brief Decode EXI Float type, bigger than double
+ * Decode a Float represented as two consecutive Integers. The first Integer
+ * represents the mantissa of the floating point number and the second
+ * Integer represents the 10-based exponent of the floating point number
+ *
+ * @param[in] strm EXI stream of bits
+ * @param[out] dec_val decoded decimal value as float
  * @return Error handling code
  */
-errorCode decodeFloatValue(EXIStream* strm, long double* double_val);
+errorCode decodeBigFloatValue(EXIStream* strm, BigFloat* double_val);
+
 #endif /* STREAMDECODE_H_ */

@@ -47,6 +47,7 @@
 
 #include "errorHandle.h"
 #include <stdint.h>
+#include <time.h>
 
 #ifndef NULL
 #define NULL ((void *)0)
@@ -81,6 +82,22 @@
 #define IS_PRESERVED(p, mask) ((p & mask) != 0)
 
 /**
+ * For handling the DATE-TIME type (structure tm from time.h)
+ */
+#define SEC_PRESENCE       0b0000000000000001
+#define MIN_PRESENCE       0b0000000000000010
+#define HOUR_PRESENCE      0b0000000000000100
+#define MDAY_PRESENCE      0b0000000000001000
+#define MON_PRESENCE       0b0000000000010000
+#define YEAR_PRESENCE      0b0000000000100000
+#define WDAY_PRESENCE      0b0000000001000000
+#define YDAY_PRESENCE      0b0000000010000000
+#define DST_PRESENCE       0b0000000100000000
+#define TZONE_PRESENCE     0b0000001000000000
+
+#define IS_PRESENT(p, mask) ((p & mask) != 0)
+
+/**
  * EXI processors SHOULD support arbitrarily large Unsigned Integer values.
  * EXI processors MUST support Unsigned Integer values less than 2147483648.
  * This macro is used to support unsigned integers bigger than 32 bits.
@@ -92,6 +109,72 @@
 #endif
 
 typedef BIG_UNSIGNED_INT BigUnsignedInt;
+
+/*
+ * Used for the content handler interface for signed integers bigger than 32 bits
+ * Application which require support for larger than 64 bits signed integers must
+ * override this macro
+ */
+#ifndef BIG_SIGNED_INT
+# define BIG_SIGNED_INT int64_t
+#endif
+
+typedef BIG_SIGNED_INT BigSignedInt;
+
+/*
+ * Used for the content handler interface for bigger than double floats
+ * Application which require support for larger than long double must
+ * override this macro
+ */
+#ifndef BIG_FLOAT
+# define BIG_FLOAT long double
+#endif
+
+typedef BIG_FLOAT BigFloat;
+
+/**
+ * Represents decimal values. Consists of an integral part, a fractional part and a sign
+ * A sign value of zero (0) is used to represent positive Decimal values and a sign value
+ * of one (1) is used to represent negative Decimal values
+ */
+struct decimalEXIP {
+	unsigned char sign;
+	uint32_t integral;
+	uint32_t fraction;
+};
+
+/**
+ * Represents big decimal values. Consists of an integral part, a fractional part and a sign
+ * A sign value of zero (0) is used to represent positive Decimal values and a sign value
+ * of one (1) is used to represent negative Decimal values
+ */
+struct bigDecimalEXIP {
+	unsigned char sign;
+	BIG_UNSIGNED_INT integral;
+	BIG_UNSIGNED_INT fraction;
+};
+
+/*
+ * Used for the content handler interface for decimal values
+ * Application which require support for different type of decimal values can
+ * override this macro
+ */
+#ifndef DECIMAL
+# define DECIMAL struct decimalEXIP
+#endif
+
+typedef DECIMAL decimal;
+
+/*
+ * Used for the content handler interface for big decimal values
+ * Application which require support for different type of decimal values can
+ * override this macro
+ */
+#ifndef BIG_DECIMAL
+# define BIG_DECIMAL struct bigDecimalEXIP
+#endif
+
+typedef BIG_DECIMAL bigDecimal;
 
 /**
  * Defines the encoding used for characters.

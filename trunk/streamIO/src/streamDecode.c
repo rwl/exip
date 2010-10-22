@@ -85,7 +85,7 @@ errorCode decodeUnsignedInteger(EXIStream* strm, uint32_t* int_val)
 	//       stream pointer at initial position
 	int mask_7bits = 127;
 	int mask_8th_bit = 128;
-	int initial_multiplier = 1;
+	unsigned int initial_multiplier = 1;
 	*int_val = 0;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	int tmp_byte_buf = 0;
@@ -115,7 +115,7 @@ errorCode decodeBigUnsignedInteger(EXIStream* strm, BigUnsignedInt* int_val)
 errorCode decodeString(EXIStream* strm, StringType* string_val)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned int string_length = 0;
+	uint32_t string_length = 0;
 	tmp_err_code = decodeUnsignedInteger(strm, &string_length);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -128,52 +128,55 @@ errorCode decodeString(EXIStream* strm, StringType* string_val)
 	return ERR_OK;
 }
 
-errorCode decodeStringOnly(EXIStream* strm, unsigned int str_length, StringType* string_val)
+errorCode decodeStringOnly(EXIStream* strm, uint32_t str_length, StringType* string_val)
 {
 	// Assume no Restricted Character Set is defined
 	//TODO: Handle the case when Restricted Character Set is defined
 
 	// The exact size of the string is known at this point. This means that
 	// this is the place to allocate the memory for the  { CharType* str; }!!!
-	string_val->str = EXIP_MALLOC(sizeof(CharType)*str_length);
-	if(string_val->str == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-	string_val->length = str_length;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	int i = 0;
-	unsigned int tmp_code_point = 0;
+	tmp_err_code = allocateStringMemory(&(string_val->str), str_length);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+	string_val->length = str_length;
+
+	uint32_t i = 0;
+	uint32_t tmp_code_point = 0;
 	for(i = 0; i < str_length; i++)
 	{
 		tmp_err_code = decodeUnsignedInteger(strm, &tmp_code_point);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		UCSToChar(tmp_code_point, &(string_val->str[i]));
+		writeCharToString(string_val, tmp_code_point, i);
 	}
 	return ERR_OK;
 }
 
-//TODO : add an [in] param for buffer size
-	//TODO : Check for output buffer size
-errorCode decodeBinary(EXIStream* strm, char* binary_val, unsigned int *bytes)
+errorCode decodeBinary(EXIStream* strm, char** binary_val, uint32_t* nbytes)
 {
 	errorCode err;
-	unsigned int length=0;
-	int int_val=0;
+	uint32_t length=0;
+	unsigned int int_val=0;
 
-	err = decodeUnsignedInteger(strm,&length);
+	err = decodeUnsignedInteger(strm, &length);
 	if(err!=ERR_OK) return err;
-	*bytes = length;
-	while(length--)
+	*nbytes = length;
+	(*binary_val) = EXIP_MALLOC(length);
+	if((*binary_val) == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	uint32_t i = 0;
+	for(i = 0; i < length; i++)
 	{
 		err = readBits(strm,8,&int_val);
 		if(err!=ERR_OK) return err;
-		*binary_val=(char)int_val;
-		binary_val++;
+		(*binary_val)[i]=(char)int_val;
 	}
 	return ERR_OK;
 }
 
-errorCode decodeIntegerValue(EXIStream* strm, int* sint_val)
+errorCode decodeIntegerValue(EXIStream* strm, int32_t* sint_val)
 {
 	// TODO: If there is associated schema datatype handle differently!
 	// TODO: check if the result fit into int type
@@ -200,19 +203,27 @@ errorCode decodeIntegerValue(EXIStream* strm, int* sint_val)
 	return ERR_OK;
 }
 
-errorCode decodeDecimalValue(EXIStream* strm, float* dec_val)
+errorCode decodeBigIntegerValue(EXIStream* strm, BigSignedInt* sint_val)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-//Changed : 'Float Values' in EXI mean extended double precision values(80 bits - long double)
-//TODO : verify if long doubles can be supported
-errorCode decodeFloatValue(EXIStream* strm, long double* double_val)
+errorCode decodeDecimalValue(EXIStream* strm, decimal* dec_val)
+{
+	return NOT_IMPLEMENTED_YET;
+}
+
+errorCode decodeBigDecimalValue(EXIStream* strm, bigDecimal* dec_val)
+{
+	return NOT_IMPLEMENTED_YET;
+}
+
+errorCode decodeFloatValue(EXIStream* strm, double* double_val)
 {
 //refer : http://www.linuxquestions.org/questions/programming-9/c-language-inf-and-nan-437323/
 	errorCode err;
 
-	long double val;	// val = man * 10^exp
+	double val;	// val = man * 10^exp
 	int man;	//mantissa
 	int exp;	//exponent
 
@@ -262,4 +273,9 @@ errorCode decodeFloatValue(EXIStream* strm, long double* double_val)
 	}
 	*double_val=val;
 	return ERR_OK;
+}
+
+errorCode decodeBigFloatValue(EXIStream* strm, BigFloat* double_val)
+{
+	return NOT_IMPLEMENTED_YET;
 }

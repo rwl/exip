@@ -51,18 +51,29 @@
 
 struct ContentHandler
 {
+	// For handling the meta-data (document structure)
 	void (*startDocument)();
 	void (*endDocument)();
 	void (*startElement)(QName qname);
 	void (*endElement)();
-	void (*attributeString)(QName qname, const StringType value);
-	void (*intData)(); // TODO: define the parameters!
-	void (*stringData)(const StringType value);
-	void (*floatData)(); // TODO: define the parameters!
-	void (*binaryData)(); // TODO: define the parameters!
+	void (*attribute)(QName qname);
 
+	// For handling the data
+	void (*intData)(int32_t int_val);
+	void (*bigIntData)(const BigSignedInt int_val);
+	void (*booleanData)(unsigned char bool_val);
+	void (*stringData)(const StringType str_val);
+	void (*floatData)(double float_val);
+	void (*bigFloatData)(BigFloat float_val);
+	void (*binaryData)(const char* binary_val, uint32_t nbytes);
+	void (*dateTimeData)(struct tm dt_val, uint16_t presenceMask);
+	void (*decimalData)(decimal dec_val);
+	void (*bigDecimalData)(bigDecimal dec_val);
+
+	// Miscellaneous
 	void (*processingInstruction)(); // TODO: define the parameters!
 
+	// For error handling
 	void (*warning)(const char code, const char* msg);
 	void (*error)(const char code, const char* msg);
 	void (*fatalError)(const char code, const char* msg);
@@ -73,5 +84,11 @@ struct ContentHandler
 
 typedef struct ContentHandler ContentHandler;
 
+/**
+ * @brief Initialize the content handler before use
+ * @param[in] handler fresh ContentHandler
+ *
+ */
+void initContentHandler(ContentHandler* handler);
 
 #endif /* CONTENTHANDLER_H_ */

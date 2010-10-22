@@ -344,18 +344,18 @@ errorCode popGrammar(EXIGrammarStack** gStack, struct EXIGrammar** grammar)
 	return ERR_OK;
 }
 
-static errorCode decodeQName(EXIStream* strm, QName* qname, unsigned int* p_uriID, unsigned int* p_lnID);
+static errorCode decodeQName(EXIStream* strm, QName* qname, uint32_t* p_uriID, uint32_t* p_lnID);
 
-static errorCode decodeQName(EXIStream* strm, QName* qname, unsigned int* p_uriID, unsigned int* p_lnID)
+static errorCode decodeQName(EXIStream* strm, QName* qname, uint32_t* p_uriID, uint32_t* p_lnID)
 {
 	//TODO: add the case when Preserve.prefixes is true
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned int tmp_val_buf = 0;
+	uint32_t tmp_val_buf = 0;
 	unsigned char uriBits = getBitsNumber(strm->uriTable->rowCount - 1);
 	tmp_err_code = decodeNBitUnsignedInteger(strm, uriBits, &tmp_val_buf);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	unsigned int uriID = 0; // The URI id in the URI string table
+	uint32_t uriID = 0; // The URI id in the URI string table
 	if(tmp_val_buf == 0) // uri miss
 	{
 		StringType str;
@@ -374,12 +374,12 @@ static errorCode decodeQName(EXIStream* strm, QName* qname, unsigned int* p_uriI
 		uriID = tmp_val_buf-1;
 	}
 
-	unsigned int flag_StringLiteralsPartition = 0;
+	uint32_t flag_StringLiteralsPartition = 0;
 	tmp_err_code = decodeUnsignedInteger(strm, &flag_StringLiteralsPartition);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	unsigned int lnID = 0;
+	uint32_t lnID = 0;
 	if(flag_StringLiteralsPartition == 0) // local-name table hit
 	{
 		unsigned char lnBits = getBitsNumber(strm->uriTable->rows[uriID].lTable->rowCount - 1);
@@ -410,29 +410,29 @@ static errorCode decodeQName(EXIStream* strm, QName* qname, unsigned int* p_uriI
 	return ERR_OK;
 }
 
-static errorCode decodeStringValue(EXIStream* strm, StringType** value, unsigned int uriID, unsigned int lnID);
+static errorCode decodeStringValue(EXIStream* strm, StringType** value, uint32_t uriID, uint32_t lnID);
 
-static errorCode decodeStringValue(EXIStream* strm, StringType** value, unsigned int uriID, unsigned int lnID)
+static errorCode decodeStringValue(EXIStream* strm, StringType** value, uint32_t uriID, uint32_t lnID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned int flag_StringLiteralsPartition = 0;
+	uint32_t flag_StringLiteralsPartition = 0;
 	tmp_err_code = decodeUnsignedInteger(strm, &flag_StringLiteralsPartition);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
 	if(flag_StringLiteralsPartition == 0) // "local" value partition table hit
 	{
-		unsigned int lvID = 0;
+		uint32_t lvID = 0;
 		unsigned char lvBits = getBitsNumber(strm->uriTable->rows[uriID].lTable->rows[lnID].vCrossTable->rowCount - 1);
 		tmp_err_code = decodeNBitUnsignedInteger(strm, lvBits, &lvID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		unsigned int value_table_rowID = strm->uriTable->rows[uriID].lTable->rows[lnID].vCrossTable->valueRowIds[lvID];
+		uint32_t value_table_rowID = strm->uriTable->rows[uriID].lTable->rows[lnID].vCrossTable->valueRowIds[lvID];
 		(*value) = &(strm->vTable->rows[value_table_rowID].string_val);
 	}
 	else if(flag_StringLiteralsPartition == 1)// global value partition table hit
 	{
-		unsigned int gvID = 0;
+		uint32_t gvID = 0;
 		unsigned char gvBits = getBitsNumber(strm->vTable->rowCount - 1);
 		tmp_err_code = decodeNBitUnsignedInteger(strm, gvBits, &gvID);
 		if(tmp_err_code != ERR_OK)
@@ -442,7 +442,7 @@ static errorCode decodeStringValue(EXIStream* strm, StringType** value, unsigned
 	else  // "local" value partition and global value partition table miss
 	{
 		StringType gvStr;
-		unsigned int gvID = 0;
+		uint32_t gvID = 0;
 		tmp_err_code = decodeStringOnly(strm, flag_StringLiteralsPartition - 2, &gvStr);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -461,19 +461,19 @@ static errorCode decodeStringValue(EXIStream* strm, StringType** value, unsigned
 }
 
 static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHandler* handler,
-									ValueType vType, unsigned int uriRowID, unsigned int lnRowID,
+									ValueType vType, uint32_t uriRowID, uint32_t lnRowID,
 									struct ElementGrammarPool* gPool, unsigned int* nonTermID_out,
 									EXIGrammarStack** grStack, GrammarRule* currRule);
 
 static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHandler* handler,
-									ValueType vType, unsigned int uriRowID, unsigned int lnRowID,
+									ValueType vType, uint32_t uriRowID, uint32_t lnRowID,
 									struct ElementGrammarPool* gPool, unsigned int* nonTermID_out,
 									EXIGrammarStack** grStack, GrammarRule* currRule)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	// TODO: implement all cases
-	unsigned int uriID = 0;
-	unsigned int lnID = 0;
+	uint32_t uriID = 0;
+	uint32_t lnID = 0;
 	QName qname;
 	if(eType == EVENT_SE_ALL)
 	{
@@ -536,14 +536,16 @@ static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHan
 		tmp_err_code = decodeQName(strm, &qname, &uriID, &lnID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
+		if(handler->attribute != NULL)  // Invoke handler method
+			handler->attribute(qname);
 		if(vType == VALUE_TYPE_STRING)
 		{
 			StringType* value;
 			tmp_err_code = decodeStringValue(strm, &value, uriID, lnID);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
-			if(handler->attributeString != NULL)  // Invoke handler method
-				handler->attributeString(qname, *value);
+			if(handler->stringData != NULL)  // Invoke handler method
+				handler->stringData(*value);
 		}
 		tmp_err_code = insertZeroProduction(currRule, EVENT_AT_QNAME, *nonTermID_out, lnID, uriID);
 		if(tmp_err_code != ERR_OK)
@@ -581,14 +583,16 @@ static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHan
 		DEBUG_MSG(INFO,(">AT(qname) event\n"));
 		qname.uri = &(strm->uriTable->rows[uriRowID].string_val);
 		qname.localName = &(strm->uriTable->rows[uriRowID].lTable->rows[lnRowID].string_val);
+		if(handler->attribute != NULL)  // Invoke handler method
+			handler->attribute(qname);
 		if(vType == VALUE_TYPE_STRING)
 		{
 			StringType* value;
 			tmp_err_code = decodeStringValue(strm, &value, uriRowID, lnRowID);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
-			if(handler->attributeString != NULL)  // Invoke handler method
-				handler->attributeString(qname, *value);
+			if(handler->stringData != NULL)  // Invoke handler method
+				handler->stringData(*value);
 		}
 	}
 	else if(eType == EVENT_CH)
@@ -632,10 +636,10 @@ errorCode processNextProduction(EXIStream* strm, EXIGrammarStack** grStack, unsi
 
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int tmp_bits_val = 0;
-	int currProduction = 0;
-	int i = 0;
-	int j = 0;
-	int b = 0;
+	unsigned int currProduction = 0;
+	unsigned int i = 0;
+	unsigned int j = 0;
+	unsigned int b = 0;
 	for(i = 0; i < (*grStack)->rulesDimension; i++)
 	{
 		if(nonTermID_in == (*grStack)->ruleArray[i].nonTermID)
@@ -791,10 +795,10 @@ errorCode createElementGrammarPool(struct ElementGrammarPool* pool)
 }
 
 //TODO: Smarter algorithm must be employed here
-errorCode checkElementGrammarInPool(struct ElementGrammarPool* pool, unsigned int uriRowID,
-									unsigned int lnRowID, unsigned char* is_found, struct EXIGrammar** result)
+errorCode checkElementGrammarInPool(struct ElementGrammarPool* pool, uint32_t uriRowID,
+									uint32_t lnRowID, unsigned char* is_found, struct EXIGrammar** result)
 {
-	int i = 0;
+	unsigned int i = 0;
 	for(i = 0; i < pool->refsCount; i++)
 	{
 		if(pool->refs[i].uriRowID == uriRowID && pool->refs[i].lnRowID == lnRowID)
@@ -809,8 +813,8 @@ errorCode checkElementGrammarInPool(struct ElementGrammarPool* pool, unsigned in
 	return ERR_OK;
 }
 
-errorCode addElementGrammarInPool(struct ElementGrammarPool* pool, unsigned int uriRowID,
-									unsigned int lnRowID, struct EXIGrammar* newGr)
+errorCode addElementGrammarInPool(struct ElementGrammarPool* pool, uint32_t uriRowID,
+								uint32_t lnRowID, struct EXIGrammar* newGr)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	if(pool->refsCount == pool->refsDimension) // The dynamic array must be extended first

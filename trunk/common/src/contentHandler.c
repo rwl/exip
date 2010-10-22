@@ -33,38 +33,36 @@
 \===================================================================================*/
 
 /**
- * @file streamWrite.h
- * @brief Interface to a low-level EXI stream writer
- *
- * @date Aug 23, 2010
+ * @file contentHandler.c
+ * @brief Implementation of help functions for contentHandler interface
+ * @date Oct 22, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#ifndef STREAMWRITE_H_
-#define STREAMWRITE_H_
+#include "contentHandler.h"
 
-#include "errorHandle.h"
-#include "procTypes.h"
-
-/**
- * @brief Writes a single bit to an EXI stream and moves its current bit pointer
- * @param[out] strm EXI stream of bits
- * @param[in] value of the next bit: 0 or 1
- * @return Error handling code
- */
-errorCode writeNextBit(EXIStream* strm, unsigned char bit_val);
-
-//TODO: consider using long for bits_val
-/**
- * @brief Writes and unsigned integer value to an EXI stream with the least possible bits
- * and moves the stream current bit pointer to the last bit written. The number of bits
- * written is saved in the second parameter - n
- * @param[out] strm EXI stream of bits
- * @param[out] n The number of bits in the range [1,32].
- * @param[in] bits_val resulting bits value
- */
-errorCode writeBits(EXIStream* strm, unsigned char* n, uint32_t bits_val);
-
-#endif /* STREAMWRITE_H_ */
+void initContentHandler(ContentHandler* handler)
+{
+	handler->attribute = NULL;
+	handler->bigDecimalData = NULL;
+	handler->bigFloatData = NULL;
+	handler->bigIntData = NULL;
+	handler->binaryData = NULL;
+	handler->booleanData = NULL;
+	handler->dateTimeData = NULL;
+	handler->decimalData = NULL;
+	handler->endDocument = NULL;
+	handler->endElement = NULL;
+	handler->error = NULL;
+	handler->fatalError = NULL;
+	handler->floatData = NULL;
+	handler->intData = NULL;
+	handler->processingInstruction = NULL;
+	handler->selfContained = NULL;
+	handler->startDocument = NULL;
+	handler->startElement = NULL;
+	handler->stringData = NULL;
+	handler->warning = NULL;
+}
