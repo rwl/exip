@@ -84,6 +84,7 @@ struct GrammarRule
 	unsigned int prodCount; // The number of productions in this Grammar Rule
 	unsigned int prodDimension; // The size of the productions' array /allocated space for Productions/
 	unsigned char bits[3]; // The number of bits used for the integers constituting the EventCode
+	void* memNode; // Used by the memoryManager when there is reallocation
 };
 
 typedef struct GrammarRule GrammarRule;

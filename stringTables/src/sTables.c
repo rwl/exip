@@ -114,11 +114,11 @@ const char* URI_3_LOCALNAME[] = {  // #DOCUMENT#
 
 errorCode createValueTable(ValueTable** vTable)
 {
-	*vTable = EXIP_MALLOC(sizeof(ValueTable));
+	*vTable = (ValueTable*) memManagedAllocate(sizeof(ValueTable));
 	if(*vTable == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*vTable)->rows = EXIP_MALLOC(sizeof(struct ValueRow)*DEFAULT_VALUE_ROWS_NUMBER);
+	(*vTable)->rows = (struct ValueRow*) memManagedAllocatePtr(sizeof(struct ValueRow)*DEFAULT_VALUE_ROWS_NUMBER, &((*vTable)->memNode));
 	if((*vTable)->rows == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -129,11 +129,11 @@ errorCode createValueTable(ValueTable** vTable)
 
 errorCode createURITable(URITable** uTable)
 {
-	*uTable = EXIP_MALLOC(sizeof(URITable));
+	*uTable = (URITable*) memManagedAllocate(sizeof(URITable));
 	if(*uTable == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*uTable)->rows = EXIP_MALLOC(sizeof(struct URIRow)*DEFAULT_URI_ROWS_NUMBER);
+	(*uTable)->rows = (struct URIRow*) memManagedAllocatePtr(sizeof(struct URIRow)*DEFAULT_URI_ROWS_NUMBER, &((*uTable)->memNode));
 	if((*uTable)->rows == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -144,11 +144,11 @@ errorCode createURITable(URITable** uTable)
 
 errorCode createPrefixTable(PrefixTable** pTable)
 {
-	(*pTable) = EXIP_MALLOC(sizeof(PrefixTable));
+	(*pTable) = (PrefixTable*) memManagedAllocate(sizeof(PrefixTable));
 	if(pTable == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*pTable)->rows = EXIP_MALLOC(sizeof(struct PrefixRow)*DEFAULT_PREFIX_ROWS_NUMBER);
+	(*pTable)->rows = (struct PrefixRow*) memManagedAllocatePtr(sizeof(struct PrefixRow)*DEFAULT_PREFIX_ROWS_NUMBER, &((*pTable)->memNode));
 	if((*pTable)->rows == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -159,11 +159,11 @@ errorCode createPrefixTable(PrefixTable** pTable)
 
 errorCode createLocalNamesTable(LocalNamesTable** lTable)
 {
-	*lTable = EXIP_MALLOC(sizeof(LocalNamesTable));
+	*lTable = (LocalNamesTable*) memManagedAllocate(sizeof(LocalNamesTable));
 	if(*lTable == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*lTable)->rows = EXIP_MALLOC(sizeof(struct LocalNamesRow)*DEFAULT_LOCALNAMES_ROWS_NUMBER);
+	(*lTable)->rows = (struct LocalNamesRow*) memManagedAllocatePtr(sizeof(struct LocalNamesRow)*DEFAULT_LOCALNAMES_ROWS_NUMBER, &((*lTable)->memNode));
 	if((*lTable)->rows == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -174,11 +174,11 @@ errorCode createLocalNamesTable(LocalNamesTable** lTable)
 
 errorCode createValueLocalCrossTable(ValueLocalCrossTable** vlTable)
 {
-	*vlTable = EXIP_MALLOC(sizeof(ValueLocalCrossTable));
+	*vlTable = (ValueLocalCrossTable*) memManagedAllocate(sizeof(ValueLocalCrossTable));
 	if(*vlTable == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*vlTable)->valueRowIds = EXIP_MALLOC(sizeof(uint32_t)*DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER);
+	(*vlTable)->valueRowIds = (uint32_t*) memManagedAllocatePtr(sizeof(uint32_t)*DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER, &((*vlTable)->memNode));
 	if((*vlTable)->valueRowIds == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -194,10 +194,9 @@ errorCode addURIRow(URITable* uTable, StringType uri, uint32_t* rowID)
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	if(uTable->arrayDimension == uTable->rowCount)   // The dynamic array must be extended first
 	{
-		void* new_ptr = EXIP_REALLOC(uTable->rows, sizeof(struct URIRow)*(uTable->rowCount + DEFAULT_URI_ROWS_NUMBER));
-		if(new_ptr == NULL)
-			return MEMORY_ALLOCATION_ERROR;
-		uTable->rows = new_ptr;
+		tmp_err_code = memManagedReAllocate(&uTable->rows, sizeof(struct URIRow)*(uTable->rowCount + DEFAULT_URI_ROWS_NUMBER), uTable->memNode);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 		uTable->arrayDimension = uTable->arrayDimension + DEFAULT_URI_ROWS_NUMBER;
 	}
 	uTable->rows[uTable->rowCount].string_val.length = uri.length;
@@ -222,10 +221,9 @@ errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, uint32_t* row
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	if(lTable->arrayDimension == lTable->rowCount)   // The dynamic array must be extended first
 	{
-		void* new_ptr = EXIP_REALLOC(lTable->rows, sizeof(struct LocalNamesRow)*(lTable->rowCount + DEFAULT_LOCALNAMES_ROWS_NUMBER));
-		if(new_ptr == NULL)
-			return MEMORY_ALLOCATION_ERROR;
-		lTable->rows = new_ptr;
+		tmp_err_code = memManagedReAllocate(&lTable->rows, sizeof(struct LocalNamesRow)*(lTable->rowCount + DEFAULT_LOCALNAMES_ROWS_NUMBER), lTable->memNode);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 		lTable->arrayDimension = lTable->arrayDimension + DEFAULT_LOCALNAMES_ROWS_NUMBER;
 	}
 
@@ -391,10 +389,10 @@ errorCode addGVRow(ValueTable* vTable, StringType global_value, uint32_t* rowID)
 {
 	if(vTable->arrayDimension == vTable->rowCount)   // The dynamic array must be extended first
 	{
-		void* new_ptr = EXIP_REALLOC(vTable->rows, sizeof(struct ValueRow)*(vTable->rowCount + DEFAULT_VALUE_ROWS_NUMBER));
-		if(new_ptr == NULL)
-			return MEMORY_ALLOCATION_ERROR;
-		vTable->rows = new_ptr;
+		errorCode tmp_err_code = UNEXPECTED_ERROR;
+		tmp_err_code = memManagedReAllocate(&vTable->rows, sizeof(struct ValueRow)*(vTable->rowCount + DEFAULT_VALUE_ROWS_NUMBER), vTable->memNode);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 		vTable->arrayDimension = vTable->arrayDimension + DEFAULT_VALUE_ROWS_NUMBER;
 	}
 
@@ -417,10 +415,9 @@ errorCode addLVRow(struct LocalNamesRow* lnRow, uint32_t globalValueRowID)
 	}
 	else if(lnRow->vCrossTable->rowCount == lnRow->vCrossTable->arrayDimension)   // The dynamic array must be extended first
 	{
-		void* new_ptr = EXIP_REALLOC(lnRow->vCrossTable->valueRowIds, sizeof(unsigned int)*(lnRow->vCrossTable->rowCount + DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER));
-		if(new_ptr == NULL)
-			return MEMORY_ALLOCATION_ERROR;
-		lnRow->vCrossTable->valueRowIds = new_ptr;
+		tmp_err_code = memManagedReAllocate(&lnRow->vCrossTable->valueRowIds, sizeof(uint32_t)*(lnRow->vCrossTable->rowCount + DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER), lnRow->vCrossTable->memNode);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 		lnRow->vCrossTable->arrayDimension += DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER;
 	}
 

@@ -70,6 +70,7 @@ struct ElementGrammarPool
 	struct ElementGrammarLabel* refs; // Dynamic array
 	unsigned int refsCount; // The number of rows
 	unsigned int refsDimension; // The size of the Dynamic array
+	void* memNode; // Used by the memoryManager when there is reallocation
 };
 
 /* TODO: Create a unique index for the ElementGrammarPool. The index should work as follows:

@@ -33,101 +33,73 @@
 \===================================================================================*/
 
 /**
- * @file p_ASCII_stringManipulate.c
- * @brief String manipulation functions used for UCS <-> ASCII transformations
- * Note! This file is platform dependent.
- * @date Sep 3, 2010
+ * @file memManagement.h
+ * @brief Handles memory operations - allocation, deallocation etc.
+ *
+ * @date Oct 25, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#include "../include/stringManipulate.h"
-#include <string.h>
-#include <stdio.h>
+#ifndef MEMMANAGEMENT_H_
+#define MEMMANAGEMENT_H_
 
-errorCode allocateStringMemory(CharType** str, uint32_t UCSchars)
-{
-	(*str) = (CharType*) memManagedAllocate(sizeof(CharType)*UCSchars);
-	if((*str) == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-	return ERR_OK;
-}
+#include "errorHandle.h"
+#include "procTypes.h"
 
-/**
- * Simple translation working only for ASCII characters
- */
-errorCode UCSToChar(uint32_t code_point, CharType* ch)
-{
-	*ch = (CharType) code_point;
-	return ERR_OK;
-}
+struct memAlloc {
+	void* allocation;
+	struct memAlloc* nextAlloc;
+};
+
+struct memAlloc* memStack = NULL;
 
 /**
- * Simple translation working only for ASCII characters
+ * Except Data Values (Binary data, DateTime etc.), which are
+ * freed after the respective ContentHandler is called, all other
+ * allocations are freed at the end of the parsing/serializing.
  */
-errorCode writeCharToString(StringType* str, uint32_t code_point, uint32_t UCSposition)
-{
-	str->str[UCSposition] = (CharType) code_point;
-	return ERR_OK;
-}
 
-errorCode getEmptyString(StringType* emptyStr)
-{
-	emptyStr->length = 0;
-	emptyStr->str = NULL;
+/**
+ * @brief Allocate a memory block with size <size> and store a copy of
+ * the pointer in a linked list for freeing it at the end.
+ *
+ * @param[in] size the size of the memory block to be allocated
+ * @return pointer to the allocated block if successful. NULL otherwise
+ */
+void* memManagedAllocate(size_t size);
 
-	return ERR_OK;
-}
+/**
+ * @brief Allocate a memory block with size <size> and store a copy of
+ * the pointer in a linked list for freeing it at the end.
+ * It also return the pointer to the linked list node used later
+ * during reallocation. Use this function in case the allocated block
+ * might need to be reallocated later.
+ *
+ * @param[in] size the size of the memory block to be allocated
+ * @param[out] memNode pointer to the memAlloc node created
+ * @return pointer to the allocated block if successful. NULL otherwise
+ */
+void* memManagedAllocatePtr(size_t size, void** p_memNode);
 
-errorCode asciiToString(char* inStr, StringType* outStr)
-{
-	outStr->length = strlen(inStr);
-	if(outStr->length > 0)  // If == 0 -> empty string
-	{
-		outStr->str = (CharType*) memManagedAllocate(sizeof(CharType)*(outStr->length));
-		if(outStr->str == NULL)
-			return MEMORY_ALLOCATION_ERROR;
-		memcpy(outStr->str, inStr, outStr->length);
-	}
-	else
-		outStr->str = NULL;
-	return ERR_OK;
-}
+/**
+ * @brief Reallocate a memory block with size <size>
+ *
+ * @param[in, out] ptr pointer to be reallocated
+ * @param[in] size the size of the memory block to be reallocated
+ * @param[in] p_memNode pointer to the memAlloc node created when the ptr was allocated
+ * @return pointer to the allocated block if successful. NULL otherwise
+ */
+errorCode memManagedReAllocate(void** ptr, size_t size, void* p_memNode);
 
-char str_equal(StringType str1, StringType str2)
-{
-	if(str1.length != str2.length)
-		return 0;
-	else
-	{
-		if(str1.length == 0)
-		{
-			if(str1.str == NULL && str2.str == NULL)
-				return 1;
-			else
-				return 0;
-		}
-		else
-		{
-			int i = 0;
-			for(i = 0; i < str1.length; i++)
-			{
-				if(str1.str[i] != str2.str[i])
-					return 0;
-			}
-			return 1;
-		}
-	}
-}
+/**
+ * @brief Frees all the managed memory.
+ * It should be called after an error in the processing occur or at the
+ * end of the parsing/serializing if the processing is successful.
+ *
+ * @return Error handling code
+ */
+errorCode freeAllMem();
 
-void printString(StringType* inStr)
-{
-	if(inStr->length == 0)
-		return;
-	int i = 0;
-	for(i = 0; i < inStr->length; i++)
-	{
-		DEBUG_CHAR_OUTPUT(inStr->str[i]);
-	}
-}
+#endif /* MEMMANAGEMENT_H_ */

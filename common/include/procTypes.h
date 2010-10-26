@@ -219,6 +219,7 @@ struct ValueTable {
 	struct ValueRow* rows; // Dynamic array
 	uint32_t rowCount; // The number of rows
 	uint32_t arrayDimension; // The size of the Dynamic array
+	void* memNode; // Used by the memoryManager when there is reallocation
 };
 
 typedef struct ValueTable ValueTable;
@@ -227,6 +228,7 @@ struct ValueLocalCrossTable {
 	uint32_t* valueRowIds; // Dynamic array
 	uint16_t rowCount; // The number of rows
 	uint16_t arrayDimension; // The size of the Dynamic array
+	void* memNode; // Used by the memoryManager when there is reallocation
 };
 
 typedef struct ValueLocalCrossTable ValueLocalCrossTable;
@@ -239,6 +241,7 @@ struct PrefixTable {
 	struct PrefixRow* rows; // Dynamic array
 	uint16_t rowCount; // The number of rows
 	uint16_t arrayDimension; // The size of the Dynamic array
+	void* memNode; // Used by the memoryManager when there is reallocation
 };
 
 typedef struct PrefixTable PrefixTable;
@@ -252,6 +255,7 @@ struct LocalNamesTable {
 	struct LocalNamesRow* rows; // Dynamic array
 	uint32_t rowCount; // The number of rows
 	uint32_t arrayDimension; // The size of the Dynamic array
+	void* memNode; // Used by the memoryManager when there is reallocation
 };
 
 typedef struct LocalNamesTable LocalNamesTable;
@@ -266,6 +270,7 @@ struct URITable {
 	struct URIRow* rows; // Dynamic array
 	uint16_t rowCount; // The number of rows
 	uint16_t arrayDimension; // The size of the Dynamic array
+	void* memNode; // Used by the memoryManager when there is reallocation
 };
 
 typedef struct URITable URITable;
