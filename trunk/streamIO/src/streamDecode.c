@@ -162,7 +162,7 @@ errorCode decodeBinary(EXIStream* strm, char** binary_val, uint32_t* nbytes)
 	err = decodeUnsignedInteger(strm, &length);
 	if(err!=ERR_OK) return err;
 	*nbytes = length;
-	(*binary_val) = EXIP_MALLOC(length);
+	(*binary_val) = EXIP_MALLOC(length); // This memory should be manually freed after the content handler is invoked
 	if((*binary_val) == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 

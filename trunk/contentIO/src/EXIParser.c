@@ -63,6 +63,7 @@ void parseEXI(char* binaryStream, ContentHandler* handler)
 	{
 		if(handler->fatalError != NULL)
 			handler->fatalError(tmp_err_code, "Error parsing EXI header");
+		freeAllMem();
 		return;
 	}
 

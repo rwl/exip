@@ -33,101 +33,72 @@
 \===================================================================================*/
 
 /**
- * @file p_ASCII_stringManipulate.c
- * @brief String manipulation functions used for UCS <-> ASCII transformations
- * Note! This file is platform dependent.
- * @date Sep 3, 2010
+ * @file memManagement.c
+ * @brief Implementation of handling memory operations - allocation, deallocation etc.
+ * @date Oct 25, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#include "../include/stringManipulate.h"
-#include <string.h>
-#include <stdio.h>
+#include "memManagement.h"
 
-errorCode allocateStringMemory(CharType** str, uint32_t UCSchars)
+void* memManagedAllocate(size_t size)
 {
-	(*str) = (CharType*) memManagedAllocate(sizeof(CharType)*UCSchars);
-	if((*str) == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-	return ERR_OK;
-}
-
-/**
- * Simple translation working only for ASCII characters
- */
-errorCode UCSToChar(uint32_t code_point, CharType* ch)
-{
-	*ch = (CharType) code_point;
-	return ERR_OK;
-}
-
-/**
- * Simple translation working only for ASCII characters
- */
-errorCode writeCharToString(StringType* str, uint32_t code_point, uint32_t UCSposition)
-{
-	str->str[UCSposition] = (CharType) code_point;
-	return ERR_OK;
-}
-
-errorCode getEmptyString(StringType* emptyStr)
-{
-	emptyStr->length = 0;
-	emptyStr->str = NULL;
-
-	return ERR_OK;
-}
-
-errorCode asciiToString(char* inStr, StringType* outStr)
-{
-	outStr->length = strlen(inStr);
-	if(outStr->length > 0)  // If == 0 -> empty string
+	void* ptr = EXIP_MALLOC(size);
+	if(ptr != NULL)
 	{
-		outStr->str = (CharType*) memManagedAllocate(sizeof(CharType)*(outStr->length));
-		if(outStr->str == NULL)
-			return MEMORY_ALLOCATION_ERROR;
-		memcpy(outStr->str, inStr, outStr->length);
-	}
-	else
-		outStr->str = NULL;
-	return ERR_OK;
-}
-
-char str_equal(StringType str1, StringType str2)
-{
-	if(str1.length != str2.length)
-		return 0;
-	else
-	{
-		if(str1.length == 0)
+		struct memAlloc* memNode =  EXIP_MALLOC(sizeof(struct memAlloc));
+		if(memNode != NULL)
 		{
-			if(str1.str == NULL && str2.str == NULL)
-				return 1;
-			else
-				return 0;
+			memNode->allocation = ptr;
+			memNode->nextAlloc = memStack;
+			memStack = memNode;
 		}
 		else
-		{
-			int i = 0;
-			for(i = 0; i < str1.length; i++)
-			{
-				if(str1.str[i] != str2.str[i])
-					return 0;
-			}
-			return 1;
-		}
+			return NULL;
 	}
+	return ptr;
 }
 
-void printString(StringType* inStr)
+void* memManagedAllocatePtr(size_t size, void** p_memNode)
 {
-	if(inStr->length == 0)
-		return;
-	int i = 0;
-	for(i = 0; i < inStr->length; i++)
+	void* ptr = EXIP_MALLOC(size);
+	if(ptr != NULL)
 	{
-		DEBUG_CHAR_OUTPUT(inStr->str[i]);
+		struct memAlloc* memNode =  EXIP_MALLOC(sizeof(struct memAlloc));
+		if(memNode != NULL)
+		{
+			memNode->allocation = ptr;
+			memNode->nextAlloc = memStack;
+			memStack = memNode;
+			(*p_memNode) = memNode;
+		}
+		else
+			return NULL;
 	}
+	return ptr;
+}
+
+errorCode memManagedReAllocate(void** ptr, size_t size, void* p_memNode)
+{
+	void* new_ptr = EXIP_REALLOC(*ptr, size);
+	if(new_ptr == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+	*ptr = new_ptr;
+	((struct memAlloc*) p_memNode)->allocation = new_ptr;
+	return ERR_OK;
+}
+
+errorCode freeAllMem()
+{
+	struct memAlloc* tmpNode;
+	while(memStack != NULL)
+	{
+		tmpNode = memStack;
+		EXIP_MFREE(memStack->allocation);
+		memStack = memStack->nextAlloc;
+		EXIP_MFREE(tmpNode);
+	}
+	return ERR_OK;
 }

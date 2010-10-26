@@ -63,7 +63,7 @@ errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOpti
 	buildInGrammar->lastNonTermID = GR_VOID_NON_TERMINAL;
 	buildInGrammar->nextInStack = NULL;
 	buildInGrammar->rulesDimension = DEF_GRAMMAR_RULE_NUMBER;
-	buildInGrammar->ruleArray = (GrammarRule*) EXIP_MALLOC(sizeof(GrammarRule)*DEF_GRAMMAR_RULE_NUMBER);
+	buildInGrammar->ruleArray = (GrammarRule*) memManagedAllocate(sizeof(GrammarRule)*DEF_GRAMMAR_RULE_NUMBER);
 	if(buildInGrammar->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -177,7 +177,7 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, struct 
 	elementGrammar->lastNonTermID = GR_VOID_NON_TERMINAL;
 	elementGrammar->nextInStack = NULL;
 	elementGrammar->rulesDimension = DEF_ELEMENT_GRAMMAR_RULE_NUMBER;
-	elementGrammar->ruleArray = (GrammarRule*) EXIP_MALLOC(sizeof(GrammarRule)*DEF_ELEMENT_GRAMMAR_RULE_NUMBER);
+	elementGrammar->ruleArray = (GrammarRule*) memManagedAllocate(sizeof(GrammarRule)*DEF_ELEMENT_GRAMMAR_RULE_NUMBER);
 	if(elementGrammar->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -513,7 +513,7 @@ static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHan
 		}
 		else
 		{
-			struct EXIGrammar* elementGrammar = EXIP_MALLOC(sizeof(struct EXIGrammar));
+			struct EXIGrammar* elementGrammar = (struct EXIGrammar*) memManagedAllocate(sizeof(struct EXIGrammar));
 			if(elementGrammar == NULL)
 				return MEMORY_ALLOCATION_ERROR;
 			tmp_err_code = createBuildInElementGrammar(elementGrammar, strm->opts);
@@ -787,7 +787,7 @@ errorCode createElementGrammarPool(struct ElementGrammarPool* pool)
 {
 	pool->refsDimension = GRAMMAR_POOL_DIMENSION;
 	pool->refsCount = 0;
-	pool->refs = EXIP_MALLOC(sizeof(struct ElementGrammarLabel)*GRAMMAR_POOL_DIMENSION);
+	pool->refs = (struct ElementGrammarLabel*) memManagedAllocatePtr(sizeof(struct ElementGrammarLabel)*GRAMMAR_POOL_DIMENSION, &pool->memNode);
 	if(pool->refs == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -819,10 +819,9 @@ errorCode addElementGrammarInPool(struct ElementGrammarPool* pool, uint32_t uriR
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	if(pool->refsCount == pool->refsDimension) // The dynamic array must be extended first
 	{
-		void* new_ptr = EXIP_REALLOC(pool->refs, sizeof(struct ElementGrammarLabel)*(pool->refsCount + GRAMMAR_POOL_DIMENSION));
-		if(new_ptr == NULL)
-			return MEMORY_ALLOCATION_ERROR;
-		pool->refs = new_ptr;
+		tmp_err_code = memManagedReAllocate(&pool->refs, sizeof(struct ElementGrammarLabel)*(pool->refsCount + GRAMMAR_POOL_DIMENSION), pool->memNode);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 		pool->refsDimension += GRAMMAR_POOL_DIMENSION;
 	}
 

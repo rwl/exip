@@ -45,7 +45,7 @@
 
 errorCode initGrammarRule(GrammarRule* rule)
 {
-	rule->prodArray = (Production*) EXIP_MALLOC(sizeof(Production)*DEFAULT_PROD_ARRAY_DIM);
+	rule->prodArray = (Production*) memManagedAllocatePtr(sizeof(Production)*DEFAULT_PROD_ARRAY_DIM, &rule->memNode);
 	if(rule->prodArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 	rule->prodCount = 0;
@@ -61,10 +61,10 @@ errorCode addProduction(GrammarRule* rule, EventCode eCode, EventType eType, uns
 {
 	if(rule->prodCount == rule->prodDimension) // The dynamic array prodArray needs to be resized
 	{
-		void* new_ptr = EXIP_REALLOC(rule->prodArray, sizeof(Production)*(rule->prodCount + DEFAULT_PROD_ARRAY_DIM));
-		if(new_ptr == NULL)
-			return MEMORY_ALLOCATION_ERROR;
-		rule->prodArray = new_ptr;
+		errorCode tmp_err_code = UNEXPECTED_ERROR;
+		tmp_err_code = memManagedReAllocate(&rule->prodArray, sizeof(Production)*(rule->prodCount + DEFAULT_PROD_ARRAY_DIM), rule->memNode);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 		rule->prodDimension = rule->prodDimension + DEFAULT_PROD_ARRAY_DIM;
 	}
 	rule->prodArray[rule->prodCount].code = eCode;
@@ -79,10 +79,10 @@ errorCode insertZeroProduction(GrammarRule* rule, EventType eType, unsigned int 
 {
 	if(rule->prodCount == rule->prodDimension) // The dynamic array prodArray needs to be resized
 	{
-		void* new_ptr = EXIP_REALLOC(rule->prodArray, sizeof(Production)*(rule->prodCount + DEFAULT_PROD_ARRAY_DIM));
-		if(new_ptr == NULL)
-			return MEMORY_ALLOCATION_ERROR;
-		rule->prodArray = new_ptr;
+		errorCode tmp_err_code = UNEXPECTED_ERROR;
+		tmp_err_code = memManagedReAllocate(&rule->prodArray, sizeof(Production)*(rule->prodCount + DEFAULT_PROD_ARRAY_DIM), rule->memNode);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 		rule->prodDimension = rule->prodDimension + DEFAULT_PROD_ARRAY_DIM;
 	}
 	unsigned int i = 0;

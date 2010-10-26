@@ -65,9 +65,18 @@ CONTENT_IO = contentIO
 CFLAGS = -I$(COMMON)/include
 CFLAGS += -I$(GRAMMAR)/include
 CFLAGS += -I$(STRING_TABLES)/include
+CFLAGS += -I$(CONTENT_IO)/include
+
+CFLAGS += -g # Debugging 
 
 # Gets the first goal set on the command line - it is used if the next goal is check. Defines which module to test
 TARGET = $(word 1,$(MAKECMDGOALS))
+
+# List of all example binary names
+EXAMPLE_1 = exipd
+
+# Examples directory
+EXAMPLES_DIR = examples
 
 all: lib
 
@@ -83,7 +92,7 @@ include $(GRAMMAR)/module.mk
 
 OBJECT_ALL = $(COMMON_OBJ) $(STREAM_IO_OBJ) $(STRING_TABLES_OBJ) $(GRAMMAR_OBJ) $(CONTENT_IO_OBJ)
 
-.PHONY : clean all lib check common streamIO stringTables
+.PHONY : clean all lib check common streamIO stringTables examples exipd
 
 lib: exip.a
 
@@ -102,6 +111,11 @@ contentIO: common streamIO $(CONTENT_IO)/lib$(CONTENT_IO).a
 		
 check: $(TARGET)/test
 		$(TARGET)/test
+		
+$(EXAMPLE_1): $(EXAMPLES_DIR)/simpleDecoding/decodeTestEXI.c exip.a
+		$(CC) $(CFLAGS) $(EXAMPLES_DIR)/simpleDecoding/decodeTestEXI.c exip.a -o $(EXAMPLES_DIR)/$(EXAMPLE_1)
+
+examples: lib $(EXAMPLE_1)
 	
 clean:
 		rm -f *.o *.a test
@@ -110,3 +124,4 @@ clean:
 		rm -f $(STRING_TABLES)/*.o $(STRING_TABLES)/*.a $(STRING_TABLES)/test
 		rm -f $(GRAMMAR)/*.o $(GRAMMAR)/*.a $(GRAMMAR)/test
 		rm -f $(CONTENT_IO)/*.o $(CONTENT_IO)/*.a $(CONTENT_IO)/test
+		rm -f $(EXAMPLES_DIR)/*.o $(EXAMPLES_DIR)/*.a $(EXAMPLES_DIR)/$(EXAMPLE_1)

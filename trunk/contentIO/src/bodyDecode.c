@@ -59,6 +59,7 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 		{
 			handler->fatalError(tmp_err_code, "Cannot create BuildInDocGrammar");
 		}
+		freeAllMem();
 		return;
 	}
 
@@ -69,6 +70,7 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 		{
 			handler->fatalError(tmp_err_code, "Cannot create InitialStringTables");
 		}
+		freeAllMem();
 		return;
 	}
 
@@ -80,6 +82,7 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 		{
 			handler->fatalError(tmp_err_code, "Cannot create ElementGrammarPool");
 		}
+		freeAllMem();
 		return;
 	}
 
@@ -96,11 +99,12 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 			{
 				handler->fatalError(tmp_err_code, "Error processing next production");
 			}
+			freeAllMem();
 			return;
 		}
 		if(tmpNonTermID == GR_VOID_NON_TERMINAL)
 		{
-			struct EXIGrammar* grammar; // TODO: check when the memory should be freed
+			struct EXIGrammar* grammar;
 			tmp_err_code = popGrammar(&gStack, &grammar);
 			if(tmp_err_code != ERR_OK)
 			{
@@ -108,6 +112,7 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 				{
 					handler->fatalError(tmp_err_code, "popGrammar failed");
 				}
+				freeAllMem();
 				return;
 			}
 			if(gStack == NULL) // There is no more grammars in the stack
@@ -125,4 +130,5 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 		}
 		tmpNonTermID = GR_VOID_NON_TERMINAL;
 	}
+	freeAllMem();
 }
