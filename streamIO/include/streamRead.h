@@ -56,7 +56,6 @@
  */
 errorCode readNextBit(EXIStream* strm, unsigned char* bit_val);
 
-//TODO: consider using long for bits_val
 /**
  * @brief Read the next n bits and return the result as an integer. Moves the stream current bit pointer
  * with the number of bits read

@@ -78,6 +78,9 @@ typedef char errorCode;
 /** No error, everything OK. */
 #define ERR_OK    0
 
+/** Buffer end reached  */
+#define BUFFER_END_REACHED 4
+
 /** Stream value bigger than a processor type boundary */
 #define BIGGER_TYPE_REQUIRED 3
 

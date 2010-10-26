@@ -65,4 +65,5 @@ void initContentHandler(ContentHandler* handler)
 	handler->startElement = NULL;
 	handler->stringData = NULL;
 	handler->warning = NULL;
+	handler->exiHeader = NULL;
 }

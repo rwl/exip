@@ -33,98 +33,74 @@
 \===================================================================================*/
 
 /**
- * @file EXISerializer.c
- * @brief Implementation of serializer of EXI streams
+ * @file streamEncode.c
+ * @brief Implements an interface to a higher-level EXI stream encoder - encode basic EXI types
  *
- * @date Sep 30, 2010
+ * @date Oct 26, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#include "EXISerializer.h"
+#include "../include/streamEncode.h"
+#include "../include/streamWrite.h"
 
-errorCode startDocumentSer(EXIStream* strm)
+errorCode encodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, uint32_t int_val)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode endDocumentSer(EXIStream* strm)
+errorCode encodeBoolean(EXIStream* strm, unsigned char bool_val)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode startElementSer(EXIStream* strm, QName qname)
+errorCode encodeUnsignedInteger(EXIStream* strm, uint32_t int_val)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode endElementSer(EXIStream* strm)
+errorCode encodeBigUnsignedInteger(EXIStream* strm, BigUnsignedInt int_val)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode attributeSer(EXIStream* strm, QName qname)
+errorCode encodeString(EXIStream* strm, const StringType* string_val)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode intDataSer(EXIStream* strm, int32_t int_val)
+errorCode encodeBinary(EXIStream* strm, char* binary_val, uint32_t nbytes)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode bigIntDataSer(EXIStream* strm, const BigSignedInt int_val)
+errorCode encodeIntegerValue(EXIStream* strm, int32_t sint_val)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode booleanDataSer(EXIStream* strm, unsigned char bool_val)
+errorCode decodeBigIntegerValue(EXIStream* strm, BigSignedInt sint_val)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode stringDataSer(EXIStream* strm, const StringType str_val)
+errorCode encodeDecimalValue(EXIStream* strm, decimal dec_val)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode floatDataSer(EXIStream* strm, double float_val)
+errorCode decodeBigDecimalValue(EXIStream* strm, bigDecimal dec_val)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode bigFloatDataSer(EXIStream* strm, BigFloat float_val)
+errorCode encodeFloatValue(EXIStream* strm, double double_val)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode binaryDataSer(EXIStream* strm, const char* binary_val, uint32_t nbytes)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
-errorCode dateTimeDataSer(EXIStream* strm, struct tm dt_val, uint16_t presenceMask)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
-errorCode decimalDataSer(EXIStream* strm, decimal dec_val)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
-errorCode bigDecimalDataSer(EXIStream* strm, bigDecimal dec_val)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
-errorCode processingInstructionSer(EXIStream* strm)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
-errorCode selfContainedSer(EXIStream* strm)
+errorCode encodeBigFloatValue(EXIStream* strm, BigFloat double_val)
 {
 	return NOT_IMPLEMENTED_YET;
 }

@@ -79,6 +79,7 @@ struct ContentHandler
 	void (*fatalError)(const char code, const char* msg);
 
 	// EXI specific
+	void (*exiHeader)(const EXIheader* header);
 	void (*selfContained)();  // Used for indexing independent elements for random access
 };
 
