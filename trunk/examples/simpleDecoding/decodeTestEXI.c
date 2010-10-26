@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
 			fclose(infile);
 
 			// Parse the EXI stream
-			parseEXI(buffer, &sampleHandler);
+			parseEXI(buffer, fileLen, &sampleHandler);
 
 			free(buffer);
 		}

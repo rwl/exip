@@ -33,98 +33,28 @@
 \===================================================================================*/
 
 /**
- * @file EXISerializer.c
- * @brief Implementation of serializer of EXI streams
+ * @file ioUtil.h
+ * @brief Common utilities for StreamIO module
  *
- * @date Sep 30, 2010
+ * @date Oct 26, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#include "EXISerializer.h"
+#ifndef IOUTIL_H_
+#define IOUTIL_H_
 
-errorCode startDocumentSer(EXIStream* strm)
-{
-	return NOT_IMPLEMENTED_YET;
-}
+#include "procTypes.h"
+#include "errorHandle.h"
 
-errorCode endDocumentSer(EXIStream* strm)
-{
-	return NOT_IMPLEMENTED_YET;
-}
+/**
+ * @brief Moves the BitPointer with certain positions. Takes care of byteIndex increasing when
+ *        the movement cross a byte boundary
+ * @param[in] strm EXI stream of bits
+ * @param[in] bitPositions the number of bit positions to move the pointer
+ * @return Error handling code
+ */
+errorCode moveBitPointer(EXIStream* strm, unsigned int bitPositions);
 
-errorCode startElementSer(EXIStream* strm, QName qname)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
-errorCode endElementSer(EXIStream* strm)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
-errorCode attributeSer(EXIStream* strm, QName qname)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
-errorCode intDataSer(EXIStream* strm, int32_t int_val)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
-errorCode bigIntDataSer(EXIStream* strm, const BigSignedInt int_val)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
-errorCode booleanDataSer(EXIStream* strm, unsigned char bool_val)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
-errorCode stringDataSer(EXIStream* strm, const StringType str_val)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
-errorCode floatDataSer(EXIStream* strm, double float_val)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
-errorCode bigFloatDataSer(EXIStream* strm, BigFloat float_val)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
-errorCode binaryDataSer(EXIStream* strm, const char* binary_val, uint32_t nbytes)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
-errorCode dateTimeDataSer(EXIStream* strm, struct tm dt_val, uint16_t presenceMask)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
-errorCode decimalDataSer(EXIStream* strm, decimal dec_val)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
-errorCode bigDecimalDataSer(EXIStream* strm, bigDecimal dec_val)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
-errorCode processingInstructionSer(EXIStream* strm)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
-errorCode selfContainedSer(EXIStream* strm)
-{
-	return NOT_IMPLEMENTED_YET;
-}
+#endif /* IOUTIL_H_ */

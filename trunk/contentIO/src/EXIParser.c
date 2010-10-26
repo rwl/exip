@@ -47,13 +47,14 @@
 #include "errorHandle.h"
 #include "../include/bodyDecode.h"
 
-void parseEXI(char* binaryStream, ContentHandler* handler)
+void parseEXI(char* binaryStream, uint32_t bufLen, ContentHandler* handler)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIStream strm;
 	strm.buffer = binaryStream;
 	strm.bitPointer = 0;
 	strm.bufferIndx = 0;
+	strm.bufLen = bufLen;
 	struct EXIOptions options;
 	strm.opts = &options;
 
@@ -66,6 +67,8 @@ void parseEXI(char* binaryStream, ContentHandler* handler)
 		freeAllMem();
 		return;
 	}
+	if(handler->exiHeader != NULL)
+		handler->exiHeader(&header);
 
 	decodeBody(&strm, handler);
 }

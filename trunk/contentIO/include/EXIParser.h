@@ -53,6 +53,6 @@
  * @param[in] binaryStream the binary representation of EXI stream
  * @param[in] handler collection of callback functions for parsing events
  */
-void parseEXI(char* binaryStream, ContentHandler* handler);
+void parseEXI(char* binaryStream, uint32_t bufLen, ContentHandler* handler);
 
 #endif /* EXIPARSER_H_ */

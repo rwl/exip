@@ -43,15 +43,7 @@
  */
 
 #include "../include/streamRead.h"
-
-/**
- * @brief Moves the BitPointer with certain positions. Takes care of byteIndex increasing when
- *        the movement cross a byte boundary
- * @param[in] strm EXI stream of bits
- * @param[in] bitPositions the number of bit positions to move the pointer
- * @return Error handling code
- */
-static errorCode moveBitPointer(EXIStream* strm, int bitPositions);
+#include "../include/ioUtil.h"
 
 const unsigned char BIT_MASK[] = {(char) 0b00000000,
 								  (char) 0b00000001,
@@ -62,28 +54,6 @@ const unsigned char BIT_MASK[] = {(char) 0b00000000,
 								  (char) 0b00111111,
 								  (char) 0b01111111,
 								  (char) 0b11111111};
-
-static errorCode moveBitPointer(EXIStream* strm, int bitPositions)
-{
-	//TODO: Handle error cases i.e. end of the stream and so on
-	strm->bufferIndx = strm->bufferIndx + bitPositions/8;
-	int nbits = 0;
-	if(bitPositions < 8)
-		nbits = bitPositions;
-	else
-		nbits = bitPositions % 8;
-	if(nbits < 8 - strm->bitPointer) // The remaining (0-7) bit positions can be moved within the current byte
-	{
-		strm->bitPointer += nbits;
-	}
-	else
-	{
-		strm->bufferIndx += 1;
-		strm->bitPointer = nbits - (8 - strm->bitPointer);
-	}
-	return ERR_OK;
-}
-
 
 errorCode readNextBit(EXIStream* strm, unsigned char* bit_val)
 {

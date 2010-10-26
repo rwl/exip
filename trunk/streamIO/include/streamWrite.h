@@ -56,15 +56,13 @@
  */
 errorCode writeNextBit(EXIStream* strm, unsigned char bit_val);
 
-//TODO: consider using long for bits_val
 /**
  * @brief Writes and unsigned integer value to an EXI stream with the least possible bits
  * and moves the stream current bit pointer to the last bit written. The number of bits
  * written is saved in the second parameter - n
  * @param[out] strm EXI stream of bits
- * @param[out] n The number of bits in the range [1,32].
  * @param[in] bits_val resulting bits value
  */
-errorCode writeBits(EXIStream* strm, unsigned char* n, uint32_t bits_val);
+errorCode writeBits(EXIStream* strm, uint32_t bits_val);
 
 #endif /* STREAMWRITE_H_ */

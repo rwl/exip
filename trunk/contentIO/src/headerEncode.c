@@ -46,5 +46,6 @@
 
 errorCode encodeHeader(EXIStream* strm, EXIheader* header)
 {
-	return NOT_IMPLEMENTED_YET;
+	DEBUG_MSG(INFO,(">Start EXI header encoding\n"));
+	return ERR_OK;
 }

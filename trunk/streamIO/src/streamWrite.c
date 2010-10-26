@@ -43,13 +43,35 @@
  */
 
 #include "../include/streamWrite.h"
+#include "../include/ioUtil.h"
 
 errorCode writeNextBit(EXIStream* strm, unsigned char bit_val)
 {
-	return NOT_IMPLEMENTED_YET;
+	if(bit_val == 0)
+		strm->buffer[strm->bufferIndx] & (~(1<<REVERSE_BIT_POSITION(strm->bitPointer)));
+	else
+		strm->buffer[strm->bufferIndx] | (1<<REVERSE_BIT_POSITION(strm->bitPointer));
+
+	moveBitPointer(strm, 1);
+
+	return ERR_OK;
 }
 
-errorCode writeBits(EXIStream* strm, unsigned char* n, unsigned int bits_val)
+errorCode writeBits(EXIStream* strm, uint32_t bits_val)
 {
-	return NOT_IMPLEMENTED_YET;
+	//TODO: Handle error cases i.e. end of the stream and so on
+	//TODO: provide more efficient implementation!
+	unsigned char nbits = getBitsNumber(bits_val);
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	unsigned char bval = 0;
+
+	for(; nbits > 0; nbits--)
+	{
+		bval = (bits_val & 1ul<<nbits) != 0;
+		tmp_err_code = writeNextBit(strm, bval);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+
+	return ERR_OK;
 }

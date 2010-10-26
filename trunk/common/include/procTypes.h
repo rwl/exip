@@ -296,6 +296,11 @@ struct EXIStream
 	char* buffer;
 
 	/**
+	 * The size of the buffer
+	 */
+	uint32_t bufLen;
+
+	/**
 	 * Current position in the buffer - bytewise
 	 */
 	uint32_t bufferIndx;
