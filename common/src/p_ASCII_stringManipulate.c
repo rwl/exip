@@ -95,7 +95,7 @@ errorCode asciiToString(char* inStr, StringType* outStr)
 	return ERR_OK;
 }
 
-char str_equal(StringType str1, StringType str2)
+char str_equal(const StringType str1, const StringType str2)
 {
 	if(str1.length != str2.length)
 		return 0;
@@ -121,7 +121,15 @@ char str_equal(StringType str1, StringType str2)
 	}
 }
 
-void printString(StringType* inStr)
+errorCode getUCSCodePoint(const StringType* str, uint32_t charIndex, uint32_t* UCScp)
+{
+	if(str->length <= charIndex)
+		return OUT_OF_BOUND_BUFFER;
+	*UCScp = (unsigned int) str->str[charIndex];
+	return ERR_OK;
+}
+
+void printString(const StringType* inStr)
 {
 	if(inStr->length == 0)
 		return;

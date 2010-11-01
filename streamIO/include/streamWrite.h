@@ -57,12 +57,20 @@
 errorCode writeNextBit(EXIStream* strm, unsigned char bit_val);
 
 /**
- * @brief Writes and unsigned integer value to an EXI stream with the least possible bits
- * and moves the stream current bit pointer to the last bit written. The number of bits
- * written is saved in the second parameter - n
+ * @brief Writes an unsigned integer value to an EXI stream with the least possible bits
+ * and moves the stream current bit pointer to the last bit written.
  * @param[out] strm EXI stream of bits
  * @param[in] bits_val resulting bits value
  */
 errorCode writeBits(EXIStream* strm, uint32_t bits_val);
+
+/**
+ * @brief Writes an unsigned integer value to an EXI stream with nbits (possible 0 paddings)
+ * and moves the stream current bit pointer to the last bit written.
+ * @param[out] strm EXI stream of bits
+ * @param[in] nbits number of bits
+ * @param[in] bits_val resulting bits value
+ */
+errorCode writeNBits(EXIStream* strm, unsigned char nbits, uint32_t bits_val);
 
 #endif /* STREAMWRITE_H_ */

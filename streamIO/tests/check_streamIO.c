@@ -129,6 +129,139 @@ END_TEST
 
 /* END: streamRead tests */
 
+/* BEGIN: streamWrite tests */
+
+START_TEST (test_writeNextBit)
+{
+  EXIStream testStream;
+  testStream.bitPointer = 0;
+
+  char buf[2];
+  buf[0] = (char) 0b00000001;
+  buf[1] = (char) 0b00000000;
+  testStream.buffer = buf;
+
+  testStream.bufferIndx = 0;
+  unsigned char bit_val = 0;
+  errorCode err = UNEXPECTED_ERROR;
+
+  err = writeNextBit(&testStream, 1);
+
+  int test = (buf[0] & 0b10000000) != 0;
+
+  fail_unless (test == 1,
+	       "The bit 1 was written as 0");
+  fail_unless (err == ERR_OK,
+	       "writeNextBit returns error code %d", err);
+  fail_unless (testStream.bitPointer == 1,
+    	       "The writeNextBit function did not move the bit Pointer of the stream correctly");
+
+  // Set the bit pointer to the first byte boundary
+  testStream.bitPointer = 7;
+
+  err = writeNextBit(&testStream, 0);
+
+  test = (buf[0] & 0b00000001) != 0;
+
+  fail_unless (test == 0,
+  	       "The bit 0 was written as 1");
+  fail_unless (err == ERR_OK,
+  	       "writeNextBit returns error code %d", err);
+  fail_unless (testStream.bitPointer == 0 && testStream.bufferIndx == 1,
+   	       "The writeNextBit function did not move the bit Pointer of the stream correctly");
+
+}
+END_TEST
+
+START_TEST (test_writeBits)
+{
+  EXIStream testStream;
+  testStream.bitPointer = 0;
+
+  char buf[2];
+  buf[0] = (char) 0b00000000;
+  buf[1] = (char) 0b11100000;
+  testStream.buffer = buf;
+
+  testStream.bufferIndx = 0;
+  unsigned int bits_val = 0;
+  errorCode err = UNEXPECTED_ERROR;
+
+  err = writeBits(&testStream, 19);
+
+  int test = (buf[0] & 0b11111000) >> 3;
+
+  fail_unless (test == 19,
+	       "The number 19 was written as %d", test);
+  fail_unless (err == ERR_OK,
+	       "writeBits returns error code %d", err);
+  fail_unless (testStream.bitPointer == 5,
+  	       "The writeBits function did not move the bit Pointer of the stream correctly");
+
+  // Set the bit pointer to the first byte boundary
+  testStream.bitPointer = 7;
+
+  err = writeBits(&testStream, 9);
+
+  test = (buf[0] & 0b00000001) != 0;
+
+  int test1 = (buf[1] & 0b11100000) >> 5;
+
+  fail_unless (test == 1 && test1 == 1,
+		      "writeBits function doesn't write correctly");
+  fail_unless (err == ERR_OK,
+    	       "writeBits returns error code %d", err);
+  fail_unless (testStream.bitPointer == 3 && testStream.bufferIndx == 1,
+     	       "The writeBits function did not move the bit Pointer of the stream correctly");
+
+}
+END_TEST
+
+START_TEST (test_writeNBits)
+{
+  EXIStream testStream;
+  testStream.bitPointer = 0;
+
+  char buf[2];
+  buf[0] = (char) 0b10100000;
+  buf[1] = (char) 0b11100000;
+  testStream.buffer = buf;
+
+  testStream.bufferIndx = 0;
+  unsigned int bits_val = 0;
+  errorCode err = UNEXPECTED_ERROR;
+
+  err = writeNBits(&testStream, 7, 19);
+
+  int test = ((unsigned int) buf[0]) >> 1;
+
+  fail_unless (test == 19,
+	       "The number 19 was written as %d", test);
+  fail_unless (err == ERR_OK,
+	       "writeNBits returns error code %d", err);
+  fail_unless (testStream.bitPointer == 7,
+  	       "The writeNBits function did not move the bit Pointer of the stream correctly");
+
+  // Set the bit pointer to the first byte boundary
+  testStream.bitPointer = 7;
+
+  err = writeNBits(&testStream, 5, 9);
+
+  test = (buf[0] & 0b00000001) != 0;
+
+  int test1 = (buf[1] & 0b11110000) >> 4;
+
+  fail_unless (test == 0 && test1 == 9,
+		      "writeNBits function doesn't write correctly");
+  fail_unless (err == ERR_OK,
+    	       "writeNBits returns error code %d", err);
+  fail_unless (testStream.bitPointer == 4 && testStream.bufferIndx == 1,
+     	       "The writeNBits function did not move the bit Pointer of the stream correctly");
+
+}
+END_TEST
+
+/* END: streamWrite tests */
 
 /* BEGIN: streamDecode tests */
 
@@ -427,6 +560,181 @@ END_TEST
 
 /* END: streamDecode tests */
 
+/* BEGIN: streamEncode tests */
+
+START_TEST (test_encodeNBitUnsignedInteger)
+{
+  EXIStream testStream;
+  testStream.bitPointer = 0;
+  struct EXIOptions options;
+  makeDefaultOpts(&options);
+  testStream.opts = &options;
+
+  unsigned char buf[2];
+  buf[0] = (unsigned char) 0b11001110;
+  buf[1] = (unsigned char) 0b11100000;
+  testStream.buffer = buf;
+
+  testStream.bufferIndx = 0;
+  unsigned int bit_val = 0;
+  errorCode err = UNEXPECTED_ERROR;
+
+  err = encodeNBitUnsignedInteger(&testStream, 412);
+
+  unsigned int test = buf[0] | 0;
+  unsigned int test2 = (unsigned int) buf[1] >> 7;
+
+  fail_unless (err == ERR_OK,
+  	       "encodeNBitUnsignedInteger returns error code %d", err);
+  fail_unless (test == 206 && test2 == 0,
+	       "encodeNBitUnsignedInteger does not encode correctly");
+  fail_unless (testStream.bitPointer == 1 && testStream.bufferIndx == 1,
+    	       "The encodeNBitUnsignedInteger function did not move the bit Pointer of the stream correctly");
+
+  // TODO: write more extensive tests: in particular handle the situation of non-bit-packed streams
+
+}
+END_TEST
+
+START_TEST (test_encodeBoolean)
+{
+  EXIStream testStream;
+  testStream.bitPointer = 0;
+  struct EXIOptions options;
+  makeDefaultOpts(&options);
+  testStream.opts = &options;
+
+  unsigned char buf[2];
+  buf[0] = (unsigned char) 0b01010100;
+  buf[1] = (unsigned char) 0b01100000;
+  testStream.buffer = buf;
+
+  testStream.bufferIndx = 0;
+  errorCode err = UNEXPECTED_ERROR;
+
+  err = encodeBoolean(&testStream, 1);
+
+  unsigned int bit_val = 0;
+  bit_val = buf[0] >> 7;
+
+  fail_unless (err == ERR_OK,
+	       "encodeBoolean returns error code %d", err);
+  fail_unless (bit_val == 1,
+	       "encodeBoolean does not write correctly");
+  fail_unless (testStream.bitPointer == 1,
+    	       "The encodeBoolean function did not move the bit Pointer of the stream correctly");
+
+  err = encodeBoolean(&testStream, 0);
+
+  bit_val = buf[0] >> 6;
+
+  fail_unless (err == ERR_OK,
+	   "encodeBoolean returns error code %d", err);
+  fail_unless (bit_val == 2,
+	   "encodeBoolean does not write correctly");
+  fail_unless (testStream.bitPointer == 2,
+		   "The encodeBoolean function did not move the bit Pointer of the stream correctly");
+}
+END_TEST
+
+START_TEST (test_encodeUnsignedInteger)
+{
+  EXIStream testStream;
+  testStream.bitPointer = 0;
+  struct EXIOptions options;
+  makeDefaultOpts(&options);
+  testStream.opts = &options;
+
+  unsigned char buf[3];
+  buf[0] = (unsigned char) 0b11010100;
+  buf[1] = (unsigned char) 0b00000000;
+  buf[2] = (unsigned char) 0b00000000;
+  testStream.buffer = buf;
+  testStream.bufLen = 3;
+  testStream.bufferIndx = 0;
+  errorCode err = UNEXPECTED_ERROR;
+
+  err = encodeUnsignedInteger(&testStream, 421);
+
+  unsigned int test1 = (unsigned int) buf[0];
+  unsigned int test2 = (unsigned int) buf[1];
+
+  fail_unless (err == ERR_OK,
+		   "encodeUnsignedInteger returns error code %d", err);
+  fail_unless (test1 == 165 && test2 == 3,
+	       "The encodeUnsignedInteger function doesn't work correctly");
+
+  fail_unless (testStream.bitPointer == 0,
+    	       "The encodeUnsignedInteger function did not move the bit Pointer of the stream correctly");
+  fail_unless (testStream.bufferIndx == 2,
+      	       "The encodeUnsignedInteger function did not move the byte Pointer of the stream correctly");
+
+  // TODO: write more extensive tests
+
+}
+END_TEST
+
+
+START_TEST (test_encodeString)
+{
+  EXIStream testStream;
+  testStream.bitPointer = 0;
+  struct EXIOptions options;
+  makeDefaultOpts(&options);
+  testStream.opts = &options;
+
+  unsigned char buf[50];
+  buf[0] = (unsigned char) 0b00000010;
+  buf[1] = (unsigned char) 0b01100101;
+  buf[2] = (unsigned char) 0b01010100;
+  buf[3] = (unsigned char) 0b01010010;
+  testStream.buffer = buf;
+  testStream.bufLen = 50;
+  testStream.bufferIndx = 0;
+  StringType testStr;
+  asciiToString("TEST encodeString()", &testStr);
+  errorCode err = UNEXPECTED_ERROR;
+
+  err = encodeString(&testStream, &testStr);
+
+  unsigned int str_len = buf[0];
+
+  fail_unless (err == ERR_OK,
+	       "encodeString returns error code %d", err);
+  fail_unless (str_len == 19,
+	       "The String length is not encoded correctly");
+  fail_unless (buf[1] == 'T' && buf[2] == 'E',
+  	       "encodeString doesn't encode correctly");
+  fail_unless (testStream.bitPointer == 0,
+    	       "The encodeString function did not move the bit Pointer of the stream correctly");
+  fail_unless (testStream.bufferIndx == 20,
+      	       "The encodeString function did not move the byte Pointer of the stream correctly");
+
+  // TODO: write more extensive tests
+
+}
+END_TEST
+
+START_TEST (test_encodeBinary)
+{
+	fail("Not implemented yet");
+}
+END_TEST
+
+START_TEST (test_encodeFloatValue)
+{
+	fail("Not implemented yet");
+}
+END_TEST
+
+START_TEST (test_encodeIntegerValue)
+{
+	fail("Not implemented yet");
+}
+END_TEST
+
+/* END: streamEncode tests */
+
 Suite * streamIO_suite (void)
 {
   Suite *s = suite_create ("StreamIO");
@@ -436,6 +744,13 @@ Suite * streamIO_suite (void)
   tcase_add_test (tc_sRead, test_readNextBit);
   tcase_add_test (tc_sRead, test_readBits);
   suite_add_tcase (s, tc_sRead);
+
+  /* StreamWrite test case */
+  TCase *tc_sWrite = tcase_create ("StreamWrite");
+  tcase_add_test (tc_sWrite, test_writeNextBit);
+  tcase_add_test (tc_sWrite, test_writeBits);
+  tcase_add_test (tc_sWrite, test_writeNBits);
+  suite_add_tcase (s, tc_sWrite);
 
   /* StreamDecode test case */
   TCase *tc_sDecode = tcase_create ("StreamDecode");
@@ -447,6 +762,14 @@ Suite * streamIO_suite (void)
   tcase_add_test (tc_sDecode, test_decodeFloat);
   tcase_add_test (tc_sDecode, test_decodeIntegerValue);
   suite_add_tcase (s, tc_sDecode);
+
+  /* StreamEncode test case */
+  TCase *tc_sEncode = tcase_create ("StreamEncode");
+  tcase_add_test (tc_sEncode, test_encodeNBitUnsignedInteger);
+  tcase_add_test (tc_sDecode, test_encodeBoolean);
+  tcase_add_test (tc_sDecode, test_encodeUnsignedInteger);
+  tcase_add_test (tc_sDecode, test_encodeString);
+  suite_add_tcase (s, tc_sEncode);
 
   return s;
 }

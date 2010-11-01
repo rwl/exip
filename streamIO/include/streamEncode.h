@@ -50,13 +50,12 @@
 
 /**
  * @brief Encode EXI n-bit Unsigned Integer
- * Decodes and returns an n-bit unsigned integer.
+ *
  * @param[in, out] strm EXI stream of bits
- * @param[in] n The number of bits in the range [1,32].
  * @param[in] int_val n-bit unsigned integer value
  * @return Error handling code
  */
-errorCode encodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, uint32_t int_val);
+errorCode encodeNBitUnsignedInteger(EXIStream* strm, uint32_t int_val);
 
 /**
  * @brief Encode EXI Boolean
@@ -138,7 +137,7 @@ errorCode encodeIntegerValue(EXIStream* strm, int32_t sint_val);
  * @param[in] sint_val signed integer value to be encoded
  * @return Error handling code.
  */
-errorCode decodeBigIntegerValue(EXIStream* strm, BigSignedInt sint_val);
+errorCode encodeBigIntegerValue(EXIStream* strm, BigSignedInt sint_val);
 
 /**
  * @brief Encode EXI Decimal type
@@ -170,7 +169,7 @@ errorCode encodeDecimalValue(EXIStream* strm, decimal dec_val);
  * @param[in] dec_val decimal value to be encoded
  * @return Error handling code.
  */
-errorCode decodeBigDecimalValue(EXIStream* strm, bigDecimal dec_val);
+errorCode encodeBigDecimalValue(EXIStream* strm, bigDecimal dec_val);
 
 
 /**
