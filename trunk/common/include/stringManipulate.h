@@ -108,12 +108,21 @@ errorCode asciiToString(char* inStr, StringType* outStr);
 /**
  * @brief Tests if two strings are equal
  * Note! The implementation of this function is platform-specific.
- * @param[str1] inStr ASCII stream
- * @param[str2] outStr resulted string
+ * @param[in] str1 string to compare
+ * @param[in] str2 string to compare
  * @return 1 if the strings are equal, 0 - otherwise
  */
-char str_equal(StringType str1, StringType str2);
+char str_equal(const StringType str1, const StringType str2);
 
+/**
+ * @brief Returns the UCS [ISO/IEC 10646] code point at particular index from a String
+ * Note! The implementation of this function is platform-specific.
+ * @param[in] str string
+ * @param[in] charIndex character index within the string
+ * @param[out] UCScp the returned UCS code point
+ * @return 1 if the strings are equal, 0 - otherwise
+ */
+errorCode getUCSCodePoint(const StringType* str, uint32_t charIndex, uint32_t* UCScp);
 
 //TODO: At first glance this function is only useful for debugging. If so consider
 //      removing it with the preprocessor macro EXIP_DEBUG
@@ -123,6 +132,6 @@ char str_equal(StringType str1, StringType str2);
  * Used for debugging purposes.
  * @param[in] inStr Input string to be printed
  */
-void printString(StringType* inStr);
+void printString(const StringType* inStr);
 
 #endif /* STRINGMANIPULATE_H_ */

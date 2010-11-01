@@ -61,9 +61,7 @@ errorCode readNextBit(EXIStream* strm, unsigned char* bit_val)
 	*bit_val = 0;
 	*bit_val = (strm->buffer[strm->bufferIndx] & (1<<REVERSE_BIT_POSITION(strm->bitPointer))) != 0;
 
-	moveBitPointer(strm, 1);
-
-	return ERR_OK;
+	return moveBitPointer(strm, 1);
 }
 
 errorCode readBits(EXIStream* strm, unsigned char n, uint32_t* bits_val)

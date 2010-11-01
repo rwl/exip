@@ -48,13 +48,11 @@
 errorCode writeNextBit(EXIStream* strm, unsigned char bit_val)
 {
 	if(bit_val == 0)
-		strm->buffer[strm->bufferIndx] & (~(1<<REVERSE_BIT_POSITION(strm->bitPointer)));
+		strm->buffer[strm->bufferIndx] = strm->buffer[strm->bufferIndx] & (~(1<<REVERSE_BIT_POSITION(strm->bitPointer)));
 	else
-		strm->buffer[strm->bufferIndx] | (1<<REVERSE_BIT_POSITION(strm->bitPointer));
+		strm->buffer[strm->bufferIndx] = strm->buffer[strm->bufferIndx] | (1<<REVERSE_BIT_POSITION(strm->bitPointer));
 
-	moveBitPointer(strm, 1);
-
-	return ERR_OK;
+	return moveBitPointer(strm, 1);
 }
 
 errorCode writeBits(EXIStream* strm, uint32_t bits_val)
@@ -64,14 +62,41 @@ errorCode writeBits(EXIStream* strm, uint32_t bits_val)
 	unsigned char nbits = getBitsNumber(bits_val);
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char bval = 0;
-
 	for(; nbits > 0; nbits--)
 	{
-		bval = (bits_val & 1ul<<nbits) != 0;
+		bval = (bits_val & (1ul<<(nbits-1))) != 0;
 		tmp_err_code = writeNextBit(strm, bval);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 
+	return ERR_OK;
+}
+
+errorCode writeNBits(EXIStream* strm, unsigned char nbits, uint32_t bits_val)
+{
+	//TODO: Handle error cases i.e. end of the stream and so on
+	//TODO: provide more efficient implementation!
+
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	unsigned char realNbits = getBitsNumber(bits_val);
+	if(realNbits > nbits)
+		return INCONSISTENT_PROC_STATE;
+
+	int i = 0;
+	for(; i < nbits - realNbits; i++)
+	{
+		tmp_err_code = writeNextBit(strm, 0);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	unsigned char bval = 0;
+	for(; realNbits > 0; realNbits--)
+	{
+		bval = (bits_val & (1ul<<(realNbits-1))) != 0;
+		tmp_err_code = writeNextBit(strm, bval);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
 	return ERR_OK;
 }
