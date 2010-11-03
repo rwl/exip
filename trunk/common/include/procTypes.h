@@ -285,6 +285,130 @@ struct QName {
 
 typedef struct QName QName;
 
+/********* START: Grammar Types ***************/
+/**
+ * This is moved from the grammar module because of the EXIStream grammar element added
+ */
+
+/****************************************
+ * Name           |   Notation   | Value
+ * -------------------------------------
+ * Start Document |      SD      |  0
+ * End Document   |      ED      |  1
+ * Start Element  |  SE( qname ) |  2
+ * Start Element  |  SE( uri:* ) |  3
+ * Start Element  |  SE( * )	 |  4
+ * End Element	  |      EE      |  5
+ * Attribute	  |  AT( qname ) |  6
+ * Attribute      |  AT( uri:* ) |  7
+ * Attribute      |  AT( * )     |  8
+ * Characters	  |      CH      |  9
+ * Nm-space Decl  |	     NS	     | 10
+ * Comment	      |      CM      | 11
+ * Proc. Instr.   |      PI      | 12
+ * DOCTYPE	      |      DT      | 13
+ * Entity Ref.    |      ER      | 14
+ * Self Contained |      SC      | 15
+ ****************************************/
+typedef unsigned char EventType;
+
+#define EVENT_SD       0
+#define EVENT_ED       1
+#define EVENT_SE_QNAME 2
+#define EVENT_SE_URI   3
+#define EVENT_SE_ALL   4
+#define EVENT_EE       5
+#define EVENT_AT_QNAME 6
+#define EVENT_AT_URI   7
+#define EVENT_AT_ALL   8
+#define EVENT_CH       9
+#define EVENT_NS      10
+#define EVENT_CM      11
+#define EVENT_PI      12
+#define EVENT_DT      13
+#define EVENT_ER      14
+#define EVENT_SC      15
+
+/** This is the type of the "value" content of EXI events.
+ *  It is used when schema is available.
+ * 0 - there is no value content for the event
+ * 1 - the type is String
+ * 2 - Integer
+ * 3 - Float
+ * 4 - Decimal
+ * 5 - Date-Time
+ * 6 - Boolean
+ * 7 - Binary
+ * */
+typedef unsigned char ValueType;
+
+#define VALUE_TYPE_NONE      0
+#define VALUE_TYPE_STRING    1
+#define VALUE_TYPE_INTEGER   2
+#define VALUE_TYPE_FLOAT     3
+#define VALUE_TYPE_DECIMAL   4
+#define VALUE_TYPE_DATE_TIME 5
+#define VALUE_TYPE_BOOLEAN   6
+#define VALUE_TYPE_BINARY    7
+
+struct EventCode
+{
+	unsigned int code[3];
+	unsigned char size; // The number of integers constituting the EventCode
+};
+
+typedef struct EventCode EventCode;
+
+struct Production
+{
+	EventCode code;
+	EventType eType;
+	unsigned int nonTermID; // unique identifier of right-hand side Non-terminal
+
+	/**
+	 * For SE(qname), SE(uri:*), AT(qname) and AT(uri:*). Points to the qname or its local name
+	 * of the element/attribute
+	 */
+	unsigned int uriRowID;
+	unsigned int lnRowID;
+};
+
+typedef struct Production Production;
+
+// Define Built-in Document Grammar non-terminals
+#define GR_VOID_NON_TERMINAL 0 // Used to indicate that the production does not have NON_TERMINAL
+#define GR_DOCUMENT          1
+#define GR_DOC_CONTENT       2
+#define GR_DOC_END           3
+#define GR_START_TAG_CONTENT 4
+#define GR_ELEMENT_CONTENT   5
+#define GR_FRAGMENT          6
+
+struct GrammarRule
+{
+	unsigned int nonTermID; // unique identifier of left-hand side Non-terminal
+	Production* prodArray; // Array of grammar productions included in that rule
+	unsigned int prodCount; // The number of productions in this Grammar Rule
+	unsigned int prodDimension; // The size of the productions' array /allocated space for Productions/
+	unsigned char bits[3]; // The number of bits used for the integers constituting the EventCode
+	void* memNode; // Used by the memoryManager when there is reallocation
+};
+
+typedef struct GrammarRule GrammarRule;
+
+struct EXIGrammar
+{
+	GrammarRule* ruleArray; // Array of grammar rules which constitute that grammar
+	unsigned int rulesDimension; // The size of the array
+	struct EXIGrammar* nextInStack;
+	unsigned int lastNonTermID; // Stores the last NonTermID before another grammar is added on top of the stack
+};
+
+typedef struct EXIGrammar EXIGrammarStack; // Used to differentiate between single grammar (nextInStack == NULL) and stack of grammars
+
+/*********** END: Grammar Types ***************/
+
+
 /**
  * Represents an EXI stream
  */
@@ -326,6 +450,21 @@ struct EXIStream
 	 * The URI string table
 	 */
 	URITable* uriTable;
+
+	/**
+	 * The grammar stack used during processing
+	 */
+	EXIGrammarStack* gStack;
+
+	/**
+	 * The grammar pool of Element Grammars used during processing
+	 */
+	struct ElementGrammarPool* gPool;
+
+	/**
+	 * Current (Left-hand side) Non terminal ID (Define the context/processor state)
+	 */
+	unsigned int nonTermID;
 };
 
 typedef struct EXIStream EXIStream;

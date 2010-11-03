@@ -42,6 +42,7 @@
  */
 
 #include "../include/grammarRules.h"
+#include "../include/eventsEXI.h"
 
 errorCode initGrammarRule(GrammarRule* rule)
 {
@@ -94,9 +95,8 @@ errorCode insertZeroProduction(GrammarRule* rule, EventType eType, unsigned int 
 			maxCodePart = rule->prodArray[i].code.code[0];
 	}
 	rule->bits[0] = getBitsNumber(maxCodePart);
-	EventCode eCode = getEventCode1(0);
 
-	rule->prodArray[rule->prodCount].code = eCode;
+	rule->prodArray[rule->prodCount].code = getEventCode1(0);
 	rule->prodArray[rule->prodCount].eType = eType;
 	rule->prodArray[rule->prodCount].nonTermID = nonTermID;
 	rule->prodArray[rule->prodCount].lnRowID = lnRowID;

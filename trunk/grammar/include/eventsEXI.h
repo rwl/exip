@@ -44,76 +44,7 @@
 #define EVENTTYPESEXI_H_
 
 #include "errorHandle.h"
-
-#define EVENT_SD       0
-#define EVENT_ED       1
-#define EVENT_SE_QNAME 2
-#define EVENT_SE_URI   3
-#define EVENT_SE_ALL   4
-#define EVENT_EE       5
-#define EVENT_AT_QNAME 6
-#define EVENT_AT_URI   7
-#define EVENT_AT_ALL   8
-#define EVENT_CH       9
-#define EVENT_NS      10
-#define EVENT_CM      11
-#define EVENT_PI      12
-#define EVENT_DT      13
-#define EVENT_ER      14
-#define EVENT_SC      15
-
-
-/****************************************
- * Name           |   Notation   | Value
- * -------------------------------------
- * Start Document |      SD      |  0
- * End Document   |      ED      |  1
- * Start Element  |  SE( qname ) |  2
- * Start Element  |  SE( uri:* ) |  3
- * Start Element  |  SE( * )	 |  4
- * End Element	  |      EE      |  5
- * Attribute	  |  AT( qname ) |  6
- * Attribute      |  AT( uri:* ) |  7
- * Attribute      |  AT( * )     |  8
- * Characters	  |      CH      |  9
- * Nm-space Decl  |	     NS	     | 10
- * Comment	      |      CM      | 11
- * Proc. Instr.   |      PI      | 12
- * DOCTYPE	      |      DT      | 13
- * Entity Ref.    |      ER      | 14
- * Self Contained |      SC      | 15
- ****************************************/
-typedef unsigned char EventType;
-
-/** This is the type of the "value" content of EXI events.
- *  It is used when schema is available.
- * 0 - there is no value content for the event
- * 1 - the type is String
- * 2 - Integer
- * 3 - Float
- * 4 - Decimal
- * 5 - Date-Time
- * 6 - Boolean
- * 7 - Binary
- * */
-typedef unsigned char ValueType;
-
-#define VALUE_TYPE_NONE      0
-#define VALUE_TYPE_STRING    1
-#define VALUE_TYPE_INTEGER   2
-#define VALUE_TYPE_FLOAT     3
-#define VALUE_TYPE_DECIMAL   4
-#define VALUE_TYPE_DATE_TIME 5
-#define VALUE_TYPE_BOOLEAN   6
-#define VALUE_TYPE_BINARY    7
-
-struct EventCode
-{
-	unsigned int code[3];
-	unsigned char size; // The number of integers constituting the EventCode
-};
-
-typedef struct EventCode EventCode;
+#include "procTypes.h"
 
 /**
  * @brief Creates an EventCode instance giving its 3 integer parts

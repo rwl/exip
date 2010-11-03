@@ -44,50 +44,11 @@
 #ifndef GRAMMARRULES_H_
 #define GRAMMARRULES_H_
 
-#include "eventsEXI.h"
 #include "errorHandle.h"
 #include "procTypes.h"
 
 // Defines the initial dimension of the dynamic array - prodArray
 #define DEFAULT_PROD_ARRAY_DIM 10
-
-// Define Built-in Document Grammar non-terminals
-#define GR_VOID_NON_TERMINAL 0 // Used to indicate that the production does not have NON_TERMINAL
-#define GR_DOCUMENT          1
-#define GR_DOC_CONTENT       2
-#define GR_DOC_END           3
-#define GR_START_TAG_CONTENT 4
-#define GR_ELEMENT_CONTENT   5
-#define GR_FRAGMENT          6
-
-
-struct Production
-{
-	EventCode code;
-	EventType eType;
-	unsigned int nonTermID; // unique identifier of right-hand side Non-terminal
-
-	/**
-	 * For SE(qname), SE(uri:*), AT(qname) and AT(uri:*). Points to the qname or its local name
-	 * of the element/attribute
-	 */
-	unsigned int uriRowID;
-	unsigned int lnRowID;
-};
-
-typedef struct Production Production;
-
-struct GrammarRule
-{
-	unsigned int nonTermID; // unique identifier of left-hand side Non-terminal
-	Production* prodArray; // Array of grammar productions included in that rule
-	unsigned int prodCount; // The number of productions in this Grammar Rule
-	unsigned int prodDimension; // The size of the productions' array /allocated space for Productions/
-	unsigned char bits[3]; // The number of bits used for the integers constituting the EventCode
-	void* memNode; // Used by the memoryManager when there is reallocation
-};
-
-typedef struct GrammarRule GrammarRule;
 
 /**
  * @brief Initialize the dynamic array prodArray with the default size

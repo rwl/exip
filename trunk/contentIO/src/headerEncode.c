@@ -47,5 +47,59 @@
 errorCode encodeHeader(EXIStream* strm, EXIheader* header)
 {
 	DEBUG_MSG(INFO,(">Start EXI header encoding\n"));
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	if(header->has_cookie)
+	{
+		tmp_err_code = writeNBits(strm, 8, 36); // ASCII code for $ = 00100100  (36)
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		tmp_err_code = writeNBits(strm, 8, 69); // ASCII code for E = 01000101  (69)
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		tmp_err_code = writeNBits(strm, 8, 88); // ASCII code for X = 01011000  (88)
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		tmp_err_code = writeNBits(strm, 8, 73); // ASCII code for I = 01001001  (73)
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+
+	DEBUG_MSG(INFO,(">Encoding the header Distinguishing Bits\n"));
+	tmp_err_code = writeNBits(strm, 2, 2);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	DEBUG_MSG(INFO,(">Write the Presence Bit for EXI Options\n"));
+	tmp_err_code = writeNextBit(strm, header->has_options);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	DEBUG_MSG(INFO,(">Encode EXI version\n"));
+	tmp_err_code = writeNextBit(strm, header->is_preview_version);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	if(header->version_number > 15)
+	{
+		tmp_err_code = writeNBits(strm, 4, 15);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		tmp_err_code = writeNBits(strm, 4, header->version_number - 15 - 1);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else
+	{
+		tmp_err_code = writeNBits(strm, 4, header->version_number - 1);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+
+	DEBUG_MSG(INFO,(">Encode EXI options\n"));
+	if(header->has_options)
+	{
+		return NOT_IMPLEMENTED_YET; // TODO: Handle EXI streams with options. This includes Padding Bits in some cases
+	}
+
 	return ERR_OK;
 }

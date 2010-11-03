@@ -51,8 +51,8 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIGrammarStack docGr;
-	EXIGrammarStack* gStack = &docGr;
-	tmp_err_code = getBuildInDocGrammar(gStack, strm->opts);
+	strm->gStack = &docGr;
+	tmp_err_code = getBuildInDocGrammar(strm->gStack, strm->opts);
 	if(tmp_err_code != ERR_OK)
 	{
 		if(handler->fatalError != NULL)
@@ -75,7 +75,8 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 	}
 
 	struct ElementGrammarPool gPool;
-	tmp_err_code = createElementGrammarPool(&gPool);
+	strm->gPool = &gPool;
+	tmp_err_code = createElementGrammarPool(strm->gPool);
 	if(tmp_err_code != ERR_OK)
 	{
 		if(handler->fatalError != NULL)
@@ -86,13 +87,12 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 		return;
 	}
 
-	unsigned int currNonTermID = GR_DOCUMENT;
 	unsigned int tmpNonTermID = GR_VOID_NON_TERMINAL;
 	EventType eType;
 
-	while(currNonTermID != GR_VOID_NON_TERMINAL)  // Process grammar productions until gets to the end of the stream
+	while(strm->nonTermID != GR_VOID_NON_TERMINAL)  // Process grammar productions until gets to the end of the stream
 	{
-		tmp_err_code = processNextProduction(strm, &gStack, currNonTermID, &eType, &tmpNonTermID, handler, &gPool);
+		tmp_err_code = processNextProduction(strm, &eType, &tmpNonTermID, handler);
 		if(tmp_err_code != ERR_OK)
 		{
 			if(handler->fatalError != NULL)
@@ -105,7 +105,7 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 		if(tmpNonTermID == GR_VOID_NON_TERMINAL)
 		{
 			struct EXIGrammar* grammar;
-			tmp_err_code = popGrammar(&gStack, &grammar);
+			tmp_err_code = popGrammar(&(strm->gStack), &grammar);
 			if(tmp_err_code != ERR_OK)
 			{
 				if(handler->fatalError != NULL)
@@ -115,18 +115,18 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 				freeAllMem();
 				return;
 			}
-			if(gStack == NULL) // There is no more grammars in the stack
+			if(strm->gStack == NULL) // There is no more grammars in the stack
 			{
-				currNonTermID = GR_VOID_NON_TERMINAL; // The stream is parsed
+				strm->nonTermID = GR_VOID_NON_TERMINAL; // The stream is parsed
 			}
 			else
 			{
-				currNonTermID = gStack->lastNonTermID;
+				strm->nonTermID = strm->gStack->lastNonTermID;
 			}
 		}
 		else
 		{
-			currNonTermID = tmpNonTermID;
+			strm->nonTermID = tmpNonTermID;
 		}
 		tmpNonTermID = GR_VOID_NON_TERMINAL;
 	}

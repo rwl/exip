@@ -57,6 +57,7 @@ void parseEXI(char* binaryStream, uint32_t bufLen, ContentHandler* handler)
 	strm.bufLen = bufLen;
 	struct EXIOptions options;
 	strm.opts = &options;
+	strm.nonTermID = GR_DOCUMENT;
 
 	EXIheader header;
 	tmp_err_code = decodeHeader(&strm, &header);
