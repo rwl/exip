@@ -45,18 +45,10 @@
 #define GRAMMARS_H_
 
 #include "errorHandle.h"
-#include "eventsEXI.h"
 #include "grammarRules.h"
+#include "eventsEXI.h"
 #include "procTypes.h"
 #include "contentHandler.h"
-
-struct EXIGrammar
-{
-	GrammarRule* ruleArray; // Array of grammar rules which constitute that grammar
-	unsigned int rulesDimension; // The size of the array
-	struct EXIGrammar* nextInStack;
-	unsigned int lastNonTermID; // Stores the last NonTermID before another grammar is added on top of the stack
-};
 
 struct ElementGrammarLabel
 {
@@ -78,21 +70,17 @@ struct ElementGrammarPool
  * and then using lnRowID it should return the exact ref (element number of the array)
  */
 
-typedef struct EXIGrammar EXIGrammarStack; // Used to differentiate between single grammar (nextInStack == NULL) and stack of grammars
-
 /**
  * @brief Process the next grammar production in the Current Grammar
  * Returns the terminal symbol of the production i.e. the EXI Event Type;
  * @param[in] strm EXI stream of bits
- * @param[in, out] grStack Current Grammar stack
- * @param[in] nonTermID_in unique identifier of left-hand side Non-terminal
  * @param[out] eType the terminal part of the production
  * @param[out] nonTermID_out unique identifier of right-hand side Non-terminal
+ * @param[in] handler content handler callbacks
  * @return Error handling code
  */
-errorCode processNextProduction(EXIStream* strm, EXIGrammarStack** grStack, unsigned int nonTermID_in,
-								EventType* eType, unsigned int* nonTermID_out, ContentHandler* handler,
-								struct ElementGrammarPool* gPool);
+errorCode processNextProduction(EXIStream* strm, EventType* eType,
+							    unsigned int* nonTermID_out, ContentHandler* handler);
 
 /**
  * @brief Push a grammar on top of the Grammar Stack

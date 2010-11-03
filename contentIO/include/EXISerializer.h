@@ -48,6 +48,7 @@
 
 #include "errorHandle.h"
 #include "headerEncode.h"
+#include "procTypes.h"
 
 struct EXISerializer
 {
@@ -74,6 +75,7 @@ struct EXISerializer
 	errorCode (*processingInstructionSer)(EXIStream* strm); // TODO: define the parameters!
 
 	// EXI specific
+	errorCode (*initStream)(EXIStream* strm, unsigned int initialBufSize);
 	errorCode (*exiHeaderSer)(EXIStream* strm, EXIheader* header);
 	errorCode (*selfContainedSer)(EXIStream* strm);  // Used for indexing independent elements for random access
 };
@@ -103,6 +105,7 @@ errorCode bigDecimalDataSer(EXIStream* strm, bigDecimal dec_val);
 errorCode processingInstructionSer(EXIStream* strm); // TODO: define the parameters!
 
 // EXI specific
+errorCode initStream(EXIStream* strm, unsigned int initialBufSize);
 errorCode selfContainedSer(EXIStream* strm);  // Used for indexing independent elements for random access
 
 
@@ -125,6 +128,7 @@ EXISerializer serEXI = {startDocumentSer,
 						decimalDataSer,
 						bigDecimalDataSer,
 						processingInstructionSer,
+						initStream,
 						encodeHeader,
 						selfContainedSer};
 
