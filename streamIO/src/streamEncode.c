@@ -45,16 +45,15 @@
 #include "../include/streamEncode.h"
 #include "../include/streamWrite.h"
 
-errorCode encodeNBitUnsignedInteger(EXIStream* strm, uint32_t int_val)
+errorCode encodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, uint32_t int_val)
 {
 	if(strm->opts->compression == 0 && strm->opts->alignment == BIT_PACKED)
 	{
-		return writeBits(strm, int_val);
+		return writeNBits(strm, n, int_val);
 	}
 	else
 	{
-		int nbits = getBitsNumber(int_val);
-		int byte_number = nbits / 8 + (nbits % 8 != 0);
+		int byte_number = n / 8 + (n % 8 != 0);
 		int tmp_byte_buf = 0;
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
 		int i = 0;
@@ -114,6 +113,15 @@ errorCode encodeString(EXIStream* strm, const StringType* string_val)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
+	return encodeStringOnly(strm, string_val);
+}
+
+errorCode encodeStringOnly(EXIStream* strm, const StringType* string_val)
+{
+	// Assume no Restricted Character Set is defined
+	//TODO: Handle the case when Restricted Character Set is defined
+
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	uint32_t tmp_val= 0;
 	uint32_t i = 0;
 	for(; i < string_val->length; i++)

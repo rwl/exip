@@ -239,6 +239,9 @@ void sample_endElement()
 		printf("EE\n");
 	else if(outputFormat == OUT_XML)
 	{
+		if(unclosedElement)
+			printf(">\n");
+		unclosedElement = 0;
 		struct element* el = pop();
 		printf("</%s>\n", el->name);
 		destroyElement(el);

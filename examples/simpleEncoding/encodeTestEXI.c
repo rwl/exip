@@ -33,79 +33,114 @@
 \===================================================================================*/
 
 /**
- * @file errorHandle.h
- * @brief Error handling codes and function definitions
+ * @file encodeTestEXI.c
+ * @brief Testing the EXI encoder
  *
- * @date Jul 7, 2010
+ * @date Nov 4, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
-
-#ifndef ERRORHANDLE_H_
-#define ERRORHANDLE_H_
-
-#include "exipConfig.h"
-
-/* Platform specific debugging output */
-#ifndef DEBUG_OUTPUT	// TODO: document this macro #DOCUMENT#
-#  define DEBUG_OUTPUT(msg)	do {printf msg;} while(0)
-#endif
-
-/* Platform specific debugging character output */
-#ifndef DEBUG_CHAR_OUTPUT	// TODO: document this macro #DOCUMENT#
-#  define DEBUG_CHAR_OUTPUT(character)	do {putchar (character);} while(0)
-#endif
-
-#ifdef EXIP_DEBUG // TODO: document this macro #DOCUMENT#
-
+#include "EXISerializer.h"
+#include "procTypes.h"
 #include <stdio.h>
+#include <string.h>
 
-#ifndef EXIP_DEBUG_LEVEL // TODO: document this macro #DOCUMENT#
-# define EXIP_DEBUG_LEVEL INFO
-#endif
+/**
+ * The handler to be used by the applications to serialize EXI streams
+ */
+EXISerializer serEXI = {startDocumentSer,
+						endDocumentSer,
+						startElementSer,
+						endElementSer,
+						attributeSer,
+						intDataSer,
+						bigIntDataSer,
+						booleanDataSer,
+						stringDataSer,
+						floatDataSer,
+						bigFloatDataSer,
+						binaryDataSer,
+						dateTimeDataSer,
+						decimalDataSer,
+						bigDecimalDataSer,
+						processingInstructionSer,
+						initStream,
+						encodeHeader,
+						selfContainedSer};
 
-#  define DEBUG_MSG(level,msg) do { if (level >= EXIP_DEBUG_LEVEL) { DEBUG_OUTPUT(msg); } } while(0)
-#else
-#  define DEBUG_MSG(level,msg)
-#endif /* EXIP_DEBUG */
+static void printfHelp();
 
-typedef char errorCode;
+int main(int argc, char *argv[])
+{
+	FILE *outfile;
+	char sourceFile[50];
 
-//TODO: define the rest of the error codes
+	if(argc > 1)
+	{
+		if(strcmp(argv[1], "-help") == 0)
+		{
+			printfHelp();
+			return 0;
+		}
+		else
+		{
+			strcpy(sourceFile, argv[1]);
+		}
+		outfile = fopen(sourceFile, "wb" );
+		if(!outfile)
+		{
+			fprintf(stderr, "Unable to open file %s", sourceFile);
+			return 1;
+		}
+		else
+		{
+			errorCode tmp_err_code = UNEXPECTED_ERROR;
+			EXIStream testStrm;
+			tmp_err_code = serEXI.initStream(&testStrm, 200);
 
-/* Definitions for error constants. */
-/** No error, everything OK. */
-#define ERR_OK    0
+			EXIheader header;
+			header.has_cookie = 0;
+			header.has_options = 0;
+			header.is_preview_version = 0;
+			header.version_number = 1;
+			tmp_err_code = serEXI.exiHeaderSer(&testStrm, &header);
 
-/** An event code to be serialized is not found at the current grammar stack */
-#define EVENT_CODE_MISSING 5
+			tmp_err_code = serEXI.startDocumentSer(&testStrm);
+			StringType uri;
+			StringType ln;
+			tmp_err_code = asciiToString("", &uri);
+			tmp_err_code = asciiToString("testElement", &ln);
+			QName testElQname = {&uri, &ln};
 
-/** Buffer end reached  */
-#define BUFFER_END_REACHED 4
+			tmp_err_code = serEXI.startElementSer(&testStrm, testElQname);
+			tmp_err_code = serEXI.endElementSer(&testStrm);
+			tmp_err_code = serEXI.endDocumentSer(&testStrm);
 
-/** Stream value bigger than a processor type boundary */
-#define BIGGER_TYPE_REQUIRED 3
+			if(fwrite(testStrm.buffer, sizeof(char), testStrm.bufferIndx+1, outfile) < testStrm.bufferIndx+1)
+			{
+				fprintf(stderr, "Error writing to the file");
+				fclose(outfile);
+				return 1;
+			}
 
-/** Processor state is inconsistent with the stream events  */
-#define INCONSISTENT_PROC_STATE 2
+			tmp_err_code = freeAllMem();
+			fclose(outfile);
+		}
+	}
+	else
+	{
+		printfHelp();
+		return 1;
+	}
+}
 
-/** Error in the EXI header */
-#define INVALID_EXI_HEADER    1
-
-/** Unsuccessful memory allocation */
-#define MEMORY_ALLOCATION_ERROR -1
-
-/** Try to access null pointer */
-#define NULL_POINTER_REF -2
-
-/** Array out of bound  */
-#define OUT_OF_BOUND_BUFFER -3
-
-/** Any error that does not fall into the other categories */
-#define UNEXPECTED_ERROR -126
-
-/** The code for this function is not yet implemented. */
-#define NOT_IMPLEMENTED_YET -127
-
-#endif /* ERRORHANDLE_H_ */
+static void printfHelp()
+{
+    printf("\n" );
+    printf("  EXIP     Efficient XML Interchange Processor, Rumen Kyusakov, 13.10.2010 \n");
+    printf("           Copyright (c) 2010, EISLAB - Luleå University of Technology Version 0.1 \n");
+    printf("  Usage:   exipe -help | <EXI_FileOut>\n\n");
+    printf("  Purpose: This program tests the EXIP encoding functionality\n");
+    printf("\n" );
+}

@@ -351,7 +351,7 @@ static errorCode decodeQName(EXIStream* strm, QName* qname, uint32_t* p_uriID, u
 	//TODO: add the case when Preserve.prefixes is true
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	uint32_t tmp_val_buf = 0;
-	unsigned char uriBits = getBitsNumber(strm->uriTable->rowCount - 1);
+	unsigned char uriBits = getBitsNumber(strm->uriTable->rowCount);
 	tmp_err_code = decodeNBitUnsignedInteger(strm, uriBits, &tmp_val_buf);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -382,7 +382,7 @@ static errorCode decodeQName(EXIStream* strm, QName* qname, uint32_t* p_uriID, u
 	uint32_t lnID = 0;
 	if(flag_StringLiteralsPartition == 0) // local-name table hit
 	{
-		unsigned char lnBits = getBitsNumber(strm->uriTable->rows[uriID].lTable->rowCount - 1);
+		unsigned char lnBits = getBitsNumber(strm->uriTable->rows[uriID].lTable->rowCount);
 		tmp_err_code = decodeNBitUnsignedInteger(strm, lnBits, &lnID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -423,7 +423,7 @@ static errorCode decodeStringValue(EXIStream* strm, StringType** value, uint32_t
 	if(flag_StringLiteralsPartition == 0) // "local" value partition table hit
 	{
 		uint32_t lvID = 0;
-		unsigned char lvBits = getBitsNumber(strm->uriTable->rows[uriID].lTable->rows[lnID].vCrossTable->rowCount - 1);
+		unsigned char lvBits = getBitsNumber(strm->uriTable->rows[uriID].lTable->rows[lnID].vCrossTable->rowCount);
 		tmp_err_code = decodeNBitUnsignedInteger(strm, lvBits, &lvID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -433,7 +433,7 @@ static errorCode decodeStringValue(EXIStream* strm, StringType** value, uint32_t
 	else if(flag_StringLiteralsPartition == 1)// global value partition table hit
 	{
 		uint32_t gvID = 0;
-		unsigned char gvBits = getBitsNumber(strm->vTable->rowCount - 1);
+		unsigned char gvBits = getBitsNumber(strm->vTable->rowCount);
 		tmp_err_code = decodeNBitUnsignedInteger(strm, gvBits, &gvID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -843,4 +843,74 @@ errorCode isDocumentGrammar(struct EXIGrammar* grammar, unsigned char* bool_resu
 	}
 	return ERR_OK;
 }
+
+errorCode encodeQName(EXIStream* strm, QName qname, uint32_t* p_uriID, uint32_t* p_lnID)
+{
+	//TODO: add the case when Preserve.prefixes is true
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+
+/******* Start: URI **********/
+	uint32_t uriID = 0;
+	unsigned char uriBits = getBitsNumber(strm->uriTable->rowCount);
+	if(lookupURI(strm->uriTable, *(qname.uri), &uriID)) // uri hit
+	{
+		tmp_err_code = encodeNBitUnsignedInteger(strm, uriBits, uriID + 1);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else  // uri miss
+	{
+		tmp_err_code = encodeNBitUnsignedInteger(strm, uriBits, 0);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		tmp_err_code = encodeString(strm, qname.uri);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = addURIRow(strm->uriTable, *(qname.uri), &uriID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	*p_uriID = uriID;
+/******* End: URI **********/
+
+/******* Start: Local name **********/
+	uint32_t lnID = 0;
+	if(lookupLN(strm->uriTable->rows[uriID].lTable, *(qname.localName), &lnID)) // local-name table hit
+	{
+		unsigned char lnBits = getBitsNumber(strm->uriTable->rows[uriID].lTable->rowCount);
+		tmp_err_code = encodeUnsignedInteger(strm, 0);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = encodeNBitUnsignedInteger(strm, lnBits, lnID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else // local-name table miss
+	{
+		tmp_err_code = encodeUnsignedInteger(strm, qname.localName->length + 1);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = encodeStringOnly(strm,  qname.localName);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		if(strm->uriTable->rows[uriID].lTable == NULL)
+		{
+			tmp_err_code = createLocalNamesTable(&strm->uriTable->rows[uriID].lTable);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+		tmp_err_code = addLNRow(strm->uriTable->rows[uriID].lTable, *(qname.localName), &lnID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	*p_lnID = lnID;
+
+/******* End: Local name **********/
+	return ERR_OK;
+}
+
 #endif /* BUILTINDOCGRAMMAR_H_ */

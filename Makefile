@@ -75,6 +75,8 @@ TARGET = $(word 1,$(MAKECMDGOALS))
 # List of all example binary names
 EXAMPLE_1 = exipd
 
+EXAMPLE_2 = exipe
+
 # Examples directory
 EXAMPLES_DIR = examples
 
@@ -114,8 +116,11 @@ check: $(TARGET)/test
 		
 $(EXAMPLE_1): $(EXAMPLES_DIR)/simpleDecoding/decodeTestEXI.c exip.a
 		$(CC) $(CFLAGS) $(EXAMPLES_DIR)/simpleDecoding/decodeTestEXI.c exip.a -o $(EXAMPLES_DIR)/$(EXAMPLE_1)
+		
+$(EXAMPLE_2): $(EXAMPLES_DIR)/simpleEncoding/encodeTestEXI.c exip.a
+		$(CC) $(CFLAGS) $(EXAMPLES_DIR)/simpleEncoding/encodeTestEXI.c exip.a -o $(EXAMPLES_DIR)/$(EXAMPLE_2)		
 
-examples: lib $(EXAMPLE_1)
+examples: lib $(EXAMPLE_1) $(EXAMPLE_2)
 	
 clean:
 		rm -f *.o *.a test
@@ -124,4 +129,4 @@ clean:
 		rm -f $(STRING_TABLES)/*.o $(STRING_TABLES)/*.a $(STRING_TABLES)/test
 		rm -f $(GRAMMAR)/*.o $(GRAMMAR)/*.a $(GRAMMAR)/test
 		rm -f $(CONTENT_IO)/*.o $(CONTENT_IO)/*.a $(CONTENT_IO)/test
-		rm -f $(EXAMPLES_DIR)/*.o $(EXAMPLES_DIR)/*.a $(EXAMPLES_DIR)/$(EXAMPLE_1)
+		rm -f $(EXAMPLES_DIR)/*.o $(EXAMPLES_DIR)/*.a $(EXAMPLES_DIR)/$(EXAMPLE_1) $(EXAMPLES_DIR)/$(EXAMPLE_2)

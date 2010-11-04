@@ -81,25 +81,149 @@ errorCode initStream(EXIStream* strm, unsigned int initialBufSize)
 	return ERR_OK;
 }
 
+//TODO: IMPORTANT: the content of the serializer functions below must be refactored. There is a lot of repeating code
+
 errorCode startDocumentSer(EXIStream* strm)
 {
+	if(strm->nonTermID != GR_DOCUMENT)
+		return INCONSISTENT_PROC_STATE;
 
-	return NOT_IMPLEMENTED_YET;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	int j = 0;
+	int i = 0;
+	for(; i < strm->gStack->rulesDimension; i++)
+	{
+		if(strm->gStack->ruleArray[i].nonTermID == strm->nonTermID)
+		{
+			j = 0;
+			for(; j < strm->gStack->ruleArray[i].prodCount; j++)
+			{
+				if(strm->gStack->ruleArray[i].prodArray[j].eType == EVENT_SD)
+				{
+					tmp_err_code = writeEventCode(strm, strm->gStack->ruleArray[i].prodArray[j].code, strm->gStack->ruleArray[i].bits);
+					if(tmp_err_code != ERR_OK)
+						return tmp_err_code;
+					strm->nonTermID = strm->gStack->ruleArray[i].prodArray[j].nonTermID;
+					return ERR_OK;
+				}
+			}
+		}
+	}
+	return EVENT_CODE_MISSING;
 }
 
 errorCode endDocumentSer(EXIStream* strm)
 {
-	return NOT_IMPLEMENTED_YET;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	int j = 0;
+	int i = 0;
+	for(; i < strm->gStack->rulesDimension; i++)
+	{
+		if(strm->gStack->ruleArray[i].nonTermID == strm->nonTermID)
+		{
+			j = 0;
+			for(; j < strm->gStack->ruleArray[i].prodCount; j++)
+			{
+				if(strm->gStack->ruleArray[i].prodArray[j].eType == EVENT_ED)
+				{
+					tmp_err_code = writeEventCode(strm, strm->gStack->ruleArray[i].prodArray[j].code, strm->gStack->ruleArray[i].bits);
+					if(tmp_err_code != ERR_OK)
+						return tmp_err_code;
+					strm->nonTermID = strm->gStack->ruleArray[i].prodArray[j].nonTermID;
+					return ERR_OK;
+				}
+			}
+		}
+	}
+	return EVENT_CODE_MISSING;
 }
 
 errorCode startElementSer(EXIStream* strm, QName qname)
 {
-	return NOT_IMPLEMENTED_YET;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	int j = 0;
+	int i = 0;
+	for(; i < strm->gStack->rulesDimension; i++)
+	{
+		if(strm->gStack->ruleArray[i].nonTermID == strm->nonTermID)
+		{
+			int prodHit = -1;
+			int prodHitIndicator = 0; // What type of event (ALL, URI, QNAME) is hit so far; 0-nothing, 1-ALL, 2-URI, 3-QNAME
+			j = 0;
+			for(; j < strm->gStack->ruleArray[i].prodCount; j++)
+			{
+				if(strm->gStack->ruleArray[i].prodArray[j].eType == EVENT_SE_ALL)
+				{
+					if(prodHitIndicator == 0)
+					{
+						prodHit = j;
+						prodHitIndicator = 1;
+					}
+				}
+				else if(strm->gStack->ruleArray[i].prodArray[j].eType == EVENT_SE_URI)
+				{
+					if(str_equal(strm->uriTable->rows[strm->gStack->ruleArray[i].prodArray[j].uriRowID].string_val, *(qname.uri)))
+					{
+						if(prodHitIndicator < 3)
+						{
+							prodHit = j;
+							prodHitIndicator = 2;
+						}
+					}
+				}
+				else if(strm->gStack->ruleArray[i].prodArray[j].eType == EVENT_SE_QNAME)
+				{
+					if(str_equal(strm->uriTable->rows[strm->gStack->ruleArray[i].prodArray[j].uriRowID].string_val, *(qname.uri)) &&
+							str_equal(strm->uriTable->rows[strm->gStack->ruleArray[i].prodArray[j].uriRowID].lTable->rows[strm->gStack->ruleArray[i].prodArray[j].lnRowID].string_val, *(qname.localName)))
+					{
+						prodHit = j;
+						prodHitIndicator = 3;
+						break; // There is not a shorter code for that Event code
+					}
+				}
+			}
+			if(prodHit >= 0)
+			{
+				tmp_err_code = writeEventCode(strm, strm->gStack->ruleArray[i].prodArray[prodHit].code, strm->gStack->ruleArray[i].bits);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+				strm->nonTermID = strm->gStack->ruleArray[i].prodArray[prodHit].nonTermID;
+				uint32_t uriID;
+				uint32_t lnID;
+				tmp_err_code = encodeQName(strm, qname, &uriID, &lnID);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+				return ERR_OK;
+			}
+		}
+	}
+	return EVENT_CODE_MISSING;
 }
 
 errorCode endElementSer(EXIStream* strm)
 {
-	return NOT_IMPLEMENTED_YET;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	int j = 0;
+	int i = 0;
+	for(; i < strm->gStack->rulesDimension; i++)
+	{
+		if(strm->gStack->ruleArray[i].nonTermID == strm->nonTermID)
+		{
+			j = 0;
+			for(; j < strm->gStack->ruleArray[i].prodCount; j++)
+			{
+				if(strm->gStack->ruleArray[i].prodArray[j].eType == EVENT_EE)
+				{
+					tmp_err_code = writeEventCode(strm, strm->gStack->ruleArray[i].prodArray[j].code, strm->gStack->ruleArray[i].bits);
+					if(tmp_err_code != ERR_OK)
+						return tmp_err_code;
+					strm->nonTermID = strm->gStack->ruleArray[i].prodArray[j].nonTermID;
+					return ERR_OK;
+				}
+			}
+		}
+	}
+	return EVENT_CODE_MISSING;
 }
 
 errorCode attributeSer(EXIStream* strm, QName qname)
