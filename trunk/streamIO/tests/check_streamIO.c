@@ -579,7 +579,7 @@ START_TEST (test_encodeNBitUnsignedInteger)
   unsigned int bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
 
-  err = encodeNBitUnsignedInteger(&testStream, 412);
+  err = encodeNBitUnsignedInteger(&testStream, 9, 412);
 
   unsigned int test = buf[0] | 0;
   unsigned int test2 = (unsigned int) buf[1] >> 7;

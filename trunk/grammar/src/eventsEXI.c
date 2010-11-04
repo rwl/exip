@@ -74,3 +74,17 @@ EventCode getEventCode1(unsigned int first)
 	res.code[2] = UNUSED_CODE_PART_VALUE;
 	return res;
 }
+
+errorCode writeEventCode(EXIStream* strm, EventCode code, unsigned char* bits)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	int i = 0;
+	for(; i < code.size; i++)
+	{
+		tmp_err_code = encodeNBitUnsignedInteger(strm, bits[i], code.code[i]);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	return ERR_OK;
+}
+

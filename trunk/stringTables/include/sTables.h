@@ -144,4 +144,26 @@ errorCode addGVRow(ValueTable* vTable, StringType global_value, uint32_t* rowID)
  */
 errorCode addLVRow(struct LocalNamesRow* lnRow, uint32_t globalValueRowID);
 
+/**
+ * @brief Search the URI table for a particular string value
+ * Implements full scan
+ *
+ * @param[in] uTable URI table to be searched
+ * @param[in] value The string searched for
+ * @param[out] rowID if found, ID of the URI row with that string
+ * @return 0-not found, 1 found
+ */
+char lookupURI(URITable* uTable, StringType value, uint32_t* rowID); //TODO: try to optimize
+
+/**
+ * @brief Search the Local names table for a particular string value
+ * Implements full scan
+ *
+ * @param[in] lTable Local names table to be searched
+ * @param[in] value The string searched for
+ * @param[out] rowID if found, ID of the Local names row with that string
+ * @return 0-not found, 1 found
+ */
+char lookupLN(LocalNamesTable* lTable, StringType value, uint32_t* rowID); //TODO: try to optimize
+
 #endif /* STABLES_H_ */

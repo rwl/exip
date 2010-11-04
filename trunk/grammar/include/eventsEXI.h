@@ -70,4 +70,13 @@ EventCode getEventCode2(unsigned int first, unsigned int second);
  */
 EventCode getEventCode1(unsigned int first);
 
+/**
+ * @brief Serialize an event code to an EXI stream
+ * @param[in, out] strm EXI bit stream
+ * @param[in] code EventCode to be serialized
+ * @param[in] bits The number of bits used for the integers constituting the EventCode
+ * @return EventCode the newly created Event Code
+ */
+errorCode writeEventCode(EXIStream* strm, EventCode code, unsigned char* bits);
+
 #endif /* EVENTTYPESEXI_H_ */

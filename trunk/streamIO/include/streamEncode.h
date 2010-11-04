@@ -52,10 +52,11 @@
  * @brief Encode EXI n-bit Unsigned Integer
  *
  * @param[in, out] strm EXI stream of bits
+ * @param[in] n The number of bits in the range [1,32].
  * @param[in] int_val n-bit unsigned integer value
  * @return Error handling code
  */
-errorCode encodeNBitUnsignedInteger(EXIStream* strm, uint32_t int_val);
+errorCode encodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, uint32_t int_val);
 
 /**
  * @brief Encode EXI Boolean
@@ -100,6 +101,17 @@ errorCode encodeBigUnsignedInteger(EXIStream* strm, BigUnsignedInt int_val);
  * @return Error handling code
  */
 errorCode encodeString(EXIStream* strm, const StringType* string_val);
+
+/**
+ * @brief Encode String without the length prefix
+ * This function is used for Partitions Optimized for Frequent use of String Literals
+ * when there is a local name miss => the Length part is read first.
+ *
+ * @param[in] strm EXI stream of bits
+ * @param[out] string_val decoded string
+ * @return Error handling code
+ */
+errorCode encodeStringOnly(EXIStream* strm, const StringType* string_val);
 
 /**
  * @brief Encode EXI Binary type

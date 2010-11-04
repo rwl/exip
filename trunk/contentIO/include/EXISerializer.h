@@ -108,28 +108,4 @@ errorCode processingInstructionSer(EXIStream* strm); // TODO: define the paramet
 errorCode initStream(EXIStream* strm, unsigned int initialBufSize);
 errorCode selfContainedSer(EXIStream* strm);  // Used for indexing independent elements for random access
 
-
-/**
- * The handler to be used by the applications to serialize EXI streams
- */
-EXISerializer serEXI = {startDocumentSer,
-						endDocumentSer,
-						startElementSer,
-						endElementSer,
-						attributeSer,
-						intDataSer,
-						bigIntDataSer,
-						booleanDataSer,
-						stringDataSer,
-						floatDataSer,
-						bigFloatDataSer,
-						binaryDataSer,
-						dateTimeDataSer,
-						decimalDataSer,
-						bigDecimalDataSer,
-						processingInstructionSer,
-						initStream,
-						encodeHeader,
-						selfContainedSer};
-
 #endif /* EXISERIALIZER_H_ */

@@ -155,4 +155,14 @@ errorCode addElementGrammarInPool(struct ElementGrammarPool* pool, uint32_t uriR
  */
 errorCode isDocumentGrammar(struct EXIGrammar* grammar, unsigned char* bool_result);
 
+/**
+ * @brief Encodes QName into EXI stream
+ * @param[in, out] strm EXI stream
+ * @param[in] qname qname to be written
+ * @param[out] p_uriID Row ID in the URI string table
+ * @param[out] p_lnID Row ID in the Local name string table
+ * @return Error handling code
+ */
+errorCode encodeQName(EXIStream* strm, QName qname, uint32_t* p_uriID, uint32_t* p_lnID);
+
 #endif /* GRAMMARS_H_ */

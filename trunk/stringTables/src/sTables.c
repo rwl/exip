@@ -425,3 +425,35 @@ errorCode addLVRow(struct LocalNamesRow* lnRow, uint32_t globalValueRowID)
 	lnRow->vCrossTable->rowCount += 1;
 	return ERR_OK;
 }
+
+char lookupURI(URITable* uTable, StringType value, uint32_t* rowID)
+{
+	if(uTable == NULL)
+			return 0;
+	uint32_t i = 0;
+	for(; i < uTable->rowCount; i++)
+	{
+		if(str_equal(uTable->rows[i].string_val, value))
+		{
+			*rowID = i;
+			return 1;
+		}
+	}
+	return 0;
+}
+
+char lookupLN(LocalNamesTable* lTable, StringType value, uint32_t* rowID)
+{
+	if(lTable == NULL)
+		return 0;
+	uint32_t i = 0;
+	for(; i < lTable->rowCount; i++)
+	{
+		if(str_equal(lTable->rows[i].string_val, value))
+		{
+			*rowID = i;
+			return 1;
+		}
+	}
+	return 0;
+}
