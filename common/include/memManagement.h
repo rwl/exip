@@ -48,13 +48,6 @@
 #include "errorHandle.h"
 #include "procTypes.h"
 
-struct memAlloc {
-	void* allocation;
-	struct memAlloc* nextAlloc;
-};
-
-struct memAlloc* memStack = NULL;
-
 /**
  * Except Data Values (Binary data, DateTime etc.), which are
  * freed after the respective ContentHandler is called, all other
@@ -65,10 +58,11 @@ struct memAlloc* memStack = NULL;
  * @brief Allocate a memory block with size <size> and store a copy of
  * the pointer in a linked list for freeing it at the end.
  *
+ * @param[in, out] mStack Memory stack to which this allocation will be registered
  * @param[in] size the size of the memory block to be allocated
  * @return pointer to the allocated block if successful. NULL otherwise
  */
-void* memManagedAllocate(size_t size);
+void* memManagedAllocate(struct memAlloc** mStack, size_t size);
 
 /**
  * @brief Allocate a memory block with size <size> and store a copy of
@@ -77,11 +71,12 @@ void* memManagedAllocate(size_t size);
  * during reallocation. Use this function in case the allocated block
  * might need to be reallocated later.
  *
+ * @param[in, out] mStack Memory stack to which this allocation will be registered
  * @param[in] size the size of the memory block to be allocated
  * @param[out] memNode pointer to the memAlloc node created
  * @return pointer to the allocated block if successful. NULL otherwise
  */
-void* memManagedAllocatePtr(size_t size, void** p_memNode);
+void* memManagedAllocatePtr(struct memAlloc** mStack, size_t size, void** p_memNode);
 
 /**
  * @brief Reallocate a memory block with size <size>
@@ -98,8 +93,9 @@ errorCode memManagedReAllocate(void** ptr, size_t size, void* p_memNode);
  * It should be called after an error in the processing occur or at the
  * end of the parsing/serializing if the processing is successful.
  *
+ * @param[in, out] mStack Memory stack to which this allocation will be registered
  * @return Error handling code
  */
-errorCode freeAllMem();
+errorCode freeAllMem(struct memAlloc** mStack);
 
 #endif /* MEMMANAGEMENT_H_ */

@@ -44,9 +44,9 @@
 #include "../include/grammarRules.h"
 #include "../include/eventsEXI.h"
 
-errorCode initGrammarRule(GrammarRule* rule)
+errorCode initGrammarRule(GrammarRule* rule, struct memAlloc** mStack)
 {
-	rule->prodArray = (Production*) memManagedAllocatePtr(sizeof(Production)*DEFAULT_PROD_ARRAY_DIM, &rule->memNode);
+	rule->prodArray = (Production*) memManagedAllocatePtr(mStack, sizeof(Production)*DEFAULT_PROD_ARRAY_DIM, &rule->memNode);
 	if(rule->prodArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 	rule->prodCount = 0;

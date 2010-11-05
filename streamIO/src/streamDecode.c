@@ -136,7 +136,7 @@ errorCode decodeStringOnly(EXIStream* strm, uint32_t str_length, StringType* str
 	// The exact size of the string is known at this point. This means that
 	// this is the place to allocate the memory for the  { CharType* str; }!!!
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	tmp_err_code = allocateStringMemory(&(string_val->str), str_length);
+	tmp_err_code = allocateStringMemory(&(string_val->str), str_length, &(strm->memStack));
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	string_val->length = str_length;

@@ -52,7 +52,7 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIGrammarStack docGr;
 	strm->gStack = &docGr;
-	tmp_err_code = getBuildInDocGrammar(strm->gStack, strm->opts);
+	tmp_err_code = getBuildInDocGrammar(strm->gStack, strm->opts, &(strm->memStack));
 	if(tmp_err_code != ERR_OK)
 	{
 		if(handler->fatalError != NULL)
@@ -76,7 +76,7 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 
 	struct ElementGrammarPool gPool;
 	strm->gPool = &gPool;
-	tmp_err_code = createElementGrammarPool(strm->gPool);
+	tmp_err_code = createElementGrammarPool(strm->gPool, &(strm->memStack));
 	if(tmp_err_code != ERR_OK)
 	{
 		if(handler->fatalError != NULL)

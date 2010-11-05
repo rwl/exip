@@ -412,6 +412,12 @@ struct StringTablesContext
 {
 	uint32_t curr_uriID;
 	uint32_t curr_lnID;
+	unsigned char expectATData; // 1- Expecting value for an attribute, 0 - otherwise
+};
+
+struct memAlloc {
+	void* allocation;
+	struct memAlloc* nextAlloc;
 };
 
 /**
@@ -475,6 +481,11 @@ struct EXIStream
 	 * Current position in the string tables
 	 */
 	struct StringTablesContext sContext;
+
+	/**
+	 * Stores the information of all the allocated memory for that stream
+	 */
+	struct memAlloc* memStack;
 };
 
 typedef struct EXIStream EXIStream;

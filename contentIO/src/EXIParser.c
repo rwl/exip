@@ -51,6 +51,7 @@ void parseEXI(char* binaryStream, uint32_t bufLen, ContentHandler* handler)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIStream strm;
+	strm.memStack = NULL;
 	strm.buffer = binaryStream;
 	strm.bitPointer = 0;
 	strm.bufferIndx = 0;
@@ -58,6 +59,9 @@ void parseEXI(char* binaryStream, uint32_t bufLen, ContentHandler* handler)
 	struct EXIOptions options;
 	strm.opts = &options;
 	strm.nonTermID = GR_DOCUMENT;
+	strm.sContext.curr_lnID = 0;
+	strm.sContext.curr_uriID = 0;
+	strm.sContext.expectATData = 0;
 
 	EXIheader header;
 	tmp_err_code = decodeHeader(&strm, &header);

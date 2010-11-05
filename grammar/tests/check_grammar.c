@@ -64,7 +64,7 @@ START_TEST (test_getBuildInDocGrammar)
 
 	struct EXIGrammar testGrammar;
 
-	err = getBuildInDocGrammar(&testGrammar, &options);
+	err = getBuildInDocGrammar(&testGrammar, &options, &(testStream->memStack));
 
 	fail_unless (err == ERR_OK, "getBuildInDocGrammar returns error code %d", err);
 
@@ -85,12 +85,13 @@ START_TEST (test_pushGrammar)
 	EXIGrammarStack* testGrStack = &testGr;
 	struct EXIOptions options;
 	makeDefaultOpts(&options);
+	struct memAlloc* mStack;
 
-	err = getBuildInDocGrammar(testGrStack, &options);
+	err = getBuildInDocGrammar(testGrStack, &options, &mStack);
 	fail_if(err != ERR_OK);
 
 	struct EXIGrammar testElementGrammar;
-	err = createBuildInElementGrammar(&testElementGrammar, &options);
+	err = createBuildInElementGrammar(&testElementGrammar, &options, &mStack);
 	fail_if(err != ERR_OK);
 
 	err = pushGrammar(&testGrStack, &testElementGrammar);
@@ -106,12 +107,13 @@ START_TEST (test_popGrammar)
 	EXIGrammarStack* testGrStack = &testGr;
 	struct EXIOptions options;
 	makeDefaultOpts(&options);
+	struct memAlloc* mStack;
 
-	err = getBuildInDocGrammar(testGrStack, &options);
+	err = getBuildInDocGrammar(testGrStack, &options, &mStack);
 	fail_if(err != ERR_OK);
 
 	struct EXIGrammar testElementGrammar;
-	err = createBuildInElementGrammar(&testElementGrammar, &options);
+	err = createBuildInElementGrammar(&testElementGrammar, &options, &mStack);
 	fail_if(err != ERR_OK);
 
 	err = pushGrammar(&testGrStack, &testElementGrammar);
@@ -133,8 +135,9 @@ START_TEST (test_createBuildInElementGrammar)
 	struct EXIGrammar testElementGrammar;
 	struct EXIOptions options;
 	makeDefaultOpts(&options);
+	struct memAlloc* mStack;
 
-	err = createBuildInElementGrammar(&testElementGrammar, &options);
+	err = createBuildInElementGrammar(&testElementGrammar, &options, &mStack);
 	fail_unless (err == ERR_OK, "createBuildInElementGrammar returns error code %d", err);
 
 	//TODO: add more tests!
@@ -145,8 +148,9 @@ START_TEST (test_createElementGrammarPool)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	struct ElementGrammarPool testPool;
+	struct memAlloc* mStack
 
-	err = createElementGrammarPool(&testPool);
+	err = createElementGrammarPool(&testPool, &mStack);
 	fail_unless (err == ERR_OK, "createElementGrammarPool returns error code %d", err);
 	fail_unless (testPool.refsCount == 0, "createElementGrammarPool does not initialize the pool refsCount");
 	fail_unless (testPool.refsDimension > 0, "createElementGrammarPool does not initialize the pool refsDimension");
@@ -204,7 +208,8 @@ START_TEST (test_initGrammarRule)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	GrammarRule rule;
-	err = initGrammarRule(&rule);
+	struct memAlloc* mStack;
+	err = initGrammarRule(&rule, &mStack);
 
 	fail_unless (err == ERR_OK, "initGrammarRule returns error code %d", err);
 
@@ -220,7 +225,8 @@ START_TEST (test_addProduction)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	GrammarRule rule;
-	err = initGrammarRule(&rule);
+	struct memAlloc* mStack;
+	err = initGrammarRule(&rule, &mStack);
 	fail_unless (err == ERR_OK, "initGrammarRule returns error code %d", err);
 	EventCode eCode = getEventCode2(20,12);
 	EventType eType = EVENT_SE_ALL;
@@ -258,7 +264,8 @@ START_TEST (test_insertZeroProduction)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	GrammarRule rule;
-	err = initGrammarRule(&rule);
+	struct memAlloc* mStack;
+	err = initGrammarRule(&rule, &mStack);
 	fail_unless (err == ERR_OK, "initGrammarRule returns error code %d", err);
 	EventCode eCode = getEventCode2(0,0);
 	EventType eType = EVENT_SE_ALL;

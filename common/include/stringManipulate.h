@@ -54,8 +54,10 @@
  *
  * @param[in, out] str a pointer to the uninitialized string
  * @param[in] UCSchars the number of characters (as described by UCS [ISO/IEC 10646])
+ * @param[in, out] mStack Memory stack to which this allocation will be registered
+ * @return Error handling code
  */
-errorCode allocateStringMemory(CharType** str, uint32_t UCSchars);
+errorCode allocateStringMemory(CharType** str, uint32_t UCSchars, struct memAlloc** mStack);
 
 /**
  * @brief Translate the UCS [ISO/IEC 10646] code point to CharType
@@ -101,9 +103,10 @@ errorCode getEmptyString(StringType* emptyStr);
  * Note! The implementation of this function is platform-specific.
  * @param[in] inStr ASCII stream
  * @param[in, out] outStr resulted string
+ * @param[in, out] mStack Memory stack to which this allocation will be registered
  * @return Error handling code
  */
-errorCode asciiToString(char* inStr, StringType* outStr);
+errorCode asciiToString(char* inStr, StringType* outStr, struct memAlloc** mStack);
 
 /**
  * @brief Tests if two strings are equal
