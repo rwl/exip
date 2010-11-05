@@ -447,6 +447,8 @@ static errorCode decodeStringValue(EXIStream* strm, StringType** value, uint32_t
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
+		//TODO: Take into account valuePartitionCapacity parameter for setting globalID variable
+
 		tmp_err_code = addGVRow(strm->vTable, gvStr, &gvID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -844,7 +846,7 @@ errorCode isDocumentGrammar(struct EXIGrammar* grammar, unsigned char* bool_resu
 	return ERR_OK;
 }
 
-errorCode encodeQName(EXIStream* strm, QName qname, uint32_t* p_uriID, uint32_t* p_lnID)
+errorCode encodeQName(EXIStream* strm, QName qname)
 {
 	//TODO: add the case when Preserve.prefixes is true
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -871,7 +873,7 @@ errorCode encodeQName(EXIStream* strm, QName qname, uint32_t* p_uriID, uint32_t*
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
-	*p_uriID = uriID;
+	strm->sContext.curr_uriID = uriID;
 /******* End: URI **********/
 
 /******* Start: Local name **********/
@@ -907,9 +909,65 @@ errorCode encodeQName(EXIStream* strm, QName qname, uint32_t* p_uriID, uint32_t*
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
-	*p_lnID = lnID;
+	strm->sContext.curr_lnID = lnID;
 
 /******* End: Local name **********/
+	return ERR_OK;
+}
+
+errorCode encodeStringData(EXIStream* strm, StringType strng)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	unsigned char flag_StringLiteralsPartition = 0;
+	uint32_t p_uriID = strm->sContext.curr_uriID;
+	uint32_t p_lnID = strm->sContext.curr_lnID;
+	uint32_t lvRowID = 0;
+	flag_StringLiteralsPartition = lookupLV(strm->vTable, strm->uriTable->rows[p_uriID].lTable->rows[p_lnID].vCrossTable, strng, &lvRowID);
+	if(flag_StringLiteralsPartition) //  "local" value partition table hit
+	{
+		tmp_err_code = encodeUnsignedInteger(strm, 0);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		unsigned char lvBits = getBitsNumber(strm->uriTable->rows[p_uriID].lTable->rows[p_lnID].vCrossTable->rowCount);
+		tmp_err_code = encodeNBitUnsignedInteger(strm, lvBits, lvRowID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else //  "local" value partition table miss
+	{
+		uint32_t gvRowID = 0;
+		flag_StringLiteralsPartition = lookupVal(strm->vTable, strng, &gvRowID);
+		if(flag_StringLiteralsPartition) // global value partition table hit
+		{
+			tmp_err_code = encodeUnsignedInteger(strm, 1);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+			unsigned char gvBits = getBitsNumber(strm->vTable->rowCount);
+			tmp_err_code = encodeNBitUnsignedInteger(strm, gvBits, gvRowID);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+		else // "local" value partition and global value partition table miss
+		{
+			tmp_err_code = encodeUnsignedInteger(strm, strng.length + 2);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+			tmp_err_code = encodeStringOnly(strm, &strng);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			//TODO: Take into account valuePartitionCapacity parameter for setting globalID variable
+
+			tmp_err_code = addGVRow(strm->vTable, strng, &gvRowID);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			tmp_err_code = addLVRow(&(strm->uriTable->rows[p_uriID].lTable->rows[p_lnID]), gvRowID);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+	}
+
 	return ERR_OK;
 }
 

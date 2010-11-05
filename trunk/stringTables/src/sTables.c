@@ -457,3 +457,35 @@ char lookupLN(LocalNamesTable* lTable, StringType value, uint32_t* rowID)
 	}
 	return 0;
 }
+
+char lookupLV(ValueTable* vTable, ValueLocalCrossTable* lvTable, StringType value, uint32_t* rowID)
+{
+	if(lvTable == NULL)
+		return 0;
+	uint16_t i = 0;
+	for(; i < lvTable->rowCount; i++)
+	{
+		if(str_equal(vTable->rows[lvTable->valueRowIds[i]].string_val, value))
+		{
+			*rowID = i;
+			return 1;
+		}
+	}
+	return 0;
+}
+
+char lookupVal(ValueTable* vTable, StringType value, uint32_t* rowID)
+{
+	if(vTable == NULL)
+		return 0;
+	uint32_t i = 0;
+	for(; i < vTable->rowCount; i++)
+	{
+		if(str_equal(vTable->rows[i].string_val, value))
+		{
+			*rowID = i;
+			return 1;
+		}
+	}
+	return 0;
+}
