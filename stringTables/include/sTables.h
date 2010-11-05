@@ -166,4 +166,27 @@ char lookupURI(URITable* uTable, StringType value, uint32_t* rowID); //TODO: try
  */
 char lookupLN(LocalNamesTable* lTable, StringType value, uint32_t* rowID); //TODO: try to optimize
 
+/**
+ * @brief Search the Local partition of the Value table for a particular string value
+ * Implements full scan
+ *
+ * @param[in] vTable global Value table - used to check the string values
+ * @param[in] lvTable Local partition of the Value table to be searched
+ * @param[in] value The string searched for
+ * @param[out] rowID if found, ID of the ValueLocalCrossTable row with that string
+ * @return 0-not found, 1 found
+ */
+char lookupLV(ValueTable* vTable, ValueLocalCrossTable* lvTable, StringType value, uint32_t* rowID); //TODO: try to optimize
+
+/**
+ * @brief Search the global Value table for a particular string value
+ * Implements full scan
+ *
+ * @param[in] vTable global Value table to be searched
+ * @param[in] value The string searched for
+ * @param[out] rowID if found, ID of the global Value table row with that string
+ * @return 0-not found, 1 found
+ */
+char lookupVal(ValueTable* vTable, StringType value, uint32_t* rowID); //TODO: try to optimize
+
 #endif /* STABLES_H_ */

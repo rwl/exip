@@ -408,6 +408,11 @@ typedef struct EXIGrammar EXIGrammarStack; // Used to differentiate between sing
 
 /*********** END: Grammar Types ***************/
 
+struct StringTablesContext
+{
+	uint32_t curr_uriID;
+	uint32_t curr_lnID;
+};
 
 /**
  * Represents an EXI stream
@@ -465,6 +470,11 @@ struct EXIStream
 	 * Current (Left-hand side) Non terminal ID (Define the context/processor state)
 	 */
 	unsigned int nonTermID;
+
+	/**
+	 * Current position in the string tables
+	 */
+	struct StringTablesContext sContext;
 };
 
 typedef struct EXIStream EXIStream;

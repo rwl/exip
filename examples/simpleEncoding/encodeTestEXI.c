@@ -112,8 +112,16 @@ int main(int argc, char *argv[])
 			tmp_err_code = asciiToString("", &uri);
 			tmp_err_code = asciiToString("testElement", &ln);
 			QName testElQname = {&uri, &ln};
-
 			tmp_err_code = serEXI.startElementSer(&testStrm, testElQname);
+
+			tmp_err_code = asciiToString("testAttribute", &ln);
+			QName testAtQname = {&uri, &ln};
+			tmp_err_code = serEXI.attributeSer(&testStrm, testAtQname);
+
+			StringType attVal;
+			tmp_err_code = asciiToString("Test AT value", &attVal);
+			tmp_err_code = serEXI.stringDataSer(&testStrm, attVal);
+
 			tmp_err_code = serEXI.endElementSer(&testStrm);
 			tmp_err_code = serEXI.endDocumentSer(&testStrm);
 
