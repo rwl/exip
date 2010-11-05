@@ -51,11 +51,12 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 errorCode initStream(EXIStream* strm, unsigned int initialBufSize)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	strm->buffer = (char*) memManagedAllocate(sizeof(char)*initialBufSize);
+	strm->memStack = NULL;
+	strm->buffer = (char*) memManagedAllocate(&(strm->memStack), sizeof(char)*initialBufSize);
 	if(strm->buffer == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	strm->opts = (struct EXIOptions*) memManagedAllocate(sizeof(struct EXIOptions));
+	strm->opts = (struct EXIOptions*) memManagedAllocate(&(strm->memStack), sizeof(struct EXIOptions));
 	if(strm->opts == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 	strm->bitPointer = 0;
@@ -64,18 +65,19 @@ errorCode initStream(EXIStream* strm, unsigned int initialBufSize)
 	strm->nonTermID = GR_DOCUMENT;
 	strm->sContext.curr_uriID = 0;
 	strm->sContext.curr_lnID = 0;
+	strm->sContext.expectATData = 0;
 
-	strm->gStack = (EXIGrammarStack*) memManagedAllocate(sizeof(EXIGrammarStack));
+	strm->gStack = (EXIGrammarStack*) memManagedAllocate(&(strm->memStack), sizeof(EXIGrammarStack));
 	if(strm->gStack == NULL)
 		return MEMORY_ALLOCATION_ERROR;
-	tmp_err_code = getBuildInDocGrammar(strm->gStack, strm->opts);
+	tmp_err_code = getBuildInDocGrammar(strm->gStack, strm->opts, &(strm->memStack));
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	strm->gPool = (struct ElementGrammarPool*) memManagedAllocate(sizeof(struct ElementGrammarPool));
+	strm->gPool = (struct ElementGrammarPool*) memManagedAllocate(&(strm->memStack), sizeof(struct ElementGrammarPool));
 	if(strm->gPool == NULL)
 		return MEMORY_ALLOCATION_ERROR;
-	tmp_err_code = createElementGrammarPool(strm->gPool);
+	tmp_err_code = createElementGrammarPool(strm->gPool, &(strm->memStack));
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -216,10 +218,10 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 					}
 					else
 					{
-						struct EXIGrammar* elementGrammar = (struct EXIGrammar*) memManagedAllocate(sizeof(struct EXIGrammar));
+						struct EXIGrammar* elementGrammar = (struct EXIGrammar*) memManagedAllocate(&(strm->memStack), sizeof(struct EXIGrammar));
 						if(elementGrammar == NULL)
 							return MEMORY_ALLOCATION_ERROR;
-						tmp_err_code = createBuildInElementGrammar(elementGrammar, strm->opts);
+						tmp_err_code = createBuildInElementGrammar(elementGrammar, strm->opts, &(strm->memStack));
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
 						tmp_err_code = addElementGrammarInPool(strm->gPool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, elementGrammar);
@@ -258,6 +260,9 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
 				}
+
+				if(isElemOrAttr != 1) // AT event
+					strm->sContext.expectATData = 1;
 				return ERR_OK;
 			}
 		}
@@ -313,7 +318,19 @@ errorCode booleanDataSer(EXIStream* strm, unsigned char bool_val)
 
 errorCode stringDataSer(EXIStream* strm, const StringType str_val)
 {
-	return encodeStringData(strm, str_val);
+	if(strm->sContext.expectATData) // Value for an attribute
+	{
+		strm->sContext.expectATData = 0;
+		return encodeStringData(strm, str_val);
+	}
+	else
+	{
+		errorCode tmp_err_code = UNEXPECTED_ERROR;
+		tmp_err_code = encodeEXIEvent(strm, EVENT_CH);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		return encodeStringData(strm, str_val);
+	}
 }
 
 errorCode floatDataSer(EXIStream* strm, double float_val)

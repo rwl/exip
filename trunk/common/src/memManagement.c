@@ -43,7 +43,7 @@
 
 #include "memManagement.h"
 
-void* memManagedAllocate(size_t size)
+void* memManagedAllocate(struct memAlloc** mStack, size_t size)
 {
 	void* ptr = EXIP_MALLOC(size);
 	if(ptr != NULL)
@@ -52,8 +52,8 @@ void* memManagedAllocate(size_t size)
 		if(memNode != NULL)
 		{
 			memNode->allocation = ptr;
-			memNode->nextAlloc = memStack;
-			memStack = memNode;
+			memNode->nextAlloc = *mStack;
+			*mStack = memNode;
 		}
 		else
 			return NULL;
@@ -61,7 +61,7 @@ void* memManagedAllocate(size_t size)
 	return ptr;
 }
 
-void* memManagedAllocatePtr(size_t size, void** p_memNode)
+void* memManagedAllocatePtr(struct memAlloc** mStack, size_t size, void** p_memNode)
 {
 	void* ptr = EXIP_MALLOC(size);
 	if(ptr != NULL)
@@ -70,8 +70,8 @@ void* memManagedAllocatePtr(size_t size, void** p_memNode)
 		if(memNode != NULL)
 		{
 			memNode->allocation = ptr;
-			memNode->nextAlloc = memStack;
-			memStack = memNode;
+			memNode->nextAlloc = *mStack;
+			*mStack = memNode;
 			(*p_memNode) = memNode;
 		}
 		else
@@ -90,14 +90,14 @@ errorCode memManagedReAllocate(void** ptr, size_t size, void* p_memNode)
 	return ERR_OK;
 }
 
-errorCode freeAllMem()
+errorCode freeAllMem(struct memAlloc** mStack)
 {
 	struct memAlloc* tmpNode;
-	while(memStack != NULL)
+	while(*mStack != NULL)
 	{
-		tmpNode = memStack;
-		EXIP_MFREE(memStack->allocation);
-		memStack = memStack->nextAlloc;
+		tmpNode = *mStack;
+		EXIP_MFREE((*mStack)->allocation);
+		*mStack = (*mStack)->nextAlloc;
 		EXIP_MFREE(tmpNode);
 	}
 	return ERR_OK;

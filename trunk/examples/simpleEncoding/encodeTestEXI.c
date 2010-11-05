@@ -109,18 +109,22 @@ int main(int argc, char *argv[])
 			tmp_err_code = serEXI.startDocumentSer(&testStrm);
 			StringType uri;
 			StringType ln;
-			tmp_err_code = asciiToString("", &uri);
-			tmp_err_code = asciiToString("testElement", &ln);
+			tmp_err_code = asciiToString("", &uri, &(testStrm.memStack));
+			tmp_err_code = asciiToString("EXIPEncoder", &ln, &(testStrm.memStack));
 			QName testElQname = {&uri, &ln};
 			tmp_err_code = serEXI.startElementSer(&testStrm, testElQname);
 
-			tmp_err_code = asciiToString("testAttribute", &ln);
+			tmp_err_code = asciiToString("version", &ln, &(testStrm.memStack));
 			QName testAtQname = {&uri, &ln};
 			tmp_err_code = serEXI.attributeSer(&testStrm, testAtQname);
 
 			StringType attVal;
-			tmp_err_code = asciiToString("Test AT value", &attVal);
+			tmp_err_code = asciiToString("0.1", &attVal, &(testStrm.memStack));
 			tmp_err_code = serEXI.stringDataSer(&testStrm, attVal);
+
+			StringType chVal;
+			tmp_err_code = asciiToString("This is an example of serializing EXI streams using EXIP low level API", &chVal, &(testStrm.memStack));
+			tmp_err_code = serEXI.stringDataSer(&testStrm, chVal);
 
 			tmp_err_code = serEXI.endElementSer(&testStrm);
 			tmp_err_code = serEXI.endDocumentSer(&testStrm);
@@ -132,7 +136,7 @@ int main(int argc, char *argv[])
 				return 1;
 			}
 
-			tmp_err_code = freeAllMem();
+			tmp_err_code = freeAllMem(&(testStrm.memStack));
 			fclose(outfile);
 		}
 	}

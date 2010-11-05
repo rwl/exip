@@ -51,7 +51,7 @@
 #define DEF_ELEMENT_GRAMMAR_RULE_NUMBER 2
 #define GRAMMAR_POOL_DIMENSION 5
 
-errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOptions* opts)
+errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOptions* opts, struct memAlloc** mStack)
 {
 	//TODO: depends on the EXI fidelity options! Take this into account
 	// For now only the default fidelity_opts pruning is supported - all preserve opts are false
@@ -63,14 +63,14 @@ errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOpti
 	buildInGrammar->lastNonTermID = GR_VOID_NON_TERMINAL;
 	buildInGrammar->nextInStack = NULL;
 	buildInGrammar->rulesDimension = DEF_GRAMMAR_RULE_NUMBER;
-	buildInGrammar->ruleArray = (GrammarRule*) memManagedAllocate(sizeof(GrammarRule)*DEF_GRAMMAR_RULE_NUMBER);
+	buildInGrammar->ruleArray = (GrammarRule*) memManagedAllocate(mStack, sizeof(GrammarRule)*DEF_GRAMMAR_RULE_NUMBER);
 	if(buildInGrammar->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
 	/* Document : SD DocContent	0 */
-	tmp_err_code = initGrammarRule(&(buildInGrammar->ruleArray[0]));
+	tmp_err_code = initGrammarRule(&(buildInGrammar->ruleArray[0]), mStack);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	buildInGrammar->ruleArray[0].nonTermID = GR_DOCUMENT;
@@ -86,7 +86,7 @@ errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOpti
 					CM DocContent	1.1.0
 					PI DocContent	1.1.1
 	 */
-	tmp_err_code = initGrammarRule(&(buildInGrammar->ruleArray[1]));
+	tmp_err_code = initGrammarRule(&(buildInGrammar->ruleArray[1]), mStack);
 	if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	buildInGrammar->ruleArray[1].nonTermID = GR_DOC_CONTENT;
@@ -129,7 +129,7 @@ errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOpti
 				ED	        0
 				CM DocEnd	1.0
 				PI DocEnd	1.1 */
-	tmp_err_code = initGrammarRule(&(buildInGrammar->ruleArray[2]));
+	tmp_err_code = initGrammarRule(&(buildInGrammar->ruleArray[2]), mStack);
 	if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	buildInGrammar->ruleArray[2].nonTermID = GR_DOC_END;
@@ -164,7 +164,7 @@ errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOpti
 	return ERR_OK;
 }
 
-errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, struct EXIOptions* opts)
+errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, struct EXIOptions* opts, struct memAlloc** mStack)
 {
 	//TODO: depends on the EXI fidelity options! Take this into account
 	// For now only the default fidelity_opts pruning is supported - all preserve opts are false
@@ -177,7 +177,7 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, struct 
 	elementGrammar->lastNonTermID = GR_VOID_NON_TERMINAL;
 	elementGrammar->nextInStack = NULL;
 	elementGrammar->rulesDimension = DEF_ELEMENT_GRAMMAR_RULE_NUMBER;
-	elementGrammar->ruleArray = (GrammarRule*) memManagedAllocate(sizeof(GrammarRule)*DEF_ELEMENT_GRAMMAR_RULE_NUMBER);
+	elementGrammar->ruleArray = (GrammarRule*) memManagedAllocate(mStack, sizeof(GrammarRule)*DEF_ELEMENT_GRAMMAR_RULE_NUMBER);
 	if(elementGrammar->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -193,7 +193,7 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, struct 
 							ER ElementContent	    0.6
 							CM ElementContent	    0.7.0
 							PI ElementContent	    0.7.1 */
-	tmp_err_code = initGrammarRule(&(elementGrammar->ruleArray[0]));
+	tmp_err_code = initGrammarRule(&(elementGrammar->ruleArray[0]), mStack);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	elementGrammar->ruleArray[0].nonTermID = GR_START_TAG_CONTENT;
@@ -277,7 +277,7 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, struct 
 							ER ElementContent	    1.2
 							CM ElementContent	    1.3.0
 							PI ElementContent	    1.3.1 */
-	tmp_err_code = initGrammarRule(&(elementGrammar->ruleArray[1]));
+	tmp_err_code = initGrammarRule(&(elementGrammar->ruleArray[1]), mStack);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	elementGrammar->ruleArray[1].nonTermID = GR_ELEMENT_CONTENT;
@@ -344,9 +344,9 @@ errorCode popGrammar(EXIGrammarStack** gStack, struct EXIGrammar** grammar)
 	return ERR_OK;
 }
 
-static errorCode decodeQName(EXIStream* strm, QName* qname, uint32_t* p_uriID, uint32_t* p_lnID);
+static errorCode decodeQName(EXIStream* strm, QName* qname);
 
-static errorCode decodeQName(EXIStream* strm, QName* qname, uint32_t* p_uriID, uint32_t* p_lnID)
+static errorCode decodeQName(EXIStream* strm, QName* qname)
 {
 	//TODO: add the case when Preserve.prefixes is true
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -363,7 +363,7 @@ static errorCode decodeQName(EXIStream* strm, QName* qname, uint32_t* p_uriID, u
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = addURIRow(strm->uriTable, str, &uriID);
+		tmp_err_code = addURIRow(strm->uriTable, str, &uriID, &(strm->memStack));
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		qname->uri = &(strm->uriTable->rows[uriID].string_val);
@@ -396,7 +396,7 @@ static errorCode decodeQName(EXIStream* strm, QName* qname, uint32_t* p_uriID, u
 			return tmp_err_code;
 		if(strm->uriTable->rows[uriID].lTable == NULL)
 		{
-			tmp_err_code = createLocalNamesTable(&strm->uriTable->rows[uriID].lTable);
+			tmp_err_code = createLocalNamesTable(&strm->uriTable->rows[uriID].lTable, &(strm->memStack));
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -405,16 +405,18 @@ static errorCode decodeQName(EXIStream* strm, QName* qname, uint32_t* p_uriID, u
 			return tmp_err_code;
 		qname->localName = &(strm->uriTable->rows[uriID].lTable->rows[lnID].string_val);
 	}
-	*p_uriID = uriID;
-	*p_lnID = lnID;
+	strm->sContext.curr_uriID = uriID;
+	strm->sContext.curr_lnID = lnID;
 	return ERR_OK;
 }
 
-static errorCode decodeStringValue(EXIStream* strm, StringType** value, uint32_t uriID, uint32_t lnID);
+static errorCode decodeStringValue(EXIStream* strm, StringType** value);
 
-static errorCode decodeStringValue(EXIStream* strm, StringType** value, uint32_t uriID, uint32_t lnID)
+static errorCode decodeStringValue(EXIStream* strm, StringType** value)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	uint32_t uriID = strm->sContext.curr_uriID;
+	uint32_t lnID = strm->sContext.curr_lnID;
 	uint32_t flag_StringLiteralsPartition = 0;
 	tmp_err_code = decodeUnsignedInteger(strm, &flag_StringLiteralsPartition);
 	if(tmp_err_code != ERR_OK)
@@ -453,7 +455,7 @@ static errorCode decodeStringValue(EXIStream* strm, StringType** value, uint32_t
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = addLVRow(&(strm->uriTable->rows[uriID].lTable->rows[lnID]), gvID);
+		tmp_err_code = addLVRow(&(strm->uriTable->rows[uriID].lTable->rows[lnID]), gvID, &(strm->memStack));
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -463,23 +465,19 @@ static errorCode decodeStringValue(EXIStream* strm, StringType** value, uint32_t
 }
 
 static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHandler* handler,
-									ValueType vType, uint32_t uriRowID, uint32_t lnRowID,
-									unsigned int* nonTermID_out, GrammarRule* currRule);
+									ValueType vType, unsigned int* nonTermID_out, GrammarRule* currRule);
 
 static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHandler* handler,
-									ValueType vType, uint32_t uriRowID, uint32_t lnRowID,
-									unsigned int* nonTermID_out, GrammarRule* currRule)
+									ValueType vType, unsigned int* nonTermID_out, GrammarRule* currRule)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	// TODO: implement all cases
-	uint32_t uriID = 0;
-	uint32_t lnID = 0;
 	QName qname;
 	if(eType == EVENT_SE_ALL)
 	{
 		DEBUG_MSG(INFO,(">SE(*) event\n"));
 		// The content of SE event is the element qname
-		tmp_err_code = decodeQName(strm, &qname, &uriID, &lnID);
+		tmp_err_code = decodeQName(strm, &qname);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		if(handler->startElement != NULL)  // Invoke handler method passing the element qname
@@ -492,7 +490,7 @@ static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHan
 
 		if(!isDocGr)  // If the current grammar is Element grammar ...
 		{
-			tmp_err_code = insertZeroProduction(currRule, EVENT_SE_QNAME, *nonTermID_out, lnID, uriID);
+			tmp_err_code = insertZeroProduction(currRule, EVENT_SE_QNAME, *nonTermID_out, strm->sContext.curr_lnID, strm->sContext.curr_uriID);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -500,7 +498,7 @@ static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHan
 		// New element grammar is pushed on the stack
 		struct EXIGrammar* res = NULL;
 		char is_found = 0;
-		tmp_err_code = checkElementGrammarInPool(strm->gPool, uriID, lnID, &is_found, &res);
+		tmp_err_code = checkElementGrammarInPool(strm->gPool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, &is_found, &res);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		strm->gStack->lastNonTermID = *nonTermID_out;
@@ -513,13 +511,13 @@ static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHan
 		}
 		else
 		{
-			struct EXIGrammar* elementGrammar = (struct EXIGrammar*) memManagedAllocate(sizeof(struct EXIGrammar));
+			struct EXIGrammar* elementGrammar = (struct EXIGrammar*) memManagedAllocate(&(strm->memStack), sizeof(struct EXIGrammar));
 			if(elementGrammar == NULL)
 				return MEMORY_ALLOCATION_ERROR;
-			tmp_err_code = createBuildInElementGrammar(elementGrammar, strm->opts);
+			tmp_err_code = createBuildInElementGrammar(elementGrammar, strm->opts, &(strm->memStack));
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
-			tmp_err_code = addElementGrammarInPool(strm->gPool, uriID, lnID, elementGrammar);
+			tmp_err_code = addElementGrammarInPool(strm->gPool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, elementGrammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 			*nonTermID_out = GR_START_TAG_CONTENT;
@@ -533,7 +531,7 @@ static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHan
 	{
 		DEBUG_MSG(INFO,(">AT(*) event\n"));
 		// The content of SE event is the element qname
-		tmp_err_code = decodeQName(strm, &qname, &uriID, &lnID);
+		tmp_err_code = decodeQName(strm, &qname);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		if(handler->attribute != NULL)  // Invoke handler method
@@ -541,28 +539,28 @@ static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHan
 		if(vType == VALUE_TYPE_STRING)
 		{
 			StringType* value;
-			tmp_err_code = decodeStringValue(strm, &value, uriID, lnID);
+			tmp_err_code = decodeStringValue(strm, &value);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 			if(handler->stringData != NULL)  // Invoke handler method
 				handler->stringData(*value);
 		}
-		tmp_err_code = insertZeroProduction(currRule, EVENT_AT_QNAME, *nonTermID_out, lnID, uriID);
+		tmp_err_code = insertZeroProduction(currRule, EVENT_AT_QNAME, *nonTermID_out, strm->sContext.curr_lnID, strm->sContext.curr_uriID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 	else if(eType == EVENT_SE_QNAME)
 	{
 		DEBUG_MSG(INFO,(">SE(qname) event\n"));
-		qname.uri = &(strm->uriTable->rows[uriRowID].string_val);
-		qname.localName = &(strm->uriTable->rows[uriRowID].lTable->rows[lnRowID].string_val);
+		qname.uri = &(strm->uriTable->rows[strm->sContext.curr_uriID].string_val);
+		qname.localName = &(strm->uriTable->rows[strm->sContext.curr_uriID].lTable->rows[strm->sContext.curr_lnID].string_val);
 		if(handler->startElement != NULL)  // Invoke handler method passing the element qname
 			handler->startElement(qname);
 
 		// New element grammar is pushed on the stack
 		struct EXIGrammar* res = NULL;
 		char is_found = 0;
-		tmp_err_code = checkElementGrammarInPool(strm->gPool, uriRowID, lnRowID, &is_found, &res);
+		tmp_err_code = checkElementGrammarInPool(strm->gPool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, &is_found, &res);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		strm->gStack->lastNonTermID = *nonTermID_out;
@@ -581,14 +579,14 @@ static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHan
 	else if(eType == EVENT_AT_QNAME)
 	{
 		DEBUG_MSG(INFO,(">AT(qname) event\n"));
-		qname.uri = &(strm->uriTable->rows[uriRowID].string_val);
-		qname.localName = &(strm->uriTable->rows[uriRowID].lTable->rows[lnRowID].string_val);
+		qname.uri = &(strm->uriTable->rows[strm->sContext.curr_uriID].string_val);
+		qname.localName = &(strm->uriTable->rows[strm->sContext.curr_uriID].lTable->rows[strm->sContext.curr_lnID].string_val);
 		if(handler->attribute != NULL)  // Invoke handler method
 			handler->attribute(qname);
 		if(vType == VALUE_TYPE_STRING)
 		{
 			StringType* value;
-			tmp_err_code = decodeStringValue(strm, &value, uriRowID, lnRowID);
+			tmp_err_code = decodeStringValue(strm, &value);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 			if(handler->stringData != NULL)  // Invoke handler method
@@ -599,7 +597,7 @@ static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHan
 	{
 		DEBUG_MSG(INFO,(">CH event\n"));
 		StringType* value;
-		tmp_err_code = decodeStringValue(strm, &value, uriRowID, lnRowID);
+		tmp_err_code = decodeStringValue(strm, &value);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		if(handler->stringData != NULL)  // Invoke handler method
@@ -677,9 +675,9 @@ errorCode processNextProduction(EXIStream* strm, EventType* eType,
 					}
 					else // The event has content!
 					{
+						strm->sContext.curr_uriID = strm->gStack->ruleArray[i].prodArray[currProduction].uriRowID;
+						strm->sContext.curr_lnID = strm->gStack->ruleArray[i].prodArray[currProduction].lnRowID;
 						tmp_err_code = decodeEventContent(strm, *eType, handler, vType,
-										strm->gStack->ruleArray[i].prodArray[currProduction].uriRowID,
-										strm->gStack->ruleArray[i].prodArray[currProduction].lnRowID,
 								        nonTermID_out, &(strm->gStack->ruleArray[i]));
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
@@ -724,9 +722,10 @@ errorCode processNextProduction(EXIStream* strm, EventType* eType,
 									{
 										if(b > 0)   // #1# COMMENT
 										{
+											strm->sContext.curr_uriID = strm->gStack->ruleArray[i].prodArray[j].uriRowID;
+											strm->sContext.curr_lnID = strm->gStack->ruleArray[i].prodArray[j].lnRowID;
 											tmp_err_code = insertZeroProduction(&(strm->gStack->ruleArray[i]),EVENT_EE, GR_VOID_NON_TERMINAL,
-																				strm->gStack->ruleArray[i].prodArray[j].lnRowID,
-																				strm->gStack->ruleArray[i].prodArray[j].uriRowID);
+																				strm->sContext.curr_lnID, strm->sContext.curr_uriID);
 											if(tmp_err_code != ERR_OK)
 												return tmp_err_code;
 										}
@@ -739,6 +738,8 @@ errorCode processNextProduction(EXIStream* strm, EventType* eType,
 								}
 								else // The event has content!
 								{
+									strm->sContext.curr_uriID = strm->gStack->ruleArray[i].prodArray[j].uriRowID;
+									strm->sContext.curr_lnID = strm->gStack->ruleArray[i].prodArray[j].lnRowID;
 									if(*eType == EVENT_CH)
 									{
 										unsigned char isDocGr = 0;
@@ -751,16 +752,13 @@ errorCode processNextProduction(EXIStream* strm, EventType* eType,
 											if(b > 0)   // #2# COMMENT
 											{
 												tmp_err_code = insertZeroProduction(&(strm->gStack->ruleArray[i]),EVENT_CH, *nonTermID_out,
-																					strm->gStack->ruleArray[i].prodArray[j].lnRowID,
-																					strm->gStack->ruleArray[i].prodArray[j].uriRowID);
+																					strm->sContext.curr_lnID, strm->sContext.curr_uriID);
 												if(tmp_err_code != ERR_OK)
 													return tmp_err_code;
 											}
 										}
 									}
 									tmp_err_code = decodeEventContent(strm, *eType, handler, vType,
-													strm->gStack->ruleArray[i].prodArray[j].uriRowID,
-													strm->gStack->ruleArray[i].prodArray[j].lnRowID,
 											        nonTermID_out, &(strm->gStack->ruleArray[i]));
 									if(tmp_err_code != ERR_OK)
 										return tmp_err_code;
@@ -782,11 +780,11 @@ errorCode processNextProduction(EXIStream* strm, EventType* eType,
 	return tmp_err_code;
 }
 
-errorCode createElementGrammarPool(struct ElementGrammarPool* pool)
+errorCode createElementGrammarPool(struct ElementGrammarPool* pool, struct memAlloc** mStack)
 {
 	pool->refsDimension = GRAMMAR_POOL_DIMENSION;
 	pool->refsCount = 0;
-	pool->refs = (struct ElementGrammarLabel*) memManagedAllocatePtr(sizeof(struct ElementGrammarLabel)*GRAMMAR_POOL_DIMENSION, &pool->memNode);
+	pool->refs = (struct ElementGrammarLabel*) memManagedAllocatePtr(mStack, sizeof(struct ElementGrammarLabel)*GRAMMAR_POOL_DIMENSION, &pool->memNode);
 	if(pool->refs == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -869,7 +867,7 @@ errorCode encodeQName(EXIStream* strm, QName qname)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = addURIRow(strm->uriTable, *(qname.uri), &uriID);
+		tmp_err_code = addURIRow(strm->uriTable, *(qname.uri), &uriID, &(strm->memStack));
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -901,7 +899,7 @@ errorCode encodeQName(EXIStream* strm, QName qname)
 
 		if(strm->uriTable->rows[uriID].lTable == NULL)
 		{
-			tmp_err_code = createLocalNamesTable(&strm->uriTable->rows[uriID].lTable);
+			tmp_err_code = createLocalNamesTable(&strm->uriTable->rows[uriID].lTable, &(strm->memStack));
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -962,7 +960,7 @@ errorCode encodeStringData(EXIStream* strm, StringType strng)
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			tmp_err_code = addLVRow(&(strm->uriTable->rows[p_uriID].lTable->rows[p_lnID]), gvRowID);
+			tmp_err_code = addLVRow(&(strm->uriTable->rows[p_uriID].lTable->rows[p_lnID]), gvRowID, &(strm->memStack));
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}

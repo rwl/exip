@@ -104,24 +104,27 @@ errorCode popGrammar(EXIGrammarStack** gStack, struct EXIGrammar** grammar);
  * @brief Creates an instance of the EXI Built-in Document Grammar
  * @param[in] buildInGrammar empty grammar container
  * @param[in] fidelity_opts Fidelity options /EXI header preserve opts/
+ * @param[in, out] mStack Memory stack to which this allocation will be registered
  * @return Error handling code
  */
-errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOptions* opts);
+errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOptions* opts, struct memAlloc** mStack);
 
 /**
  * @brief Creates an instance of EXI Built-in Element Grammar
  * @param[in] elementGrammar empty grammar container
  * @param[in] fidelity_opts Fidelity options /EXI header preserve opts/
+ * @param[in, out] mStack Memory stack to which this allocation will be registered
  * @return Error handling code
  */
-errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, struct EXIOptions* opts);
+errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, struct EXIOptions* opts, struct memAlloc** mStack);
 
 /**
  * @brief Creates empty Element Grammar pool
  * @param[in, out] pool empty pool container
+ * @param[in, out] mStack Memory stack to which this allocation will be registered
  * @return Error handling code
  */
-errorCode createElementGrammarPool(struct ElementGrammarPool* pool);
+errorCode createElementGrammarPool(struct ElementGrammarPool* pool, struct memAlloc** mStack);
 
 /**
  * @brief Checks if a specific element grammar is already in the Element Grammar pool

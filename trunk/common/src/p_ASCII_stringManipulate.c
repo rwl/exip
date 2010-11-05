@@ -46,9 +46,9 @@
 #include <string.h>
 #include <stdio.h>
 
-errorCode allocateStringMemory(CharType** str, uint32_t UCSchars)
+errorCode allocateStringMemory(CharType** str, uint32_t UCSchars, struct memAlloc** mStack)
 {
-	(*str) = (CharType*) memManagedAllocate(sizeof(CharType)*UCSchars);
+	(*str) = (CharType*) memManagedAllocate(mStack, sizeof(CharType)*UCSchars);
 	if((*str) == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 	return ERR_OK;
@@ -80,12 +80,12 @@ errorCode getEmptyString(StringType* emptyStr)
 	return ERR_OK;
 }
 
-errorCode asciiToString(char* inStr, StringType* outStr)
+errorCode asciiToString(char* inStr, StringType* outStr, struct memAlloc** mStack)
 {
 	outStr->length = strlen(inStr);
 	if(outStr->length > 0)  // If == 0 -> empty string
 	{
-		outStr->str = (CharType*) memManagedAllocate(sizeof(CharType)*(outStr->length));
+		outStr->str = (CharType*) memManagedAllocate(mStack, sizeof(CharType)*(outStr->length));
 		if(outStr->str == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 		memcpy(outStr->str, inStr, outStr->length);

@@ -53,9 +53,10 @@
 /**
  * @brief Initialize the dynamic array prodArray with the default size
  * @param[in, out] rule a Grammar Rule
+ * @param[in, out] mStack Memory stack to which this allocation will be registered
  * @return Error handling code
  */
-errorCode initGrammarRule(GrammarRule* rule);
+errorCode initGrammarRule(GrammarRule* rule, struct memAlloc** mStack);
 
 /**
  * @brief Adds a Production to a Grammar Rule
