@@ -293,7 +293,20 @@ errorCode startElementSer(EXIStream* strm, QName qname)
 
 errorCode endElementSer(EXIStream* strm)
 {
-	return encodeEXIEvent(strm, EVENT_EE);
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	tmp_err_code = encodeEXIEvent(strm, EVENT_EE);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+	if(strm->nonTermID == GR_VOID_NON_TERMINAL)
+	{
+		struct EXIGrammar* grammar;
+		tmp_err_code = popGrammar(&(strm->gStack), &grammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		if(strm->gStack != NULL) // There is more grammars in the stack
+			strm->nonTermID = strm->gStack->lastNonTermID;
+	}
+	return ERR_OK;
 }
 
 errorCode attributeSer(EXIStream* strm, QName qname)
