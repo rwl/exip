@@ -70,6 +70,7 @@ EXISerializer serEXI = {startDocumentSer,
 						selfContainedSer};
 
 static void printfHelp();
+static void printError(errorCode err_code, struct memAlloc** mStack, FILE *outfile);
 
 int main(int argc, char *argv[])
 {
@@ -98,36 +99,41 @@ int main(int argc, char *argv[])
 			errorCode tmp_err_code = UNEXPECTED_ERROR;
 			EXIStream testStrm;
 			tmp_err_code = serEXI.initStream(&testStrm, 200);
+			if(tmp_err_code != ERR_OK)
+				printError(tmp_err_code, &(testStrm.memStack), outfile);
 
 			EXIheader header;
 			header.has_cookie = 0;
 			header.has_options = 0;
 			header.is_preview_version = 0;
 			header.version_number = 1;
-			tmp_err_code = serEXI.exiHeaderSer(&testStrm, &header);
+			tmp_err_code += serEXI.exiHeaderSer(&testStrm, &header);
+			tmp_err_code += serEXI.startDocumentSer(&testStrm);
 
-			tmp_err_code = serEXI.startDocumentSer(&testStrm);
 			StringType uri;
 			StringType ln;
-			tmp_err_code = asciiToString("", &uri, &(testStrm.memStack));
-			tmp_err_code = asciiToString("EXIPEncoder", &ln, &(testStrm.memStack));
+			tmp_err_code += asciiToString("", &uri, &(testStrm.memStack));
+			tmp_err_code += asciiToString("EXIPEncoder", &ln, &(testStrm.memStack));
 			QName testElQname = {&uri, &ln};
-			tmp_err_code = serEXI.startElementSer(&testStrm, testElQname);
+			tmp_err_code += serEXI.startElementSer(&testStrm, testElQname);
 
-			tmp_err_code = asciiToString("version", &ln, &(testStrm.memStack));
+			tmp_err_code += asciiToString("version", &ln, &(testStrm.memStack));
 			QName testAtQname = {&uri, &ln};
-			tmp_err_code = serEXI.attributeSer(&testStrm, testAtQname);
+			tmp_err_code += serEXI.attributeSer(&testStrm, testAtQname);
 
 			StringType attVal;
-			tmp_err_code = asciiToString("0.1", &attVal, &(testStrm.memStack));
-			tmp_err_code = serEXI.stringDataSer(&testStrm, attVal);
+			tmp_err_code += asciiToString("0.1", &attVal, &(testStrm.memStack));
+			tmp_err_code += serEXI.stringDataSer(&testStrm, attVal);
 
 			StringType chVal;
-			tmp_err_code = asciiToString("This is an example of serializing EXI streams using EXIP low level API", &chVal, &(testStrm.memStack));
-			tmp_err_code = serEXI.stringDataSer(&testStrm, chVal);
+			tmp_err_code += asciiToString("This is an example of serializing EXI streams using EXIP low level API", &chVal, &(testStrm.memStack));
+			tmp_err_code += serEXI.stringDataSer(&testStrm, chVal);
 
-			tmp_err_code = serEXI.endElementSer(&testStrm);
-			tmp_err_code = serEXI.endDocumentSer(&testStrm);
+			tmp_err_code += serEXI.endElementSer(&testStrm);
+			tmp_err_code += serEXI.endDocumentSer(&testStrm);
+
+			if(tmp_err_code != ERR_OK)
+				printError(tmp_err_code, &(testStrm.memStack), outfile);
 
 			if(fwrite(testStrm.buffer, sizeof(char), testStrm.bufferIndx+1, outfile) < testStrm.bufferIndx+1)
 			{
@@ -155,4 +161,12 @@ static void printfHelp()
     printf("  Usage:   exipe -help | <EXI_FileOut>\n\n");
     printf("  Purpose: This program tests the EXIP encoding functionality\n");
     printf("\n" );
+}
+
+static void printError(errorCode err_code, struct memAlloc** mStack, FILE *outfile)
+{
+	printf("\n Error occured: %d", err_code);
+	freeAllMem(mStack);
+	fclose(outfile);
+	exit(1);
 }
