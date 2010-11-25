@@ -33,103 +33,59 @@
 \===================================================================================*/
 
 /**
- * @file headerDecode.c
- * @brief Implementing the interface of EXI header decoder
- *
- * @date Aug 23, 2010
+ * @file hashUtils.c
+ * @brief Implementation of the hash function used in the processor
+ * @date Nov 23, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#include "../include/headerDecode.h"
+#include "procTypes.h"
+#include "string.h"
 
-errorCode decodeHeader(EXIStream* strm, EXIheader* header)
+unsigned int djbHash(void* str, unsigned int len)
 {
-	DEBUG_MSG(INFO,(">Start EXI header decoding\n"));
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned int bits_val = 0;
-	tmp_err_code = readBits(strm, 2, &bits_val);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-	if(bits_val == 2)  // The header Distinguishing Bits i.e. no EXI Cookie
-	{
-		header->has_cookie = 0;
-		DEBUG_MSG(INFO,(">No EXI cookie detected\n"));
-	}
-	else if(bits_val == 0)// ASCII code for $ = 00100100  (36)
-	{
-		tmp_err_code = readBits(strm, 6, &bits_val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		if(bits_val != 36)
-			return INVALID_EXI_HEADER;
-		tmp_err_code = readBits(strm, 8, &bits_val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		if(bits_val != 69)   // ASCII code for E = 01000101  (69)
-			return INVALID_EXI_HEADER;
-		tmp_err_code = readBits(strm, 8, &bits_val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		if(bits_val != 88)   // ASCII code for X = 01011000  (88)
-			return INVALID_EXI_HEADER;
-		tmp_err_code = readBits(strm, 8, &bits_val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		if(bits_val != 73)   // ASCII code for I = 01001001  (73)
-			return INVALID_EXI_HEADER;
+	char* tmp = str;
+	unsigned int hash = 5381;
+	unsigned int i    = 0;
 
-		header->has_cookie = 1;
-		tmp_err_code = readBits(strm, 2, &bits_val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		if(bits_val != 2)  // The header Distinguishing Bits are required
-			return INVALID_EXI_HEADER;
+	for(i = 0; i < len; tmp++, i++)
+	{
+		hash = ((hash << 5) + hash) + (*tmp);
 	}
+
+	return hash;
+}
+
+int keyEqual(char* key1, unsigned int len1, char* key2, unsigned int len2)
+{
+	if(len1 != len2)
+		return 0;
 	else
 	{
-		return INVALID_EXI_HEADER;
+		if(len1 == 0)
+		{
+			if(key1 == NULL && key2 == NULL)
+				return 1;
+			else
+				return 0;
+		}
+		else
+		{
+			int i = 0;
+			for(i = 0; i < len1; i++)
+			{
+				if(key1[i] != key2[i])
+					return 0;
+			}
+			return 1;
+		}
 	}
+}
 
-	// Read the Presence Bit for EXI Options
-	tmp_err_code = readNextBit(strm, &bits_val);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	if(strm->opts == NULL)
-		return NULL_POINTER_REF;
-
-	if(bits_val == 1) // There are EXI options
-	{
-		header->has_options = 1;
-		return NOT_IMPLEMENTED_YET; // TODO: Handle EXI streams with options. This includes Padding Bits in some cases
-	}
-	else // The default values for EXI options
-	{
-		DEBUG_MSG(INFO,(">No EXI options field in the header\n"));
-		header->has_options = 0;
-	    makeDefaultOpts(strm->opts);
-	}
-
-	// Read the Version type
-	tmp_err_code = readNextBit(strm, &bits_val);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	header->is_preview_version = bits_val;
-	header->version_number = 1;
-
-	do
-	{
-		tmp_err_code = readBits(strm, 4, &bits_val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		header->version_number += bits_val;
-		if(bits_val < 15)
-			break;
-	} while(1);
-
-	DEBUG_MSG(INFO,(">EXI version: %d\n", header->version_number));
-	return ERR_OK;
+void createKey64bits(uint32_t first, uint32_t second, char* key)
+{
+	memcpy(key, &first, sizeof(uint32_t));
+	memcpy(key+sizeof(uint32_t), &second, sizeof(uint32_t));
 }

@@ -46,12 +46,16 @@
 
 #include "../include/grammars.h"
 #include "procTypes.h"
+#include "hashtable.h"
+#include "hashUtils.h"
+
+#include <stdio.h>
 
 #define DEF_GRAMMAR_RULE_NUMBER 3
 #define DEF_ELEMENT_GRAMMAR_RULE_NUMBER 2
-#define GRAMMAR_POOL_DIMENSION 5
+#define GRAMMAR_POOL_DIMENSION 16
 
-errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOptions* opts, struct memAlloc** mStack)
+errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOptions* opts, EXIStream* strm)
 {
 	//TODO: depends on the EXI fidelity options! Take this into account
 	// For now only the default fidelity_opts pruning is supported - all preserve opts are false
@@ -63,14 +67,14 @@ errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOpti
 	buildInGrammar->lastNonTermID = GR_VOID_NON_TERMINAL;
 	buildInGrammar->nextInStack = NULL;
 	buildInGrammar->rulesDimension = DEF_GRAMMAR_RULE_NUMBER;
-	buildInGrammar->ruleArray = (GrammarRule*) memManagedAllocate(mStack, sizeof(GrammarRule)*DEF_GRAMMAR_RULE_NUMBER);
+	buildInGrammar->ruleArray = (GrammarRule*) memManagedAllocate(strm, sizeof(GrammarRule)*DEF_GRAMMAR_RULE_NUMBER);
 	if(buildInGrammar->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
 	/* Document : SD DocContent	0 */
-	tmp_err_code = initGrammarRule(&(buildInGrammar->ruleArray[0]), mStack);
+	tmp_err_code = initGrammarRule(&(buildInGrammar->ruleArray[0]), strm);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	buildInGrammar->ruleArray[0].nonTermID = GR_DOCUMENT;
@@ -86,7 +90,7 @@ errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOpti
 					CM DocContent	1.1.0
 					PI DocContent	1.1.1
 	 */
-	tmp_err_code = initGrammarRule(&(buildInGrammar->ruleArray[1]), mStack);
+	tmp_err_code = initGrammarRule(&(buildInGrammar->ruleArray[1]), strm);
 	if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	buildInGrammar->ruleArray[1].nonTermID = GR_DOC_CONTENT;
@@ -129,7 +133,7 @@ errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOpti
 				ED	        0
 				CM DocEnd	1.0
 				PI DocEnd	1.1 */
-	tmp_err_code = initGrammarRule(&(buildInGrammar->ruleArray[2]), mStack);
+	tmp_err_code = initGrammarRule(&(buildInGrammar->ruleArray[2]), strm);
 	if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	buildInGrammar->ruleArray[2].nonTermID = GR_DOC_END;
@@ -164,7 +168,7 @@ errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOpti
 	return ERR_OK;
 }
 
-errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, struct EXIOptions* opts, struct memAlloc** mStack)
+errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, struct EXIOptions* opts, EXIStream* strm)
 {
 	//TODO: depends on the EXI fidelity options! Take this into account
 	// For now only the default fidelity_opts pruning is supported - all preserve opts are false
@@ -177,7 +181,7 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, struct 
 	elementGrammar->lastNonTermID = GR_VOID_NON_TERMINAL;
 	elementGrammar->nextInStack = NULL;
 	elementGrammar->rulesDimension = DEF_ELEMENT_GRAMMAR_RULE_NUMBER;
-	elementGrammar->ruleArray = (GrammarRule*) memManagedAllocate(mStack, sizeof(GrammarRule)*DEF_ELEMENT_GRAMMAR_RULE_NUMBER);
+	elementGrammar->ruleArray = (GrammarRule*) memManagedAllocate(strm, sizeof(GrammarRule)*DEF_ELEMENT_GRAMMAR_RULE_NUMBER);
 	if(elementGrammar->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -193,7 +197,7 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, struct 
 							ER ElementContent	    0.6
 							CM ElementContent	    0.7.0
 							PI ElementContent	    0.7.1 */
-	tmp_err_code = initGrammarRule(&(elementGrammar->ruleArray[0]), mStack);
+	tmp_err_code = initGrammarRule(&(elementGrammar->ruleArray[0]), strm);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	elementGrammar->ruleArray[0].nonTermID = GR_START_TAG_CONTENT;
@@ -277,7 +281,7 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, struct 
 							ER ElementContent	    1.2
 							CM ElementContent	    1.3.0
 							PI ElementContent	    1.3.1 */
-	tmp_err_code = initGrammarRule(&(elementGrammar->ruleArray[1]), mStack);
+	tmp_err_code = initGrammarRule(&(elementGrammar->ruleArray[1]), strm);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	elementGrammar->ruleArray[1].nonTermID = GR_ELEMENT_CONTENT;
@@ -511,10 +515,10 @@ static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHan
 		}
 		else
 		{
-			struct EXIGrammar* elementGrammar = (struct EXIGrammar*) memManagedAllocate(&(strm->memStack), sizeof(struct EXIGrammar));
+			struct EXIGrammar* elementGrammar = (struct EXIGrammar*) memManagedAllocate(strm, sizeof(struct EXIGrammar));
 			if(elementGrammar == NULL)
 				return MEMORY_ALLOCATION_ERROR;
-			tmp_err_code = createBuildInElementGrammar(elementGrammar, strm->opts, &(strm->memStack));
+			tmp_err_code = createBuildInElementGrammar(elementGrammar, strm->opts, strm);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 			tmp_err_code = addElementGrammarInPool(strm->gPool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, elementGrammar);
@@ -780,53 +784,41 @@ errorCode processNextProduction(EXIStream* strm, EventType* eType,
 	return tmp_err_code;
 }
 
-errorCode createElementGrammarPool(struct ElementGrammarPool* pool, struct memAlloc** mStack)
+errorCode createElementGrammarPool(ElementGrammarPool** pool)
 {
-	pool->refsDimension = GRAMMAR_POOL_DIMENSION;
-	pool->refsCount = 0;
-	pool->refs = (struct ElementGrammarLabel*) memManagedAllocatePtr(mStack, sizeof(struct ElementGrammarLabel)*GRAMMAR_POOL_DIMENSION, &pool->memNode);
-	if(pool->refs == NULL)
+	*pool = (ElementGrammarPool*) create_hashtable(GRAMMAR_POOL_DIMENSION, djbHash, keyEqual);
+	if(*pool == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
 	return ERR_OK;
 }
 
-//TODO: Smarter algorithm must be employed here
-errorCode checkElementGrammarInPool(struct ElementGrammarPool* pool, uint32_t uriRowID,
+errorCode checkElementGrammarInPool(ElementGrammarPool* pool, uint32_t uriRowID,
 									uint32_t lnRowID, unsigned char* is_found, struct EXIGrammar** result)
 {
-	unsigned int i = 0;
-	for(i = 0; i < pool->refsCount; i++)
-	{
-		if(pool->refs[i].uriRowID == uriRowID && pool->refs[i].lnRowID == lnRowID)
-		{
-			*is_found = 1;
-			*result = pool->refs[i].elementGrammar;
-			return ERR_OK;
-		}
-	}
-	*is_found = 0;
-	*result = NULL;
+	char key[8];
+	createKey64bits(uriRowID, lnRowID, key);
+
+	*result = hashtable_search(pool, key, 8);
+	if(*result == NULL)
+		*is_found = 0;
+	else
+		*is_found = 1;
+
 	return ERR_OK;
 }
 
-errorCode addElementGrammarInPool(struct ElementGrammarPool* pool, uint32_t uriRowID,
+errorCode addElementGrammarInPool(ElementGrammarPool* pool, uint32_t uriRowID,
 								uint32_t lnRowID, struct EXIGrammar* newGr)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	if(pool->refsCount == pool->refsDimension) // The dynamic array must be extended first
-	{
-		tmp_err_code = memManagedReAllocate(&pool->refs, sizeof(struct ElementGrammarLabel)*(pool->refsCount + GRAMMAR_POOL_DIMENSION), pool->memNode);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		pool->refsDimension += GRAMMAR_POOL_DIMENSION;
-	}
+	char* key = EXIP_MALLOC(8); // Keys are freed from the hash table
+	if(key == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+	createKey64bits(uriRowID, lnRowID, key);
 
-	pool->refs[pool->refsCount].lnRowID = lnRowID;
-	pool->refs[pool->refsCount].uriRowID = uriRowID;
-	pool->refs[pool->refsCount].elementGrammar = newGr;
+	if (! hashtable_insert(pool, key, 8, newGr) )
+		return HASH_TABLE_ERROR;
 
-	pool->refsCount += 1;
 	return ERR_OK;
 }
 

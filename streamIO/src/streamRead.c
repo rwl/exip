@@ -67,6 +67,7 @@ errorCode readNextBit(EXIStream* strm, unsigned char* bit_val)
 errorCode readBits(EXIStream* strm, unsigned char n, uint32_t* bits_val)
 {
 	//TODO: Handle error cases i.e. end of the stream and so on
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	*bits_val = 0;
 	unsigned int numBitsRead = 0; // Number of the bits read so far
 	int tmp = 0;
@@ -91,7 +92,9 @@ errorCode readBits(EXIStream* strm, unsigned char n, uint32_t* bits_val)
 		tmp = tmp << shift;
 		*bits_val = *bits_val | tmp;
 
-		moveBitPointer(strm, bits_in_byte);
+		tmp_err_code = moveBitPointer(strm, bits_in_byte);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 	}
 	return ERR_OK;
 }

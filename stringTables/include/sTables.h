@@ -57,46 +57,46 @@
  * @brief Creates fresh empty ValueTable (value partition of EXI string table)
  * This operation includes allocation of memory for DEFAULT_VALUE_ROWS_NUMBER number of value rows
  * @param[out] vTable ValueTable string table
- * @param[in, out] mStack Memory stack to which this allocation will be registered
+ * @param[in, out] strm EXI stream for which the allocation is made
  * @return Error handling code
  */
-errorCode createValueTable(ValueTable** vTable, struct memAlloc** mStack);
+errorCode createValueTable(ValueTable** vTable, EXIStream* strm);
 
 /**
  * @brief Creates fresh empty URITable (uri partition of EXI string table)
  * This operation includes allocation of memory for DEFAULT_URI_ROWS_NUMBER number of uri rows
  * @param[out] uTable URITable string table
- * @param[in, out] mStack Memory stack to which this allocation will be registered
+ * @param[in, out] strm EXI stream for which the allocation is made
  * @return Error handling code
  */
-errorCode createURITable(URITable** uTable, struct memAlloc** mStack);
+errorCode createURITable(URITable** uTable, EXIStream* strm);
 
 /**
  * @brief Creates fresh empty PrefixTable (prefix partition of EXI string table)
  * This operation includes allocation of memory for DEFAULT_PREFIX_ROWS_NUMBER number of prefix rows
  * @param[out] pTable PrefixTable string table
- * @param[in, out] mStack Memory stack to which this allocation will be registered
+ * @param[in, out] strm EXI stream for which the allocation is made
  * @return Error handling code
  */
-errorCode createPrefixTable(PrefixTable** pTable, struct memAlloc** mStack);
+errorCode createPrefixTable(PrefixTable** pTable, EXIStream* strm);
 
 /**
  * @brief Creates fresh empty LocalNamesTable (local names partition of EXI string table)
  * This operation includes allocation of memory for DEFAULT_LOCALNAMES_ROWS_NUMBER number of local names rows
  * @param[out] lTable LocalNamesTable string table
- * @param[in, out] mStack Memory stack to which this allocation will be registered
+ * @param[in, out] strm EXI stream for which the allocation is made
  * @return Error handling code
  */
-errorCode createLocalNamesTable(LocalNamesTable** lTable, struct memAlloc** mStack);
+errorCode createLocalNamesTable(LocalNamesTable** lTable, EXIStream* strm);
 
 /**
  * @brief Creates fresh empty ValueLocalCrossTable
  * This operation includes allocation of memory for DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER number of rows
  * @param[out] vlTable ValueLocalCrossTable string table
- * @param[in, out] mStack Memory stack to which this allocation will be registered
+ * @param[in, out] strm EXI stream for which the allocation is made
  * @return Error handling code
  */
-errorCode createValueLocalCrossTable(ValueLocalCrossTable** vlTable, struct memAlloc** mStack);
+errorCode createValueLocalCrossTable(ValueLocalCrossTable** vlTable, EXIStream* strm);
 
 /**
  * @brief Add new row into the URI string table
@@ -104,10 +104,10 @@ errorCode createValueLocalCrossTable(ValueLocalCrossTable** vlTable, struct memA
  * @param[in, out] uTable URI string table
  * @param[in] uri the string representing this uri. The StringType can be allocated on the stack.
  * @param[out] rowID the ID of the row inserted
- * @param[in, out] mStack Memory stack to which this allocation will be registered
+ * @param[in, out] strm EXI stream for which the allocation is made
  * @return Error handling code
  */
-errorCode addURIRow(URITable* uTable, StringType uri, uint32_t* rowID, struct memAlloc** mStack);
+errorCode addURIRow(URITable* uTable, StringType uri, uint32_t* rowID, EXIStream* strm);
 
 /**
  * @brief Add new row into the Local-Names string table
@@ -146,10 +146,10 @@ errorCode addGVRow(ValueTable* vTable, StringType global_value, uint32_t* rowID)
  *
  * @param[in, out] lnRow The local name row at which the Local value cross string table is attached
  * @param[in] globalValueRowID the rowID of the string in the global value string table
- * @param[in, out] mStack Memory stack to which this allocation will be registered
+ * @param[in, out] strm EXI stream for which the allocation is made
  * @return Error handling code
  */
-errorCode addLVRow(struct LocalNamesRow* lnRow, uint32_t globalValueRowID, struct memAlloc** mStack);
+errorCode addLVRow(struct LocalNamesRow* lnRow, uint32_t globalValueRowID, EXIStream* strm);
 
 /**
  * @brief Search the URI table for a particular string value

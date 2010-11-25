@@ -52,9 +52,9 @@ START_TEST (test_createValueTable)
 {
 	ValueTable* vTable;
 	errorCode err = UNEXPECTED_ERROR;
-	struct memAlloc* mStack;
+	EXIStream strm;
 
-	err = createValueTable(&vTable, &mStack);
+	err = createValueTable(&vTable, &strm);
 
 	fail_unless (err == ERR_OK, "createValueTable returns error code %d", err);
 	fail_unless (vTable->rowCount == 0,
@@ -69,8 +69,8 @@ START_TEST (test_createURITable)
 {
 	URITable* uTable;
 	errorCode err = UNEXPECTED_ERROR;
-	struct memAlloc* mStack;
-	err = createURITable(&uTable, &mStack);
+	EXIStream strm;
+	err = createURITable(&uTable, &strm);
 
 	fail_unless (err == ERR_OK, "createURITable returns error code %d", err);
 	fail_unless (uTable->rowCount == 0,
@@ -85,8 +85,8 @@ START_TEST (test_createPrefixTable)
 {
 	PrefixTable* pTable;
 	errorCode err = UNEXPECTED_ERROR;
-	struct memAlloc* mStack;
-	err = createPrefixTable(&pTable, &mStack);
+	EXIStream strm;
+	err = createPrefixTable(&pTable, &strm);
 
 	fail_unless (err == ERR_OK, "createPrefixTable returns error code %d", err);
 	fail_unless (pTable->rowCount == 0,
@@ -101,8 +101,8 @@ START_TEST (test_createLocalNamesTable)
 {
 	LocalNamesTable* lTable;
 	errorCode err = UNEXPECTED_ERROR;
-	struct memAlloc* mStack;
-	err = createLocalNamesTable(&lTable, &mStack);
+	EXIStream strm;
+	err = createLocalNamesTable(&lTable, &strm);
 
 	fail_unless (err == ERR_OK, "createLocalNamesTable returns error code %d", err);
 	fail_unless (lTable->rowCount == 0,
@@ -117,8 +117,8 @@ START_TEST (test_createValueLocalCrossTable)
 {
 	ValueLocalCrossTable* vlTable;
 	errorCode err = UNEXPECTED_ERROR;
-	struct memAlloc* mStack;
-	err = createValueLocalCrossTable(&vlTable, &mStack);
+	EXIStream strm;
+	err = createValueLocalCrossTable(&vlTable, &strm);
 
 	fail_unless (err == ERR_OK, "createValueLocalCrossTable returns error code %d", err);
 	fail_unless (vlTable->rowCount == 0,
@@ -133,16 +133,16 @@ START_TEST (test_addURIRow)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	URITable* uTable;
-	struct memAlloc* mStack;
-	err = createURITable(&uTable, &mStack);
+	EXIStream strm;
+	err = createURITable(&uTable, &strm);
 	fail_if(err != ERR_OK);
 
 	StringType test_uri;
-	asciiToString("test_uri_string", &test_uri, &mStack);
+	asciiToString("test_uri_string", &test_uri, &strm);
 
 	unsigned int rowID = 55;
 
-	err = addURIRow(uTable, test_uri, &rowID, &mStack);
+	err = addURIRow(uTable, test_uri, &rowID, &strm);
 
 	fail_unless (err == ERR_OK, "addURIRow returns error code %d", err);
 	fail_unless (uTable->arrayDimension == DEFAULT_URI_ROWS_NUMBER,
@@ -159,7 +159,7 @@ START_TEST (test_addURIRow)
 
 	uTable->rowCount = DEFAULT_URI_ROWS_NUMBER;
 
-	err = addURIRow(uTable, test_uri, &rowID, &mStack);
+	err = addURIRow(uTable, test_uri, &rowID, &strm);
 
 	fail_unless (err == ERR_OK, "addURIRow returns error code %d", err);
 	fail_unless (uTable->arrayDimension == DEFAULT_URI_ROWS_NUMBER*2,
@@ -180,12 +180,12 @@ START_TEST (test_addLNRow)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	LocalNamesTable* lnTable;
-	struct memAlloc* mStack;
-	err = createLocalNamesTable(&lnTable, &mStack);
+	EXIStream strm;
+	err = createLocalNamesTable(&lnTable, &strm);
 	fail_if(err != ERR_OK);
 
 	StringType test_ln;
-	asciiToString("test_ln_string", &test_ln, &mStack);
+	asciiToString("test_ln_string", &test_ln, &strm);
 
 	unsigned int rowID = 55;
 
@@ -235,6 +235,7 @@ START_TEST (test_createInitialStringTables)
 	buf[0] = (char) 0b11010100;
 	buf[1] = (char) 0b01100000;
 	testStream.buffer = buf;
+	testStream.bufLen = 2;
 
 
 	err = createInitialStringTables(&testStream);
@@ -250,14 +251,13 @@ END_TEST
 START_TEST (test_addGVRow)
 {
 	errorCode err = UNEXPECTED_ERROR;
-	struct memAlloc* mStack;
 	ValueTable* vTable;
-	err = createValueTable(&vTable, &mStack);
+	EXIStream strm;
+	err = createValueTable(&vTable, &strm);
 	fail_if(err != ERR_OK);
-	struct memAlloc* mStack;
 
 	StringType test_val;
-	asciiToString("test_val_string", &test_val, &mStack);
+	asciiToString("test_val_string", &test_val, &strm);
 
 	unsigned int rowID = 55;
 
@@ -293,12 +293,12 @@ START_TEST (test_addLVRow)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	LocalNamesTable* lnTable;
-	struct memAlloc* mStack;
-	err = createLocalNamesTable(&lnTable, &mStack);
+	EXIStream strm;
+	err = createLocalNamesTable(&lnTable, &strm);
 	fail_if(err != ERR_OK);
 	StringType test_ln;
 
-	asciiToString("test_ln_string", &test_ln, &mStack);
+	asciiToString("test_ln_string", &test_ln, &strm);
 	unsigned int rowID = 55;
 	err = addLNRow(lnTable, test_ln, &rowID);
 	fail_unless (err == ERR_OK, "addLNRow returns error code %d", err);
@@ -315,7 +315,7 @@ START_TEST (test_addLVRow)
 
 	unsigned int globalValueRowID = 101;
 
-	err = addLVRow(&(lnTable->rows[0]), globalValueRowID, &mStack);
+	err = addLVRow(&(lnTable->rows[0]), globalValueRowID, &strm);
 	fail_unless (err == ERR_OK, "addLVRow returns error code %d", err);
 	fail_if(lnTable->rows[0].vCrossTable == NULL);
 	fail_if(lnTable->rows[0].vCrossTable->valueRowIds == NULL);

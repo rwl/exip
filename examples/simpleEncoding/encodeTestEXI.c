@@ -70,7 +70,7 @@ EXISerializer serEXI = {startDocumentSer,
 						selfContainedSer};
 
 static void printfHelp();
-static void printError(errorCode err_code, struct memAlloc** mStack, FILE *outfile);
+static void printError(errorCode err_code, EXIStream* strm, FILE *outfile);
 
 int main(int argc, char *argv[])
 {
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
 			EXIStream testStrm;
 			tmp_err_code = serEXI.initStream(&testStrm, 200);
 			if(tmp_err_code != ERR_OK)
-				printError(tmp_err_code, &(testStrm.memStack), outfile);
+				printError(tmp_err_code, &testStrm, outfile);
 
 			EXIheader header;
 			header.has_cookie = 0;
@@ -112,28 +112,28 @@ int main(int argc, char *argv[])
 
 			StringType uri;
 			StringType ln;
-			tmp_err_code += asciiToString("", &uri, &(testStrm.memStack));
-			tmp_err_code += asciiToString("EXIPEncoder", &ln, &(testStrm.memStack));
+			tmp_err_code += asciiToString("", &uri, &testStrm);
+			tmp_err_code += asciiToString("EXIPEncoder", &ln, &testStrm);
 			QName testElQname = {&uri, &ln};
 			tmp_err_code += serEXI.startElementSer(&testStrm, testElQname);
 
-			tmp_err_code += asciiToString("version", &ln, &(testStrm.memStack));
+			tmp_err_code += asciiToString("version", &ln, &testStrm);
 			QName testAtQname = {&uri, &ln};
 			tmp_err_code += serEXI.attributeSer(&testStrm, testAtQname);
 
 			StringType attVal;
-			tmp_err_code += asciiToString("0.1", &attVal, &(testStrm.memStack));
+			tmp_err_code += asciiToString("0.1", &attVal, &testStrm);
 			tmp_err_code += serEXI.stringDataSer(&testStrm, attVal);
 
 			StringType chVal;
-			tmp_err_code += asciiToString("This is an example of serializing EXI streams using EXIP low level API", &chVal, &(testStrm.memStack));
+			tmp_err_code += asciiToString("This is an example of serializing EXI streams using EXIP low level API", &chVal, &testStrm);
 			tmp_err_code += serEXI.stringDataSer(&testStrm, chVal);
 
 			tmp_err_code += serEXI.endElementSer(&testStrm);
 			tmp_err_code += serEXI.endDocumentSer(&testStrm);
 
 			if(tmp_err_code != ERR_OK)
-				printError(tmp_err_code, &(testStrm.memStack), outfile);
+				printError(tmp_err_code, &testStrm, outfile);
 
 			if(fwrite(testStrm.buffer, sizeof(char), testStrm.bufferIndx+1, outfile) < testStrm.bufferIndx+1)
 			{
@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
 				return 1;
 			}
 
-			tmp_err_code = freeAllMem(&(testStrm.memStack));
+			tmp_err_code = freeAllMem(&testStrm);
 			fclose(outfile);
 		}
 	}
@@ -163,10 +163,10 @@ static void printfHelp()
     printf("\n" );
 }
 
-static void printError(errorCode err_code, struct memAlloc** mStack, FILE *outfile)
+static void printError(errorCode err_code, EXIStream* strm, FILE *outfile)
 {
 	printf("\n Error occured: %d", err_code);
-	freeAllMem(mStack);
+	freeAllMem(strm);
 	fclose(outfile);
 	exit(1);
 }

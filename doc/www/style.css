@@ -1,0 +1,30 @@
+
+{
+    padding : 0;
+    margin : 0;
+}
+body
+{
+    background : #e6f9f7;
+    font-family : Verdana, Tahoma, Arial, Times New Roman;
+    font-size : 12px;
+    padding : 0;
+    margin : 0;
+    color: black;
+line-height : 20px;
+}
+
+.header
+{
+	font-size: 25pt;
+	font-family: courier, monospace;
+	font-weight: bold;
+	font-style: italic;
+	vertical-align: top;
+}
+
+.title
+{
+	font-size : 14px;
+	font-weight: bold;
+}

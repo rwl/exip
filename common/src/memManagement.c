@@ -43,7 +43,7 @@
 
 #include "memManagement.h"
 
-void* memManagedAllocate(struct memAlloc** mStack, size_t size)
+void* memManagedAllocate(EXIStream* strm, size_t size)
 {
 	void* ptr = EXIP_MALLOC(size);
 	if(ptr != NULL)
@@ -52,8 +52,8 @@ void* memManagedAllocate(struct memAlloc** mStack, size_t size)
 		if(memNode != NULL)
 		{
 			memNode->allocation = ptr;
-			memNode->nextAlloc = *mStack;
-			*mStack = memNode;
+			memNode->nextAlloc = strm->memStack;
+			strm->memStack = memNode;
 		}
 		else
 			return NULL;
@@ -61,7 +61,7 @@ void* memManagedAllocate(struct memAlloc** mStack, size_t size)
 	return ptr;
 }
 
-void* memManagedAllocatePtr(struct memAlloc** mStack, size_t size, void** p_memNode)
+void* memManagedAllocatePtr(EXIStream* strm, size_t size, void** p_memNode)
 {
 	void* ptr = EXIP_MALLOC(size);
 	if(ptr != NULL)
@@ -70,8 +70,8 @@ void* memManagedAllocatePtr(struct memAlloc** mStack, size_t size, void** p_memN
 		if(memNode != NULL)
 		{
 			memNode->allocation = ptr;
-			memNode->nextAlloc = *mStack;
-			*mStack = memNode;
+			memNode->nextAlloc = strm->memStack;
+			strm->memStack = memNode;
 			(*p_memNode) = memNode;
 		}
 		else
@@ -90,14 +90,20 @@ errorCode memManagedReAllocate(void** ptr, size_t size, void* p_memNode)
 	return ERR_OK;
 }
 
-errorCode freeAllMem(struct memAlloc** mStack)
+errorCode freeAllMem(EXIStream* strm)
 {
+	// Hash tables (ElementGrammarPool) are freed separately
+	// (This includes the keys for the table -> they must be allocated directly with EXIP_MALLOC
+	//  without using memManagedAllocate)
+	// #DOCUMENT#
+	hashtable_destroy(strm->gPool, 0);
+
 	struct memAlloc* tmpNode;
-	while(*mStack != NULL)
+	while(strm->memStack != NULL)
 	{
-		tmpNode = *mStack;
-		EXIP_MFREE((*mStack)->allocation);
-		*mStack = (*mStack)->nextAlloc;
+		tmpNode = strm->memStack;
+		EXIP_MFREE(strm->memStack->allocation);
+		strm->memStack = strm->memStack->nextAlloc;
 		EXIP_MFREE(tmpNode);
 	}
 	return ERR_OK;

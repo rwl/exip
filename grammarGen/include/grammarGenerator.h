@@ -33,103 +33,38 @@
 \===================================================================================*/
 
 /**
- * @file headerDecode.c
- * @brief Implementing the interface of EXI header decoder
- *
- * @date Aug 23, 2010
+ * @file grammarGenerator.h
+ * @brief Definition and functions for generating Schema-informed Grammar definitions
+ * @date Nov 22, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#include "../include/headerDecode.h"
+#ifndef GRAMMARGENERATOR_H_
+#define GRAMMARGENERATOR_H_
 
-errorCode decodeHeader(EXIStream* strm, EXIheader* header)
-{
-	DEBUG_MSG(INFO,(">Start EXI header decoding\n"));
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned int bits_val = 0;
-	tmp_err_code = readBits(strm, 2, &bits_val);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-	if(bits_val == 2)  // The header Distinguishing Bits i.e. no EXI Cookie
-	{
-		header->has_cookie = 0;
-		DEBUG_MSG(INFO,(">No EXI cookie detected\n"));
-	}
-	else if(bits_val == 0)// ASCII code for $ = 00100100  (36)
-	{
-		tmp_err_code = readBits(strm, 6, &bits_val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		if(bits_val != 36)
-			return INVALID_EXI_HEADER;
-		tmp_err_code = readBits(strm, 8, &bits_val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		if(bits_val != 69)   // ASCII code for E = 01000101  (69)
-			return INVALID_EXI_HEADER;
-		tmp_err_code = readBits(strm, 8, &bits_val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		if(bits_val != 88)   // ASCII code for X = 01011000  (88)
-			return INVALID_EXI_HEADER;
-		tmp_err_code = readBits(strm, 8, &bits_val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		if(bits_val != 73)   // ASCII code for I = 01001001  (73)
-			return INVALID_EXI_HEADER;
+#include "errorHandle.h"
+#include "procTypes.h"
 
-		header->has_cookie = 1;
-		tmp_err_code = readBits(strm, 2, &bits_val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		if(bits_val != 2)  // The header Distinguishing Bits are required
-			return INVALID_EXI_HEADER;
-	}
-	else
-	{
-		return INVALID_EXI_HEADER;
-	}
+#define SCHEMA_FORMAT_XSD_EXI           0
+#define SCHEMA_FORMAT_XSD_XML           1
+#define SCHEMA_FORMAT_DTD               2
+#define SCHEMA_FORMAT_XSD_EXI_OPTIMIZED 3
 
-	// Read the Presence Bit for EXI Options
-	tmp_err_code = readNextBit(strm, &bits_val);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+/**
+ * @brief Generate a Schema-informed Document Grammar and all Schema-informed Element and Type Grammars
+ * Initial implementation is targeted at XML Schema definitions encoded with EXI with default options.
+ * The grammar of the schema can be further optimized in the future.
+ *
+ * @param[in] binaryStream the binary representation of XML schema
+ * @param[in] bufLen size of binaryStream - number of bytes
+ * @param[in] schemaFormat EXI, XSD, DTD or any other schema representation supported
+ * @param[out] gStack Generated grammar stack
+ * @param[out] gPool Generated grammar stack
+ * @return Error handling code
+ */
+errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, unsigned char schemaFormat,
+										EXIGrammarStack* gStack, ElementGrammarPool* gPool);
 
-	if(strm->opts == NULL)
-		return NULL_POINTER_REF;
-
-	if(bits_val == 1) // There are EXI options
-	{
-		header->has_options = 1;
-		return NOT_IMPLEMENTED_YET; // TODO: Handle EXI streams with options. This includes Padding Bits in some cases
-	}
-	else // The default values for EXI options
-	{
-		DEBUG_MSG(INFO,(">No EXI options field in the header\n"));
-		header->has_options = 0;
-	    makeDefaultOpts(strm->opts);
-	}
-
-	// Read the Version type
-	tmp_err_code = readNextBit(strm, &bits_val);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	header->is_preview_version = bits_val;
-	header->version_number = 1;
-
-	do
-	{
-		tmp_err_code = readBits(strm, 4, &bits_val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		header->version_number += bits_val;
-		if(bits_val < 15)
-			break;
-	} while(1);
-
-	DEBUG_MSG(INFO,(">EXI version: %d\n", header->version_number));
-	return ERR_OK;
-}
+#endif /* GRAMMARGENERATOR_H_ */

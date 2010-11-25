@@ -406,6 +406,8 @@ struct EXIGrammar
 
 typedef struct EXIGrammar EXIGrammarStack; // Used to differentiate between single grammar (nextInStack == NULL) and stack of grammars
 
+typedef struct hashtable ElementGrammarPool;
+
 /*********** END: Grammar Types ***************/
 
 struct StringTablesContext
@@ -470,7 +472,7 @@ struct EXIStream
 	/**
 	 * The grammar pool of Element Grammars used during processing
 	 */
-	struct ElementGrammarPool* gPool;
+	ElementGrammarPool* gPool;
 
 	/**
 	 * Current (Left-hand side) Non terminal ID (Define the context/processor state)

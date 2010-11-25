@@ -52,11 +52,11 @@ errorCode initStream(EXIStream* strm, unsigned int initialBufSize)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	strm->memStack = NULL;
-	strm->buffer = (char*) memManagedAllocate(&(strm->memStack), sizeof(char)*initialBufSize);
+	strm->buffer = (char*) memManagedAllocate(strm, sizeof(char)*initialBufSize);
 	if(strm->buffer == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	strm->opts = (struct EXIOptions*) memManagedAllocate(&(strm->memStack), sizeof(struct EXIOptions));
+	strm->opts = (struct EXIOptions*) memManagedAllocate(strm, sizeof(struct EXIOptions));
 	if(strm->opts == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 	strm->bitPointer = 0;
@@ -67,17 +67,14 @@ errorCode initStream(EXIStream* strm, unsigned int initialBufSize)
 	strm->sContext.curr_lnID = 0;
 	strm->sContext.expectATData = 0;
 
-	strm->gStack = (EXIGrammarStack*) memManagedAllocate(&(strm->memStack), sizeof(EXIGrammarStack));
+	strm->gStack = (EXIGrammarStack*) memManagedAllocate(strm, sizeof(EXIGrammarStack));
 	if(strm->gStack == NULL)
 		return MEMORY_ALLOCATION_ERROR;
-	tmp_err_code = getBuildInDocGrammar(strm->gStack, strm->opts, &(strm->memStack));
+	tmp_err_code = getBuildInDocGrammar(strm->gStack, strm->opts, strm);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	strm->gPool = (struct ElementGrammarPool*) memManagedAllocate(&(strm->memStack), sizeof(struct ElementGrammarPool));
-	if(strm->gPool == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-	tmp_err_code = createElementGrammarPool(strm->gPool, &(strm->memStack));
+	tmp_err_code = createElementGrammarPool(&(strm->gPool));
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -218,10 +215,10 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 					}
 					else
 					{
-						struct EXIGrammar* elementGrammar = (struct EXIGrammar*) memManagedAllocate(&(strm->memStack), sizeof(struct EXIGrammar));
+						struct EXIGrammar* elementGrammar = (struct EXIGrammar*) memManagedAllocate(strm, sizeof(struct EXIGrammar));
 						if(elementGrammar == NULL)
 							return MEMORY_ALLOCATION_ERROR;
-						tmp_err_code = createBuildInElementGrammar(elementGrammar, strm->opts, &(strm->memStack));
+						tmp_err_code = createBuildInElementGrammar(elementGrammar, strm->opts, strm);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
 						tmp_err_code = addElementGrammarInPool(strm->gPool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, elementGrammar);

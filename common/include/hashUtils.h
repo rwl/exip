@@ -33,103 +33,49 @@
 \===================================================================================*/
 
 /**
- * @file headerDecode.c
- * @brief Implementing the interface of EXI header decoder
- *
- * @date Aug 23, 2010
+ * @file hashUtils.h
+ * @brief The hash function used in the processor
+ * @date Nov 23, 2010
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#include "../include/headerDecode.h"
+#ifndef HASHUTILS_H_
+#define HASHUTILS_H_
 
-errorCode decodeHeader(EXIStream* strm, EXIheader* header)
-{
-	DEBUG_MSG(INFO,(">Start EXI header decoding\n"));
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned int bits_val = 0;
-	tmp_err_code = readBits(strm, 2, &bits_val);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-	if(bits_val == 2)  // The header Distinguishing Bits i.e. no EXI Cookie
-	{
-		header->has_cookie = 0;
-		DEBUG_MSG(INFO,(">No EXI cookie detected\n"));
-	}
-	else if(bits_val == 0)// ASCII code for $ = 00100100  (36)
-	{
-		tmp_err_code = readBits(strm, 6, &bits_val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		if(bits_val != 36)
-			return INVALID_EXI_HEADER;
-		tmp_err_code = readBits(strm, 8, &bits_val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		if(bits_val != 69)   // ASCII code for E = 01000101  (69)
-			return INVALID_EXI_HEADER;
-		tmp_err_code = readBits(strm, 8, &bits_val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		if(bits_val != 88)   // ASCII code for X = 01011000  (88)
-			return INVALID_EXI_HEADER;
-		tmp_err_code = readBits(strm, 8, &bits_val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		if(bits_val != 73)   // ASCII code for I = 01001001  (73)
-			return INVALID_EXI_HEADER;
+/**
+ * DJB Hash Function
+ * An algorithm produced by Professor Daniel J. Bernstein and shown first to the world
+ * on the usenet newsgroup comp.lang.c. It is one of the most efficient hash functions ever published.
+ *
+ * djb2
+ * this algorithm (k=33) was first reported by dan bernstein many years ago in comp.lang.c.
+ * another version of this algorithm (now favored by bernstein) uses xor: hash(i) = hash(i - 1) * 33 ^ str[i];
+ * the magic of number 33 (why it works better than many other constants, prime or not) has never
+ * been adequately explained.
+ **/
+unsigned int djbHash(void* str, unsigned int len);
 
-		header->has_cookie = 1;
-		tmp_err_code = readBits(strm, 2, &bits_val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		if(bits_val != 2)  // The header Distinguishing Bits are required
-			return INVALID_EXI_HEADER;
-	}
-	else
-	{
-		return INVALID_EXI_HEADER;
-	}
+/**
+ * @brief Check two hash table keys for equality
+ *
+ * @param[in] key1 a pointer to the first key
+ * @param[in] len1 the length of the first key in bytes
+ * @param[in] key2 a pointer to the second key
+ * @param[in] len2 the length of the second key in bytes
+ * @return 0 if NOT equal, 1 - if the two keys are equal
+ */
+int keyEqual(char* key1, unsigned int len1, char* key2, unsigned int len2);
 
-	// Read the Presence Bit for EXI Options
-	tmp_err_code = readNextBit(strm, &bits_val);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+/**
+ * @brief Creates a 64bits key from two uint32_t values
+ * key MUST be allocated beforehand
+ *
+ * @param[in] first first part of the key
+ * @param[in] second second part of the key
+ * @param[in] key a pointer to the second key
+ */
+void createKey64bits(uint32_t first, uint32_t second, char* key);
 
-	if(strm->opts == NULL)
-		return NULL_POINTER_REF;
-
-	if(bits_val == 1) // There are EXI options
-	{
-		header->has_options = 1;
-		return NOT_IMPLEMENTED_YET; // TODO: Handle EXI streams with options. This includes Padding Bits in some cases
-	}
-	else // The default values for EXI options
-	{
-		DEBUG_MSG(INFO,(">No EXI options field in the header\n"));
-		header->has_options = 0;
-	    makeDefaultOpts(strm->opts);
-	}
-
-	// Read the Version type
-	tmp_err_code = readNextBit(strm, &bits_val);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	header->is_preview_version = bits_val;
-	header->version_number = 1;
-
-	do
-	{
-		tmp_err_code = readBits(strm, 4, &bits_val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		header->version_number += bits_val;
-		if(bits_val < 15)
-			break;
-	} while(1);
-
-	DEBUG_MSG(INFO,(">EXI version: %d\n", header->version_number));
-	return ERR_OK;
-}
+#endif /* HASHUTILS_H_ */
