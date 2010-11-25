@@ -58,11 +58,11 @@
  * @brief Allocate a memory block with size <size> and store a copy of
  * the pointer in a linked list for freeing it at the end.
  *
- * @param[in, out] mStack Memory stack to which this allocation will be registered
+ * @param[in, out] strm EXI stream for which the allocation is made
  * @param[in] size the size of the memory block to be allocated
  * @return pointer to the allocated block if successful. NULL otherwise
  */
-void* memManagedAllocate(struct memAlloc** mStack, size_t size);
+void* memManagedAllocate(EXIStream* strm, size_t size);
 
 /**
  * @brief Allocate a memory block with size <size> and store a copy of
@@ -71,12 +71,12 @@ void* memManagedAllocate(struct memAlloc** mStack, size_t size);
  * during reallocation. Use this function in case the allocated block
  * might need to be reallocated later.
  *
- * @param[in, out] mStack Memory stack to which this allocation will be registered
+ * @param[in, out] strm EXI stream for which the allocation is made
  * @param[in] size the size of the memory block to be allocated
  * @param[out] memNode pointer to the memAlloc node created
  * @return pointer to the allocated block if successful. NULL otherwise
  */
-void* memManagedAllocatePtr(struct memAlloc** mStack, size_t size, void** p_memNode);
+void* memManagedAllocatePtr(EXIStream* strm, size_t size, void** p_memNode);
 
 /**
  * @brief Reallocate a memory block with size <size>
@@ -89,13 +89,13 @@ void* memManagedAllocatePtr(struct memAlloc** mStack, size_t size, void** p_memN
 errorCode memManagedReAllocate(void** ptr, size_t size, void* p_memNode);
 
 /**
- * @brief Frees all the managed memory.
+ * @brief Frees all the managed memory for a particular EXI stream.
  * It should be called after an error in the processing occur or at the
  * end of the parsing/serializing if the processing is successful.
  *
- * @param[in, out] mStack Memory stack to which this allocation will be registered
+ * @param[in, out] strm EXI stream for which the allocations were made
  * @return Error handling code
  */
-errorCode freeAllMem(struct memAlloc** mStack);
+errorCode freeAllMem(EXIStream* strm);
 
 #endif /* MEMMANAGEMENT_H_ */

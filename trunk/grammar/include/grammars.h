@@ -50,26 +50,6 @@
 #include "procTypes.h"
 #include "contentHandler.h"
 
-struct ElementGrammarLabel
-{
-	uint32_t uriRowID;
-	uint32_t lnRowID;
-	struct EXIGrammar* elementGrammar;
-};
-
-struct ElementGrammarPool
-{
-	struct ElementGrammarLabel* refs; // Dynamic array
-	unsigned int refsCount; // The number of rows
-	unsigned int refsDimension; // The size of the Dynamic array
-	void* memNode; // Used by the memoryManager when there is reallocation
-};
-
-/* TODO: Create a unique index for the ElementGrammarPool. The index should work as follows:
- * Given an uriRowID it should return an array of refs row ids which has that uriRowID.
- * and then using lnRowID it should return the exact ref (element number of the array)
- */
-
 /**
  * @brief Process the next grammar production in the Current Grammar
  * Returns the terminal symbol of the production i.e. the EXI Event Type;
@@ -104,27 +84,26 @@ errorCode popGrammar(EXIGrammarStack** gStack, struct EXIGrammar** grammar);
  * @brief Creates an instance of the EXI Built-in Document Grammar
  * @param[in] buildInGrammar empty grammar container
  * @param[in] fidelity_opts Fidelity options /EXI header preserve opts/
- * @param[in, out] mStack Memory stack to which this allocation will be registered
+ * @param[in, out] strm EXI stream for which the allocation is made
  * @return Error handling code
  */
-errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOptions* opts, struct memAlloc** mStack);
+errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOptions* opts, EXIStream* strm);
 
 /**
  * @brief Creates an instance of EXI Built-in Element Grammar
  * @param[in] elementGrammar empty grammar container
  * @param[in] fidelity_opts Fidelity options /EXI header preserve opts/
- * @param[in, out] mStack Memory stack to which this allocation will be registered
+ * @param[in, out] strm EXI stream for which the allocation is made
  * @return Error handling code
  */
-errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, struct EXIOptions* opts, struct memAlloc** mStack);
+errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, struct EXIOptions* opts, EXIStream* strm);
 
 /**
  * @brief Creates empty Element Grammar pool
  * @param[in, out] pool empty pool container
- * @param[in, out] mStack Memory stack to which this allocation will be registered
  * @return Error handling code
  */
-errorCode createElementGrammarPool(struct ElementGrammarPool* pool, struct memAlloc** mStack);
+errorCode createElementGrammarPool(ElementGrammarPool** pool);
 
 /**
  * @brief Checks if a specific element grammar is already in the Element Grammar pool
@@ -135,7 +114,7 @@ errorCode createElementGrammarPool(struct ElementGrammarPool* pool, struct memAl
  * @param[out] result if found - a pointer to the searched grammar
  * @return Error handling code
  */
-errorCode checkElementGrammarInPool(struct ElementGrammarPool* pool, uint32_t uriRowID,
+errorCode checkElementGrammarInPool(ElementGrammarPool* pool, uint32_t uriRowID,
 									uint32_t lnRowID, unsigned char* is_found, struct EXIGrammar** result);
 
 
@@ -147,7 +126,7 @@ errorCode checkElementGrammarInPool(struct ElementGrammarPool* pool, uint32_t ur
  * @param[in] newGr the grammar to be added
  * @return Error handling code
  */
-errorCode addElementGrammarInPool(struct ElementGrammarPool* pool, uint32_t uriRowID,
+errorCode addElementGrammarInPool(ElementGrammarPool* pool, uint32_t uriRowID,
 									uint32_t lnRowID, struct EXIGrammar* newGr);
 
 /**

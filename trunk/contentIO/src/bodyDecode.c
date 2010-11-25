@@ -52,14 +52,14 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIGrammarStack docGr;
 	strm->gStack = &docGr;
-	tmp_err_code = getBuildInDocGrammar(strm->gStack, strm->opts, &(strm->memStack));
+	tmp_err_code = getBuildInDocGrammar(strm->gStack, strm->opts, strm);
 	if(tmp_err_code != ERR_OK)
 	{
 		if(handler->fatalError != NULL)
 		{
 			handler->fatalError(tmp_err_code, "Cannot create BuildInDocGrammar");
 		}
-		freeAllMem();
+		freeAllMem(strm);
 		return;
 	}
 
@@ -70,20 +70,18 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 		{
 			handler->fatalError(tmp_err_code, "Cannot create InitialStringTables");
 		}
-		freeAllMem();
+		freeAllMem(strm);
 		return;
 	}
 
-	struct ElementGrammarPool gPool;
-	strm->gPool = &gPool;
-	tmp_err_code = createElementGrammarPool(strm->gPool, &(strm->memStack));
+	tmp_err_code = createElementGrammarPool(&(strm->gPool));
 	if(tmp_err_code != ERR_OK)
 	{
 		if(handler->fatalError != NULL)
 		{
 			handler->fatalError(tmp_err_code, "Cannot create ElementGrammarPool");
 		}
-		freeAllMem();
+		freeAllMem(strm);
 		return;
 	}
 
@@ -99,7 +97,7 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 			{
 				handler->fatalError(tmp_err_code, "Error processing next production");
 			}
-			freeAllMem();
+			freeAllMem(strm);
 			return;
 		}
 		if(tmpNonTermID == GR_VOID_NON_TERMINAL)
@@ -112,7 +110,7 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 				{
 					handler->fatalError(tmp_err_code, "popGrammar failed");
 				}
-				freeAllMem();
+				freeAllMem(strm);
 				return;
 			}
 			if(strm->gStack == NULL) // There is no more grammars in the stack
@@ -130,5 +128,5 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 		}
 		tmpNonTermID = GR_VOID_NON_TERMINAL;
 	}
-	freeAllMem();
+	freeAllMem(strm);
 }

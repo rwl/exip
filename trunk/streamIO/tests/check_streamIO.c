@@ -60,7 +60,7 @@ START_TEST (test_readNextBit)
   buf[0] = (char) 0b11010100;
   buf[1] = (char) 0b01100000;
   testStream.buffer = buf;
-
+  testStream.bufLen = 2;
   testStream.bufferIndx = 0;
   unsigned char bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
@@ -98,7 +98,7 @@ START_TEST (test_readBits)
   buf[0] = (char) 0b11010100;
   buf[1] = (char) 0b01100000;
   testStream.buffer = buf;
-
+  testStream.bufLen = 2;
   testStream.bufferIndx = 0;
   unsigned int bits_val = 0;
   errorCode err = UNEXPECTED_ERROR;
@@ -140,7 +140,7 @@ START_TEST (test_writeNextBit)
   buf[0] = (char) 0b00000001;
   buf[1] = (char) 0b00000000;
   testStream.buffer = buf;
-
+  testStream.bufLen = 2;
   testStream.bufferIndx = 0;
   unsigned char bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
@@ -182,7 +182,7 @@ START_TEST (test_writeBits)
   buf[0] = (char) 0b00000000;
   buf[1] = (char) 0b11100000;
   testStream.buffer = buf;
-
+  testStream.bufLen = 2;
   testStream.bufferIndx = 0;
   unsigned int bits_val = 0;
   errorCode err = UNEXPECTED_ERROR;
@@ -226,7 +226,7 @@ START_TEST (test_writeNBits)
   buf[0] = (char) 0b10100000;
   buf[1] = (char) 0b11100000;
   testStream.buffer = buf;
-
+  testStream.bufLen = 2;
   testStream.bufferIndx = 0;
   unsigned int bits_val = 0;
   errorCode err = UNEXPECTED_ERROR;
@@ -277,7 +277,7 @@ START_TEST (test_decodeNBitUnsignedInteger)
   buf[0] = (char) 0b11010100;
   buf[1] = (char) 0b01100000;
   testStream.buffer = buf;
-
+  testStream.bufLen = 2;
   testStream.bufferIndx = 0;
   unsigned int bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
@@ -308,7 +308,7 @@ START_TEST (test_decodeBoolean)
   buf[0] = (char) 0b11010100;
   buf[1] = (char) 0b01100000;
   testStream.buffer = buf;
-
+  testStream.bufLen = 2;
   testStream.bufferIndx = 0;
   unsigned char bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
@@ -337,7 +337,7 @@ START_TEST (test_decodeUnsignedInteger)
   buf[1] = (char) 0b01100000;
   buf[2] = (char) 0b01001000;
   testStream.buffer = buf;
-
+  testStream.bufLen = 3;
   testStream.bufferIndx = 0;
   unsigned int bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
@@ -373,7 +373,7 @@ START_TEST (test_decodeString)
   buf[2] = (char) 0b01010100; // T - ASCII
   buf[3] = (char) 0b01010010;
   testStream.buffer = buf;
-
+  testStream.bufLen = 4;
   testStream.bufferIndx = 0;
   StringType bit_val;
   CharType cht[100];
@@ -425,6 +425,7 @@ START_TEST (test_decodeBinary)
   buf[14] = (char) 0b11011000;
   buf[15] = (char) 0b00000111;
   testStream.buffer = buf;
+  testStream.bufLen = 20;
   char testbuf[20];
   int i;
   for(i=0;i<20;i++) testbuf[i]=buf[i];
@@ -502,7 +503,7 @@ START_TEST (test_decodeFloat)
   buf[1] = (char) 0b00000010;	//2
   buf[2] = (char) 0b01010010;
   testStream.buffer = buf;
-
+  testStream.bufLen = 3;
   testStream.bufferIndx = 0;
   long double dbl_val = 0;
   long double res = 500;		// 5 x 10^2
@@ -537,7 +538,7 @@ START_TEST (test_decodeIntegerValue)
   buf[1] = (char) 0b01100000;
   buf[2] = (char) 0b01001000;
   testStream.buffer = buf;
-
+  testStream.bufLen = 3;
   testStream.bufferIndx = 0;
   int bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
@@ -574,7 +575,7 @@ START_TEST (test_encodeNBitUnsignedInteger)
   buf[0] = (unsigned char) 0b11001110;
   buf[1] = (unsigned char) 0b11100000;
   testStream.buffer = buf;
-
+  testStream.bufLen = 2;
   testStream.bufferIndx = 0;
   unsigned int bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
@@ -608,7 +609,7 @@ START_TEST (test_encodeBoolean)
   buf[0] = (unsigned char) 0b01010100;
   buf[1] = (unsigned char) 0b01100000;
   testStream.buffer = buf;
-
+  testStream.bufLen = 2;
   testStream.bufferIndx = 0;
   errorCode err = UNEXPECTED_ERROR;
 
@@ -692,7 +693,7 @@ START_TEST (test_encodeString)
   testStream.bufLen = 50;
   testStream.bufferIndx = 0;
   StringType testStr;
-  asciiToString("TEST encodeString()", &testStr, &(testStream->memStack));
+  asciiToString("TEST encodeString()", &testStr, &(testStream.memStack));
   errorCode err = UNEXPECTED_ERROR;
 
   err = encodeString(&testStream, &testStr);

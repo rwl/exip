@@ -55,11 +55,13 @@ START_TEST (test_decodeHeader)
 	struct EXIOptions options;
 	testStream.opts = &options;
 	testStream.bitPointer = 0;
-	char buf[2];
+	char buf[3];
 	buf[0] = (char) 0b10000000;
 	buf[1] = (char) 0b01100000;
+	buf[2] = (char) 0b01111100;
 	testStream.buffer = buf;
 	testStream.bufferIndx = 0;
+	testStream.bufLen = 3;
 	EXIheader header;
 	errorCode err = UNEXPECTED_ERROR;
 
@@ -79,16 +81,17 @@ START_TEST (test_decodeHeader)
 	struct EXIOptions options2;
 	testStream2.opts = &options2;
 	testStream2.bitPointer = 0;
-	char buf2[6];
+	char buf2[7];
 	buf2[0] = (char) 36;
 	buf2[1] = (char) 69;
 	buf2[2] = (char) 88;
 	buf2[3] = (char) 73;
 	buf2[4] = (char) 0b10000000;
 	buf2[5] = (char) 0b01100000;
+	buf2[6] = (char) 0b01111100;
 	testStream2.buffer = buf2;
 	testStream2.bufferIndx = 0;
-
+	testStream2.bufLen = 7;
 	EXIheader header2;
 	err = decodeHeader(&testStream2, &header2);
 	fail_unless (err == ERR_OK, "decodeHeader returns error code %d", err);

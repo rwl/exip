@@ -102,6 +102,9 @@ typedef char errorCode;
 /** Array out of bound  */
 #define OUT_OF_BOUND_BUFFER -3
 
+/** Hash table error  */
+#define HASH_TABLE_ERROR -4
+
 /** Any error that does not fall into the other categories */
 #define UNEXPECTED_ERROR -126
 

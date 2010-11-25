@@ -1,6 +1,8 @@
 # Common module build
 
-COMMON_OBJ = $(COMMON)/p_ASCII_stringManipulate.o $(COMMON)/procTypes.o $(COMMON)/contentHandler.o $(COMMON)/memManagement.o
+COMMON_OBJ = $(COMMON)/p_ASCII_stringManipulate.o $(COMMON)/procTypes.o \
+			 $(COMMON)/contentHandler.o $(COMMON)/memManagement.o \
+			 $(COMMON)/hashtable.o $(COMMON)/hashUtils.o
 
 $(COMMON)/lib$(COMMON).a : $(COMMON_OBJ)
 		ar rcs $(COMMON)/lib$(COMMON).a $(COMMON_OBJ)
@@ -16,3 +18,9 @@ $(COMMON)/contentHandler.o : $(COMMON)/src/contentHandler.c $(COMMON)/include/pr
 		
 $(COMMON)/memManagement.o : $(COMMON)/include/procTypes.h $(COMMON)/include/errorHandle.h $(COMMON)/include/memManagement.h $(COMMON)/src/memManagement.c
 		$(CC) -c $(CFLAGS) $(COMMON)/src/memManagement.c -o $(COMMON)/memManagement.o
+		
+$(COMMON)/hashtable.o : $(COMMON)/include/hashtable.h $(COMMON)/include/hashtable_private.h $(COMMON)/src/hashtable.c
+		$(CC) -c $(CFLAGS) $(COMMON)/src/hashtable.c -o $(COMMON)/hashtable.o
+
+$(COMMON)/hashUtils.o : $(COMMON)/include/hashUtils.h $(COMMON)/src/hashUtils.c
+		$(CC) -c $(CFLAGS) $(COMMON)/src/hashUtils.c -o $(COMMON)/hashUtils.o

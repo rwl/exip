@@ -2,55 +2,89 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Content-Language" content="English"/>  
 <title>EXI Processor</title>
+<link rel="stylesheet" type="text/css" href="style.css" media="screen"/> 
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
 </head>
 <body>
-<table>
+<table style="margin-top: 5px;">
 	<tr>
-		<th colspan="3"><img width="100" src="exip-small.jpg"/><span style="font-size: 25pt;font-family: courier, monospace; font-weight: bold; font-style: italic;vertical-align:top">  Efficient XML Interchange Processor</span></th>
+		<th align="left" valign="top" width="25%"><img width="100" src="exip-small.jpg"/></th>
+		<th> <span class="header">Efficient XML Interchange Processor</span></th>
+		<th width="25%"> </th>
 	</tr>
 	<tr>
 	<td colspan="3">
-	    <hr/>
+	    <hr color="#8bb5b2" size="10"/>
 	</td>
 	</tr>	
 	<tr>
-	<td width="30%"></td>
-	<td width="600px">
-		<p>
-			<a href="http://sourceforge.net/projects/exip/"> 
-		       Project details
-		    </a>
-	    </p> 
-	    <ul>
-	       <li>Summary - EXI Processor (EXIP) is a project started at <a href="http://www.ltu.se/csee/research/eislab?l=en">EISLAB, Luleå University of Technology.</a>
-	                     It is part of research efforts to bring resource-constrained embedded devices, such as Wireless Sensor Nodes, closer to the
-	                     enterprise business processes taking place in manufacturing and communication industries.
-	       </li>
-	    </ul>
-	    <ul>
-	       <li>Motivation - As Efficient XML Interchange data format is heading towards becoming a W3C standard, the only open source implementation of parser available is EXIficient. It is written in Java, not quite mature yet and depends on XML parser libraries. This makes it inappropriate for resource-constrained embedded systems development where the EXI format is expected to make big impact similarly to how XML standard is now used in almost all enterprise applications.</li>
-	    </ul>
-	    <ul>
-	       <li>Project stage - System design</li>
-	    </ul>
-	    <ul>
-	       <li>External links: <br /> 
-	         <ul>
+	<td width="25%" valign="top">
+		<table>
+		<tr><td><a href="http://sourceforge.net/projects/exip/">Project details</a></td></tr>
+		<tr><td><a href="http://sourceforge.net/projects/exip/files/">Downloads</a></td></tr>
+		<tr><td><br/></td></tr>
+		<tr><td>External links:</td></tr>
+		<tr><td><ul>
 	             <li><a href="http://www.w3.org/XML/EXI/" target="_blank">W3C EXI Working Group</a> </li> 
 	             <li><a href="http://www.w3.org/TR/exi-evaluation/" target="_blank">W3C EXI Evaluation</a> </li>
 	             <li><a href="http://exificient.sourceforge.net/" target="_blank">EXIficient project</a> </li> 
-	         </ul> 
-	      </li>
-	    </ul> 
+	         </ul>
+	    </td></tr>
+	    </table>
 	</td>
-    <td width="30%">
+	<td valign="top">
+		<table>
+			<tr><td><span class="title">Summary</span></td></tr>
+			<tr><td>EXI Processor (EXIP) is a project started at <a href="http://www.ltu.se/csee/research/eislab?l=en">EISLAB, Luleå University of Technology.</a>
+                     It is part of research efforts to bring resource-constrained embedded devices, such as Wireless Sensor Nodes, closer to the
+                     enterprise business processes taking place in manufacturing and communication industries.</td></tr>
+			<tr><td><br/></td></tr>
+			
+			<tr><td><span class="title">Motivation</span></td></tr>
+			<tr><td>As Efficient XML Interchange data format is heading towards becoming a W3C standard, the only open source implementation of parser
+			available is EXIficient. It is written in Java and is not designed with resource-constrained embedded systems in mind.</td></tr>
+			<tr><td><br/></td></tr>
+			
+			<tr><td><span class="title">Project stage</span></td></tr>
+			<tr><td>Pre-alpha release</td></tr>
+			<tr><td><br/></td></tr>
+			
+			<tr><td><span class="title">Latest news</span></td></tr>
+			<tr><td>The first pre-alpha release is available for download.
+			       <p>EXIP Changelog<br/>
+					
+					Version 0.1 (Pre-apha release)<br/>
+					&nbsp;&nbsp;&nbsp;- First unstable release<br/>
+					
+					&nbsp;&nbsp;&nbsp;Features:<br/>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- The most efficient EXI API*<br/>
+					
+					&nbsp;&nbsp;&nbsp;Known issues:<br/>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Unstable<br/>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- It only supports default EXI options for encoding and decoding<br/>
+					
+					*Kyusakov R., Eliasson J., Delsing J. "Efficient Structured Data Processing for Web Service Enabled Shop Floor Devices"</p>
+			</td></tr>
+			<tr><td><br/></td></tr>
+		    </table>
+	</td>
+    <td width="25%" valign="top">
+    <div style="margin-left: 20px">
+    External software components used by EXIP:    	
+    	<ul> 
+			<li><a href="http://check.sourceforge.net/">Check: A unit testing framework for C</a></li>
+			<li><a href="http://www.cl.cam.ac.uk/~cwc22/hashtable/">Christopher Clark's Hash Table implementation</a></li>
+			<li>Professor Daniel J. Bernstein's hashing algorithm</li>
+		</ul>
+	</div>
     </td>
     </tr>    
     <tr height="100px">
     <td></td>
     <td><span style="font-style: italic">
-    		Last updated: 15 Sep 2010
+    		Last updated: 23 Nov 2010
         </span>
     </td>
     <td></td>
