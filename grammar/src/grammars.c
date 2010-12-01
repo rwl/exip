@@ -459,7 +459,7 @@ static errorCode decodeStringValue(EXIStream* strm, StringType** value)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = addLVRow(&(strm->uriTable->rows[uriID].lTable->rows[lnID]), gvID, &(strm->memStack));
+		tmp_err_code = addLVRow(&(strm->uriTable->rows[uriID].lTable->rows[lnID]), gvID, strm);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -679,8 +679,11 @@ errorCode processNextProduction(EXIStream* strm, EventType* eType,
 					}
 					else // The event has content!
 					{
-						strm->sContext.curr_uriID = strm->gStack->ruleArray[i].prodArray[currProduction].uriRowID;
-						strm->sContext.curr_lnID = strm->gStack->ruleArray[i].prodArray[currProduction].lnRowID;
+						if(*eType != EVENT_CH) // CH events do not have QName in their content
+						{
+							strm->sContext.curr_uriID = strm->gStack->ruleArray[i].prodArray[currProduction].uriRowID;
+							strm->sContext.curr_lnID = strm->gStack->ruleArray[i].prodArray[currProduction].lnRowID;
+						}
 						tmp_err_code = decodeEventContent(strm, *eType, handler, vType,
 								        nonTermID_out, &(strm->gStack->ruleArray[i]));
 						if(tmp_err_code != ERR_OK)
@@ -742,8 +745,11 @@ errorCode processNextProduction(EXIStream* strm, EventType* eType,
 								}
 								else // The event has content!
 								{
-									strm->sContext.curr_uriID = strm->gStack->ruleArray[i].prodArray[j].uriRowID;
-									strm->sContext.curr_lnID = strm->gStack->ruleArray[i].prodArray[j].lnRowID;
+									if(*eType != EVENT_CH) // CH events do not have QName in their content
+									{
+										strm->sContext.curr_uriID = strm->gStack->ruleArray[i].prodArray[j].uriRowID;
+										strm->sContext.curr_lnID = strm->gStack->ruleArray[i].prodArray[j].lnRowID;
+									}
 									if(*eType == EVENT_CH)
 									{
 										unsigned char isDocGr = 0;
