@@ -72,6 +72,13 @@ CFLAGS += -g # Debugging
 # Gets the first goal set on the command line - it is used if the next goal is check. Defines which module to test
 TARGET = $(word 1,$(MAKECMDGOALS))
 
+# If the first goal is check the the target for checking is the whole project
+ifeq ($(TARGET), check)
+   CHECK_TARGET=streamIO/test stringTables/test grammar/test contentIO/test
+else
+   CHECK_TARGET=$(TARGET)/test
+endif
+
 # List of all example binary names
 EXAMPLE_1 = exipd
 
@@ -111,8 +118,10 @@ grammar: common streamIO stringTables $(GRAMMAR)/lib$(GRAMMAR).a
 
 contentIO: common streamIO $(CONTENT_IO)/lib$(CONTENT_IO).a
 		
-check: $(TARGET)/test
-		$(TARGET)/test
+check: $(CHECK_TARGET)
+		for i in $(CHECK_TARGET); do \
+                 $$i; \
+             done
 		
 $(EXAMPLE_1): $(EXAMPLES_DIR)/simpleDecoding/decodeTestEXI.c exip.a
 		$(CC) $(CFLAGS) $(EXAMPLES_DIR)/simpleDecoding/decodeTestEXI.c exip.a -o $(EXAMPLES_DIR)/$(EXAMPLE_1)
