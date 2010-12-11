@@ -48,6 +48,7 @@
 #include "errorHandle.h"
 #include <stdint.h>
 #include <time.h>
+#include "exipConfig.h"
 
 #ifndef NULL
 #define NULL ((void *)0)
@@ -195,19 +196,6 @@ struct StringType
 };
 
 typedef struct StringType StringType;
-
-/**
- * Define the memory allocation function
- */
-#define EXIP_MALLOC malloc   //TODO: document this macro #DOCUMENT#
-#define EXIP_REALLOC realloc //TODO: document this macro #DOCUMENT#
-#include <stdlib.h>          //TODO: make it conditional!
-
-/**
- * Define the memory freeing function
- */
-#define EXIP_MFREE free  //TODO: document this macro #DOCUMENT#
-
 
 /********* BEGIN: String Table Types ***************/
 

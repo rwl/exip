@@ -41,7 +41,9 @@
  * @par[Revision] $Id$
  */
 
-#include "../include/sTables.h"
+#include "sTables.h"
+#include "stringManipulate.h"
+#include "memManagement.h"
 
 /********* BEGIN: String table default entries ***************/
 
@@ -194,7 +196,7 @@ errorCode addURIRow(URITable* uTable, StringType uri, uint32_t* rowID, EXIStream
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	if(uTable->arrayDimension == uTable->rowCount)   // The dynamic array must be extended first
 	{
-		tmp_err_code = memManagedReAllocate(&uTable->rows, sizeof(struct URIRow)*(uTable->rowCount + DEFAULT_URI_ROWS_NUMBER), uTable->memNode);
+		tmp_err_code = memManagedReAllocate((void *) &uTable->rows, sizeof(struct URIRow)*(uTable->rowCount + DEFAULT_URI_ROWS_NUMBER), uTable->memNode);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		uTable->arrayDimension = uTable->arrayDimension + DEFAULT_URI_ROWS_NUMBER;
@@ -221,7 +223,7 @@ errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, uint32_t* row
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	if(lTable->arrayDimension == lTable->rowCount)   // The dynamic array must be extended first
 	{
-		tmp_err_code = memManagedReAllocate(&lTable->rows, sizeof(struct LocalNamesRow)*(lTable->rowCount + DEFAULT_LOCALNAMES_ROWS_NUMBER), lTable->memNode);
+		tmp_err_code = memManagedReAllocate((void *) &lTable->rows, sizeof(struct LocalNamesRow)*(lTable->rowCount + DEFAULT_LOCALNAMES_ROWS_NUMBER), lTable->memNode);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		lTable->arrayDimension = lTable->arrayDimension + DEFAULT_LOCALNAMES_ROWS_NUMBER;
@@ -390,7 +392,7 @@ errorCode addGVRow(ValueTable* vTable, StringType global_value, uint32_t* rowID)
 	if(vTable->arrayDimension == vTable->rowCount)   // The dynamic array must be extended first
 	{
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		tmp_err_code = memManagedReAllocate(&vTable->rows, sizeof(struct ValueRow)*(vTable->rowCount + DEFAULT_VALUE_ROWS_NUMBER), vTable->memNode);
+		tmp_err_code = memManagedReAllocate((void *) &vTable->rows, sizeof(struct ValueRow)*(vTable->rowCount + DEFAULT_VALUE_ROWS_NUMBER), vTable->memNode);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		vTable->arrayDimension = vTable->arrayDimension + DEFAULT_VALUE_ROWS_NUMBER;
@@ -415,7 +417,7 @@ errorCode addLVRow(struct LocalNamesRow* lnRow, uint32_t globalValueRowID, EXISt
 	}
 	else if(lnRow->vCrossTable->rowCount == lnRow->vCrossTable->arrayDimension)   // The dynamic array must be extended first
 	{
-		tmp_err_code = memManagedReAllocate(&lnRow->vCrossTable->valueRowIds, sizeof(uint32_t)*(lnRow->vCrossTable->rowCount + DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER), lnRow->vCrossTable->memNode);
+		tmp_err_code = memManagedReAllocate((void *) &lnRow->vCrossTable->valueRowIds, sizeof(uint32_t)*(lnRow->vCrossTable->rowCount + DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER), lnRow->vCrossTable->memNode);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		lnRow->vCrossTable->arrayDimension += DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER;

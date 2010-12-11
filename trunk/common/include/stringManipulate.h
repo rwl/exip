@@ -106,7 +106,7 @@ errorCode getEmptyString(StringType* emptyStr);
  * @param[in, out] strm EXI stream for which the allocation is made
  * @return Error handling code
  */
-errorCode asciiToString(char* inStr, StringType* outStr, EXIStream* strm);
+errorCode asciiToString(const char* inStr, StringType* outStr, EXIStream* strm);
 
 /**
  * @brief Tests if two strings are equal

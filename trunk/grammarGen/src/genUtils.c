@@ -41,7 +41,7 @@
  * @par[Revision] $Id$
  */
 
-#include "../include/genUtils.h"
+#include "genUtils.h"
 
 errorCode concatenateGrammars(struct EXIGrammar* left, struct EXIGrammar* right, struct EXIGrammar* result)
 {

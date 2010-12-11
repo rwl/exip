@@ -58,6 +58,8 @@ errorCode makeDefaultOpts(struct EXIOptions* opts)
 	opts->user_defined_data = NULL;
 	opts->schemaID = NULL;
 	opts->drMap = NULL;
+
+	return ERR_OK;
 }
 
 /**
@@ -73,7 +75,7 @@ static unsigned int log2INT(unsigned int val)
 {
 	// TODO: modify to check if the int is not 32 bit
 //	unsigned int v;  // 32-bit value to find the log2 of
-	const unsigned int b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
+	const uint32_t b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
 	const unsigned int S[] = {1, 2, 4, 8, 16};
 	int i;
 

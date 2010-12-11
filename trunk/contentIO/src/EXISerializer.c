@@ -42,8 +42,11 @@
  * @par[Revision] $Id$
  */
 
-#include "../include/EXISerializer.h"
+#include "EXISerializer.h"
 #include "grammars.h"
+#include "stringManipulate.h"
+#include "memManagement.h"
+#include "sTables.h"
 
 static errorCode encodeEXIEvent(EXIStream* strm, EventType eType);
 static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned char isElemOrAttr);
@@ -201,7 +204,7 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 
 					// New element grammar is pushed on the stack
 					struct EXIGrammar* res = NULL;
-					char is_found = 0;
+					unsigned char is_found = 0;
 					tmp_err_code = checkElementGrammarInPool(strm->gPool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, &is_found, &res);
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
@@ -234,7 +237,7 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 				{
 					// New element grammar is pushed on the stack
 					struct EXIGrammar* res = NULL;
-					char is_found = 0;
+					unsigned char is_found = 0;
 					tmp_err_code = checkElementGrammarInPool(strm->gPool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, &is_found, &res);
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;

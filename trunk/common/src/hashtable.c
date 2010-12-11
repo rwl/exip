@@ -23,7 +23,7 @@ Credit for primes table: Aaron Krowne
  http://br.endernet.org/~akrowne/
  http://planetmath.org/encyclopedia/GoodHashTablePrimes.html
 */
-static const unsigned int primes[] = {
+static const uint32_t primes[] = {
 53, 97, 193, 389,
 769, 1543, 3079, 6151,
 12289, 24593, 49157, 98317,
@@ -44,7 +44,7 @@ create_hashtable(unsigned int minsize,
     struct hashtable *h;
     unsigned int pindex, size = primes[0];
     /* Check requested hashtable isn't too large */
-    if (minsize > (1u << 30)) return NULL;
+    if (minsize > MAX_HASH_TABLE_SIZE) return NULL;
     /* Enforce size as prime */
     for (pindex=0; pindex < prime_table_length; pindex++) {
         if (primes[pindex] > minsize) { size = primes[pindex]; break; }
@@ -69,7 +69,7 @@ hash(struct hashtable *h, void *k, unsigned int len)
 {
     /* Aim to protect against poor hash functions by adding logic here
      * - logic taken from java 1.4 hashtable source */
-    unsigned int i = h->hashfn(k, len);
+    uint32_t i = h->hashfn(k, len);
     i += ~(i << 9);
     i ^=  ((i >> 14) | (i << 18)); /* >>> */
     i +=  (i << 4);

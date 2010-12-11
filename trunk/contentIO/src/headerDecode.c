@@ -42,13 +42,15 @@
  * @par[Revision] $Id$
  */
 
-#include "../include/headerDecode.h"
+#include "headerDecode.h"
+#include "streamDecode.h"
+#include "streamRead.h"
 
 errorCode decodeHeader(EXIStream* strm, EXIheader* header)
 {
 	DEBUG_MSG(INFO,(">Start EXI header decoding\n"));
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned int bits_val = 0;
+	uint32_t bits_val = 0;
 	tmp_err_code = readBits(strm, 2, &bits_val);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -93,14 +95,16 @@ errorCode decodeHeader(EXIStream* strm, EXIheader* header)
 	}
 
 	// Read the Presence Bit for EXI Options
-	tmp_err_code = readNextBit(strm, &bits_val);
+	unsigned char smallVal = 0;
+	tmp_err_code = readNextBit(strm, &smallVal);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
+
 
 	if(strm->opts == NULL)
 		return NULL_POINTER_REF;
 
-	if(bits_val == 1) // There are EXI options
+	if(smallVal == 1) // There are EXI options
 	{
 		header->has_options = 1;
 		return NOT_IMPLEMENTED_YET; // TODO: Handle EXI streams with options. This includes Padding Bits in some cases
@@ -113,11 +117,11 @@ errorCode decodeHeader(EXIStream* strm, EXIheader* header)
 	}
 
 	// Read the Version type
-	tmp_err_code = readNextBit(strm, &bits_val);
+	tmp_err_code = readNextBit(strm, &smallVal);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	header->is_preview_version = bits_val;
+	header->is_preview_version = smallVal;
 	header->version_number = 1;
 
 	do

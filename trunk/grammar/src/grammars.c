@@ -44,11 +44,14 @@
 #ifndef BUILTINDOCGRAMMAR_H_
 #define BUILTINDOCGRAMMAR_H_
 
-#include "../include/grammars.h"
+#include "grammars.h"
 #include "procTypes.h"
 #include "hashtable.h"
 #include "hashUtils.h"
-
+#include "sTables.h"
+#include "streamEncode.h"
+#include "streamDecode.h"
+#include "memManagement.h"
 #include <stdio.h>
 
 #define DEF_GRAMMAR_RULE_NUMBER 3
@@ -367,7 +370,7 @@ static errorCode decodeQName(EXIStream* strm, QName* qname)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = addURIRow(strm->uriTable, str, &uriID, &(strm->memStack));
+		tmp_err_code = addURIRow(strm->uriTable, str, &uriID, strm);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		qname->uri = &(strm->uriTable->rows[uriID].string_val);
@@ -400,7 +403,7 @@ static errorCode decodeQName(EXIStream* strm, QName* qname)
 			return tmp_err_code;
 		if(strm->uriTable->rows[uriID].lTable == NULL)
 		{
-			tmp_err_code = createLocalNamesTable(&strm->uriTable->rows[uriID].lTable, &(strm->memStack));
+			tmp_err_code = createLocalNamesTable(&strm->uriTable->rows[uriID].lTable, strm);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -501,7 +504,7 @@ static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHan
 
 		// New element grammar is pushed on the stack
 		struct EXIGrammar* res = NULL;
-		char is_found = 0;
+		unsigned char is_found = 0;
 		tmp_err_code = checkElementGrammarInPool(strm->gPool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, &is_found, &res);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -563,7 +566,7 @@ static errorCode decodeEventContent(EXIStream* strm, EventType eType, ContentHan
 
 		// New element grammar is pushed on the stack
 		struct EXIGrammar* res = NULL;
-		char is_found = 0;
+		unsigned char is_found = 0;
 		tmp_err_code = checkElementGrammarInPool(strm->gPool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, &is_found, &res);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -636,7 +639,7 @@ errorCode processNextProduction(EXIStream* strm, EventType* eType,
 	ValueType vType = VALUE_TYPE_STRING; //TODO: This sets the value content type to String. This is only valid for schema-less decoding
 
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned int tmp_bits_val = 0;
+	uint32_t tmp_bits_val = 0;
 	unsigned int currProduction = 0;
 	unsigned int i = 0;
 	unsigned int j = 0;
@@ -817,7 +820,7 @@ errorCode checkElementGrammarInPool(ElementGrammarPool* pool, uint32_t uriRowID,
 errorCode addElementGrammarInPool(ElementGrammarPool* pool, uint32_t uriRowID,
 								uint32_t lnRowID, struct EXIGrammar* newGr)
 {
-	char* key = EXIP_MALLOC(8); // Keys are freed from the hash table
+	char* key = (char*) EXIP_MALLOC(8); // Keys are freed from the hash table
 	if(key == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 	createKey64bits(uriRowID, lnRowID, key);
@@ -865,7 +868,7 @@ errorCode encodeQName(EXIStream* strm, QName qname)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = addURIRow(strm->uriTable, *(qname.uri), &uriID, &(strm->memStack));
+		tmp_err_code = addURIRow(strm->uriTable, *(qname.uri), &uriID, strm);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -897,7 +900,7 @@ errorCode encodeQName(EXIStream* strm, QName qname)
 
 		if(strm->uriTable->rows[uriID].lTable == NULL)
 		{
-			tmp_err_code = createLocalNamesTable(&strm->uriTable->rows[uriID].lTable, &(strm->memStack));
+			tmp_err_code = createLocalNamesTable(&strm->uriTable->rows[uriID].lTable, strm);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -958,7 +961,7 @@ errorCode encodeStringData(EXIStream* strm, StringType strng)
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			tmp_err_code = addLVRow(&(strm->uriTable->rows[p_uriID].lTable->rows[p_lnID]), gvRowID, &(strm->memStack));
+			tmp_err_code = addLVRow(&(strm->uriTable->rows[p_uriID].lTable->rows[p_lnID]), gvRowID, strm);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}

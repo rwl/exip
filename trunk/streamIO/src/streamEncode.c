@@ -42,8 +42,9 @@
  * @par[Revision] $Id$
  */
 
-#include "../include/streamEncode.h"
-#include "../include/streamWrite.h"
+#include "streamEncode.h"
+#include "streamWrite.h"
+#include "stringManipulate.h"
 
 errorCode encodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, uint32_t int_val)
 {

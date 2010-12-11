@@ -45,9 +45,13 @@
 
 #include <stdlib.h>
 #include <check.h>
-#include "../include/streamRead.h"
+#include "streamRead.h"
+#include "streamWrite.h"
+#include "streamDecode.h"
+#include "streamEncode.h"
 #include "procTypes.h"
 #include "errorHandle.h"
+#include "stringManipulate.h"
 
 /* BEGIN: streamRead tests */
 
@@ -142,7 +146,6 @@ START_TEST (test_writeNextBit)
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufferIndx = 0;
-  unsigned char bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
 
   err = writeNextBit(&testStream, 1);
@@ -184,7 +187,6 @@ START_TEST (test_writeBits)
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufferIndx = 0;
-  unsigned int bits_val = 0;
   errorCode err = UNEXPECTED_ERROR;
 
   err = writeBits(&testStream, 19);
@@ -228,7 +230,6 @@ START_TEST (test_writeNBits)
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufferIndx = 0;
-  unsigned int bits_val = 0;
   errorCode err = UNEXPECTED_ERROR;
 
   err = writeNBits(&testStream, 7, 19);
@@ -505,8 +506,8 @@ START_TEST (test_decodeFloat)
   testStream.buffer = buf;
   testStream.bufLen = 3;
   testStream.bufferIndx = 0;
-  long double dbl_val = 0;
-  long double res = 500;		// 5 x 10^2
+  double dbl_val = 0;
+  double res = 500;		// 5 x 10^2
   errorCode err = UNEXPECTED_ERROR;
 
   err = decodeFloatValue(&testStream, &dbl_val);
@@ -577,7 +578,6 @@ START_TEST (test_encodeNBitUnsignedInteger)
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufferIndx = 0;
-  unsigned int bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
 
   err = encodeNBitUnsignedInteger(&testStream, 9, 412);
@@ -693,7 +693,7 @@ START_TEST (test_encodeString)
   testStream.bufLen = 50;
   testStream.bufferIndx = 0;
   StringType testStr;
-  asciiToString("TEST encodeString()", &testStr, &(testStream.memStack));
+  asciiToString("TEST encodeString()", &testStr, &testStream);
   errorCode err = UNEXPECTED_ERROR;
 
   err = encodeString(&testStream, &testStr);
@@ -770,6 +770,10 @@ Suite * streamIO_suite (void)
   tcase_add_test (tc_sDecode, test_encodeBoolean);
   tcase_add_test (tc_sDecode, test_encodeUnsignedInteger);
   tcase_add_test (tc_sDecode, test_encodeString);
+  tcase_add_test (tc_sDecode, test_encodeBinary);
+  tcase_add_test (tc_sDecode, test_encodeFloatValue);
+  tcase_add_test (tc_sDecode, test_encodeIntegerValue);
+
   suite_add_tcase (s, tc_sEncode);
 
   return s;

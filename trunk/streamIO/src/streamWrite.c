@@ -42,8 +42,8 @@
  * @par[Revision] $Id$
  */
 
-#include "../include/streamWrite.h"
-#include "../include/ioUtil.h"
+#include "streamWrite.h"
+#include "ioUtil.h"
 
 errorCode writeNextBit(EXIStream* strm, unsigned char bit_val)
 {

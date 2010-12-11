@@ -5,6 +5,8 @@
 #ifndef __HASHTABLE_CWC22_H__
 #define __HASHTABLE_CWC22_H__
 
+#include "exipConfig.h"
+
 struct hashtable;
 
 /* Example of use:

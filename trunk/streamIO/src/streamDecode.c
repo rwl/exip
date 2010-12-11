@@ -43,8 +43,8 @@
  * @par[Revision] $Id$
  */
 
-#include "../include/streamDecode.h"
-#include "../include/streamRead.h"
+#include "streamDecode.h"
+#include "streamRead.h"
 #include "stringManipulate.h"
 
 errorCode decodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, uint32_t* int_val)
@@ -56,7 +56,7 @@ errorCode decodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, uint32_t* 
 	else
 	{
 		int byte_number = ((int) n) / 8 + (n % 8 != 0);
-		int tmp_byte_buf = 0;
+		uint32_t tmp_byte_buf = 0;
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
 		*int_val = 0;
 		int i = 0;
@@ -88,7 +88,7 @@ errorCode decodeUnsignedInteger(EXIStream* strm, uint32_t* int_val)
 	unsigned int initial_multiplier = 1;
 	*int_val = 0;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	int tmp_byte_buf = 0;
+	uint32_t tmp_byte_buf = 0;
 	int more_bytes_to_read = 0;
 
 	do
@@ -157,12 +157,12 @@ errorCode decodeBinary(EXIStream* strm, char** binary_val, uint32_t* nbytes)
 {
 	errorCode err;
 	uint32_t length=0;
-	unsigned int int_val=0;
+	uint32_t int_val=0;
 
 	err = decodeUnsignedInteger(strm, &length);
 	if(err!=ERR_OK) return err;
 	*nbytes = length;
-	(*binary_val) = EXIP_MALLOC(length); // This memory should be manually freed after the content handler is invoked
+	(*binary_val) = (char*) EXIP_MALLOC(length); // This memory should be manually freed after the content handler is invoked
 	if((*binary_val) == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -182,21 +182,23 @@ errorCode decodeIntegerValue(EXIStream* strm, int32_t* sint_val)
 	// TODO: check if the result fit into int type
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char bool_val = 0;
+	uint32_t val;
 	tmp_err_code = decodeBoolean(strm, &bool_val);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	if(bool_val == 0) // A sign value of zero (0) is used to represent positive integers
 	{
-		tmp_err_code = decodeUnsignedInteger(strm, sint_val);
+		tmp_err_code = decodeUnsignedInteger(strm, &val);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
+		*sint_val = (int32_t) val;
 	}
 	else if(bool_val == 1) // A sign value of one (1) is used to represent negative integers
 	{
-		tmp_err_code = decodeUnsignedInteger(strm, sint_val);
+		tmp_err_code = decodeUnsignedInteger(strm, &val);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		*sint_val = -*sint_val;
+		*sint_val = -((int32_t) val);
 	}
 	else
 		return UNEXPECTED_ERROR;
@@ -224,8 +226,8 @@ errorCode decodeFloatValue(EXIStream* strm, double* double_val)
 	errorCode err;
 
 	double val;	// val = man * 10^exp
-	int man;	//mantissa
-	int exp;	//exponent
+	int32_t man;	//mantissa
+	int32_t exp;	//exponent
 
 	err = decodeIntegerValue(strm,&man);	//decode mantissa
 	if(err!=ERR_OK) return err;

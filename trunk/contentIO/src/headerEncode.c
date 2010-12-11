@@ -42,7 +42,8 @@
  * @par[Revision] $Id$
  */
 
-#include "../include/headerEncode.h"
+#include "headerEncode.h"
+#include "streamWrite.h"
 
 errorCode encodeHeader(EXIStream* strm, EXIheader* header)
 {

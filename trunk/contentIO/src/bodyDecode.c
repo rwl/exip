@@ -41,9 +41,10 @@
  * @par[Revision] $Id$
  */
 
-#include "../include/bodyDecode.h"
+#include "bodyDecode.h"
 #include "grammars.h"
 #include "sTables.h"
+#include "memManagement.h"
 
 // TODO: use macros for conditional debugging for error messages
 
