@@ -42,7 +42,8 @@
  * @par[Revision] $Id$
  */
 
-#include "../include/stringManipulate.h"
+#include "stringManipulate.h"
+#include "memManagement.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -80,7 +81,7 @@ errorCode getEmptyString(StringType* emptyStr)
 	return ERR_OK;
 }
 
-errorCode asciiToString(char* inStr, StringType* outStr, EXIStream* strm)
+errorCode asciiToString(const char* inStr, StringType* outStr, EXIStream* strm)
 {
 	outStr->length = strlen(inStr);
 	if(outStr->length > 0)  // If == 0 -> empty string

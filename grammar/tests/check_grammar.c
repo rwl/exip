@@ -44,7 +44,7 @@
 
 #include <stdlib.h>
 #include <check.h>
-#include "../include/grammars.h"
+#include "grammars.h"
 
 /* BEGIN: grammars tests */
 

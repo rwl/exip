@@ -42,7 +42,7 @@
  * @par[Revision] $Id$
  */
 
-#include "../include/ioUtil.h"
+#include "ioUtil.h"
 
 errorCode moveBitPointer(EXIStream* strm, unsigned int bitPositions)
 {

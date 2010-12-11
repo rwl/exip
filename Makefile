@@ -66,6 +66,8 @@ CFLAGS = -I$(COMMON)/include
 CFLAGS += -I$(GRAMMAR)/include
 CFLAGS += -I$(STRING_TABLES)/include
 CFLAGS += -I$(CONTENT_IO)/include
+CFLAGS += -I$(STREAM_IO)/include
+CFLAGS += -Wpacked -Wall
 
 CFLAGS += -g # Debugging 
 

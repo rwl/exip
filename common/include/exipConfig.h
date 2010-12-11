@@ -52,4 +52,18 @@
 #define EXIP_DEBUG_LEVEL INFO    //TODO: document this macro #DOCUMENT#
 */
 
+/**
+ * Define the memory allocation functions
+ */
+#include <stdlib.h> //TODO: make it conditional!
+#define EXIP_MALLOC malloc   //TODO: document this macro #DOCUMENT#
+#define EXIP_REALLOC realloc //TODO: document this macro #DOCUMENT#
+
+/**
+ * Define the memory freeing function
+ */
+#define EXIP_MFREE free  //TODO: document this macro #DOCUMENT#
+
+#define MAX_HASH_TABLE_SIZE 16000 //TODO: document this macro #DOCUMENT#
+
 #endif /* EXIPCONFIG_H_ */

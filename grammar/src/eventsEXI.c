@@ -41,7 +41,8 @@
  * @par[Revision] $Id$
  */
 
-#include "../include/eventsEXI.h"
+#include "eventsEXI.h"
+#include "streamEncode.h"
 
 #define UNUSED_CODE_PART_VALUE 9999
 

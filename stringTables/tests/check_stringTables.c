@@ -44,7 +44,8 @@
 
 #include <stdlib.h>
 #include <check.h>
-#include "../include/sTables.h"
+#include "sTables.h"
+#include "stringManipulate.h"
 
 /* BEGIN: table tests */
 

@@ -44,8 +44,8 @@
 
 #include <stdlib.h>
 #include <check.h>
-#include "../include/headerDecode.h"
-#include "../include/bodyDecode.h"
+#include "headerDecode.h"
+#include "bodyDecode.h"
 
 /* BEGIN: header tests */
 

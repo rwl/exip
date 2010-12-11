@@ -42,10 +42,12 @@
  * @par[Revision] $Id$
  */
 
-#include "../include/EXIParser.h"
+#include "EXIParser.h"
 #include "procTypes.h"
 #include "errorHandle.h"
-#include "../include/bodyDecode.h"
+#include "bodyDecode.h"
+#include "headerDecode.h"
+#include "memManagement.h"
 
 void parseEXI(char* binaryStream, uint32_t bufLen, ContentHandler* handler)
 {
@@ -69,7 +71,7 @@ void parseEXI(char* binaryStream, uint32_t bufLen, ContentHandler* handler)
 	{
 		if(handler->fatalError != NULL)
 			handler->fatalError(tmp_err_code, "Error parsing EXI header");
-		freeAllMem(strm);
+		freeAllMem(&strm);
 		return;
 	}
 	if(handler->exiHeader != NULL)

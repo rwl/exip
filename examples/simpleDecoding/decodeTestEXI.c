@@ -43,6 +43,7 @@
  */
 #include "EXIParser.h"
 #include "procTypes.h"
+#include "stringManipulate.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -171,6 +172,7 @@ int main(int argc, char *argv[])
 		printfHelp();
 		return 1;
 	}
+	return 0;
 }
 
 static void printfHelp()
@@ -336,7 +338,7 @@ static struct element* createElement(char* name)
 	el = malloc(sizeof(struct element));
 	if(el == NULL)
 		exit(1);
-	el->next == NULL;
+	el->next = NULL;
 	el->name = malloc(strlen(name));
 	if(el->name == NULL)
 		exit(1);

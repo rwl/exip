@@ -41,8 +41,9 @@
  * @par[Revision] $Id$
  */
 
-#include "../include/grammarRules.h"
-#include "../include/eventsEXI.h"
+#include "grammarRules.h"
+#include "eventsEXI.h"
+#include "memManagement.h"
 
 errorCode initGrammarRule(GrammarRule* rule, EXIStream* strm)
 {
@@ -63,7 +64,7 @@ errorCode addProduction(GrammarRule* rule, EventCode eCode, EventType eType, uns
 	if(rule->prodCount == rule->prodDimension) // The dynamic array prodArray needs to be resized
 	{
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		tmp_err_code = memManagedReAllocate(&rule->prodArray, sizeof(Production)*(rule->prodCount + DEFAULT_PROD_ARRAY_DIM), rule->memNode);
+		tmp_err_code = memManagedReAllocate((void *) &rule->prodArray, sizeof(Production)*(rule->prodCount + DEFAULT_PROD_ARRAY_DIM), rule->memNode);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		rule->prodDimension = rule->prodDimension + DEFAULT_PROD_ARRAY_DIM;
@@ -81,7 +82,7 @@ errorCode insertZeroProduction(GrammarRule* rule, EventType eType, unsigned int 
 	if(rule->prodCount == rule->prodDimension) // The dynamic array prodArray needs to be resized
 	{
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		tmp_err_code = memManagedReAllocate(&rule->prodArray, sizeof(Production)*(rule->prodCount + DEFAULT_PROD_ARRAY_DIM), rule->memNode);
+		tmp_err_code = memManagedReAllocate((void *) &rule->prodArray, sizeof(Production)*(rule->prodCount + DEFAULT_PROD_ARRAY_DIM), rule->memNode);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		rule->prodDimension = rule->prodDimension + DEFAULT_PROD_ARRAY_DIM;

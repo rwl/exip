@@ -42,6 +42,7 @@
  */
 
 #include "memManagement.h"
+#include "hashtable.h"
 
 void* memManagedAllocate(EXIStream* strm, size_t size)
 {

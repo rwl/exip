@@ -42,8 +42,8 @@
  * @par[Revision] $Id$
  */
 
-#include "../include/streamRead.h"
-#include "../include/ioUtil.h"
+#include "streamRead.h"
+#include "ioUtil.h"
 
 const unsigned char BIT_MASK[] = {(char) 0b00000000,
 								  (char) 0b00000001,

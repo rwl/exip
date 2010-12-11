@@ -41,7 +41,7 @@
  * @par[Revision] $Id$
  */
 
-#include "../include/grammarGenerator.h"
+#include "grammarGenerator.h"
 #include "EXIParser.h"
 
 // Content Handler API

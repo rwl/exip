@@ -43,6 +43,8 @@
  */
 #include "EXISerializer.h"
 #include "procTypes.h"
+#include "stringManipulate.h"
+#include "memManagement.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -151,6 +153,7 @@ int main(int argc, char *argv[])
 		printfHelp();
 		return 1;
 	}
+	return 0;
 }
 
 static void printfHelp()
