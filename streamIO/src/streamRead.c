@@ -79,7 +79,7 @@ errorCode readBits(EXIStream* strm, unsigned char n, uint32_t* bits_val)
 		if(n - numBitsRead <= 8 - strm->bitPointer) // The rest of the unread bits are located in the current byte from the stream
 		{
 			bits_in_byte = n - numBitsRead;
-			int tmp_shift = 8 - strm->bitPointer - (n - numBitsRead);
+			int tmp_shift = 8 - strm->bitPointer - bits_in_byte;
 			tmp = (strm->buffer[strm->bufferIndx] & BIT_MASK[bits_in_byte]<<tmp_shift) >> tmp_shift;
 		}
 		else // The rest of the unread bits are located in multiple bytes from the stream
