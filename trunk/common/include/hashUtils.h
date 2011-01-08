@@ -55,10 +55,11 @@
  * the magic of number 33 (why it works better than many other constants, prime or not) has never
  * been adequately explained.
  **/
-unsigned int djbHash(void* str, unsigned int len);
+uint32_t djbHash(void* str, unsigned int len);
 
 /**
  * @brief Check two hash table keys for equality
+ * The keys are character strings with lengths passed as parameters
  *
  * @param[in] key1 a pointer to the first key
  * @param[in] len1 the length of the first key in bytes
@@ -77,5 +78,28 @@ int keyEqual(char* key1, unsigned int len1, char* key2, unsigned int len2);
  * @param[in] key a pointer to the second key
  */
 void createKey64bits(uint32_t first, uint32_t second, char* key);
+
+/**
+ * @brief Generate 32 bits hash from two 32 bits values
+ * This function is used for Grammar pool hash table.
+ * It is taken from http://www.concentric.net/~ttwang/tech/inthash.htm
+ *
+ * @param[in] first first part of the key
+ * @param[in] second second part of the key
+ * @return 32 bits hash value
+ */
+uint32_t hash6432shift(uint32_t first, uint32_t second);
+
+/**
+ * @brief Check two hash table keys for equality
+ * The keys are pair of uint32_t values
+ *
+ * @param[in] key1_first
+ * @param[in] key1_second
+ * @param[in] key2_first
+ * @param[in] key2_second
+ * @return 0 if NOT equal, 1 - if the two keys are equal
+ */
+int pairKeyEqual(uint32_t key1_first, uint32_t key1_second, uint32_t key2_first, uint32_t key2_second);
 
 #endif /* HASHUTILS_H_ */

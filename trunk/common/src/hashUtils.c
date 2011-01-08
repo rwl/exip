@@ -44,11 +44,11 @@
 #include "procTypes.h"
 #include "string.h"
 
-unsigned int djbHash(void* str, unsigned int len)
+uint32_t djbHash(void* str, unsigned int len)
 {
 	char* tmp = str;
-	unsigned int hash = 5381;
-	unsigned int i    = 0;
+	uint32_t hash = 5381;
+	unsigned int i = 0;
 
 	for(i = 0; i < len; tmp++, i++)
 	{
@@ -88,4 +88,30 @@ void createKey64bits(uint32_t first, uint32_t second, char* key)
 {
 	memcpy(key, &first, sizeof(uint32_t));
 	memcpy(key+sizeof(uint32_t), &second, sizeof(uint32_t));
+}
+
+// TODO: For the grammar pool hash table use the URI string table ID
+//       and Local Name ID directly as a key. That is, the key is a
+//       pair of two uint32_t instead of 64 bits chars. This will make the
+//       equality check much faster. Use the functions below. createKey64bits()
+//       will no longer be needed. Specialization of the hash table code would be
+//       required.
+
+// http://www.concentric.net/~ttwang/tech/inthash.htm
+uint32_t hash6432shift(uint32_t first, uint32_t second)
+{
+	uint64_t key = (((uint64_t) first)<<32) & ((uint64_t) second);
+
+	key = (~key) + (key << 18); // key = (key << 18) - key - 1;
+	key = key^(key >> 31);
+	key = key * 21; // key = (key + (key << 2)) + (key << 4);
+	key = key ^ (key >> 11);
+	key = key + (key << 6);
+	key = key ^ (key >> 22);
+	return (uint32_t) key;
+}
+
+int pairKeyEqual(uint32_t uri1, uint32_t ln1, uint32_t uri2, uint32_t ln2)
+{
+	return uri1 == uri2 && ln1 == ln2;
 }

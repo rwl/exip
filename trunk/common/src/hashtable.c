@@ -38,7 +38,7 @@ const float max_load_factor = 0.65;
 /*****************************************************************************/
 struct hashtable *
 create_hashtable(unsigned int minsize,
-                 unsigned int (*hashf) (void*, unsigned int len),
+                 uint32_t (*hashf) (void*, unsigned int len),
                  int (*eqf) (char*,unsigned int,char*,unsigned int))
 {
     struct hashtable *h;
@@ -64,8 +64,10 @@ create_hashtable(unsigned int minsize,
 }
 
 /*****************************************************************************/
-unsigned int
-hash(struct hashtable *h, void *k, unsigned int len)
+
+// Currently this function is not used. Some performance tests must be written
+// and performed to show if it is better when it is used
+uint32_t hash(struct hashtable *h, void *k, unsigned int len)
 {
     /* Aim to protect against poor hash functions by adding logic here
      * - logic taken from java 1.4 hashtable source */
@@ -81,7 +83,7 @@ hash(struct hashtable *h, void *k, unsigned int len)
 static int
 hashtable_expand(struct hashtable *h)
 {
-    /* Double the size of the table to accomodate more entries */
+    /* Double the size of the table to accommodate more entries */
     struct entry **newtable;
     struct entry *e;
     struct entry **pE;
@@ -160,7 +162,7 @@ hashtable_insert(struct hashtable *h, void *k, unsigned int len, void *v)
     }
     e = (struct entry *)EXIP_MALLOC(sizeof(struct entry));
     if (NULL == e) { --(h->entrycount); return 0; } /*oom*/
-    e->h = hash(h,k, len);
+    e->h = h->hashfn(k, len); // hash(h,k, len);
     index = indexFor(h->tablelength,e->h);
     e->k = k;
     e->key_len = len;
@@ -175,8 +177,9 @@ void * /* returns value associated with key */
 hashtable_search(struct hashtable *h, void *k, unsigned int len)
 {
     struct entry *e;
-    unsigned int hashvalue, index;
-    hashvalue = hash(h,k, len);
+    uint32_t hashvalue;
+    unsigned int index;
+    hashvalue = h->hashfn(k, len); // hash(h,k, len);
     index = indexFor(h->tablelength,hashvalue);
     e = h->table[index];
     while (NULL != e)
@@ -198,10 +201,11 @@ hashtable_remove(struct hashtable *h, void *k, unsigned int len)
     struct entry *e;
     struct entry **pE;
     void *v;
-    unsigned int hashvalue, index;
+    uint32_t hashvalue;
+    unsigned int index;
 
-    hashvalue = hash(h,k, len);
-    index = indexFor(h->tablelength,hash(h,k, len));
+    hashvalue = h->hashfn(k, len); // hash(h,k, len);
+    index = indexFor(h->tablelength, h->hashfn(k, len) /* hash(h,k, len) */);
     pE = &(h->table[index]);
     e = *pE;
     while (NULL != e)
