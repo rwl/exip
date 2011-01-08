@@ -45,6 +45,8 @@
 #include "streamWrite.h"
 #include "ioUtil.h"
 
+extern const unsigned char BIT_MASK[];
+
 errorCode writeNextBit(EXIStream* strm, unsigned char bit_val)
 {
 	if(bit_val == 0)
@@ -58,45 +60,36 @@ errorCode writeNextBit(EXIStream* strm, unsigned char bit_val)
 errorCode writeBits(EXIStream* strm, uint32_t bits_val)
 {
 	//TODO: Handle error cases i.e. end of the stream and so on
-	//TODO: provide more efficient implementation!
 	unsigned char nbits = getBitsNumber(bits_val);
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned char bval = 0;
-	for(; nbits > 0; nbits--)
-	{
-		bval = (bits_val & (1ul<<(nbits-1))) != 0;
-		tmp_err_code = writeNextBit(strm, bval);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-
-	return ERR_OK;
+	return writeNBits(strm, nbits, bits_val);
 }
 
 errorCode writeNBits(EXIStream* strm, unsigned char nbits, uint32_t bits_val)
 {
 	//TODO: Handle error cases i.e. end of the stream and so on
-	//TODO: provide more efficient implementation!
 
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned char realNbits = getBitsNumber(bits_val);
-	if(realNbits > nbits)
-		return INCONSISTENT_PROC_STATE;
+	unsigned int numBitsWrite = 0; // Number of the bits written so far
+	unsigned char tmp = 0;
+	int bits_in_byte = 0; // Number of bits written in one iteration
 
-	int i = 0;
-	for(; i < nbits - realNbits; i++)
+	while(numBitsWrite < nbits)
 	{
-		tmp_err_code = writeNextBit(strm, 0);
+		if(nbits - numBitsWrite <= 8 - strm->bitPointer) // The rest of the unwritten bits can be put in the current byte from the stream
+			bits_in_byte = nbits - numBitsWrite;
+		else // The rest of the unwritten bits are more than the bits in the current byte from the stream
+			bits_in_byte = 8 - strm->bitPointer;
+
+		tmp = (bits_val >> (nbits - numBitsWrite - bits_in_byte)) & BIT_MASK[bits_in_byte];
+		tmp = tmp << (8 - strm->bitPointer - bits_in_byte);
+		strm->buffer[strm->bufferIndx] = strm->buffer[strm->bufferIndx] & (~BIT_MASK[8 - strm->bitPointer]); // Initialize the unused bits with 0s
+		strm->buffer[strm->bufferIndx] = strm->buffer[strm->bufferIndx] | tmp;
+
+		numBitsWrite += bits_in_byte;
+		tmp_err_code = moveBitPointer(strm, bits_in_byte);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
-	unsigned char bval = 0;
-	for(; realNbits > 0; realNbits--)
-	{
-		bval = (bits_val & (1ul<<(realNbits-1))) != 0;
-		tmp_err_code = writeNextBit(strm, bval);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
+
 	return ERR_OK;
 }

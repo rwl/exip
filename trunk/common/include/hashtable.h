@@ -6,6 +6,7 @@
 #define __HASHTABLE_CWC22_H__
 
 #include "exipConfig.h"
+#include <stdint.h>
 
 struct hashtable;
 
