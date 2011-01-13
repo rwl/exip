@@ -62,15 +62,15 @@ errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, un
 
 	ContentHandler xsdHandler;
 	initContentHandler(&xsdHandler);
-	sampleHandler.fatalError = xsd_fatalError;
-	sampleHandler.error = xsd_fatalError;
-	sampleHandler.startDocument = xsd_startDocument;
-	sampleHandler.endDocument = xsd_endDocument;
-	sampleHandler.startElement = xsd_startElement;
-	sampleHandler.attribute = xsd_attribute;
-	sampleHandler.stringData = xsd_stringData;
-	sampleHandler.endElement = xsd_endElement;
-	sampleHandler.exiHeader = xsd_exiHeader;
+	xsdHandler.fatalError = xsd_fatalError;
+	xsdHandler.error = xsd_fatalError;
+	xsdHandler.startDocument = xsd_startDocument;
+	xsdHandler.endDocument = xsd_endDocument;
+	xsdHandler.startElement = xsd_startElement;
+	xsdHandler.attribute = xsd_attribute;
+	xsdHandler.stringData = xsd_stringData;
+	xsdHandler.endElement = xsd_endElement;
+	xsdHandler.exiHeader = xsd_exiHeader;
 
 	// Parse the EXI stream
 	parseEXI(binaryStream, bufLen, &xsdHandler);

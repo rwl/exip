@@ -74,7 +74,7 @@ CFLAGS += -g # Debugging
 # Gets the first goal set on the command line - it is used if the next goal is check. Defines which module to test
 TARGET = $(word 1,$(MAKECMDGOALS))
 
-# If the first goal is check the the target for checking is the whole project
+# If the first goal is check then the target for checking is the whole project
 ifeq ($(TARGET), check)
    CHECK_TARGET=streamIO/test stringTables/test grammar/test contentIO/test
 else
