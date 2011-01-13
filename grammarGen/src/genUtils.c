@@ -43,7 +43,93 @@
 
 #include "genUtils.h"
 
-errorCode concatenateGrammars(struct EXIGrammar* left, struct EXIGrammar* right, struct EXIGrammar* result)
+errorCode concatenateGrammars(struct EXIGrammar* left, struct EXIGrammar* right, struct EXIGrammar** result)
+{
+	return NOT_IMPLEMENTED_YET;
+}
+
+errorCode createElementProtoGrammar(StringType name, StringType target_ns,
+									QName typeDef, QName scope, unsigned char nillable,
+									struct EXIGrammar** result)
+{
+	return NOT_IMPLEMENTED_YET;
+}
+
+errorCode createSimpleTypeGrammar(QName simpleType, struct EXIGrammar** result)
+{
+	return NOT_IMPLEMENTED_YET;
+}
+
+errorCode createSimpleEmptyTypeGrammar(struct EXIGrammar** result)
+{
+	return NOT_IMPLEMENTED_YET;
+}
+
+errorCode createComplexTypeGrammar(StringType name, StringType target_ns,
+		                           struct EXIGrammar* attrUsesArray, unsigned int attrUsesArraySize,
+		                           StringType wildcardArray, unsigned int wildcardArraySize,
+		                           struct EXIGrammar* contentTypeGrammar,
+								   struct EXIGrammar** result)
+{
+	return NOT_IMPLEMENTED_YET;
+}
+
+errorCode createComplexEmptyTypeGrammar(StringType name, StringType target_ns,
+		                           struct EXIGrammar* attrUsesArray, unsigned int attrUsesArraySize,
+		                           StringType wildcardArray, unsigned int wildcardArraySize,
+								   struct EXIGrammar** result)
+{
+	return NOT_IMPLEMENTED_YET;
+}
+
+errorCode createComplexUrTypeGrammar(struct EXIGrammar** result)
+{
+	return NOT_IMPLEMENTED_YET;
+}
+
+errorCode createComplexUrEmptyTypeGrammar(struct EXIGrammar** result)
+{
+	return NOT_IMPLEMENTED_YET;
+}
+
+errorCode createAttributeUseGrammar(unsigned char required, StringType name, StringType target_ns,
+										  QName simpleType, QName scope, struct EXIGrammar** result)
+{
+	return NOT_IMPLEMENTED_YET;
+}
+
+errorCode createParticleGrammar(unsigned int minOccurs, unsigned int maxOccurs,
+								struct EXIGrammar* termGrammar, struct EXIGrammar** result)
+{
+	return NOT_IMPLEMENTED_YET;
+}
+
+errorCode createElementTermGrammar(StringType name, StringType target_ns,
+								   struct EXIGrammar** result)
+{
+	return NOT_IMPLEMENTED_YET;
+}
+
+errorCode createWildcardTermGrammar(StringType wildcardArray, unsigned int wildcardArraySize,
+								   struct EXIGrammar** result)
+{
+	return NOT_IMPLEMENTED_YET;
+}
+
+errorCode createSequenceModelGroupsGrammar(struct EXIGrammar* pTermArray, unsigned int pTermArraySize,
+											struct EXIGrammar** result)
+{
+	return NOT_IMPLEMENTED_YET;
+}
+
+errorCode createChoiceModelGroupsGrammar(struct EXIGrammar* pTermArray, unsigned int pTermArraySize,
+											struct EXIGrammar** result)
+{
+	return NOT_IMPLEMENTED_YET;
+}
+
+errorCode createAllModelGroupsGrammar(struct EXIGrammar* pTermArray, unsigned int pTermArraySize,
+											struct EXIGrammar** result)
 {
 	return NOT_IMPLEMENTED_YET;
 }
