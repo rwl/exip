@@ -122,6 +122,22 @@ char str_equal(const StringType str1, const StringType str2)
 	}
 }
 
+char strEqualToAscii(const StringType str1, char* str2)
+{
+	if(str1.length != strlen(str2))
+		return 0;
+	else
+	{
+		int i = 0;
+		for(i = 0; i < str1.length; i++)
+		{
+			if(str1.str[i] != str2[i])
+				return 0;
+		}
+		return 1;
+	}
+}
+
 errorCode getUCSCodePoint(const StringType* str, uint32_t charIndex, uint32_t* UCScp)
 {
 	if(str->length <= charIndex)

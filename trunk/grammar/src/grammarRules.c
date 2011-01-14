@@ -59,7 +59,7 @@ errorCode initGrammarRule(GrammarRule* rule, EXIStream* strm)
 	return ERR_OK;
 }
 
-errorCode addProduction(GrammarRule* rule, EventCode eCode, EventType eType, unsigned int nonTermID)
+errorCode addProduction(GrammarRule* rule, EventCode eCode, EXIEvent event, unsigned int nonTermID)
 {
 	if(rule->prodCount == rule->prodDimension) // The dynamic array prodArray needs to be resized
 	{
@@ -70,13 +70,13 @@ errorCode addProduction(GrammarRule* rule, EventCode eCode, EventType eType, uns
 		rule->prodDimension = rule->prodDimension + DEFAULT_PROD_ARRAY_DIM;
 	}
 	rule->prodArray[rule->prodCount].code = eCode;
-	rule->prodArray[rule->prodCount].eType = eType;
+	rule->prodArray[rule->prodCount].event = event;
 	rule->prodArray[rule->prodCount].nonTermID = nonTermID;
 	rule->prodCount = rule->prodCount + 1;
 	return ERR_OK;
 }
 
-errorCode insertZeroProduction(GrammarRule* rule, EventType eType, unsigned int nonTermID,
+errorCode insertZeroProduction(GrammarRule* rule, EXIEvent event, unsigned int nonTermID,
 								uint32_t lnRowID, uint32_t uriRowID)
 {
 	if(rule->prodCount == rule->prodDimension) // The dynamic array prodArray needs to be resized
@@ -98,12 +98,34 @@ errorCode insertZeroProduction(GrammarRule* rule, EventType eType, unsigned int 
 	rule->bits[0] = getBitsNumber(maxCodePart);
 
 	rule->prodArray[rule->prodCount].code = getEventCode1(0);
-	rule->prodArray[rule->prodCount].eType = eType;
+	rule->prodArray[rule->prodCount].event = event;
 	rule->prodArray[rule->prodCount].nonTermID = nonTermID;
 	rule->prodArray[rule->prodCount].lnRowID = lnRowID;
 	rule->prodArray[rule->prodCount].uriRowID = uriRowID;
 	rule->prodCount = rule->prodCount + 1;
 	return ERR_OK;
+}
+
+errorCode copyGrammarRule(EXIStream* strm, GrammarRule* src, GrammarRule* dest)
+{
+	dest->bits[0] = src->bits[0];
+	dest->bits[1] = src->bits[1];
+	dest->bits[2] = src->bits[2];
+
+	dest->memNode = NULL;
+	dest->nonTermID = src->nonTermID;
+	dest->prodCount = src->prodCount;
+	dest->prodDimension = src->prodDimension;
+
+	dest->prodArray = (Production*) memManagedAllocate(strm, sizeof(Production)*dest->prodDimension);
+	if(dest->prodArray == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	int i = 0;
+	for(;i < dest->prodCount; i++)
+	{
+		dest->prodArray[i] = src->prodArray[i];
+	}
 }
 
 #ifdef EXIP_DEBUG // TODO: document this macro #DOCUMENT#
@@ -142,7 +164,7 @@ errorCode printGrammarRule(GrammarRule* rule)
 	for(i = 0; i < rule->prodCount; i++)
 	{
 		DEBUG_MSG(INFO,("\t"));
-		switch(rule->prodArray[i].eType)
+		switch(rule->prodArray[i].event.eventType)
 		{
 			case EVENT_SD:
 				DEBUG_MSG(INFO,("SD "));

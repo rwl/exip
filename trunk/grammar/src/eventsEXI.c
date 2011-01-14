@@ -89,3 +89,15 @@ errorCode writeEventCode(EXIStream* strm, EventCode code, unsigned char* bits)
 	return ERR_OK;
 }
 
+EXIEvent getEventDefType(EventType eType)
+{
+	EXIEvent event;
+	event.eventType = eType;
+	event.valueType = VALUE_TYPE_NONE;
+	return event;
+}
+
+unsigned char eventsEqual(EXIEvent e1, EXIEvent e2)
+{
+	return e1.eventType == e2.eventType && e1.valueType == e2.valueType;
+}

@@ -278,10 +278,12 @@ START_TEST (test_addProduction)
 	err = initGrammarRule(&rule, &strm);
 	fail_unless (err == ERR_OK, "initGrammarRule returns error code %d", err);
 	EventCode eCode = getEventCode2(20,12);
-	EventType eType = EVENT_SE_ALL;
+	EXIEvent event;
+	event.eventType = EVENT_SE_ALL;
+	event.valueType = VALUE_TYPE_NONE;
 	unsigned int nonTermID = GR_DOC_CONTENT;
 
-	err = addProduction(&rule, eCode, eType, nonTermID);
+	err = addProduction(&rule, eCode, event, nonTermID);
 	fail_unless (err == ERR_OK, "addProduction returns error code %d", err);
 
 	fail_unless(rule.prodCount == 1 && rule.prodDimension == DEFAULT_PROD_ARRAY_DIM,
@@ -290,12 +292,12 @@ START_TEST (test_addProduction)
 			    rule.prodArray[0].code.code[1] == 12,
 			    "addProduction does not set the EventCode correctly");
 
-	fail_unless(rule.prodArray[0].eType == EVENT_SE_ALL, "addProduction does not set the EventType correctly");
+	fail_unless(rule.prodArray[0].event.eventType == EVENT_SE_ALL, "addProduction does not set the EXI EventType correctly");
 	fail_unless(rule.prodArray[0].nonTermID == GR_DOC_CONTENT, "addProduction does not set the nonTermID correctly");
 
 	rule.prodCount = DEFAULT_PROD_ARRAY_DIM;
 
-	err = addProduction(&rule, eCode, eType, nonTermID);
+	err = addProduction(&rule, eCode, event, nonTermID);
 	fail_unless (err == ERR_OK, "addProduction returns error code %d", err);
 
 	fail_unless(rule.prodCount == DEFAULT_PROD_ARRAY_DIM + 1 && rule.prodDimension == 2*DEFAULT_PROD_ARRAY_DIM,
@@ -304,7 +306,7 @@ START_TEST (test_addProduction)
 				rule.prodArray[DEFAULT_PROD_ARRAY_DIM].code.code[1] == 12,
 				"addProduction does not set the EventCode correctly");
 
-	fail_unless(rule.prodArray[DEFAULT_PROD_ARRAY_DIM].eType == EVENT_SE_ALL, "addProduction does not set the EventType correctly");
+	fail_unless(rule.prodArray[DEFAULT_PROD_ARRAY_DIM].event.eventType == EVENT_SE_ALL, "addProduction does not set the EXI EventType correctly");
 	fail_unless(rule.prodArray[DEFAULT_PROD_ARRAY_DIM].nonTermID == GR_DOC_CONTENT, "addProduction does not set the nonTermID correctly");
 }
 END_TEST
@@ -317,21 +319,23 @@ START_TEST (test_insertZeroProduction)
 	err = initGrammarRule(&rule, &strm);
 	fail_unless (err == ERR_OK, "initGrammarRule returns error code %d", err);
 	EventCode eCode = getEventCode2(0,0);
-	EventType eType = EVENT_SE_ALL;
+	EXIEvent event;
+	event.eventType = EVENT_SE_ALL;
+	event.valueType = VALUE_TYPE_NONE;
 	rule.bits[0] = 0;
 	rule.bits[1] = 0;
 	unsigned int nonTermID = GR_DOC_CONTENT;
-	err = addProduction(&rule, eCode, eType, nonTermID);
+	err = addProduction(&rule, eCode, event, nonTermID);
 	fail_unless (err == ERR_OK, "addProduction returns error code %d", err);
 	fail_unless(rule.prodCount == 1 && rule.prodDimension == DEFAULT_PROD_ARRAY_DIM,
 				"addProduction does not initialize prodCount and/or prodDimension correctly");
 	fail_unless(rule.prodArray[0].code.size == 2 && rule.prodArray[0].code.code[0] == 0 &&
 				rule.prodArray[0].code.code[1] == 0,
 				"addProduction does not set the EventCode correctly");
-	fail_unless(rule.prodArray[0].eType == EVENT_SE_ALL, "addProduction does not set the EventType correctly");
+	fail_unless(rule.prodArray[0].event.eventType == EVENT_SE_ALL, "addProduction does not set the EXI EventType correctly");
 	fail_unless(rule.prodArray[0].nonTermID == GR_DOC_CONTENT, "addProduction does not set the nonTermID correctly");
 
-	err = insertZeroProduction(&rule, eType, nonTermID, 0, 0);
+	err = insertZeroProduction(&rule, event, nonTermID, 0, 0);
 	fail_unless (err == ERR_OK, "insertZeroProduction returns error code %d", err);
 	fail_unless (rule.prodCount == 2, "insertZeroProduction does not set prodCount properly");
 	fail_unless (rule.bits[0] == 1 && rule.bits[1] == 0, "insertZeroProduction does not set rule.bits properly");
@@ -339,7 +343,7 @@ START_TEST (test_insertZeroProduction)
 				"insertZeroProduction does not set lnRowID and uriRowID properly" );
 	fail_unless(rule.prodArray[1].code.size == 1 && rule.prodArray[1].code.code[0] == 0,
 					"insertZeroProduction does not set the EventCode correctly");
-	fail_unless(rule.prodArray[1].eType == EVENT_SE_ALL, "insertZeroProduction does not set the EventType correctly");
+	fail_unless(rule.prodArray[1].event.eventType == EVENT_SE_ALL, "insertZeroProduction does not set the EXI EventType correctly");
 	fail_unless(rule.prodArray[1].nonTermID == GR_DOC_CONTENT, "insertZeroProduction does not set the nonTermID correctly");
 
 	fail_unless(rule.prodArray[0].code.size == 2 && rule.prodArray[0].code.code[0] == 1 &&

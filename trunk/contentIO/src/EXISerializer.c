@@ -48,7 +48,7 @@
 #include "memManagement.h"
 #include "sTables.h"
 
-static errorCode encodeEXIEvent(EXIStream* strm, EventType eType);
+static errorCode encodeEXIEvent(EXIStream* strm, EXIEvent event);
 static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned char isElemOrAttr);
 
 errorCode initStream(EXIStream* strm, unsigned int initialBufSize)
@@ -88,7 +88,7 @@ errorCode initStream(EXIStream* strm, unsigned int initialBufSize)
 	return ERR_OK;
 }
 
-static errorCode encodeEXIEvent(EXIStream* strm, EventType eType)
+static errorCode encodeEXIEvent(EXIStream* strm, EXIEvent event)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	int j = 0;
@@ -100,7 +100,7 @@ static errorCode encodeEXIEvent(EXIStream* strm, EventType eType)
 			j = 0;
 			for(; j < strm->gStack->ruleArray[i].prodCount; j++)
 			{
-				if(strm->gStack->ruleArray[i].prodArray[j].eType == eType)
+				if(eventsEqual(strm->gStack->ruleArray[i].prodArray[j].event, event))
 				{
 					tmp_err_code = writeEventCode(strm, strm->gStack->ruleArray[i].prodArray[j].code, strm->gStack->ruleArray[i].bits);
 					if(tmp_err_code != ERR_OK)
@@ -143,7 +143,7 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 			j = 0;
 			for(; j < strm->gStack->ruleArray[i].prodCount; j++)
 			{
-				if(strm->gStack->ruleArray[i].prodArray[j].eType == e_all)
+				if(strm->gStack->ruleArray[i].prodArray[j].event.eventType == e_all)
 				{
 					if(prodHitIndicator == 0)
 					{
@@ -151,7 +151,7 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 						prodHitIndicator = 1;
 					}
 				}
-				else if(strm->gStack->ruleArray[i].prodArray[j].eType == e_uri)
+				else if(strm->gStack->ruleArray[i].prodArray[j].event.eventType == e_uri)
 				{
 					if(str_equal(strm->uriTable->rows[strm->gStack->ruleArray[i].prodArray[j].uriRowID].string_val, *(qname.uri)))
 					{
@@ -162,7 +162,7 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 						}
 					}
 				}
-				else if(strm->gStack->ruleArray[i].prodArray[j].eType == e_qname)
+				else if(strm->gStack->ruleArray[i].prodArray[j].event.eventType == e_qname)
 				{
 					if(str_equal(strm->uriTable->rows[strm->gStack->ruleArray[i].prodArray[j].uriRowID].string_val, *(qname.uri)) &&
 							str_equal(strm->uriTable->rows[strm->gStack->ruleArray[i].prodArray[j].uriRowID].lTable->rows[strm->gStack->ruleArray[i].prodArray[j].lnRowID].string_val, *(qname.localName)))
@@ -197,7 +197,7 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 
 					if(!isDocGr)  // If the current grammar is Element grammar ...
 					{
-						tmp_err_code = insertZeroProduction(&(strm->gStack->ruleArray[i]), EVENT_SE_QNAME, strm->nonTermID, strm->sContext.curr_lnID, strm->sContext.curr_uriID);
+						tmp_err_code = insertZeroProduction(&(strm->gStack->ruleArray[i]), getEventDefType(EVENT_SE_QNAME), strm->nonTermID, strm->sContext.curr_lnID, strm->sContext.curr_uriID);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
 					}
@@ -256,7 +256,7 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 				}
 				else if(prodHitIndicator == 1 && isElemOrAttr != 1) // AT(*) Event
 				{
-					tmp_err_code = insertZeroProduction(&(strm->gStack->ruleArray[i]), EVENT_AT_QNAME, strm->nonTermID, strm->sContext.curr_lnID, strm->sContext.curr_uriID);
+					tmp_err_code = insertZeroProduction(&(strm->gStack->ruleArray[i]), getEventDefType(EVENT_AT_QNAME), strm->nonTermID, strm->sContext.curr_lnID, strm->sContext.curr_uriID);
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
 				}
@@ -275,7 +275,7 @@ errorCode startDocumentSer(EXIStream* strm)
 	if(strm->nonTermID != GR_DOCUMENT)
 		return INCONSISTENT_PROC_STATE;
 
-	return encodeEXIEvent(strm, EVENT_SD);
+	return encodeEXIEvent(strm, getEventDefType(EVENT_SD));
 }
 
 errorCode endDocumentSer(EXIStream* strm)
@@ -283,7 +283,7 @@ errorCode endDocumentSer(EXIStream* strm)
 	if(strm->nonTermID != GR_DOC_END)
 		return INCONSISTENT_PROC_STATE;
 
-	return encodeEXIEvent(strm, EVENT_ED);
+	return encodeEXIEvent(strm, getEventDefType(EVENT_ED));
 }
 
 errorCode startElementSer(EXIStream* strm, QName qname)
@@ -294,7 +294,7 @@ errorCode startElementSer(EXIStream* strm, QName qname)
 errorCode endElementSer(EXIStream* strm)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	tmp_err_code = encodeEXIEvent(strm, EVENT_EE);
+	tmp_err_code = encodeEXIEvent(strm, getEventDefType(EVENT_EE));
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	if(strm->nonTermID == GR_VOID_NON_TERMINAL)
@@ -339,7 +339,7 @@ errorCode stringDataSer(EXIStream* strm, const StringType str_val)
 	else
 	{
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		tmp_err_code = encodeEXIEvent(strm, EVENT_CH);
+		tmp_err_code = encodeEXIEvent(strm, getEventDefType(EVENT_CH));
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		return encodeStringData(strm, str_val);

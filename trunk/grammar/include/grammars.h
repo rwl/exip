@@ -59,7 +59,7 @@
  * @param[in] handler content handler callbacks
  * @return Error handling code
  */
-errorCode processNextProduction(EXIStream* strm, EventType* eType,
+errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 							    unsigned int* nonTermID_out, ContentHandler* handler);
 
 /**
