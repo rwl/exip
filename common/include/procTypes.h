@@ -297,6 +297,7 @@ typedef struct QName QName;
  * DOCTYPE	      |      DT      | 13
  * Entity Ref.    |      ER      | 14
  * Self Contained |      SC      | 15
+ * Void           |      --      | 16     // Used to indicate lack of Terminal symbol in proto-grammars
  ****************************************/
 typedef unsigned char EventType;
 
@@ -316,6 +317,7 @@ typedef unsigned char EventType;
 #define EVENT_DT      13
 #define EVENT_ER      14
 #define EVENT_SC      15
+#define EVENT_VOID    16
 
 /** This is the type of the "value" content of EXI events.
  *  It is used when schema is available.
@@ -339,6 +341,14 @@ typedef unsigned char ValueType;
 #define VALUE_TYPE_BOOLEAN   6
 #define VALUE_TYPE_BINARY    7
 
+struct EXIEvent
+{
+	EventType eventType;
+	ValueType valueType;
+};
+
+typedef struct EXIEvent EXIEvent;
+
 struct EventCode
 {
 	unsigned int code[3];
@@ -350,7 +360,7 @@ typedef struct EventCode EventCode;
 struct Production
 {
 	EventCode code;
-	EventType eType;
+	EXIEvent event;
 	unsigned int nonTermID; // unique identifier of right-hand side Non-terminal
 
 	/**
@@ -363,14 +373,19 @@ struct Production
 
 typedef struct Production Production;
 
-// Define Built-in Document Grammar non-terminals
-#define GR_VOID_NON_TERMINAL 0 // Used to indicate that the production does not have NON_TERMINAL
+// Define Built-in Grammars non-terminals
+#define GR_VOID_NON_TERMINAL 0 // Used to indicate that the production does not have NON_TERMINAL on the right-hand side
 #define GR_DOCUMENT          1
 #define GR_DOC_CONTENT       2
 #define GR_DOC_END           3
 #define GR_START_TAG_CONTENT 4
 #define GR_ELEMENT_CONTENT   5
 #define GR_FRAGMENT          6
+#define GR_FRAGMENT_CONTENT  7
+
+#define GR_SCHEMA_GRAMMARS_FIRST 100
+/* The non-terminals IDs of all other grammars should start from value GR_SCHEMA_GRAMMARS_FIRST.
+ * The value GR_SCHEMA_GRAMMARS_FIRST indicates the NON_TERMINAL describing the content of the entire grammar */
 
 struct GrammarRule
 {

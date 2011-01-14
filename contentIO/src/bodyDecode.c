@@ -87,11 +87,11 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 	}
 
 	unsigned int tmpNonTermID = GR_VOID_NON_TERMINAL;
-	EventType eType;
+	EXIEvent event;
 
 	while(strm->nonTermID != GR_VOID_NON_TERMINAL)  // Process grammar productions until gets to the end of the stream
 	{
-		tmp_err_code = processNextProduction(strm, &eType, &tmpNonTermID, handler);
+		tmp_err_code = processNextProduction(strm, &event, &tmpNonTermID, handler);
 		if(tmp_err_code != ERR_OK)
 		{
 			if(handler->fatalError != NULL)

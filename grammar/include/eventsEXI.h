@@ -33,7 +33,7 @@
 \===================================================================================*/
 
 /**
- * @file eventTypesEXI.h
+ * @file eventsEXI.h
  * @brief Definition and functions for EXI Event Types
  * @date Sep 7, 2010
  * @author Rumen Kyusakov
@@ -78,5 +78,23 @@ EventCode getEventCode1(unsigned int first);
  * @return EventCode the newly created Event Code
  */
 errorCode writeEventCode(EXIStream* strm, EventCode code, unsigned char* bits);
+
+/**
+ * @brief Creates EXI event given only EventType.
+ * The value content type is set to VALUE_TYPE_NONE
+ *
+ * @param[in] eType EXI EventType
+ * @return EXIEvent with value content type VALUE_TYPE_NONE
+ */
+EXIEvent getEventDefType(EventType eType);
+
+/**
+ * @brief Checks if two EXI events are equal
+ *
+ * @param[in] e1 first EXIEvent
+ * @param[in] e2 second EXIEvent
+ * @return 0 if not equal, 1 otherwise
+ */
+unsigned char eventsEqual(EXIEvent e1, EXIEvent e2);
 
 #endif /* EVENTTYPESEXI_H_ */

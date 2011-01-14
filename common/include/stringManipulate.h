@@ -118,6 +118,15 @@ errorCode asciiToString(const char* inStr, StringType* outStr, EXIStream* strm);
 char str_equal(const StringType str1, const StringType str2);
 
 /**
+ * @brief Checks if a StringType string and ASCII string are equal
+ * Note! The implementation of this function is platform-specific.
+ * @param[in] str1 string to compare
+ * @param[in] str2 null terminated string to compare
+ * @return 1 if the strings are equal, 0 - otherwise
+ */
+char strEqualToAscii(const StringType str1, char* str2);
+
+/**
  * @brief Returns the UCS [ISO/IEC 10646] code point at particular index from a String
  * Note! The implementation of this function is platform-specific.
  * @param[in] str string

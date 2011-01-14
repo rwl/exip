@@ -68,7 +68,7 @@ errorCode initGrammarRule(GrammarRule* rule, EXIStream* strm);
  * @param[in] nonTermID unique identifier of right-hand side Non-terminal
  * @return Error handling code
  */
-errorCode addProduction(GrammarRule* rule, EventCode eCode, EventType eType, unsigned int nonTermID);
+errorCode addProduction(GrammarRule* rule, EventCode eCode, EXIEvent event, unsigned int nonTermID);
 
 /**
  * @brief Inserts a Production to a Grammar Rule (with LeftHandSide) with an event code 0
@@ -81,8 +81,18 @@ errorCode addProduction(GrammarRule* rule, EventCode eCode, EventType eType, uns
  * @param[in] uriRowID URI part of the qname of the Event Type corresponding to the inserted production
  * @return Error handling code
  */
-errorCode insertZeroProduction(GrammarRule* rule, EventType eType, unsigned int nonTermID,
+errorCode insertZeroProduction(GrammarRule* rule, EXIEvent event, unsigned int nonTermID,
 								uint32_t lnRowID, uint32_t uriRowID);
+
+/**
+ * @brief Copies the production in one rule into another
+ *
+ * @param[in, out] strm EXI stream for which the allocation is made
+ * @param[in] src Source grammar rule
+ * @param[out] dest Destination grammar rule
+ * @return Error handling code
+ */
+errorCode copyGrammarRule(EXIStream* strm, GrammarRule* src, GrammarRule* dest);
 
 #ifdef EXIP_DEBUG // TODO: document this macro #DOCUMENT#
 /**
