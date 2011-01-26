@@ -33,87 +33,53 @@
 \===================================================================================*/
 
 /**
- * @file grammarGenerator.c
- * @brief Implementation of functions for generating Schema-informed Grammar definitions
- * @date Nov 22, 2010
+ * @file dynamicArray.h
+ * @brief Declarations for untyped dynamic array
+ *
+ * @date Jan 25, 2011
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#include "grammarGenerator.h"
-#include "EXIParser.h"
 
-// Content Handler API
-void xsd_fatalError(const char code, const char* msg);
-void xsd_startDocument();
-void xsd_endDocument();
-void xsd_startElement(QName qname);
-void xsd_endElement();
-void xsd_attribute(QName qname);
-void xsd_stringData(const StringType value);
-void xsd_exiHeader(const EXIheader* header);
+#ifndef DYNAMICARRAY_H_
+#define DYNAMICARRAY_H_
 
-errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, unsigned char schemaFormat,
-										EXIGrammarStack* gStack, ElementGrammarPool* gPool, ElementGrammarPool* typesGrammarPool)
-{
-	if(schemaFormat != SCHEMA_FORMAT_XSD_EXI)
-		return NOT_IMPLEMENTED_YET;
+#include "procTypes.h"
 
-	ContentHandler xsdHandler;
-	initContentHandler(&xsdHandler);
-	xsdHandler.fatalError = xsd_fatalError;
-	xsdHandler.error = xsd_fatalError;
-	xsdHandler.startDocument = xsd_startDocument;
-	xsdHandler.endDocument = xsd_endDocument;
-	xsdHandler.startElement = xsd_startElement;
-	xsdHandler.attribute = xsd_attribute;
-	xsdHandler.stringData = xsd_stringData;
-	xsdHandler.endElement = xsd_endElement;
-	xsdHandler.exiHeader = xsd_exiHeader;
+struct dynArray {
+	void* elements; // Dynamic array elements
+	size_t elSize;	// The size of a single array element in bytes
+	uint16_t defaultSize; // Initial number of elements and the number of elements to be added each expansion time
+	uint32_t elementCount; // The actual number of elements
+	uint32_t arrayDimension; // The size of the Dynamic array
+	void* memNode; // Used by the memoryManager when there is reallocation
+};
 
-	// Parse the EXI stream
-	parseEXI(binaryStream, bufLen, &xsdHandler);
+typedef struct dynArray DynArray;
 
-	return ERR_OK;
-}
+/**
+ * @brief Creates fresh empty Untyped Dynamic Array
+ * This operation includes allocation of memory for DEFAULT_VALUE_ROWS_NUMBER number of value rows
+ * @param[out] dArray Untyped Dynamic Array
+ * @param[in] elSize The size of a single array element in bytes
+ * @param[in] defaultSize Initial number of elements and the number of elements to be added each expansion time
+ * @param[in, out] strm EXI stream for which the allocation is made
+ * @return Error handling code
+ */
+errorCode createDynArray(DynArray** dArray, size_t elSize, uint16_t defaultSize, EXIStream* strm);
 
-void xsd_fatalError(const char code, const char* msg)
-{
-	//TODO:
-}
+/**
+ * @brief Add new element into the dynamic array
+ * NOTE that the new element is shallow copied!
+ *
+ * @param[in, out] dArray Untyped Dynamic Array
+ * @param[in] elem the inserted element
+ * @param[out] elID the ID of the element inserted
+ * @param[in, out] strm EXI stream for which the allocation is made
+ * @return Error handling code
+ */
+errorCode addDynElement(DynArray* dArray, void* elem, uint32_t* elID, EXIStream* strm);
 
-void xsd_startDocument()
-{
-
-}
-
-void xsd_endDocument()
-{
-
-}
-
-void xsd_startElement(QName qname)
-{
-
-}
-
-void xsd_endElement()
-{
-
-}
-
-void xsd_attribute(QName qname)
-{
-
-}
-
-void xsd_stringData(const StringType value)
-{
-
-}
-
-void xsd_exiHeader(const EXIheader* header)
-{
-
-}
+#endif /* DYNAMICARRAY_H_ */

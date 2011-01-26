@@ -33,87 +33,35 @@
 \===================================================================================*/
 
 /**
- * @file grammarGenerator.c
- * @brief Implementation of functions for generating Schema-informed Grammar definitions
- * @date Nov 22, 2010
+ * @file sortingAlgorithms.h
+ * @brief Declarations for some sorting algorithms used for lexicographical sorting
+ *
+ * @date Jan 26, 2011
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#include "grammarGenerator.h"
-#include "EXIParser.h"
+#ifndef SORTINGALGORITHMS_H_
+#define SORTINGALGORITHMS_H_
 
-// Content Handler API
-void xsd_fatalError(const char code, const char* msg);
-void xsd_startDocument();
-void xsd_endDocument();
-void xsd_startElement(QName qname);
-void xsd_endElement();
-void xsd_attribute(QName qname);
-void xsd_stringData(const StringType value);
-void xsd_exiHeader(const EXIheader* header);
+#include "procTypes.h"
 
-errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, unsigned char schemaFormat,
-										EXIGrammarStack* gStack, ElementGrammarPool* gPool, ElementGrammarPool* typesGrammarPool)
-{
-	if(schemaFormat != SCHEMA_FORMAT_XSD_EXI)
-		return NOT_IMPLEMENTED_YET;
+/**
+ * For sorts in ascending order
+ * It must return value > 0 when prev_val > cur_val, value < 0 when prev_val < cur_val and 0 otherwise
+ */
+typedef char (*comapreFunc)(int prev_val, int cur_val);
 
-	ContentHandler xsdHandler;
-	initContentHandler(&xsdHandler);
-	xsdHandler.fatalError = xsd_fatalError;
-	xsdHandler.error = xsd_fatalError;
-	xsdHandler.startDocument = xsd_startDocument;
-	xsdHandler.endDocument = xsd_endDocument;
-	xsdHandler.startElement = xsd_startElement;
-	xsdHandler.attribute = xsd_attribute;
-	xsdHandler.stringData = xsd_stringData;
-	xsdHandler.endElement = xsd_endElement;
-	xsdHandler.exiHeader = xsd_exiHeader;
+/**
+ * @brief Implements Insertion Sort algorithm
+ * Scan successive elements for out of order item, then insert the item in the proper place. Sort small array fast, big array very slowly.
+ *
+ * @param[in, out] array array of integers to be sorted
+ * @param[in] length the size of the array
+ * @param[in] cmpFunc comparing function
+ * @return Error handling code
+ */
+void insertionSort(int array[], uint32_t length, comapreFunc cmpFunc);
 
-	// Parse the EXI stream
-	parseEXI(binaryStream, bufLen, &xsdHandler);
-
-	return ERR_OK;
-}
-
-void xsd_fatalError(const char code, const char* msg)
-{
-	//TODO:
-}
-
-void xsd_startDocument()
-{
-
-}
-
-void xsd_endDocument()
-{
-
-}
-
-void xsd_startElement(QName qname)
-{
-
-}
-
-void xsd_endElement()
-{
-
-}
-
-void xsd_attribute(QName qname)
-{
-
-}
-
-void xsd_stringData(const StringType value)
-{
-
-}
-
-void xsd_exiHeader(const EXIheader* header)
-{
-
-}
+#endif /* SORTINGALGORITHMS_H_ */

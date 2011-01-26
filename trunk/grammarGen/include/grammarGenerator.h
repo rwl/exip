@@ -47,10 +47,72 @@
 #include "errorHandle.h"
 #include "procTypes.h"
 
+/** Supported schema formats like XML-XSD, EXI-XSD, DTD or any other schema representation supported */
 #define SCHEMA_FORMAT_XSD_EXI           0
 #define SCHEMA_FORMAT_XSD_XML           1
 #define SCHEMA_FORMAT_DTD               2
 #define SCHEMA_FORMAT_XSD_EXI_OPTIMIZED 3
+
+/** Form Choice values */
+#define FORM_CHOICE_UNQUALIFIED           0
+#define FORM_CHOICE_QUALIFIED             1
+#define FORM_CHOICE_ABSENT                2
+
+/** Codes for the elements found in the schema */
+#define ELEMENT_ELEMENT         0
+#define ELEMENT_ATTRIBUTE       1
+#define ELEMENT_CHOICE          2
+#define ELEMENT_COMPLEX_TYPE    3
+#define ELEMENT_COMPLEX_CONTENT 4
+#define ELEMENT_GROUP           5
+#define ELEMENT_IMPORT          6
+#define ELEMENT_SEQUENCE        7
+#define ELEMENT_ALL             8
+
+
+/** Codes for the attributes found in the schema */
+#define ATTRIBUTE_ABSENT     0
+#define ATTRIBUTE_NAME       1
+#define ATTRIBUTE_TYPE       2
+#define ATTRIBUTE_REF        3
+#define ATTRIBUTE_MIN_OCCURS 4
+#define ATTRIBUTE_MAX_OCCURS 5
+#define ATTRIBUTE_FORM       6
+
+/**
+ * Global schema properties (found as an attributes of the schema root element in XSD)
+ * They should not change over time of processing
+ */
+struct globalSchemaProps {
+	StringType targetNamespace;
+	unsigned char attributeFormDefault;
+	unsigned char elementFormDefault;
+};
+
+/**
+ * An entry of nested proto-grammar descriptions. It is used to store the
+ * current context when passing through schema document
+ */
+struct elementDescr {
+	unsigned char element;  // represented with codes defined above
+	unsigned int attributePointers[20]; // the index is the code of the attribute
+	struct elementDescr* prev;
+};
+
+typedef struct elementDescr ContextStack;
+
+typedef struct EXIGrammar ProtoGrammarsStack;
+
+/**
+ * Represents an element declaration with attribute type and the
+ * value of the type cannot be found in the TypeGrammar pool.
+ * That is, the definition of the type is still not reached.
+ * This elements are put in a dynamic array
+ * */
+struct elementNotResolved {
+	QName element;
+	QName type;
+};
 
 /**
  * @brief Generate a Schema-informed Document Grammar and all Schema-informed Element and Type Grammars
@@ -62,9 +124,12 @@
  * @param[in] schemaFormat EXI, XSD, DTD or any other schema representation supported
  * @param[out] gStack Generated grammar stack
  * @param[out] gPool Generated grammar stack
+ * @param[out] typesGrammarPool Pool of type grammars
  * @return Error handling code
  */
 errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, unsigned char schemaFormat,
-										EXIGrammarStack* gStack, ElementGrammarPool* gPool);
+										EXIGrammarStack* gStack, ElementGrammarPool* gPool, ElementGrammarPool* typesGrammarPool);
+
+// TODO: consider renaming the ElementGrammarPool type as it is used for Types Grammars as well
 
 #endif /* GRAMMARGENERATOR_H_ */

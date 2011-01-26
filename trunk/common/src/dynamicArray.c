@@ -33,87 +33,53 @@
 \===================================================================================*/
 
 /**
- * @file grammarGenerator.c
- * @brief Implementation of functions for generating Schema-informed Grammar definitions
- * @date Nov 22, 2010
+ * @file dynamicArray.c
+ * @brief Implementation for untyped dynamic array
+ *
+ * @date Jan 25, 2011
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#include "grammarGenerator.h"
-#include "EXIParser.h"
+#include "dynamicArray.h"
+#include "memManagement.h"
 
-// Content Handler API
-void xsd_fatalError(const char code, const char* msg);
-void xsd_startDocument();
-void xsd_endDocument();
-void xsd_startElement(QName qname);
-void xsd_endElement();
-void xsd_attribute(QName qname);
-void xsd_stringData(const StringType value);
-void xsd_exiHeader(const EXIheader* header);
-
-errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, unsigned char schemaFormat,
-										EXIGrammarStack* gStack, ElementGrammarPool* gPool, ElementGrammarPool* typesGrammarPool)
+errorCode createDynArray(DynArray** dArray, size_t elSize, uint16_t defaultSize, EXIStream* strm)
 {
-	if(schemaFormat != SCHEMA_FORMAT_XSD_EXI)
-		return NOT_IMPLEMENTED_YET;
+	(*dArray) = (DynArray*) memManagedAllocate(strm, sizeof(DynArray));
+	if(*dArray == NULL)
+		return MEMORY_ALLOCATION_ERROR;
 
-	ContentHandler xsdHandler;
-	initContentHandler(&xsdHandler);
-	xsdHandler.fatalError = xsd_fatalError;
-	xsdHandler.error = xsd_fatalError;
-	xsdHandler.startDocument = xsd_startDocument;
-	xsdHandler.endDocument = xsd_endDocument;
-	xsdHandler.startElement = xsd_startElement;
-	xsdHandler.attribute = xsd_attribute;
-	xsdHandler.stringData = xsd_stringData;
-	xsdHandler.endElement = xsd_endElement;
-	xsdHandler.exiHeader = xsd_exiHeader;
+	(*dArray)->elements = memManagedAllocatePtr(strm, elSize*defaultSize, &((*dArray)->memNode));
+	if((*dArray)->elements == NULL)
+		return MEMORY_ALLOCATION_ERROR;
 
-	// Parse the EXI stream
-	parseEXI(binaryStream, bufLen, &xsdHandler);
+	(*dArray)->arrayDimension = defaultSize;
+	(*dArray)->elementCount = 0;
+	(*dArray)->defaultSize = defaultSize;
+	(*dArray)->elSize = elSize;
 
 	return ERR_OK;
 }
 
-void xsd_fatalError(const char code, const char* msg)
+errorCode addDynElement(DynArray* dArray, void* elem, uint32_t* elID, EXIStream* strm)
 {
-	//TODO:
-}
+	if(dArray == NULL)
+		return NULL_POINTER_REF;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	if(dArray->arrayDimension == dArray->rowCount)   // The dynamic array must be extended first
+	{
+		tmp_err_code = memManagedReAllocate((void *) &dArray->elements, dArray->elSize*(dArray->elementCount + dArray->defaultSize), dArray->memNode);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		dArray->arrayDimension = dArray->arrayDimension + dArray->defaultSize;
+	}
 
-void xsd_startDocument()
-{
+	memcpy(((unsigned char *) dArray->elements) + dArray->elementCount*dArray->elSize, elem, dArray->elSize);
 
-}
+	*elID = dArray->elementCount;
 
-void xsd_endDocument()
-{
-
-}
-
-void xsd_startElement(QName qname)
-{
-
-}
-
-void xsd_endElement()
-{
-
-}
-
-void xsd_attribute(QName qname)
-{
-
-}
-
-void xsd_stringData(const StringType value)
-{
-
-}
-
-void xsd_exiHeader(const EXIheader* header)
-{
-
+	dArray->elementCount += 1;
+	return ERR_OK;
 }

@@ -147,7 +147,7 @@ errorCode createURITable(URITable** uTable, EXIStream* strm)
 errorCode createPrefixTable(PrefixTable** pTable, EXIStream* strm)
 {
 	(*pTable) = (PrefixTable*) memManagedAllocate(strm, sizeof(PrefixTable));
-	if(pTable == NULL)
+	if(*pTable == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
 	(*pTable)->rows = (struct PrefixRow*) memManagedAllocatePtr(strm, sizeof(struct PrefixRow)*DEFAULT_PREFIX_ROWS_NUMBER, &((*pTable)->memNode));

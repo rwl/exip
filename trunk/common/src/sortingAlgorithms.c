@@ -33,87 +33,55 @@
 \===================================================================================*/
 
 /**
- * @file grammarGenerator.c
- * @brief Implementation of functions for generating Schema-informed Grammar definitions
- * @date Nov 22, 2010
+ * @file sortingAlgorithms.c
+ * @brief Implementation for some sorting algorithms used for lexicographical sorting
+ *
+ * @date Jan 26, 2011
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#include "grammarGenerator.h"
-#include "EXIParser.h"
+#include "sortingAlgorithms.h"
 
-// Content Handler API
-void xsd_fatalError(const char code, const char* msg);
-void xsd_startDocument();
-void xsd_endDocument();
-void xsd_startElement(QName qname);
-void xsd_endElement();
-void xsd_attribute(QName qname);
-void xsd_stringData(const StringType value);
-void xsd_exiHeader(const EXIheader* header);
-
-errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, unsigned char schemaFormat,
-										EXIGrammarStack* gStack, ElementGrammarPool* gPool, ElementGrammarPool* typesGrammarPool)
+void insertionSort(int array[], uint32_t length, comapreFunc cmpFunc)
 {
-	if(schemaFormat != SCHEMA_FORMAT_XSD_EXI)
-		return NOT_IMPLEMENTED_YET;
+	uint32 indx;
+	int cur_val;
+	int prev_val;
 
-	ContentHandler xsdHandler;
-	initContentHandler(&xsdHandler);
-	xsdHandler.fatalError = xsd_fatalError;
-	xsdHandler.error = xsd_fatalError;
-	xsdHandler.startDocument = xsd_startDocument;
-	xsdHandler.endDocument = xsd_endDocument;
-	xsdHandler.startElement = xsd_startElement;
-	xsdHandler.attribute = xsd_attribute;
-	xsdHandler.stringData = xsd_stringData;
-	xsdHandler.endElement = xsd_endElement;
-	xsdHandler.exiHeader = xsd_exiHeader;
+	if(length <= 1)
+		return;
 
-	// Parse the EXI stream
-	parseEXI(binaryStream, bufLen, &xsdHandler);
+	prev_val = array[0];
 
-	return ERR_OK;
-}
+	for (indx = 1; indx < length; indx++)
+	{
+		cur_val = array[indx];
+		if((*cmpFunc)(prev_val, cur_val) > 0)
+		{
+			/* out of order: array[indx-1] > array[indx] */
+			uint32 indx2;
+			array[indx] = prev_val; /* move up the larger item first */
 
-void xsd_fatalError(const char code, const char* msg)
-{
-	//TODO:
-}
-
-void xsd_startDocument()
-{
-
-}
-
-void xsd_endDocument()
-{
-
-}
-
-void xsd_startElement(QName qname)
-{
-
-}
-
-void xsd_endElement()
-{
-
-}
-
-void xsd_attribute(QName qname)
-{
-
-}
-
-void xsd_stringData(const StringType value)
-{
-
-}
-
-void xsd_exiHeader(const EXIheader* header)
-{
-
+			/* find the insertion point for the smaller item */
+			for (indx2 = indx - 1; indx2 > 0;)
+			{
+				int temp_val = array[indx2 - 1];
+				if((*fun_ptr)(temp_val, cur_val) > 0)
+				{
+					array[indx2--] = temp_val;
+					/* still out of order, move up 1 slot to make room */
+				}
+				else
+					break;
+			}
+			array[indx2] = cur_val; /* insert the smaller item right here */
+		}
+		else
+		{
+			/* in order, advance to next element */
+			prev_val = cur_val;
+		}
+	}
 }
