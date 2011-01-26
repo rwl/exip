@@ -91,6 +91,12 @@ errorCode createElementProtoGrammar(EXIStream* strm, StringType name, StringType
 									struct EXIGrammar* typeDef, QName scope, unsigned char nillable,
 									struct EXIGrammar** result)
 {
+	// TODO: Element-i,0 : Type-j,0 - this basically means that the Element Grammar equals to the type grammar
+	// Here only needs to add already normalized type grammar in a element grammar pool
+	// So remove the code below as it is not needed
+	// Also name and target_ns should be added to metaStrTable if not already there
+
+
 	*result = (struct EXIGrammar*) memManagedAllocate(strm, sizeof(struct EXIGrammar));
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -171,7 +177,27 @@ errorCode createComplexTypeGrammar(EXIStream* strm, StringType name, StringType 
 		                           struct EXIGrammar* contentTypeGrammar,
 								   struct EXIGrammar** result)
 {
-	return NOT_IMPLEMENTED_YET;
+	//TODO: Implement the case when there are wildcards i.e. wildcardArray is not empty
+	//TODO: Consider freeing the intermediate grammars which are not longer needed resulting from the use of concatenateGrammars()
+
+	struct EXIGrammar* tmpGrammar;
+
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+
+	tmpGrammar = attrUsesArray[0];
+	unsigned int i = 1;
+	for(; i < attrUsesArraySize; i++)
+	{
+		tmp_err_code = concatenateGrammars(strm, tmpGrammar, attrUsesArray[i], &tmpGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+
+	tmp_err_code = concatenateGrammars(strm, tmpGrammar, contentTypeGrammar, result);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	return ERR_OK;
 }
 
 errorCode createComplexEmptyTypeGrammar(EXIStream* strm, StringType name, StringType target_ns,
@@ -179,7 +205,32 @@ errorCode createComplexEmptyTypeGrammar(EXIStream* strm, StringType name, String
 		                           StringType wildcardArray, unsigned int wildcardArraySize,
 								   struct EXIGrammar** result)
 {
-	return NOT_IMPLEMENTED_YET;
+	//TODO: Implement the case when there are wildcards i.e. wildcardArray is not empty
+	//TODO: Consider freeing the intermediate grammars which are not longer needed resulting from the use of concatenateGrammars()
+
+	struct EXIGrammar* tmpGrammar;
+
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+
+	tmpGrammar = attrUsesArray[0];
+	unsigned int i = 1;
+	for(; i < attrUsesArraySize; i++)
+	{
+		tmp_err_code = concatenateGrammars(strm, tmpGrammar, attrUsesArray[i], &tmpGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+
+	struct EXIGrammar* emptyContent;
+	tmp_err_code = createSimpleEmptyTypeGrammar(strm, &emptyContent);
+	if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+	tmp_err_code = concatenateGrammars(strm, tmpGrammar, emptyContent, result);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	return ERR_OK;
 }
 
 errorCode createComplexUrTypeGrammar(EXIStream* strm, struct EXIGrammar** result)
@@ -193,21 +244,218 @@ errorCode createComplexUrEmptyTypeGrammar(EXIStream* strm, struct EXIGrammar** r
 }
 
 errorCode createAttributeUseGrammar(EXIStream* strm, unsigned char required, StringType name, StringType target_ns,
-										  QName simpleType, QName scope, struct EXIGrammar** result)
+										  QName simpleType, QName scope, struct EXIGrammar** result, URITable* metaURITable, DynArray* regProdQname)
 {
-	return NOT_IMPLEMENTED_YET;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	*result = (struct EXIGrammar*) memManagedAllocate(strm, sizeof(struct EXIGrammar));
+	if(*result == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	(*result)->nextInStack = NULL;
+	(*result)->rulesDimension = 2;
+	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(strm, sizeof(GrammarRule)*((*result)->rulesDimension));
+	if((*result)->ruleArray == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	tmp_err_code = initGrammarRule(&((*result)->ruleArray[0]), strm);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+	(*result)->ruleArray[0].nonTermID = GR_SCHEMA_GRAMMARS_FIRST;
+	EXIEvent event1;
+	event1.eventType = EVENT_AT_QNAME;
+	tmp_err_code = getEXIDataType(simpleType, &event1.valueType);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = addProduction(&((*result)->ruleArray[0]), getEventCode1(0), event1, GR_SCHEMA_GRAMMARS_FIRST + 1);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	uint32_t metaUriID = 0;
+	if(!lookupURI(metaURITable, target_ns, &metaUriID)) // URI not found in the meta string tables
+	{
+		tmp_err_code = addURIRow(metaURITable, target_ns, &metaUriID, strm);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	(*result)->ruleArray[0].prodArray[0].uriRowID = metaUriID;
+
+	uint32_t metaLnID = 0;
+	if(!lookupLN(metaURITable->rows[metaUriID].lTable, name, &metaLnID)) // Local name not found in the meta string tables
+	{
+		tmp_err_code = addLNRow(metaURITable->rows[metaUriID].lTable, name, &metaLnID, strm);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	(*result)->ruleArray[0].prodArray[0].lnRowID = metaLnID;
+
+	struct productionQname pqRow;
+	pqRow.p_uriRowID = &((*result)->ruleArray[0].prodArray[0].uriRowID);
+	pqRow.p_lnRowID = &((*result)->ruleArray[0].prodArray[0].lnRowID);
+	pqRow.uriRowID_old = metaUriID;
+	pqRow.lnRowID_old = metaLnID;
+
+	uint32_t elIndx = 0;
+	tmp_err_code = addDynElement(regProdQname, &pqRow, &elIndx, EXIStream* strm);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	if(!required)
+	{
+		tmp_err_code = addProduction(&((*result)->ruleArray[0]), getEventCode1(0), getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+
+	tmp_err_code = initGrammarRule(&((*result)->ruleArray[1]), strm);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+	(*result)->ruleArray[1].nonTermID = GR_SCHEMA_GRAMMARS_FIRST + 1;
+
+	tmp_err_code = addProduction(&((*result)->ruleArray[1]), getEventCode1(0), getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	return ERR_OK;
 }
 
-errorCode createParticleGrammar(EXIStream* strm, unsigned int minOccurs, unsigned int maxOccurs,
+errorCode createParticleGrammar(EXIStream* strm, unsigned int minOccurs, int32_t maxOccurs,
 								struct EXIGrammar* termGrammar, struct EXIGrammar** result)
 {
-	return NOT_IMPLEMENTED_YET;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	struct EXIGrammar* tmpGrammar;
+
+	tmpGrammar = termGrammar;
+	unsigned int i = 0;
+	for(; i < minOccurs; i++)
+	{
+		tmp_err_code = concatenateGrammars(strm, tmpGrammar, termGrammar, &tmpGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+
+	if(maxOccurs - minOccurs > 0 || maxOccurs < 0) // Only if maxOccurs is unbounded or maxOccurs > minOccurs
+	{
+		unsigned char prodEEFound = 0;
+		i = 0;
+		for(; i < termGrammar->ruleArray[0].prodCount; i++)
+		{
+			if(termGrammar->ruleArray[0].prodArray[i].nonTermID == GR_VOID_NON_TERMINAL && termGrammar->ruleArray[0].prodArray[i].event.eventType == EVENT_EE)
+			{
+				prodEEFound = 1;
+				break;
+			}
+		}
+		if(!prodEEFound) //	There is no production Gi,0 : EE so add one
+		{
+			tmp_err_code = addProduction(&(termGrammar->ruleArray[0]), getEventCode1(0), getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+
+		if(maxOccurs >= 0) // {max occurs} is not unbounded
+		{
+			i = 0;
+			for(; i < maxOccurs - minOccurs; i++)
+			{
+				tmp_err_code = concatenateGrammars(strm, tmpGrammar, termGrammar, &tmpGrammar);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
+			*result = tmpGrammar;
+		}
+		else // {max occurs} is unbounded
+		{
+			int j = 0;
+			i = 1;  // Excluding the first rule
+			for(; i < termGrammar->rulesDimension; i++)
+			{
+				j = 0;
+				for(; j < termGrammar->ruleArray[i].prodCount; j++)
+				{
+					if(termGrammar->ruleArray[i].prodArray[j].nonTermID == GR_VOID_NON_TERMINAL && termGrammar->ruleArray[i].prodArray[j].event.eventType == EVENT_EE)
+					{
+						termGrammar->ruleArray[i].prodArray[j].nonTermID = GR_SCHEMA_GRAMMARS_FIRST;
+						termGrammar->ruleArray[i].prodArray[j].event.eventType = EVENT_VOID;
+					}
+				}
+			}
+
+			tmp_err_code = concatenateGrammars(strm, tmpGrammar, termGrammar, result);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+	}
+	else // maxOccurs == minOccurs
+	{
+		*result = tmpGrammar;
+	}
+
+	return ERR_OK;
 }
 
 errorCode createElementTermGrammar(EXIStream* strm, StringType name, StringType target_ns,
-								   struct EXIGrammar** result)
+								   struct EXIGrammar** result, URITable* metaURITable, DynArray* regProdQname)
 {
-	return NOT_IMPLEMENTED_YET;
+	//TODO: enable support for {substitution group affiliation} property of the elements
+
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	*result = (struct EXIGrammar*) memManagedAllocate(strm, sizeof(struct EXIGrammar));
+	if(*result == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	(*result)->nextInStack = NULL;
+	(*result)->rulesDimension = 2;
+	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(strm, sizeof(GrammarRule)*((*result)->rulesDimension));
+	if((*result)->ruleArray == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	tmp_err_code = initGrammarRule(&((*result)->ruleArray[0]), strm);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+	(*result)->ruleArray[0].nonTermID = GR_SCHEMA_GRAMMARS_FIRST;
+	tmp_err_code = addProduction(&((*result)->ruleArray[0]), getEventCode1(0), getEventDefType(EVENT_SE_QNAME), GR_SCHEMA_GRAMMARS_FIRST + 1);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	uint32_t metaUriID = 0;
+	if(!lookupURI(metaURITable, target_ns, &metaUriID)) // URI not found in the meta string tables
+	{
+		tmp_err_code = addURIRow(metaURITable, target_ns, &metaUriID, strm);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	(*result)->ruleArray[0].prodArray[0].uriRowID = metaUriID;
+
+	uint32_t metaLnID = 0;
+	if(!lookupLN(metaURITable->rows[metaUriID].lTable, name, &metaLnID)) // Local name not found in the meta string tables
+	{
+		tmp_err_code = addLNRow(metaURITable->rows[metaUriID].lTable, name, &metaLnID, strm);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	(*result)->ruleArray[0].prodArray[0].lnRowID = metaLnID;
+
+	struct productionQname pqRow;
+	pqRow.p_uriRowID = &((*result)->ruleArray[0].prodArray[0].uriRowID);
+	pqRow.p_lnRowID = &((*result)->ruleArray[0].prodArray[0].lnRowID);
+	pqRow.uriRowID_old = metaUriID;
+	pqRow.lnRowID_old = metaLnID;
+
+	uint32_t elIndx = 0;
+	tmp_err_code = addDynElement(regProdQname, &pqRow, &elIndx, EXIStream* strm);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = initGrammarRule(&((*result)->ruleArray[1]), strm);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+	(*result)->ruleArray[0].nonTermID = GR_SCHEMA_GRAMMARS_FIRST + 1;
+	tmp_err_code = addProduction(&((*result)->ruleArray[0]), getEventCode1(0), getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	return ERR_OK;
 }
 
 errorCode createWildcardTermGrammar(EXIStream* strm, StringType wildcardArray, unsigned int wildcardArraySize,
@@ -219,13 +467,60 @@ errorCode createWildcardTermGrammar(EXIStream* strm, StringType wildcardArray, u
 errorCode createSequenceModelGroupsGrammar(EXIStream* strm, struct EXIGrammar* pTermArray, unsigned int pTermArraySize,
 											struct EXIGrammar** result)
 {
-	return NOT_IMPLEMENTED_YET;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	if(pTermArraySize == 0)
+	{
+		tmp_err_code = createSimpleEmptyTypeGrammar(strm, result);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else
+	{
+		struct EXIGrammar* tmpGrammar = pTermArray[0];
+		int i = 1;
+		for(; i < pTermArraySize; i++)
+		{
+			tmp_err_code = concatenateGrammars(strm, tmpGrammar, pTermArray[i], &tmpGrammar);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+		*result = tmpGrammar;
+	}
+	return ERR_OK;
 }
 
 errorCode createChoiceModelGroupsGrammar(EXIStream* strm, struct EXIGrammar* pTermArray, unsigned int pTermArraySize,
 											struct EXIGrammar** result)
 {
-	return NOT_IMPLEMENTED_YET;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	*result = (struct EXIGrammar*) memManagedAllocate(strm, sizeof(struct EXIGrammar));
+	if(*result == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	(*result)->nextInStack = NULL;
+	(*result)->rulesDimension = 1;
+	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(strm, sizeof(GrammarRule)*((*result)->rulesDimension));
+	if((*result)->ruleArray == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	tmp_err_code = initGrammarRule(&((*result)->ruleArray[0]), strm);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+	(*result)->ruleArray[0].nonTermID = GR_SCHEMA_GRAMMARS_FIRST;
+
+	if(pTermArraySize == 0)
+	{
+		tmp_err_code = addProduction(&((*result)->ruleArray[0]), getEventCode1(0), getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else
+	{
+		// TODO: check this case. Probably something is missing here. As maybe the
+		//       particle term grammars should be added as a rules here. Link: http://www.w3.org/TR/2009/CR-exi-20091208/#choiceGroupTerms
+	}
+
+	return ERR_OK;
 }
 
 errorCode createAllModelGroupsGrammar(EXIStream* strm, struct EXIGrammar* pTermArray, unsigned int pTermArraySize,

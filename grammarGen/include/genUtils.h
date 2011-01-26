@@ -46,6 +46,23 @@
 
 #include "errorHandle.h"
 #include "procTypes.h"
+#include "dynamicArray.h"
+#include "sTables.h"
+
+/**
+ * This structure holds pointers to
+ * ruleArray[i].prodArray[j].lnRowID
+ * ruleArray[i].prodArray[j].uriRowID
+ * and their old values before sorting.
+ * Based on the old index, the new values of lnRowID and uriRowID
+ * after sorting are updated using the pointers
+ */
+struct productionQname {
+	unsigned int* p_uriRowID;
+	unsigned int* p_lnRowID;
+	unsigned int uriRowID_old;
+	unsigned int lnRowID_old;
+};
 
 /**
  * @brief Grammar Concatenation Operator
@@ -113,7 +130,8 @@ errorCode createSimpleEmptyTypeGrammar(EXIStream* strm, struct EXIGrammar** resu
  * @param[in] strm EXIStream used to attach the memory allocations to it.
  * @param[in] name complex type local name
  * @param[in] target_ns complex type namespace
- * @param[in] attrUsesArray array of attribute uses grammars included in this complex type
+ * @param[in] attrUsesArray array of attribute uses grammars included in this complex type.
+ *            It should be lexicographically sorted
  * @param[in] attrUsesArraySize the size of the attribute uses array
  * @param[in] wildcardArray array of strings. Possible values: "any" or a set of namespace names and "absent"
  * or 'not' and a namespace name or "not" and "absent"
@@ -180,22 +198,24 @@ errorCode createComplexUrEmptyTypeGrammar(EXIStream* strm, struct EXIGrammar** r
  * @param[in] simpleType qname of the simple type of the attribute type definition
  * @param[in] scope attribute scope - if NULL then the scope is global otherwise the QName of the complex type which is the scope
  * @param[out] result the resulted proto-grammar
+ * @param[in, out] metaURITable temporary String table for holding the strings before sorting.
+ * @param[in, out] regProdQname dynamic array of struct productionQname elements
  * @return Error handling code
  */
 errorCode createAttributeUseGrammar(EXIStream* strm, unsigned char required, StringType name, StringType target_ns,
-										  QName simpleType, QName scope, struct EXIGrammar** result);
+										  QName simpleType, QName scope, struct EXIGrammar** result, URITable* metaURITable, DynArray* regProdQname);
 
 /**
  * @brief Creates Particle Proto-Grammar from XML Schema particle
  *
  * @param[in] strm EXIStream used to attach the memory allocations to it.
  * @param[in] minOccurs particle's {min Occurs}
- * @param[in] maxOccurs particle's {max Occurs}
+ * @param[in] maxOccurs particle's {max Occurs}. If less than 0 then the value is {unbounded}
  * @param[in] termGrammar the grammar created from the particle's term: Element Term, Wildcard Term or Model Group Term
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createParticleGrammar(EXIStream* strm, unsigned int minOccurs, unsigned int maxOccurs,
+errorCode createParticleGrammar(EXIStream* strm, unsigned int minOccurs, int32_t maxOccurs,
 								struct EXIGrammar* termGrammar, struct EXIGrammar** result);
 
 /**
@@ -205,10 +225,12 @@ errorCode createParticleGrammar(EXIStream* strm, unsigned int minOccurs, unsigne
  * @param[in] name element local name
  * @param[in] target_ns element target namespace
  * @param[out] result the resulted proto-grammar
+ * @param[in, out] metaURITable temporary String table for holding the strings before sorting.
+ * @param[in, out] regProdQname dynamic array of struct productionQname elements
  * @return Error handling code
  */
 errorCode createElementTermGrammar(EXIStream* strm, StringType name, StringType target_ns,
-								   struct EXIGrammar** result);
+								   struct EXIGrammar** result, URITable* metaURITable, DynArray* regProdQname);
 
 /**
  * @brief Creates Wildcard Term Proto-Grammar from Particle term that is XML Schema wildcard
@@ -267,5 +289,21 @@ errorCode createAllModelGroupsGrammar(EXIStream* strm, struct EXIGrammar* pTermA
  * @return Error handling code
  */
 errorCode getEXIDataType(QName simpleXSDType, ValueType* exiType);
+
+/**
+ * @brief Register a URI of target namespace or QName of attribute, element or type declared for storing in the string tables.
+ * A meta-String tables are used for holding the strings before sorting.
+ *
+ * @param[in] strm EXIStream used to attach the memory allocations to it.
+ * @param[in] name local name for registering
+ * @param[in] target_ns uri for registering
+ * @param[in, out] metaURITable temporary String table for holding the strings before sorting.
+ * @param[in, out] regProdQname dynamic array of struct productionQname elements
+ * @param[in] p_uriRowID pointers to ruleArray[i].prodArray[j].uriRowID
+ * @param[in] p_lnRowID pointers to ruleArray[i].prodArray[j].lnRowID
+ * @return Error handling code
+ */
+errorCode registerQname(EXIStream* strm, StringType name, StringType target_ns, URITable* metaURITable,
+		                DynArray* regProdQname, unsigned int* p_uriRowID, unsigned int* p_lnRowID);
 
 #endif /* GENUTILS_H_ */
