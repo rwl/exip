@@ -33,7 +33,7 @@ hash(struct hashtable *h, void *k, unsigned int len);
 /*****************************************************************************/
 /* indexFor */
 /* inline not supported by all platforms
-/*static inline unsigned int
+   static inline unsigned int
 indexFor(unsigned int tablelength, unsigned int hashvalue) {
     return (hashvalue % tablelength);
 };

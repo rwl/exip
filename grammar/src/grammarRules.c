@@ -130,6 +130,8 @@ errorCode copyGrammarRule(EXIStream* strm, GrammarRule* src, GrammarRule* dest)
 			dest->prodArray[i] = src->prodArray[i];
 		}
 	}
+
+	return ERR_OK;
 }
 
 #ifdef EXIP_DEBUG // TODO: document this macro #DOCUMENT#

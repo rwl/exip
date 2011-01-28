@@ -76,13 +76,13 @@ static void destroyElement(struct element* el);
 // ******************************************
 
 // Content Handler API
-void sample_fatalError(const char code, const char* msg);
-void sample_startDocument();
-void sample_endDocument();
-void sample_startElement(QName qname);
-void sample_endElement();
-void sample_attribute(QName qname);
-void sample_stringData(const StringType value);
+char sample_fatalError(const char code, const char* msg);
+char sample_startDocument();
+char sample_endDocument();
+char sample_startElement(QName qname);
+char sample_endElement();
+char sample_attribute(QName qname);
+char sample_stringData(const StringType value);
 
 
 int main(int argc, char *argv[])
@@ -190,28 +190,33 @@ static void printfHelp()
     printf("\n" );
 }
 
-void sample_fatalError(const char code, const char* msg)
+char sample_fatalError(const char code, const char* msg)
 {
 	printf("\n%d : FATAL ERROR: %s\n", code, msg);
+	return EXIP_HANDLER_STOP;
 }
 
-void sample_startDocument()
+char sample_startDocument()
 {
 	if(outputFormat == OUT_EXI)
 		printf("SD\n");
 	else if(outputFormat == OUT_XML)
 		printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+
+	return EXIP_HANDLER_OK;
 }
 
-void sample_endDocument()
+char sample_endDocument()
 {
 	if(outputFormat == OUT_EXI)
 		printf("ED\n");
 	else if(outputFormat == OUT_XML)
 		printf("\n");
+
+	return EXIP_HANDLER_OK;
 }
 
-void sample_startElement(QName qname)
+char sample_startElement(QName qname)
 {
 	if(outputFormat == OUT_EXI)
 	{
@@ -234,9 +239,11 @@ void sample_startElement(QName qname)
 		printString(qname.localName);
 		unclosedElement = 1;
 	}
+
+	return EXIP_HANDLER_OK;
 }
 
-void sample_endElement()
+char sample_endElement()
 {
 	if(outputFormat == OUT_EXI)
 		printf("EE\n");
@@ -251,9 +258,11 @@ void sample_endElement()
 		printf("</%s>\n", el->name);
 		destroyElement(el);
 	}
+
+	return EXIP_HANDLER_OK;
 }
 
-void sample_attribute(QName qname)
+char sample_attribute(QName qname)
 {
 	if(outputFormat == OUT_EXI)
 	{
@@ -271,9 +280,11 @@ void sample_attribute(QName qname)
 		printf("=\"");
 	}
 	expectAttributeData = 1;
+
+	return EXIP_HANDLER_OK;
 }
 
-void sample_stringData(const StringType value)
+char sample_stringData(const StringType value)
 {
 	if(outputFormat == OUT_EXI)
 	{
@@ -307,6 +318,8 @@ void sample_stringData(const StringType value)
 			printf("\n");
 		}
 	}
+
+	return EXIP_HANDLER_OK;
 }
 
 // Stuff needed for the OUT_XML Output Format
