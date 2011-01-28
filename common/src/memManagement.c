@@ -93,13 +93,14 @@ errorCode memManagedReAllocate(void** ptr, size_t size, void* p_memNode)
 
 errorCode freeAllMem(EXIStream* strm)
 {
+	struct memAlloc* tmpNode;
+
 	// Hash tables (ElementGrammarPool) are freed separately
 	// (This includes the keys for the table -> they must be allocated directly with EXIP_MALLOC
 	//  without using memManagedAllocate)
 	// #DOCUMENT#
 	hashtable_destroy(strm->gPool, 0);
 
-	struct memAlloc* tmpNode;
 	while(strm->memStack != NULL)
 	{
 		tmpNode = strm->memStack;

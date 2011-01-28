@@ -88,6 +88,11 @@ void sample_stringData(const StringType value);
 int main(int argc, char *argv[])
 {
 	ContentHandler sampleHandler;
+	FILE *infile;
+	unsigned long fileLen;
+	char *buffer;
+	char sourceFile[50];
+
 	initContentHandler(&sampleHandler); // NOTE: It is mandatory to initialize the callbacks you don't explicitly implement as NULL
 	sampleHandler.fatalError = sample_fatalError;
 	sampleHandler.error = sample_fatalError;
@@ -98,10 +103,6 @@ int main(int argc, char *argv[])
 	sampleHandler.stringData = sample_stringData;
 	sampleHandler.endElement = sample_endElement;
 
-	FILE *infile;
-	unsigned long fileLen;
-	char *buffer;
-	char sourceFile[50];
 	if(argc > 1)
 	{
 		if(strcmp(argv[1], "-help") == 0)
@@ -241,10 +242,12 @@ void sample_endElement()
 		printf("EE\n");
 	else if(outputFormat == OUT_XML)
 	{
+		struct element* el;
+
 		if(unclosedElement)
 			printf(">\n");
 		unclosedElement = 0;
-		struct element* el = pop();
+		el = pop();
 		printf("</%s>\n", el->name);
 		destroyElement(el);
 	}
@@ -339,7 +342,7 @@ static struct element* createElement(char* name)
 	if(el == NULL)
 		exit(1);
 	el->next = NULL;
-	el->name = malloc(strlen(name));
+	el->name = malloc(strlen(name)+1);
 	if(el->name == NULL)
 		exit(1);
 	strcpy(el->name, name);

@@ -191,9 +191,10 @@ errorCode createValueLocalCrossTable(ValueLocalCrossTable** vlTable, EXIStream* 
 
 errorCode addURIRow(URITable* uTable, StringType uri, uint32_t* rowID, EXIStream* strm)
 {
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	if(uTable == NULL)
 		return NULL_POINTER_REF;
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+
 	if(uTable->arrayDimension == uTable->rowCount)   // The dynamic array must be extended first
 	{
 		tmp_err_code = memManagedReAllocate((void *) &uTable->rows, sizeof(struct URIRow)*(uTable->rowCount + DEFAULT_URI_ROWS_NUMBER), uTable->memNode);
@@ -245,6 +246,9 @@ errorCode createInitialStringTables(EXIStream* strm)
 {
 	unsigned int i = 0;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	StringType emptyStr;
+	StringType tmp_str;
+
 	tmp_err_code = createValueTable(&(strm->vTable), strm);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -254,12 +258,9 @@ errorCode createInitialStringTables(EXIStream* strm)
 		return tmp_err_code;
 
     // Insert initial entries in the URI partition
-	StringType emptyStr;
 	tmp_err_code = getEmptyString(&emptyStr);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-
-	StringType tmp_str;
 
 	/**** URI	0	"" [empty string] */
 	strm->uriTable->rows[0].string_val.length = emptyStr.length;
@@ -430,9 +431,9 @@ errorCode addLVRow(struct LocalNamesRow* lnRow, uint32_t globalValueRowID, EXISt
 
 char lookupURI(URITable* uTable, StringType value, uint32_t* rowID)
 {
+	uint32_t i = 0;
 	if(uTable == NULL)
 			return 0;
-	uint32_t i = 0;
 	for(; i < uTable->rowCount; i++)
 	{
 		if(str_equal(uTable->rows[i].string_val, value))
@@ -446,9 +447,9 @@ char lookupURI(URITable* uTable, StringType value, uint32_t* rowID)
 
 char lookupLN(LocalNamesTable* lTable, StringType value, uint32_t* rowID)
 {
+	uint32_t i = 0;
 	if(lTable == NULL)
 		return 0;
-	uint32_t i = 0;
 	for(; i < lTable->rowCount; i++)
 	{
 		if(str_equal(lTable->rows[i].string_val, value))
@@ -462,9 +463,9 @@ char lookupLN(LocalNamesTable* lTable, StringType value, uint32_t* rowID)
 
 char lookupLV(ValueTable* vTable, ValueLocalCrossTable* lvTable, StringType value, uint32_t* rowID)
 {
+	uint16_t i = 0;
 	if(lvTable == NULL)
 		return 0;
-	uint16_t i = 0;
 	for(; i < lvTable->rowCount; i++)
 	{
 		if(str_equal(vTable->rows[lvTable->valueRowIds[i]].string_val, value))
@@ -478,9 +479,9 @@ char lookupLV(ValueTable* vTable, ValueLocalCrossTable* lvTable, StringType valu
 
 char lookupVal(ValueTable* vTable, StringType value, uint32_t* rowID)
 {
+	uint32_t i = 0;
 	if(vTable == NULL)
 		return 0;
-	uint32_t i = 0;
 	for(; i < vTable->rowCount; i++)
 	{
 		if(str_equal(vTable->rows[i].string_val, value))

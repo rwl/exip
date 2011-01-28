@@ -148,9 +148,9 @@ errorCode getUCSCodePoint(const StringType* str, uint32_t charIndex, uint32_t* U
 
 void printString(const StringType* inStr)
 {
+	int i = 0;
 	if(inStr->length == 0)
 		return;
-	int i = 0;
 	for(i = 0; i < inStr->length; i++)
 	{
 		DEBUG_CHAR_OUTPUT(inStr->str[i]);

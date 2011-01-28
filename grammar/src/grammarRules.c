@@ -79,6 +79,9 @@ errorCode addProduction(GrammarRule* rule, EventCode eCode, EXIEvent event, unsi
 errorCode insertZeroProduction(GrammarRule* rule, EXIEvent event, unsigned int nonTermID,
 								uint32_t lnRowID, uint32_t uriRowID)
 {
+	unsigned int i = 0;
+	unsigned int maxCodePart = 0;
+
 	if(rule->prodCount == rule->prodDimension) // The dynamic array prodArray needs to be resized
 	{
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -87,8 +90,7 @@ errorCode insertZeroProduction(GrammarRule* rule, EXIEvent event, unsigned int n
 			return tmp_err_code;
 		rule->prodDimension = rule->prodDimension + DEFAULT_PROD_ARRAY_DIM;
 	}
-	unsigned int i = 0;
-	unsigned int maxCodePart = 0;
+
 	for(i = 0; i < rule->prodCount; i++)
 	{
 		rule->prodArray[i].code.code[0] += 1;
@@ -121,10 +123,12 @@ errorCode copyGrammarRule(EXIStream* strm, GrammarRule* src, GrammarRule* dest)
 	if(dest->prodArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	int i = 0;
-	for(;i < dest->prodCount; i++)
 	{
-		dest->prodArray[i] = src->prodArray[i];
+		int i = 0;
+		for(;i < dest->prodCount; i++)
+		{
+			dest->prodArray[i] = src->prodArray[i];
+		}
 	}
 }
 

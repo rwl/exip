@@ -58,8 +58,9 @@ errorCode decodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, uint32_t* 
 		int byte_number = ((int) n) / 8 + (n % 8 != 0);
 		uint32_t tmp_byte_buf = 0;
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		*int_val = 0;
 		int i = 0;
+
+		*int_val = 0;
 		for(i = 0; i < byte_number; i++)
 		{
 			tmp_err_code = readBits(strm, 8, &tmp_byte_buf);
@@ -86,10 +87,10 @@ errorCode decodeUnsignedInteger(EXIStream* strm, uint32_t* int_val)
 	int mask_7bits = 127;
 	int mask_8th_bit = 128;
 	unsigned int initial_multiplier = 1;
-	*int_val = 0;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	uint32_t tmp_byte_buf = 0;
 	int more_bytes_to_read = 0;
+	*int_val = 0;
 
 	do
 	{
@@ -136,13 +137,13 @@ errorCode decodeStringOnly(EXIStream* strm, uint32_t str_length, StringType* str
 	// The exact size of the string is known at this point. This means that
 	// this is the place to allocate the memory for the  { CharType* str; }!!!
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	uint32_t i = 0;
+	uint32_t tmp_code_point = 0;
 	tmp_err_code = allocateStringMemory(&(string_val->str), str_length, strm);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	string_val->length = str_length;
 
-	uint32_t i = 0;
-	uint32_t tmp_code_point = 0;
 	for(i = 0; i < str_length; i++)
 	{
 		tmp_err_code = decodeUnsignedInteger(strm, &tmp_code_point);
@@ -158,6 +159,7 @@ errorCode decodeBinary(EXIStream* strm, char** binary_val, uint32_t* nbytes)
 	errorCode err;
 	uint32_t length=0;
 	uint32_t int_val=0;
+	uint32_t i = 0;
 
 	err = decodeUnsignedInteger(strm, &length);
 	if(err!=ERR_OK) return err;
@@ -166,7 +168,6 @@ errorCode decodeBinary(EXIStream* strm, char** binary_val, uint32_t* nbytes)
 	if((*binary_val) == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	uint32_t i = 0;
 	for(i = 0; i < length; i++)
 	{
 		err = readBits(strm,8,&int_val);

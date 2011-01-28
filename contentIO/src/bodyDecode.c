@@ -52,6 +52,9 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIGrammarStack docGr;
+	unsigned int tmpNonTermID = GR_VOID_NON_TERMINAL;
+	EXIEvent event;
+
 	strm->gStack = &docGr;
 	tmp_err_code = getBuildInDocGrammar(strm->gStack, strm->opts, strm);
 	if(tmp_err_code != ERR_OK)
@@ -85,9 +88,6 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 		freeAllMem(strm);
 		return;
 	}
-
-	unsigned int tmpNonTermID = GR_VOID_NON_TERMINAL;
-	EXIEvent event;
 
 	while(strm->nonTermID != GR_VOID_NON_TERMINAL)  // Process grammar productions until gets to the end of the stream
 	{

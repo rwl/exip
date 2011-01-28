@@ -60,6 +60,8 @@
 
 errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOptions* opts, EXIStream* strm)
 {
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+
 	//TODO: depends on the EXI fidelity options! Take this into account
 	// For now only the default fidelity_opts pruning is supported - all preserve opts are false
 	char is_default_fidelity = 0;
@@ -73,8 +75,6 @@ errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOpti
 	buildInGrammar->ruleArray = (GrammarRule*) memManagedAllocate(strm, sizeof(GrammarRule)*DEF_GRAMMAR_RULE_NUMBER);
 	if(buildInGrammar->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
-
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
 	/* Document : SD DocContent	0 */
 	tmp_err_code = initGrammarRule(&(buildInGrammar->ruleArray[0]), strm);
@@ -173,6 +173,8 @@ errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOpti
 
 errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, struct EXIOptions* opts, EXIStream* strm)
 {
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+
 	//TODO: depends on the EXI fidelity options! Take this into account
 	// For now only the default fidelity_opts pruning is supported - all preserve opts are false
 	// and selfContained is also false
@@ -187,8 +189,6 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, struct 
 	elementGrammar->ruleArray = (GrammarRule*) memManagedAllocate(strm, sizeof(GrammarRule)*DEF_ELEMENT_GRAMMAR_RULE_NUMBER);
 	if(elementGrammar->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
-
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
 	/* StartTagContent :
 							EE	                    0.0
@@ -359,10 +359,13 @@ static errorCode decodeQName(EXIStream* strm, QName* qname)
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	uint32_t tmp_val_buf = 0;
 	unsigned char uriBits = getBitsNumber(strm->uriTable->rowCount);
+	uint32_t uriID = 0; // The URI id in the URI string table
+	uint32_t flag_StringLiteralsPartition = 0;
+	uint32_t lnID = 0;
+
 	tmp_err_code = decodeNBitUnsignedInteger(strm, uriBits, &tmp_val_buf);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	uint32_t uriID = 0; // The URI id in the URI string table
 	if(tmp_val_buf == 0) // uri miss
 	{
 		StringType str;
@@ -381,12 +384,10 @@ static errorCode decodeQName(EXIStream* strm, QName* qname)
 		uriID = tmp_val_buf-1;
 	}
 
-	uint32_t flag_StringLiteralsPartition = 0;
 	tmp_err_code = decodeUnsignedInteger(strm, &flag_StringLiteralsPartition);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	uint32_t lnID = 0;
 	if(flag_StringLiteralsPartition == 0) // local-name table hit
 	{
 		unsigned char lnBits = getBitsNumber(strm->uriTable->rows[uriID].lTable->rowCount);
@@ -432,11 +433,13 @@ static errorCode decodeStringValue(EXIStream* strm, StringType** value)
 	if(flag_StringLiteralsPartition == 0) // "local" value partition table hit
 	{
 		uint32_t lvID = 0;
+		uint32_t value_table_rowID;
+
 		unsigned char lvBits = getBitsNumber(strm->uriTable->rows[uriID].lTable->rows[lnID].vCrossTable->rowCount);
 		tmp_err_code = decodeNBitUnsignedInteger(strm, lvBits, &lvID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		uint32_t value_table_rowID = strm->uriTable->rows[uriID].lTable->rows[lnID].vCrossTable->valueRowIds[lvID];
+		value_table_rowID = strm->uriTable->rows[uriID].lTable->rows[lnID].vCrossTable->valueRowIds[lvID];
 		(*value) = &(strm->vTable->rows[value_table_rowID].string_val);
 	}
 	else if(flag_StringLiteralsPartition == 1)// global value partition table hit
@@ -482,6 +485,10 @@ static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHand
 	QName qname;
 	if(event.eventType == EVENT_SE_ALL)
 	{
+		unsigned char isDocGr = 0;
+		struct EXIGrammar* res = NULL;
+		unsigned char is_found = 0;
+
 		DEBUG_MSG(INFO,(">SE(*) event\n"));
 		// The content of SE event is the element qname
 		tmp_err_code = decodeQName(strm, &qname);
@@ -490,7 +497,6 @@ static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHand
 		if(handler->startElement != NULL)  // Invoke handler method passing the element qname
 			handler->startElement(qname);
 
-		unsigned char isDocGr = 0;
 		tmp_err_code = isDocumentGrammar(strm->gStack, &isDocGr);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -503,8 +509,6 @@ static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHand
 		}
 
 		// New element grammar is pushed on the stack
-		struct EXIGrammar* res = NULL;
-		unsigned char is_found = 0;
 		tmp_err_code = checkElementGrammarInPool(strm->gPool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, &is_found, &res);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -558,6 +562,9 @@ static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHand
 	}
 	else if(event.eventType == EVENT_SE_QNAME)
 	{
+		struct EXIGrammar* res = NULL;
+		unsigned char is_found = 0;
+
 		DEBUG_MSG(INFO,(">SE(qname) event\n"));
 		qname.uri = &(strm->uriTable->rows[strm->sContext.curr_uriID].string_val);
 		qname.localName = &(strm->uriTable->rows[strm->sContext.curr_uriID].lTable->rows[strm->sContext.curr_lnID].string_val);
@@ -565,8 +572,6 @@ static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHand
 			handler->startElement(qname);
 
 		// New element grammar is pushed on the stack
-		struct EXIGrammar* res = NULL;
-		unsigned char is_found = 0;
 		tmp_err_code = checkElementGrammarInPool(strm->gPool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, &is_found, &res);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -636,14 +641,15 @@ static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHand
 errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 							    unsigned int* nonTermID_out, ContentHandler* handler)
 {
-	DEBUG_MSG(INFO,(">Next production non-term-id: %d\n", strm->nonTermID));
-
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	uint32_t tmp_bits_val = 0;
 	unsigned int currProduction = 0;
 	unsigned int i = 0;
 	unsigned int j = 0;
 	unsigned int b = 0;
+
+	DEBUG_MSG(INFO,(">Next production non-term-id: %d\n", strm->nonTermID));
+
 	for(i = 0; i < strm->gStack->rulesDimension; i++)
 	{
 		if(strm->nonTermID == strm->gStack->ruleArray[i].nonTermID)
@@ -721,9 +727,10 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 								}
 								else if(event->eventType == EVENT_EE)
 								{
+									unsigned char isDocGr = 0;
+									
 									if(handler->endElement != NULL)
 										handler->endElement();
-									unsigned char isDocGr = 0;
 									tmp_err_code = isDocumentGrammar(strm->gStack, &isDocGr);
 									if(tmp_err_code != ERR_OK)
 										return tmp_err_code;
@@ -849,6 +856,7 @@ errorCode encodeQName(EXIStream* strm, QName qname)
 {
 	//TODO: add the case when Preserve.prefixes is true
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	uint32_t lnID = 0;
 
 /******* Start: URI **********/
 	uint32_t uriID = 0;
@@ -876,7 +884,6 @@ errorCode encodeQName(EXIStream* strm, QName qname)
 /******* End: URI **********/
 
 /******* Start: Local name **********/
-	uint32_t lnID = 0;
 	if(lookupLN(strm->uriTable->rows[uriID].lTable, *(qname.localName), &lnID)) // local-name table hit
 	{
 		unsigned char lnBits = getBitsNumber(strm->uriTable->rows[uriID].lTable->rowCount);
@@ -924,10 +931,12 @@ errorCode encodeStringData(EXIStream* strm, StringType strng)
 	flag_StringLiteralsPartition = lookupLV(strm->vTable, strm->uriTable->rows[p_uriID].lTable->rows[p_lnID].vCrossTable, strng, &lvRowID);
 	if(flag_StringLiteralsPartition) //  "local" value partition table hit
 	{
+		unsigned char lvBits;
+
 		tmp_err_code = encodeUnsignedInteger(strm, 0);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		unsigned char lvBits = getBitsNumber(strm->uriTable->rows[p_uriID].lTable->rows[p_lnID].vCrossTable->rowCount);
+		lvBits = getBitsNumber(strm->uriTable->rows[p_uriID].lTable->rows[p_lnID].vCrossTable->rowCount);
 		tmp_err_code = encodeNBitUnsignedInteger(strm, lvBits, lvRowID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -938,10 +947,12 @@ errorCode encodeStringData(EXIStream* strm, StringType strng)
 		flag_StringLiteralsPartition = lookupVal(strm->vTable, strng, &gvRowID);
 		if(flag_StringLiteralsPartition) // global value partition table hit
 		{
+			unsigned char gvBits;
+			
 			tmp_err_code = encodeUnsignedInteger(strm, 1);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
-			unsigned char gvBits = getBitsNumber(strm->vTable->rowCount);
+			gvBits = getBitsNumber(strm->vTable->rowCount);
 			tmp_err_code = encodeNBitUnsignedInteger(strm, gvBits, gvRowID);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;

@@ -48,9 +48,11 @@
 
 errorCode decodeHeader(EXIStream* strm, EXIheader* header)
 {
-	DEBUG_MSG(INFO,(">Start EXI header decoding\n"));
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	uint32_t bits_val = 0;
+	unsigned char smallVal = 0;
+
+	DEBUG_MSG(INFO,(">Start EXI header decoding\n"));
 	tmp_err_code = readBits(strm, 2, &bits_val);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -95,7 +97,6 @@ errorCode decodeHeader(EXIStream* strm, EXIheader* header)
 	}
 
 	// Read the Presence Bit for EXI Options
-	unsigned char smallVal = 0;
 	tmp_err_code = readNextBit(strm, &smallVal);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
