@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "exip", "exip.vcproj", "{B91F0C44-5873-462F-B981-B53538A0398B}"
+	ProjectSection(WebsiteProperties) = preProject
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.Debug = "False"
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "exipd", "exipd.vcproj", "{4431BBD3-EDED-437E-B65B-36F9E145BEBC}"
+	ProjectSection(WebsiteProperties) = preProject
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.Debug = "False"
+	EndProjectSection
+	ProjectSection(ProjectDependencies) = postProject
+		{B91F0C44-5873-462F-B981-B53538A0398B} = {B91F0C44-5873-462F-B981-B53538A0398B}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "exipe", "exipe.vcproj", "{104C6A75-185E-49EA-A5D6-7C1BCD34406D}"
+	ProjectSection(WebsiteProperties) = preProject
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.Debug = "False"
+	EndProjectSection
+	ProjectSection(ProjectDependencies) = postProject
+		{B91F0C44-5873-462F-B981-B53538A0398B} = {B91F0C44-5873-462F-B981-B53538A0398B}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B91F0C44-5873-462F-B981-B53538A0398B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B91F0C44-5873-462F-B981-B53538A0398B}.Debug|Win32.Build.0 = Debug|Win32
+		{B91F0C44-5873-462F-B981-B53538A0398B}.Release|Win32.ActiveCfg = Release|Win32
+		{B91F0C44-5873-462F-B981-B53538A0398B}.Release|Win32.Build.0 = Release|Win32
+		{4431BBD3-EDED-437E-B65B-36F9E145BEBC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4431BBD3-EDED-437E-B65B-36F9E145BEBC}.Debug|Win32.Build.0 = Debug|Win32
+		{4431BBD3-EDED-437E-B65B-36F9E145BEBC}.Release|Win32.ActiveCfg = Release|Win32
+		{4431BBD3-EDED-437E-B65B-36F9E145BEBC}.Release|Win32.Build.0 = Release|Win32
+		{104C6A75-185E-49EA-A5D6-7C1BCD34406D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{104C6A75-185E-49EA-A5D6-7C1BCD34406D}.Debug|Win32.Build.0 = Debug|Win32
+		{104C6A75-185E-49EA-A5D6-7C1BCD34406D}.Release|Win32.ActiveCfg = Release|Win32
+		{104C6A75-185E-49EA-A5D6-7C1BCD34406D}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
