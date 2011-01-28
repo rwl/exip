@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".\;..\common\include;..\contentIO\include;..\grammar\include;..\streamIO\include;..\stringTables\include;..\grammarGen\include"
+				AdditionalIncludeDirectories=".\;..\..\src\common\include;..\..\src\contentIO\include;..\..\src\grammar\include;..\..\src\streamIO\include;..\..\src\stringTables\include;..\..\src\grammarGen\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -105,7 +105,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories=".\;..\common\include;..\contentIO\include;..\grammar\include;..\streamIO\include;..\stringTables\include;..\grammarGen\include"
+				AdditionalIncludeDirectories=".\;..\..\src\common\include;..\..\src\contentIO\include;..\..\src\grammar\include;..\..\src\streamIO\include;..\..\src\stringTables\include;..\..\src\grammarGen\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -154,27 +154,27 @@
 				Name="common"
 				>
 				<File
-					RelativePath="..\common\src\contentHandler.c"
+					RelativePath="..\..\src\common\src\contentHandler.c"
 					>
 				</File>
 				<File
-					RelativePath="..\common\src\hashtable.c"
+					RelativePath="..\..\src\common\src\hashtable.c"
 					>
 				</File>
 				<File
-					RelativePath="..\common\src\hashUtils.c"
+					RelativePath="..\..\src\common\src\hashUtils.c"
 					>
 				</File>
 				<File
-					RelativePath="..\common\src\memManagement.c"
+					RelativePath="..\..\src\common\src\memManagement.c"
 					>
 				</File>
 				<File
-					RelativePath="..\common\src\p_ASCII_stringManipulate.c"
+					RelativePath="..\..\src\common\src\p_ASCII_stringManipulate.c"
 					>
 				</File>
 				<File
-					RelativePath="..\common\src\procTypes.c"
+					RelativePath="..\..\src\common\src\procTypes.c"
 					>
 				</File>
 			</Filter>
@@ -182,23 +182,23 @@
 				Name="contentIO"
 				>
 				<File
-					RelativePath="..\contentIO\src\bodyDecode.c"
+					RelativePath="..\..\src\contentIO\src\bodyDecode.c"
 					>
 				</File>
 				<File
-					RelativePath="..\contentIO\src\EXIParser.c"
+					RelativePath="..\..\src\contentIO\src\EXIParser.c"
 					>
 				</File>
 				<File
-					RelativePath="..\contentIO\src\EXISerializer.c"
+					RelativePath="..\..\src\contentIO\src\EXISerializer.c"
 					>
 				</File>
 				<File
-					RelativePath="..\contentIO\src\headerDecode.c"
+					RelativePath="..\..\src\contentIO\src\headerDecode.c"
 					>
 				</File>
 				<File
-					RelativePath="..\contentIO\src\headerEncode.c"
+					RelativePath="..\..\src\contentIO\src\headerEncode.c"
 					>
 				</File>
 			</Filter>
@@ -206,15 +206,15 @@
 				Name="grammar"
 				>
 				<File
-					RelativePath="..\grammar\src\eventsEXI.c"
+					RelativePath="..\..\src\grammar\src\eventsEXI.c"
 					>
 				</File>
 				<File
-					RelativePath="..\grammar\src\grammarRules.c"
+					RelativePath="..\..\src\grammar\src\grammarRules.c"
 					>
 				</File>
 				<File
-					RelativePath="..\grammar\src\grammars.c"
+					RelativePath="..\..\src\grammar\src\grammars.c"
 					>
 				</File>
 			</Filter>
@@ -222,23 +222,23 @@
 				Name="streamIO"
 				>
 				<File
-					RelativePath="..\streamIO\src\ioUtil.c"
+					RelativePath="..\..\src\streamIO\src\ioUtil.c"
 					>
 				</File>
 				<File
-					RelativePath="..\streamIO\src\streamDecode.c"
+					RelativePath="..\..\src\streamIO\src\streamDecode.c"
 					>
 				</File>
 				<File
-					RelativePath="..\streamIO\src\streamEncode.c"
+					RelativePath="..\..\src\streamIO\src\streamEncode.c"
 					>
 				</File>
 				<File
-					RelativePath="..\streamIO\src\streamRead.c"
+					RelativePath="..\..\src\streamIO\src\streamRead.c"
 					>
 				</File>
 				<File
-					RelativePath="..\streamIO\src\streamWrite.c"
+					RelativePath="..\..\src\streamIO\src\streamWrite.c"
 					>
 				</File>
 			</Filter>
@@ -246,7 +246,7 @@
 				Name="stringTables"
 				>
 				<File
-					RelativePath="..\stringTables\src\sTables.c"
+					RelativePath="..\..\src\stringTables\src\sTables.c"
 					>
 				</File>
 			</Filter>
@@ -260,35 +260,35 @@
 				Name="common"
 				>
 				<File
-					RelativePath="..\common\include\contentHandler.h"
+					RelativePath="..\..\src\common\include\contentHandler.h"
 					>
 				</File>
 				<File
-					RelativePath="..\common\include\errorHandle.h"
+					RelativePath="..\..\src\common\include\errorHandle.h"
 					>
 				</File>
 				<File
-					RelativePath="..\common\include\exipConfig.h"
+					RelativePath="..\..\src\common\include\exipConfig.h"
 					>
 				</File>
 				<File
-					RelativePath="..\common\include\hashtable.h"
+					RelativePath="..\..\src\common\include\hashtable.h"
 					>
 				</File>
 				<File
-					RelativePath="..\common\include\hashtable_private.h"
+					RelativePath="..\..\src\common\include\hashtable_private.h"
 					>
 				</File>
 				<File
-					RelativePath="..\common\include\hashUtils.h"
+					RelativePath="..\..\src\common\include\hashUtils.h"
 					>
 				</File>
 				<File
-					RelativePath="..\common\include\memManagement.h"
+					RelativePath="..\..\src\common\include\memManagement.h"
 					>
 				</File>
 				<File
-					RelativePath="..\common\include\procTypes.h"
+					RelativePath="..\..\src\common\include\procTypes.h"
 					>
 				</File>
 				<File
@@ -296,7 +296,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\common\include\stringManipulate.h"
+					RelativePath="..\..\src\common\include\stringManipulate.h"
 					>
 				</File>
 			</Filter>
@@ -304,27 +304,27 @@
 				Name="contentIO"
 				>
 				<File
-					RelativePath="..\contentIO\include\bodyDecode.h"
+					RelativePath="..\..\src\contentIO\include\bodyDecode.h"
 					>
 				</File>
 				<File
-					RelativePath="..\contentIO\include\bodyEncode.h"
+					RelativePath="..\..\src\contentIO\include\bodyEncode.h"
 					>
 				</File>
 				<File
-					RelativePath="..\contentIO\include\EXIParser.h"
+					RelativePath="..\..\src\contentIO\include\EXIParser.h"
 					>
 				</File>
 				<File
-					RelativePath="..\contentIO\include\EXISerializer.h"
+					RelativePath="..\..\src\contentIO\include\EXISerializer.h"
 					>
 				</File>
 				<File
-					RelativePath="..\contentIO\include\headerDecode.h"
+					RelativePath="..\..\src\contentIO\include\headerDecode.h"
 					>
 				</File>
 				<File
-					RelativePath="..\contentIO\include\headerEncode.h"
+					RelativePath="..\..\src\contentIO\include\headerEncode.h"
 					>
 				</File>
 			</Filter>
@@ -332,15 +332,15 @@
 				Name="grammar"
 				>
 				<File
-					RelativePath="..\grammar\include\eventsEXI.h"
+					RelativePath="..\..\src\grammar\include\eventsEXI.h"
 					>
 				</File>
 				<File
-					RelativePath="..\grammar\include\grammarRules.h"
+					RelativePath="..\..\src\grammar\include\grammarRules.h"
 					>
 				</File>
 				<File
-					RelativePath="..\grammar\include\grammars.h"
+					RelativePath="..\..\src\grammar\include\grammars.h"
 					>
 				</File>
 			</Filter>
@@ -348,23 +348,23 @@
 				Name="streamIO"
 				>
 				<File
-					RelativePath="..\streamIO\include\ioUtil.h"
+					RelativePath="..\..\src\streamIO\include\ioUtil.h"
 					>
 				</File>
 				<File
-					RelativePath="..\streamIO\include\streamDecode.h"
+					RelativePath="..\..\src\streamIO\include\streamDecode.h"
 					>
 				</File>
 				<File
-					RelativePath="..\streamIO\include\streamEncode.h"
+					RelativePath="..\..\src\streamIO\include\streamEncode.h"
 					>
 				</File>
 				<File
-					RelativePath="..\streamIO\include\streamRead.h"
+					RelativePath="..\..\src\streamIO\include\streamRead.h"
 					>
 				</File>
 				<File
-					RelativePath="..\streamIO\include\streamWrite.h"
+					RelativePath="..\..\src\streamIO\include\streamWrite.h"
 					>
 				</File>
 			</Filter>
@@ -372,13 +372,13 @@
 				Name="stringTables"
 				>
 				<File
-					RelativePath="..\stringTables\include\sTables.h"
+					RelativePath="..\..\src\stringTables\include\sTables.h"
 					>
 				</File>
 			</Filter>
 		</Filter>
 		<File
-			RelativePath="..\README.txt"
+			RelativePath=".\README.txt"
 			>
 		</File>
 	</Files>
