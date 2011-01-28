@@ -45,15 +45,16 @@
 #include "streamRead.h"
 #include "ioUtil.h"
 
-const unsigned char BIT_MASK[] = {(char) 0b00000000,
-								  (char) 0b00000001,
-								  (char) 0b00000011,
-							  	  (char) 0b00000111,
-								  (char) 0b00001111,
-								  (char) 0b00011111,
-								  (char) 0b00111111,
-								  (char) 0b01111111,
-								  (char) 0b11111111};
+const unsigned char BIT_MASK[] = {	(char) 0x00,	// 0b00000000
+									(char) 0x01,	// 0b00000001
+									(char) 0x03,	// 0b00000011
+									(char) 0x07,	// 0b00000111
+									(char) 0x0F,	// 0b00001111
+									(char) 0x1F,	// 0b00011111
+									(char) 0x3F,	// 0b00111111
+									(char) 0x7F,	// 0b01111111
+									(char) 0xFF	};	// 0b11111111
+
 
 errorCode readNextBit(EXIStream* strm, unsigned char* bit_val)
 {
@@ -68,18 +69,19 @@ errorCode readBits(EXIStream* strm, unsigned char n, uint32_t* bits_val)
 {
 	//TODO: Handle error cases i.e. end of the stream and so on
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	*bits_val = 0;
 	unsigned int numBitsRead = 0; // Number of the bits read so far
 	int tmp = 0;
 	int shift = 0;
 	int bits_in_byte = 0; // Number of bits read in one iteration
+	*bits_val = 0;
 	while(numBitsRead < n)
 	{
 		tmp = 0;
 		if(n - numBitsRead <= 8 - strm->bitPointer) // The rest of the unread bits are located in the current byte from the stream
 		{
+			int tmp_shift;
 			bits_in_byte = n - numBitsRead;
-			int tmp_shift = 8 - strm->bitPointer - bits_in_byte;
+			tmp_shift = 8 - strm->bitPointer - bits_in_byte;
 			tmp = (strm->buffer[strm->bufferIndx] & BIT_MASK[bits_in_byte]<<tmp_shift) >> tmp_shift;
 		}
 		else // The rest of the unread bits are located in multiple bytes from the stream

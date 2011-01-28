@@ -47,8 +47,9 @@
 
 errorCode encodeHeader(EXIStream* strm, EXIheader* header)
 {
-	DEBUG_MSG(INFO,(">Start EXI header encoding\n"));
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+
+	DEBUG_MSG(INFO,(">Start EXI header encoding\n"));
 	if(header->has_cookie)
 	{
 		tmp_err_code = writeNBits(strm, 8, 36); // ASCII code for $ = 00100100  (36)

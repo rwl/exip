@@ -47,10 +47,12 @@
 errorCode moveBitPointer(EXIStream* strm, unsigned int bitPositions)
 {
 	uint32_t tmpLen = strm->bufferIndx + bitPositions/8;
+	int nbits;
+
 	if(strm->bufLen < tmpLen)
 		return BUFFER_END_REACHED;
 	strm->bufferIndx = tmpLen;
-	int nbits = bitPositions % 8;
+	nbits = bitPositions % 8;
 	if(nbits < 8 - strm->bitPointer) // The remaining (0-7) bit positions can be moved within the current byte
 	{
 		strm->bitPointer += nbits;

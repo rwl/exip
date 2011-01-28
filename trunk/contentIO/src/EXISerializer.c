@@ -119,6 +119,10 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 	unsigned char e_qname;
 	unsigned char e_uri;
 	unsigned char e_all;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	int j = 0;
+	int i = 0;
+
 	if(isElemOrAttr == 1) // SE event, Element
 	{
 		e_qname = EVENT_SE_QNAME;
@@ -131,9 +135,6 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 		e_uri = EVENT_AT_URI;
 		e_all = EVENT_AT_ALL;
 	}
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	int j = 0;
-	int i = 0;
 	for(; i < strm->gStack->rulesDimension; i++)
 	{
 		if(strm->gStack->ruleArray[i].nonTermID == strm->nonTermID)
@@ -191,6 +192,9 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 				if(prodHitIndicator == 1 && isElemOrAttr == 1) // SE(*) Event
 				{
 					unsigned char isDocGr = 0;
+					struct EXIGrammar* res = NULL;
+					unsigned char is_found = 0;
+
 					tmp_err_code = isDocumentGrammar(strm->gStack, &isDocGr);
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
@@ -203,8 +207,6 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 					}
 
 					// New element grammar is pushed on the stack
-					struct EXIGrammar* res = NULL;
-					unsigned char is_found = 0;
 					tmp_err_code = checkElementGrammarInPool(strm->gPool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, &is_found, &res);
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;

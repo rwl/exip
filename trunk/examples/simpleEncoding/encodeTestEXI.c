@@ -100,11 +100,18 @@ int main(int argc, char *argv[])
 		{
 			errorCode tmp_err_code = UNEXPECTED_ERROR;
 			EXIStream testStrm;
+			EXIheader header;
+			StringType uri;
+			StringType ln;
+			QName testElQname= {&uri, &ln};
+			QName testAtQname= {&uri, &ln};
+			StringType attVal;
+			StringType chVal;
+			
+
 			tmp_err_code = serEXI.initStream(&testStrm, 200);
 			if(tmp_err_code != ERR_OK)
 				printError(tmp_err_code, &testStrm, outfile);
-
-			EXIheader header;
 			header.has_cookie = 0;
 			header.has_options = 0;
 			header.is_preview_version = 0;
@@ -112,22 +119,16 @@ int main(int argc, char *argv[])
 			tmp_err_code += serEXI.exiHeaderSer(&testStrm, &header);
 			tmp_err_code += serEXI.startDocumentSer(&testStrm);
 
-			StringType uri;
-			StringType ln;
 			tmp_err_code += asciiToString("", &uri, &testStrm);
 			tmp_err_code += asciiToString("EXIPEncoder", &ln, &testStrm);
-			QName testElQname = {&uri, &ln};
 			tmp_err_code += serEXI.startElementSer(&testStrm, testElQname);
 
 			tmp_err_code += asciiToString("version", &ln, &testStrm);
-			QName testAtQname = {&uri, &ln};
 			tmp_err_code += serEXI.attributeSer(&testStrm, testAtQname);
 
-			StringType attVal;
 			tmp_err_code += asciiToString("0.1", &attVal, &testStrm);
 			tmp_err_code += serEXI.stringDataSer(&testStrm, attVal);
 
-			StringType chVal;
 			tmp_err_code += asciiToString("This is an example of serializing EXI streams using EXIP low level API", &chVal, &testStrm);
 			tmp_err_code += serEXI.stringDataSer(&testStrm, chVal);
 

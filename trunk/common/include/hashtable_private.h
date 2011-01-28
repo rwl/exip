@@ -32,10 +32,13 @@ hash(struct hashtable *h, void *k, unsigned int len);
 
 /*****************************************************************************/
 /* indexFor */
-static inline unsigned int
+/* inline not supported by all platforms
+/*static inline unsigned int
 indexFor(unsigned int tablelength, unsigned int hashvalue) {
     return (hashvalue % tablelength);
 };
+*/
+#define indexFor(tablelength,hashvalue)		((unsigned int)(hashvalue)%(unsigned int)(tablelength))
 
 /* Only works if tablelength == 2^N */
 /*static inline unsigned int
