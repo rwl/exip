@@ -76,7 +76,10 @@ void parseEXI(char* binaryStream, uint32_t bufLen, ContentHandler* handler)
 		return;
 	}
 	if(handler->exiHeader != NULL)
-		handler->exiHeader(&header);
+	{
+		if(handler->exiHeader(&header) == EXIP_HANDLER_STOP)
+			return;
+	}
 
 	decodeBody(&strm, handler);
 }

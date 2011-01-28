@@ -495,7 +495,10 @@ static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHand
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		if(handler->startElement != NULL)  // Invoke handler method passing the element qname
-			handler->startElement(qname);
+		{
+			if(handler->startElement(qname) == EXIP_HANDLER_STOP)
+				return HANDLER_STOP_RECEIVED;
+		}
 
 		tmp_err_code = isDocumentGrammar(strm->gStack, &isDocGr);
 		if(tmp_err_code != ERR_OK)
@@ -546,7 +549,10 @@ static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHand
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		if(handler->attribute != NULL)  // Invoke handler method
-			handler->attribute(qname);
+		{
+			if(handler->attribute(qname) == EXIP_HANDLER_STOP)
+				return HANDLER_STOP_RECEIVED;
+		}
 		if(event.valueType == VALUE_TYPE_STRING || event.valueType == VALUE_TYPE_NONE)
 		{
 			StringType* value;
@@ -554,7 +560,10 @@ static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHand
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 			if(handler->stringData != NULL)  // Invoke handler method
-				handler->stringData(*value);
+			{
+				if(handler->stringData(*value) == EXIP_HANDLER_STOP)
+					return HANDLER_STOP_RECEIVED;
+			}
 		}
 		tmp_err_code = insertZeroProduction(currRule, getEventDefType(EVENT_AT_QNAME), *nonTermID_out, strm->sContext.curr_lnID, strm->sContext.curr_uriID);
 		if(tmp_err_code != ERR_OK)
@@ -569,7 +578,10 @@ static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHand
 		qname.uri = &(strm->uriTable->rows[strm->sContext.curr_uriID].string_val);
 		qname.localName = &(strm->uriTable->rows[strm->sContext.curr_uriID].lTable->rows[strm->sContext.curr_lnID].string_val);
 		if(handler->startElement != NULL)  // Invoke handler method passing the element qname
-			handler->startElement(qname);
+		{
+			if(handler->startElement(qname) == EXIP_HANDLER_STOP)
+				return HANDLER_STOP_RECEIVED;
+		}
 
 		// New element grammar is pushed on the stack
 		tmp_err_code = checkElementGrammarInPool(strm->gPool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, &is_found, &res);
@@ -594,7 +606,10 @@ static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHand
 		qname.uri = &(strm->uriTable->rows[strm->sContext.curr_uriID].string_val);
 		qname.localName = &(strm->uriTable->rows[strm->sContext.curr_uriID].lTable->rows[strm->sContext.curr_lnID].string_val);
 		if(handler->attribute != NULL)  // Invoke handler method
-			handler->attribute(qname);
+		{
+			if(handler->attribute(qname) == EXIP_HANDLER_STOP)
+				return HANDLER_STOP_RECEIVED;
+		}
 		if(event.valueType == VALUE_TYPE_STRING || event.valueType == VALUE_TYPE_NONE)
 		{
 			StringType* value;
@@ -602,7 +617,10 @@ static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHand
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 			if(handler->stringData != NULL)  // Invoke handler method
-				handler->stringData(*value);
+			{
+				if(handler->stringData(*value) == EXIP_HANDLER_STOP)
+					return HANDLER_STOP_RECEIVED;
+			}
 		}
 	}
 	else if(event.eventType == EVENT_CH)
@@ -615,7 +633,10 @@ static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHand
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 			if(handler->stringData != NULL)  // Invoke handler method
-				handler->stringData(*value);
+			{
+				if(handler->stringData(*value) == EXIP_HANDLER_STOP)
+					return HANDLER_STOP_RECEIVED;
+			}
 		}
 	}
 	return ERR_OK;
@@ -668,23 +689,35 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 					if(event->eventType == EVENT_SD)
 					{
 						if(handler->startDocument != NULL)
-							handler->startDocument();
+						{
+							if(handler->startDocument() == EXIP_HANDLER_STOP)
+								return HANDLER_STOP_RECEIVED;
+						}
 					}
 					else if(event->eventType == EVENT_ED)
 					{
 						if(handler->endDocument != NULL)
-							handler->endDocument();
+						{
+							if(handler->endDocument() == EXIP_HANDLER_STOP)
+								return HANDLER_STOP_RECEIVED;
+						}
 					}
 					else if(event->eventType == EVENT_EE)
 					{
 						if(handler->endElement != NULL)
-							handler->endElement();
+						{
+							if(handler->endElement() == EXIP_HANDLER_STOP)
+								return HANDLER_STOP_RECEIVED;
+						}
 
 					}
 					else if(event->eventType == EVENT_SC)
 					{
 						if(handler->selfContained != NULL)
-							handler->selfContained();
+						{
+							if(handler->selfContained() == EXIP_HANDLER_STOP)
+								return HANDLER_STOP_RECEIVED;
+						}
 					}
 					else // The event has content!
 					{
@@ -718,19 +751,28 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 								if(event->eventType == EVENT_SD)
 								{
 									if(handler->startDocument != NULL)
-										handler->startDocument();
+									{
+										if(handler->startDocument() == EXIP_HANDLER_STOP)
+											return HANDLER_STOP_RECEIVED;
+									}
 								}
 								else if(event->eventType == EVENT_ED)
 								{
 									if(handler->endDocument != NULL)
-										handler->endDocument();
+									{
+										if(handler->endDocument() == EXIP_HANDLER_STOP)
+											return HANDLER_STOP_RECEIVED;
+									}
 								}
 								else if(event->eventType == EVENT_EE)
 								{
 									unsigned char isDocGr = 0;
 									
 									if(handler->endElement != NULL)
-										handler->endElement();
+									{
+										if(handler->endElement() == EXIP_HANDLER_STOP)
+											return HANDLER_STOP_RECEIVED;
+									}
 									tmp_err_code = isDocumentGrammar(strm->gStack, &isDocGr);
 									if(tmp_err_code != ERR_OK)
 										return tmp_err_code;
@@ -751,7 +793,10 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 								else if(event->eventType == EVENT_SC)
 								{
 									if(handler->selfContained != NULL)
-										handler->selfContained();
+									{
+										if(handler->selfContained() == EXIP_HANDLER_STOP)
+											return HANDLER_STOP_RECEIVED;
+									}
 								}
 								else // The event has content!
 								{

@@ -45,17 +45,31 @@
 #include "EXIParser.h"
 
 // Content Handler API
-void xsd_fatalError(const char code, const char* msg);
-void xsd_startDocument();
-void xsd_endDocument();
-void xsd_startElement(QName qname);
-void xsd_endElement();
-void xsd_attribute(QName qname);
-void xsd_stringData(const StringType value);
-void xsd_exiHeader(const EXIheader* header);
+char xsd_fatalError(const char code, const char* msg);
+char xsd_startDocument();
+char xsd_endDocument();
+char xsd_startElement(QName qname);
+char xsd_endElement();
+char xsd_attribute(QName qname);
+char xsd_stringData(const StringType value);
+char xsd_exiHeader(const EXIheader* header);
+
+static struct globalSchemaProps* props;
+
+static ContextStack* contextStack;
+
+static ProtoGrammarsStack* pGrammarStack;
+
+static DynArray* elNotResolvedArray;
+
+static EXIStream* tmpStrm;
+
+static void pushElemContext(ContextStack** cStack, struct elementDescr* elem);
+
+static void popElemContext(ContextStack** cStack, struct elementDescr** elem);
 
 errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, unsigned char schemaFormat,
-										EXIGrammarStack* gStack, ElementGrammarPool* gPool, ElementGrammarPool* typesGrammarPool)
+										EXIStream* strm, ElementGrammarPool* typesGrammarPool)
 {
 	if(schemaFormat != SCHEMA_FORMAT_XSD_EXI)
 		return NOT_IMPLEMENTED_YET;
@@ -72,48 +86,267 @@ errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, un
 	xsdHandler.endElement = xsd_endElement;
 	xsdHandler.exiHeader = xsd_exiHeader;
 
+	struct globalSchemaProps localProps;
+	localProps.propsStat = 0;
+	localProps.expectAttributeData = 0;
+	localProps.attributeFormDefault = 3;
+	localProps.elementFormDefault = 3;
+	localProps.charDataPointer = NULL;
+	props = &localProps;
+
+	contextStack = NULL;
+
+	pGrammarStack = NULL;
+
+	errorCode tmp_err_code = createDynArray(&elNotResolvedArray, sizeof(struct elementNotResolved), 10, strm);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmpStrm = strm;
+
 	// Parse the EXI stream
 	parseEXI(binaryStream, bufLen, &xsdHandler);
 
 	return ERR_OK;
 }
 
-void xsd_fatalError(const char code, const char* msg)
+char xsd_fatalError(const char code, const char* msg)
 {
 	//TODO:
+	return EXIP_HANDLER_STOP;
 }
 
-void xsd_startDocument()
+char xsd_startDocument()
 {
-
+	DEBUG_MSG(INFO,(">Start XML Schema parsing\n"));
+	return EXIP_HANDLER_OK;
 }
 
-void xsd_endDocument()
+char xsd_endDocument()
 {
-
+	DEBUG_MSG(INFO,(">XML Schema parsing finished\n"));
+	return EXIP_HANDLER_OK;
 }
 
-void xsd_startElement(QName qname)
+char xsd_startElement(QName qname)
 {
+	if(!props->propsStat) // This should be the first <schema> element
+	{
+		if(strEqualToAscii(qname.uri, "http://www.w3.org/2001/XMLSchema") &&
+				strEqualToAscii(qname.localName, "schema"))
+			props->propsStat = 1;
+		else
+		{
+			DEBUG_MSG(ERROR,(">Invalid XML Schema! Missing <schema> root element\n"));
+			return EXIP_HANDLER_STOP;
+		}
+	}
+	else
+	{
+		if(!strEqualToAscii(qname.uri, "http://www.w3.org/2001/XMLSchema"))
+		{
+			DEBUG_MSG(ERROR,(">Invalid namespace of XML Schema element\n"));
+			return EXIP_HANDLER_STOP;
+		}
 
+		struct elementDescr* elem = (struct elementDescr*) memManagedAllocate(tmpStrm, sizeof(struct elementDescr));
+		if(elem == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+
+		if(strEqualToAscii(qname.localName, "element"))
+		{
+			elem.element = ELEMENT_ELEMENT;
+		}
+		else if(strEqualToAscii(qname.localName, "attribute"))
+		{
+			elem.element = ELEMENT_ATTRIBUTE;
+		}
+		else if(strEqualToAscii(qname.localName, "choice"))
+		{
+			elem.element = ELEMENT_CHOICE;
+		}
+		else if(strEqualToAscii(qname.localName, "complexType"))
+		{
+			elem.element = ELEMENT_COMPLEX_TYPE;
+		}
+		else if(strEqualToAscii(qname.localName, "complexContent"))
+		{
+			elem.element = ELEMENT_COMPLEX_CONTENT;
+		}
+		else if(strEqualToAscii(qname.localName, "group"))
+		{
+			elem.element = ELEMENT_GROUP;
+		}
+		else if(strEqualToAscii(qname.localName, "import"))
+		{
+			elem.element = ELEMENT_IMPORT;
+		}
+		else if(strEqualToAscii(qname.localName, "sequence"))
+		{
+			elem.element = ELEMENT_SEQUENCE;
+		}
+		else if(strEqualToAscii(qname.localName, "all"))
+		{
+			elem.element = ELEMENT_ALL;
+		}
+		else
+		{
+			DEBUG_MSG(WARNING,(">Ignored schema element\n"));
+		}
+
+		pushElemContext(&contextStack, elem);
+	}
+	return EXIP_HANDLER_OK;
 }
 
-void xsd_endElement()
+char xsd_endElement()
 {
-
+	if(contextStack == NULL) // No elements stored in the stack. That is </schema>
+	{
+		props->propsStat = 2; // All attributes of the <schema> element are already parsed
+		if(props->elementFormDefault == 3)
+			props->elementFormDefault = 0; // The default value is unqualified
+		if(props->attributeFormDefault == 3)
+			props->attributeFormDefault = 0; // The default value is unqualified
+	}
+	return EXIP_HANDLER_OK;
 }
 
-void xsd_attribute(QName qname)
+char xsd_attribute(QName qname)
 {
-
+	if(props->propsStat == 1) // <schema> element attribute
+	{
+		if(strEqualToAscii(qname.localName, "targetNamespace"))
+			props->charDataPointer = &(props->targetNamespace);
+		else if(strEqualToAscii(qname.localName, "elementFormDefault"))
+			props->elementFormDefault = 2;
+		else if(strEqualToAscii(qname.localName, "attributeFormDefault"))
+			props->attributeFormDefault = 2;
+		else
+		{
+			DEBUG_MSG(WARNING,(">Ignored <schema> attribute\n"));
+		}
+	}
+	else
+	{
+		if(strEqualToAscii(qname.localName, "name"))
+		{
+			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_NAME]);
+		}
+		else if(strEqualToAscii(qname.localName, "type"))
+		{
+			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_TYPE]);
+		}
+		else if(strEqualToAscii(qname.localName, "ref"))
+		{
+			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_REF]);
+		}
+		else if(strEqualToAscii(qname.localName, "minOccurs"))
+		{
+			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_MIN_OCCURS]);
+		}
+		else if(strEqualToAscii(qname.localName, "maxOccurs"))
+		{
+			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_MAX_OCCURS]);
+		}
+		else if(strEqualToAscii(qname.localName, "form"))
+		{
+			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_FORM]);
+		}
+		else
+		{
+			DEBUG_MSG(WARNING,(">Ignored element attribute\n"));
+		}
+	}
+	props->expectAttributeData = 1;
+	return EXIP_HANDLER_OK;
 }
 
-void xsd_stringData(const StringType value)
+char xsd_stringData(const StringType value)
 {
+	if(expectAttributeData)
+	{
+		if(props->propsStat = 1) // <schema> element attribute data
+		{
+			if(props->charDataPointer != NULL)
+			{
+				*(props->charDataPointer) = value;
+				props->charDataPointer = NULL;
+			}
+			else if(props->elementFormDefault == 2) // expecting value for elementFormDefault
+			{
+				if(strEqualToAscii(qname.localName, "qualified"))
+					props->elementFormDefault = 1;
+				else if(strEqualToAscii(qname.localName, "unqualified"))
+					props->elementFormDefault = 0;
+				else
+				{
+					DEBUG_MSG(ERROR,(">Invalid value for elementFormDefault attribute\n"));
+					return EXIP_HANDLER_STOP;
+				}
+			}
+			else if(props->attributeFormDefault == 2) // expecting value for attributeFormDefault
+			{
+				if(strEqualToAscii(qname.localName, "qualified"))
+					props->attributeFormDefault = 1;
+				else if(strEqualToAscii(qname.localName, "unqualified"))
+					props->attributeFormDefault = 0;
+				else
+				{
+					DEBUG_MSG(ERROR,(">Invalid value for elementFormDefault attribute\n"));
+					return EXIP_HANDLER_STOP;
+				}
+			}
+			else
+			{
+				DEBUG_MSG(WARNING,(">Ignored <schema> attribute value\n"));
+			}
+		}
+		else
+		{
+			if(props->charDataPointer != NULL)
+			{
+				*(props->charDataPointer) = value;
+				props->charDataPointer = NULL;
+			}
+			else
+			{
+				DEBUG_MSG(WARNING,(">Ignored element attribute value\n"));
+			}
+		}
 
+		expectAttributeData = 0;
+	}
+	else
+	{
+		if(props->charDataPointer != NULL)
+		{
+			*(props->charDataPointer) = value;
+			props->charDataPointer = NULL;
+		}
+		else
+		{
+			DEBUG_MSG(WARNING,(">Ignored element value\n"));
+		}
+	}
+
+	return EXIP_HANDLER_OK;
 }
 
-void xsd_exiHeader(const EXIheader* header)
+char xsd_exiHeader(const EXIheader* header)
 {
+	return EXIP_HANDLER_OK;
+}
 
+void pushElemContext(ContextStack** cStack, struct elementDescr* elem)
+{
+	elem->nextInStack = *cStack;
+	*cStack = elem;
+}
+
+void popElemContext(ContextStack** cStack, struct elementDescr** elem)
+{
+	*elem = *cStack;
+	*cStack = (*cStack)->nextInStack;
+	(*elem)->nextInStack = NULL;
 }

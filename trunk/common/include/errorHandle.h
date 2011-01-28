@@ -78,37 +78,40 @@ typedef char errorCode;
 /** No error, everything OK. */
 #define ERR_OK    0
 
+/** A command to stop the EXI processing received from the application */
+#define HANDLER_STOP_RECEIVED 12
+
 /** An event code to be serialized is not found at the current grammar stack */
-#define EVENT_CODE_MISSING 5
+#define EVENT_CODE_MISSING 11
 
 /** Buffer end reached  */
-#define BUFFER_END_REACHED 4
+#define BUFFER_END_REACHED 10
 
 /** Stream value bigger than a processor type boundary */
-#define BIGGER_TYPE_REQUIRED 3
+#define BIGGER_TYPE_REQUIRED 9
 
 /** Processor state is inconsistent with the stream events  */
-#define INCONSISTENT_PROC_STATE 2
+#define INCONSISTENT_PROC_STATE 8
 
 /** Error in the EXI header */
-#define INVALID_EXI_HEADER    1
+#define INVALID_EXI_HEADER    7
 
 /** Unsuccessful memory allocation */
-#define MEMORY_ALLOCATION_ERROR -1
+#define MEMORY_ALLOCATION_ERROR 6
 
 /** Try to access null pointer */
-#define NULL_POINTER_REF -2
+#define NULL_POINTER_REF 5
 
 /** Array out of bound  */
-#define OUT_OF_BOUND_BUFFER -3
+#define OUT_OF_BOUND_BUFFER 4
 
 /** Hash table error  */
-#define HASH_TABLE_ERROR -4
+#define HASH_TABLE_ERROR 3
 
 /** Any error that does not fall into the other categories */
-#define UNEXPECTED_ERROR -126
+#define UNEXPECTED_ERROR 2
 
 /** The code for this function is not yet implemented. */
-#define NOT_IMPLEMENTED_YET -127
+#define NOT_IMPLEMENTED_YET 1
 
 #endif /* ERRORHANDLE_H_ */

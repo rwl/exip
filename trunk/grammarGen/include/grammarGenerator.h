@@ -51,7 +51,7 @@
 #define SCHEMA_FORMAT_XSD_EXI           0
 #define SCHEMA_FORMAT_XSD_XML           1
 #define SCHEMA_FORMAT_DTD               2
-#define SCHEMA_FORMAT_XSD_EXI_OPTIMIZED 3
+#define SCHEMA_FORMAT_RELAX_NG          3
 
 /** Form Choice values */
 #define FORM_CHOICE_UNQUALIFIED           0
@@ -84,9 +84,13 @@
  * They should not change over time of processing
  */
 struct globalSchemaProps {
+	unsigned char propsStat; // 0 - initial state, 1 - <schema> element is parsed expect attributes, 2 - the properties are all set (<schema> attr. parsed)
+	unsigned char expectAttributeData;
+	StringType* charDataPointer; // Pointer to the expected character data
+//	StringType tmpCharData; // Store temporary string before its processing further
 	StringType targetNamespace;
-	unsigned char attributeFormDefault;
-	unsigned char elementFormDefault;
+	unsigned char attributeFormDefault; // 0 unqualified, 1 qualified, 2 expecting value, 3 initial state
+	unsigned char elementFormDefault;  // 0 unqualified, 1 qualified, 2 expecting value, 3 initial state
 };
 
 /**
@@ -95,8 +99,8 @@ struct globalSchemaProps {
  */
 struct elementDescr {
 	unsigned char element;  // represented with codes defined above
-	unsigned int attributePointers[20]; // the index is the code of the attribute
-	struct elementDescr* prev;
+	StringType attributePointers[20]; // the index is the code of the attribute
+	struct elementDescr* nextInStack;
 };
 
 typedef struct elementDescr ContextStack;
@@ -122,13 +126,13 @@ struct elementNotResolved {
  * @param[in] binaryStream the binary representation of XML schema
  * @param[in] bufLen size of binaryStream - number of bytes
  * @param[in] schemaFormat EXI, XSD, DTD or any other schema representation supported
- * @param[out] gStack Generated grammar stack
- * @param[out] gPool Generated grammar stack
+ * @param[out] strm An empty EXI stream used to hold the generated grammar stack, generated grammar pool and string tables
+ *             as well as for memory allocations.
  * @param[out] typesGrammarPool Pool of type grammars
  * @return Error handling code
  */
 errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, unsigned char schemaFormat,
-										EXIGrammarStack* gStack, ElementGrammarPool* gPool, ElementGrammarPool* typesGrammarPool);
+										EXIStream* strm, ElementGrammarPool* typesGrammarPool);
 
 // TODO: consider renaming the ElementGrammarPool type as it is used for Types Grammars as well
 

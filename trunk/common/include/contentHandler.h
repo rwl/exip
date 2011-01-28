@@ -49,38 +49,42 @@
 
 #include "procTypes.h"
 
+/** Macros for the returning code from the ContentHandler callbacks */
+#define EXIP_HANDLER_OK   0
+#define EXIP_HANDLER_STOP 1
+
 struct ContentHandler
 {
 	// For handling the meta-data (document structure)
-	void (*startDocument)();
-	void (*endDocument)();
-	void (*startElement)(QName qname);
-	void (*endElement)();
-	void (*attribute)(QName qname);
+	char (*startDocument)();
+	char (*endDocument)();
+	char (*startElement)(QName qname);
+	char (*endElement)();
+	char (*attribute)(QName qname);
 
 	// For handling the data
-	void (*intData)(int32_t int_val);
-	void (*bigIntData)(const BigSignedInt int_val);
-	void (*booleanData)(unsigned char bool_val);
-	void (*stringData)(const StringType str_val);
-	void (*floatData)(double float_val);
-	void (*bigFloatData)(BigFloat float_val);
-	void (*binaryData)(const char* binary_val, uint32_t nbytes);
-	void (*dateTimeData)(struct tm dt_val, uint16_t presenceMask);
-	void (*decimalData)(decimal dec_val);
-	void (*bigDecimalData)(bigDecimal dec_val);
+	char (*intData)(int32_t int_val);
+	char (*bigIntData)(const BigSignedInt int_val);
+	char (*booleanData)(unsigned char bool_val);
+	char (*stringData)(const StringType str_val);
+	char (*floatData)(double float_val);
+	char (*bigFloatData)(BigFloat float_val);
+	char (*binaryData)(const char* binary_val, uint32_t nbytes);
+	char (*dateTimeData)(struct tm dt_val, uint16_t presenceMask);
+	char (*decimalData)(decimal dec_val);
+	char (*bigDecimalData)(bigDecimal dec_val);
 
 	// Miscellaneous
-	void (*processingInstruction)(); // TODO: define the parameters!
+	char (*processingInstruction)(); // TODO: define the parameters!
 
 	// For error handling
-	void (*warning)(const char code, const char* msg);
-	void (*error)(const char code, const char* msg);
-	void (*fatalError)(const char code, const char* msg);
+	char (*warning)(const char code, const char* msg);
+	char (*error)(const char code, const char* msg);
+	char (*fatalError)(const char code, const char* msg);
 
 	// EXI specific
-	void (*exiHeader)(const EXIheader* header);
-	void (*selfContained)();  // Used for indexing independent elements for random access
+	char (*exiHeader)(const EXIheader* header);
+	char (*selfContained)();  // Used for indexing independent elements for random access
 };
 
 typedef struct ContentHandler ContentHandler;
