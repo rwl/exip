@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://exip.sourceforge.net/exip-test" elementFormDefault="qualified">
+
+    <element name="EXIPEncoder">
+    	<complexType>
+    		<simpleContent>
+    			<extension base="string">
+    				<attribute name="version" type="string"></attribute>
+    			</extension>
+    		</simpleContent>
+    	</complexType>
+    </element>
+</schema>

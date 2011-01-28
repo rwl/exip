@@ -43,42 +43,68 @@
 # Specify compiler to be used
 CC = gcc
 
-# Check Unit Test installation directory
-CHECK_DIR = /usr/local/lib
-
-# Common module
-COMMON = common
-
-# StreamIO module
-STREAM_IO = streamIO
-
-# String Tables module
-STRING_TABLES = stringTables
-
-# Grammar module
-GRAMMAR = grammar
-
-# ContentIO module
-CONTENT_IO = contentIO
-
-# Common compiler flags
-CFLAGS = -I$(COMMON)/include
-CFLAGS += -I$(GRAMMAR)/include
-CFLAGS += -I$(STRING_TABLES)/include
-CFLAGS += -I$(CONTENT_IO)/include
-CFLAGS += -I$(STREAM_IO)/include
 CFLAGS += -Wpacked -Wall
 
 CFLAGS += -g # Debugging 
+
+# The project root directory
+PROJECT_ROOT = ../..
+
+# Check Unit Test installation directory
+CHECK_DIR = /usr/local/lib
+
+# The src folder of the project 
+SOURCE_DIR = $(PROJECT_ROOT)/src
+
+# The bin folder of the project 
+BIN_DIR = bin
+
+# Common module
+COMMON = common
+COMMON_SRC = $(SOURCE_DIR)/$(COMMON)
+COMMON_BIN = $(BIN_DIR)/$(COMMON)
+
+# StreamIO module
+STREAM_IO = streamIO
+STREAM_IO_SRC = $(SOURCE_DIR)/$(STREAM_IO)
+STREAM_IO_BIN = $(BIN_DIR)/$(STREAM_IO)
+
+# String Tables module
+STRING_TABLES = stringTables
+STRING_TABLES_SRC = $(SOURCE_DIR)/$(STRING_TABLES)
+STRING_TABLES_BIN = $(BIN_DIR)/$(STRING_TABLES)
+
+# Grammar module
+GRAMMAR = grammar
+GRAMMAR_SRC = $(SOURCE_DIR)/$(GRAMMAR)
+GRAMMAR_BIN = $(BIN_DIR)/$(GRAMMAR)
+
+# ContentIO module
+CONTENT_IO = contentIO
+CONTENT_IO_SRC = $(SOURCE_DIR)/$(CONTENT_IO)
+CONTENT_IO_BIN = $(BIN_DIR)/$(CONTENT_IO)
+
+# Unit tests src root directory
+TESTS_SRC_DIR = $(PROJECT_ROOT)/tests
+
+# Unit tests bin directory
+TESTS_BIN_DIR = $(BIN_DIR)/tests
+
+# Common compiler flags
+CFLAGS = -I$(COMMON_SRC)/include
+CFLAGS += -I$(GRAMMAR_SRC)/include
+CFLAGS += -I$(STRING_TABLES_SRC)/include
+CFLAGS += -I$(CONTENT_IO_SRC)/include
+CFLAGS += -I$(STREAM_IO_SRC)/include
 
 # Gets the first goal set on the command line - it is used if the next goal is check. Defines which module to test
 TARGET = $(word 1,$(MAKECMDGOALS))
 
 # If the first goal is check then the target for checking is the whole project
 ifeq ($(TARGET), check)
-   CHECK_TARGET=streamIO/test stringTables/test grammar/test contentIO/test
+   CHECK_TARGET=$(TESTS_BIN_DIR)/test_streamIO $(TESTS_BIN_DIR)/test_stringTables $(TESTS_BIN_DIR)/test_grammar $(TESTS_BIN_DIR)/test_contentIO
 else
-   CHECK_TARGET=$(TARGET)/test
+   CHECK_TARGET=$(TESTS_BIN_DIR)/test_$(TARGET)
 endif
 
 # List of all example binary names
@@ -86,58 +112,82 @@ EXAMPLE_1 = exipd
 
 EXAMPLE_2 = exipe
 
-# Examples directory
-EXAMPLES_DIR = examples
+# Examples directories
+EXAMPLES_SRC_DIR = $(PROJECT_ROOT)/examples
+EXAMPLES_BIN_DIR = $(BIN_DIR)/examples
 
 all: lib
 
-include $(COMMON)/module.mk
+include common.mk
 
-include $(STREAM_IO)/module.mk
+include streamIO.mk
 
-include $(CONTENT_IO)/module.mk
+include stringTables.mk
 
-include $(STRING_TABLES)/module.mk
+include grammar.mk
 
-include $(GRAMMAR)/module.mk
+include contentIO.mk
+
+include tests.mk
 
 OBJECT_ALL = $(COMMON_OBJ) $(STREAM_IO_OBJ) $(STRING_TABLES_OBJ) $(GRAMMAR_OBJ) $(CONTENT_IO_OBJ)
 
-.PHONY : clean all lib check common streamIO stringTables examples exipd
+.PHONY : clean all lib check common streamIO stringTables examples exipd \
+         mk_bin mk_common mk_streamIO mk_stringTables mk_grammar mk_contentIO mk_examples mk_tests mk_all
 
-lib: exip.a
+lib: mk_bin $(BIN_DIR)/libexip.a
 
-exip.a: $(OBJECT_ALL)
-		ar rcs exip.a $(OBJECT_ALL)
+$(BIN_DIR)/libexip.a: mk_all $(OBJECT_ALL)
+		ar rcs $(BIN_DIR)/libexip.a $(OBJECT_ALL)
 		
-common: $(COMMON)/lib$(COMMON).a
+common: mk_common $(COMMON_BIN)/lib$(COMMON).a
 		
-streamIO: common $(STREAM_IO)/lib$(STREAM_IO).a		
+streamIO: mk_streamIO common $(STREAM_IO_BIN)/lib$(STREAM_IO).a		
 		
-stringTables: common $(STRING_TABLES)/lib$(STRING_TABLES).a		
+stringTables: mk_stringTables common $(STRING_TABLES_BIN)/lib$(STRING_TABLES).a		
 
-grammar: common streamIO stringTables $(GRAMMAR)/lib$(GRAMMAR).a
+grammar: mk_grammar common streamIO stringTables $(GRAMMAR_BIN)/lib$(GRAMMAR).a
 
-contentIO: common streamIO $(CONTENT_IO)/lib$(CONTENT_IO).a
+contentIO: mk_contentIO common streamIO $(CONTENT_IO_BIN)/lib$(CONTENT_IO).a
 		
-check: $(CHECK_TARGET)
+check: mk_tests $(CHECK_TARGET)
 		for i in $(CHECK_TARGET); do \
                  $$i; \
              done
 		
-$(EXAMPLE_1): $(EXAMPLES_DIR)/simpleDecoding/decodeTestEXI.c exip.a
-		$(CC) $(CFLAGS) $(EXAMPLES_DIR)/simpleDecoding/decodeTestEXI.c exip.a -o $(EXAMPLES_DIR)/$(EXAMPLE_1)
+$(EXAMPLES_BIN_DIR)/$(EXAMPLE_1): $(EXAMPLES_SRC_DIR)/simpleDecoding/decodeTestEXI.c $(BIN_DIR)/libexip.a
+		$(CC) $(CFLAGS) $(EXAMPLES_SRC_DIR)/simpleDecoding/decodeTestEXI.c $(BIN_DIR)/libexip.a -o $(EXAMPLES_BIN_DIR)/$(EXAMPLE_1)
 		
-$(EXAMPLE_2): $(EXAMPLES_DIR)/simpleEncoding/encodeTestEXI.c exip.a
-		$(CC) $(CFLAGS) $(EXAMPLES_DIR)/simpleEncoding/encodeTestEXI.c exip.a -o $(EXAMPLES_DIR)/$(EXAMPLE_2)		
+$(EXAMPLES_BIN_DIR)/$(EXAMPLE_2): $(EXAMPLES_SRC_DIR)/simpleEncoding/encodeTestEXI.c $(BIN_DIR)/libexip.a
+		$(CC) $(CFLAGS) $(EXAMPLES_SRC_DIR)/simpleEncoding/encodeTestEXI.c $(BIN_DIR)/libexip.a -o $(EXAMPLES_BIN_DIR)/$(EXAMPLE_2)		
 
-examples: lib $(EXAMPLE_1) $(EXAMPLE_2)
+examples: mk_examples lib $(EXAMPLES_BIN_DIR)/$(EXAMPLE_1) $(EXAMPLES_BIN_DIR)/$(EXAMPLE_2)
+
+mk_bin:
+		mkdir -p bin
+		
+mk_common:		
+		mkdir -p bin/common
+		
+mk_streamIO:
+		mkdir -p bin/streamIO
+		
+mk_stringTables:
+		mkdir -p bin/stringTables
+		
+mk_grammar:
+		mkdir -p bin/grammar
+		
+mk_contentIO:
+		mkdir -p bin/contentIO
+		
+mk_examples:
+		mkdir -p bin/examples
+		
+mk_tests:
+		mkdir -p bin/tests
+		
+mk_all: mk_common mk_streamIO mk_stringTables mk_grammar mk_contentIO
 	
 clean:
-		rm -f *.o *.a test
-		rm -f $(COMMON)/*.o $(COMMON)/*.a $(COMMON)/test
-		rm -f $(STREAM_IO)/*.o $(STREAM_IO)/*.a $(STREAM_IO)/test
-		rm -f $(STRING_TABLES)/*.o $(STRING_TABLES)/*.a $(STRING_TABLES)/test
-		rm -f $(GRAMMAR)/*.o $(GRAMMAR)/*.a $(GRAMMAR)/test
-		rm -f $(CONTENT_IO)/*.o $(CONTENT_IO)/*.a $(CONTENT_IO)/test
-		rm -f $(EXAMPLES_DIR)/*.o $(EXAMPLES_DIR)/*.a $(EXAMPLES_DIR)/$(EXAMPLE_1) $(EXAMPLES_DIR)/$(EXAMPLE_2)
+		rm -f -r bin
