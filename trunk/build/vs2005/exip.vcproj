@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".\;..\..\src\common\include;..\..\src\contentIO\include;..\..\src\grammar\include;..\..\src\streamIO\include;..\..\src\stringTables\include;..\..\src\grammarGen\include"
+				AdditionalIncludeDirectories=".\;..\..\src\public_include;..\..\src\common\include;..\..\src\contentIO\include;..\..\src\grammar\include;..\..\src\streamIO\include;..\..\src\stringTables\include;..\..\src\grammarGen\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -103,7 +103,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories=".\;..\..\src\common\include;..\..\src\contentIO\include;..\..\src\grammar\include;..\..\src\streamIO\include;..\..\src\stringTables\include;..\..\src\grammarGen\include"
+				AdditionalIncludeDirectories=".\;..\..\src\public_include;..\..\src\common\include;..\..\src\contentIO\include;..\..\src\grammar\include;..\..\src\streamIO\include;..\..\src\stringTables\include;..\..\src\grammarGen\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"

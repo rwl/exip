@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".\;..\..\src\common\include;..\..\src\contentIO\include;..\..\src\grammar\include;..\..\src\streamIO\include;..\..\src\stringTables\include;..\..\src\grammarGen\include"
+				AdditionalIncludeDirectories=".\;..\..\src\public_include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -116,7 +116,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories=".\;..\..\src\common\include;..\..\src\contentIO\include;..\..\src\grammar\include;..\..\src\streamIO\include;..\..\src\stringTables\include;..\..\src\grammarGen\include"
+				AdditionalIncludeDirectories=".\;..\..\src\public_include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
