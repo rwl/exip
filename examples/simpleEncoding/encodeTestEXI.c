@@ -48,28 +48,7 @@
 #include <stdio.h>
 #include <string.h>
 
-/**
- * The handler to be used by the applications to serialize EXI streams
- */
-EXISerializer serEXI = {startDocumentSer,
-						endDocumentSer,
-						startElementSer,
-						endElementSer,
-						attributeSer,
-						intDataSer,
-						bigIntDataSer,
-						booleanDataSer,
-						stringDataSer,
-						floatDataSer,
-						bigFloatDataSer,
-						binaryDataSer,
-						dateTimeDataSer,
-						decimalDataSer,
-						bigDecimalDataSer,
-						processingInstructionSer,
-						initStream,
-						encodeHeader,
-						selfContainedSer};
+extern EXISerializer serEXI;
 
 static void printfHelp();
 static void printError(errorCode err_code, EXIStream* strm, FILE *outfile);

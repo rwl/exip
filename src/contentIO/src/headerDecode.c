@@ -116,6 +116,7 @@ errorCode decodeHeader(EXIStream* strm, EXIheader* header)
 		header->has_options = 0;
 	    makeDefaultOpts(strm->opts);
 	}
+	header->opts = strm->opts;
 
 	// Read the Version type
 	tmp_err_code = readNextBit(strm, &smallVal);

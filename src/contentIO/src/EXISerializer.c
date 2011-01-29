@@ -48,6 +48,29 @@
 #include "memManagement.h"
 #include "sTables.h"
 
+/**
+ * The handler to be used by the applications to serialize EXI streams
+ */
+EXISerializer serEXI = {startDocumentSer,
+						endDocumentSer,
+						startElementSer,
+						endElementSer,
+						attributeSer,
+						intDataSer,
+						bigIntDataSer,
+						booleanDataSer,
+						stringDataSer,
+						floatDataSer,
+						bigFloatDataSer,
+						binaryDataSer,
+						dateTimeDataSer,
+						decimalDataSer,
+						bigDecimalDataSer,
+						processingInstructionSer,
+						initStream,
+						encodeHeader,
+						selfContainedSer};
+
 static errorCode encodeEXIEvent(EXIStream* strm, EXIEvent event);
 static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned char isElemOrAttr);
 

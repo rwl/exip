@@ -90,12 +90,16 @@ TESTS_SRC_DIR = $(PROJECT_ROOT)/tests
 # Unit tests bin directory
 TESTS_BIN_DIR = $(BIN_DIR)/tests
 
+# Public include directory
+PUBLIC_INCLUDE_DIR = $(SOURCE_DIR)/public_include
+
 # Common compiler flags
 CFLAGS = -I$(COMMON_SRC)/include
 CFLAGS += -I$(GRAMMAR_SRC)/include
 CFLAGS += -I$(STRING_TABLES_SRC)/include
 CFLAGS += -I$(CONTENT_IO_SRC)/include
 CFLAGS += -I$(STREAM_IO_SRC)/include
+CFLAGS += -I$(PUBLIC_INCLUDE_DIR)
 
 # Gets the first goal set on the command line - it is used if the next goal is check. Defines which module to test
 TARGET = $(word 1,$(MAKECMDGOALS))
