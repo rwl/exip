@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".\;..\..\src\public_include;..\..\src\common\include;..\..\src\contentIO\include;..\..\src\grammar\include;..\..\src\streamIO\include;..\..\src\stringTables\include;..\..\src\grammarGen\include"
+				AdditionalIncludeDirectories=".\;..\..\include;..\..\src\common\include;..\..\src\contentIO\include;..\..\src\grammar\include;..\..\src\streamIO\include;..\..\src\stringTables\include;..\..\src\grammarGen\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -103,7 +103,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories=".\;..\..\src\public_include;..\..\src\common\include;..\..\src\contentIO\include;..\..\src\grammar\include;..\..\src\streamIO\include;..\..\src\stringTables\include;..\..\src\grammarGen\include"
+				AdditionalIncludeDirectories=".\;..\..\include;..\..\src\common\include;..\..\src\contentIO\include;..\..\src\grammar\include;..\..\src\streamIO\include;..\..\src\stringTables\include;..\..\src\grammarGen\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -254,21 +254,49 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath="..\..\include\contentHandler.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\errorHandle.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\EXIParser.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\exipConfig.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\EXISerializer.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\headerEncode.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\memManagement.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\procTypes.h"
+				>
+			</File>
+			<File
+				RelativePath=".\stdint.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\stringManipulate.h"
+				>
+			</File>
 			<Filter
 				Name="common"
 				>
-				<File
-					RelativePath="..\..\src\common\include\contentHandler.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\common\include\errorHandle.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\common\include\exipConfig.h"
-					>
-				</File>
 				<File
 					RelativePath="..\..\src\common\include\hashtable.h"
 					>
@@ -279,22 +307,6 @@
 				</File>
 				<File
 					RelativePath="..\..\src\common\include\hashUtils.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\common\include\memManagement.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\common\include\procTypes.h"
-					>
-				</File>
-				<File
-					RelativePath=".\stdint.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\common\include\stringManipulate.h"
 					>
 				</File>
 			</Filter>
@@ -310,19 +322,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\contentIO\include\EXIParser.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\contentIO\include\EXISerializer.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\src\contentIO\include\headerDecode.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\contentIO\include\headerEncode.h"
 					>
 				</File>
 			</Filter>
