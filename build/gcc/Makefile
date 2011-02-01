@@ -91,7 +91,7 @@ TESTS_SRC_DIR = $(PROJECT_ROOT)/tests
 TESTS_BIN_DIR = $(BIN_DIR)/tests
 
 # Public include directory
-PUBLIC_INCLUDE_DIR = $(SOURCE_DIR)/public_include
+PUBLIC_INCLUDE_DIR = $(PROJECT_ROOT)/include
 
 # Common compiler flags
 CFLAGS = -I$(COMMON_SRC)/include
