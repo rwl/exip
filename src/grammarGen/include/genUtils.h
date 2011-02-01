@@ -143,7 +143,7 @@ errorCode createSimpleEmptyTypeGrammar(EXIStream* strm, struct EXIGrammar** resu
  */
 errorCode createComplexTypeGrammar(EXIStream* strm, StringType name, StringType target_ns,
 		                           struct EXIGrammar* attrUsesArray, unsigned int attrUsesArraySize,
-		                           StringType wildcardArray, unsigned int wildcardArraySize,
+		                           StringType* wildcardArray, unsigned int wildcardArraySize,
 		                           struct EXIGrammar* contentTypeGrammar,
 								   struct EXIGrammar** result);
 
@@ -167,7 +167,7 @@ errorCode createComplexTypeGrammar(EXIStream* strm, StringType name, StringType 
  */
 errorCode createComplexEmptyTypeGrammar(EXIStream* strm, StringType name, StringType target_ns,
 		                           struct EXIGrammar* attrUsesArray, unsigned int attrUsesArraySize,
-		                           StringType wildcardArray, unsigned int wildcardArraySize,
+		                           StringType* wildcardArray, unsigned int wildcardArraySize,
 								   struct EXIGrammar** result);
 
 /**
@@ -242,7 +242,7 @@ errorCode createElementTermGrammar(EXIStream* strm, StringType name, StringType 
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createWildcardTermGrammar(EXIStream* strm, StringType wildcardArray, unsigned int wildcardArraySize,
+errorCode createWildcardTermGrammar(EXIStream* strm, StringType* wildcardArray, unsigned int wildcardArraySize,
 								   struct EXIGrammar** result);
 
 /**

@@ -411,6 +411,8 @@ typedef struct EXIGrammar EXIGrammarStack; // Used to differentiate between sing
 
 typedef struct hashtable ElementGrammarPool;
 
+typedef struct hashtable TypeGrammarPool;
+
 /*********** END: Grammar Types ***************/
 
 struct StringTablesContext

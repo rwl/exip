@@ -173,7 +173,7 @@ errorCode createSimpleEmptyTypeGrammar(EXIStream* strm, struct EXIGrammar** resu
 
 errorCode createComplexTypeGrammar(EXIStream* strm, StringType name, StringType target_ns,
 		                           struct EXIGrammar* attrUsesArray, unsigned int attrUsesArraySize,
-		                           StringType wildcardArray, unsigned int wildcardArraySize,
+		                           StringType* wildcardArray, unsigned int wildcardArraySize,
 		                           struct EXIGrammar* contentTypeGrammar,
 								   struct EXIGrammar** result)
 {
@@ -202,7 +202,7 @@ errorCode createComplexTypeGrammar(EXIStream* strm, StringType name, StringType 
 
 errorCode createComplexEmptyTypeGrammar(EXIStream* strm, StringType name, StringType target_ns,
 		                           struct EXIGrammar* attrUsesArray, unsigned int attrUsesArraySize,
-		                           StringType wildcardArray, unsigned int wildcardArraySize,
+		                           StringType* wildcardArray, unsigned int wildcardArraySize,
 								   struct EXIGrammar** result)
 {
 	//TODO: Implement the case when there are wildcards i.e. wildcardArray is not empty
@@ -224,7 +224,7 @@ errorCode createComplexEmptyTypeGrammar(EXIStream* strm, StringType name, String
 	struct EXIGrammar* emptyContent;
 	tmp_err_code = createSimpleEmptyTypeGrammar(strm, &emptyContent);
 	if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		return tmp_err_code;
 
 	tmp_err_code = concatenateGrammars(strm, tmpGrammar, emptyContent, result);
 	if(tmp_err_code != ERR_OK)
@@ -458,7 +458,7 @@ errorCode createElementTermGrammar(EXIStream* strm, StringType name, StringType 
 	return ERR_OK;
 }
 
-errorCode createWildcardTermGrammar(EXIStream* strm, StringType wildcardArray, unsigned int wildcardArraySize,
+errorCode createWildcardTermGrammar(EXIStream* strm, StringType* wildcardArray, unsigned int wildcardArraySize,
 								   struct EXIGrammar** result)
 {
 	return NOT_IMPLEMENTED_YET;

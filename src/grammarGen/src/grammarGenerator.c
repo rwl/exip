@@ -62,15 +62,36 @@ static ProtoGrammarsStack* pGrammarStack;
 
 static DynArray* elNotResolvedArray;
 
+static DynArray* attributeUses;
+
+static URITable* metaURITable;
+
+static DynArray* regProdQname;
+
 static EXIStream* tmpStrm;
 
 static void pushElemContext(ContextStack** cStack, struct elementDescr* elem);
 
 static void popElemContext(ContextStack** cStack, struct elementDescr** elem);
 
+static void initElemContext(struct elementDescr* elem);
+
+// Handling of schema elements
+
+static void handleAttributeEl();
+
+static void handleExtentionEl();
+
+static void handleSimpleContentEl();
+
+static void handleComplexTypeEl();
+
+static void handleElementEl();
+
 errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, unsigned char schemaFormat,
-										EXIStream* strm, ElementGrammarPool* typesGrammarPool)
+										EXIStream* strm, ExipSchema* exipSchema)
 {
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	if(schemaFormat != SCHEMA_FORMAT_XSD_EXI)
 		return NOT_IMPLEMENTED_YET;
 
@@ -98,7 +119,19 @@ errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, un
 
 	pGrammarStack = NULL;
 
-	errorCode tmp_err_code = createDynArray(&elNotResolvedArray, sizeof(struct elementNotResolved), 10, strm);
+	tmp_err_code = createDynArray(&elNotResolvedArray, sizeof(struct elementNotResolved), 10, strm);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = createDynArray(&attributeUses, sizeof(struct EXIGrammar), 5, strm);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = createURITable(metaURITable, strm);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = createDynArray(&regProdQname, sizeof(struct productionQname), 20, strm);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -153,6 +186,8 @@ char xsd_startElement(QName qname)
 		if(elem == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
+		initElemContext(elem);
+
 		if(strEqualToAscii(qname.localName, "element"))
 		{
 			elem.element = ELEMENT_ELEMENT;
@@ -189,6 +224,18 @@ char xsd_startElement(QName qname)
 		{
 			elem.element = ELEMENT_ALL;
 		}
+		else if(strEqualToAscii(qname.localName, "extension"))
+		{
+			elem.element = ELEMENT_EXTENSION;
+		}
+		else if(strEqualToAscii(qname.localName, "restriction"))
+		{
+			elem.element = ELEMENT_RESTRICTION;
+		}
+		else if(strEqualToAscii(qname.localName, "simpleContent"))
+		{
+			elem.element = ELEMENT_SIMPLE_CONTENT;
+		}
 		else
 		{
 			DEBUG_MSG(WARNING,(">Ignored schema element\n"));
@@ -208,6 +255,23 @@ char xsd_endElement()
 			props->elementFormDefault = 0; // The default value is unqualified
 		if(props->attributeFormDefault == 3)
 			props->attributeFormDefault = 0; // The default value is unqualified
+	}
+	else
+	{
+		if(contextStack->element == ELEMENT_ATTRIBUTE)
+			handleAttributeEl();
+		else if(contextStack->element == ELEMENT_EXTENSION)
+			handleExtentionEl();
+		else if(contextStack->element == ELEMENT_SIMPLE_CONTENT)
+			handleSimpleContentEl();
+		else if(contextStack->element == ELEMENT_COMPLEX_TYPE)
+			handleComplexTypeEl();
+		else if(contextStack->element == ELEMENT_ELEMENT)
+			handleElementEl();
+		else
+		{
+			DEBUG_MSG(WARNING,(">Ignored closing element\n"));
+		}
 	}
 	return EXIP_HANDLER_OK;
 }
@@ -252,6 +316,10 @@ char xsd_attribute(QName qname)
 		else if(strEqualToAscii(qname.localName, "form"))
 		{
 			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_FORM]);
+		}
+		else if(strEqualToAscii(qname.localName, "base"))
+		{
+			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_BASE]);
 		}
 		else
 		{
@@ -349,4 +417,121 @@ void popElemContext(ContextStack** cStack, struct elementDescr** elem)
 	*elem = *cStack;
 	*cStack = (*cStack)->nextInStack;
 	(*elem)->nextInStack = NULL;
+}
+
+static void initElemContext(struct elementDescr* elem)
+{
+	int i = 0;
+	elem->element = ELEMENT_VOID;
+	elem->nextInStack = NULL;
+	for(; i < ATTRIBUTE_CONTEXT_ARRAY_SIZE; i++)
+		elem->attributePointers[i] = NULL;
+}
+
+static void handleAttributeEl()
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	unsigned char required = 0;
+	StringType target_ns;
+	QName simpleType;
+	QName scope;
+	struct EXIGrammar* attrUseGrammar;
+	uint32_t attrUseGrammarID;
+
+	if (contextStack->attributePointers[ATTRIBUTE_USE] != NULL &&
+			strEqualToAscii(contextStack->attributePointers[ATTRIBUTE_USE], "required"))
+	{
+		required = 1;
+	}
+	if(props->attributeFormDefault == 1 || strEqualToAscii(contextStack->attributePointers[ATTRIBUTE_FORM], "qualified"))
+	{
+		//TODO: must take into account the parent element target namespace
+
+		target_ns = props->targetNamespace;
+	}
+	else
+	{
+		target_ns.length = 0;
+		target_ns.str = NULL;
+	}
+	simpleType.localName = contextStack->attributePointers[ATTRIBUTE_TYPE];
+	simpleType.uri = NULL;
+
+	scope.localName = NULL;
+	scope.uri = NULL;
+
+
+
+	tmp_err_code = createAttributeUseGrammar(tmpStrm, required, contextStack->attributePointers[ATTRIBUTE_NAME],
+											 target_ns, simpleType, scope, &attrUseGrammar, metaURITable, regProdQname);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = addDynElement(attributeUses, attrUseGrammar, &attrUseGrammarID, tmpStrm);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+}
+
+static void handleExtentionEl()
+{
+	// TODO: this implementation is just experimental.
+	//       It only creates simple type grammar depending on the value of base attribute
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	QName simpleType;
+	struct EXIGrammar* simpleTypeGrammar;
+
+	simpleType.localName = contextStack->attributePointers[ATTRIBUTE_BASE];
+	simpleType.uri = NULL;
+
+	tmp_err_code = createSimpleTypeGrammar(tmpStrm, simpleType, &simpleTypeGrammar);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = pushGrammar((EXIGrammarStack**) &pGrammarStack, simpleTypeGrammar);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+}
+
+static void handleSimpleContentEl()
+{
+	// TODO: For now just skip this element. The simpleTypeGrammar should already be created
+}
+
+static void handleComplexTypeEl()
+{
+	// TODO: The attribute uses must be sorted first
+	// TODO: Then the dynamic attribute uses array must be emptied
+
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	StringType typeName;
+	StringType target_ns;
+	struct EXIGrammar* contentTypeGrammar;
+	struct EXIGrammar* resultComplexGrammar;
+
+	if(props->elementFormDefault == 1 || strEqualToAscii(contextStack->attributePointers[ATTRIBUTE_FORM], "qualified"))
+	{
+		//TODO: must take into account the parent element target namespace
+
+		target_ns = props->targetNamespace;
+	}
+	else
+	{
+		target_ns.length = 0;
+		target_ns.str = NULL;
+	}
+
+	tmp_err_code = popGrammar((EXIGrammarStack**) &pGrammarStack, &contentTypeGrammar);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = createComplexTypeGrammar(tmpStrm, contextStack->attributePointers[ATTRIBUTE_NAME], target_ns,
+			(struct EXIGrammar*) attributeUses->elements, attributeUses->elementCount,
+			                           NULL, 0, contentTypeGrammar, &resultComplexGrammar);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+}
+
+static void handleElementEl()
+{
+
 }
