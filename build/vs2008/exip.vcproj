@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".\;..\..\src\public_include;..\..\src\common\include;..\..\src\contentIO\include;..\..\src\grammar\include;..\..\src\streamIO\include;..\..\src\stringTables\include;..\..\src\grammarGen\include"
+				AdditionalIncludeDirectories=".\;..\..\include;..\..\src\common\include;..\..\src\contentIO\include;..\..\src\grammar\include;..\..\src\streamIO\include;..\..\src\stringTables\include;..\..\src\grammarGen\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -105,7 +105,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories=".\;..\..\src\public_include;..\..\src\common\include;..\..\src\contentIO\include;..\..\src\grammar\include;..\..\src\streamIO\include;..\..\src\stringTables\include;..\..\src\grammarGen\include"
+				AdditionalIncludeDirectories=".\;..\..\include;..\..\src\common\include;..\..\src\contentIO\include;..\..\src\grammar\include;..\..\src\streamIO\include;..\..\src\stringTables\include;..\..\src\grammarGen\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -257,35 +257,35 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\..\src\public_include\contentHandler.h"
+				RelativePath="..\..\include\contentHandler.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\public_include\errorHandle.h"
+				RelativePath="..\..\include\errorHandle.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\public_include\EXIParser.h"
+				RelativePath="..\..\include\EXIParser.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\public_include\exipConfig.h"
+				RelativePath="..\..\include\exipConfig.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\public_include\EXISerializer.h"
+				RelativePath="..\..\include\EXISerializer.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\public_include\headerEncode.h"
+				RelativePath="..\..\include\headerEncode.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\public_include\memManagement.h"
+				RelativePath="..\..\include\memManagement.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\public_include\procTypes.h"
+				RelativePath="..\..\include\procTypes.h"
 				>
 			</File>
 			<File
@@ -293,7 +293,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\public_include\stringManipulate.h"
+				RelativePath="..\..\include\stringManipulate.h"
 				>
 			</File>
 			<Filter
