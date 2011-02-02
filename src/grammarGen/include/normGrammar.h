@@ -44,6 +44,8 @@
 #ifndef NORMGRAMMAR_H_
 #define NORMGRAMMAR_H_
 
+#include "procTypes.h"
+
 /**
  * @brief Eliminates Productions with no Terminal Symbol
  *
@@ -51,7 +53,15 @@
  * @param[in, out] grammar the proto-grammar being normalized
  * @return Error handling code
  */
-errorCode deleteNoTermProductions(EXIStream* strm, struct EXIGrammar** grammar);
+errorCode deleteNoTermProductions(EXIStream* strm, struct EXIGrammar* grammar);
 
+/**
+ * @brief Eliminating Duplicate Terminal Symbols
+ *
+ * @param[in] strm EXIStream used to attach the memory allocations to it.
+ * @param[in, out] grammar the proto-grammar being normalized
+ * @return Error handling code
+ */
+errorCode deleteDuplicateTerminals(EXIStream* strm, struct EXIGrammar* grammar);
 
 #endif /* NORMGRAMMAR_H_ */
