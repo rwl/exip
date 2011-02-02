@@ -45,6 +45,8 @@
 #ifndef SCHEMA_H_
 #define SCHEMA_H_
 
+#include "procTypes.h"
+
 struct ExipSchema
 {
 	URITable* initialStringTables;
