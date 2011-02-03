@@ -46,7 +46,7 @@
 
 void insertionSort(int array[], uint32_t length, comapreFunc cmpFunc)
 {
-	uint32 indx;
+	uint32_t indx;
 	int cur_val;
 	int prev_val;
 
@@ -61,14 +61,14 @@ void insertionSort(int array[], uint32_t length, comapreFunc cmpFunc)
 		if((*cmpFunc)(prev_val, cur_val) > 0)
 		{
 			/* out of order: array[indx-1] > array[indx] */
-			uint32 indx2;
+			uint32_t indx2;
 			array[indx] = prev_val; /* move up the larger item first */
 
 			/* find the insertion point for the smaller item */
 			for (indx2 = indx - 1; indx2 > 0;)
 			{
 				int temp_val = array[indx2 - 1];
-				if((*fun_ptr)(temp_val, cur_val) > 0)
+				if((*cmpFunc)(temp_val, cur_val) > 0)
 				{
 					array[indx2--] = temp_val;
 					/* still out of order, move up 1 slot to make room */

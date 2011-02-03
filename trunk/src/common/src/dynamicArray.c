@@ -65,12 +65,13 @@ errorCode createDynArray(DynArray** dArray, size_t elSize, uint16_t defaultSize,
 
 errorCode addDynElement(DynArray* dArray, void* elem, uint32_t* elID, EXIStream* strm)
 {
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+
 	if(dArray == NULL)
 		return NULL_POINTER_REF;
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	if(dArray->arrayDimension == dArray->rowCount)   // The dynamic array must be extended first
+	if(dArray->arrayDimension == dArray->elementCount)   // The dynamic array must be extended first
 	{
-		tmp_err_code = memManagedReAllocate((void *) &dArray->elements, dArray->elSize*(dArray->elementCount + dArray->defaultSize), dArray->memNode);
+		tmp_err_code = memManagedReAllocate(/*(void **)*/ &dArray->elements, dArray->elSize*(dArray->elementCount + dArray->defaultSize), dArray->memNode);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		dArray->arrayDimension = dArray->arrayDimension + dArray->defaultSize;
