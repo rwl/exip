@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "exip", "exip.vcxproj", "{D8E683D8-ABEB-4CCC-92CF-A24EC1BF01F6}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "exipe", "exipe.vcxproj", "{0C4DADDA-6D4C-452F-B2C1-11F40ADC1EBD}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "exipd", "exipd.vcxproj", "{65680E14-219D-4427-A069-5BA04615B10B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D8E683D8-ABEB-4CCC-92CF-A24EC1BF01F6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D8E683D8-ABEB-4CCC-92CF-A24EC1BF01F6}.Debug|Win32.Build.0 = Debug|Win32
+		{D8E683D8-ABEB-4CCC-92CF-A24EC1BF01F6}.Release|Win32.ActiveCfg = Release|Win32
+		{D8E683D8-ABEB-4CCC-92CF-A24EC1BF01F6}.Release|Win32.Build.0 = Release|Win32
+		{0C4DADDA-6D4C-452F-B2C1-11F40ADC1EBD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{0C4DADDA-6D4C-452F-B2C1-11F40ADC1EBD}.Debug|Win32.Build.0 = Debug|Win32
+		{0C4DADDA-6D4C-452F-B2C1-11F40ADC1EBD}.Release|Win32.ActiveCfg = Release|Win32
+		{0C4DADDA-6D4C-452F-B2C1-11F40ADC1EBD}.Release|Win32.Build.0 = Release|Win32
+		{65680E14-219D-4427-A069-5BA04615B10B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{65680E14-219D-4427-A069-5BA04615B10B}.Debug|Win32.Build.0 = Debug|Win32
+		{65680E14-219D-4427-A069-5BA04615B10B}.Release|Win32.ActiveCfg = Release|Win32
+		{65680E14-219D-4427-A069-5BA04615B10B}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
