@@ -81,6 +81,13 @@ errorCode getEmptyString(StringType* emptyStr)
 	return ERR_OK;
 }
 
+char isStrEmpty(const StringType* str)
+{
+	if(str == NULL || str->length == 0)
+		return 1;
+	return 0;
+}
+
 errorCode asciiToString(const char* inStr, StringType* outStr, EXIStream* strm)
 {
 	outStr->length = strlen(inStr);
@@ -124,10 +131,12 @@ char str_equal(const StringType str1, const StringType str2)
 
 char strEqualToAscii(const StringType str1, char* str2)
 {
+	DEBUG_MSG(INFO,(">XML Schema strEqualToAscii\n"));
 	if(str1.length != strlen(str2))
 		return 0;
 	else
 	{
+		DEBUG_MSG(INFO,(">XML Schema strEqualToAscii else\n"));
 		int i = 0;
 		for(i = 0; i < str1.length; i++)
 		{
@@ -136,6 +145,8 @@ char strEqualToAscii(const StringType str1, char* str2)
 		}
 		return 1;
 	}
+
+	DEBUG_MSG(INFO,(">XML Schema strEqualToAscii end\n"));
 }
 
 errorCode getUCSCodePoint(const StringType* str, uint32_t charIndex, uint32_t* UCScp)

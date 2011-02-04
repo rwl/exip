@@ -61,39 +61,3 @@ errorCode makeDefaultOpts(struct EXIOptions* opts)
 
 	return ERR_OK;
 }
-
-/**
- * @brief Log2 function. Used to determine the number of bits needed to encode a unsigned integer value
- * The code taken from: http://www-graphics.stanford.edu/~seander/bithacks.html#IntegerLog
- * @param[in] val unsigned integer value
- *
- * @return The number of bits needed
- */
-static unsigned int log2INT(unsigned int val);
-
-static unsigned int log2INT(unsigned int val)
-{
-	// TODO: modify to check if the int is not 32 bit
-//	unsigned int v;  // 32-bit value to find the log2 of
-	const uint32_t b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
-	const unsigned int S[] = {1, 2, 4, 8, 16};
-	int i;
-
-	register unsigned int r = 0; // result of log2(v) will go here
-	for (i = 4; i >= 0; i--) // unroll for speed...
-	{
-	  if (val & b[i])
-	  {
-		val >>= S[i];
-	    r |= S[i];
-	  }
-	}
-	return r;
-}
-
-unsigned char getBitsNumber(unsigned int val)
-{
-	if(val == 0)
-		return 0;
-	return log2INT(val) + 1;
-}

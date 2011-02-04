@@ -66,3 +66,28 @@ errorCode moveBitPointer(EXIStream* strm, unsigned int bitPositions)
 	}
 	return ERR_OK;
 }
+
+unsigned char getBitsNumber(unsigned int val)
+{
+	if(val == 0)
+		return 0;
+	return log2INT(val) + 1;
+}
+
+uint32_t log2INT(uint32_t val)
+{
+	const uint32_t b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
+	const unsigned int S[] = {1, 2, 4, 8, 16};
+	int i;
+
+	uint32_t r = 0; // result of log2(v) will go here
+	for (i = 4; i >= 0; i--) // unroll for speed...
+	{
+	  if (val & b[i])
+	  {
+		val >>= S[i];
+	    r |= S[i];
+	  }
+	}
+	return r;
+}

@@ -610,13 +610,4 @@ typedef struct EXIheader EXIheader;
  */
 errorCode makeDefaultOpts(struct EXIOptions* opts);
 
-
-/**
- * @brief Determine the number of bits needed to encode a unsigned integer value
- * @param[in] val unsigned integer value
- *
- * @return The number of bits needed
- */
-unsigned char getBitsNumber(unsigned int val);
-
 #endif /* PROCTYPES_H_ */

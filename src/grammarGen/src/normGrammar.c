@@ -42,16 +42,18 @@
  */
 
 #include "normGrammar.h"
+#include "dynamicArray.h"
+#include <string.h>
 
 /** Store the information for a single already removed production - used for deleteNoTermProductions() */
-static struct removedProdInf
+struct removedProdInf
 {
 	unsigned int leftNonTermID;
 	unsigned int rightNonTermID;
 };
 
 /** Store the information for a single assigned for addition grammar rule - used for deleteDuplicateTerminals() */
-static struct addedRuleInf
+struct addedRuleInf
 {
 	unsigned int firstNonTermID; // smaller index, part of the union
 	unsigned int secondNonTermID;  // higher index, part of the union
@@ -89,7 +91,7 @@ errorCode deleteNoTermProductions(EXIStream* strm, struct EXIGrammar* grammar)
 				// Register that we are replacing this production without a terminal symbol
 				pr.leftNonTermID = grammar->ruleArray[i].nonTermID;
 				pr.rightNonTermID = rightNonTerm;
-				tmp_err_code = addDynElement(removedProdArray, &pr, &elID, strm);
+				tmp_err_code = addDynElement(removedProdArray, &pr, &elId, strm);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 
@@ -106,7 +108,7 @@ errorCode deleteNoTermProductions(EXIStream* strm, struct EXIGrammar* grammar)
 								struct removedProdInf* tmpPr;
 								for(t = 0; t < removedProdArray->elementCount; t++)
 								{
-									tmpPr = ((struct removedProdInf* ) removedProdArray->elements)[t];
+									tmpPr = &((struct removedProdInf* ) (removedProdArray->elements))[t];
 									if(grammar->ruleArray[k].prodArray[l].nonTermID == tmpPr->rightNonTermID
 										&& grammar->ruleArray[i].nonTermID == tmpPr->leftNonTermID
 										&& grammar->ruleArray[k].prodArray[l].event.eventType == EVENT_VOID)
@@ -173,7 +175,8 @@ errorCode deleteDuplicateTerminals(EXIStream* strm, struct EXIGrammar* grammar)
 		{
 			for(k = j + 1; k < grammar->ruleArray[i].prodCount; k++)  // For every other successive production in the rule
 			{
-				if(grammar->ruleArray[i].prodArray[j].event == grammar->ruleArray[i].prodArray[k].event) // If there are Duplicate Terminal Symbols
+				if(grammar->ruleArray[i].prodArray[j].event.eventType == grammar->ruleArray[i].prodArray[k].event.eventType
+						&& grammar->ruleArray[i].prodArray[j].event.valueType == grammar->ruleArray[i].prodArray[k].event.valueType) // If there are Duplicate Terminal Symbols
 				{
 					if(grammar->ruleArray[i].prodArray[j].nonTermID == grammar->ruleArray[i].prodArray[k].nonTermID) // identical productions
 					{
@@ -270,6 +273,20 @@ errorCode deleteDuplicateTerminals(EXIStream* strm, struct EXIGrammar* grammar)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
+
+	return ERR_OK;
+}
+
+errorCode normalizeGrammar(EXIStream* strm, struct EXIGrammar* grammar)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	tmp_err_code = deleteNoTermProductions(strm, grammar);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = deleteDuplicateTerminals(strm, grammar);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	return ERR_OK;
 }

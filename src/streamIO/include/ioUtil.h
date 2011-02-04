@@ -57,4 +57,24 @@
  */
 errorCode moveBitPointer(EXIStream* strm, unsigned int bitPositions);
 
+/**
+ * @brief Determine the number of bits needed to encode a unsigned integer value
+ * ⌈ log 2 m ⌉ from the spec is equal to getBitsNumber(m - 1)
+ *
+ * @param[in] val unsigned integer value
+ *
+ * @return The number of bits needed
+ */
+unsigned char getBitsNumber(unsigned int val);
+
+
+/**
+ * @brief Log2 function. Used to determine the number of bits needed to encode a unsigned integer value
+ * The code taken from: http://www-graphics.stanford.edu/~seander/bithacks.html#IntegerLog
+ * @param[in] val uint32_t value
+ *
+ * @return The number of bits needed
+ */
+uint32_t log2INT(uint32_t val);
+
 #endif /* IOUTIL_H_ */

@@ -182,10 +182,11 @@ static void printfHelp()
     printf("  EXIP     Efficient XML Interchange Processor, Rumen Kyusakov, 13.10.2010 \n");
     printf("           Copyright (c) 2010, EISLAB - Luleå University of Technology Version 0.1 \n");
     printf("  Usage:   exipd [options] <EXI_FileIn>\n\n");
-    printf("           Options:\n");
-    printf("           -exi   :   EXI formated output [default]\n");
-    printf("           -xml   :   XML formated output\n");
-    printf("           -help  :   Prints this help message\n\n");
+    printf("           Options: [-help | -xml | -exi | -schema <schema_file_in>] \n");
+    printf("           -schema :   uses schema defined in <schema_file_in> for encoding\n");
+    printf("           -exi    :   EXI formated output [default]\n");
+    printf("           -xml    :   XML formated output\n");
+    printf("           -help   :   Prints this help message\n\n");
     printf("  Purpose: This program tests the EXIP decoding functionality\n");
     printf("\n" );
 }
@@ -235,7 +236,11 @@ char sample_startElement(QName qname)
 		if(unclosedElement)
 			printf(">\n");
 		printf("<");
-		printString(qname.uri);
+		if(!isStrEmpty(qname.uri))
+		{
+			printString(qname.uri);
+			printf(":");
+		}
 		printString(qname.localName);
 		unclosedElement = 1;
 	}

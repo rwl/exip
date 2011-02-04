@@ -84,6 +84,11 @@ CONTENT_IO = contentIO
 CONTENT_IO_SRC = $(SOURCE_DIR)/$(CONTENT_IO)
 CONTENT_IO_BIN = $(BIN_DIR)/$(CONTENT_IO)
 
+# GrammarGen module
+GRAMMAR_GEN = grammarGen
+GRAMMAR_GEN_SRC = $(SOURCE_DIR)/$(GRAMMAR_GEN)
+GRAMMAR_GEN_BIN = $(BIN_DIR)/$(GRAMMAR_GEN)
+
 # Unit tests src root directory
 TESTS_SRC_DIR = $(PROJECT_ROOT)/tests
 
@@ -99,6 +104,7 @@ CFLAGS += -I$(GRAMMAR_SRC)/include
 CFLAGS += -I$(STRING_TABLES_SRC)/include
 CFLAGS += -I$(CONTENT_IO_SRC)/include
 CFLAGS += -I$(STREAM_IO_SRC)/include
+CFLAGS += -I$(GRAMMAR_GEN_SRC)/include
 CFLAGS += -I$(PUBLIC_INCLUDE_DIR)
 
 # Gets the first goal set on the command line - it is used if the next goal is check. Defines which module to test
@@ -132,12 +138,14 @@ include grammar.mk
 
 include contentIO.mk
 
+include grammarGen.mk
+
 include tests.mk
 
-OBJECT_ALL = $(COMMON_OBJ) $(STREAM_IO_OBJ) $(STRING_TABLES_OBJ) $(GRAMMAR_OBJ) $(CONTENT_IO_OBJ)
+OBJECT_ALL = $(COMMON_OBJ) $(STREAM_IO_OBJ) $(STRING_TABLES_OBJ) $(GRAMMAR_OBJ) $(CONTENT_IO_OBJ) $(GRAMMAR_GEN_OBJ)
 
-.PHONY : clean all lib check common streamIO stringTables examples exipd \
-         mk_bin mk_common mk_streamIO mk_stringTables mk_grammar mk_contentIO mk_examples mk_tests mk_all
+.PHONY : clean all lib check common streamIO stringTables grammar contentIO grammarGen examples exipd \
+         mk_bin mk_common mk_streamIO mk_stringTables mk_grammar mk_contentIO mk_grammarGen mk_examples mk_tests mk_all
 
 lib: mk_bin $(BIN_DIR)/libexip.a
 
@@ -153,6 +161,8 @@ stringTables: mk_stringTables common $(STRING_TABLES_BIN)/lib$(STRING_TABLES).a
 grammar: mk_grammar common streamIO stringTables $(GRAMMAR_BIN)/lib$(GRAMMAR).a
 
 contentIO: mk_contentIO common streamIO $(CONTENT_IO_BIN)/lib$(CONTENT_IO).a
+
+grammarGen: mk_grammarGen common stringTables $(GRAMMAR_GEN_BIN)/lib$(GRAMMAR_GEN).a
 		
 check: mk_tests $(CHECK_TARGET)
 		for i in $(CHECK_TARGET); do \
@@ -168,30 +178,33 @@ $(EXAMPLES_BIN_DIR)/$(EXAMPLE_2): $(EXAMPLES_SRC_DIR)/simpleEncoding/encodeTestE
 examples: mk_examples lib $(EXAMPLES_BIN_DIR)/$(EXAMPLE_1) $(EXAMPLES_BIN_DIR)/$(EXAMPLE_2)
 
 mk_bin:
-		mkdir -p bin
+		mkdir -p $(BIN_DIR)
 		
 mk_common:		
-		mkdir -p bin/common
+		mkdir -p $(COMMON_BIN)
 		
 mk_streamIO:
-		mkdir -p bin/streamIO
+		mkdir -p $(STREAM_IO_BIN)
 		
 mk_stringTables:
-		mkdir -p bin/stringTables
+		mkdir -p $(STRING_TABLES_BIN)
 		
 mk_grammar:
-		mkdir -p bin/grammar
+		mkdir -p $(GRAMMAR_BIN)
 		
 mk_contentIO:
-		mkdir -p bin/contentIO
+		mkdir -p $(CONTENT_IO_BIN)
+
+mk_grammarGen:
+		mkdir -p $(GRAMMAR_GEN_BIN)
 		
 mk_examples:
-		mkdir -p bin/examples
+		mkdir -p $(EXAMPLES_BIN_DIR)
 		
 mk_tests:
-		mkdir -p bin/tests
+		mkdir -p $(TESTS_BIN_DIR)
 		
-mk_all: mk_common mk_streamIO mk_stringTables mk_grammar mk_contentIO
+mk_all: mk_common mk_streamIO mk_stringTables mk_grammar mk_contentIO mk_grammarGen
 	
 clean:
-		rm -f -r bin
+		rm -f -r $(BIN_DIR)

@@ -47,6 +47,8 @@
 #include "stringManipulate.h"
 #include "memManagement.h"
 #include "sTables.h"
+#include "headerEncode.h"
+#include "bodyEncode.h"
 
 /**
  * The handler to be used by the applications to serialize EXI streams
@@ -69,7 +71,8 @@ EXISerializer serEXI = {startDocumentSer,
 						processingInstructionSer,
 						initStream,
 						encodeHeader,
-						selfContainedSer};
+						selfContainedSer,
+						closeEXIStream};
 
 static errorCode encodeEXIEvent(EXIStream* strm, EXIEvent event);
 static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned char isElemOrAttr);
@@ -409,4 +412,9 @@ errorCode processingInstructionSer(EXIStream* strm)
 errorCode selfContainedSer(EXIStream* strm)
 {
 	return NOT_IMPLEMENTED_YET;
+}
+
+errorCode closeEXIStream(EXIStream* strm)
+{
+	return freeAllMem(strm);
 }
