@@ -363,12 +363,14 @@ static errorCode decodeQName(EXIStream* strm, QName* qname)
 	uint32_t flag_StringLiteralsPartition = 0;
 	uint32_t lnID = 0;
 
+	DEBUG_MSG(INFO,(">Decoding QName\n"));
 	tmp_err_code = decodeNBitUnsignedInteger(strm, uriBits, &tmp_val_buf);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	if(tmp_val_buf == 0) // uri miss
 	{
 		StringType str;
+		DEBUG_MSG(INFO,(">URI miss\n"));
 		tmp_err_code = decodeString(strm, &str);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -380,6 +382,7 @@ static errorCode decodeQName(EXIStream* strm, QName* qname)
 	}
 	else // uri hit
 	{
+		DEBUG_MSG(INFO,(">URI hit\n"));
 		qname->uri = &(strm->uriTable->rows[tmp_val_buf-1].string_val);
 		uriID = tmp_val_buf-1;
 	}
@@ -390,7 +393,8 @@ static errorCode decodeQName(EXIStream* strm, QName* qname)
 
 	if(flag_StringLiteralsPartition == 0) // local-name table hit
 	{
-		unsigned char lnBits = getBitsNumber(strm->uriTable->rows[uriID].lTable->rowCount);
+		unsigned char lnBits = getBitsNumber(strm->uriTable->rows[uriID].lTable->rowCount - 1);
+		DEBUG_MSG(INFO,(">local-name table hit\n"));
 		tmp_err_code = decodeNBitUnsignedInteger(strm, lnBits, &lnID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -399,6 +403,7 @@ static errorCode decodeQName(EXIStream* strm, QName* qname)
 	else // local-name table miss
 	{
 		StringType lnStr;
+		DEBUG_MSG(INFO,(">local-name table miss\n"));
 		tmp_err_code = decodeStringOnly(strm, flag_StringLiteralsPartition - 1, &lnStr);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -435,7 +440,7 @@ static errorCode decodeStringValue(EXIStream* strm, StringType** value)
 		uint32_t lvID = 0;
 		uint32_t value_table_rowID;
 
-		unsigned char lvBits = getBitsNumber(strm->uriTable->rows[uriID].lTable->rows[lnID].vCrossTable->rowCount);
+		unsigned char lvBits = getBitsNumber(strm->uriTable->rows[uriID].lTable->rows[lnID].vCrossTable->rowCount - 1);
 		tmp_err_code = decodeNBitUnsignedInteger(strm, lvBits, &lvID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -445,7 +450,7 @@ static errorCode decodeStringValue(EXIStream* strm, StringType** value)
 	else if(flag_StringLiteralsPartition == 1)// global value partition table hit
 	{
 		uint32_t gvID = 0;
-		unsigned char gvBits = getBitsNumber(strm->vTable->rowCount);
+		unsigned char gvBits = getBitsNumber(strm->vTable->rowCount - 1);
 		tmp_err_code = decodeNBitUnsignedInteger(strm, gvBits, &gvID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -544,7 +549,6 @@ static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHand
 	else if(event.eventType == EVENT_AT_ALL)
 	{
 		DEBUG_MSG(INFO,(">AT(*) event\n"));
-		// The content of SE event is the element qname
 		tmp_err_code = decodeQName(strm, &qname);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -931,7 +935,7 @@ errorCode encodeQName(EXIStream* strm, QName qname)
 /******* Start: Local name **********/
 	if(lookupLN(strm->uriTable->rows[uriID].lTable, *(qname.localName), &lnID)) // local-name table hit
 	{
-		unsigned char lnBits = getBitsNumber(strm->uriTable->rows[uriID].lTable->rowCount);
+		unsigned char lnBits = getBitsNumber(strm->uriTable->rows[uriID].lTable->rowCount - 1);
 		tmp_err_code = encodeUnsignedInteger(strm, 0);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -981,7 +985,7 @@ errorCode encodeStringData(EXIStream* strm, StringType strng)
 		tmp_err_code = encodeUnsignedInteger(strm, 0);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		lvBits = getBitsNumber(strm->uriTable->rows[p_uriID].lTable->rows[p_lnID].vCrossTable->rowCount);
+		lvBits = getBitsNumber(strm->uriTable->rows[p_uriID].lTable->rows[p_lnID].vCrossTable->rowCount - 1);
 		tmp_err_code = encodeNBitUnsignedInteger(strm, lvBits, lvRowID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -997,7 +1001,7 @@ errorCode encodeStringData(EXIStream* strm, StringType strng)
 			tmp_err_code = encodeUnsignedInteger(strm, 1);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
-			gvBits = getBitsNumber(strm->vTable->rowCount);
+			gvBits = getBitsNumber(strm->vTable->rowCount - 1);
 			tmp_err_code = encodeNBitUnsignedInteger(strm, gvBits, gvRowID);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;

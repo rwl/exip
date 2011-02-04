@@ -44,7 +44,8 @@
 #include "EXISerializer.h"
 #include "procTypes.h"
 #include "stringManipulate.h"
-#include "memManagement.h"
+#include "schema.h"
+#include "grammarGenerator.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -55,6 +56,7 @@ static void printError(errorCode err_code, EXIStream* strm, FILE *outfile);
 
 int main(int argc, char *argv[])
 {
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	FILE *outfile;
 	char sourceFile[50];
 
@@ -64,6 +66,57 @@ int main(int argc, char *argv[])
 		{
 			printfHelp();
 			return 0;
+		}
+		else if(strcmp(argv[1], "-schema") == 0)
+		{
+			FILE *schemaFile;
+			unsigned long schemaLen;
+			char *schemaBuffer;
+			char schemaFileName[50];
+
+			strcpy(schemaFileName, argv[2]);
+
+			schemaFile = fopen(schemaFileName, "rb" );
+			if(!schemaFile)
+			{
+				fprintf(stderr, "Unable to open file %s", schemaFileName);
+				return 1;
+			}
+			else
+			{
+				//Get file length
+				fseek(schemaFile, 0, SEEK_END);
+				schemaLen=ftell(schemaFile);
+				fseek(schemaFile, 0, SEEK_SET);
+
+				//Allocate memory
+				schemaBuffer=(char *)malloc(schemaLen+1);
+				if (!schemaBuffer)
+				{
+					fprintf(stderr, "Memory allocation error!");
+					fclose(schemaFile);
+					return 1;
+				}
+
+				//Read file contents into buffer
+				fread(schemaBuffer, schemaLen, 1, schemaFile);
+				fclose(schemaFile);
+
+				EXIStream strm;
+				ExipSchema schema;
+				tmp_err_code = generateSchemaInformedGrammars(schemaBuffer, schemaLen, SCHEMA_FORMAT_XSD_EXI,
+														&strm, &schema);
+
+				if(tmp_err_code != ERR_OK)
+				{
+					printf("\n Error occured: %d", tmp_err_code);
+					serEXI.closeEXIStream(&strm);
+					return 1;
+				}
+
+				free(schemaBuffer);
+			}
+			strcpy(sourceFile, argv[3]);
 		}
 		else
 		{
@@ -77,7 +130,6 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
-			errorCode tmp_err_code = UNEXPECTED_ERROR;
 			EXIStream testStrm;
 			EXIheader header;
 			StringType uri;
@@ -124,7 +176,7 @@ int main(int argc, char *argv[])
 				return 1;
 			}
 
-			tmp_err_code = freeAllMem(&testStrm);
+			tmp_err_code = serEXI.closeEXIStream(&testStrm);
 			fclose(outfile);
 		}
 	}
@@ -141,7 +193,10 @@ static void printfHelp()
     printf("\n" );
     printf("  EXIP     Efficient XML Interchange Processor, Rumen Kyusakov, 13.10.2010 \n");
     printf("           Copyright (c) 2010, EISLAB - Luleå University of Technology Version 0.1 \n");
-    printf("  Usage:   exipe -help | <EXI_FileOut>\n\n");
+    printf("  Usage:   exipe [options] <EXI_FileOut>\n\n");
+    printf("           Options: [-help | -schema <schema_file_in>] \n");
+    printf("           -schema :   uses schema defined in <schema_file_in> for encoding\n");
+    printf("           -help   :   Prints this help message\n\n");
     printf("  Purpose: This program tests the EXIP encoding functionality\n");
     printf("\n" );
 }
@@ -149,7 +204,7 @@ static void printfHelp()
 static void printError(errorCode err_code, EXIStream* strm, FILE *outfile)
 {
 	printf("\n Error occured: %d", err_code);
-	freeAllMem(strm);
+	serEXI.closeEXIStream(strm);
 	fclose(outfile);
 	exit(1);
 }

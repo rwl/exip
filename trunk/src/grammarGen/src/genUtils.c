@@ -45,6 +45,8 @@
 
 errorCode concatenateGrammars(EXIStream* strm, struct EXIGrammar* left, struct EXIGrammar* right, struct EXIGrammar** result)
 {
+	int i = 0;
+	int j = 0;
 	*result = (struct EXIGrammar*) memManagedAllocate(strm, sizeof(struct EXIGrammar));
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -59,8 +61,6 @@ errorCode concatenateGrammars(EXIStream* strm, struct EXIGrammar* left, struct E
 	 * To ensure this is true after the concatenating, the right Non-terminal IDs
 	 * are re-numerated starting from the biggest left Non-terminal ID value + 1*/
 
-	int i = 0;
-	int j = 0;
 	for(;i < left->rulesDimension; i++)
 	{
 		copyGrammarRule(strm, &(left->ruleArray[i]), &((*result)->ruleArray[i]));
@@ -69,16 +69,15 @@ errorCode concatenateGrammars(EXIStream* strm, struct EXIGrammar* left, struct E
 		j = 0;
 		for(; j < (*result)->ruleArray[i].prodCount; j++)
 		{
-			if((*result)->ruleArray[i].prodArray[j].eType == EVENT_EE)
+			if((*result)->ruleArray[i].prodArray[j].event.eventType == EVENT_EE)
 			{
-				(*result)->ruleArray[i].prodArray[j].eType = EVENT_VOID;
+				(*result)->ruleArray[i].prodArray[j].event.eventType = EVENT_VOID;
 				(*result)->ruleArray[i].prodArray[j].nonTermID = GR_SCHEMA_GRAMMARS_FIRST + left->rulesDimension;
 			}
 		}
 	}
 
-	int i = 0;
-	for(;i < right->rulesDimension; i++)
+	for(i = 0;i < right->rulesDimension; i++)
 	{
 		copyGrammarRule(strm, &(right->ruleArray[i]), &((*result)->ruleArray[left->rulesDimension + i]));
 		(*result)->ruleArray[left->rulesDimension + i].nonTermID = GR_SCHEMA_GRAMMARS_FIRST + left->rulesDimension + i;
@@ -184,11 +183,11 @@ errorCode createComplexTypeGrammar(EXIStream* strm, StringType name, StringType 
 
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
-	tmpGrammar = attrUsesArray[0];
+	tmpGrammar = &(attrUsesArray[0]);
 	unsigned int i = 1;
 	for(; i < attrUsesArraySize; i++)
 	{
-		tmp_err_code = concatenateGrammars(strm, tmpGrammar, attrUsesArray[i], &tmpGrammar);
+		tmp_err_code = concatenateGrammars(strm, tmpGrammar, &(attrUsesArray[i]), &tmpGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -212,11 +211,11 @@ errorCode createComplexEmptyTypeGrammar(EXIStream* strm, StringType name, String
 
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
-	tmpGrammar = attrUsesArray[0];
+	tmpGrammar = &(attrUsesArray[0]);
 	unsigned int i = 1;
 	for(; i < attrUsesArraySize; i++)
 	{
-		tmp_err_code = concatenateGrammars(strm, tmpGrammar, attrUsesArray[i], &tmpGrammar);
+		tmp_err_code = concatenateGrammars(strm, tmpGrammar, &(attrUsesArray[i]), &tmpGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -283,7 +282,7 @@ errorCode createAttributeUseGrammar(EXIStream* strm, unsigned char required, Str
 	uint32_t metaLnID = 0;
 	if(!lookupLN(metaURITable->rows[metaUriID].lTable, name, &metaLnID)) // Local name not found in the meta string tables
 	{
-		tmp_err_code = addLNRow(metaURITable->rows[metaUriID].lTable, name, &metaLnID, strm);
+		tmp_err_code = addLNRow(metaURITable->rows[metaUriID].lTable, name, &metaLnID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -296,7 +295,7 @@ errorCode createAttributeUseGrammar(EXIStream* strm, unsigned char required, Str
 	pqRow.lnRowID_old = metaLnID;
 
 	uint32_t elIndx = 0;
-	tmp_err_code = addDynElement(regProdQname, &pqRow, &elIndx, EXIStream* strm);
+	tmp_err_code = addDynElement(regProdQname, &pqRow, &elIndx, strm);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -430,7 +429,7 @@ errorCode createElementTermGrammar(EXIStream* strm, StringType name, StringType 
 	uint32_t metaLnID = 0;
 	if(!lookupLN(metaURITable->rows[metaUriID].lTable, name, &metaLnID)) // Local name not found in the meta string tables
 	{
-		tmp_err_code = addLNRow(metaURITable->rows[metaUriID].lTable, name, &metaLnID, strm);
+		tmp_err_code = addLNRow(metaURITable->rows[metaUriID].lTable, name, &metaLnID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -443,7 +442,7 @@ errorCode createElementTermGrammar(EXIStream* strm, StringType name, StringType 
 	pqRow.lnRowID_old = metaLnID;
 
 	uint32_t elIndx = 0;
-	tmp_err_code = addDynElement(regProdQname, &pqRow, &elIndx, EXIStream* strm);
+	tmp_err_code = addDynElement(regProdQname, &pqRow, &elIndx, strm);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -476,11 +475,11 @@ errorCode createSequenceModelGroupsGrammar(EXIStream* strm, struct EXIGrammar* p
 	}
 	else
 	{
-		struct EXIGrammar* tmpGrammar = pTermArray[0];
+		struct EXIGrammar* tmpGrammar = &(pTermArray[0]);
 		int i = 1;
 		for(; i < pTermArraySize; i++)
 		{
-			tmp_err_code = concatenateGrammars(strm, tmpGrammar, pTermArray[i], &tmpGrammar);
+			tmp_err_code = concatenateGrammars(strm, tmpGrammar, &(pTermArray[i]), &tmpGrammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}

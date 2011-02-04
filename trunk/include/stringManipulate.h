@@ -99,6 +99,14 @@ errorCode writeCharToString(StringType* str, uint32_t code_point, uint32_t UCSpo
 errorCode getEmptyString(StringType* emptyStr);
 
 /**
+ * @brief Checks if an string is empty
+ * Note! The implementation of this function is platform-specific.
+ * @param[in] str string to check
+ * @return 0 if not empty, 1 if empty
+ */
+char isStrEmpty(const StringType* str);
+
+/**
  * @brief Transform a NULL terminated string of ASCII chars to StringType allocating memory for the CharType*.
  * Note! The implementation of this function is platform-specific.
  * @param[in] inStr ASCII stream

@@ -64,4 +64,13 @@ errorCode deleteNoTermProductions(EXIStream* strm, struct EXIGrammar* grammar);
  */
 errorCode deleteDuplicateTerminals(EXIStream* strm, struct EXIGrammar* grammar);
 
+/**
+ * @brief Invokes deleteNoTermProductions() and then deleteDuplicateTerminals() to normalize the grammar
+ *
+ * @param[in] strm EXIStream used to attach the memory allocations to it.
+ * @param[in, out] grammar the proto-grammar being normalized
+ * @return Error handling code
+ */
+errorCode normalizeGrammar(EXIStream* strm, struct EXIGrammar* grammar);
+
 #endif /* NORMGRAMMAR_H_ */

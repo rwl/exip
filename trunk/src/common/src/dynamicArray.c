@@ -71,7 +71,7 @@ errorCode addDynElement(DynArray* dArray, void* elem, uint32_t* elID, EXIStream*
 		return NULL_POINTER_REF;
 	if(dArray->arrayDimension == dArray->elementCount)   // The dynamic array must be extended first
 	{
-		tmp_err_code = memManagedReAllocate(/*(void **)*/ &dArray->elements, dArray->elSize*(dArray->elementCount + dArray->defaultSize), dArray->memNode);
+		tmp_err_code = memManagedReAllocate(&dArray->elements, dArray->elSize*(dArray->elementCount + dArray->defaultSize), dArray->memNode);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		dArray->arrayDimension = dArray->arrayDimension + dArray->defaultSize;

@@ -47,7 +47,6 @@
 #define EXISERIALIZER_H_
 
 #include "errorHandle.h"
-#include "headerEncode.h"
 #include "procTypes.h"
 
 struct EXISerializer
@@ -78,34 +77,11 @@ struct EXISerializer
 	errorCode (*initStream)(EXIStream* strm, unsigned int initialBufSize);
 	errorCode (*exiHeaderSer)(EXIStream* strm, EXIheader* header);
 	errorCode (*selfContainedSer)(EXIStream* strm);  // Used for indexing independent elements for random access
+
+	// EXIP specific
+	errorCode (*closeEXIStream)(EXIStream* strm);
 };
 
 typedef struct EXISerializer EXISerializer;
-
-// For handling the meta-data (document structure)
-errorCode startDocumentSer(EXIStream* strm);
-errorCode endDocumentSer(EXIStream* strm);
-errorCode startElementSer(EXIStream* strm, QName qname);
-errorCode endElementSer(EXIStream* strm);
-errorCode attributeSer(EXIStream* strm, QName qname);
-
-// For handling the data
-errorCode intDataSer(EXIStream* strm, int32_t int_val);
-errorCode bigIntDataSer(EXIStream* strm, const BigSignedInt int_val);
-errorCode booleanDataSer(EXIStream* strm, unsigned char bool_val);
-errorCode stringDataSer(EXIStream* strm, const StringType str_val);
-errorCode floatDataSer(EXIStream* strm, double float_val);
-errorCode bigFloatDataSer(EXIStream* strm, BigFloat float_val);
-errorCode binaryDataSer(EXIStream* strm, const char* binary_val, uint32_t nbytes);
-errorCode dateTimeDataSer(EXIStream* strm, struct tm dt_val, uint16_t presenceMask);
-errorCode decimalDataSer(EXIStream* strm, decimal dec_val);
-errorCode bigDecimalDataSer(EXIStream* strm, bigDecimal dec_val);
-
-// Miscellaneous
-errorCode processingInstructionSer(EXIStream* strm); // TODO: define the parameters!
-
-// EXI specific
-errorCode initStream(EXIStream* strm, unsigned int initialBufSize);
-errorCode selfContainedSer(EXIStream* strm);  // Used for indexing independent elements for random access
 
 #endif /* EXISERIALIZER_H_ */
