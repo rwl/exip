@@ -43,6 +43,8 @@
 
 #include "normGrammar.h"
 #include "dynamicArray.h"
+#include "grammarRules.h"
+#include "memManagement.h"
 #include <string.h>
 
 /** Store the information for a single already removed production - used for deleteNoTermProductions() */
@@ -140,6 +142,7 @@ errorCode deleteNoTermProductions(EXIStream* strm, struct EXIGrammar* grammar)
 			}
 		}
 	}
+	return ERR_OK;
 }
 
 errorCode deleteDuplicateTerminals(EXIStream* strm, struct EXIGrammar* grammar)

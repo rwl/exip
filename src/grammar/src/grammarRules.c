@@ -44,6 +44,7 @@
 #include "grammarRules.h"
 #include "eventsEXI.h"
 #include "memManagement.h"
+#include "ioUtil.h"
 
 errorCode initGrammarRule(GrammarRule* rule, EXIStream* strm)
 {

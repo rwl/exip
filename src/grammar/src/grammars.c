@@ -52,6 +52,7 @@
 #include "streamEncode.h"
 #include "streamDecode.h"
 #include "memManagement.h"
+#include "ioUtil.h"
 #include <stdio.h>
 
 #define DEF_GRAMMAR_RULE_NUMBER 3
