@@ -99,7 +99,7 @@ TESTS_BIN_DIR = $(BIN_DIR)/tests
 PUBLIC_INCLUDE_DIR = $(PROJECT_ROOT)/include
 
 # Common compiler flags
-CFLAGS = -I$(COMMON_SRC)/include
+CFLAGS += -I$(COMMON_SRC)/include
 CFLAGS += -I$(GRAMMAR_SRC)/include
 CFLAGS += -I$(STRING_TABLES_SRC)/include
 CFLAGS += -I$(CONTENT_IO_SRC)/include

@@ -48,8 +48,8 @@
 #define WARNING 2
 #define ERROR 3
 
-#define EXIP_DEBUG  			 //TODO: document this macro #DOCUMENT#
-#define EXIP_DEBUG_LEVEL INFO    //TODO: document this macro #DOCUMENT#
+//#define EXIP_DEBUG  			 //TODO: document this macro #DOCUMENT#
+//#define EXIP_DEBUG_LEVEL INFO    //TODO: document this macro #DOCUMENT#
 
 
 /**

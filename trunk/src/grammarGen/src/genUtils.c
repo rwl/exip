@@ -42,6 +42,10 @@
  */
 
 #include "genUtils.h"
+#include "memManagement.h"
+#include "grammarRules.h"
+#include "eventsEXI.h"
+#include "stringManipulate.h"
 
 errorCode concatenateGrammars(EXIStream* strm, struct EXIGrammar* left, struct EXIGrammar* right, struct EXIGrammar** result)
 {
@@ -530,56 +534,56 @@ errorCode createAllModelGroupsGrammar(EXIStream* strm, struct EXIGrammar* pTermA
 
 errorCode getEXIDataType(QName simpleXSDType, ValueType* exiType)
 {
-	if(strEqualToAscii(simpleXSDType.localName, "string") ||
-	   strEqualToAscii(simpleXSDType.localName, "duration") ||
-	   strEqualToAscii(simpleXSDType.localName, "anyURI"))
+	if(strEqualToAscii(*simpleXSDType.localName, "string") ||
+	   strEqualToAscii(*simpleXSDType.localName, "duration") ||
+	   strEqualToAscii(*simpleXSDType.localName, "anyURI"))
 	{
 		*exiType = VALUE_TYPE_STRING;
 		return ERR_OK;
 	}
-	else if(strEqualToAscii(simpleXSDType.localName, "boolean"))
+	else if(strEqualToAscii(*simpleXSDType.localName, "boolean"))
 	{
 		*exiType = VALUE_TYPE_BOOLEAN;
 		return ERR_OK;
 	}
-	else if(strEqualToAscii(simpleXSDType.localName, "integer") ||
-			strEqualToAscii(simpleXSDType.localName, "nonPositiveInteger") ||
-			strEqualToAscii(simpleXSDType.localName, "long") ||
-			strEqualToAscii(simpleXSDType.localName, "nonNegativeInteger") ||
-			strEqualToAscii(simpleXSDType.localName, "int") ||
-			strEqualToAscii(simpleXSDType.localName, "short") ||
-			strEqualToAscii(simpleXSDType.localName, "byte") ||
-			strEqualToAscii(simpleXSDType.localName, "negativeInteger") ||
-			strEqualToAscii(simpleXSDType.localName, "positiveInteger"))
+	else if(strEqualToAscii(*simpleXSDType.localName, "integer") ||
+			strEqualToAscii(*simpleXSDType.localName, "nonPositiveInteger") ||
+			strEqualToAscii(*simpleXSDType.localName, "long") ||
+			strEqualToAscii(*simpleXSDType.localName, "nonNegativeInteger") ||
+			strEqualToAscii(*simpleXSDType.localName, "int") ||
+			strEqualToAscii(*simpleXSDType.localName, "short") ||
+			strEqualToAscii(*simpleXSDType.localName, "byte") ||
+			strEqualToAscii(*simpleXSDType.localName, "negativeInteger") ||
+			strEqualToAscii(*simpleXSDType.localName, "positiveInteger"))
 	{
 		*exiType = VALUE_TYPE_INTEGER;
 		return ERR_OK;
 	}
-	else if(strEqualToAscii(simpleXSDType.localName, "float") ||
-				strEqualToAscii(simpleXSDType.localName, "double"))
+	else if(strEqualToAscii(*simpleXSDType.localName, "float") ||
+				strEqualToAscii(*simpleXSDType.localName, "double"))
 	{
 		*exiType = VALUE_TYPE_FLOAT;
 		return ERR_OK;
 	}
-	else if(strEqualToAscii(simpleXSDType.localName, "decimal"))
+	else if(strEqualToAscii(*simpleXSDType.localName, "decimal"))
 	{
 		*exiType = VALUE_TYPE_DECIMAL;
 		return ERR_OK;
 	}
-	else if(strEqualToAscii(simpleXSDType.localName, "hexBinary") ||
-				strEqualToAscii(simpleXSDType.localName, "base64Binary"))
+	else if(strEqualToAscii(*simpleXSDType.localName, "hexBinary") ||
+				strEqualToAscii(*simpleXSDType.localName, "base64Binary"))
 	{
 		*exiType = VALUE_TYPE_BINARY;
 		return ERR_OK;
 	}
-	else if(strEqualToAscii(simpleXSDType.localName, "dateTime") ||
-			strEqualToAscii(simpleXSDType.localName, "time") ||
-			strEqualToAscii(simpleXSDType.localName, "date") ||
-			strEqualToAscii(simpleXSDType.localName, "gYearMonth") ||
-			strEqualToAscii(simpleXSDType.localName, "gYear") ||
-			strEqualToAscii(simpleXSDType.localName, "gMonthDay") ||
-			strEqualToAscii(simpleXSDType.localName, "gDay") ||
-			strEqualToAscii(simpleXSDType.localName, "gMonth"))
+	else if(strEqualToAscii(*simpleXSDType.localName, "dateTime") ||
+			strEqualToAscii(*simpleXSDType.localName, "time") ||
+			strEqualToAscii(*simpleXSDType.localName, "date") ||
+			strEqualToAscii(*simpleXSDType.localName, "gYearMonth") ||
+			strEqualToAscii(*simpleXSDType.localName, "gYear") ||
+			strEqualToAscii(*simpleXSDType.localName, "gMonthDay") ||
+			strEqualToAscii(*simpleXSDType.localName, "gDay") ||
+			strEqualToAscii(*simpleXSDType.localName, "gMonth"))
 	{
 		*exiType = VALUE_TYPE_DATE_TIME;
 		return ERR_OK;

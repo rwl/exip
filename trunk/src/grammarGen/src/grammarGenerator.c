@@ -45,6 +45,10 @@
 #include "dynamicArray.h"
 #include "EXIParser.h"
 #include "genUtils.h"
+#include "stringManipulate.h"
+#include "memManagement.h"
+#include "grammars.h"
+#include "normGrammar.h"
 
 // Content Handler API
 char xsd_fatalError(const char code, const char* msg);
@@ -172,8 +176,8 @@ char xsd_startElement(QName qname)
 	DEBUG_MSG(INFO,(">XML Schema starting element\n"));
 	if(!props->propsStat) // This should be the first <schema> element
 	{
-		if(strEqualToAscii(qname.uri, "http://www.w3.org/2001/XMLSchema") &&
-				strEqualToAscii(qname.localName, "schema"))
+		if(strEqualToAscii(*qname.uri, "http://www.w3.org/2001/XMLSchema") &&
+				strEqualToAscii(*qname.localName, "schema"))
 		{
 			props->propsStat = 1;
 		}
@@ -185,7 +189,7 @@ char xsd_startElement(QName qname)
 	}
 	else
 	{
-		if(!strEqualToAscii(qname.uri, "http://www.w3.org/2001/XMLSchema"))
+		if(!strEqualToAscii(*qname.uri, "http://www.w3.org/2001/XMLSchema"))
 		{
 			DEBUG_MSG(ERROR,(">Invalid namespace of XML Schema element\n"));
 			return EXIP_HANDLER_STOP;
@@ -197,51 +201,51 @@ char xsd_startElement(QName qname)
 
 		initElemContext(elem);
 
-		if(strEqualToAscii(qname.localName, "element"))
+		if(strEqualToAscii(*qname.localName, "element"))
 		{
 			elem->element = ELEMENT_ELEMENT;
 		}
-		else if(strEqualToAscii(qname.localName, "attribute"))
+		else if(strEqualToAscii(*qname.localName, "attribute"))
 		{
 			elem->element = ELEMENT_ATTRIBUTE;
 		}
-		else if(strEqualToAscii(qname.localName, "choice"))
+		else if(strEqualToAscii(*qname.localName, "choice"))
 		{
 			elem->element = ELEMENT_CHOICE;
 		}
-		else if(strEqualToAscii(qname.localName, "complexType"))
+		else if(strEqualToAscii(*qname.localName, "complexType"))
 		{
 			elem->element = ELEMENT_COMPLEX_TYPE;
 		}
-		else if(strEqualToAscii(qname.localName, "complexContent"))
+		else if(strEqualToAscii(*qname.localName, "complexContent"))
 		{
 			elem->element = ELEMENT_COMPLEX_CONTENT;
 		}
-		else if(strEqualToAscii(qname.localName, "group"))
+		else if(strEqualToAscii(*qname.localName, "group"))
 		{
 			elem->element = ELEMENT_GROUP;
 		}
-		else if(strEqualToAscii(qname.localName, "import"))
+		else if(strEqualToAscii(*qname.localName, "import"))
 		{
 			elem->element = ELEMENT_IMPORT;
 		}
-		else if(strEqualToAscii(qname.localName, "sequence"))
+		else if(strEqualToAscii(*qname.localName, "sequence"))
 		{
 			elem->element = ELEMENT_SEQUENCE;
 		}
-		else if(strEqualToAscii(qname.localName, "all"))
+		else if(strEqualToAscii(*qname.localName, "all"))
 		{
 			elem->element = ELEMENT_ALL;
 		}
-		else if(strEqualToAscii(qname.localName, "extension"))
+		else if(strEqualToAscii(*qname.localName, "extension"))
 		{
 			elem->element = ELEMENT_EXTENSION;
 		}
-		else if(strEqualToAscii(qname.localName, "restriction"))
+		else if(strEqualToAscii(*qname.localName, "restriction"))
 		{
 			elem->element = ELEMENT_RESTRICTION;
 		}
-		else if(strEqualToAscii(qname.localName, "simpleContent"))
+		else if(strEqualToAscii(*qname.localName, "simpleContent"))
 		{
 			elem->element = ELEMENT_SIMPLE_CONTENT;
 		}
@@ -292,11 +296,11 @@ char xsd_attribute(QName qname)
 	DEBUG_MSG(INFO,(">XML Schema attribute\n"));
 	if(props->propsStat == 1) // <schema> element attribute
 	{
-		if(strEqualToAscii(qname.localName, "targetNamespace"))
+		if(strEqualToAscii(*qname.localName, "targetNamespace"))
 			props->charDataPointer = &(props->targetNamespace);
-		else if(strEqualToAscii(qname.localName, "elementFormDefault"))
+		else if(strEqualToAscii(*qname.localName, "elementFormDefault"))
 			props->elementFormDefault = 2;
-		else if(strEqualToAscii(qname.localName, "attributeFormDefault"))
+		else if(strEqualToAscii(*qname.localName, "attributeFormDefault"))
 			props->attributeFormDefault = 2;
 		else
 		{
@@ -305,31 +309,31 @@ char xsd_attribute(QName qname)
 	}
 	else
 	{
-		if(strEqualToAscii(qname.localName, "name"))
+		if(strEqualToAscii(*qname.localName, "name"))
 		{
 			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_NAME]);
 		}
-		else if(strEqualToAscii(qname.localName, "type"))
+		else if(strEqualToAscii(*qname.localName, "type"))
 		{
 			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_TYPE]);
 		}
-		else if(strEqualToAscii(qname.localName, "ref"))
+		else if(strEqualToAscii(*qname.localName, "ref"))
 		{
 			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_REF]);
 		}
-		else if(strEqualToAscii(qname.localName, "minOccurs"))
+		else if(strEqualToAscii(*qname.localName, "minOccurs"))
 		{
 			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_MIN_OCCURS]);
 		}
-		else if(strEqualToAscii(qname.localName, "maxOccurs"))
+		else if(strEqualToAscii(*qname.localName, "maxOccurs"))
 		{
 			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_MAX_OCCURS]);
 		}
-		else if(strEqualToAscii(qname.localName, "form"))
+		else if(strEqualToAscii(*qname.localName, "form"))
 		{
 			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_FORM]);
 		}
-		else if(strEqualToAscii(qname.localName, "base"))
+		else if(strEqualToAscii(*qname.localName, "base"))
 		{
 			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_BASE]);
 		}
@@ -347,7 +351,7 @@ char xsd_stringData(const StringType value)
 	DEBUG_MSG(INFO,(">XML Schema string data\n"));
 	if(props->expectAttributeData)
 	{
-		if(props->propsStat = 1) // <schema> element attribute data
+		if(props->propsStat == 1) // <schema> element attribute data
 		{
 			if(props->charDataPointer != NULL)
 			{
@@ -573,7 +577,7 @@ static errorCode handleComplexTypeEl()
 
 	//TODO: the attributeUses array must be emptied here
 
-	if(isStrEmpty(typeName))  // The name is empty i.e. anonymous complex type
+	if(isStrEmpty(&typeName))  // The name is empty i.e. anonymous complex type
 	{
 		// Put the ComplexTypeGrammar on top of the pGrammarStack
 		// There should be a parent <element> declaration for this grammar
@@ -667,7 +671,7 @@ static errorCode handleElementEl()
 				return tmp_err_code;
 		}
 
-		if(isStrEmpty(type))  // There is no type attribute i.e. there must be some complex type in the pGrammarStack
+		if(isStrEmpty(&type))  // There is no type attribute i.e. there must be some complex type in the pGrammarStack
 		{
 			tmp_err_code = popGrammar((EXIGrammarStack**) &pGrammarStack, &typeGrammar);
 			if(tmp_err_code != ERR_OK)
