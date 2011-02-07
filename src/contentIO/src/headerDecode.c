@@ -52,14 +52,14 @@ errorCode decodeHeader(EXIStream* strm, EXIheader* header)
 	uint32_t bits_val = 0;
 	unsigned char smallVal = 0;
 
-	DEBUG_MSG(INFO,(">Start EXI header decoding\n"));
+	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start EXI header decoding\n"));
 	tmp_err_code = readBits(strm, 2, &bits_val);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	if(bits_val == 2)  // The header Distinguishing Bits i.e. no EXI Cookie
 	{
 		header->has_cookie = 0;
-		DEBUG_MSG(INFO,(">No EXI cookie detected\n"));
+		DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">No EXI cookie detected\n"));
 	}
 	else if(bits_val == 0)// ASCII code for $ = 00100100  (36)
 	{
@@ -112,7 +112,7 @@ errorCode decodeHeader(EXIStream* strm, EXIheader* header)
 	}
 	else // The default values for EXI options
 	{
-		DEBUG_MSG(INFO,(">No EXI options field in the header\n"));
+		DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">No EXI options field in the header\n"));
 		header->has_options = 0;
 	    makeDefaultOpts(strm->opts);
 	}
@@ -136,6 +136,6 @@ errorCode decodeHeader(EXIStream* strm, EXIheader* header)
 			break;
 	} while(1);
 
-	DEBUG_MSG(INFO,(">EXI version: %d\n", header->version_number));
+	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">EXI version: %d\n", header->version_number));
 	return ERR_OK;
 }

@@ -56,7 +56,7 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 	EXIEvent event;
 
 	strm->gStack = &docGr;
-	tmp_err_code = getBuildInDocGrammar(strm->gStack, strm->opts, strm);
+	tmp_err_code = createDocGrammar(strm->gStack, strm->opts, strm, NULL);
 	if(tmp_err_code != ERR_OK)
 	{
 		if(handler->fatalError != NULL)
@@ -78,7 +78,7 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 		return;
 	}
 
-	tmp_err_code = createElementGrammarPool(&(strm->gPool));
+	tmp_err_code = createGrammarPool(&(strm->ePool));
 	if(tmp_err_code != ERR_OK)
 	{
 		if(handler->fatalError != NULL)

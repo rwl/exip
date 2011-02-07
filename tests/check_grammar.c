@@ -48,7 +48,7 @@
 
 /* BEGIN: grammars tests */
 
-START_TEST (test_getBuildInDocGrammar)
+START_TEST (test_createDocGrammar)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	EXIStream testStream;
@@ -65,7 +65,7 @@ START_TEST (test_getBuildInDocGrammar)
 
 	struct EXIGrammar testGrammar;
 
-	err = getBuildInDocGrammar(&testGrammar, &options, &testStream);
+	err = createDocGrammar(&testGrammar, &options, &testStream, NULL);
 
 	fail_unless (err == ERR_OK, "getBuildInDocGrammar returns error code %d", err);
 
@@ -88,7 +88,7 @@ START_TEST (test_pushGrammar)
 	makeDefaultOpts(&options);
 	EXIStream strm;
 
-	err = getBuildInDocGrammar(testGrStack, &options, &strm);
+	err = createDocGrammar(testGrStack, &options, &strm, NULL);
 	fail_if(err != ERR_OK);
 
 	struct EXIGrammar testElementGrammar;
@@ -110,7 +110,7 @@ START_TEST (test_popGrammar)
 	makeDefaultOpts(&options);
 	EXIStream strm;
 
-	err = getBuildInDocGrammar(testGrStack, &options, &strm);
+	err = createDocGrammar(testGrStack, &options, &strm, NULL);
 	fail_if(err != ERR_OK);
 
 	struct EXIGrammar testElementGrammar;
@@ -145,23 +145,23 @@ START_TEST (test_createBuildInElementGrammar)
 }
 END_TEST
 
-START_TEST (test_createElementGrammarPool)
+START_TEST (test_createGrammarPool)
 {
 	errorCode err = UNEXPECTED_ERROR;
-	ElementGrammarPool* testPool;
-	err = createElementGrammarPool(&testPool);
+	GrammarPool* testPool;
+	err = createGrammarPool(&testPool);
 
-	fail_unless (err == ERR_OK, "createElementGrammarPool returns error code %d", err);
+	fail_unless (err == ERR_OK, "createGrammarPool returns error code %d", err);
 }
 END_TEST
 
-START_TEST (test_checkElementGrammarInPool)
+START_TEST (test_checkGrammarInPool)
 {
 	errorCode err = UNEXPECTED_ERROR;
-	ElementGrammarPool* testPool;
-	err = createElementGrammarPool(&testPool);
+	GrammarPool* testPool;
+	err = createGrammarPool(&testPool);
 
-	fail_unless (err == ERR_OK, "createElementGrammarPool returns error code %d", err);
+	fail_unless (err == ERR_OK, "createGrammarPool returns error code %d", err);
 
 	uint32_t uriRowID = 10;
 	uint32_t lnRowID = 22;
@@ -173,34 +173,34 @@ START_TEST (test_checkElementGrammarInPool)
 	unsigned char is_found = 1;
 	struct EXIGrammar* result = NULL;
 
-	err = checkElementGrammarInPool(testPool, uriRowID, lnRowID, &is_found, &result);
+	err = checkGrammarInPool(testPool, uriRowID, lnRowID, &is_found, &result);
 
-	fail_unless (err == ERR_OK, "checkElementGrammarInPool returns error code %d", err);
-	fail_unless (is_found == 0, "checkElementGrammarInPool does not set is_found correctly %d", is_found);
-	fail_unless (result == NULL, "checkElementGrammarInPool does not set result correctly");
+	fail_unless (err == ERR_OK, "checkGrammarInPool returns error code %d", err);
+	fail_unless (is_found == 0, "checkGrammarInPool does not set is_found correctly %d", is_found);
+	fail_unless (result == NULL, "checkGrammarInPool does not set result correctly");
 
 	err = createBuildInElementGrammar(&testElementGrammar, &options, &strm);
 	fail_unless (err == ERR_OK, "createBuildInElementGrammar returns error code %d", err);
 
-	err = addElementGrammarInPool(testPool, uriRowID, lnRowID, &testElementGrammar);
+	err = addGrammarInPool(testPool, uriRowID, lnRowID, &testElementGrammar);
 
-	fail_unless (err == ERR_OK, "addElementGrammarInPool returns error code %d", err);
+	fail_unless (err == ERR_OK, "addGrammarInPool returns error code %d", err);
 
-	err = checkElementGrammarInPool(testPool, uriRowID, lnRowID, &is_found, &result);
+	err = checkGrammarInPool(testPool, uriRowID, lnRowID, &is_found, &result);
 
-	fail_unless (err == ERR_OK, "checkElementGrammarInPool returns error code %d", err);
-	fail_unless (is_found == 1, "checkElementGrammarInPool does not set is_found correctly %d", is_found);
-	fail_unless (result != NULL, "checkElementGrammarInPool does not set result correctly");
+	fail_unless (err == ERR_OK, "checkGrammarInPool returns error code %d", err);
+	fail_unless (is_found == 1, "checkGrammarInPool does not set is_found correctly %d", is_found);
+	fail_unless (result != NULL, "checkGrammarInPool does not set result correctly");
 }
 END_TEST
 
-START_TEST (test_addElementGrammarInPool)
+START_TEST (test_addGrammarInPool)
 {
 	errorCode err = UNEXPECTED_ERROR;
-	ElementGrammarPool* testPool;
-	err = createElementGrammarPool(&testPool);
+	GrammarPool* testPool;
+	err = createGrammarPool(&testPool);
 
-	fail_unless (err == ERR_OK, "createElementGrammarPool returns error code %d", err);
+	fail_unless (err == ERR_OK, "createGrammarPool returns error code %d", err);
 
 	uint32_t uriRowID = 10;
 	uint32_t lnRowID = 22;
@@ -212,9 +212,9 @@ START_TEST (test_addElementGrammarInPool)
 	err = createBuildInElementGrammar(&testElementGrammar, &options, &strm);
 	fail_unless (err == ERR_OK, "createBuildInElementGrammar returns error code %d", err);
 
-	err = addElementGrammarInPool(testPool, uriRowID, lnRowID, &testElementGrammar);
+	err = addGrammarInPool(testPool, uriRowID, lnRowID, &testElementGrammar);
 
-	fail_unless (err == ERR_OK, "addElementGrammarInPool returns error code %d", err);
+	fail_unless (err == ERR_OK, "addGrammarInPool returns error code %d", err);
 }
 END_TEST
 
@@ -362,14 +362,14 @@ Suite * grammar_suite (void)
 
   /* Grammars test case */
   TCase *tc_gGrammars = tcase_create ("Grammars");
-  tcase_add_test (tc_gGrammars, test_getBuildInDocGrammar);
+  tcase_add_test (tc_gGrammars, test_createDocGrammar);
   tcase_add_test (tc_gGrammars, test_processNextProduction);
   tcase_add_test (tc_gGrammars, test_pushGrammar);
   tcase_add_test (tc_gGrammars, test_popGrammar);
   tcase_add_test (tc_gGrammars, test_createBuildInElementGrammar);
-  tcase_add_test (tc_gGrammars, test_createElementGrammarPool);
-  tcase_add_test (tc_gGrammars, test_checkElementGrammarInPool);
-  tcase_add_test (tc_gGrammars, test_addElementGrammarInPool);
+  tcase_add_test (tc_gGrammars, test_createGrammarPool);
+  tcase_add_test (tc_gGrammars, test_checkGrammarInPool);
+  tcase_add_test (tc_gGrammars, test_addGrammarInPool);
   suite_add_tcase (s, tc_gGrammars);
 
   /* Events test case */

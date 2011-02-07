@@ -49,7 +49,7 @@ errorCode encodeHeader(EXIStream* strm, EXIheader* header)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
-	DEBUG_MSG(INFO,(">Start EXI header encoding\n"));
+	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start EXI header encoding\n"));
 	if(header->has_cookie)
 	{
 		tmp_err_code = writeNBits(strm, 8, 36); // ASCII code for $ = 00100100  (36)
@@ -66,17 +66,17 @@ errorCode encodeHeader(EXIStream* strm, EXIheader* header)
 			return tmp_err_code;
 	}
 
-	DEBUG_MSG(INFO,(">Encoding the header Distinguishing Bits\n"));
+	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Encoding the header Distinguishing Bits\n"));
 	tmp_err_code = writeNBits(strm, 2, 2);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	DEBUG_MSG(INFO,(">Write the Presence Bit for EXI Options\n"));
+	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Write the Presence Bit for EXI Options\n"));
 	tmp_err_code = writeNextBit(strm, header->has_options);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	DEBUG_MSG(INFO,(">Encode EXI version\n"));
+	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Encode EXI version\n"));
 	tmp_err_code = writeNextBit(strm, header->is_preview_version);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -97,7 +97,7 @@ errorCode encodeHeader(EXIStream* strm, EXIheader* header)
 			return tmp_err_code;
 	}
 
-	DEBUG_MSG(INFO,(">Encode EXI options\n"));
+	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Encode EXI options\n"));
 	if(header->has_options)
 	{
 		return NOT_IMPLEMENTED_YET; // TODO: Handle EXI streams with options. This includes Padding Bits in some cases

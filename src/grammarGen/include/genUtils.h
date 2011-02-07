@@ -48,6 +48,7 @@
 #include "procTypes.h"
 #include "dynamicArray.h"
 #include "sTables.h"
+#include "schema.h"
 
 /**
  * This structure holds pointers to

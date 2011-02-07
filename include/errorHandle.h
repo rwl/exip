@@ -57,17 +57,17 @@
 #  define DEBUG_CHAR_OUTPUT(character)	do {putchar (character);} while(0)
 #endif
 
-#ifdef EXIP_DEBUG // TODO: document this macro #DOCUMENT#
+#if EXIP_DEBUG == ON // TODO: document this macro #DOCUMENT#
 
-#include <stdio.h>
+#  include <stdio.h>
 
-#ifndef EXIP_DEBUG_LEVEL // TODO: document this macro #DOCUMENT#
-# define EXIP_DEBUG_LEVEL INFO
-#endif
+#  ifndef EXIP_DEBUG_LEVEL // TODO: document this macro #DOCUMENT#
+#    define EXIP_DEBUG_LEVEL INFO
+#  endif
 
-#  define DEBUG_MSG(level,msg) do { if (level >= EXIP_DEBUG_LEVEL) { DEBUG_OUTPUT(msg); } } while(0)
+#  define DEBUG_MSG(level, module, msg) do { if (level >= EXIP_DEBUG_LEVEL && module == ON) { DEBUG_OUTPUT(msg); } } while(0)
 #else
-#  define DEBUG_MSG(level,msg)
+#  define DEBUG_MSG(level, module, msg)
 #endif /* EXIP_DEBUG */
 
 typedef char errorCode;

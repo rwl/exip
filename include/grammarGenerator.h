@@ -120,8 +120,8 @@ typedef struct elementDescr ContextStack;
 typedef struct EXIGrammar ProtoGrammarsStack;
 
 /**
- * Represents an element declaration with attribute type and the
- * value of the type cannot be found in the TypeGrammar pool.
+ * Represents an element declaration with attribute "type" and the
+ * value of the type that cannot be found in the TypeGrammar pool.
  * That is, the definition of the type is still not reached.
  * This elements are put in a dynamic array
  * */

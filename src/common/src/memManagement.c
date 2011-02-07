@@ -95,11 +95,11 @@ errorCode freeAllMem(EXIStream* strm)
 {
 	struct memAlloc* tmpNode;
 
-	// Hash tables (ElementGrammarPool) are freed separately
+	// Hash tables (GrammarPools) are freed separately
 	// (This includes the keys for the table -> they must be allocated directly with EXIP_MALLOC
 	//  without using memManagedAllocate)
 	// #DOCUMENT#
-	hashtable_destroy(strm->gPool, 0);
+	hashtable_destroy(strm->ePool, 0);
 
 	while(strm->memStack != NULL)
 	{
