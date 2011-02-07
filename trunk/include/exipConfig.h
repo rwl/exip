@@ -48,9 +48,23 @@
 #define WARNING 2
 #define ERROR 3
 
-//#define EXIP_DEBUG  			 //TODO: document this macro #DOCUMENT#
-//#define EXIP_DEBUG_LEVEL INFO    //TODO: document this macro #DOCUMENT#
+#define ON  1
+#define OFF 0
 
+#define EXIP_DEBUG  	   ON    //TODO: document this macro #DOCUMENT#
+#define EXIP_DEBUG_LEVEL INFO    //TODO: document this macro #DOCUMENT#
+
+#define DEBUG_STREAM_IO   OFF	//TODO: document this macro #DOCUMENT#
+#define DEBUG_COMMON      OFF	//TODO: document this macro #DOCUMENT#
+#define DEBUG_CONTENT_IO  OFF	//TODO: document this macro #DOCUMENT#
+#define DEBUG_GRAMMAR     OFF	//TODO: document this macro #DOCUMENT#
+#define DEBUG_GRAMMAR_GEN  ON	//TODO: document this macro #DOCUMENT#
+#define DEBUG_STRING_TBLS OFF	//TODO: document this macro #DOCUMENT#
+
+#define DEBUG_ALL_MODULES (DEBUG_STREAM_IO || DEBUG_COMMON || DEBUG_CONTENT_IO || DEBUG_GRAMMAR || DEBUG_GRAMMAR_GEN || DEBUG_STRING_TBLS) //TODO: document this macro #DOCUMENT#
+
+#define TRUE  1
+#define FALSE 0
 
 /**
  * Define the memory allocation functions

@@ -99,11 +99,11 @@ errorCode initStream(EXIStream* strm, unsigned int initialBufSize)
 	strm->gStack = (EXIGrammarStack*) memManagedAllocate(strm, sizeof(EXIGrammarStack));
 	if(strm->gStack == NULL)
 		return MEMORY_ALLOCATION_ERROR;
-	tmp_err_code = getBuildInDocGrammar(strm->gStack, strm->opts, strm);
+	tmp_err_code = createDocGrammar(strm->gStack, strm->opts, strm, NULL);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = createElementGrammarPool(&(strm->gPool));
+	tmp_err_code = createGrammarPool(&(strm->ePool));
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -233,7 +233,7 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 					}
 
 					// New element grammar is pushed on the stack
-					tmp_err_code = checkElementGrammarInPool(strm->gPool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, &is_found, &res);
+					tmp_err_code = checkGrammarInPool(strm->ePool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, &is_found, &res);
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
 					strm->gStack->lastNonTermID = strm->nonTermID;
@@ -252,7 +252,7 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 						tmp_err_code = createBuildInElementGrammar(elementGrammar, strm->opts, strm);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
-						tmp_err_code = addElementGrammarInPool(strm->gPool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, elementGrammar);
+						tmp_err_code = addGrammarInPool(strm->ePool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, elementGrammar);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
 						strm->nonTermID = GR_START_TAG_CONTENT;
@@ -266,7 +266,7 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 					// New element grammar is pushed on the stack
 					struct EXIGrammar* res = NULL;
 					unsigned char is_found = 0;
-					tmp_err_code = checkElementGrammarInPool(strm->gPool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, &is_found, &res);
+					tmp_err_code = checkGrammarInPool(strm->ePool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, &is_found, &res);
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
 					strm->gStack->lastNonTermID = strm->nonTermID;

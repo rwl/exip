@@ -591,3 +591,9 @@ errorCode getEXIDataType(QName simpleXSDType, ValueType* exiType)
 
 	return INCONSISTENT_PROC_STATE;
 }
+
+errorCode registerQname(EXIStream* strm, StringType name, StringType target_ns, URITable* metaURITable,
+		                DynArray* regProdQname, unsigned int* p_uriRowID, unsigned int* p_lnRowID)
+{
+	return NOT_IMPLEMENTED_YET;
+}

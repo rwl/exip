@@ -47,12 +47,27 @@
 
 #include "procTypes.h"
 
+/** Stores the QName of an global element
+ * Used to generate the Schema-informed Document Grammar*/
+struct globalElementId {
+	uint32_t uriRowId;
+	uint32_t lnRowId;
+};
+
+struct globalElArray {
+	struct globalElementId* elems;
+	unsigned int count;
+};
+
+typedef struct globalElArray GlobalElements;
+
 struct ExipSchema
 {
 	URITable* initialStringTables;
-	ElementGrammarPool* ePool;
-	TypeGrammarPool* tPool;
+	GrammarPool* ePool;
+	GrammarPool* tPool;
 	EXIGrammarStack* initialGrStack;
+	GlobalElements glElems;
 };
 
 typedef struct ExipSchema ExipSchema;

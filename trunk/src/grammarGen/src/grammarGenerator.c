@@ -74,6 +74,8 @@ static URITable* metaURITable;
 
 static DynArray* regProdQname;
 
+static DynArray* globalElements;
+
 static EXIStream* tmpStrm;
 
 ExipSchema* exipSchemaLocal;
@@ -143,7 +145,18 @@ errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, un
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
+	tmp_err_code = createDynArray(&globalElements, sizeof(struct globalElementId), 10, strm);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
 	tmpStrm = strm;
+
+	tmp_err_code = createGrammarPool(&(exipSchema->ePool));
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+	tmp_err_code = createGrammarPool(&(exipSchema->tPool));
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	exipSchemaLocal = exipSchema;
 
@@ -155,25 +168,25 @@ errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, un
 
 char xsd_fatalError(const char code, const char* msg)
 {
-	DEBUG_MSG(ERROR,(">Fatal error occurred during schema processing\n"));
+	DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Fatal error occurred during schema processing\n"));
 	return EXIP_HANDLER_STOP;
 }
 
 char xsd_startDocument()
 {
-	DEBUG_MSG(INFO,(">Start XML Schema parsing\n"));
+	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Start XML Schema parsing\n"));
 	return EXIP_HANDLER_OK;
 }
 
 char xsd_endDocument()
 {
-	DEBUG_MSG(INFO,(">XML Schema parsing finished\n"));
+	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End XML Schema parsing\n"));
 	return EXIP_HANDLER_OK;
 }
 
 char xsd_startElement(QName qname)
 {
-	DEBUG_MSG(INFO,(">XML Schema starting element\n"));
+	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting element\n"));
 	if(!props->propsStat) // This should be the first <schema> element
 	{
 		if(strEqualToAscii(*qname.uri, "http://www.w3.org/2001/XMLSchema") &&
@@ -183,15 +196,24 @@ char xsd_startElement(QName qname)
 		}
 		else
 		{
-			DEBUG_MSG(ERROR,(">Invalid XML Schema! Missing <schema> root element\n"));
+			DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Invalid XML Schema! Missing <schema> root element\n"));
 			return EXIP_HANDLER_STOP;
 		}
 	}
 	else
 	{
+		if(props->propsStat != 2) // This is the first element after the <schema>
+		{
+			props->propsStat = 2; // All attributes of the <schema> element are already parsed
+			if(props->elementFormDefault == 3)
+				props->elementFormDefault = 0; // The default value is unqualified
+			if(props->attributeFormDefault == 3)
+				props->attributeFormDefault = 0; // The default value is unqualified
+		}
+
 		if(!strEqualToAscii(*qname.uri, "http://www.w3.org/2001/XMLSchema"))
 		{
-			DEBUG_MSG(ERROR,(">Invalid namespace of XML Schema element\n"));
+			DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Invalid namespace of XML Schema element\n"));
 			return EXIP_HANDLER_STOP;
 		}
 
@@ -251,7 +273,7 @@ char xsd_startElement(QName qname)
 		}
 		else
 		{
-			DEBUG_MSG(WARNING,(">Ignored schema element\n"));
+			DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, (">Ignored schema element\n"));
 		}
 
 		pushElemContext(&contextStack, elem);
@@ -262,38 +284,42 @@ char xsd_startElement(QName qname)
 
 char xsd_endElement()
 {
-	DEBUG_MSG(INFO,(">XML Schema end of element\n"));
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End element\n"));
 	if(contextStack == NULL) // No elements stored in the stack. That is </schema>
 	{
-		props->propsStat = 2; // All attributes of the <schema> element are already parsed
-		if(props->elementFormDefault == 3)
-			props->elementFormDefault = 0; // The default value is unqualified
-		if(props->attributeFormDefault == 3)
-			props->attributeFormDefault = 0; // The default value is unqualified
+		DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("></schema> element\n"));
+		tmp_err_code = ERR_OK;
 	}
 	else
 	{
 		if(contextStack->element == ELEMENT_ATTRIBUTE)
-			handleAttributeEl();
+			tmp_err_code = handleAttributeEl();
 		else if(contextStack->element == ELEMENT_EXTENSION)
-			handleExtentionEl();
+			tmp_err_code = handleExtentionEl();
 		else if(contextStack->element == ELEMENT_SIMPLE_CONTENT)
-			handleSimpleContentEl();
+			tmp_err_code = handleSimpleContentEl();
 		else if(contextStack->element == ELEMENT_COMPLEX_TYPE)
-			handleComplexTypeEl();
+			tmp_err_code = handleComplexTypeEl();
 		else if(contextStack->element == ELEMENT_ELEMENT)
-			handleElementEl();
+			tmp_err_code = handleElementEl();
 		else
 		{
-			DEBUG_MSG(WARNING,(">Ignored closing element\n"));
+			DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, (">Ignored closing element\n"));
 		}
+	}
+
+	if(tmp_err_code != ERR_OK)
+	{
+		DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Schema parsing error: %d\n", tmp_err_code));
+		return EXIP_HANDLER_STOP;
 	}
 	return EXIP_HANDLER_OK;
 }
 
 char xsd_attribute(QName qname)
 {
-	DEBUG_MSG(INFO,(">XML Schema attribute\n"));
+	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute\n"));
 	if(props->propsStat == 1) // <schema> element attribute
 	{
 		if(strEqualToAscii(*qname.localName, "targetNamespace"))
@@ -304,7 +330,7 @@ char xsd_attribute(QName qname)
 			props->attributeFormDefault = 2;
 		else
 		{
-			DEBUG_MSG(WARNING,(">Ignored <schema> attribute\n"));
+			DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, (">Ignored <schema> attribute\n"));
 		}
 	}
 	else
@@ -339,7 +365,7 @@ char xsd_attribute(QName qname)
 		}
 		else
 		{
-			DEBUG_MSG(WARNING,(">Ignored element attribute\n"));
+			DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, (">Ignored element attribute\n"));
 		}
 	}
 	props->expectAttributeData = 1;
@@ -348,7 +374,7 @@ char xsd_attribute(QName qname)
 
 char xsd_stringData(const StringType value)
 {
-	DEBUG_MSG(INFO,(">XML Schema string data\n"));
+	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">String data\n"));
 	if(props->expectAttributeData)
 	{
 		if(props->propsStat == 1) // <schema> element attribute data
@@ -366,7 +392,7 @@ char xsd_stringData(const StringType value)
 					props->elementFormDefault = 0;
 				else
 				{
-					DEBUG_MSG(ERROR,(">Invalid value for elementFormDefault attribute\n"));
+					DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Invalid value for elementFormDefault attribute\n"));
 					return EXIP_HANDLER_STOP;
 				}
 			}
@@ -378,13 +404,13 @@ char xsd_stringData(const StringType value)
 					props->attributeFormDefault = 0;
 				else
 				{
-					DEBUG_MSG(ERROR,(">Invalid value for elementFormDefault attribute\n"));
+					DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Invalid value for elementFormDefault attribute\n"));
 					return EXIP_HANDLER_STOP;
 				}
 			}
 			else
 			{
-				DEBUG_MSG(WARNING,(">Ignored <schema> attribute value\n"));
+				DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, (">Ignored <schema> attribute value\n"));
 			}
 		}
 		else
@@ -396,7 +422,7 @@ char xsd_stringData(const StringType value)
 			}
 			else
 			{
-				DEBUG_MSG(WARNING,(">Ignored element attribute value\n"));
+				DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, (">Ignored element attribute value\n"));
 			}
 		}
 
@@ -411,7 +437,7 @@ char xsd_stringData(const StringType value)
 		}
 		else
 		{
-			DEBUG_MSG(WARNING,(">Ignored element value\n"));
+			DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, (">Ignored element value\n"));
 		}
 	}
 
@@ -420,7 +446,7 @@ char xsd_stringData(const StringType value)
 
 char xsd_exiHeader(const EXIheader* header)
 {
-	DEBUG_MSG(INFO,(">XML Schema header parsed\n"));
+	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">XML Schema header parsed\n"));
 	return EXIP_HANDLER_OK;
 }
 
@@ -608,7 +634,7 @@ static errorCode handleComplexTypeEl()
 				return tmp_err_code;
 		}
 
-		tmp_err_code = addElementGrammarInPool((ElementGrammarPool*) exipSchemaLocal->tPool, uriRowId,
+		tmp_err_code = addGrammarInPool(exipSchemaLocal->tPool, uriRowId,
 												lnRowId, resultComplexGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -650,6 +676,9 @@ static errorCode handleElementEl()
 
 	if(isGlobal)
 	{
+		struct globalElementId glEl;
+		uint32_t dynArrId = 0;
+
 		if(!lookupURI(metaURITable, target_ns, &uriRowId))
 		{
 			tmp_err_code = addURIRow(metaURITable, target_ns, &uriRowId, tmpStrm);
@@ -670,6 +699,12 @@ static errorCode handleElementEl()
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
+		glEl.uriRowId = uriRowId;
+		glEl.lnRowId = lnRowId;
+
+		tmp_err_code = addDynElement(globalElements, &glEl, &dynArrId, tmpStrm);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 
 		if(isStrEmpty(&type))  // There is no type attribute i.e. there must be some complex type in the pGrammarStack
 		{
@@ -677,7 +712,7 @@ static errorCode handleElementEl()
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			tmp_err_code = addElementGrammarInPool((ElementGrammarPool*) exipSchemaLocal->tPool, uriRowId,
+			tmp_err_code = addGrammarInPool(exipSchemaLocal->tPool, uriRowId,
 															lnRowId, typeGrammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;

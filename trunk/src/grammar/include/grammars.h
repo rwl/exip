@@ -49,6 +49,7 @@
 #include "eventsEXI.h"
 #include "procTypes.h"
 #include "contentHandler.h"
+#include "schema.h"
 
 /**
  * @brief Process the next grammar production in the Current Grammar
@@ -78,16 +79,19 @@ errorCode pushGrammar(EXIGrammarStack** gStack, struct EXIGrammar* grammar);
  */
 errorCode popGrammar(EXIGrammarStack** gStack, struct EXIGrammar** grammar);
 
-
-//TODO: depends on the EXI fidelity options! Take this into account
 /**
- * @brief Creates an instance of the EXI Built-in Document Grammar
- * @param[in] buildInGrammar empty grammar container
- * @param[in] fidelity_opts Fidelity options /EXI header preserve opts/
+ * @brief Creates an instance of the EXI Built-in Document Grammar or Schema-Informed Document Grammar
+ * If glElems is NULL -> then it creates EXI Built-in Document Grammar, otherwise
+ * it creates Schema-Informed Document Grammar
+ *
+ * @param[in, out] docGrammar empty grammar container to be filled with rules
+ * @param[in] opts EXI options /EXI header preserve opts and others/
  * @param[in, out] strm EXI stream for which the allocation is made
+ * @param[in] glElems A sorted array of global elements in the schema; if Built-in Document Grammar is created then it is NULL
  * @return Error handling code
  */
-errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOptions* opts, EXIStream* strm);
+errorCode createDocGrammar(struct EXIGrammar* docGrammar, struct EXIOptions* opts,
+							EXIStream* strm, GlobalElements* glElems);
 
 /**
  * @brief Creates an instance of EXI Built-in Element Grammar
@@ -99,34 +103,34 @@ errorCode getBuildInDocGrammar(struct EXIGrammar* buildInGrammar, struct EXIOpti
 errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, struct EXIOptions* opts, EXIStream* strm);
 
 /**
- * @brief Creates empty Element Grammar pool
+ * @brief Creates empty Element or Type Grammar pool
  * @param[in, out] pool empty pool container
  * @return Error handling code
  */
-errorCode createElementGrammarPool(ElementGrammarPool** pool);
+errorCode createGrammarPool(GrammarPool** pool);
 
 /**
- * @brief Checks if a specific element grammar is already in the Element Grammar pool
- * @param[in] pool Element Grammar pool
+ * @brief Checks if a specific element or type grammar is already in the Element/Type Grammar pool
+ * @param[in] pool Element/Type Grammar pool
  * @param[in] uriRowID Row id in the URI string table
  * @param[in] lnRowID Row id in the Local names string table
  * @param[out] is_found 0 is not found; 1 otherwise
  * @param[out] result if found - a pointer to the searched grammar
  * @return Error handling code
  */
-errorCode checkElementGrammarInPool(ElementGrammarPool* pool, uint32_t uriRowID,
+errorCode checkGrammarInPool(GrammarPool* pool, uint32_t uriRowID,
 									uint32_t lnRowID, unsigned char* is_found, struct EXIGrammar** result);
 
 
 /**
- * @brief Adds a specific element grammar in the Element Grammar pool
- * @param[in, out] pool Element Grammar pool
+ * @brief Adds a specific element or type grammar in the Element/Type Grammar pool
+ * @param[in, out] pool Element/Type Grammar pool
  * @param[in] uriRowID Row id in the URI string table
  * @param[in] lnRowID Row id in the Local names string table
  * @param[in] newGr the grammar to be added
  * @return Error handling code
  */
-errorCode addElementGrammarInPool(ElementGrammarPool* pool, uint32_t uriRowID,
+errorCode addGrammarInPool(GrammarPool* pool, uint32_t uriRowID,
 									uint32_t lnRowID, struct EXIGrammar* newGr);
 
 /**
