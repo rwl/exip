@@ -102,10 +102,12 @@ errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, un
 										EXIStream* strm, ExipSchema* exipSchema)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	ContentHandler xsdHandler;
+	struct globalSchemaProps localProps;
+
 	if(schemaFormat != SCHEMA_FORMAT_XSD_EXI)
 		return NOT_IMPLEMENTED_YET;
 
-	ContentHandler xsdHandler;
 	initContentHandler(&xsdHandler);
 	xsdHandler.fatalError = xsd_fatalError;
 	xsdHandler.error = xsd_fatalError;
@@ -117,7 +119,6 @@ errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, un
 	xsdHandler.endElement = xsd_endElement;
 	xsdHandler.exiHeader = xsd_exiHeader;
 
-	struct globalSchemaProps localProps;
 	localProps.propsStat = 0;
 	localProps.expectAttributeData = 0;
 	localProps.attributeFormDefault = 3;
@@ -237,6 +238,7 @@ char xsd_startElement(QName qname)
 	}
 	else
 	{
+		struct elementDescr* elem;
 		if(props->propsStat != 2) // This is the first element after the <schema>
 		{
 			props->propsStat = 2; // All attributes of the <schema> element are already parsed
@@ -252,7 +254,7 @@ char xsd_startElement(QName qname)
 			return EXIP_HANDLER_STOP;
 		}
 
-		struct elementDescr* elem = (struct elementDescr*) memManagedAllocate(tmpStrm, sizeof(struct elementDescr));
+		elem = (struct elementDescr*) memManagedAllocate(tmpStrm, sizeof(struct elementDescr));
 		if(elem == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
@@ -598,12 +600,14 @@ static errorCode handleAttributeEl()
 		return tmp_err_code;
 
 #if DEBUG_GRAMMAR_GEN == ON
-	int t = 0;
-	for(; t < attrUseGrammar->rulesDimension; t++)
 	{
-		tmp_err_code = printGrammarRule(&(attrUseGrammar->ruleArray[t]));
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		int t = 0;
+		for(; t < attrUseGrammar->rulesDimension; t++)
+		{
+			tmp_err_code = printGrammarRule(&(attrUseGrammar->ruleArray[t]));
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
 	}
 #endif
 
@@ -682,12 +686,14 @@ static errorCode handleComplexTypeEl()
 		return tmp_err_code;
 
 #if DEBUG_GRAMMAR_GEN == ON
-	int tt = 0;
-	for(; tt < contentTypeGrammar->rulesDimension; tt++)
 	{
-		tmp_err_code = printGrammarRule(&(contentTypeGrammar->ruleArray[tt]));
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		int tt = 0;
+		for(; tt < contentTypeGrammar->rulesDimension; tt++)
+		{
+			tmp_err_code = printGrammarRule(&(contentTypeGrammar->ruleArray[tt]));
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
 	}
 #endif
 
@@ -700,12 +706,14 @@ static errorCode handleComplexTypeEl()
 		return tmp_err_code;
 
 #if DEBUG_GRAMMAR_GEN == ON
-	int t = 0;
-	for(; t < resultComplexGrammar->rulesDimension; t++)
 	{
-		tmp_err_code = printGrammarRule(&(resultComplexGrammar->ruleArray[t]));
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		int t = 0;
+		for(; t < resultComplexGrammar->rulesDimension; t++)
+		{
+			tmp_err_code = printGrammarRule(&(resultComplexGrammar->ruleArray[t]));
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
 	}
 #endif
 
