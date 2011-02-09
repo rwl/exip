@@ -90,9 +90,10 @@ errorCode insertZeroProduction(GrammarRule* rule, EXIEvent event, unsigned int n
  * @param[in, out] strm EXI stream for which the allocation is made
  * @param[in] src Source grammar rule
  * @param[out] dest Destination grammar rule
+ * @param[in] nonTermIdShift during grammar concatenation this is used for nonTermId re-numeration
  * @return Error handling code
  */
-errorCode copyGrammarRule(EXIStream* strm, GrammarRule* src, GrammarRule* dest);
+errorCode copyGrammarRule(EXIStream* strm, GrammarRule* src, GrammarRule* dest, unsigned int nonTermIdShift);
 
 #ifdef EXIP_DEBUG // TODO: document this macro #DOCUMENT#
 /**

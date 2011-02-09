@@ -256,14 +256,14 @@ errorCode deleteDuplicateTerminals(EXIStream* strm, struct EXIGrammar* grammar)
 
 		for(i = 0; i < grammar->rulesDimension; i++)  // Copying the initial rules
 		{
-			tmp_err_code = copyGrammarRule(strm, &(grammar->ruleArray[i]), &(newGrammarRuleArray[i]));
+			tmp_err_code = copyGrammarRule(strm, &(grammar->ruleArray[i]), &(newGrammarRuleArray[i]), 0);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 
 		for(i = 0; i < addedRulesArray->elementCount; i++)  // Copying the added rules
 		{
-			tmp_err_code = copyGrammarRule(strm, ((struct addedRuleInf*) addedRulesArray->elements)[i].rule, &(newGrammarRuleArray[grammar->rulesDimension + i]));
+			tmp_err_code = copyGrammarRule(strm, ((struct addedRuleInf*) addedRulesArray->elements)[i].rule, &(newGrammarRuleArray[grammar->rulesDimension + i]), 0);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}

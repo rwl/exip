@@ -109,7 +109,7 @@ errorCode insertZeroProduction(GrammarRule* rule, EXIEvent event, unsigned int n
 	return ERR_OK;
 }
 
-errorCode copyGrammarRule(EXIStream* strm, GrammarRule* src, GrammarRule* dest)
+errorCode copyGrammarRule(EXIStream* strm, GrammarRule* src, GrammarRule* dest, unsigned int nonTermIdShift)
 {
 	dest->bits[0] = src->bits[0];
 	dest->bits[1] = src->bits[1];
@@ -129,6 +129,8 @@ errorCode copyGrammarRule(EXIStream* strm, GrammarRule* src, GrammarRule* dest)
 		for(;i < dest->prodCount; i++)
 		{
 			dest->prodArray[i] = src->prodArray[i];
+			if(dest->prodArray[i].nonTermID >= GR_SCHEMA_GRAMMARS_FIRST)
+				dest->prodArray[i].nonTermID = src->prodArray[i].nonTermID + nonTermIdShift;
 		}
 	}
 
@@ -164,7 +166,7 @@ errorCode printGrammarRule(GrammarRule* rule)
 			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("Fragment:"));
 			break;
 		default:
-			return UNEXPECTED_ERROR;
+			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("NT-%d:",rule->nonTermID));
 	}
 	DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\n"));
 	unsigned int i = 0;
@@ -221,37 +223,41 @@ errorCode printGrammarRule(GrammarRule* rule)
 			case EVENT_SC:
 				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("SC "));
 				break;
+			case EVENT_VOID:
+				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, (" "));
+				break;
 			default:
 				return UNEXPECTED_ERROR;
 		}
+		DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\t"));
 		switch(rule->prodArray[i].nonTermID)
 		{
 			case GR_VOID_NON_TERMINAL:
-				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("VOID:"));
+				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("VOID"));
 				break;
 			case GR_DOCUMENT:
-				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("Document:"));
+				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("Document"));
 				break;
 			case GR_DOC_CONTENT:
-				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("DocContent:"));
+				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("DocContent"));
 				break;
 			case GR_DOC_END:
-				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("DocEnd:"));
+				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("DocEnd"));
 				break;
 			case GR_START_TAG_CONTENT:
-				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("StartTagContent:"));
+				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("StartTagContent"));
 				break;
 			case GR_ELEMENT_CONTENT:
-				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("ElementContent:"));
+				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("ElementContent"));
 				break;
 			case GR_FRAGMENT:
-				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("Fragment:"));
+				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("Fragment"));
 				break;
 			default:
-				return UNEXPECTED_ERROR;
+				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("NT-%d",rule->prodArray[i].nonTermID));
 
 		}
-		DEBUG_MSG(INFO, DEBUG_ALL_MODULES, (" Event Code: "));
+		DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\t\t"));
 		int j = 0;
 		for(j = 0; j < rule->prodArray[i].code.size; j++)
 		{

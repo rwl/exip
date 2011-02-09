@@ -67,7 +67,7 @@ errorCode concatenateGrammars(EXIStream* strm, struct EXIGrammar* left, struct E
 
 	for(;i < left->rulesDimension; i++)
 	{
-		copyGrammarRule(strm, &(left->ruleArray[i]), &((*result)->ruleArray[i]));
+		copyGrammarRule(strm, &(left->ruleArray[i]), &((*result)->ruleArray[i]), 0);
 		(*result)->ruleArray[i].nonTermID = GR_SCHEMA_GRAMMARS_FIRST + i;
 
 		j = 0;
@@ -83,7 +83,7 @@ errorCode concatenateGrammars(EXIStream* strm, struct EXIGrammar* left, struct E
 
 	for(i = 0;i < right->rulesDimension; i++)
 	{
-		copyGrammarRule(strm, &(right->ruleArray[i]), &((*result)->ruleArray[left->rulesDimension + i]));
+		copyGrammarRule(strm, &(right->ruleArray[i]), &((*result)->ruleArray[left->rulesDimension + i]), left->rulesDimension);
 		(*result)->ruleArray[left->rulesDimension + i].nonTermID = GR_SCHEMA_GRAMMARS_FIRST + left->rulesDimension + i;
 	}
 
@@ -113,7 +113,7 @@ errorCode createElementProtoGrammar(EXIStream* strm, StringType name, StringType
 	int i = 0;
 	for(;i < typeDef->rulesDimension; i++)
 	{
-		copyGrammarRule(strm, &(typeDef->ruleArray[i]), &((*result)->ruleArray[i]));
+		copyGrammarRule(strm, &(typeDef->ruleArray[i]), &((*result)->ruleArray[i]), 0);
 		(*result)->ruleArray[i].nonTermID = GR_SCHEMA_GRAMMARS_FIRST + i;
 	}
 
