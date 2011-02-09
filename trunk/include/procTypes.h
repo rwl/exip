@@ -373,6 +373,10 @@ struct Production
 
 typedef struct Production Production;
 
+// TODO: The NON_TERMINAL Ids should be assigned in such way that they are equal to the RULE array index
+//       In this way the rule search based on a NON_TERMINAL will be a constant time operation!
+//       This will affect in great extend the GrammarGen module
+
 // Define Built-in Grammars non-terminals
 #define GR_VOID_NON_TERMINAL 0 // Used to indicate that the production does not have NON_TERMINAL on the right-hand side
 #define GR_DOCUMENT          1

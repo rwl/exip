@@ -180,19 +180,54 @@ char xsd_startDocument()
 
 char xsd_endDocument()
 {
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	int i = 0;
+	unsigned char is_found = 0;
+	struct EXIGrammar* result;
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End XML Schema parsing\n"));
+
+	exipSchemaLocal->glElems.elems = globalElements->elements;
+	exipSchemaLocal->glElems.count = globalElements->elementCount;
+
+// Only for debugging purposes
+#if DEBUG_GRAMMAR_GEN == ON
+	for(i = 0; i < exipSchemaLocal->glElems.count; i++)
+	{
+		tmp_err_code = checkGrammarInPool(exipSchemaLocal->ePool, exipSchemaLocal->glElems.elems[i].uriRowId,
+				exipSchemaLocal->glElems.elems[i].lnRowId, &is_found, &result);
+		if(tmp_err_code != ERR_OK)
+		{
+			DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">checkGrammarInPool() fail\n"));
+			return EXIP_HANDLER_STOP;
+		}
+		if(is_found)
+		{
+			int t = 0;
+			for(; t < result->rulesDimension; t++)
+			{
+				tmp_err_code = printGrammarRule(&(result->ruleArray[t]));
+				if(tmp_err_code != ERR_OK)
+				{
+					DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">printGrammarRule() fail\n"));
+					return EXIP_HANDLER_STOP;
+				}
+			}
+		}
+	}
+#endif
+
 	return EXIP_HANDLER_OK;
 }
 
 char xsd_startElement(QName qname)
 {
-	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting element\n"));
 	if(!props->propsStat) // This should be the first <schema> element
 	{
 		if(strEqualToAscii(*qname.uri, "http://www.w3.org/2001/XMLSchema") &&
 				strEqualToAscii(*qname.localName, "schema"))
 		{
 			props->propsStat = 1;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <schema> element\n"));
 		}
 		else
 		{
@@ -226,50 +261,62 @@ char xsd_startElement(QName qname)
 		if(strEqualToAscii(*qname.localName, "element"))
 		{
 			elem->element = ELEMENT_ELEMENT;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <element> element\n"));
 		}
 		else if(strEqualToAscii(*qname.localName, "attribute"))
 		{
 			elem->element = ELEMENT_ATTRIBUTE;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <attribute> element\n"));
 		}
 		else if(strEqualToAscii(*qname.localName, "choice"))
 		{
 			elem->element = ELEMENT_CHOICE;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <choice> element\n"));
 		}
 		else if(strEqualToAscii(*qname.localName, "complexType"))
 		{
 			elem->element = ELEMENT_COMPLEX_TYPE;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <complexType> element\n"));
 		}
 		else if(strEqualToAscii(*qname.localName, "complexContent"))
 		{
 			elem->element = ELEMENT_COMPLEX_CONTENT;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <complexContent> element\n"));
 		}
 		else if(strEqualToAscii(*qname.localName, "group"))
 		{
 			elem->element = ELEMENT_GROUP;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <group> element\n"));
 		}
 		else if(strEqualToAscii(*qname.localName, "import"))
 		{
 			elem->element = ELEMENT_IMPORT;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <import> element\n"));
 		}
 		else if(strEqualToAscii(*qname.localName, "sequence"))
 		{
 			elem->element = ELEMENT_SEQUENCE;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <sequence> element\n"));
 		}
 		else if(strEqualToAscii(*qname.localName, "all"))
 		{
 			elem->element = ELEMENT_ALL;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <all> element\n"));
 		}
 		else if(strEqualToAscii(*qname.localName, "extension"))
 		{
 			elem->element = ELEMENT_EXTENSION;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <extension> element\n"));
 		}
 		else if(strEqualToAscii(*qname.localName, "restriction"))
 		{
 			elem->element = ELEMENT_RESTRICTION;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <restriction> element\n"));
 		}
 		else if(strEqualToAscii(*qname.localName, "simpleContent"))
 		{
 			elem->element = ELEMENT_SIMPLE_CONTENT;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <simpleContent> element\n"));
 		}
 		else
 		{
@@ -285,24 +332,38 @@ char xsd_startElement(QName qname)
 char xsd_endElement()
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End element\n"));
 	if(contextStack == NULL) // No elements stored in the stack. That is </schema>
 	{
-		DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("></schema> element\n"));
+		DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End </schema> element\n"));
 		tmp_err_code = ERR_OK;
 	}
 	else
 	{
 		if(contextStack->element == ELEMENT_ATTRIBUTE)
+		{
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End </attribute> element\n"));
 			tmp_err_code = handleAttributeEl();
+		}
 		else if(contextStack->element == ELEMENT_EXTENSION)
+		{
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End </extension> element\n"));
 			tmp_err_code = handleExtentionEl();
+		}
 		else if(contextStack->element == ELEMENT_SIMPLE_CONTENT)
+		{
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End </simpleContent> element\n"));
 			tmp_err_code = handleSimpleContentEl();
+		}
 		else if(contextStack->element == ELEMENT_COMPLEX_TYPE)
+		{
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End </complexType> element\n"));
 			tmp_err_code = handleComplexTypeEl();
+		}
 		else if(contextStack->element == ELEMENT_ELEMENT)
+		{
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End </element> element\n"));
 			tmp_err_code = handleElementEl();
+		}
 		else
 		{
 			DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, (">Ignored closing element\n"));
@@ -319,15 +380,23 @@ char xsd_endElement()
 
 char xsd_attribute(QName qname)
 {
-	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute\n"));
 	if(props->propsStat == 1) // <schema> element attribute
 	{
 		if(strEqualToAscii(*qname.localName, "targetNamespace"))
+		{
 			props->charDataPointer = &(props->targetNamespace);
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |targetNamespace| \n"));
+		}
 		else if(strEqualToAscii(*qname.localName, "elementFormDefault"))
+		{
 			props->elementFormDefault = 2;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |elementFormDefault| \n"));
+		}
 		else if(strEqualToAscii(*qname.localName, "attributeFormDefault"))
+		{
 			props->attributeFormDefault = 2;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |attributeFormDefault| \n"));
+		}
 		else
 		{
 			DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, (">Ignored <schema> attribute\n"));
@@ -338,30 +407,37 @@ char xsd_attribute(QName qname)
 		if(strEqualToAscii(*qname.localName, "name"))
 		{
 			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_NAME]);
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |name| \n"));
 		}
 		else if(strEqualToAscii(*qname.localName, "type"))
 		{
 			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_TYPE]);
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |type| \n"));
 		}
 		else if(strEqualToAscii(*qname.localName, "ref"))
 		{
 			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_REF]);
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |ref| \n"));
 		}
 		else if(strEqualToAscii(*qname.localName, "minOccurs"))
 		{
 			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_MIN_OCCURS]);
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |minOccurs| \n"));
 		}
 		else if(strEqualToAscii(*qname.localName, "maxOccurs"))
 		{
 			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_MAX_OCCURS]);
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |maxOccurs| \n"));
 		}
 		else if(strEqualToAscii(*qname.localName, "form"))
 		{
 			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_FORM]);
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |form| \n"));
 		}
 		else if(strEqualToAscii(*qname.localName, "base"))
 		{
 			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_BASE]);
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |base| \n"));
 		}
 		else
 		{
@@ -374,7 +450,13 @@ char xsd_attribute(QName qname)
 
 char xsd_stringData(const StringType value)
 {
-	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">String data\n"));
+	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">String data:\n"));
+
+#if	DEBUG_GRAMMAR_GEN == ON
+	printString(&value);
+	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n"));
+#endif
+
 	if(props->expectAttributeData)
 	{
 		if(props->propsStat == 1) // <schema> element attribute data
@@ -515,6 +597,16 @@ static errorCode handleAttributeEl()
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
+#if DEBUG_GRAMMAR_GEN == ON
+	int t = 0;
+	for(; t < attrUseGrammar->rulesDimension; t++)
+	{
+		tmp_err_code = printGrammarRule(&(attrUseGrammar->ruleArray[t]));
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+#endif
+
 	tmp_err_code = addDynElement(attributeUses, attrUseGrammar, &attrUseGrammarID, tmpStrm);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -589,6 +681,16 @@ static errorCode handleComplexTypeEl()
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
+#if DEBUG_GRAMMAR_GEN == ON
+	int tt = 0;
+	for(; tt < contentTypeGrammar->rulesDimension; tt++)
+	{
+		tmp_err_code = printGrammarRule(&(contentTypeGrammar->ruleArray[tt]));
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+#endif
+
 	// TODO: the attributeUses array must be sorted first before calling createComplexTypeGrammar()
 
 	tmp_err_code = createComplexTypeGrammar(tmpStrm, typeName, target_ns,
@@ -596,6 +698,16 @@ static errorCode handleComplexTypeEl()
 			                           NULL, 0, contentTypeGrammar, &resultComplexGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
+
+#if DEBUG_GRAMMAR_GEN == ON
+	int t = 0;
+	for(; t < resultComplexGrammar->rulesDimension; t++)
+	{
+		tmp_err_code = printGrammarRule(&(resultComplexGrammar->ruleArray[t]));
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+#endif
 
 	tmp_err_code = normalizeGrammar(tmpStrm, resultComplexGrammar);
 	if(tmp_err_code != ERR_OK)
@@ -712,7 +824,7 @@ static errorCode handleElementEl()
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			tmp_err_code = addGrammarInPool(exipSchemaLocal->tPool, uriRowId,
+			tmp_err_code = addGrammarInPool(exipSchemaLocal->ePool, uriRowId,
 															lnRowId, typeGrammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
