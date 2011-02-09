@@ -158,6 +158,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\src\common\src\dynamicArray.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\common\src\hashtable.c"
 					>
 				</File>
@@ -175,6 +179,10 @@
 				</File>
 				<File
 					RelativePath="..\..\src\common\src\procTypes.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\common\src\sortingAlgorithms.c"
 					>
 				</File>
 			</Filter>
@@ -250,6 +258,26 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="grammarGen"
+				>
+				<File
+					RelativePath="..\..\src\grammarGen\src\genUtils.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\grammarGen\src\grammarAugment.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\grammarGen\src\grammarGenerator.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\grammarGen\src\normGrammar.c"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -277,15 +305,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\include\headerEncode.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\memManagement.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\include\procTypes.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\schema.h"
 				>
 			</File>
 			<File
@@ -300,6 +324,10 @@
 				Name="common"
 				>
 				<File
+					RelativePath="..\..\src\common\include\dynamicArray.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\common\include\hashtable.h"
 					>
 				</File>
@@ -309,6 +337,14 @@
 				</File>
 				<File
 					RelativePath="..\..\src\common\include\hashUtils.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\common\include\memManagement.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\common\include\sortingAlgorithms.h"
 					>
 				</File>
 			</Filter>
@@ -325,6 +361,10 @@
 				</File>
 				<File
 					RelativePath="..\..\src\contentIO\include\headerDecode.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\contentIO\include\headerEncode.h"
 					>
 				</File>
 			</Filter>
@@ -373,6 +413,22 @@
 				>
 				<File
 					RelativePath="..\..\src\stringTables\include\sTables.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="grammarGen"
+				>
+				<File
+					RelativePath="..\..\src\grammarGen\include\genUtils.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\grammarGen\include\grammarAugment.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\grammarGen\include\normGrammar.h"
 					>
 				</File>
 			</Filter>

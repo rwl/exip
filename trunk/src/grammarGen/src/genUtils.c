@@ -99,6 +99,7 @@ errorCode createElementProtoGrammar(EXIStream* strm, StringType name, StringType
 	// So remove the code below as it is not needed
 	// Also name and target_ns should be added to metaStrTable if not already there
 
+	int i = 0;
 
 	*result = (struct EXIGrammar*) memManagedAllocate(strm, sizeof(struct EXIGrammar));
 	if(*result == NULL)
@@ -110,7 +111,6 @@ errorCode createElementProtoGrammar(EXIStream* strm, StringType name, StringType
 	if((*result)->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	int i = 0;
 	for(;i < typeDef->rulesDimension; i++)
 	{
 		copyGrammarRule(strm, &(typeDef->ruleArray[i]), &((*result)->ruleArray[i]), 0);
@@ -123,6 +123,8 @@ errorCode createElementProtoGrammar(EXIStream* strm, StringType name, StringType
 errorCode createSimpleTypeGrammar(EXIStream* strm, QName simpleType, struct EXIGrammar** result)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	EXIEvent event;
+
 	*result = (struct EXIGrammar*) memManagedAllocate(strm, sizeof(struct EXIGrammar));
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -137,7 +139,6 @@ errorCode createSimpleTypeGrammar(EXIStream* strm, QName simpleType, struct EXIG
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	(*result)->ruleArray[0].nonTermID = GR_SCHEMA_GRAMMARS_FIRST;
-	EXIEvent event;
 	event.eventType = EVENT_CH;
 	tmp_err_code = getEXIDataType(simpleType, &(event.valueType));
 	tmp_err_code = addProduction(&((*result)->ruleArray[0]), getEventCode1(0), event, GR_SCHEMA_GRAMMARS_FIRST + 1);
@@ -186,9 +187,9 @@ errorCode createComplexTypeGrammar(EXIStream* strm, StringType name, StringType 
 	struct EXIGrammar* tmpGrammar;
 
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	unsigned int i = 1;
 
 	tmpGrammar = &(attrUsesArray[0]);
-	unsigned int i = 1;
 	for(; i < attrUsesArraySize; i++)
 	{
 		tmp_err_code = concatenateGrammars(strm, tmpGrammar, &(attrUsesArray[i]), &tmpGrammar);
@@ -214,9 +215,10 @@ errorCode createComplexEmptyTypeGrammar(EXIStream* strm, StringType name, String
 	struct EXIGrammar* tmpGrammar;
 
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	unsigned int i = 1;
+	struct EXIGrammar* emptyContent;
 
 	tmpGrammar = &(attrUsesArray[0]);
-	unsigned int i = 1;
 	for(; i < attrUsesArraySize; i++)
 	{
 		tmp_err_code = concatenateGrammars(strm, tmpGrammar, &(attrUsesArray[i]), &tmpGrammar);
@@ -224,7 +226,6 @@ errorCode createComplexEmptyTypeGrammar(EXIStream* strm, StringType name, String
 			return tmp_err_code;
 	}
 
-	struct EXIGrammar* emptyContent;
 	tmp_err_code = createSimpleEmptyTypeGrammar(strm, &emptyContent);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -250,6 +251,12 @@ errorCode createAttributeUseGrammar(EXIStream* strm, unsigned char required, Str
 										  QName simpleType, QName scope, struct EXIGrammar** result, URITable* metaURITable, DynArray* regProdQname)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	EXIEvent event1;
+	uint32_t metaUriID = 0;
+	struct productionQname pqRow;
+	uint32_t elIndx = 0;
+	uint32_t metaLnID = 0;
+
 	*result = (struct EXIGrammar*) memManagedAllocate(strm, sizeof(struct EXIGrammar));
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -264,7 +271,6 @@ errorCode createAttributeUseGrammar(EXIStream* strm, unsigned char required, Str
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	(*result)->ruleArray[0].nonTermID = GR_SCHEMA_GRAMMARS_FIRST;
-	EXIEvent event1;
 	event1.eventType = EVENT_AT_QNAME;
 	tmp_err_code = getEXIDataType(simpleType, &event1.valueType);
 	if(tmp_err_code != ERR_OK)
@@ -274,7 +280,6 @@ errorCode createAttributeUseGrammar(EXIStream* strm, unsigned char required, Str
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	uint32_t metaUriID = 0;
 	if(!lookupURI(metaURITable, target_ns, &metaUriID)) // URI not found in the meta string tables
 	{
 		tmp_err_code = addURIRow(metaURITable, target_ns, &metaUriID, strm);
@@ -283,7 +288,6 @@ errorCode createAttributeUseGrammar(EXIStream* strm, unsigned char required, Str
 	}
 	(*result)->ruleArray[0].prodArray[0].uriRowID = metaUriID;
 
-	uint32_t metaLnID = 0;
 	if(!lookupLN(metaURITable->rows[metaUriID].lTable, name, &metaLnID)) // Local name not found in the meta string tables
 	{
 		tmp_err_code = addLNRow(metaURITable->rows[metaUriID].lTable, name, &metaLnID);
@@ -292,13 +296,11 @@ errorCode createAttributeUseGrammar(EXIStream* strm, unsigned char required, Str
 	}
 	(*result)->ruleArray[0].prodArray[0].lnRowID = metaLnID;
 
-	struct productionQname pqRow;
 	pqRow.p_uriRowID = &((*result)->ruleArray[0].prodArray[0].uriRowID);
 	pqRow.p_lnRowID = &((*result)->ruleArray[0].prodArray[0].lnRowID);
 	pqRow.uriRowID_old = metaUriID;
 	pqRow.lnRowID_old = metaLnID;
 
-	uint32_t elIndx = 0;
 	tmp_err_code = addDynElement(regProdQname, &pqRow, &elIndx, strm);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -327,9 +329,9 @@ errorCode createParticleGrammar(EXIStream* strm, unsigned int minOccurs, int32_t
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	struct EXIGrammar* tmpGrammar;
+	unsigned int i = 0;
 
 	tmpGrammar = termGrammar;
-	unsigned int i = 0;
 	for(; i < minOccurs; i++)
 	{
 		tmp_err_code = concatenateGrammars(strm, tmpGrammar, termGrammar, &tmpGrammar);
@@ -403,6 +405,10 @@ errorCode createElementTermGrammar(EXIStream* strm, StringType name, StringType 
 	//TODO: enable support for {substitution group affiliation} property of the elements
 
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	uint32_t metaUriID = 0;
+	uint32_t metaLnID = 0;
+	struct productionQname pqRow;
+	uint32_t elIndx = 0;
 	*result = (struct EXIGrammar*) memManagedAllocate(strm, sizeof(struct EXIGrammar));
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -421,7 +427,6 @@ errorCode createElementTermGrammar(EXIStream* strm, StringType name, StringType 
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	uint32_t metaUriID = 0;
 	if(!lookupURI(metaURITable, target_ns, &metaUriID)) // URI not found in the meta string tables
 	{
 		tmp_err_code = addURIRow(metaURITable, target_ns, &metaUriID, strm);
@@ -430,7 +435,6 @@ errorCode createElementTermGrammar(EXIStream* strm, StringType name, StringType 
 	}
 	(*result)->ruleArray[0].prodArray[0].uriRowID = metaUriID;
 
-	uint32_t metaLnID = 0;
 	if(!lookupLN(metaURITable->rows[metaUriID].lTable, name, &metaLnID)) // Local name not found in the meta string tables
 	{
 		tmp_err_code = addLNRow(metaURITable->rows[metaUriID].lTable, name, &metaLnID);
@@ -439,13 +443,11 @@ errorCode createElementTermGrammar(EXIStream* strm, StringType name, StringType 
 	}
 	(*result)->ruleArray[0].prodArray[0].lnRowID = metaLnID;
 
-	struct productionQname pqRow;
 	pqRow.p_uriRowID = &((*result)->ruleArray[0].prodArray[0].uriRowID);
 	pqRow.p_lnRowID = &((*result)->ruleArray[0].prodArray[0].lnRowID);
 	pqRow.uriRowID_old = metaUriID;
 	pqRow.lnRowID_old = metaLnID;
 
-	uint32_t elIndx = 0;
 	tmp_err_code = addDynElement(regProdQname, &pqRow, &elIndx, strm);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;

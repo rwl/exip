@@ -141,6 +141,8 @@ errorCode copyGrammarRule(EXIStream* strm, GrammarRule* src, GrammarRule* dest, 
 
 errorCode printGrammarRule(GrammarRule* rule)
 {
+	unsigned int i = 0;
+
 	DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\n>RULE\n"));
 	switch(rule->nonTermID)
 	{
@@ -168,10 +170,12 @@ errorCode printGrammarRule(GrammarRule* rule)
 		default:
 			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("NT-%d:",rule->nonTermID));
 	}
+
 	DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\n"));
-	unsigned int i = 0;
 	for(i = 0; i < rule->prodCount; i++)
 	{
+		int j = 0;
+
 		DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\t"));
 		switch(rule->prodArray[i].event.eventType)
 		{
@@ -258,7 +262,6 @@ errorCode printGrammarRule(GrammarRule* rule)
 
 		}
 		DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\t\t"));
-		int j = 0;
 		for(j = 0; j < rule->prodArray[i].code.size; j++)
 		{
 			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, (".%d", rule->prodArray[i].code.code[j]));

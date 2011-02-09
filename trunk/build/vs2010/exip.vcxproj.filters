@@ -37,6 +37,12 @@
     <Filter Include="Source Files\streamIO">
       <UniqueIdentifier>{77a712b4-59d2-48a4-9350-27e5336ceb0a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\grammarGen">
+      <UniqueIdentifier>{93f663fe-7d6f-4672-88ef-7f69bf1899fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\grammarGen">
+      <UniqueIdentifier>{77e8349e-a5d9-4385-8197-39f81e8c236e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\contentHandler.h">
@@ -52,12 +58,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\EXISerializer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\headerEncode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\memManagement.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\procTypes.h">
@@ -119,6 +119,27 @@
     </ClInclude>
     <ClInclude Include="stdint.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\schema.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\grammarGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\grammarGen\include\grammarAugment.h">
+      <Filter>Header Files\grammarGen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\grammarGen\include\normGrammar.h">
+      <Filter>Header Files\grammarGen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\grammarGen\include\genUtils.h">
+      <Filter>Header Files\grammarGen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\common\include\memManagement.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\contentIO\include\headerEncode.h">
+      <Filter>Header Files\contentIO</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -187,6 +208,18 @@
     </ClCompile>
     <ClCompile Include="..\..\src\stringTables\src\sTables.c">
       <Filter>Source Files\stringTables</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\grammarGen\src\grammarAugment.c">
+      <Filter>Source Files\grammarGen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\grammarGen\src\grammarGenerator.c">
+      <Filter>Source Files\grammarGen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\grammarGen\src\normGrammar.c">
+      <Filter>Source Files\grammarGen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\grammarGen\src\genUtils.c">
+      <Filter>Source Files\grammarGen</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

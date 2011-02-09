@@ -84,6 +84,9 @@ int main(int argc, char *argv[])
 			}
 			else
 			{
+				EXIStream strm;
+				ExipSchema schema;
+
 				//Get file length
 				fseek(schemaFile, 0, SEEK_END);
 				schemaLen=ftell(schemaFile);
@@ -102,8 +105,6 @@ int main(int argc, char *argv[])
 				fread(schemaBuffer, schemaLen, 1, schemaFile);
 				fclose(schemaFile);
 
-				EXIStream strm;
-				ExipSchema schema;
 				tmp_err_code = generateSchemaInformedGrammars(schemaBuffer, schemaLen, SCHEMA_FORMAT_XSD_EXI,
 														&strm, &schema);
 

@@ -106,8 +106,8 @@ errorCode deleteNoTermProductions(EXIStream* strm, struct EXIGrammar* grammar)
 							if(!(grammar->ruleArray[k].prodArray[l].event.eventType == EVENT_VOID &&
 									grammar->ruleArray[k].prodArray[l].nonTermID == grammar->ruleArray[i].nonTermID)) // If the right-hand side is not identical to the left-hand side
 							{
-								rmPrFlag = 0;   // Shows if a there is already such production replaced
 								struct removedProdInf* tmpPr;
+								rmPrFlag = 0;   // Shows if a there is already such production replaced
 								for(t = 0; t < removedProdArray->elementCount; t++)
 								{
 									tmpPr = &((struct removedProdInf* ) (removedProdArray->elements))[t];
