@@ -66,7 +66,6 @@ struct ExipSchema
 	URITable* initialStringTables;
 	GrammarPool* ePool;
 	GrammarPool* tPool;
-	EXIGrammarStack* initialGrStack;
 	GlobalElements glElems;
 };
 

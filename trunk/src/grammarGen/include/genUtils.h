@@ -291,6 +291,7 @@ errorCode createAllModelGroupsGrammar(EXIStream* strm, struct EXIGrammar* pTermA
  */
 errorCode getEXIDataType(QName simpleXSDType, ValueType* exiType);
 
+// TODO: consider removing registerQname
 /**
  * @brief Register a URI of target namespace or QName of attribute, element or type declared for storing in the string tables.
  * A meta-String tables are used for holding the strings before sorting.
@@ -306,5 +307,17 @@ errorCode getEXIDataType(QName simpleXSDType, ValueType* exiType);
  */
 errorCode registerQname(EXIStream* strm, StringType name, StringType target_ns, URITable* metaURITable,
 		                DynArray* regProdQname, unsigned int* p_uriRowID, unsigned int* p_lnRowID);
+
+
+/**
+ * @brief Sorts the information in the MetaString tables
+ *
+ * @param[in] strm EXIStream used to attach the memory allocations to it.
+ * @param[in] metaURITable temporary String table for holding the strings before sorting
+ * @param[out] resultingTable the string tables filled with the sorted entries from the MetaString tables
+ * @param[in] regProdQname used to update the uri and ln string tables row IDs
+ * @return Error handling code
+ */
+errorCode stringTablesSorting(EXIStream* strm, URITable* metaURITable, URITable** resultingTable, DynArray* regProdQname);
 
 #endif /* GENUTILS_H_ */

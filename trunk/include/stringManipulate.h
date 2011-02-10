@@ -126,6 +126,15 @@ errorCode asciiToString(const char* inStr, StringType* outStr, EXIStream* strm);
 char str_equal(const StringType str1, const StringType str2);
 
 /**
+ * @brief Compare two strings lexicographically
+ * Note! The implementation of this function is platform-specific.
+ * @param[in] str1 string to compare
+ * @param[in] str2 string to compare
+ * @return 0 when the strings are equal; negative int when str1<str2; positive when  str1>str2
+ */
+int str_compare(const StringType str1, const StringType str2);
+
+/**
  * @brief Checks if a StringType string and ASCII string are equal
  * Note! The implementation of this function is platform-specific.
  * @param[in] str1 string to compare

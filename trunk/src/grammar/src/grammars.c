@@ -442,7 +442,7 @@ static errorCode decodeQName(EXIStream* strm, QName* qname)
 			return tmp_err_code;
 		if(strm->uriTable->rows[uriID].lTable == NULL)
 		{
-			tmp_err_code = createLocalNamesTable(&strm->uriTable->rows[uriID].lTable, strm);
+			tmp_err_code = createLocalNamesTable(&strm->uriTable->rows[uriID].lTable, strm, 0);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -989,7 +989,7 @@ errorCode encodeQName(EXIStream* strm, QName qname)
 
 		if(strm->uriTable->rows[uriID].lTable == NULL)
 		{
-			tmp_err_code = createLocalNamesTable(&strm->uriTable->rows[uriID].lTable, strm);
+			tmp_err_code = createLocalNamesTable(&strm->uriTable->rows[uriID].lTable, strm, 0);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}

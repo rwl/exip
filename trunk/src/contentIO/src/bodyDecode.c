@@ -67,7 +67,7 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 		return;
 	}
 
-	tmp_err_code = createInitialStringTables(strm);
+	tmp_err_code = createInitialStringTables(strm, FALSE);
 	if(tmp_err_code != ERR_OK)
 	{
 		if(handler->fatalError != NULL)
