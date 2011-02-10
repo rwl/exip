@@ -129,17 +129,21 @@ errorCode createValueTable(ValueTable** vTable, EXIStream* strm)
 	return ERR_OK;
 }
 
-errorCode createURITable(URITable** uTable, EXIStream* strm)
+errorCode createURITable(URITable** uTable, EXIStream* strm, unsigned int initialRows)
 {
+	unsigned int rowNum = DEFAULT_URI_ROWS_NUMBER;
 	*uTable = (URITable*) memManagedAllocate(strm, sizeof(URITable));
 	if(*uTable == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*uTable)->rows = (struct URIRow*) memManagedAllocatePtr(strm, sizeof(struct URIRow)*DEFAULT_URI_ROWS_NUMBER, &((*uTable)->memNode));
+	if(initialRows > 0)
+		rowNum = initialRows;
+
+	(*uTable)->rows = (struct URIRow*) memManagedAllocatePtr(strm, sizeof(struct URIRow)*rowNum, &((*uTable)->memNode));
 	if((*uTable)->rows == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*uTable)->arrayDimension = DEFAULT_URI_ROWS_NUMBER;
+	(*uTable)->arrayDimension = rowNum;
 	(*uTable)->rowCount = 0;
 	return ERR_OK;
 }
@@ -159,17 +163,21 @@ errorCode createPrefixTable(PrefixTable** pTable, EXIStream* strm)
 	return ERR_OK;
 }
 
-errorCode createLocalNamesTable(LocalNamesTable** lTable, EXIStream* strm)
+errorCode createLocalNamesTable(LocalNamesTable** lTable, EXIStream* strm, unsigned int initialRows)
 {
+	unsigned int rowNum = DEFAULT_LOCALNAMES_ROWS_NUMBER;
 	*lTable = (LocalNamesTable*) memManagedAllocate(strm, sizeof(LocalNamesTable));
 	if(*lTable == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*lTable)->rows = (struct LocalNamesRow*) memManagedAllocatePtr(strm, sizeof(struct LocalNamesRow)*DEFAULT_LOCALNAMES_ROWS_NUMBER, &((*lTable)->memNode));
+	if(initialRows > 0)
+		rowNum = initialRows;
+
+	(*lTable)->rows = (struct LocalNamesRow*) memManagedAllocatePtr(strm, sizeof(struct LocalNamesRow)*rowNum, &((*lTable)->memNode));
 	if((*lTable)->rows == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*lTable)->arrayDimension = DEFAULT_LOCALNAMES_ROWS_NUMBER;
+	(*lTable)->arrayDimension = rowNum;
 	(*lTable)->rowCount = 0;
 	return ERR_OK;
 }
@@ -205,7 +213,7 @@ errorCode addURIRow(URITable* uTable, StringType uri, uint32_t* rowID, EXIStream
 	uTable->rows[uTable->rowCount].string_val.length = uri.length;
 	uTable->rows[uTable->rowCount].string_val.str = uri.str;
 
-	tmp_err_code = createLocalNamesTable(&(uTable->rows[uTable->rowCount].lTable), strm);
+	tmp_err_code = createLocalNamesTable(&(uTable->rows[uTable->rowCount].lTable), strm, 0);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -242,7 +250,7 @@ errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, uint32_t* row
 	return ERR_OK;
 }
 
-errorCode createInitialStringTables(EXIStream* strm)
+errorCode createInitialStringTables(EXIStream* strm, unsigned char withSchema)
 {
 	unsigned int i = 0;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -253,7 +261,7 @@ errorCode createInitialStringTables(EXIStream* strm)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = createURITable(&(strm->uriTable), strm);
+	tmp_err_code = createURITable(&(strm->uriTable), strm, 0);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -297,7 +305,7 @@ errorCode createInitialStringTables(EXIStream* strm)
 	strm->uriTable->rows[1].pTable->rows[0].string_val.str = tmp_str.str;
 	strm->uriTable->rows[1].pTable->rowCount = 1;
 
-	tmp_err_code = createLocalNamesTable(&(strm->uriTable->rows[1].lTable), strm);
+	tmp_err_code = createLocalNamesTable(&(strm->uriTable->rows[1].lTable), strm, 0);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -335,7 +343,7 @@ errorCode createInitialStringTables(EXIStream* strm)
 	strm->uriTable->rows[2].pTable->rows[0].string_val.str = tmp_str.str;
 	strm->uriTable->rows[2].pTable->rowCount = 1;
 
-	tmp_err_code = createLocalNamesTable(&(strm->uriTable->rows[2].lTable), strm);
+	tmp_err_code = createLocalNamesTable(&(strm->uriTable->rows[2].lTable), strm, 0);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -355,7 +363,7 @@ errorCode createInitialStringTables(EXIStream* strm)
 	strm->uriTable->rowCount += 1;
 
 	/**** URI	3	"http://www.w3.org/2001/XMLSchema"  */
-	if(strm->opts->schemaID != NULL)
+	if(withSchema == TRUE)
 	{
 		tmp_err_code = asciiToString(URI_3, &tmp_str, strm);
 		if(tmp_err_code != ERR_OK)
@@ -365,7 +373,7 @@ errorCode createInitialStringTables(EXIStream* strm)
 
 		strm->uriTable->rows[3].pTable = NULL;
 
-		tmp_err_code = createLocalNamesTable(&(strm->uriTable->rows[3].lTable), strm);
+		tmp_err_code = createLocalNamesTable(&(strm->uriTable->rows[3].lTable), strm, 0);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 

@@ -48,6 +48,7 @@
 
 #include "errorHandle.h"
 #include "procTypes.h"
+#include "schema.h"
 
 struct EXISerializer
 {
@@ -74,7 +75,7 @@ struct EXISerializer
 	errorCode (*processingInstructionSer)(EXIStream* strm); // TODO: define the parameters!
 
 	// EXI specific
-	errorCode (*initStream)(EXIStream* strm, unsigned int initialBufSize);
+	errorCode (*initStream)(EXIStream* strm, unsigned int initialBufSize, struct EXIOptions* opts, ExipSchema* schema);
 	errorCode (*exiHeaderSer)(EXIStream* strm, EXIheader* header);
 	errorCode (*selfContainedSer)(EXIStream* strm);  // Used for indexing independent elements for random access
 

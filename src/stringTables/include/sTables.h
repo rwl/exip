@@ -67,9 +67,10 @@ errorCode createValueTable(ValueTable** vTable, EXIStream* strm);
  * This operation includes allocation of memory for DEFAULT_URI_ROWS_NUMBER number of uri rows
  * @param[out] uTable URITable string table
  * @param[in, out] strm EXI stream for which the allocation is made
+ * @param[in] initialRows initial number of URI rows allocated; 0 - for default value
  * @return Error handling code
  */
-errorCode createURITable(URITable** uTable, EXIStream* strm);
+errorCode createURITable(URITable** uTable, EXIStream* strm, unsigned int initialRows);
 
 /**
  * @brief Creates fresh empty PrefixTable (prefix partition of EXI string table)
@@ -85,9 +86,10 @@ errorCode createPrefixTable(PrefixTable** pTable, EXIStream* strm);
  * This operation includes allocation of memory for DEFAULT_LOCALNAMES_ROWS_NUMBER number of local names rows
  * @param[out] lTable LocalNamesTable string table
  * @param[in, out] strm EXI stream for which the allocation is made
+ * @param[in] initialRows initial number of LN rows allocated; 0 - for default value
  * @return Error handling code
  */
-errorCode createLocalNamesTable(LocalNamesTable** lTable, EXIStream* strm);
+errorCode createLocalNamesTable(LocalNamesTable** lTable, EXIStream* strm, unsigned int initialRows);
 
 /**
  * @brief Creates fresh empty ValueLocalCrossTable
@@ -127,9 +129,11 @@ errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, uint32_t* row
  * calling this function.
  *
  * @param[in, out] strm EXI stream of bits
+ * @param[in] withSchema TRUE if there is schema for this stream; FALSE otherwise;
+ * Can be retrieved from strm->opts->schemaID != NULL
  * @return Error handling code
  */
-errorCode createInitialStringTables(EXIStream* strm);
+errorCode createInitialStringTables(EXIStream* strm, unsigned char withSchema);
 
 /**
  * @brief Add a new row into the ValueTable string table

@@ -46,6 +46,10 @@
 #include "grammarRules.h"
 #include "eventsEXI.h"
 #include "stringManipulate.h"
+#include "sortingAlgorithms.h"
+
+static int sortingURITable(unsigned int prev_val, unsigned int cur_val, void* args);
+static int sortingLNTable(unsigned int prev_val, unsigned int cur_val, void* args);
 
 errorCode concatenateGrammars(EXIStream* strm, struct EXIGrammar* left, struct EXIGrammar* right, struct EXIGrammar** result)
 {
@@ -288,6 +292,13 @@ errorCode createAttributeUseGrammar(EXIStream* strm, unsigned char required, Str
 	}
 	(*result)->ruleArray[0].prodArray[0].uriRowID = metaUriID;
 
+	if(metaURITable->rows[metaUriID].lTable == NULL)
+	{
+		tmp_err_code = createLocalNamesTable(&metaURITable->rows[metaUriID].lTable, strm, 0);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+
 	if(!lookupLN(metaURITable->rows[metaUriID].lTable, name, &metaLnID)) // Local name not found in the meta string tables
 	{
 		tmp_err_code = addLNRow(metaURITable->rows[metaUriID].lTable, name, &metaLnID);
@@ -434,6 +445,13 @@ errorCode createElementTermGrammar(EXIStream* strm, StringType name, StringType 
 			return tmp_err_code;
 	}
 	(*result)->ruleArray[0].prodArray[0].uriRowID = metaUriID;
+
+	if(metaURITable->rows[metaUriID].lTable == NULL)
+	{
+		tmp_err_code = createLocalNamesTable(&metaURITable->rows[metaUriID].lTable, strm, 0);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
 
 	if(!lookupLN(metaURITable->rows[metaUriID].lTable, name, &metaLnID)) // Local name not found in the meta string tables
 	{
@@ -598,4 +616,102 @@ errorCode registerQname(EXIStream* strm, StringType name, StringType target_ns, 
 		                DynArray* regProdQname, unsigned int* p_uriRowID, unsigned int* p_lnRowID)
 {
 	return NOT_IMPLEMENTED_YET;
+}
+
+static int sortingURITable(unsigned int prev_val, unsigned int cur_val, void* args)
+{
+	URITable* metaURITable = (URITable*) args;
+	return str_compare(metaURITable->rows[prev_val].string_val, metaURITable->rows[cur_val].string_val);
+}
+
+static int sortingLNTable(unsigned int prev_val, unsigned int cur_val, void* args)
+{
+	LocalNamesTable* lnTable = (LocalNamesTable*) args;
+	return str_compare(lnTable->rows[prev_val].string_val, lnTable->rows[cur_val].string_val);
+}
+
+errorCode stringTablesSorting(EXIStream* strm, URITable* metaURITable, URITable** resultingTable, DynArray* regProdQname)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	unsigned int tmpSortUriArray[metaURITable->rowCount];
+	unsigned int i;
+	unsigned int n;
+	uint32_t dID = 0;
+	DynArray* tmpLnTablePointes;
+
+	tmp_err_code = createDynArray(&tmpLnTablePointes, sizeof(unsigned int *), 10, strm);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	for(i = 0; i < metaURITable->rowCount; i++)
+		tmpSortUriArray[i] = i;
+
+	insertionSort(tmpSortUriArray, metaURITable->rowCount, sortingURITable, metaURITable);
+
+	tmp_err_code = createURITable(resultingTable, strm, metaURITable->rowCount);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	for(i = 0; i < metaURITable->rowCount; i++)
+	{
+		(*resultingTable)->rows[tmpSortUriArray[i]].string_val.length = metaURITable->rows[i].string_val.length;
+		(*resultingTable)->rows[tmpSortUriArray[i]].string_val.str = metaURITable->rows[i].string_val.str;
+
+		if(metaURITable->rows[i].lTable != NULL)
+		{
+			unsigned int lnRowCount = metaURITable->rows[i].lTable->rowCount;
+			unsigned int* tmpSortLnArray = EXIP_MALLOC(lnRowCount * sizeof(unsigned int));
+			if(tmpSortLnArray == NULL)
+				return MEMORY_ALLOCATION_ERROR;
+
+			for(n = 0; n < lnRowCount; n++)
+				tmpSortLnArray[n] = n;
+
+			addDynElement(tmpLnTablePointes, &tmpSortLnArray, &dID, strm);
+
+			insertionSort(tmpSortLnArray, lnRowCount, sortingLNTable, metaURITable->rows[i].lTable);
+
+			tmp_err_code = createLocalNamesTable(&((*resultingTable)->rows[tmpSortUriArray[i]].lTable), strm, lnRowCount);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			for(n = 0; n < lnRowCount; n++)
+			{
+				(*resultingTable)->rows[tmpSortUriArray[i]].lTable->rows[tmpSortLnArray[n]].string_val.length = metaURITable->rows[i].lTable->rows[n].string_val.length;
+				(*resultingTable)->rows[tmpSortUriArray[i]].lTable->rows[tmpSortLnArray[n]].string_val.str = metaURITable->rows[i].lTable->rows[n].string_val.str;
+			}
+			(*resultingTable)->rows[tmpSortUriArray[i]].lTable->rowCount = lnRowCount;
+		}
+		else
+		{
+			(*resultingTable)->rows[tmpSortUriArray[i]].lTable = NULL;
+			addDynElement(tmpLnTablePointes, &(metaURITable->rows[i].lTable), &dID, strm);
+		}
+		(*resultingTable)->rows[tmpSortUriArray[i]].pTable = NULL;
+	}
+	(*resultingTable)->rowCount = metaURITable->rowCount;
+
+	{
+		struct productionQname* pq = (struct productionQname*) regProdQname->elements;
+
+		for(i = 0; i < regProdQname->elementCount; i++)
+		{
+			unsigned int* lnTable = ((unsigned int**) tmpLnTablePointes->elements)[i];
+			*(pq[i].p_uriRowID) = tmpSortUriArray[pq[i].uriRowID_old];
+			if(lnTable != NULL)
+				*(pq[i].p_lnRowID) = lnTable[pq[i].uriRowID_old];
+			else
+				return INCONSISTENT_PROC_STATE; // There must be such local name table
+ 		}
+	}
+
+	for(i = 0; i < tmpLnTablePointes->elementCount; i++)
+	{
+		if(((unsigned int**) tmpLnTablePointes->elements)[i] != NULL)
+		{
+			EXIP_MFREE(((unsigned int**) tmpLnTablePointes->elements)[i]);
+		}
+	}
+
+	return ERR_OK;
 }

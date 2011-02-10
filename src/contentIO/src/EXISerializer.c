@@ -77,17 +77,16 @@ EXISerializer serEXI = {startDocumentSer,
 static errorCode encodeEXIEvent(EXIStream* strm, EXIEvent event);
 static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned char isElemOrAttr);
 
-errorCode initStream(EXIStream* strm, unsigned int initialBufSize)
+errorCode initStream(EXIStream* strm, unsigned int initialBufSize, struct EXIOptions* opts, ExipSchema* schema)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	GlobalElements* glElems = NULL;
 	strm->memStack = NULL;
 	strm->buffer = (char*) memManagedAllocate(strm, sizeof(char)*initialBufSize);
 	if(strm->buffer == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	strm->opts = (struct EXIOptions*) memManagedAllocate(strm, sizeof(struct EXIOptions));
-	if(strm->opts == NULL)
-		return MEMORY_ALLOCATION_ERROR;
+	strm->opts = opts;
 	strm->bitPointer = 0;
 	strm->bufLen = initialBufSize;
 	strm->bufferIndx = 0;
@@ -99,15 +98,29 @@ errorCode initStream(EXIStream* strm, unsigned int initialBufSize)
 	strm->gStack = (EXIGrammarStack*) memManagedAllocate(strm, sizeof(EXIGrammarStack));
 	if(strm->gStack == NULL)
 		return MEMORY_ALLOCATION_ERROR;
-	tmp_err_code = createDocGrammar(strm->gStack, strm->opts, strm, NULL);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
 
-	tmp_err_code = createGrammarPool(&(strm->ePool));
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	if(schema != NULL)
+	{
+		glElems = &(schema->glElems);
+		strm->ePool = schema->ePool;
+		strm->uriTable = schema->initialStringTables;
 
-	tmp_err_code = createInitialStringTables(strm);
+		tmp_err_code = createValueTable(&(strm->vTable), strm);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else
+	{
+		tmp_err_code = createGrammarPool(&(strm->ePool));
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = createInitialStringTables(strm, FALSE);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+
+	tmp_err_code = createDocGrammar(strm->gStack, strm->opts, strm, glElems);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 

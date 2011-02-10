@@ -59,6 +59,8 @@ int main(int argc, char *argv[])
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	FILE *outfile;
 	char sourceFile[50];
+	ExipSchema schema;
+	unsigned char hasSchema = FALSE;
 
 	if(argc > 1)
 	{
@@ -85,7 +87,6 @@ int main(int argc, char *argv[])
 			else
 			{
 				EXIStream strm;
-				ExipSchema schema;
 
 				//Get file length
 				fseek(schemaFile, 0, SEEK_END);
@@ -114,8 +115,11 @@ int main(int argc, char *argv[])
 					serEXI.closeEXIStream(&strm);
 					return 1;
 				}
+				// TODO: needs to figure out how to allocate the strings and other needed memory on a separate EXIStream
+				serEXI.closeEXIStream(&strm);
 
 				free(schemaBuffer);
+				hasSchema = TRUE;
 			}
 			strcpy(sourceFile, argv[3]);
 		}
@@ -133,6 +137,7 @@ int main(int argc, char *argv[])
 		{
 			EXIStream testStrm;
 			EXIheader header;
+			struct EXIOptions opts;
 			StringType uri;
 			StringType ln;
 			QName testElQname= {&uri, &ln};
@@ -140,15 +145,30 @@ int main(int argc, char *argv[])
 			StringType attVal;
 			StringType chVal;
 			
-
-			tmp_err_code = serEXI.initStream(&testStrm, 200);
+			tmp_err_code = makeDefaultOpts(&opts);
 			if(tmp_err_code != ERR_OK)
 				printError(tmp_err_code, &testStrm, outfile);
+
+			if(hasSchema == TRUE)
+			{
+				tmp_err_code = serEXI.initStream(&testStrm, 200, &opts, &schema);
+				if(tmp_err_code != ERR_OK)
+					printError(tmp_err_code, &testStrm, outfile);
+			}
+			else
+			{
+				tmp_err_code = serEXI.initStream(&testStrm, 200, &opts, NULL);
+				if(tmp_err_code != ERR_OK)
+					printError(tmp_err_code, &testStrm, outfile);
+			}
 			header.has_cookie = 0;
 			header.has_options = 0;
 			header.is_preview_version = 0;
 			header.version_number = 1;
 			tmp_err_code += serEXI.exiHeaderSer(&testStrm, &header);
+
+
+
 			tmp_err_code += serEXI.startDocumentSer(&testStrm);
 
 			tmp_err_code += asciiToString("", &uri, &testStrm);

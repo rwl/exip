@@ -51,17 +51,18 @@
  * For sorts in ascending order
  * It must return value > 0 when prev_val > cur_val, value < 0 when prev_val < cur_val and 0 otherwise
  */
-typedef char (*comapreFunc)(int prev_val, int cur_val);
+typedef int (*comapreFunc)(unsigned int prev_val, unsigned int cur_val, void* args);
 
 /**
  * @brief Implements Insertion Sort algorithm
  * Scan successive elements for out of order item, then insert the item in the proper place. Sort small array fast, big array very slowly.
  *
- * @param[in, out] array array of integers to be sorted
+ * @param[in, out] array array of unsigned integers to be sorted
  * @param[in] length the size of the array
  * @param[in] cmpFunc comparing function
+ * @param[in] args optional arguments needed for comapreFunc
  * @return Error handling code
  */
-void insertionSort(int array[], uint32_t length, comapreFunc cmpFunc);
+void insertionSort(unsigned int array[], uint32_t length, comapreFunc cmpFunc, void* args);
 
 #endif /* SORTINGALGORITHMS_H_ */

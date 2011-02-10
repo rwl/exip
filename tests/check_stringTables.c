@@ -71,7 +71,7 @@ START_TEST (test_createURITable)
 	URITable* uTable;
 	errorCode err = UNEXPECTED_ERROR;
 	EXIStream strm;
-	err = createURITable(&uTable, &strm);
+	err = createURITable(&uTable, &strm, 0);
 
 	fail_unless (err == ERR_OK, "createURITable returns error code %d", err);
 	fail_unless (uTable->rowCount == 0,
@@ -103,7 +103,7 @@ START_TEST (test_createLocalNamesTable)
 	LocalNamesTable* lTable;
 	errorCode err = UNEXPECTED_ERROR;
 	EXIStream strm;
-	err = createLocalNamesTable(&lTable, &strm);
+	err = createLocalNamesTable(&lTable, &strm, 0);
 
 	fail_unless (err == ERR_OK, "createLocalNamesTable returns error code %d", err);
 	fail_unless (lTable->rowCount == 0,
@@ -135,7 +135,7 @@ START_TEST (test_addURIRow)
 	errorCode err = UNEXPECTED_ERROR;
 	URITable* uTable;
 	EXIStream strm;
-	err = createURITable(&uTable, &strm);
+	err = createURITable(&uTable, &strm, 0);
 	fail_if(err != ERR_OK);
 
 	StringType test_uri;
@@ -182,7 +182,7 @@ START_TEST (test_addLNRow)
 	errorCode err = UNEXPECTED_ERROR;
 	LocalNamesTable* lnTable;
 	EXIStream strm;
-	err = createLocalNamesTable(&lnTable, &strm);
+	err = createLocalNamesTable(&lnTable, &strm, 0);
 	fail_if(err != ERR_OK);
 
 	StringType test_ln;
@@ -239,7 +239,7 @@ START_TEST (test_createInitialStringTables)
 	testStream.bufLen = 2;
 
 
-	err = createInitialStringTables(&testStream);
+	err = createInitialStringTables(&testStream, 0);
 
 	fail_unless (err == ERR_OK, "createInitialStringTables returns error code %d", err);
 	fail_if(testStream.uriTable == NULL);
@@ -295,7 +295,7 @@ START_TEST (test_addLVRow)
 	errorCode err = UNEXPECTED_ERROR;
 	LocalNamesTable* lnTable;
 	EXIStream strm;
-	err = createLocalNamesTable(&lnTable, &strm);
+	err = createLocalNamesTable(&lnTable, &strm, 0);
 	fail_if(err != ERR_OK);
 	StringType test_ln;
 

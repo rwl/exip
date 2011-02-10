@@ -138,9 +138,11 @@ errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, un
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = createURITable(&metaURITable, strm);
+	tmp_err_code = createInitialStringTables(strm, TRUE);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
+
+	metaURITable = strm->uriTable;
 
 	tmp_err_code = createDynArray(&regProdQname, sizeof(struct productionQname), 20, strm);
 	if(tmp_err_code != ERR_OK)
@@ -182,9 +184,6 @@ char xsd_startDocument()
 char xsd_endDocument()
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	int i = 0;
-	unsigned char is_found = 0;
-	struct EXIGrammar* result;
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End XML Schema parsing\n"));
 
 	exipSchemaLocal->glElems.elems = globalElements->elements;
@@ -192,30 +191,42 @@ char xsd_endDocument()
 
 // Only for debugging purposes
 #if DEBUG_GRAMMAR_GEN == ON
-	for(i = 0; i < exipSchemaLocal->glElems.count; i++)
 	{
-		tmp_err_code = checkGrammarInPool(exipSchemaLocal->ePool, exipSchemaLocal->glElems.elems[i].uriRowId,
-				exipSchemaLocal->glElems.elems[i].lnRowId, &is_found, &result);
-		if(tmp_err_code != ERR_OK)
+		int i = 0;
+		unsigned char is_found = 0;
+		struct EXIGrammar* result;
+		for(i = 0; i < exipSchemaLocal->glElems.count; i++)
 		{
-			DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">checkGrammarInPool() fail\n"));
-			return EXIP_HANDLER_STOP;
-		}
-		if(is_found)
-		{
-			int t = 0;
-			for(; t < result->rulesDimension; t++)
+			tmp_err_code = checkGrammarInPool(exipSchemaLocal->ePool, exipSchemaLocal->glElems.elems[i].uriRowId,
+					exipSchemaLocal->glElems.elems[i].lnRowId, &is_found, &result);
+			if(tmp_err_code != ERR_OK)
 			{
-				tmp_err_code = printGrammarRule(&(result->ruleArray[t]));
-				if(tmp_err_code != ERR_OK)
+				DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">checkGrammarInPool() fail\n"));
+				return EXIP_HANDLER_STOP;
+			}
+			if(is_found)
+			{
+				int t = 0;
+				for(; t < result->rulesDimension; t++)
 				{
-					DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">printGrammarRule() fail\n"));
-					return EXIP_HANDLER_STOP;
+					tmp_err_code = printGrammarRule(&(result->ruleArray[t]));
+					if(tmp_err_code != ERR_OK)
+					{
+						DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">printGrammarRule() fail\n"));
+						return EXIP_HANDLER_STOP;
+					}
 				}
 			}
 		}
 	}
 #endif
+
+	tmp_err_code = stringTablesSorting(tmpStrm, metaURITable, &(exipSchemaLocal->initialStringTables), regProdQname);
+	if(tmp_err_code != ERR_OK)
+	{
+		DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">String Tables sorting failed: %d\n", tmp_err_code));
+		return EXIP_HANDLER_STOP;
+	}
 
 	return EXIP_HANDLER_OK;
 }
@@ -742,7 +753,7 @@ static errorCode handleComplexTypeEl()
 
 		if(metaURITable->rows[uriRowId].lTable == NULL)
 		{
-			tmp_err_code = createLocalNamesTable(&metaURITable->rows[uriRowId].lTable, tmpStrm);
+			tmp_err_code = createLocalNamesTable(&metaURITable->rows[uriRowId].lTable, tmpStrm, 0);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -808,7 +819,7 @@ static errorCode handleElementEl()
 
 		if(metaURITable->rows[uriRowId].lTable == NULL)
 		{
-			tmp_err_code = createLocalNamesTable(&metaURITable->rows[uriRowId].lTable, tmpStrm);
+			tmp_err_code = createLocalNamesTable(&metaURITable->rows[uriRowId].lTable, tmpStrm, 0);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
