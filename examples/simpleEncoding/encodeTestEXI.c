@@ -149,6 +149,7 @@ int main(int argc, char *argv[])
 			QName testAtQname= {&uri, &ln};
 			StringType attVal;
 			StringType chVal;
+			char buf[200];
 			
 			tmp_err_code = makeDefaultOpts(&opts);
 			if(tmp_err_code != ERR_OK)
@@ -156,13 +157,13 @@ int main(int argc, char *argv[])
 
 			if(hasSchema == TRUE)
 			{
-				tmp_err_code = serEXI.initStream(&testStrm, 200, &opts, &schema);
+				tmp_err_code = serEXI.initStream(&testStrm, buf, 200, &opts, &schema);
 				if(tmp_err_code != ERR_OK)
 					printError(tmp_err_code, &testStrm, outfile);
 			}
 			else
 			{
-				tmp_err_code = serEXI.initStream(&testStrm, 200, &opts, NULL);
+				tmp_err_code = serEXI.initStream(&testStrm, buf, 200, &opts, NULL);
 				if(tmp_err_code != ERR_OK)
 					printError(tmp_err_code, &testStrm, outfile);
 			}

@@ -70,7 +70,7 @@ errorCode bigDecimalDataSer(EXIStream* strm, bigDecimal dec_val);
 errorCode processingInstructionSer(EXIStream* strm); // TODO: define the parameters!
 
 // EXI specific
-errorCode initStream(EXIStream* strm, unsigned int initialBufSize, struct EXIOptions* opts, ExipSchema *schema);
+errorCode initStream(EXIStream* strm, char* buf, unsigned int bufSize, struct EXIOptions* opts, ExipSchema *schema);
 errorCode selfContainedSer(EXIStream* strm);  // Used for indexing independent elements for random access
 
 // EXIP specific
