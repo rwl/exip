@@ -47,23 +47,23 @@
 
 /********* BEGIN: String table default entries ***************/
 
-const char URI_1[] = "http://www.w3.org/XML/1998/namespace";
-const char URI_2[] = "http://www.w3.org/2001/XMLSchema-instance";
-const char URI_3[] = "http://www.w3.org/2001/XMLSchema";
+static const char URI_1[] = "http://www.w3.org/XML/1998/namespace";
+static const char URI_2[] = "http://www.w3.org/2001/XMLSchema-instance";
+static const char URI_3[] = "http://www.w3.org/2001/XMLSchema";
 
-const char URI_1_PREFIX[] = "xml";
-const char URI_2_PREFIX[] = "xsi";
+static const char URI_1_PREFIX[] = "xml";
+static const char URI_2_PREFIX[] = "xsi";
 
 #define URI_1_LOCALNAME_SIZE 4
-const char* URI_1_LOCALNAME[] = {"base", "id", "lang", "space"};
+static const char* URI_1_LOCALNAME[] = {"base", "id", "lang", "space"};
 
 #define URI_2_LOCALNAME_SIZE 2
-const char* URI_2_LOCALNAME[] = {"nil", "type"};
+static const char* URI_2_LOCALNAME[] = {"nil", "type"};
 
 /* ONLY USED WHEN SCHEMA IS DEFINED.
  * Make it conditional and document it*/
 #define URI_3_LOCALNAME_SIZE 46 // #DOCUMENT#
-const char* URI_3_LOCALNAME[] = {  // #DOCUMENT#
+static const char* URI_3_LOCALNAME[] = {  // #DOCUMENT#
 			"ENTITIES",
 			"ENTITY",
 			"ID",

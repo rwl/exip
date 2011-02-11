@@ -77,18 +77,16 @@ const EXISerializer serEXI  =  {startDocumentSer,
 static errorCode encodeEXIEvent(EXIStream* strm, EXIEvent event);
 static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned char isElemOrAttr);
 
-errorCode initStream(EXIStream* strm, unsigned int initialBufSize, struct EXIOptions* opts, ExipSchema* schema)
+errorCode initStream(EXIStream* strm, char* buf, unsigned int bufSize, struct EXIOptions* opts, ExipSchema* schema)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	GlobalElements* glElems = NULL;
 	strm->memStack = NULL;
-	strm->buffer = (char*) memManagedAllocate(strm, sizeof(char)*initialBufSize);
-	if(strm->buffer == NULL)
-		return MEMORY_ALLOCATION_ERROR;
+	strm->buffer = buf;
 
 	strm->opts = opts;
 	strm->bitPointer = 0;
-	strm->bufLen = initialBufSize;
+	strm->bufLen = bufSize;
 	strm->bufferIndx = 0;
 	strm->nonTermID = GR_DOCUMENT;
 	strm->sContext.curr_uriID = 0;
