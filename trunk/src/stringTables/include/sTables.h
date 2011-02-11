@@ -156,6 +156,15 @@ errorCode addGVRow(ValueTable* vTable, StringType global_value, uint32_t* rowID)
 errorCode addLVRow(struct LocalNamesRow* lnRow, uint32_t globalValueRowID, EXIStream* strm);
 
 /**
+ * @brief Add a new row into the Prefix string table
+ *
+ * @param[in, out] pTable Prefix string table
+ * @param[in] px_value the string representing this Local-Names. The StringType can be allocated on the stack.
+ * @return Error handling code
+ */
+errorCode addPrefixRow(PrefixTable* pTable, StringType px_value);
+
+/**
  * @brief Search the URI table for a particular string value
  * Implements full scan
  *

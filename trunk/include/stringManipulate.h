@@ -112,9 +112,12 @@ char isStrEmpty(const StringType* str);
  * @param[in] inStr ASCII stream
  * @param[in, out] outStr resulted string
  * @param[in, out] strm EXI stream for which the allocation is made
+ * @param[in] clone Boolean indicating if outStr should reuse the memory allocated for inStr if possible.
+ * 					0 - if StringType implementation allows it - do not allocate new memory for the string
+ * 					1 - always allocate fresh memory for outStr and copy inStr there
  * @return Error handling code
  */
-errorCode asciiToString(const char* inStr, StringType* outStr, EXIStream* strm);
+errorCode asciiToString(const char* inStr, StringType* outStr, EXIStream* strm, unsigned char clone);
 
 /**
  * @brief Tests if two strings are equal

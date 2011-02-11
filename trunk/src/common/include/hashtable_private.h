@@ -22,13 +22,13 @@ struct hashtable {
     unsigned int entrycount;
     unsigned int loadlimit;
     unsigned int primeindex;
-    unsigned int (*hashfn) (void *k, unsigned int len);
+    uint32_t (*hashfn) (void *k, unsigned int len);
     int (*eqfn) (char *k1, unsigned int len1, char *k2, unsigned int len2);
 };
 
 /*****************************************************************************/
-unsigned int
-hash(struct hashtable *h, void *k, unsigned int len);
+
+uint32_t hash(struct hashtable *h, void *k, unsigned int len);
 
 /*****************************************************************************/
 /* indexFor */

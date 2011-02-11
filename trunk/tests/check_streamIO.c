@@ -693,7 +693,7 @@ START_TEST (test_encodeString)
   testStream.bufLen = 50;
   testStream.bufferIndx = 0;
   StringType testStr;
-  asciiToString("TEST encodeString()", &testStr, &testStream);
+  asciiToString("TEST encodeString()", &testStr, &testStream, FALSE);
   errorCode err = UNEXPECTED_ERROR;
 
   err = encodeString(&testStream, &testStr);

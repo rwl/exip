@@ -91,6 +91,16 @@
 
 #define ATTRIBUTE_CONTEXT_ARRAY_SIZE 20
 
+
+#define INITIAL_STATE         0
+#define SCHEMA_ELEMENT_STATE  1
+#define SCHEMA_CONTENT_STATE  2
+
+#define FORM_DEF_UNQUALIFIED   0
+#define FORM_DEF_QUALIFIED     1
+#define FORM_DEF_EXPECTING     2
+#define FORM_DEF_INITIAL_STATE 3
+
 /**
  * Global schema properties (found as an attributes of the schema root element in XSD)
  * They should not change over time of processing
