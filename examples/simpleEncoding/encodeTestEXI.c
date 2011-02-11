@@ -49,7 +49,7 @@
 #include <stdio.h>
 #include <string.h>
 
-extern EXISerializer serEXI;
+extern const EXISerializer serEXI;
 
 static void printfHelp();
 static void printError(errorCode err_code, EXIStream* strm, FILE *outfile);
@@ -105,6 +105,11 @@ int main(int argc, char *argv[])
 				//Read file contents into buffer
 				fread(schemaBuffer, schemaLen, 1, schemaFile);
 				fclose(schemaFile);
+
+				strm.ePool = NULL;
+				strm.gStack = NULL;
+				strm.opts = NULL;
+				strm.memStack = NULL;
 
 				tmp_err_code = generateSchemaInformedGrammars(schemaBuffer, schemaLen, SCHEMA_FORMAT_XSD_EXI,
 														&strm, &schema);
@@ -171,17 +176,17 @@ int main(int argc, char *argv[])
 
 			tmp_err_code += serEXI.startDocumentSer(&testStrm);
 
-			tmp_err_code += asciiToString("", &uri, &testStrm);
-			tmp_err_code += asciiToString("EXIPEncoder", &ln, &testStrm);
+			tmp_err_code += asciiToString("", &uri, &testStrm, FALSE);
+			tmp_err_code += asciiToString("EXIPEncoder", &ln, &testStrm, FALSE);
 			tmp_err_code += serEXI.startElementSer(&testStrm, testElQname);
 
-			tmp_err_code += asciiToString("version", &ln, &testStrm);
+			tmp_err_code += asciiToString("version", &ln, &testStrm, FALSE);
 			tmp_err_code += serEXI.attributeSer(&testStrm, testAtQname);
 
-			tmp_err_code += asciiToString("0.1", &attVal, &testStrm);
+			tmp_err_code += asciiToString("0.1", &attVal, &testStrm, FALSE);
 			tmp_err_code += serEXI.stringDataSer(&testStrm, attVal);
 
-			tmp_err_code += asciiToString("This is an example of serializing EXI streams using EXIP low level API", &chVal, &testStrm);
+			tmp_err_code += asciiToString("This is an example of serializing EXI streams using EXIP low level API", &chVal, &testStrm, FALSE);
 			tmp_err_code += serEXI.stringDataSer(&testStrm, chVal);
 
 			tmp_err_code += serEXI.endElementSer(&testStrm);

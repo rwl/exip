@@ -633,11 +633,15 @@ static int sortingLNTable(unsigned int prev_val, unsigned int cur_val, void* arg
 errorCode stringTablesSorting(EXIStream* strm, URITable* metaURITable, URITable** resultingTable, DynArray* regProdQname)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned int tmpSortUriArray[metaURITable->rowCount];
+	unsigned int* tmpSortUriArray;
 	unsigned int i;
 	unsigned int n;
 	uint32_t dID = 0;
 	DynArray* tmpLnTablePointes;
+
+	tmpSortUriArray = EXIP_MALLOC(metaURITable->rowCount * sizeof(unsigned int));
+	if(tmpSortUriArray == NULL)
+		return MEMORY_ALLOCATION_ERROR;
 
 	tmp_err_code = createDynArray(&tmpLnTablePointes, sizeof(unsigned int *), 10, strm);
 	if(tmp_err_code != ERR_OK)
@@ -713,5 +717,6 @@ errorCode stringTablesSorting(EXIStream* strm, URITable* metaURITable, URITable*
 		}
 	}
 
+	EXIP_MFREE(tmpSortUriArray);
 	return ERR_OK;
 }

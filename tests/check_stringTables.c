@@ -139,7 +139,7 @@ START_TEST (test_addURIRow)
 	fail_if(err != ERR_OK);
 
 	StringType test_uri;
-	asciiToString("test_uri_string", &test_uri, &strm);
+	asciiToString("test_uri_string", &test_uri, &strm, FALSE);
 
 	unsigned int rowID = 55;
 
@@ -186,7 +186,7 @@ START_TEST (test_addLNRow)
 	fail_if(err != ERR_OK);
 
 	StringType test_ln;
-	asciiToString("test_ln_string", &test_ln, &strm);
+	asciiToString("test_ln_string", &test_ln, &strm, FALSE);
 
 	unsigned int rowID = 55;
 
@@ -258,7 +258,7 @@ START_TEST (test_addGVRow)
 	fail_if(err != ERR_OK);
 
 	StringType test_val;
-	asciiToString("test_val_string", &test_val, &strm);
+	asciiToString("test_val_string", &test_val, &strm, FALSE);
 
 	unsigned int rowID = 55;
 
@@ -299,7 +299,7 @@ START_TEST (test_addLVRow)
 	fail_if(err != ERR_OK);
 	StringType test_ln;
 
-	asciiToString("test_ln_string", &test_ln, &strm);
+	asciiToString("test_ln_string", &test_ln, &strm, FALSE);
 	unsigned int rowID = 55;
 	err = addLNRow(lnTable, test_ln, &rowID);
 	fail_unless (err == ERR_OK, "addLNRow returns error code %d", err);

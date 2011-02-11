@@ -45,7 +45,7 @@ CC = gcc
 
 CFLAGS += -Wpacked -Wall
 
-CFLAGS += -g # Debugging 
+CFLAGS += -O0 -g # Debugging 
 
 # The project root directory
 PROJECT_ROOT = ../..
@@ -145,8 +145,9 @@ include tests.mk
 OBJECT_ALL = $(COMMON_OBJ) $(STREAM_IO_OBJ) $(STRING_TABLES_OBJ) $(GRAMMAR_OBJ) $(CONTENT_IO_OBJ) $(GRAMMAR_GEN_OBJ)
 
 .PHONY : clean all lib check common streamIO stringTables grammar contentIO grammarGen examples exipd \
-         mk_bin mk_common mk_streamIO mk_stringTables mk_grammar mk_contentIO mk_grammarGen mk_examples mk_tests mk_all
-
+         mk_bin mk_common mk_streamIO mk_stringTables mk_grammar mk_contentIO mk_grammarGen mk_examples mk_tests mk_all \
+         test_sets_copy
+         
 lib: mk_bin $(BIN_DIR)/libexip.a
 
 $(BIN_DIR)/libexip.a: mk_all $(OBJECT_ALL)
@@ -175,7 +176,7 @@ $(EXAMPLES_BIN_DIR)/$(EXAMPLE_1): $(EXAMPLES_SRC_DIR)/simpleDecoding/decodeTestE
 $(EXAMPLES_BIN_DIR)/$(EXAMPLE_2): $(EXAMPLES_SRC_DIR)/simpleEncoding/encodeTestEXI.c $(BIN_DIR)/libexip.a
 		$(CC) $(CFLAGS) $(EXAMPLES_SRC_DIR)/simpleEncoding/encodeTestEXI.c $(BIN_DIR)/libexip.a -o $(EXAMPLES_BIN_DIR)/$(EXAMPLE_2)		
 
-examples: mk_examples lib $(EXAMPLES_BIN_DIR)/$(EXAMPLE_1) $(EXAMPLES_BIN_DIR)/$(EXAMPLE_2)
+examples: mk_examples lib $(EXAMPLES_BIN_DIR)/$(EXAMPLE_1) $(EXAMPLES_BIN_DIR)/$(EXAMPLE_2) test_sets_copy
 
 mk_bin:
 		mkdir -p $(BIN_DIR)
@@ -203,6 +204,9 @@ mk_examples:
 		
 mk_tests:
 		mkdir -p $(TESTS_BIN_DIR)
+		
+test_sets_copy:
+		cp $(EXAMPLES_SRC_DIR)/simpleEncoding/exip-test-xsd.exi $(EXAMPLES_BIN_DIR)/exip-test-xsd.exi
 		
 mk_all: mk_common mk_streamIO mk_stringTables mk_grammar mk_contentIO mk_grammarGen
 	

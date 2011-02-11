@@ -88,15 +88,24 @@ char isStrEmpty(const StringType* str)
 	return 0;
 }
 
-errorCode asciiToString(const char* inStr, StringType* outStr, EXIStream* strm)
+errorCode asciiToString(const char* inStr, StringType* outStr, EXIStream* strm, unsigned char clone)
 {
 	outStr->length = strlen(inStr);
 	if(outStr->length > 0)  // If == 0 -> empty string
 	{
-		outStr->str = (CharType*) memManagedAllocate(strm, sizeof(CharType)*(outStr->length));
-		if(outStr->str == NULL)
-			return MEMORY_ALLOCATION_ERROR;
-		memcpy(outStr->str, inStr, outStr->length);
+		if(clone == FALSE)
+		{
+			outStr->str = (CharType*) inStr;
+			return ERR_OK;
+		}
+		else
+		{
+			outStr->str = (CharType*) memManagedAllocate(strm, sizeof(CharType)*(outStr->length));
+			if(outStr->str == NULL)
+				return MEMORY_ALLOCATION_ERROR;
+			memcpy(outStr->str, inStr, outStr->length);
+			return ERR_OK;
+		}
 	}
 	else
 		outStr->str = NULL;

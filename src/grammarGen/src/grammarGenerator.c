@@ -119,10 +119,10 @@ errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, un
 	xsdHandler.endElement = xsd_endElement;
 	xsdHandler.exiHeader = xsd_exiHeader;
 
-	localProps.propsStat = 0;
+	localProps.propsStat = INITIAL_STATE;
 	localProps.expectAttributeData = 0;
-	localProps.attributeFormDefault = 3;
-	localProps.elementFormDefault = 3;
+	localProps.attributeFormDefault = FORM_DEF_INITIAL_STATE;
+	localProps.elementFormDefault = FORM_DEF_INITIAL_STATE;
 	localProps.charDataPointer = NULL;
 	props = &localProps;
 
@@ -233,12 +233,12 @@ char xsd_endDocument()
 
 char xsd_startElement(QName qname)
 {
-	if(!props->propsStat) // This should be the first <schema> element
+	if(props->propsStat == INITIAL_STATE) // This should be the first <schema> element
 	{
 		if(strEqualToAscii(*qname.uri, "http://www.w3.org/2001/XMLSchema") &&
 				strEqualToAscii(*qname.localName, "schema"))
 		{
-			props->propsStat = 1;
+			props->propsStat = SCHEMA_ELEMENT_STATE;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <schema> element\n"));
 		}
 		else
@@ -250,13 +250,13 @@ char xsd_startElement(QName qname)
 	else
 	{
 		struct elementDescr* elem;
-		if(props->propsStat != 2) // This is the first element after the <schema>
+		if(props->propsStat != SCHEMA_CONTENT_STATE) // This is the first element after the <schema>
 		{
-			props->propsStat = 2; // All attributes of the <schema> element are already parsed
-			if(props->elementFormDefault == 3)
-				props->elementFormDefault = 0; // The default value is unqualified
-			if(props->attributeFormDefault == 3)
-				props->attributeFormDefault = 0; // The default value is unqualified
+			props->propsStat = SCHEMA_CONTENT_STATE; // All attributes of the <schema> element are already parsed
+			if(props->elementFormDefault == FORM_DEF_INITIAL_STATE)
+				props->elementFormDefault = FORM_DEF_UNQUALIFIED; // The default value is unqualified
+			if(props->attributeFormDefault == FORM_DEF_INITIAL_STATE)
+				props->attributeFormDefault = FORM_DEF_UNQUALIFIED; // The default value is unqualified
 		}
 
 		if(!strEqualToAscii(*qname.uri, "http://www.w3.org/2001/XMLSchema"))
@@ -393,7 +393,7 @@ char xsd_endElement()
 
 char xsd_attribute(QName qname)
 {
-	if(props->propsStat == 1) // <schema> element attribute
+	if(props->propsStat == SCHEMA_ELEMENT_STATE) // <schema> element attribute
 	{
 		if(strEqualToAscii(*qname.localName, "targetNamespace"))
 		{
@@ -402,12 +402,12 @@ char xsd_attribute(QName qname)
 		}
 		else if(strEqualToAscii(*qname.localName, "elementFormDefault"))
 		{
-			props->elementFormDefault = 2;
+			props->elementFormDefault = FORM_DEF_EXPECTING;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |elementFormDefault| \n"));
 		}
 		else if(strEqualToAscii(*qname.localName, "attributeFormDefault"))
 		{
-			props->attributeFormDefault = 2;
+			props->attributeFormDefault = FORM_DEF_EXPECTING;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |attributeFormDefault| \n"));
 		}
 		else
@@ -472,34 +472,34 @@ char xsd_stringData(const StringType value)
 
 	if(props->expectAttributeData)
 	{
-		if(props->propsStat == 1) // <schema> element attribute data
+		if(props->propsStat == SCHEMA_ELEMENT_STATE) // <schema> element attribute data
 		{
 			if(props->charDataPointer != NULL)
 			{
 				*(props->charDataPointer) = value;
 				props->charDataPointer = NULL;
 			}
-			else if(props->elementFormDefault == 2) // expecting value for elementFormDefault
+			else if(props->elementFormDefault == FORM_DEF_EXPECTING) // expecting value for elementFormDefault
 			{
 				if(strEqualToAscii(value, "qualified"))
-					props->elementFormDefault = 1;
+					props->elementFormDefault = FORM_DEF_QUALIFIED;
 				else if(strEqualToAscii(value, "unqualified"))
-					props->elementFormDefault = 0;
+					props->elementFormDefault = FORM_DEF_UNQUALIFIED;
 				else
 				{
 					DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Invalid value for elementFormDefault attribute\n"));
 					return EXIP_HANDLER_STOP;
 				}
 			}
-			else if(props->attributeFormDefault == 2) // expecting value for attributeFormDefault
+			else if(props->attributeFormDefault == FORM_DEF_EXPECTING) // expecting value for attributeFormDefault
 			{
 				if(strEqualToAscii(value, "qualified"))
-					props->attributeFormDefault = 1;
+					props->attributeFormDefault = FORM_DEF_QUALIFIED;
 				else if(strEqualToAscii(value, "unqualified"))
-					props->attributeFormDefault = 0;
+					props->attributeFormDefault = FORM_DEF_UNQUALIFIED;
 				else
 				{
-					DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Invalid value for elementFormDefault attribute\n"));
+					DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Invalid value for attributeFormDefault attribute\n"));
 					return EXIP_HANDLER_STOP;
 				}
 			}
@@ -588,7 +588,7 @@ static errorCode handleAttributeEl()
 	{
 		required = 1;
 	}
-	if(props->attributeFormDefault == 1 || strEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_FORM], "qualified"))
+	if(props->attributeFormDefault == FORM_DEF_QUALIFIED || strEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_FORM], "qualified"))
 	{
 		//TODO: must take into account the parent element target namespace
 
@@ -679,7 +679,7 @@ static errorCode handleComplexTypeEl()
 
 	popElemContext(&contextStack, &elemDesc);
 
-	if(props->elementFormDefault == 1 || strEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_FORM], "qualified"))
+	if(props->elementFormDefault == FORM_DEF_QUALIFIED || strEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_FORM], "qualified"))
 	{
 		//TODO: must take into account the parent element target namespace
 
@@ -792,7 +792,7 @@ static errorCode handleElementEl()
 	if(contextStack == NULL) // Global element
 		isGlobal = 1;
 
-	if(isGlobal || props->elementFormDefault == 1 || strEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_FORM], "qualified"))
+	if(isGlobal || props->elementFormDefault == FORM_DEF_QUALIFIED || strEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_FORM], "qualified"))
 	{
 		//TODO: must take into account the parent element target namespace
 

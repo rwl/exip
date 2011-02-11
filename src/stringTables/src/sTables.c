@@ -47,12 +47,12 @@
 
 /********* BEGIN: String table default entries ***************/
 
-#define URI_1 "http://www.w3.org/XML/1998/namespace"
-#define URI_2 "http://www.w3.org/2001/XMLSchema-instance"
-#define URI_3 "http://www.w3.org/2001/XMLSchema"
+const char URI_1[] = "http://www.w3.org/XML/1998/namespace";
+const char URI_2[] = "http://www.w3.org/2001/XMLSchema-instance";
+const char URI_3[] = "http://www.w3.org/2001/XMLSchema";
 
-#define URI_1_PREFIX "xml"
-#define URI_2_PREFIX "xsi"
+const char URI_1_PREFIX[] = "xml";
+const char URI_2_PREFIX[] = "xsi";
 
 #define URI_1_LOCALNAME_SIZE 4
 const char* URI_1_LOCALNAME[] = {"base", "id", "lang", "space"};
@@ -253,6 +253,8 @@ errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, uint32_t* row
 errorCode createInitialStringTables(EXIStream* strm, unsigned char withSchema)
 {
 	unsigned int i = 0;
+	uint32_t uriID = 0;
+	uint32_t lnID = 0;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	StringType emptyStr;
 	StringType tmp_str;
@@ -271,128 +273,66 @@ errorCode createInitialStringTables(EXIStream* strm, unsigned char withSchema)
 		return tmp_err_code;
 
 	/**** URI	0	"" [empty string] */
-	strm->uriTable->rows[0].string_val.length = emptyStr.length;
-	strm->uriTable->rows[0].string_val.str = emptyStr.str;
-
-	tmp_err_code = createPrefixTable(&(strm->uriTable->rows[0].pTable), strm);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	strm->uriTable->rows[0].pTable->rows[0].string_val.length = emptyStr.length;
-	strm->uriTable->rows[0].pTable->rows[0].string_val.str = emptyStr.str;
-	strm->uriTable->rows[0].pTable->rowCount = 1;
-
-	strm->uriTable->rows[0].lTable = NULL; // There are no initial entries here
-
-	strm->uriTable->rowCount += 1;
+	addURIRow(strm->uriTable, emptyStr, &uriID, strm);
+	addPrefixRow(strm->uriTable->rows[uriID].pTable, emptyStr);
 
 	/**** URI	1	"http://www.w3.org/XML/1998/namespace" */
-
-	tmp_err_code = asciiToString(URI_1, &tmp_str, strm);
+	tmp_err_code = asciiToString(URI_1, &tmp_str, strm, FALSE);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	strm->uriTable->rows[1].string_val.str = tmp_str.str;
-	strm->uriTable->rows[1].string_val.length = tmp_str.length;
+	addURIRow(strm->uriTable, tmp_str, &uriID, strm);
 
-	tmp_err_code = createPrefixTable(&(strm->uriTable->rows[1].pTable), strm);
+	tmp_err_code = asciiToString(URI_1_PREFIX, &tmp_str, strm, FALSE);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-
-	tmp_err_code = asciiToString(URI_1_PREFIX, &tmp_str, strm);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-	strm->uriTable->rows[1].pTable->rows[0].string_val.length = tmp_str.length;
-	strm->uriTable->rows[1].pTable->rows[0].string_val.str = tmp_str.str;
-	strm->uriTable->rows[1].pTable->rowCount = 1;
-
-	tmp_err_code = createLocalNamesTable(&(strm->uriTable->rows[1].lTable), strm, 0);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	addPrefixRow(strm->uriTable->rows[uriID].pTable, tmp_str);
 
 	for(i = 0; i < URI_1_LOCALNAME_SIZE; i++)
 	{
-		tmp_err_code = asciiToString(URI_1_LOCALNAME[i], &tmp_str, strm);
+		tmp_err_code = asciiToString(URI_1_LOCALNAME[i], &tmp_str, strm, FALSE);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		strm->uriTable->rows[1].lTable->rows[i].string_val.length = tmp_str.length;
-		strm->uriTable->rows[1].lTable->rows[i].string_val.str = tmp_str.str;
-		strm->uriTable->rows[1].lTable->rows[i].vCrossTable = NULL;
-
-		strm->uriTable->rows[1].lTable->rowCount += 1;
+		addLNRow(strm->uriTable->rows[uriID].lTable, tmp_str, &lnID);
 	}
 
-	strm->uriTable->rowCount += 1;
-
 	/**** URI	2	"http://www.w3.org/2001/XMLSchema-instance" */
-
-	tmp_err_code = asciiToString(URI_2, &tmp_str, strm);
+	tmp_err_code = asciiToString(URI_2, &tmp_str, strm, FALSE);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	strm->uriTable->rows[2].string_val.str = tmp_str.str;
-	strm->uriTable->rows[2].string_val.length = tmp_str.length;
+	addURIRow(strm->uriTable, tmp_str, &uriID, strm);
 
-	tmp_err_code = createPrefixTable(&(strm->uriTable->rows[2].pTable), strm);
+	tmp_err_code = asciiToString(URI_2_PREFIX, &tmp_str, strm, FALSE);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-
-	tmp_err_code = asciiToString(URI_2_PREFIX, &tmp_str, strm);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-	strm->uriTable->rows[2].pTable->rows[0].string_val.length = tmp_str.length;
-	strm->uriTable->rows[2].pTable->rows[0].string_val.str = tmp_str.str;
-	strm->uriTable->rows[2].pTable->rowCount = 1;
-
-	tmp_err_code = createLocalNamesTable(&(strm->uriTable->rows[2].lTable), strm, 0);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	addPrefixRow(strm->uriTable->rows[uriID].pTable, tmp_str);
 
 	for(i = 0; i < URI_2_LOCALNAME_SIZE; i++)
 	{
-		tmp_err_code = asciiToString(URI_2_LOCALNAME[i], &tmp_str, strm);
+		tmp_err_code = asciiToString(URI_2_LOCALNAME[i], &tmp_str, strm, FALSE);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		strm->uriTable->rows[2].lTable->rows[i].string_val.length = tmp_str.length;
-		strm->uriTable->rows[2].lTable->rows[i].string_val.str = tmp_str.str;
-		strm->uriTable->rows[2].lTable->rows[i].vCrossTable = NULL;
-
-		strm->uriTable->rows[2].lTable->rowCount += 1;
+		addLNRow(strm->uriTable->rows[uriID].lTable, tmp_str, &lnID);
 	}
-
-	strm->uriTable->rowCount += 1;
 
 	/**** URI	3	"http://www.w3.org/2001/XMLSchema"  */
 	if(withSchema == TRUE)
 	{
-		tmp_err_code = asciiToString(URI_3, &tmp_str, strm);
+		tmp_err_code = asciiToString(URI_3, &tmp_str, strm, FALSE);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		strm->uriTable->rows[3].string_val.str = tmp_str.str;
-		strm->uriTable->rows[3].string_val.length = tmp_str.length;
-
-		strm->uriTable->rows[3].pTable = NULL;
-
-		tmp_err_code = createLocalNamesTable(&(strm->uriTable->rows[3].lTable), strm, 0);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		addURIRow(strm->uriTable, tmp_str, &uriID, strm);
 
 		for(i = 0; i < URI_3_LOCALNAME_SIZE; i++)
 		{
-			tmp_err_code = asciiToString(URI_3_LOCALNAME[i], &tmp_str, strm);
+			tmp_err_code = asciiToString(URI_3_LOCALNAME[i], &tmp_str, strm, FALSE);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			strm->uriTable->rows[3].lTable->rows[i].string_val.length = tmp_str.length;
-			strm->uriTable->rows[3].lTable->rows[i].string_val.str = tmp_str.str;
-			strm->uriTable->rows[3].lTable->rows[i].vCrossTable = NULL;
-
-			strm->uriTable->rows[3].lTable->rowCount += 1;
+			addLNRow(strm->uriTable->rows[uriID].lTable, tmp_str, &lnID);
 		}
-
-		strm->uriTable->rowCount += 1;
 	}
-
 	return ERR_OK;
 }
 
@@ -412,6 +352,24 @@ errorCode addGVRow(ValueTable* vTable, StringType global_value, uint32_t* rowID)
 
 	*rowID = vTable->rowCount;
 	vTable->rowCount += 1;
+	return ERR_OK;
+}
+
+errorCode addPrefixRow(PrefixTable* pTable, StringType px_value)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	if(pTable->arrayDimension == pTable->rowCount)   // The dynamic array must be extended first
+	{
+		tmp_err_code = memManagedReAllocate((void *) &pTable->rows, sizeof(struct PrefixRow)*(pTable->rowCount + DEFAULT_PREFIX_ROWS_NUMBER), pTable->memNode);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		pTable->arrayDimension = pTable->arrayDimension + DEFAULT_PREFIX_ROWS_NUMBER;
+	}
+
+	pTable->rows[pTable->rowCount].string_val.length = px_value.length;
+	pTable->rows[pTable->rowCount].string_val.str = px_value.str;
+
+	pTable->rowCount += 1;
 	return ERR_OK;
 }
 

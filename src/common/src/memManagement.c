@@ -99,7 +99,8 @@ errorCode freeAllMem(EXIStream* strm)
 	// (This includes the keys for the table -> they must be allocated directly with EXIP_MALLOC
 	//  without using memManagedAllocate)
 	// #DOCUMENT#
-	hashtable_destroy(strm->ePool, 0);
+	if(strm->ePool != NULL)
+		hashtable_destroy(strm->ePool, 0);
 
 	while(strm->memStack != NULL)
 	{
