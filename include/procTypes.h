@@ -430,6 +430,34 @@ struct memAlloc {
 };
 
 /**
+ * Represents an EXI header
+ */
+struct EXIheader
+{
+	/**
+	 * Boolean value - 0 for lack of EXI cookie, otherwise 1
+	 */
+	unsigned char has_cookie;
+
+	/**
+	 * Boolean value - 0 for lack of EXI Options, otherwise 1
+	 */
+	unsigned char has_options;
+
+	/** Boolean value - 1 preview version, 0 final version */
+	unsigned char is_preview_version;
+
+	/**
+	 * EXI stream version
+	 */
+	int version_number;
+
+	struct EXIOptions* opts;
+};
+
+typedef struct EXIheader EXIheader;
+
+/**
  * Represents an EXI stream
  */
 struct EXIStream
@@ -456,10 +484,10 @@ struct EXIStream
 	unsigned char bitPointer;
 
 	/**
-	 * The EXI Options which are derived from the EXI header. They control the
+	 * EXI Header - the most important field is the EXI Options. They control the
 	 * parsing and serialization of the stream.
 	 */
-	struct EXIOptions* opts;
+	EXIheader header;
 
 	/**
 	 * The value string table
@@ -572,35 +600,6 @@ struct EXIOptions
 	 */
 	void* user_defined_data;
 };
-
-/**
- * Represents an EXI header
- */
-struct EXIheader
-{
-	/**
-	 * Boolean value - 0 for lack of EXI cookie, otherwise 1
-	 */
-	unsigned char has_cookie;
-
-	/**
-	 * Boolean value - 0 for lack of EXI Options, otherwise 1
-	 */
-	unsigned char has_options;
-
-	/** Boolean value - 1 preview version, 0 final version */
-	unsigned char is_preview_version;
-
-	/**
-	 * EXI stream version
-	 */
-	int version_number;
-
-	struct EXIOptions* opts;
-};
-
-typedef struct EXIheader EXIheader;
-
 
 /**********************Function definitions************************/
 

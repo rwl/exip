@@ -49,7 +49,7 @@
 
 errorCode decodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, uint32_t* int_val)
 {
-	if(strm->opts->compression == 0 && strm->opts->alignment == BIT_PACKED)
+	if(strm->header.opts->compression == 0 && strm->header.opts->alignment == BIT_PACKED)
 	{
 		return readBits(strm, n, int_val);
 	}

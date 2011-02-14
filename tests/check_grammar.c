@@ -55,7 +55,7 @@ START_TEST (test_createDocGrammar)
 	testStream.bitPointer = 0;
 	struct EXIOptions options;
 	makeDefaultOpts(&options);
-	testStream.opts = &options;
+	testStream.header.opts = &options;
 	char buf[2];
 	buf[0] = (char) 0b11010100;
 	buf[1] = (char) 0b01100000;
@@ -65,7 +65,7 @@ START_TEST (test_createDocGrammar)
 
 	struct EXIGrammar testGrammar;
 
-	err = createDocGrammar(&testGrammar, &options, &testStream, NULL);
+	err = createDocGrammar(&testGrammar, &testStream, NULL);
 
 	fail_unless (err == ERR_OK, "getBuildInDocGrammar returns error code %d", err);
 
@@ -87,12 +87,13 @@ START_TEST (test_pushGrammar)
 	struct EXIOptions options;
 	makeDefaultOpts(&options);
 	EXIStream strm;
+	strm.header.opts = &options;
 
-	err = createDocGrammar(testGrStack, &options, &strm, NULL);
+	err = createDocGrammar(testGrStack, &strm, NULL);
 	fail_if(err != ERR_OK);
 
 	struct EXIGrammar testElementGrammar;
-	err = createBuildInElementGrammar(&testElementGrammar, &options, &strm);
+	err = createBuildInElementGrammar(&testElementGrammar, &strm);
 	fail_if(err != ERR_OK);
 
 	err = pushGrammar(&testGrStack, &testElementGrammar);
@@ -109,12 +110,13 @@ START_TEST (test_popGrammar)
 	struct EXIOptions options;
 	makeDefaultOpts(&options);
 	EXIStream strm;
+	strm.header.opts = &options;
 
-	err = createDocGrammar(testGrStack, &options, &strm, NULL);
+	err = createDocGrammar(testGrStack, &strm, NULL);
 	fail_if(err != ERR_OK);
 
 	struct EXIGrammar testElementGrammar;
-	err = createBuildInElementGrammar(&testElementGrammar, &options, &strm);
+	err = createBuildInElementGrammar(&testElementGrammar, &strm);
 	fail_if(err != ERR_OK);
 
 	err = pushGrammar(&testGrStack, &testElementGrammar);
@@ -137,8 +139,9 @@ START_TEST (test_createBuildInElementGrammar)
 	struct EXIOptions options;
 	makeDefaultOpts(&options);
 	EXIStream strm;
+	strm.header.opts = &options;
 
-	err = createBuildInElementGrammar(&testElementGrammar, &options, &strm);
+	err = createBuildInElementGrammar(&testElementGrammar, &strm);
 	fail_unless (err == ERR_OK, "createBuildInElementGrammar returns error code %d", err);
 
 	//TODO: add more tests!
@@ -169,6 +172,7 @@ START_TEST (test_checkGrammarInPool)
 	struct EXIOptions options;
 	makeDefaultOpts(&options);
 	EXIStream strm;
+	strm.header.opts = &options;
 
 	unsigned char is_found = 1;
 	struct EXIGrammar* result = NULL;
@@ -179,7 +183,7 @@ START_TEST (test_checkGrammarInPool)
 	fail_unless (is_found == 0, "checkGrammarInPool does not set is_found correctly %d", is_found);
 	fail_unless (result == NULL, "checkGrammarInPool does not set result correctly");
 
-	err = createBuildInElementGrammar(&testElementGrammar, &options, &strm);
+	err = createBuildInElementGrammar(&testElementGrammar, &strm);
 	fail_unless (err == ERR_OK, "createBuildInElementGrammar returns error code %d", err);
 
 	err = addGrammarInPool(testPool, uriRowID, lnRowID, &testElementGrammar);
@@ -208,8 +212,9 @@ START_TEST (test_addGrammarInPool)
 	struct EXIOptions options;
 	makeDefaultOpts(&options);
 	EXIStream strm;
+	strm.header.opts = &options;
 
-	err = createBuildInElementGrammar(&testElementGrammar, &options, &strm);
+	err = createBuildInElementGrammar(&testElementGrammar, &strm);
 	fail_unless (err == ERR_OK, "createBuildInElementGrammar returns error code %d", err);
 
 	err = addGrammarInPool(testPool, uriRowID, lnRowID, &testElementGrammar);

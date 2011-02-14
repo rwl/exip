@@ -108,7 +108,6 @@ int main(int argc, char *argv[])
 
 				strm.ePool = NULL;
 				strm.gStack = NULL;
-				strm.opts = NULL;
 				strm.memStack = NULL;
 
 				tmp_err_code = generateSchemaInformedGrammars(schemaBuffer, schemaLen, SCHEMA_FORMAT_XSD_EXI,
@@ -145,9 +144,7 @@ int main(int argc, char *argv[])
 			struct EXIOptions opts;
 			StringType uri;
 			StringType ln;
-			QName testElQname= {&uri, &ln};
-			QName testAtQname= {&uri, &ln};
-			StringType attVal;
+			QName qname= {&uri, &ln};
 			StringType chVal;
 			char buf[200];
 			
@@ -179,13 +176,13 @@ int main(int argc, char *argv[])
 
 			tmp_err_code += asciiToString("", &uri, &testStrm, FALSE);
 			tmp_err_code += asciiToString("EXIPEncoder", &ln, &testStrm, FALSE);
-			tmp_err_code += serEXI.startElementSer(&testStrm, testElQname);
+			tmp_err_code += serEXI.startElementSer(&testStrm, qname);
 
 			tmp_err_code += asciiToString("version", &ln, &testStrm, FALSE);
-			tmp_err_code += serEXI.attributeSer(&testStrm, testAtQname);
+			tmp_err_code += serEXI.attributeSer(&testStrm, qname);
 
-			tmp_err_code += asciiToString("0.1", &attVal, &testStrm, FALSE);
-			tmp_err_code += serEXI.stringDataSer(&testStrm, attVal);
+			tmp_err_code += asciiToString("0.1", &chVal, &testStrm, FALSE);
+			tmp_err_code += serEXI.stringDataSer(&testStrm, chVal);
 
 			tmp_err_code += asciiToString("This is an example of serializing EXI streams using EXIP low level API", &chVal, &testStrm, FALSE);
 			tmp_err_code += serEXI.stringDataSer(&testStrm, chVal);
