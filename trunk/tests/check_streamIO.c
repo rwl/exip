@@ -272,7 +272,7 @@ START_TEST (test_decodeNBitUnsignedInteger)
   testStream.bitPointer = 0;
   struct EXIOptions options;
   makeDefaultOpts(&options);
-  testStream.opts = &options;
+  testStream.header.opts = &options;
 
   char buf[2];
   buf[0] = (char) 0b11010100;
@@ -303,7 +303,7 @@ START_TEST (test_decodeBoolean)
   testStream.bitPointer = 0;
   struct EXIOptions options;
   makeDefaultOpts(&options);
-  testStream.opts = &options;
+  testStream.header.opts = &options;
 
   char buf[2];
   buf[0] = (char) 0b11010100;
@@ -331,7 +331,7 @@ START_TEST (test_decodeUnsignedInteger)
   testStream.bitPointer = 0;
   struct EXIOptions options;
   makeDefaultOpts(&options);
-  testStream.opts = &options;
+  testStream.header.opts = &options;
 
   char buf[3];
   buf[0] = (char) 0b11010100;
@@ -366,7 +366,7 @@ START_TEST (test_decodeString)
   testStream.bitPointer = 0;
   struct EXIOptions options;
   makeDefaultOpts(&options);
-  testStream.opts = &options;
+  testStream.header.opts = &options;
 
   char buf[4];
   buf[0] = (char) 0b00000010;
@@ -406,7 +406,7 @@ START_TEST (test_decodeBinary)
   testStream.bitPointer = 0;
   struct EXIOptions options;
   makeDefaultOpts(&options);
-  testStream.opts = &options;
+  testStream.header.opts = &options;
 
   char buf[20];
   buf[0] = (char) 0b00000101;		//5
@@ -497,7 +497,7 @@ START_TEST (test_decodeFloat)
   testStream.bitPointer = 0;
   struct EXIOptions options;
   makeDefaultOpts(&options);
-  testStream.opts = &options;
+  testStream.header.opts = &options;
 
   char buf[3];
   buf[0] = (char) 0b00000101;	//5
@@ -532,7 +532,7 @@ START_TEST (test_decodeIntegerValue)
   testStream.bitPointer = 0;
   struct EXIOptions options;
   makeDefaultOpts(&options);
-  testStream.opts = &options;
+  testStream.header.opts = &options;
 
   char buf[3];
   buf[0] = (char) 0b10010100;
@@ -570,11 +570,11 @@ START_TEST (test_encodeNBitUnsignedInteger)
   testStream.bitPointer = 0;
   struct EXIOptions options;
   makeDefaultOpts(&options);
-  testStream.opts = &options;
+  testStream.header.opts = &options;
 
-  unsigned char buf[2];
-  buf[0] = (unsigned char) 0b11001110;
-  buf[1] = (unsigned char) 0b11100000;
+  char buf[2];
+  buf[0] = (char) 0b11001110;
+  buf[1] = (char) 0b11100000;
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufferIndx = 0;
@@ -582,8 +582,8 @@ START_TEST (test_encodeNBitUnsignedInteger)
 
   err = encodeNBitUnsignedInteger(&testStream, 9, 412);
 
-  unsigned int test = buf[0] | 0;
-  unsigned int test2 = (unsigned int) buf[1] >> 7;
+  unsigned char test = buf[0] | 0;
+  unsigned char test2 = (unsigned char) buf[1] >> 7;
 
   fail_unless (err == ERR_OK,
   	       "encodeNBitUnsignedInteger returns error code %d", err);
@@ -603,11 +603,11 @@ START_TEST (test_encodeBoolean)
   testStream.bitPointer = 0;
   struct EXIOptions options;
   makeDefaultOpts(&options);
-  testStream.opts = &options;
+  testStream.header.opts = &options;
 
-  unsigned char buf[2];
-  buf[0] = (unsigned char) 0b01010100;
-  buf[1] = (unsigned char) 0b01100000;
+  char buf[2];
+  buf[0] = (char) 0b01010100;
+  buf[1] = (char) 0b01100000;
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufferIndx = 0;
@@ -615,8 +615,8 @@ START_TEST (test_encodeBoolean)
 
   err = encodeBoolean(&testStream, 1);
 
-  unsigned int bit_val = 0;
-  bit_val = buf[0] >> 7;
+  unsigned char bit_val = 0;
+  bit_val = (unsigned char) buf[0] >> 7;
 
   fail_unless (err == ERR_OK,
 	       "encodeBoolean returns error code %d", err);
@@ -627,7 +627,7 @@ START_TEST (test_encodeBoolean)
 
   err = encodeBoolean(&testStream, 0);
 
-  bit_val = buf[0] >> 6;
+  bit_val = (unsigned char) buf[0] >> 6;
 
   fail_unless (err == ERR_OK,
 	   "encodeBoolean returns error code %d", err);
@@ -644,12 +644,12 @@ START_TEST (test_encodeUnsignedInteger)
   testStream.bitPointer = 0;
   struct EXIOptions options;
   makeDefaultOpts(&options);
-  testStream.opts = &options;
+  testStream.header.opts = &options;
 
-  unsigned char buf[3];
-  buf[0] = (unsigned char) 0b11010100;
-  buf[1] = (unsigned char) 0b00000000;
-  buf[2] = (unsigned char) 0b00000000;
+  char buf[3];
+  buf[0] = (char) 0b11010100;
+  buf[1] = (char) 0b00000000;
+  buf[2] = (char) 0b00000000;
   testStream.buffer = buf;
   testStream.bufLen = 3;
   testStream.bufferIndx = 0;
@@ -657,8 +657,8 @@ START_TEST (test_encodeUnsignedInteger)
 
   err = encodeUnsignedInteger(&testStream, 421);
 
-  unsigned int test1 = (unsigned int) buf[0];
-  unsigned int test2 = (unsigned int) buf[1];
+  unsigned char test1 = (unsigned char) buf[0];
+  unsigned char test2 = (unsigned char) buf[1];
 
   fail_unless (err == ERR_OK,
 		   "encodeUnsignedInteger returns error code %d", err);
@@ -670,8 +670,26 @@ START_TEST (test_encodeUnsignedInteger)
   fail_unless (testStream.bufferIndx == 2,
       	       "The encodeUnsignedInteger function did not move the byte Pointer of the stream correctly");
 
-  // TODO: write more extensive tests
+  buf[0] = (char) 0b00010000;
+  buf[1] = (char) 0b00000000;
+  buf[2] = (char) 0b00000000;
+  testStream.bufferIndx = 0;
+  testStream.bitPointer = 0;
+  err = UNEXPECTED_ERROR;
 
+  err = encodeUnsignedInteger(&testStream, 0);
+
+  test1 = (unsigned char) buf[0];
+  test2 = (unsigned char) buf[1];
+
+  fail_unless (err == ERR_OK,
+     "encodeUnsignedInteger returns error code %d", err);
+  fail_unless (test1 == 0 && test2 == 0,
+     "The encodeUnsignedInteger function doesn't work correctly");
+  fail_unless (testStream.bitPointer == 0,
+     "The encodeUnsignedInteger function did not move the bit Pointer of the stream correctly");
+  fail_unless (testStream.bufferIndx == 1,
+     "The encodeUnsignedInteger function did not move the byte Pointer of the stream correctly");
 }
 END_TEST
 
@@ -682,13 +700,13 @@ START_TEST (test_encodeString)
   testStream.bitPointer = 0;
   struct EXIOptions options;
   makeDefaultOpts(&options);
-  testStream.opts = &options;
+  testStream.header.opts = &options;
 
-  unsigned char buf[50];
-  buf[0] = (unsigned char) 0b00000010;
-  buf[1] = (unsigned char) 0b01100101;
-  buf[2] = (unsigned char) 0b01010100;
-  buf[3] = (unsigned char) 0b01010010;
+  char buf[50];
+  buf[0] = (char) 0b00000010;
+  buf[1] = (char) 0b01100101;
+  buf[2] = (char) 0b01010100;
+  buf[3] = (char) 0b01010010;
   testStream.buffer = buf;
   testStream.bufLen = 50;
   testStream.bufferIndx = 0;
@@ -698,7 +716,7 @@ START_TEST (test_encodeString)
 
   err = encodeString(&testStream, &testStr);
 
-  unsigned int str_len = buf[0];
+  unsigned char str_len = buf[0];
 
   fail_unless (err == ERR_OK,
 	       "encodeString returns error code %d", err);

@@ -280,7 +280,11 @@ char sample_attribute(QName qname)
 	else if(outputFormat == OUT_XML)
 	{
 		printf(" ");
-		printString(qname.uri);
+		if(!isStrEmpty(qname.uri))
+		{
+			printString(qname.uri);
+			printf(":");
+		}
 		printString(qname.localName);
 		printf("=\"");
 	}

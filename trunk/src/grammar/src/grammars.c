@@ -59,8 +59,7 @@
 #define DEF_ELEMENT_GRAMMAR_RULE_NUMBER 2
 #define GRAMMAR_POOL_DIMENSION 16
 
-errorCode createDocGrammar(struct EXIGrammar* docGrammar, struct EXIOptions* opts,
-							EXIStream* strm, GlobalElements* glElems)
+errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, GlobalElements* glElems)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int n = 0; // first part of the event codes in the second rule
@@ -69,7 +68,7 @@ errorCode createDocGrammar(struct EXIGrammar* docGrammar, struct EXIOptions* opt
 	// For now only the default fidelity_opts pruning is supported - all preserve opts are false
 	char is_default_fidelity = 0;
 
-	if(opts->preserve == 0) //all preserve opts are false
+	if(strm->header.opts->preserve == 0) //all preserve opts are false
 		is_default_fidelity = 1;
 
 	docGrammar->lastNonTermID = GR_VOID_NON_TERMINAL;
@@ -204,7 +203,7 @@ errorCode createDocGrammar(struct EXIGrammar* docGrammar, struct EXIOptions* opt
 	return ERR_OK;
 }
 
-errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, struct EXIOptions* opts, EXIStream* strm)
+errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, EXIStream* strm)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
@@ -213,7 +212,7 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, struct 
 	// and selfContained is also false
 	char is_default_fidelity = 0;
 
-	if(opts->preserve == 0 && opts->selfContained == 0) //all preserve opts are false and selfContained is also false
+	if(strm->header.opts->preserve == 0 && strm->header.opts->selfContained == 0) //all preserve opts are false and selfContained is also false
 		is_default_fidelity = 1;
 
 	elementGrammar->lastNonTermID = GR_VOID_NON_TERMINAL;
@@ -566,7 +565,7 @@ static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHand
 			struct EXIGrammar* elementGrammar = (struct EXIGrammar*) memManagedAllocate(strm, sizeof(struct EXIGrammar));
 			if(elementGrammar == NULL)
 				return MEMORY_ALLOCATION_ERROR;
-			tmp_err_code = createBuildInElementGrammar(elementGrammar, strm->opts, strm);
+			tmp_err_code = createBuildInElementGrammar(elementGrammar, strm);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 			tmp_err_code = addGrammarInPool(strm->ePool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, elementGrammar);

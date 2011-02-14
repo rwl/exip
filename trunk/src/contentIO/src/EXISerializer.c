@@ -84,7 +84,7 @@ errorCode initStream(EXIStream* strm, char* buf, unsigned int bufSize, struct EX
 	strm->memStack = NULL;
 	strm->buffer = buf;
 
-	strm->opts = opts;
+	strm->header.opts = opts;
 	strm->bitPointer = 0;
 	strm->bufLen = bufSize;
 	strm->bufferIndx = 0;
@@ -118,7 +118,7 @@ errorCode initStream(EXIStream* strm, char* buf, unsigned int bufSize, struct EX
 			return tmp_err_code;
 	}
 
-	tmp_err_code = createDocGrammar(strm->gStack, strm->opts, strm, glElems);
+	tmp_err_code = createDocGrammar(strm->gStack, strm, glElems);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -260,7 +260,7 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 						struct EXIGrammar* elementGrammar = (struct EXIGrammar*) memManagedAllocate(strm, sizeof(struct EXIGrammar));
 						if(elementGrammar == NULL)
 							return MEMORY_ALLOCATION_ERROR;
-						tmp_err_code = createBuildInElementGrammar(elementGrammar, strm->opts, strm);
+						tmp_err_code = createBuildInElementGrammar(elementGrammar, strm);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
 						tmp_err_code = addGrammarInPool(strm->ePool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, elementGrammar);

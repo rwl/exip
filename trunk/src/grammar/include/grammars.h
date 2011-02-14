@@ -85,22 +85,19 @@ errorCode popGrammar(EXIGrammarStack** gStack, struct EXIGrammar** grammar);
  * it creates Schema-Informed Document Grammar
  *
  * @param[in, out] docGrammar empty grammar container to be filled with rules
- * @param[in] opts EXI options /EXI header preserve opts and others/
- * @param[in, out] strm EXI stream for which the allocation is made
+ * @param[in, out] strm EXI stream for which the allocations are made; also the EXI options are read from here
  * @param[in] glElems A sorted array of global elements in the schema; if Built-in Document Grammar is created then it is NULL
  * @return Error handling code
  */
-errorCode createDocGrammar(struct EXIGrammar* docGrammar, struct EXIOptions* opts,
-							EXIStream* strm, GlobalElements* glElems);
+errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, GlobalElements* glElems);
 
 /**
  * @brief Creates an instance of EXI Built-in Element Grammar
  * @param[in] elementGrammar empty grammar container
- * @param[in] fidelity_opts Fidelity options /EXI header preserve opts/
  * @param[in, out] strm EXI stream for which the allocation is made
  * @return Error handling code
  */
-errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, struct EXIOptions* opts, EXIStream* strm);
+errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, EXIStream* strm);
 
 /**
  * @brief Creates empty Element or Type Grammar pool

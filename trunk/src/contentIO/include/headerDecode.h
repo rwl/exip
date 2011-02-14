@@ -50,11 +50,10 @@
 
 /**
  * @brief Decode the header of an EXI stream. The current position in the stream is set to
- * the first bit after the header. The EXIStream.EXIOptions* are set accordingly
- * @param[in] strm EXI stream of bits
- * @param[out] header the parsed header values
+ * the first bit after the header. The EXIStream.header.EXIOptions* are set accordingly
+ * @param[in, out] strm EXI stream of bits
  * @return Error handling code
  */
-errorCode decodeHeader(EXIStream* strm, EXIheader* header);
+errorCode decodeHeader(EXIStream* strm);
 
 #endif /* HEADERDECODE_H_ */

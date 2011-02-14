@@ -56,7 +56,7 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 	EXIEvent event;
 
 	strm->gStack = &docGr;
-	tmp_err_code = createDocGrammar(strm->gStack, strm->opts, strm, NULL);
+	tmp_err_code = createDocGrammar(strm->gStack, strm, NULL);
 	if(tmp_err_code != ERR_OK)
 	{
 		if(handler->fatalError != NULL)

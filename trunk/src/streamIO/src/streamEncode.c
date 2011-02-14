@@ -50,7 +50,7 @@
 
 errorCode encodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, uint32_t int_val)
 {
-	if(strm->opts->compression == 0 && strm->opts->alignment == BIT_PACKED)
+	if(strm->header.opts->compression == 0 && strm->header.opts->alignment == BIT_PACKED)
 	{
 		return writeNBits(strm, n, int_val);
 	}
@@ -85,7 +85,9 @@ errorCode encodeUnsignedInteger(EXIStream* strm, uint32_t int_val)
 	int nbyte7 = nbits / 7 + (nbits % 7 != 0);
 	int tmp_byte_buf = 0;
 	int i = 0;
-	for(i = 0; i < nbyte7; i++)
+	if(nbyte7 == 0)
+		nbyte7 = 1;  // the 0 Unsigned Integer is encoded with one 7bit byte
+	for(; i < nbyte7; i++)
 	{
 		tmp_byte_buf = (int_val & (127ul << (i * 7))) >> (i * 7);
 		if(i == nbyte7 - 1)

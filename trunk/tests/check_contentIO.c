@@ -54,14 +54,12 @@ START_TEST (test_decodeHeader)
 	EXIStream testStream;  // Default options, no EXI cookie
 	struct EXIOptions options;
 	char buf[3];
-	EXIheader header;
 	errorCode err = UNEXPECTED_ERROR;
 	EXIStream testStream2;  // Default options, with EXI cookie
 	struct EXIOptions options2;
 	char buf2[7];
-	EXIheader header2;
 
-	testStream.opts = &options;
+	testStream.header.opts = &options;
 	testStream.bitPointer = 0;
 	buf[0] = (char) 0x80;
 	buf[1] = (char) 0x60;
@@ -70,19 +68,19 @@ START_TEST (test_decodeHeader)
 	testStream.bufferIndx = 0;
 	testStream.bufLen = 3;
 
-	err = decodeHeader(&testStream, &header);
+	err = decodeHeader(&testStream);
 	fail_unless (err == ERR_OK, "decodeHeader returns error code %d", err);
-	fail_if(header.opts == NULL);
-	fail_unless (header.has_cookie == 0,
+	fail_if(testStream.header.opts == NULL);
+	fail_unless (testStream.header.has_cookie == 0,
 				"decodeHeader founds EXI cookie");
-	fail_unless (header.has_options == 0,
+	fail_unless (testStream.header.has_options == 0,
 					"decodeHeader founds options");
-	fail_unless (header.is_preview_version == 0,
+	fail_unless (testStream.header.is_preview_version == 0,
 					"decodeHeader founds preview version");
-	fail_unless (header.version_number == 1,
+	fail_unless (testStream.header.version_number == 1,
 					"decodeHeader does not recognize version 1 of the stream");
 
-	testStream2.opts = &options2;
+	testStream2.header.opts = &options2;
 	testStream2.bitPointer = 0;
 
 	buf2[0] = (char) 36;
@@ -97,16 +95,16 @@ START_TEST (test_decodeHeader)
 	testStream2.bufferIndx = 0;
 	testStream2.bufLen = 7;
 
-	err = decodeHeader(&testStream2, &header2);
+	err = decodeHeader(&testStream2);
 	fail_unless (err == ERR_OK, "decodeHeader returns error code %d", err);
-	fail_if(header2.opts == NULL);
-	fail_unless (header2.has_cookie == 1,
+	fail_if(testStream2.header.opts == NULL);
+	fail_unless (testStream2.header.has_cookie == 1,
 				"decodeHeader does not found EXI cookie");
-	fail_unless (header2.has_options == 0,
+	fail_unless (testStream2.header.has_options == 0,
 					"decodeHeader founds options");
-	fail_unless (header2.is_preview_version == 0,
+	fail_unless (testStream2.header.is_preview_version == 0,
 					"decodeHeader founds preview version");
-	fail_unless (header2.version_number == 1,
+	fail_unless (testStream2.header.version_number == 1,
 					"decodeHeader does not recognize version 1 of the stream");
 }
 END_TEST

@@ -46,7 +46,7 @@
 #include "streamDecode.h"
 #include "streamRead.h"
 
-errorCode decodeHeader(EXIStream* strm, EXIheader* header)
+errorCode decodeHeader(EXIStream* strm)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	uint32_t bits_val = 0;
@@ -58,7 +58,7 @@ errorCode decodeHeader(EXIStream* strm, EXIheader* header)
 		return tmp_err_code;
 	if(bits_val == 2)  // The header Distinguishing Bits i.e. no EXI Cookie
 	{
-		header->has_cookie = 0;
+		strm->header.has_cookie = 0;
 		DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">No EXI cookie detected\n"));
 	}
 	else if(bits_val == 0)// ASCII code for $ = 00100100  (36)
@@ -84,7 +84,7 @@ errorCode decodeHeader(EXIStream* strm, EXIheader* header)
 		if(bits_val != 73)   // ASCII code for I = 01001001  (73)
 			return INVALID_EXI_HEADER;
 
-		header->has_cookie = 1;
+		strm->header.has_cookie = 1;
 		tmp_err_code = readBits(strm, 2, &bits_val);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -102,40 +102,39 @@ errorCode decodeHeader(EXIStream* strm, EXIheader* header)
 		return tmp_err_code;
 
 
-	if(strm->opts == NULL)
+	if(strm->header.opts == NULL)
 		return NULL_POINTER_REF;
 
 	if(smallVal == 1) // There are EXI options
 	{
-		header->has_options = 1;
+		strm->header.has_options = 1;
 		return NOT_IMPLEMENTED_YET; // TODO: Handle EXI streams with options. This includes Padding Bits in some cases
 	}
 	else // The default values for EXI options
 	{
 		DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">No EXI options field in the header\n"));
-		header->has_options = 0;
-	    makeDefaultOpts(strm->opts);
+		strm->header.has_options = 0;
+	    makeDefaultOpts(strm->header.opts);
 	}
-	header->opts = strm->opts;
 
 	// Read the Version type
 	tmp_err_code = readNextBit(strm, &smallVal);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	header->is_preview_version = smallVal;
-	header->version_number = 1;
+	strm->header.is_preview_version = smallVal;
+	strm->header.version_number = 1;
 
 	do
 	{
 		tmp_err_code = readBits(strm, 4, &bits_val);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		header->version_number += bits_val;
+		strm->header.version_number += bits_val;
 		if(bits_val < 15)
 			break;
 	} while(1);
 
-	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">EXI version: %d\n", header->version_number));
+	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">EXI version: %d\n", strm->header.version_number));
 	return ERR_OK;
 }

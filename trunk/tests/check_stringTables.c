@@ -230,7 +230,7 @@ START_TEST (test_createInitialStringTables)
 	testStream.bitPointer = 0;
 	struct EXIOptions options;
 	makeDefaultOpts(&options);
-	testStream.opts = &options;
+	testStream.header.opts = &options;
 
 	char buf[2];
 	buf[0] = (char) 0b11010100;
