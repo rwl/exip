@@ -48,7 +48,7 @@
 
 // TODO: use macros for conditional debugging for error messages
 
-void decodeBody(EXIStream* strm, ContentHandler* handler)
+void decodeBody(EXIStream* strm, ContentHandler* handler, void* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIGrammarStack docGr;
@@ -61,7 +61,7 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 	{
 		if(handler->fatalError != NULL)
 		{
-			handler->fatalError(tmp_err_code, "Cannot create BuildInDocGrammar");
+			handler->fatalError(tmp_err_code, "Cannot create BuildInDocGrammar", app_data);
 		}
 		freeAllMem(strm);
 		return;
@@ -72,7 +72,7 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 	{
 		if(handler->fatalError != NULL)
 		{
-			handler->fatalError(tmp_err_code, "Cannot create InitialStringTables");
+			handler->fatalError(tmp_err_code, "Cannot create InitialStringTables", app_data);
 		}
 		freeAllMem(strm);
 		return;
@@ -83,7 +83,7 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 	{
 		if(handler->fatalError != NULL)
 		{
-			handler->fatalError(tmp_err_code, "Cannot create ElementGrammarPool");
+			handler->fatalError(tmp_err_code, "Cannot create ElementGrammarPool", app_data);
 		}
 		freeAllMem(strm);
 		return;
@@ -91,12 +91,12 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 
 	while(strm->nonTermID != GR_VOID_NON_TERMINAL)  // Process grammar productions until gets to the end of the stream
 	{
-		tmp_err_code = processNextProduction(strm, &event, &tmpNonTermID, handler);
+		tmp_err_code = processNextProduction(strm, &event, &tmpNonTermID, handler, app_data);
 		if(tmp_err_code != ERR_OK)
 		{
 			if(handler->fatalError != NULL)
 			{
-				handler->fatalError(tmp_err_code, "Error processing next production");
+				handler->fatalError(tmp_err_code, "Error processing next production", app_data);
 			}
 			freeAllMem(strm);
 			return;
@@ -109,7 +109,7 @@ void decodeBody(EXIStream* strm, ContentHandler* handler)
 			{
 				if(handler->fatalError != NULL)
 				{
-					handler->fatalError(tmp_err_code, "popGrammar failed");
+					handler->fatalError(tmp_err_code, "popGrammar failed", app_data);
 				}
 				freeAllMem(strm);
 				return;

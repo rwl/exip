@@ -512,10 +512,10 @@ static errorCode decodeStringValue(EXIStream* strm, StringType** value)
 }
 
 static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* handler,
-									unsigned int* nonTermID_out, GrammarRule* currRule);
+									unsigned int* nonTermID_out, GrammarRule* currRule, void* app_data);
 
 static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* handler,
-									unsigned int* nonTermID_out, GrammarRule* currRule)
+									unsigned int* nonTermID_out, GrammarRule* currRule,  void* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	// TODO: implement all cases
@@ -533,7 +533,7 @@ static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHand
 			return tmp_err_code;
 		if(handler->startElement != NULL)  // Invoke handler method passing the element qname
 		{
-			if(handler->startElement(qname) == EXIP_HANDLER_STOP)
+			if(handler->startElement(qname, app_data) == EXIP_HANDLER_STOP)
 				return HANDLER_STOP_RECEIVED;
 		}
 
@@ -586,7 +586,7 @@ static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHand
 			return tmp_err_code;
 		if(handler->attribute != NULL)  // Invoke handler method
 		{
-			if(handler->attribute(qname) == EXIP_HANDLER_STOP)
+			if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
 				return HANDLER_STOP_RECEIVED;
 		}
 		if(event.valueType == VALUE_TYPE_STRING || event.valueType == VALUE_TYPE_NONE)
@@ -597,7 +597,7 @@ static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHand
 				return tmp_err_code;
 			if(handler->stringData != NULL)  // Invoke handler method
 			{
-				if(handler->stringData(*value) == EXIP_HANDLER_STOP)
+				if(handler->stringData(*value, app_data) == EXIP_HANDLER_STOP)
 					return HANDLER_STOP_RECEIVED;
 			}
 		}
@@ -615,7 +615,7 @@ static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHand
 		qname.localName = &(strm->uriTable->rows[strm->sContext.curr_uriID].lTable->rows[strm->sContext.curr_lnID].string_val);
 		if(handler->startElement != NULL)  // Invoke handler method passing the element qname
 		{
-			if(handler->startElement(qname) == EXIP_HANDLER_STOP)
+			if(handler->startElement(qname, app_data) == EXIP_HANDLER_STOP)
 				return HANDLER_STOP_RECEIVED;
 		}
 
@@ -643,7 +643,7 @@ static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHand
 		qname.localName = &(strm->uriTable->rows[strm->sContext.curr_uriID].lTable->rows[strm->sContext.curr_lnID].string_val);
 		if(handler->attribute != NULL)  // Invoke handler method
 		{
-			if(handler->attribute(qname) == EXIP_HANDLER_STOP)
+			if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
 				return HANDLER_STOP_RECEIVED;
 		}
 		if(event.valueType == VALUE_TYPE_STRING || event.valueType == VALUE_TYPE_NONE)
@@ -654,7 +654,7 @@ static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHand
 				return tmp_err_code;
 			if(handler->stringData != NULL)  // Invoke handler method
 			{
-				if(handler->stringData(*value) == EXIP_HANDLER_STOP)
+				if(handler->stringData(*value, app_data) == EXIP_HANDLER_STOP)
 					return HANDLER_STOP_RECEIVED;
 			}
 		}
@@ -670,7 +670,7 @@ static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHand
 				return tmp_err_code;
 			if(handler->stringData != NULL)  // Invoke handler method
 			{
-				if(handler->stringData(*value) == EXIP_HANDLER_STOP)
+				if(handler->stringData(*value, app_data) == EXIP_HANDLER_STOP)
 					return HANDLER_STOP_RECEIVED;
 			}
 		}
@@ -696,7 +696,7 @@ static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHand
  * */
 
 errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
-							    unsigned int* nonTermID_out, ContentHandler* handler)
+							    unsigned int* nonTermID_out, ContentHandler* handler, void* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	uint32_t tmp_bits_val = 0;
@@ -726,7 +726,7 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 					{
 						if(handler->startDocument != NULL)
 						{
-							if(handler->startDocument() == EXIP_HANDLER_STOP)
+							if(handler->startDocument(app_data) == EXIP_HANDLER_STOP)
 								return HANDLER_STOP_RECEIVED;
 						}
 					}
@@ -734,7 +734,7 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 					{
 						if(handler->endDocument != NULL)
 						{
-							if(handler->endDocument() == EXIP_HANDLER_STOP)
+							if(handler->endDocument(app_data) == EXIP_HANDLER_STOP)
 								return HANDLER_STOP_RECEIVED;
 						}
 					}
@@ -742,7 +742,7 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 					{
 						if(handler->endElement != NULL)
 						{
-							if(handler->endElement() == EXIP_HANDLER_STOP)
+							if(handler->endElement(app_data) == EXIP_HANDLER_STOP)
 								return HANDLER_STOP_RECEIVED;
 						}
 
@@ -751,7 +751,7 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 					{
 						if(handler->selfContained != NULL)
 						{
-							if(handler->selfContained() == EXIP_HANDLER_STOP)
+							if(handler->selfContained(app_data) == EXIP_HANDLER_STOP)
 								return HANDLER_STOP_RECEIVED;
 						}
 					}
@@ -763,7 +763,7 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 							strm->sContext.curr_lnID = strm->gStack->ruleArray[i].prodArray[currProduction].lnRowID;
 						}
 						tmp_err_code = decodeEventContent(strm, *event, handler,
-								        nonTermID_out, &(strm->gStack->ruleArray[i]));
+								        nonTermID_out, &(strm->gStack->ruleArray[i]), app_data);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
 					}
@@ -788,7 +788,7 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 								{
 									if(handler->startDocument != NULL)
 									{
-										if(handler->startDocument() == EXIP_HANDLER_STOP)
+										if(handler->startDocument(app_data) == EXIP_HANDLER_STOP)
 											return HANDLER_STOP_RECEIVED;
 									}
 								}
@@ -796,7 +796,7 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 								{
 									if(handler->endDocument != NULL)
 									{
-										if(handler->endDocument() == EXIP_HANDLER_STOP)
+										if(handler->endDocument(app_data) == EXIP_HANDLER_STOP)
 											return HANDLER_STOP_RECEIVED;
 									}
 								}
@@ -806,7 +806,7 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 									
 									if(handler->endElement != NULL)
 									{
-										if(handler->endElement() == EXIP_HANDLER_STOP)
+										if(handler->endElement(app_data) == EXIP_HANDLER_STOP)
 											return HANDLER_STOP_RECEIVED;
 									}
 									tmp_err_code = isDocumentGrammar(strm->gStack, &isDocGr);
@@ -830,7 +830,7 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 								{
 									if(handler->selfContained != NULL)
 									{
-										if(handler->selfContained() == EXIP_HANDLER_STOP)
+										if(handler->selfContained(app_data) == EXIP_HANDLER_STOP)
 											return HANDLER_STOP_RECEIVED;
 									}
 								}
@@ -860,7 +860,7 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 										}
 									}
 									tmp_err_code = decodeEventContent(strm, *event, handler,
-											        nonTermID_out, &(strm->gStack->ruleArray[i]));
+											        nonTermID_out, &(strm->gStack->ruleArray[i]), app_data);
 									if(tmp_err_code != ERR_OK)
 										return tmp_err_code;
 								}

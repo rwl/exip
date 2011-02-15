@@ -46,6 +46,6 @@
 
 #include "contentHandler.h"
 
-void decodeBody(EXIStream* strm, ContentHandler* handler);
+void decodeBody(EXIStream* strm, ContentHandler* handler, void* app_data);
 
 #endif /* BODYDECODE_H_ */

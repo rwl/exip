@@ -50,35 +50,29 @@
 #include "grammars.h"
 #include "normGrammar.h"
 
+struct xsdAppData
+{
+	struct globalSchemaProps props;
+	ContextStack* contextStack;
+	ProtoGrammarsStack* pGrammarStack;
+	DynArray* elNotResolvedArray;
+	DynArray* attributeUses;
+	URITable* metaURITable;
+	DynArray* regProdQname;
+	DynArray* globalElements;
+	EXIStream* strm;
+	ExipSchema* schema;
+};
+
 // Content Handler API
-char xsd_fatalError(const char code, const char* msg);
-char xsd_startDocument();
-char xsd_endDocument();
-char xsd_startElement(QName qname);
-char xsd_endElement();
-char xsd_attribute(QName qname);
-char xsd_stringData(const StringType value);
-char xsd_exiHeader(const EXIheader* header);
-
-static struct globalSchemaProps* props;
-
-static ContextStack* contextStack;
-
-static ProtoGrammarsStack* pGrammarStack;
-
-static DynArray* elNotResolvedArray;
-
-static DynArray* attributeUses;
-
-static URITable* metaURITable;
-
-static DynArray* regProdQname;
-
-static DynArray* globalElements;
-
-static EXIStream* tmpStrm;
-
-ExipSchema* exipSchemaLocal;
+static char xsd_fatalError(const char code, const char* msg, void* app_data);
+static char xsd_startDocument(void* app_data);
+static char xsd_endDocument(void* app_data);
+static char xsd_startElement(QName qname, void* app_data);
+static char xsd_endElement(void* app_data);
+static char xsd_attribute(QName qname, void* app_data);
+static char xsd_stringData(const StringType value, void* app_data);
+static char xsd_exiHeader(const EXIheader* header, void* app_data);
 
 static void pushElemContext(ContextStack** cStack, struct elementDescr* elem);
 
@@ -88,22 +82,22 @@ static void initElemContext(struct elementDescr* elem);
 
 // Handling of schema elements
 
-static errorCode handleAttributeEl();
+static errorCode handleAttributeEl(struct xsdAppData* app_data);
 
-static errorCode handleExtentionEl();
+static errorCode handleExtentionEl(struct xsdAppData* app_data);
 
-static errorCode handleSimpleContentEl();
+static errorCode handleSimpleContentEl(struct xsdAppData* app_data);
 
-static errorCode handleComplexTypeEl();
+static errorCode handleComplexTypeEl(struct xsdAppData* app_data);
 
-static errorCode handleElementEl();
+static errorCode handleElementEl(struct xsdAppData* app_data);
 
 errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, unsigned char schemaFormat,
-										EXIStream* strm, ExipSchema* exipSchema)
+										EXIStream* strm, ExipSchema* schema)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	ContentHandler xsdHandler;
-	struct globalSchemaProps localProps;
+	struct xsdAppData parsing_data;
 
 	if(schemaFormat != SCHEMA_FORMAT_XSD_EXI)
 		return NOT_IMPLEMENTED_YET;
@@ -119,22 +113,21 @@ errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, un
 	xsdHandler.endElement = xsd_endElement;
 	xsdHandler.exiHeader = xsd_exiHeader;
 
-	localProps.propsStat = INITIAL_STATE;
-	localProps.expectAttributeData = 0;
-	localProps.attributeFormDefault = FORM_DEF_INITIAL_STATE;
-	localProps.elementFormDefault = FORM_DEF_INITIAL_STATE;
-	localProps.charDataPointer = NULL;
-	props = &localProps;
+	parsing_data.props.propsStat = INITIAL_STATE;
+	parsing_data.props.expectAttributeData = 0;
+	parsing_data.props.attributeFormDefault = FORM_DEF_INITIAL_STATE;
+	parsing_data.props.elementFormDefault = FORM_DEF_INITIAL_STATE;
+	parsing_data.props.charDataPointer = NULL;
 
-	contextStack = NULL;
+	parsing_data.contextStack = NULL;
 
-	pGrammarStack = NULL;
+	parsing_data.pGrammarStack = NULL;
 
-	tmp_err_code = createDynArray(&elNotResolvedArray, sizeof(struct elementNotResolved), 10, strm);
+	tmp_err_code = createDynArray(&parsing_data.elNotResolvedArray, sizeof(struct elementNotResolved), 10, strm);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = createDynArray(&attributeUses, sizeof(struct EXIGrammar), 5, strm);
+	tmp_err_code = createDynArray(&parsing_data.attributeUses, sizeof(struct EXIGrammar), 5, strm);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -142,52 +135,53 @@ errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, un
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	metaURITable = strm->uriTable;
+	parsing_data.metaURITable = strm->uriTable;
 
-	tmp_err_code = createDynArray(&regProdQname, sizeof(struct productionQname), 20, strm);
+	tmp_err_code = createDynArray(&parsing_data.regProdQname, sizeof(struct productionQname), 20, strm);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = createDynArray(&globalElements, sizeof(struct globalElementId), 10, strm);
+	tmp_err_code = createDynArray(&parsing_data.globalElements, sizeof(struct globalElementId), 10, strm);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmpStrm = strm;
+	parsing_data.strm = strm;
 
-	tmp_err_code = createGrammarPool(&(exipSchema->ePool));
+	tmp_err_code = createGrammarPool(&(schema->ePool));
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	tmp_err_code = createGrammarPool(&(exipSchema->tPool));
+	tmp_err_code = createGrammarPool(&(schema->tPool));
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	exipSchemaLocal = exipSchema;
+	parsing_data.schema = schema;
 
 	// Parse the EXI stream
-	parseEXI(binaryStream, bufLen, &xsdHandler);
+	parseEXI(binaryStream, bufLen, &xsdHandler, &parsing_data);
 
 	return ERR_OK;
 }
 
-char xsd_fatalError(const char code, const char* msg)
+static char xsd_fatalError(const char code, const char* msg, void* app_data)
 {
 	DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Fatal error occurred during schema processing\n"));
 	return EXIP_HANDLER_STOP;
 }
 
-char xsd_startDocument()
+static char xsd_startDocument(void* app_data)
 {
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Start XML Schema parsing\n"));
 	return EXIP_HANDLER_OK;
 }
 
-char xsd_endDocument()
+static char xsd_endDocument(void* app_data)
 {
+	struct xsdAppData* appD = (struct xsdAppData*) app_data;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End XML Schema parsing\n"));
 
-	exipSchemaLocal->glElems.elems = globalElements->elements;
-	exipSchemaLocal->glElems.count = globalElements->elementCount;
+	appD->schema->glElems.elems = appD->globalElements->elements;
+	appD->schema->glElems.count = appD->globalElements->elementCount;
 
 // Only for debugging purposes
 #if DEBUG_GRAMMAR_GEN == ON
@@ -221,7 +215,7 @@ char xsd_endDocument()
 	}
 #endif
 
-	tmp_err_code = stringTablesSorting(tmpStrm, metaURITable, &(exipSchemaLocal->initialStringTables), regProdQname);
+	tmp_err_code = stringTablesSorting(appD->strm, appD->metaURITable, &(appD->schema->initialStringTables), appD->regProdQname);
 	if(tmp_err_code != ERR_OK)
 	{
 		DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">String Tables sorting failed: %d\n", tmp_err_code));
@@ -231,14 +225,15 @@ char xsd_endDocument()
 	return EXIP_HANDLER_OK;
 }
 
-char xsd_startElement(QName qname)
+static char xsd_startElement(QName qname, void* app_data)
 {
-	if(props->propsStat == INITIAL_STATE) // This should be the first <schema> element
+	struct xsdAppData* appD = (struct xsdAppData*) app_data;
+	if(appD->props.propsStat == INITIAL_STATE) // This should be the first <schema> element
 	{
 		if(strEqualToAscii(*qname.uri, "http://www.w3.org/2001/XMLSchema") &&
 				strEqualToAscii(*qname.localName, "schema"))
 		{
-			props->propsStat = SCHEMA_ELEMENT_STATE;
+			appD->props.propsStat = SCHEMA_ELEMENT_STATE;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <schema> element\n"));
 		}
 		else
@@ -250,13 +245,13 @@ char xsd_startElement(QName qname)
 	else
 	{
 		struct elementDescr* elem;
-		if(props->propsStat != SCHEMA_CONTENT_STATE) // This is the first element after the <schema>
+		if(appD->props.propsStat != SCHEMA_CONTENT_STATE) // This is the first element after the <schema>
 		{
-			props->propsStat = SCHEMA_CONTENT_STATE; // All attributes of the <schema> element are already parsed
-			if(props->elementFormDefault == FORM_DEF_INITIAL_STATE)
-				props->elementFormDefault = FORM_DEF_UNQUALIFIED; // The default value is unqualified
-			if(props->attributeFormDefault == FORM_DEF_INITIAL_STATE)
-				props->attributeFormDefault = FORM_DEF_UNQUALIFIED; // The default value is unqualified
+			appD->props.propsStat = SCHEMA_CONTENT_STATE; // All attributes of the <schema> element are already parsed
+			if(appD->props.elementFormDefault == FORM_DEF_INITIAL_STATE)
+				appD->props.elementFormDefault = FORM_DEF_UNQUALIFIED; // The default value is unqualified
+			if(appD->props.attributeFormDefault == FORM_DEF_INITIAL_STATE)
+				appD->props.attributeFormDefault = FORM_DEF_UNQUALIFIED; // The default value is unqualified
 		}
 
 		if(!strEqualToAscii(*qname.uri, "http://www.w3.org/2001/XMLSchema"))
@@ -265,7 +260,7 @@ char xsd_startElement(QName qname)
 			return EXIP_HANDLER_STOP;
 		}
 
-		elem = (struct elementDescr*) memManagedAllocate(tmpStrm, sizeof(struct elementDescr));
+		elem = (struct elementDescr*) memManagedAllocate(appD->strm, sizeof(struct elementDescr));
 		if(elem == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
@@ -336,46 +331,47 @@ char xsd_startElement(QName qname)
 			DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, (">Ignored schema element\n"));
 		}
 
-		pushElemContext(&contextStack, elem);
+		pushElemContext(&(appD->contextStack), elem);
 	}
 
 	return EXIP_HANDLER_OK;
 }
 
-char xsd_endElement()
+static char xsd_endElement(void* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	if(contextStack == NULL) // No elements stored in the stack. That is </schema>
+	struct xsdAppData* appD = (struct xsdAppData*) app_data;
+	if(appD->contextStack == NULL) // No elements stored in the stack. That is </schema>
 	{
 		DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End </schema> element\n"));
 		tmp_err_code = ERR_OK;
 	}
 	else
 	{
-		if(contextStack->element == ELEMENT_ATTRIBUTE)
+		if(appD->contextStack->element == ELEMENT_ATTRIBUTE)
 		{
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End </attribute> element\n"));
-			tmp_err_code = handleAttributeEl();
+			tmp_err_code = handleAttributeEl(appD);
 		}
-		else if(contextStack->element == ELEMENT_EXTENSION)
+		else if(appD->contextStack->element == ELEMENT_EXTENSION)
 		{
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End </extension> element\n"));
-			tmp_err_code = handleExtentionEl();
+			tmp_err_code = handleExtentionEl(appD);
 		}
-		else if(contextStack->element == ELEMENT_SIMPLE_CONTENT)
+		else if(appD->contextStack->element == ELEMENT_SIMPLE_CONTENT)
 		{
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End </simpleContent> element\n"));
-			tmp_err_code = handleSimpleContentEl();
+			tmp_err_code = handleSimpleContentEl(appD);
 		}
-		else if(contextStack->element == ELEMENT_COMPLEX_TYPE)
+		else if(appD->contextStack->element == ELEMENT_COMPLEX_TYPE)
 		{
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End </complexType> element\n"));
-			tmp_err_code = handleComplexTypeEl();
+			tmp_err_code = handleComplexTypeEl(appD);
 		}
-		else if(contextStack->element == ELEMENT_ELEMENT)
+		else if(appD->contextStack->element == ELEMENT_ELEMENT)
 		{
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End </element> element\n"));
-			tmp_err_code = handleElementEl();
+			tmp_err_code = handleElementEl(appD);
 		}
 		else
 		{
@@ -391,23 +387,24 @@ char xsd_endElement()
 	return EXIP_HANDLER_OK;
 }
 
-char xsd_attribute(QName qname)
+static char xsd_attribute(QName qname, void* app_data)
 {
-	if(props->propsStat == SCHEMA_ELEMENT_STATE) // <schema> element attribute
+	struct xsdAppData* appD = (struct xsdAppData*) app_data;
+	if(appD->props.propsStat == SCHEMA_ELEMENT_STATE) // <schema> element attribute
 	{
 		if(strEqualToAscii(*qname.localName, "targetNamespace"))
 		{
-			props->charDataPointer = &(props->targetNamespace);
+			appD->props.charDataPointer = &(appD->props.targetNamespace);
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |targetNamespace| \n"));
 		}
 		else if(strEqualToAscii(*qname.localName, "elementFormDefault"))
 		{
-			props->elementFormDefault = FORM_DEF_EXPECTING;
+			appD->props.elementFormDefault = FORM_DEF_EXPECTING;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |elementFormDefault| \n"));
 		}
 		else if(strEqualToAscii(*qname.localName, "attributeFormDefault"))
 		{
-			props->attributeFormDefault = FORM_DEF_EXPECTING;
+			appD->props.attributeFormDefault = FORM_DEF_EXPECTING;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |attributeFormDefault| \n"));
 		}
 		else
@@ -419,37 +416,37 @@ char xsd_attribute(QName qname)
 	{
 		if(strEqualToAscii(*qname.localName, "name"))
 		{
-			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_NAME]);
+			appD->props.charDataPointer = &(appD->contextStack->attributePointers[ATTRIBUTE_NAME]);
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |name| \n"));
 		}
 		else if(strEqualToAscii(*qname.localName, "type"))
 		{
-			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_TYPE]);
+			appD->props.charDataPointer = &(appD->contextStack->attributePointers[ATTRIBUTE_TYPE]);
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |type| \n"));
 		}
 		else if(strEqualToAscii(*qname.localName, "ref"))
 		{
-			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_REF]);
+			appD->props.charDataPointer = &(appD->contextStack->attributePointers[ATTRIBUTE_REF]);
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |ref| \n"));
 		}
 		else if(strEqualToAscii(*qname.localName, "minOccurs"))
 		{
-			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_MIN_OCCURS]);
+			appD->props.charDataPointer = &(appD->contextStack->attributePointers[ATTRIBUTE_MIN_OCCURS]);
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |minOccurs| \n"));
 		}
 		else if(strEqualToAscii(*qname.localName, "maxOccurs"))
 		{
-			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_MAX_OCCURS]);
+			appD->props.charDataPointer = &(appD->contextStack->attributePointers[ATTRIBUTE_MAX_OCCURS]);
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |maxOccurs| \n"));
 		}
 		else if(strEqualToAscii(*qname.localName, "form"))
 		{
-			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_FORM]);
+			appD->props.charDataPointer = &(appD->contextStack->attributePointers[ATTRIBUTE_FORM]);
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |form| \n"));
 		}
 		else if(strEqualToAscii(*qname.localName, "base"))
 		{
-			props->charDataPointer = &(contextStack->attributePointers[ATTRIBUTE_BASE]);
+			appD->props.charDataPointer = &(appD->contextStack->attributePointers[ATTRIBUTE_BASE]);
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |base| \n"));
 		}
 		else
@@ -457,12 +454,13 @@ char xsd_attribute(QName qname)
 			DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, (">Ignored element attribute\n"));
 		}
 	}
-	props->expectAttributeData = 1;
+	appD->props.expectAttributeData = 1;
 	return EXIP_HANDLER_OK;
 }
 
-char xsd_stringData(const StringType value)
+static char xsd_stringData(const StringType value, void* app_data)
 {
+	struct xsdAppData* appD = (struct xsdAppData*) app_data;
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">String data:\n"));
 
 #if	DEBUG_GRAMMAR_GEN == ON
@@ -470,33 +468,33 @@ char xsd_stringData(const StringType value)
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n"));
 #endif
 
-	if(props->expectAttributeData)
+	if(appD->props.expectAttributeData)
 	{
-		if(props->propsStat == SCHEMA_ELEMENT_STATE) // <schema> element attribute data
+		if(appD->props.propsStat == SCHEMA_ELEMENT_STATE) // <schema> element attribute data
 		{
-			if(props->charDataPointer != NULL)
+			if(appD->props.charDataPointer != NULL)
 			{
-				*(props->charDataPointer) = value;
-				props->charDataPointer = NULL;
+				*(appD->props.charDataPointer) = value;
+				appD->props.charDataPointer = NULL;
 			}
-			else if(props->elementFormDefault == FORM_DEF_EXPECTING) // expecting value for elementFormDefault
+			else if(appD->props.elementFormDefault == FORM_DEF_EXPECTING) // expecting value for elementFormDefault
 			{
 				if(strEqualToAscii(value, "qualified"))
-					props->elementFormDefault = FORM_DEF_QUALIFIED;
+					appD->props.elementFormDefault = FORM_DEF_QUALIFIED;
 				else if(strEqualToAscii(value, "unqualified"))
-					props->elementFormDefault = FORM_DEF_UNQUALIFIED;
+					appD->props.elementFormDefault = FORM_DEF_UNQUALIFIED;
 				else
 				{
 					DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Invalid value for elementFormDefault attribute\n"));
 					return EXIP_HANDLER_STOP;
 				}
 			}
-			else if(props->attributeFormDefault == FORM_DEF_EXPECTING) // expecting value for attributeFormDefault
+			else if(appD->props.attributeFormDefault == FORM_DEF_EXPECTING) // expecting value for attributeFormDefault
 			{
 				if(strEqualToAscii(value, "qualified"))
-					props->attributeFormDefault = FORM_DEF_QUALIFIED;
+					appD->props.attributeFormDefault = FORM_DEF_QUALIFIED;
 				else if(strEqualToAscii(value, "unqualified"))
-					props->attributeFormDefault = FORM_DEF_UNQUALIFIED;
+					appD->props.attributeFormDefault = FORM_DEF_UNQUALIFIED;
 				else
 				{
 					DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Invalid value for attributeFormDefault attribute\n"));
@@ -510,10 +508,10 @@ char xsd_stringData(const StringType value)
 		}
 		else
 		{
-			if(props->charDataPointer != NULL)
+			if(appD->props.charDataPointer != NULL)
 			{
-				*(props->charDataPointer) = value;
-				props->charDataPointer = NULL;
+				*(appD->props.charDataPointer) = value;
+				appD->props.charDataPointer = NULL;
 			}
 			else
 			{
@@ -521,14 +519,14 @@ char xsd_stringData(const StringType value)
 			}
 		}
 
-		props->expectAttributeData = 0;
+		appD->props.expectAttributeData = 0;
 	}
 	else
 	{
-		if(props->charDataPointer != NULL)
+		if(appD->props.charDataPointer != NULL)
 		{
-			*(props->charDataPointer) = value;
-			props->charDataPointer = NULL;
+			*(appD->props.charDataPointer) = value;
+			appD->props.charDataPointer = NULL;
 		}
 		else
 		{
@@ -539,7 +537,7 @@ char xsd_stringData(const StringType value)
 	return EXIP_HANDLER_OK;
 }
 
-char xsd_exiHeader(const EXIheader* header)
+static char xsd_exiHeader(const EXIheader* header, void* app_data)
 {
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">XML Schema header parsed\n"));
 	return EXIP_HANDLER_OK;
@@ -570,7 +568,7 @@ static void initElemContext(struct elementDescr* elem)
 	}
 }
 
-static errorCode handleAttributeEl()
+static errorCode handleAttributeEl(struct xsdAppData* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char required = 0;
@@ -581,18 +579,18 @@ static errorCode handleAttributeEl()
 	uint32_t attrUseGrammarID;
 	struct elementDescr* elemDesc;
 
-	popElemContext(&contextStack, &elemDesc);
+	popElemContext(&(app_data->contextStack), &elemDesc);
 
 	if (!isStrEmpty(&(elemDesc->attributePointers[ATTRIBUTE_USE])) &&
 			strEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_USE], "required"))
 	{
 		required = 1;
 	}
-	if(props->attributeFormDefault == FORM_DEF_QUALIFIED || strEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_FORM], "qualified"))
+	if(app_data->props.attributeFormDefault == FORM_DEF_QUALIFIED || strEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_FORM], "qualified"))
 	{
 		//TODO: must take into account the parent element target namespace
 
-		target_ns = props->targetNamespace;
+		target_ns = app_data->props.targetNamespace;
 	}
 	else
 	{
@@ -605,8 +603,8 @@ static errorCode handleAttributeEl()
 	scope.localName = NULL;
 	scope.uri = NULL;
 
-	tmp_err_code = createAttributeUseGrammar(tmpStrm, required, elemDesc->attributePointers[ATTRIBUTE_NAME],
-											 target_ns, simpleType, scope, &attrUseGrammar, metaURITable, regProdQname);
+	tmp_err_code = createAttributeUseGrammar(app_data->strm, required, elemDesc->attributePointers[ATTRIBUTE_NAME],
+											 target_ns, simpleType, scope, &attrUseGrammar, app_data->metaURITable, app_data->regProdQname);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -622,14 +620,14 @@ static errorCode handleAttributeEl()
 	}
 #endif
 
-	tmp_err_code = addDynElement(attributeUses, attrUseGrammar, &attrUseGrammarID, tmpStrm);
+	tmp_err_code = addDynElement(app_data->attributeUses, attrUseGrammar, &attrUseGrammarID, app_data->strm);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
 	return ERR_OK;
 }
 
-static errorCode handleExtentionEl()
+static errorCode handleExtentionEl(struct xsdAppData* app_data)
 {
 	// TODO: this implementation is just experimental.
 	//       It only creates simple type grammar depending on the value of base attribute
@@ -638,32 +636,32 @@ static errorCode handleExtentionEl()
 	struct EXIGrammar* simpleTypeGrammar;
 	struct elementDescr* elemDesc;
 
-	popElemContext(&contextStack, &elemDesc);
+	popElemContext(&(app_data->contextStack), &elemDesc);
 
 	simpleType.localName = &(elemDesc->attributePointers[ATTRIBUTE_BASE]);
 	simpleType.uri = NULL;
 
-	tmp_err_code = createSimpleTypeGrammar(tmpStrm, simpleType, &simpleTypeGrammar);
+	tmp_err_code = createSimpleTypeGrammar(app_data->strm, simpleType, &simpleTypeGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = pushGrammar((EXIGrammarStack**) &pGrammarStack, simpleTypeGrammar);
+	tmp_err_code = pushGrammar((EXIGrammarStack**) &(app_data->pGrammarStack), simpleTypeGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
 	return ERR_OK;
 }
 
-static errorCode handleSimpleContentEl()
+static errorCode handleSimpleContentEl(struct xsdAppData* app_data)
 {
 	// TODO: For now just skip this element. The simpleTypeGrammar should already be created
 	struct elementDescr* elemDesc;
 
-	popElemContext(&contextStack, &elemDesc);
+	popElemContext(&(app_data->contextStack), &elemDesc);
 	return ERR_OK;
 }
 
-static errorCode handleComplexTypeEl()
+static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 {
 	// TODO: The attribute uses must be sorted first
 	// TODO: Then the dynamic attribute uses array must be emptied
@@ -677,13 +675,13 @@ static errorCode handleComplexTypeEl()
 	struct EXIGrammar* resultComplexGrammar;
 	struct elementDescr* elemDesc;
 
-	popElemContext(&contextStack, &elemDesc);
+	popElemContext(&(app_data->contextStack), &elemDesc);
 
-	if(props->elementFormDefault == FORM_DEF_QUALIFIED || strEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_FORM], "qualified"))
+	if(app_data->props.elementFormDefault == FORM_DEF_QUALIFIED || strEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_FORM], "qualified"))
 	{
 		//TODO: must take into account the parent element target namespace
 
-		target_ns = props->targetNamespace;
+		target_ns = app_data->props.targetNamespace;
 	}
 	else
 	{
@@ -692,7 +690,7 @@ static errorCode handleComplexTypeEl()
 	}
 	typeName = elemDesc->attributePointers[ATTRIBUTE_NAME];
 
-	tmp_err_code = popGrammar((EXIGrammarStack**) &pGrammarStack, &contentTypeGrammar);
+	tmp_err_code = popGrammar((EXIGrammarStack**) &(app_data->pGrammarStack), &contentTypeGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -710,8 +708,8 @@ static errorCode handleComplexTypeEl()
 
 	// TODO: the attributeUses array must be sorted first before calling createComplexTypeGrammar()
 
-	tmp_err_code = createComplexTypeGrammar(tmpStrm, typeName, target_ns,
-			(struct EXIGrammar*) attributeUses->elements, attributeUses->elementCount,
+	tmp_err_code = createComplexTypeGrammar(app_data->strm, typeName, target_ns,
+			(struct EXIGrammar*) app_data->attributeUses->elements, app_data->attributeUses->elementCount,
 			                           NULL, 0, contentTypeGrammar, &resultComplexGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -728,7 +726,7 @@ static errorCode handleComplexTypeEl()
 	}
 #endif
 
-	tmp_err_code = normalizeGrammar(tmpStrm, resultComplexGrammar);
+	tmp_err_code = normalizeGrammar(app_data->strm, resultComplexGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -738,34 +736,34 @@ static errorCode handleComplexTypeEl()
 	{
 		// Put the ComplexTypeGrammar on top of the pGrammarStack
 		// There should be a parent <element> declaration for this grammar
-		tmp_err_code = pushGrammar((EXIGrammarStack**) &pGrammarStack, resultComplexGrammar);
+		tmp_err_code = pushGrammar((EXIGrammarStack**) &(app_data->pGrammarStack), resultComplexGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 	else // Named complex type - put it directly in the Type Grammar pool
 	{
-		if(!lookupURI(metaURITable, target_ns, &uriRowId))
+		if(!lookupURI(app_data->metaURITable, target_ns, &uriRowId))
 		{
-			tmp_err_code = addURIRow(metaURITable, target_ns, &uriRowId, tmpStrm);
+			tmp_err_code = addURIRow(app_data->metaURITable, target_ns, &uriRowId, app_data->strm);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 
-		if(metaURITable->rows[uriRowId].lTable == NULL)
+		if(app_data->metaURITable->rows[uriRowId].lTable == NULL)
 		{
-			tmp_err_code = createLocalNamesTable(&metaURITable->rows[uriRowId].lTable, tmpStrm, 0);
+			tmp_err_code = createLocalNamesTable(&(app_data->metaURITable->rows[uriRowId].lTable), app_data->strm, 0);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 
-		if(!lookupLN(metaURITable->rows[uriRowId].lTable, typeName, &lnRowId))
+		if(!lookupLN(app_data->metaURITable->rows[uriRowId].lTable, typeName, &lnRowId))
 		{
-			tmp_err_code = addLNRow(metaURITable->rows[uriRowId].lTable, typeName, &lnRowId);
+			tmp_err_code = addLNRow(app_data->metaURITable->rows[uriRowId].lTable, typeName, &lnRowId);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 
-		tmp_err_code = addGrammarInPool(exipSchemaLocal->tPool, uriRowId,
+		tmp_err_code = addGrammarInPool(app_data->schema->tPool, uriRowId,
 												lnRowId, resultComplexGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -774,7 +772,7 @@ static errorCode handleComplexTypeEl()
 	return ERR_OK;
 }
 
-static errorCode handleElementEl()
+static errorCode handleElementEl(struct xsdAppData* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	struct elementDescr* elemDesc;
@@ -786,17 +784,17 @@ static errorCode handleElementEl()
 	StringType target_ns;
 	unsigned char isGlobal = 0;
 
-	popElemContext(&contextStack, &elemDesc);
+	popElemContext(&(app_data->contextStack), &elemDesc);
 	type = elemDesc->attributePointers[ATTRIBUTE_TYPE];
 
-	if(contextStack == NULL) // Global element
+	if(app_data->contextStack == NULL) // Global element
 		isGlobal = 1;
 
-	if(isGlobal || props->elementFormDefault == FORM_DEF_QUALIFIED || strEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_FORM], "qualified"))
+	if(isGlobal || app_data->props.elementFormDefault == FORM_DEF_QUALIFIED || strEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_FORM], "qualified"))
 	{
 		//TODO: must take into account the parent element target namespace
 
-		target_ns = props->targetNamespace;
+		target_ns = app_data->props.targetNamespace;
 	}
 	else
 	{
@@ -810,40 +808,40 @@ static errorCode handleElementEl()
 		struct globalElementId glEl;
 		uint32_t dynArrId = 0;
 
-		if(!lookupURI(metaURITable, target_ns, &uriRowId))
+		if(!lookupURI(app_data->metaURITable, target_ns, &uriRowId))
 		{
-			tmp_err_code = addURIRow(metaURITable, target_ns, &uriRowId, tmpStrm);
+			tmp_err_code = addURIRow(app_data->metaURITable, target_ns, &uriRowId, app_data->strm);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 
-		if(metaURITable->rows[uriRowId].lTable == NULL)
+		if(app_data->metaURITable->rows[uriRowId].lTable == NULL)
 		{
-			tmp_err_code = createLocalNamesTable(&metaURITable->rows[uriRowId].lTable, tmpStrm, 0);
+			tmp_err_code = createLocalNamesTable(&(app_data->metaURITable->rows[uriRowId].lTable), app_data->strm, 0);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 
-		if(!lookupLN(metaURITable->rows[uriRowId].lTable, elName, &lnRowId))
+		if(!lookupLN(app_data->metaURITable->rows[uriRowId].lTable, elName, &lnRowId))
 		{
-			tmp_err_code = addLNRow(metaURITable->rows[uriRowId].lTable, elName, &lnRowId);
+			tmp_err_code = addLNRow(app_data->metaURITable->rows[uriRowId].lTable, elName, &lnRowId);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 		glEl.uriRowId = uriRowId;
 		glEl.lnRowId = lnRowId;
 
-		tmp_err_code = addDynElement(globalElements, &glEl, &dynArrId, tmpStrm);
+		tmp_err_code = addDynElement(app_data->globalElements, &glEl, &dynArrId, app_data->strm);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
 		if(isStrEmpty(&type))  // There is no type attribute i.e. there must be some complex type in the pGrammarStack
 		{
-			tmp_err_code = popGrammar((EXIGrammarStack**) &pGrammarStack, &typeGrammar);
+			tmp_err_code = popGrammar((EXIGrammarStack**) &(app_data->pGrammarStack), &typeGrammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			tmp_err_code = addGrammarInPool(exipSchemaLocal->ePool, uriRowId,
+			tmp_err_code = addGrammarInPool(app_data->schema->ePool, uriRowId,
 															lnRowId, typeGrammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;

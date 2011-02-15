@@ -53,7 +53,8 @@
  * @param[in] binaryStream the binary representation of EXI stream
  * @param[in] bufLen size of binaryStream - number of bytes
  * @param[in] handler collection of callback functions for parsing events
+ * @param[in] app_data Application data to be passed to the content handler callbacks
  */
-void parseEXI(char* binaryStream, uint32_t bufLen, ContentHandler* handler);
+void parseEXI(char* binaryStream, uint32_t bufLen, ContentHandler* handler, void* app_data);
 
 #endif /* EXIPARSER_H_ */

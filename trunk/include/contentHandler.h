@@ -56,35 +56,35 @@
 struct ContentHandler
 {
 	// For handling the meta-data (document structure)
-	char (*startDocument)();
-	char (*endDocument)();
-	char (*startElement)(QName qname);
-	char (*endElement)();
-	char (*attribute)(QName qname);
+	char (*startDocument)(void* app_data);
+	char (*endDocument)(void* app_data);
+	char (*startElement)(QName qname, void* app_data);
+	char (*endElement)(void* app_data);
+	char (*attribute)(QName qname, void* app_data);
 
 	// For handling the data
-	char (*intData)(int32_t int_val);
-	char (*bigIntData)(const BigSignedInt int_val);
-	char (*booleanData)(unsigned char bool_val);
-	char (*stringData)(const StringType str_val);
-	char (*floatData)(double float_val);
-	char (*bigFloatData)(BigFloat float_val);
-	char (*binaryData)(const char* binary_val, uint32_t nbytes);
-	char (*dateTimeData)(struct tm dt_val, uint16_t presenceMask);
-	char (*decimalData)(decimal dec_val);
-	char (*bigDecimalData)(bigDecimal dec_val);
+	char (*intData)(int32_t int_val, void* app_data);
+	char (*bigIntData)(const BigSignedInt int_val, void* app_data);
+	char (*booleanData)(unsigned char bool_val, void* app_data);
+	char (*stringData)(const StringType str_val, void* app_data);
+	char (*floatData)(double float_val, void* app_data);
+	char (*bigFloatData)(BigFloat float_val, void* app_data);
+	char (*binaryData)(const char* binary_val, uint32_t nbytes, void* app_data);
+	char (*dateTimeData)(struct tm dt_val, uint16_t presenceMask, void* app_data);
+	char (*decimalData)(decimal dec_val, void* app_data);
+	char (*bigDecimalData)(bigDecimal dec_val, void* app_data);
 
 	// Miscellaneous
-	char (*processingInstruction)(); // TODO: define the parameters!
+	char (*processingInstruction)(void* app_data); // TODO: define the parameters!
 
 	// For error handling
-	char (*warning)(const char code, const char* msg);
-	char (*error)(const char code, const char* msg);
-	char (*fatalError)(const char code, const char* msg);
+	char (*warning)(const char code, const char* msg, void* app_data);
+	char (*error)(const char code, const char* msg, void* app_data);
+	char (*fatalError)(const char code, const char* msg, void* app_data);
 
 	// EXI specific
-	char (*exiHeader)(const EXIheader* header);
-	char (*selfContained)();  // Used for indexing independent elements for random access
+	char (*exiHeader)(const EXIheader* header, void* app_data);
+	char (*selfContained)(void* app_data);  // Used for indexing independent elements for random access
 };
 
 typedef struct ContentHandler ContentHandler;

@@ -52,37 +52,38 @@ static void printfHelp();
 #define OUT_EXI 0
 #define OUT_XML 1
 
-// Default output option
-unsigned char outputFormat = OUT_EXI;
-unsigned char expectAttributeData = 0;
+struct appData
+{
+	unsigned char outputFormat;
+	unsigned char expectAttributeData;
+	char nameBuf[100];             // needed for the OUT_XML Output Format
+	struct element* stack;         // needed for the OUT_XML Output Format
+	unsigned char unclosedElement; // needed for the OUT_XML Output Format
+};
+
 
 // Stuff needed for the OUT_XML Output Format
 // ******************************************
-unsigned char unclosedElement = 0;
 struct element {
 	struct element* next;
 	char* name;
 };
 
-char nameBuf[100];
-
-struct element* stack = NULL;
-
-static void push(struct element* el);
-static struct element* pop();
+static void push(struct element** stack, struct element* el);
+static struct element* pop(struct element** stack);
 static struct element* createElement(char* name);
 static void destroyElement(struct element* el);
 
 // ******************************************
 
 // Content Handler API
-char sample_fatalError(const char code, const char* msg);
-char sample_startDocument();
-char sample_endDocument();
-char sample_startElement(QName qname);
-char sample_endElement();
-char sample_attribute(QName qname);
-char sample_stringData(const StringType value);
+static char sample_fatalError(const char code, const char* msg, void* app_data);
+static char sample_startDocument(void* app_data);
+static char sample_endDocument(void* app_data);
+static char sample_startElement(QName qname, void* app_data);
+static char sample_endElement(void* app_data);
+static char sample_attribute(QName qname, void* app_data);
+static char sample_stringData(const StringType value, void* app_data);
 
 
 int main(int argc, char *argv[])
@@ -92,6 +93,12 @@ int main(int argc, char *argv[])
 	unsigned long fileLen;
 	char *buffer;
 	char sourceFile[50];
+	struct appData parsingData;
+
+	parsingData.expectAttributeData = 0;
+	parsingData.outputFormat = OUT_EXI; // Default output option
+	parsingData.stack = NULL;
+	parsingData.unclosedElement = 0;
 
 	initContentHandler(&sampleHandler); // NOTE: It is mandatory to initialize the callbacks you don't explicitly implement as NULL
 	sampleHandler.fatalError = sample_fatalError;
@@ -112,7 +119,7 @@ int main(int argc, char *argv[])
 		}
 		else if(strcmp(argv[1], "-exi") == 0)
 		{
-			outputFormat = OUT_EXI;
+			parsingData.outputFormat = OUT_EXI;
 			if(argc == 2)
 			{
 				printfHelp();
@@ -123,7 +130,7 @@ int main(int argc, char *argv[])
 		}
 		else if(strcmp(argv[1], "-xml") == 0)
 		{
-			outputFormat = OUT_XML;
+			parsingData.outputFormat = OUT_XML;
 			if(argc == 2)
 			{
 				printfHelp();
@@ -163,7 +170,7 @@ int main(int argc, char *argv[])
 			fclose(infile);
 
 			// Parse the EXI stream
-			parseEXI(buffer, fileLen, &sampleHandler);
+			parseEXI(buffer, fileLen, &sampleHandler, &parsingData);
 
 			free(buffer);
 		}
@@ -191,35 +198,38 @@ static void printfHelp()
     printf("\n" );
 }
 
-char sample_fatalError(const char code, const char* msg)
+static char sample_fatalError(const char code, const char* msg, void* app_data)
 {
 	printf("\n%d : FATAL ERROR: %s\n", code, msg);
 	return EXIP_HANDLER_STOP;
 }
 
-char sample_startDocument()
+static char sample_startDocument(void* app_data)
 {
-	if(outputFormat == OUT_EXI)
+	struct appData* appD = (struct appData*) app_data;
+	if(appD->outputFormat == OUT_EXI)
 		printf("SD\n");
-	else if(outputFormat == OUT_XML)
+	else if(appD->outputFormat == OUT_XML)
 		printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 
 	return EXIP_HANDLER_OK;
 }
 
-char sample_endDocument()
+static char sample_endDocument(void* app_data)
 {
-	if(outputFormat == OUT_EXI)
+	struct appData* appD = (struct appData*) app_data;
+	if(appD->outputFormat == OUT_EXI)
 		printf("ED\n");
-	else if(outputFormat == OUT_XML)
+	else if(appD->outputFormat == OUT_XML)
 		printf("\n");
 
 	return EXIP_HANDLER_OK;
 }
 
-char sample_startElement(QName qname)
+static char sample_startElement(QName qname, void* app_data)
 {
-	if(outputFormat == OUT_EXI)
+	struct appData* appD = (struct appData*) app_data;
+	if(appD->outputFormat == OUT_EXI)
 	{
 		printf("SE ");
 		printString(qname.uri);
@@ -227,13 +237,13 @@ char sample_startElement(QName qname)
 		printString(qname.localName);
 		printf("\n");
 	}
-	else if(outputFormat == OUT_XML)
+	else if(appD->outputFormat == OUT_XML)
 	{
-		memcpy(nameBuf, qname.uri->str, qname.uri->length);
-		memcpy(nameBuf + qname.uri->length, qname.localName->str, qname.localName->length);
-		nameBuf[qname.uri->length + qname.localName->length] = '\0';
-		push(createElement(nameBuf));
-		if(unclosedElement)
+		memcpy(appD->nameBuf, qname.uri->str, qname.uri->length);
+		memcpy(appD->nameBuf + qname.uri->length, qname.localName->str, qname.localName->length);
+		appD->nameBuf[qname.uri->length + qname.localName->length] = '\0';
+		push(&(appD->stack), createElement(appD->nameBuf));
+		if(appD->unclosedElement)
 			printf(">\n");
 		printf("<");
 		if(!isStrEmpty(qname.uri))
@@ -242,24 +252,25 @@ char sample_startElement(QName qname)
 			printf(":");
 		}
 		printString(qname.localName);
-		unclosedElement = 1;
+		appD->unclosedElement = 1;
 	}
 
 	return EXIP_HANDLER_OK;
 }
 
-char sample_endElement()
+static char sample_endElement(void* app_data)
 {
-	if(outputFormat == OUT_EXI)
+	struct appData* appD = (struct appData*) app_data;
+	if(appD->outputFormat == OUT_EXI)
 		printf("EE\n");
-	else if(outputFormat == OUT_XML)
+	else if(appD->outputFormat == OUT_XML)
 	{
 		struct element* el;
 
-		if(unclosedElement)
+		if(appD->unclosedElement)
 			printf(">\n");
-		unclosedElement = 0;
-		el = pop();
+		appD->unclosedElement = 0;
+		el = pop(&(appD->stack));
 		printf("</%s>\n", el->name);
 		destroyElement(el);
 	}
@@ -267,9 +278,10 @@ char sample_endElement()
 	return EXIP_HANDLER_OK;
 }
 
-char sample_attribute(QName qname)
+static char sample_attribute(QName qname, void* app_data)
 {
-	if(outputFormat == OUT_EXI)
+	struct appData* appD = (struct appData*) app_data;
+	if(appD->outputFormat == OUT_EXI)
 	{
 		printf("AT ");
 		printString(qname.uri);
@@ -277,7 +289,7 @@ char sample_attribute(QName qname)
 		printString(qname.localName);
 		printf("=\"");
 	}
-	else if(outputFormat == OUT_XML)
+	else if(appD->outputFormat == OUT_XML)
 	{
 		printf(" ");
 		if(!isStrEmpty(qname.uri))
@@ -288,20 +300,21 @@ char sample_attribute(QName qname)
 		printString(qname.localName);
 		printf("=\"");
 	}
-	expectAttributeData = 1;
+	appD->expectAttributeData = 1;
 
 	return EXIP_HANDLER_OK;
 }
 
-char sample_stringData(const StringType value)
+static char sample_stringData(const StringType value, void* app_data)
 {
-	if(outputFormat == OUT_EXI)
+	struct appData* appD = (struct appData*) app_data;
+	if(appD->outputFormat == OUT_EXI)
 	{
-		if(expectAttributeData)
+		if(appD->expectAttributeData)
 		{
 			printString(&value);
 			printf("\"\n");
-			expectAttributeData = 0;
+			appD->expectAttributeData = 0;
 		}
 		else
 		{
@@ -310,19 +323,19 @@ char sample_stringData(const StringType value)
 			printf("\n");
 		}
 	}
-	else if(outputFormat == OUT_XML)
+	else if(appD->outputFormat == OUT_XML)
 	{
-		if(expectAttributeData)
+		if(appD->expectAttributeData)
 		{
 			printString(&value);
 			printf("\"");
-			expectAttributeData = 0;
+			appD->expectAttributeData = 0;
 		}
 		else
 		{
-			if(unclosedElement)
+			if(appD->unclosedElement)
 				printf(">\n");
-			unclosedElement = 0;
+			appD->unclosedElement = 0;
 			printString(&value);
 			printf("\n");
 		}
@@ -333,26 +346,26 @@ char sample_stringData(const StringType value)
 
 // Stuff needed for the OUT_XML Output Format
 // ******************************************
-static void push(struct element* el)
+static void push(struct element** stack, struct element* el)
 {
-	if(stack == NULL)
-		stack = el;
+	if(*stack == NULL)
+		*stack = el;
 	else
 	{
-		el->next = stack;
-		stack = el;
+		el->next = *stack;
+		*stack = el;
 	}
 }
 
-static struct element* pop()
+static struct element* pop(struct element** stack)
 {
-	if(stack == NULL)
+	if(*stack == NULL)
 		return NULL;
 	else
 	{
 		struct element* result;
-		result = stack;
-		stack = stack->next;
+		result = *stack;
+		*stack = (*stack)->next;
 		return result;
 	}
 }

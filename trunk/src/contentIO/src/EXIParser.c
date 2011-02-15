@@ -49,7 +49,7 @@
 #include "headerDecode.h"
 #include "memManagement.h"
 
-void parseEXI(char* binaryStream, uint32_t bufLen, ContentHandler* handler)
+void parseEXI(char* binaryStream, uint32_t bufLen, ContentHandler* handler, void* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIStream strm;
@@ -70,15 +70,15 @@ void parseEXI(char* binaryStream, uint32_t bufLen, ContentHandler* handler)
 	if(tmp_err_code != ERR_OK)
 	{
 		if(handler->fatalError != NULL)
-			handler->fatalError(tmp_err_code, "Error parsing EXI header");
+			handler->fatalError(tmp_err_code, "Error parsing EXI header", app_data);
 		freeAllMem(&strm);
 		return;
 	}
 	if(handler->exiHeader != NULL)
 	{
-		if(handler->exiHeader(&(strm.header)) == EXIP_HANDLER_STOP)
+		if(handler->exiHeader(&(strm.header), app_data) == EXIP_HANDLER_STOP)
 			return;
 	}
 
-	decodeBody(&strm, handler);
+	decodeBody(&strm, handler, app_data);
 }
