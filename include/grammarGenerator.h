@@ -153,6 +153,6 @@ struct elementNotResolved {
  * @return Error handling code
  */
 errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, unsigned char schemaFormat,
-										EXIStream* strm, ExipSchema* exipSchema);
+										EXIStream* strm, ExipSchema* schema);
 
 #endif /* GRAMMARGENERATOR_H_ */

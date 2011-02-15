@@ -58,10 +58,11 @@
  * @param[out] eType the terminal part of the production
  * @param[out] nonTermID_out unique identifier of right-hand side Non-terminal
  * @param[in] handler content handler callbacks
+ * @param[in] app_data Application data to be passed to the content handler callbacks
  * @return Error handling code
  */
 errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
-							    unsigned int* nonTermID_out, ContentHandler* handler);
+							    unsigned int* nonTermID_out, ContentHandler* handler, void* app_data);
 
 /**
  * @brief Push a grammar on top of the Grammar Stack
