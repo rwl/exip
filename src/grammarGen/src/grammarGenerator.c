@@ -61,6 +61,8 @@ struct xsdAppData
 	URITable* metaURITable;
 	DynArray* regProdQname;
 	DynArray* globalElements;
+	DynArray* allElementGrammars;
+	DynArray* allTypeGrammars;
 	EXIStream* strm;
 	ExipSchema* schema;
 };
@@ -104,9 +106,14 @@ errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, un
 	if(schemaFormat != SCHEMA_FORMAT_XSD_EXI)
 		return NOT_IMPLEMENTED_YET;
 
-	strm.ePool = NULL;
 	strm.gStack = NULL;
 	initAllocList(&strm.memList);
+	tmp_err_code = createGrammarPool(&strm.ePool);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+	tmp_err_code = createGrammarPool(&strm.tPool);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	initContentHandler(&xsdHandler);
 	xsdHandler.fatalError = xsd_fatalError;
@@ -147,7 +154,15 @@ errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, un
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = createDynArray(&parsing_data.globalElements, sizeof(struct globalElementId), 10, &strm.memList);
+	tmp_err_code = createDynArray(&parsing_data.globalElements, sizeof(struct grammarQname), 10, &strm.memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = createDynArray(&parsing_data.allElementGrammars, sizeof(struct grammarQname), 10, &strm.memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = createDynArray(&parsing_data.allTypeGrammars, sizeof(struct grammarQname), 10, &strm.memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -188,15 +203,6 @@ static char xsd_endDocument(void* app_data)
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End XML Schema parsing\n"));
 
-	appD->schema->glElems.elems = memManagedAllocate(&appD->schema->memList, sizeof(struct globalElementId)*appD->globalElements->elementCount);
-	if(appD->schema->glElems.elems == NULL)
-	{
-		DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Memory allocation fail\n"));
-		return EXIP_HANDLER_STOP;
-	}
-	memcpy(appD->schema->glElems.elems, appD->globalElements->elements, sizeof(struct globalElementId)*appD->globalElements->elementCount);
-	appD->schema->glElems.count = appD->globalElements->elementCount;
-
 // Only for debugging purposes
 #if DEBUG_GRAMMAR_GEN == ON
 	{
@@ -235,6 +241,14 @@ static char xsd_endDocument(void* app_data)
 		DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">String Tables sorting failed: %d\n", tmp_err_code));
 		return EXIP_HANDLER_STOP;
 	}
+
+	tmp_err_code = sortGlobalElements(&appD->schema->memList, appD->globalElements, appD->schema);
+	if(tmp_err_code != ERR_OK)
+	{
+		DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Global elements sorting failed: %d\n", tmp_err_code));
+		return EXIP_HANDLER_STOP;
+	}
+
 
 	return EXIP_HANDLER_OK;
 }
@@ -777,7 +791,7 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 				return tmp_err_code;
 		}
 
-		tmp_err_code = addGrammarInPool(app_data->schema->tPool, uriRowId,
+		tmp_err_code = addGrammarInPool(app_data->strm->tPool, uriRowId,
 												lnRowId, resultComplexGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -819,7 +833,9 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 
 	if(isGlobal)
 	{
-		struct globalElementId glEl;
+		struct grammarQname glEl;
+		struct productionQname pqRow;
+		struct grammarQname* grQname;
 		uint32_t dynArrId = 0;
 
 		if(!lookupURI(app_data->metaURITable, target_ns, &uriRowId))
@@ -849,13 +865,40 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
+		grQname = (struct grammarQname*) app_data->globalElements->elements;
+
+		pqRow.p_uriRowID = &grQname[dynArrId].uriRowId;
+		pqRow.p_lnRowID = &grQname[dynArrId].lnRowId;
+		pqRow.uriRowID_old = glEl.uriRowId;
+		pqRow.lnRowID_old = glEl.lnRowId;
+
+		tmp_err_code = addDynElement(app_data->regProdQname, &pqRow, &dynArrId, &app_data->strm->memList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = addDynElement(app_data->allElementGrammars, &glEl, &dynArrId, &app_data->strm->memList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		grQname = (struct grammarQname*) app_data->allElementGrammars->elements;
+
+		pqRow.p_uriRowID = &grQname[dynArrId].uriRowId;
+		pqRow.p_lnRowID = &grQname[dynArrId].lnRowId;
+		pqRow.uriRowID_old = glEl.uriRowId;
+		pqRow.lnRowID_old = glEl.lnRowId;
+
+		tmp_err_code = addDynElement(app_data->regProdQname, &pqRow, &dynArrId, &app_data->strm->memList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+
 		if(isStrEmpty(&type))  // There is no type attribute i.e. there must be some complex type in the pGrammarStack
 		{
 			tmp_err_code = popGrammar((EXIGrammarStack**) &(app_data->pGrammarStack), &typeGrammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			tmp_err_code = addGrammarInPool(app_data->schema->ePool, uriRowId,
+			tmp_err_code = addGrammarInPool(app_data->strm->ePool, uriRowId,
 															lnRowId, typeGrammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;

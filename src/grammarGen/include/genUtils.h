@@ -291,33 +291,26 @@ errorCode createAllModelGroupsGrammar(AllocList* memList, struct EXIGrammar* pTe
  */
 errorCode getEXIDataType(QName simpleXSDType, ValueType* exiType);
 
-// TODO: consider removing registerQname
-/**
- * @brief Register a URI of target namespace or QName of attribute, element or type declared for storing in the string tables.
- * A meta-String tables are used for holding the strings before sorting.
- *
- * @param[in] strm EXIStream used to attach the memory allocations to it.
- * @param[in] name local name for registering
- * @param[in] target_ns uri for registering
- * @param[in, out] metaURITable temporary String table for holding the strings before sorting.
- * @param[in, out] regProdQname dynamic array of struct productionQname elements
- * @param[in] p_uriRowID pointers to ruleArray[i].prodArray[j].uriRowID
- * @param[in] p_lnRowID pointers to ruleArray[i].prodArray[j].lnRowID
- * @return Error handling code
- */
-errorCode registerQname(EXIStream* strm, StringType name, StringType target_ns, URITable* metaURITable,
-		                DynArray* regProdQname, unsigned int* p_uriRowID, unsigned int* p_lnRowID);
-
-
 /**
  * @brief Sorts the information in the MetaString tables
+ * It also updates all the references to the uri and ln IDs through regProdQname
  *
- * @param[in, out] memList A list storing the memory allocations
+ * @param[in, out] memList A list storing the temporary memory allocations
  * @param[in] metaURITable temporary String table for holding the strings before sorting
  * @param[out] schema holds the allocations for the sorted string tables stored in schema->initialStringTables
  * @param[in] regProdQname used to update the uri and ln string tables row IDs
  * @return Error handling code
  */
 errorCode stringTablesSorting(AllocList* memList, URITable* metaURITable, ExipSchema* schema, DynArray* regProdQname);
+
+/**
+ * @brief Sorts the global elements list
+ *
+ * @param[in, out] memList A list storing the temporary memory allocations
+ * @param[in] globalElements global elements list to be sorted
+ * @param[out] schema holds the allocations for the sorted list in schema->globalElems
+ * @return Error handling code
+ */
+errorCode sortGlobalElements(AllocList* memList, DynArray* globalElements, ExipSchema* schema);
 
 #endif /* GENUTILS_H_ */

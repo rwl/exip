@@ -59,7 +59,7 @@
 #define DEF_ELEMENT_GRAMMAR_RULE_NUMBER 2
 #define GRAMMAR_POOL_DIMENSION 16
 
-errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, GlobalElements* glElems)
+errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, GrammarQnameArray* globalElems)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int n = 0; // first part of the event codes in the second rule
@@ -93,7 +93,7 @@ errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, Globa
 			return tmp_err_code;
 	docGrammar->ruleArray[1].nonTermID = GR_DOC_CONTENT;
 
-	if(glElems != NULL)   // Creates Schema Informed Grammar
+	if(globalElems != NULL)   // Creates Schema Informed Grammar
 	{
 		unsigned int e = 0;
 
@@ -109,15 +109,15 @@ errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, Globa
 					//	PI DocContent		n+1.1.1	//  This is created as part of the Build-In grammar down
 		 */
 
-		for(e = 0; e < glElems->count; e++)
+		for(e = 0; e < globalElems->count; e++)
 		{
 			tmp_err_code = addProduction(&(docGrammar->ruleArray[1]), getEventCode1(e), getEventDefType(EVENT_SE_QNAME), GR_DOC_END);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
-			docGrammar->ruleArray[1].prodArray[docGrammar->ruleArray[1].prodCount - 1].lnRowID = glElems->elems[e].lnRowId;
-			docGrammar->ruleArray[1].prodArray[docGrammar->ruleArray[1].prodCount - 1].uriRowID = glElems->elems[e].uriRowId;
+			docGrammar->ruleArray[1].prodArray[docGrammar->ruleArray[1].prodCount - 1].lnRowID = globalElems->elems[e].lnRowId;
+			docGrammar->ruleArray[1].prodArray[docGrammar->ruleArray[1].prodCount - 1].uriRowID = globalElems->elems[e].uriRowId;
 		}
-		n = glElems->count;
+		n = globalElems->count;
 	}
 
 	/*
@@ -365,6 +365,34 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, EXIStre
 			return tmp_err_code;
 	}
 
+	return ERR_OK;
+}
+
+errorCode copyGrammar(AllocList* memList, struct EXIGrammar* src, struct EXIGrammar** dest)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	int i = 0;
+	if(src->nextInStack != NULL)  // Only single grammars can be copied - not grammar stacks
+		return INVALID_OPERATION;
+
+	*dest = memManagedAllocate(memList, sizeof(struct EXIGrammar));
+	if(*dest == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	(*dest)->lastNonTermID = src->lastNonTermID;
+	(*dest)->nextInStack = NULL;
+	(*dest)->rulesDimension = src->rulesDimension;
+
+	(*dest)->ruleArray = memManagedAllocate(memList, sizeof(GrammarRule) * (*dest)->rulesDimension);
+	if((*dest)->ruleArray == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	for(; i < (*dest)->rulesDimension; i++)
+	{
+		tmp_err_code = copyGrammarRule(memList, &src->ruleArray[i], &(*dest)->ruleArray[i], 0);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
 	return ERR_OK;
 }
 

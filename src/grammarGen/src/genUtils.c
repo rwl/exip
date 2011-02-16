@@ -48,8 +48,15 @@
 #include "stringManipulate.h"
 #include "sortingAlgorithms.h"
 
+struct globalElSortingStruct
+{
+	GrammarQnameArray* glQnameArr;
+	URITable* uTable;
+};
+
 static int sortingURITable(unsigned int prev_val, unsigned int cur_val, void* args);
 static int sortingLNTable(unsigned int prev_val, unsigned int cur_val, void* args);
+static int sortingGlobalElems(unsigned int prev_val, unsigned int cur_val, void* args);
 
 errorCode concatenateGrammars(AllocList* memList, struct EXIGrammar* left, struct EXIGrammar* right, struct EXIGrammar** result)
 {
@@ -612,12 +619,6 @@ errorCode getEXIDataType(QName simpleXSDType, ValueType* exiType)
 	return INCONSISTENT_PROC_STATE;
 }
 
-errorCode registerQname(EXIStream* strm, StringType name, StringType target_ns, URITable* metaURITable,
-		                DynArray* regProdQname, unsigned int* p_uriRowID, unsigned int* p_lnRowID)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
 static int sortingURITable(unsigned int prev_val, unsigned int cur_val, void* args)
 {
 	URITable* metaURITable = (URITable*) args;
@@ -650,9 +651,14 @@ errorCode stringTablesSorting(AllocList* memList, URITable* metaURITable, ExipSc
 	for(i = 0; i < metaURITable->rowCount; i++)
 		tmpSortUriArray[i] = i;
 
-	insertionSort(tmpSortUriArray, metaURITable->rowCount, sortingURITable, metaURITable);
+//	The first four entries are not sorted
+//	URI	0	"" [empty string]
+//	URI	1	"http://www.w3.org/XML/1998/namespace"
+//	URI	2	"http://www.w3.org/2001/XMLSchema-instance"
+//	URI	3	"http://www.w3.org/2001/XMLSchema"
+	insertionSort(tmpSortUriArray + 4, metaURITable->rowCount - 4, sortingURITable, metaURITable);
 
-	tmp_err_code = createURITable(&(schema->initialStringTables), memList, metaURITable->rowCount);
+	tmp_err_code = createURITable(&(schema->initialStringTables), &schema->memList, metaURITable->rowCount);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -663,6 +669,7 @@ errorCode stringTablesSorting(AllocList* memList, URITable* metaURITable, ExipSc
 
 		if(metaURITable->rows[i].lTable != NULL)
 		{
+			unsigned int initialEntries = 0;
 			unsigned int lnRowCount = metaURITable->rows[i].lTable->rowCount;
 			unsigned int* tmpSortLnArray = EXIP_MALLOC(lnRowCount * sizeof(unsigned int));
 			if(tmpSortLnArray == NULL)
@@ -673,9 +680,24 @@ errorCode stringTablesSorting(AllocList* memList, URITable* metaURITable, ExipSc
 
 			addDynElement(tmpLnTablePointes, &tmpSortLnArray, &dID, memList);
 
-			insertionSort(tmpSortLnArray, lnRowCount, sortingLNTable, metaURITable->rows[i].lTable);
+			//	The initialEntries entries in "http://www.w3.org/XML/1998/namespace",
+			//	"http://www.w3.org/2001/XMLSchema-instance" and "http://www.w3.org/2001/XMLSchema"
+			//  are not sorted
+			if(i == 1) // "http://www.w3.org/XML/1998/namespace"
+			{
+				initialEntries = 4;
+			}
+			else if(i == 2) // "http://www.w3.org/2001/XMLSchema-instance"
+			{
+				initialEntries = 2;
+			}
+			else if(i == 3) // "http://www.w3.org/2001/XMLSchema"
+			{
+				initialEntries = 46;
+			}
+			insertionSort(tmpSortLnArray + initialEntries, lnRowCount - initialEntries, sortingLNTable, metaURITable->rows[i].lTable);
 
-			tmp_err_code = createLocalNamesTable(&(schema->initialStringTables->rows[tmpSortUriArray[i]].lTable), memList, lnRowCount);
+			tmp_err_code = createLocalNamesTable(&(schema->initialStringTables->rows[tmpSortUriArray[i]].lTable), &schema->memList, lnRowCount);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
@@ -718,5 +740,52 @@ errorCode stringTablesSorting(AllocList* memList, URITable* metaURITable, ExipSc
 	}
 
 	EXIP_MFREE(tmpSortUriArray);
+	return ERR_OK;
+}
+
+static int sortingGlobalElems(unsigned int prev_val, unsigned int cur_val, void* args)
+{
+	struct globalElSortingStruct* srtStruct = (struct globalElSortingStruct*) args;
+	int uri_cmp_res = str_compare(srtStruct->uTable->rows[srtStruct->glQnameArr->elems[prev_val].uriRowId].string_val, srtStruct->uTable->rows[srtStruct->glQnameArr->elems[cur_val].uriRowId].string_val);
+	if(uri_cmp_res == 0) // equal URIs
+	{
+		return str_compare(srtStruct->uTable->rows[srtStruct->glQnameArr->elems[prev_val].uriRowId].lTable->rows[srtStruct->glQnameArr->elems[prev_val].lnRowId].string_val, srtStruct->uTable->rows[srtStruct->glQnameArr->elems[cur_val].uriRowId].lTable->rows[srtStruct->glQnameArr->elems[cur_val].lnRowId].string_val);
+	}
+	return uri_cmp_res;
+}
+
+errorCode sortGlobalElements(AllocList* memList, DynArray* globalElements, ExipSchema* schema)
+{
+	unsigned int* tmpSortGlArray;
+	struct globalElSortingStruct tmpSortingStruct;
+	unsigned int i;
+	struct grammarQname* glArr;
+
+	schema->globalElems.elems = memManagedAllocate(&schema->memList, sizeof(struct grammarQname) * globalElements->elementCount);
+	if(schema->globalElems.elems == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	schema->globalElems.count = globalElements->elementCount;
+	glArr = (struct grammarQname*) globalElements->elements;
+
+	tmpSortGlArray = EXIP_MALLOC(schema->globalElems.count * sizeof(unsigned int));
+	if(tmpSortGlArray == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	for(i = 0; i < schema->globalElems.count; i++)
+		tmpSortGlArray[i] = i;
+
+	tmpSortingStruct.glQnameArr = &schema->globalElems;
+	tmpSortingStruct.uTable = schema->initialStringTables;
+
+	insertionSort(tmpSortGlArray, schema->globalElems.count, sortingGlobalElems, &tmpSortingStruct);
+
+	for(i = 0; i < schema->globalElems.count; i++)
+	{
+		schema->globalElems.elems[tmpSortGlArray[i]].uriRowId = glArr[i].uriRowId;
+		schema->globalElems.elems[tmpSortGlArray[i]].lnRowId = glArr[i].lnRowId;
+	}
+
+	EXIP_MFREE(tmpSortGlArray);
 	return ERR_OK;
 }

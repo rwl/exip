@@ -530,6 +530,11 @@ struct EXIStream
 	GrammarPool* ePool;
 
 	/**
+	 * The grammar pool of Type Grammars used during processing
+	 */
+	GrammarPool* tPool;
+
+	/**
 	 * Current (Left-hand side) Non terminal ID (Define the context/processor state)
 	 */
 	unsigned int nonTermID;
