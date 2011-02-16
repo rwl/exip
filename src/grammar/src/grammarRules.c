@@ -46,9 +46,9 @@
 #include "memManagement.h"
 #include "ioUtil.h"
 
-errorCode initGrammarRule(GrammarRule* rule, EXIStream* strm)
+errorCode initGrammarRule(GrammarRule* rule, AllocList* memList)
 {
-	rule->prodArray = (Production*) memManagedAllocatePtr(strm, sizeof(Production)*DEFAULT_PROD_ARRAY_DIM, &rule->memNode);
+	rule->prodArray = (Production*) memManagedAllocatePtr(memList, sizeof(Production)*DEFAULT_PROD_ARRAY_DIM, &rule->memPair);
 	if(rule->prodArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 	rule->prodCount = 0;
@@ -65,7 +65,7 @@ errorCode addProduction(GrammarRule* rule, EventCode eCode, EXIEvent event, unsi
 	if(rule->prodCount == rule->prodDimension) // The dynamic array prodArray needs to be resized
 	{
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		tmp_err_code = memManagedReAllocate((void *) &rule->prodArray, sizeof(Production)*(rule->prodCount + DEFAULT_PROD_ARRAY_DIM), rule->memNode);
+		tmp_err_code = memManagedReAllocate((void *) &rule->prodArray, sizeof(Production)*(rule->prodCount + DEFAULT_PROD_ARRAY_DIM), rule->memPair);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		rule->prodDimension = rule->prodDimension + DEFAULT_PROD_ARRAY_DIM;
@@ -86,7 +86,7 @@ errorCode insertZeroProduction(GrammarRule* rule, EXIEvent event, unsigned int n
 	if(rule->prodCount == rule->prodDimension) // The dynamic array prodArray needs to be resized
 	{
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		tmp_err_code = memManagedReAllocate((void *) &rule->prodArray, sizeof(Production)*(rule->prodCount + DEFAULT_PROD_ARRAY_DIM), rule->memNode);
+		tmp_err_code = memManagedReAllocate((void *) &rule->prodArray, sizeof(Production)*(rule->prodCount + DEFAULT_PROD_ARRAY_DIM), rule->memPair);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		rule->prodDimension = rule->prodDimension + DEFAULT_PROD_ARRAY_DIM;
@@ -109,18 +109,19 @@ errorCode insertZeroProduction(GrammarRule* rule, EXIEvent event, unsigned int n
 	return ERR_OK;
 }
 
-errorCode copyGrammarRule(EXIStream* strm, GrammarRule* src, GrammarRule* dest, unsigned int nonTermIdShift)
+errorCode copyGrammarRule(AllocList* memList, GrammarRule* src, GrammarRule* dest, unsigned int nonTermIdShift)
 {
 	dest->bits[0] = src->bits[0];
 	dest->bits[1] = src->bits[1];
 	dest->bits[2] = src->bits[2];
 
-	dest->memNode = NULL;
+	dest->memPair.memBlock = NULL;
+	dest->memPair.allocIndx = 0;
 	dest->nonTermID = src->nonTermID;
 	dest->prodCount = src->prodCount;
 	dest->prodDimension = src->prodDimension;
 
-	dest->prodArray = (Production*) memManagedAllocate(strm, sizeof(Production)*dest->prodDimension);
+	dest->prodArray = (Production*) memManagedAllocate(memList, sizeof(Production)*dest->prodDimension);
 	if(dest->prodArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 

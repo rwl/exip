@@ -54,10 +54,10 @@
  *
  * @param[in, out] str a pointer to the uninitialized string
  * @param[in] UCSchars the number of characters (as described by UCS [ISO/IEC 10646])
- * @param[in, out] strm EXI stream for which the allocation is made
+ * @param[in, out] memList A list storing the memory allocations
  * @return Error handling code
  */
-errorCode allocateStringMemory(CharType** str, uint32_t UCSchars, EXIStream* strm);
+errorCode allocateStringMemory(CharType** str, uint32_t UCSchars, AllocList* memList);
 
 /**
  * @brief Translate the UCS [ISO/IEC 10646] code point to CharType
@@ -111,13 +111,13 @@ char isStrEmpty(const StringType* str);
  * Note! The implementation of this function is platform-specific.
  * @param[in] inStr ASCII stream
  * @param[in, out] outStr resulted string
- * @param[in, out] strm EXI stream for which the allocation is made
+ * @param[in, out] memList A list storing the memory allocations
  * @param[in] clone Boolean indicating if outStr should reuse the memory allocated for inStr if possible.
  * 					0 - if StringType implementation allows it - do not allocate new memory for the string
  * 					1 - always allocate fresh memory for outStr and copy inStr there
  * @return Error handling code
  */
-errorCode asciiToString(const char* inStr, StringType* outStr, EXIStream* strm, unsigned char clone);
+errorCode asciiToString(const char* inStr, StringType* outStr, AllocList* memList, unsigned char clone);
 
 /**
  * @brief Tests if two strings are equal

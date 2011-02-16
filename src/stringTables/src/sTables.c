@@ -114,13 +114,13 @@ static const char* URI_3_LOCALNAME[] = {  // #DOCUMENT#
 
 /********* END: String table default entries ***************/
 
-errorCode createValueTable(ValueTable** vTable, EXIStream* strm)
+errorCode createValueTable(ValueTable** vTable, AllocList* memList)
 {
-	*vTable = (ValueTable*) memManagedAllocate(strm, sizeof(ValueTable));
+	*vTable = (ValueTable*) memManagedAllocate(memList, sizeof(ValueTable));
 	if(*vTable == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*vTable)->rows = (struct ValueRow*) memManagedAllocatePtr(strm, sizeof(struct ValueRow)*DEFAULT_VALUE_ROWS_NUMBER, &((*vTable)->memNode));
+	(*vTable)->rows = (struct ValueRow*) memManagedAllocatePtr(memList, sizeof(struct ValueRow)*DEFAULT_VALUE_ROWS_NUMBER, &(*vTable)->memPair);
 	if((*vTable)->rows == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -129,17 +129,17 @@ errorCode createValueTable(ValueTable** vTable, EXIStream* strm)
 	return ERR_OK;
 }
 
-errorCode createURITable(URITable** uTable, EXIStream* strm, unsigned int initialRows)
+errorCode createURITable(URITable** uTable, AllocList* memList, unsigned int initialRows)
 {
 	unsigned int rowNum = DEFAULT_URI_ROWS_NUMBER;
-	*uTable = (URITable*) memManagedAllocate(strm, sizeof(URITable));
+	*uTable = (URITable*) memManagedAllocate(memList, sizeof(URITable));
 	if(*uTable == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
 	if(initialRows > 0)
 		rowNum = initialRows;
 
-	(*uTable)->rows = (struct URIRow*) memManagedAllocatePtr(strm, sizeof(struct URIRow)*rowNum, &((*uTable)->memNode));
+	(*uTable)->rows = (struct URIRow*) memManagedAllocatePtr(memList, sizeof(struct URIRow)*rowNum, &(*uTable)->memPair);
 	if((*uTable)->rows == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -148,13 +148,13 @@ errorCode createURITable(URITable** uTable, EXIStream* strm, unsigned int initia
 	return ERR_OK;
 }
 
-errorCode createPrefixTable(PrefixTable** pTable, EXIStream* strm)
+errorCode createPrefixTable(PrefixTable** pTable, AllocList* memList)
 {
-	(*pTable) = (PrefixTable*) memManagedAllocate(strm, sizeof(PrefixTable));
+	(*pTable) = (PrefixTable*) memManagedAllocate(memList, sizeof(PrefixTable));
 	if(*pTable == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*pTable)->rows = (struct PrefixRow*) memManagedAllocatePtr(strm, sizeof(struct PrefixRow)*DEFAULT_PREFIX_ROWS_NUMBER, &((*pTable)->memNode));
+	(*pTable)->rows = (struct PrefixRow*) memManagedAllocatePtr(memList, sizeof(struct PrefixRow)*DEFAULT_PREFIX_ROWS_NUMBER, &(*pTable)->memPair);
 	if((*pTable)->rows == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -163,17 +163,17 @@ errorCode createPrefixTable(PrefixTable** pTable, EXIStream* strm)
 	return ERR_OK;
 }
 
-errorCode createLocalNamesTable(LocalNamesTable** lTable, EXIStream* strm, unsigned int initialRows)
+errorCode createLocalNamesTable(LocalNamesTable** lTable, AllocList* memList, unsigned int initialRows)
 {
 	unsigned int rowNum = DEFAULT_LOCALNAMES_ROWS_NUMBER;
-	*lTable = (LocalNamesTable*) memManagedAllocate(strm, sizeof(LocalNamesTable));
+	*lTable = (LocalNamesTable*) memManagedAllocate(memList, sizeof(LocalNamesTable));
 	if(*lTable == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
 	if(initialRows > 0)
 		rowNum = initialRows;
 
-	(*lTable)->rows = (struct LocalNamesRow*) memManagedAllocatePtr(strm, sizeof(struct LocalNamesRow)*rowNum, &((*lTable)->memNode));
+	(*lTable)->rows = (struct LocalNamesRow*) memManagedAllocatePtr(memList, sizeof(struct LocalNamesRow)*rowNum, &(*lTable)->memPair);
 	if((*lTable)->rows == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -182,13 +182,13 @@ errorCode createLocalNamesTable(LocalNamesTable** lTable, EXIStream* strm, unsig
 	return ERR_OK;
 }
 
-errorCode createValueLocalCrossTable(ValueLocalCrossTable** vlTable, EXIStream* strm)
+errorCode createValueLocalCrossTable(ValueLocalCrossTable** vlTable, AllocList* memList)
 {
-	*vlTable = (ValueLocalCrossTable*) memManagedAllocate(strm, sizeof(ValueLocalCrossTable));
+	*vlTable = (ValueLocalCrossTable*) memManagedAllocate(memList, sizeof(ValueLocalCrossTable));
 	if(*vlTable == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*vlTable)->valueRowIds = (uint32_t*) memManagedAllocatePtr(strm, sizeof(uint32_t)*DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER, &((*vlTable)->memNode));
+	(*vlTable)->valueRowIds = (uint32_t*) memManagedAllocatePtr(memList, sizeof(uint32_t)*DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER, &(*vlTable)->memPair);
 	if((*vlTable)->valueRowIds == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -197,7 +197,7 @@ errorCode createValueLocalCrossTable(ValueLocalCrossTable** vlTable, EXIStream* 
 	return ERR_OK;
 }
 
-errorCode addURIRow(URITable* uTable, StringType uri, uint32_t* rowID, EXIStream* strm)
+errorCode addURIRow(URITable* uTable, StringType uri, uint32_t* rowID, AllocList* memList)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	if(uTable == NULL)
@@ -205,7 +205,7 @@ errorCode addURIRow(URITable* uTable, StringType uri, uint32_t* rowID, EXIStream
 
 	if(uTable->arrayDimension == uTable->rowCount)   // The dynamic array must be extended first
 	{
-		tmp_err_code = memManagedReAllocate((void *) &uTable->rows, sizeof(struct URIRow)*(uTable->rowCount + DEFAULT_URI_ROWS_NUMBER), uTable->memNode);
+		tmp_err_code = memManagedReAllocate((void *) &uTable->rows, sizeof(struct URIRow)*(uTable->rowCount + DEFAULT_URI_ROWS_NUMBER), uTable->memPair);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		uTable->arrayDimension = uTable->arrayDimension + DEFAULT_URI_ROWS_NUMBER;
@@ -213,11 +213,11 @@ errorCode addURIRow(URITable* uTable, StringType uri, uint32_t* rowID, EXIStream
 	uTable->rows[uTable->rowCount].string_val.length = uri.length;
 	uTable->rows[uTable->rowCount].string_val.str = uri.str;
 
-	tmp_err_code = createLocalNamesTable(&(uTable->rows[uTable->rowCount].lTable), strm, 0);
+	tmp_err_code = createLocalNamesTable(&(uTable->rows[uTable->rowCount].lTable), memList, 0);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = createPrefixTable(&(uTable->rows[uTable->rowCount].pTable), strm);
+	tmp_err_code = createPrefixTable(&(uTable->rows[uTable->rowCount].pTable), memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -232,7 +232,7 @@ errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, uint32_t* row
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	if(lTable->arrayDimension == lTable->rowCount)   // The dynamic array must be extended first
 	{
-		tmp_err_code = memManagedReAllocate((void *) &lTable->rows, sizeof(struct LocalNamesRow)*(lTable->rowCount + DEFAULT_LOCALNAMES_ROWS_NUMBER), lTable->memNode);
+		tmp_err_code = memManagedReAllocate((void *) &lTable->rows, sizeof(struct LocalNamesRow)*(lTable->rowCount + DEFAULT_LOCALNAMES_ROWS_NUMBER), lTable->memPair);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		lTable->arrayDimension = lTable->arrayDimension + DEFAULT_LOCALNAMES_ROWS_NUMBER;
@@ -259,11 +259,11 @@ errorCode createInitialStringTables(EXIStream* strm, unsigned char withSchema)
 	StringType emptyStr;
 	StringType tmp_str;
 
-	tmp_err_code = createValueTable(&(strm->vTable), strm);
+	tmp_err_code = createValueTable(&(strm->vTable), &strm->memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = createURITable(&(strm->uriTable), strm, 0);
+	tmp_err_code = createURITable(&(strm->uriTable), &strm->memList, 0);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -273,23 +273,23 @@ errorCode createInitialStringTables(EXIStream* strm, unsigned char withSchema)
 		return tmp_err_code;
 
 	/**** URI	0	"" [empty string] */
-	addURIRow(strm->uriTable, emptyStr, &uriID, strm);
+	addURIRow(strm->uriTable, emptyStr, &uriID, &strm->memList);
 	addPrefixRow(strm->uriTable->rows[uriID].pTable, emptyStr);
 
 	/**** URI	1	"http://www.w3.org/XML/1998/namespace" */
-	tmp_err_code = asciiToString(URI_1, &tmp_str, strm, FALSE);
+	tmp_err_code = asciiToString(URI_1, &tmp_str, &strm->memList, FALSE);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	addURIRow(strm->uriTable, tmp_str, &uriID, strm);
+	addURIRow(strm->uriTable, tmp_str, &uriID, &strm->memList);
 
-	tmp_err_code = asciiToString(URI_1_PREFIX, &tmp_str, strm, FALSE);
+	tmp_err_code = asciiToString(URI_1_PREFIX, &tmp_str, &strm->memList, FALSE);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	addPrefixRow(strm->uriTable->rows[uriID].pTable, tmp_str);
 
 	for(i = 0; i < URI_1_LOCALNAME_SIZE; i++)
 	{
-		tmp_err_code = asciiToString(URI_1_LOCALNAME[i], &tmp_str, strm, FALSE);
+		tmp_err_code = asciiToString(URI_1_LOCALNAME[i], &tmp_str, &strm->memList, FALSE);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -297,19 +297,19 @@ errorCode createInitialStringTables(EXIStream* strm, unsigned char withSchema)
 	}
 
 	/**** URI	2	"http://www.w3.org/2001/XMLSchema-instance" */
-	tmp_err_code = asciiToString(URI_2, &tmp_str, strm, FALSE);
+	tmp_err_code = asciiToString(URI_2, &tmp_str, &strm->memList, FALSE);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	addURIRow(strm->uriTable, tmp_str, &uriID, strm);
+	addURIRow(strm->uriTable, tmp_str, &uriID, &strm->memList);
 
-	tmp_err_code = asciiToString(URI_2_PREFIX, &tmp_str, strm, FALSE);
+	tmp_err_code = asciiToString(URI_2_PREFIX, &tmp_str, &strm->memList, FALSE);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	addPrefixRow(strm->uriTable->rows[uriID].pTable, tmp_str);
 
 	for(i = 0; i < URI_2_LOCALNAME_SIZE; i++)
 	{
-		tmp_err_code = asciiToString(URI_2_LOCALNAME[i], &tmp_str, strm, FALSE);
+		tmp_err_code = asciiToString(URI_2_LOCALNAME[i], &tmp_str, &strm->memList, FALSE);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -319,14 +319,14 @@ errorCode createInitialStringTables(EXIStream* strm, unsigned char withSchema)
 	/**** URI	3	"http://www.w3.org/2001/XMLSchema"  */
 	if(withSchema == TRUE)
 	{
-		tmp_err_code = asciiToString(URI_3, &tmp_str, strm, FALSE);
+		tmp_err_code = asciiToString(URI_3, &tmp_str, &strm->memList, FALSE);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		addURIRow(strm->uriTable, tmp_str, &uriID, strm);
+		addURIRow(strm->uriTable, tmp_str, &uriID, &strm->memList);
 
 		for(i = 0; i < URI_3_LOCALNAME_SIZE; i++)
 		{
-			tmp_err_code = asciiToString(URI_3_LOCALNAME[i], &tmp_str, strm, FALSE);
+			tmp_err_code = asciiToString(URI_3_LOCALNAME[i], &tmp_str, &strm->memList, FALSE);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
@@ -341,7 +341,7 @@ errorCode addGVRow(ValueTable* vTable, StringType global_value, uint32_t* rowID)
 	if(vTable->arrayDimension == vTable->rowCount)   // The dynamic array must be extended first
 	{
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		tmp_err_code = memManagedReAllocate((void *) &vTable->rows, sizeof(struct ValueRow)*(vTable->rowCount + DEFAULT_VALUE_ROWS_NUMBER), vTable->memNode);
+		tmp_err_code = memManagedReAllocate((void *) &vTable->rows, sizeof(struct ValueRow)*(vTable->rowCount + DEFAULT_VALUE_ROWS_NUMBER), vTable->memPair);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		vTable->arrayDimension = vTable->arrayDimension + DEFAULT_VALUE_ROWS_NUMBER;
@@ -360,7 +360,7 @@ errorCode addPrefixRow(PrefixTable* pTable, StringType px_value)
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	if(pTable->arrayDimension == pTable->rowCount)   // The dynamic array must be extended first
 	{
-		tmp_err_code = memManagedReAllocate((void *) &pTable->rows, sizeof(struct PrefixRow)*(pTable->rowCount + DEFAULT_PREFIX_ROWS_NUMBER), pTable->memNode);
+		tmp_err_code = memManagedReAllocate((void *) &pTable->rows, sizeof(struct PrefixRow)*(pTable->rowCount + DEFAULT_PREFIX_ROWS_NUMBER), pTable->memPair);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		pTable->arrayDimension = pTable->arrayDimension + DEFAULT_PREFIX_ROWS_NUMBER;
@@ -373,18 +373,18 @@ errorCode addPrefixRow(PrefixTable* pTable, StringType px_value)
 	return ERR_OK;
 }
 
-errorCode addLVRow(struct LocalNamesRow* lnRow, uint32_t globalValueRowID, EXIStream* strm)
+errorCode addLVRow(struct LocalNamesRow* lnRow, uint32_t globalValueRowID, AllocList* memList)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	if(lnRow->vCrossTable == NULL)
 	{
-		tmp_err_code = createValueLocalCrossTable(&(lnRow->vCrossTable), strm);
+		tmp_err_code = createValueLocalCrossTable(&(lnRow->vCrossTable), memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 	else if(lnRow->vCrossTable->rowCount == lnRow->vCrossTable->arrayDimension)   // The dynamic array must be extended first
 	{
-		tmp_err_code = memManagedReAllocate((void *) &lnRow->vCrossTable->valueRowIds, sizeof(uint32_t)*(lnRow->vCrossTable->rowCount + DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER), lnRow->vCrossTable->memNode);
+		tmp_err_code = memManagedReAllocate((void *) &lnRow->vCrossTable->valueRowIds, sizeof(uint32_t)*(lnRow->vCrossTable->rowCount + DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER), lnRow->vCrossTable->memPair);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		lnRow->vCrossTable->arrayDimension += DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER;

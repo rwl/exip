@@ -197,6 +197,31 @@ struct StringType
 
 typedef struct StringType StringType;
 
+/********* START: Memory management definitions ***************/
+
+#define ALLOCATION_ARRAY_SIZE 50 // #DOCUMENT#
+
+struct allocBlock {
+	void* allocation[ALLOCATION_ARRAY_SIZE];
+	unsigned int currentAlloc;
+	struct allocBlock* nextBlock;
+};
+
+struct allocList {
+	struct allocBlock firtsBlock;
+	struct allocBlock* lastBlock;
+};
+
+typedef struct allocList AllocList;
+
+// Used by the memoryManager when there is reallocation
+struct reAllocPair {
+	struct allocBlock* memBlock;
+	unsigned int allocIndx;
+};
+
+/********* END: Memory management definitions ***************/
+
 /********* BEGIN: String Table Types ***************/
 
 struct ValueRow {
@@ -207,7 +232,7 @@ struct ValueTable {
 	struct ValueRow* rows; // Dynamic array
 	uint32_t rowCount; // The number of rows
 	uint32_t arrayDimension; // The size of the Dynamic array
-	void* memNode; // Used by the memoryManager when there is reallocation
+	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
 };
 
 typedef struct ValueTable ValueTable;
@@ -216,7 +241,7 @@ struct ValueLocalCrossTable {
 	uint32_t* valueRowIds; // Dynamic array
 	uint16_t rowCount; // The number of rows
 	uint16_t arrayDimension; // The size of the Dynamic array
-	void* memNode; // Used by the memoryManager when there is reallocation
+	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
 };
 
 typedef struct ValueLocalCrossTable ValueLocalCrossTable;
@@ -229,7 +254,7 @@ struct PrefixTable {
 	struct PrefixRow* rows; // Dynamic array
 	uint16_t rowCount; // The number of rows
 	uint16_t arrayDimension; // The size of the Dynamic array
-	void* memNode; // Used by the memoryManager when there is reallocation
+	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
 };
 
 typedef struct PrefixTable PrefixTable;
@@ -243,7 +268,7 @@ struct LocalNamesTable {
 	struct LocalNamesRow* rows; // Dynamic array
 	uint32_t rowCount; // The number of rows
 	uint32_t arrayDimension; // The size of the Dynamic array
-	void* memNode; // Used by the memoryManager when there is reallocation
+	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
 };
 
 typedef struct LocalNamesTable LocalNamesTable;
@@ -258,7 +283,7 @@ struct URITable {
 	struct URIRow* rows; // Dynamic array
 	uint16_t rowCount; // The number of rows
 	uint16_t arrayDimension; // The size of the Dynamic array
-	void* memNode; // Used by the memoryManager when there is reallocation
+	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
 };
 
 typedef struct URITable URITable;
@@ -398,7 +423,7 @@ struct GrammarRule
 	unsigned int prodCount; // The number of productions in this Grammar Rule
 	unsigned int prodDimension; // The size of the productions' array /allocated space for Productions/
 	unsigned char bits[3]; // The number of bits used for the integers constituting the EventCode
-	void* memNode; // Used by the memoryManager when there is reallocation
+	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
 };
 
 typedef struct GrammarRule GrammarRule;
@@ -422,11 +447,6 @@ struct StringTablesContext
 	uint32_t curr_uriID;
 	uint32_t curr_lnID;
 	unsigned char expectATData; // 1- Expecting value for an attribute, 0 - otherwise
-};
-
-struct memAlloc {
-	void* allocation;
-	struct memAlloc* nextAlloc;
 };
 
 /**
@@ -522,7 +542,7 @@ struct EXIStream
 	/**
 	 * Stores the information of all the allocated memory for that stream
 	 */
-	struct memAlloc* memStack;
+	AllocList memList;
 };
 
 typedef struct EXIStream EXIStream;

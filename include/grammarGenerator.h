@@ -148,11 +148,10 @@ struct elementNotResolved {
  * @param[in] binaryStream the binary representation of XML schema
  * @param[in] bufLen size of binaryStream - number of bytes
  * @param[in] schemaFormat EXI, XSD, DTD or any other schema representation supported
- * @param[out] strm An empty EXI stream used for memory allocations.
  * @param[out] exipSchema the resulted schema information used for processing EXI streams
  * @return Error handling code
  */
 errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, unsigned char schemaFormat,
-										EXIStream* strm, ExipSchema* schema);
+										 ExipSchema* schema);
 
 #endif /* GRAMMARGENERATOR_H_ */

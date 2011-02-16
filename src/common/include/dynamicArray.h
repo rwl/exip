@@ -54,7 +54,7 @@ struct dynArray {
 	uint16_t defaultSize; // Initial number of elements and the number of elements to be added each expansion time
 	uint32_t elementCount; // The actual number of elements
 	uint32_t arrayDimension; // The size of the Dynamic array
-	void* memNode; // Used by the memoryManager when there is reallocation
+	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
 };
 
 typedef struct dynArray DynArray;
@@ -65,10 +65,10 @@ typedef struct dynArray DynArray;
  * @param[out] dArray Untyped Dynamic Array
  * @param[in] elSize The size of a single array element in bytes
  * @param[in] defaultSize Initial number of elements and the number of elements to be added each expansion time
- * @param[in, out] strm EXI stream for which the allocation is made
+ * @param[in, out] memList A list storing the memory allocations
  * @return Error handling code
  */
-errorCode createDynArray(DynArray** dArray, size_t elSize, uint16_t defaultSize, EXIStream* strm);
+errorCode createDynArray(DynArray** dArray, size_t elSize, uint16_t defaultSize, AllocList* memList);
 
 /**
  * @brief Add new element into the dynamic array
@@ -77,9 +77,9 @@ errorCode createDynArray(DynArray** dArray, size_t elSize, uint16_t defaultSize,
  * @param[in, out] dArray Untyped Dynamic Array
  * @param[in] elem the inserted element
  * @param[out] elID the ID of the element inserted
- * @param[in, out] strm EXI stream for which the allocation is made
+ * @param[in, out] memList A list storing the memory allocations
  * @return Error handling code
  */
-errorCode addDynElement(DynArray* dArray, void* elem, uint32_t* elID, EXIStream* strm);
+errorCode addDynElement(DynArray* dArray, void* elem, uint32_t* elID, AllocList* memList);
 
 #endif /* DYNAMICARRAY_H_ */

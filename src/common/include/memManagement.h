@@ -55,47 +55,62 @@
  */
 
 /**
- * @brief Allocate a memory block with size <size> and store a copy of
- * the pointer in a linked list for freeing it at the end.
+ * @brief Initial setup of an AllocList
  *
- * @param[in, out] strm EXI stream for which the allocation is made
- * @param[in] size the size of the memory block to be allocated
- * @return pointer to the allocated block if successful. NULL otherwise
+ * @param[in, out] list a memory list to be setup
  */
-void* memManagedAllocate(EXIStream* strm, size_t size);
+void initAllocList(AllocList* list);
 
 /**
  * @brief Allocate a memory block with size <size> and store a copy of
  * the pointer in a linked list for freeing it at the end.
- * It also return the pointer to the linked list node used later
+ *
+ * @param[in, out] list A list storing the memory allocations
+ * @param[in] size the size of the memory block to be allocated
+ * @return pointer to the allocated memory if successful. NULL otherwise
+ */
+void* memManagedAllocate(AllocList* list, size_t size);
+
+/**
+ * @brief Allocate a memory block with size <size> and store a copy of
+ * the pointer in a linked list for freeing it at the end.
+ * It also return the location in the linked list used later
  * during reallocation. Use this function in case the allocated block
  * might need to be reallocated later.
  *
- * @param[in, out] strm EXI stream for which the allocation is made
+ * @param[in, out] list A list storing the memory allocations
  * @param[in] size the size of the memory block to be allocated
- * @param[out] memNode pointer to the memAlloc node created
- * @return pointer to the allocated block if successful. NULL otherwise
+ * @param[out] memPair stores a pointer to the allocation block used for reallocations
+ * @return pointer to the allocated memory if successful. NULL otherwise
  */
-void* memManagedAllocatePtr(EXIStream* strm, size_t size, void** p_memNode);
+void* memManagedAllocatePtr(AllocList* list, size_t size, struct reAllocPair* memPair);
 
 /**
  * @brief Reallocate a memory block with size <size>
  *
  * @param[in, out] ptr pointer to be reallocated
  * @param[in] size the size of the memory block to be reallocated
- * @param[in] p_memNode pointer to the memAlloc node created when the ptr was allocated
- * @return pointer to the allocated block if successful. NULL otherwise
+ * @param[in] memPair pointer to the allocation block where the initial allocation was done
+ * @return pointer to the allocated memory if successful. NULL otherwise
  */
-errorCode memManagedReAllocate(void** ptr, size_t size, void* p_memNode);
+errorCode memManagedReAllocate(void** ptr, size_t size, struct reAllocPair memPair);
 
 /**
  * @brief Frees all the managed memory for a particular EXI stream.
  * It should be called after an error in the processing occur or at the
  * end of the parsing/serializing if the processing is successful.
+ * Frees the memory in the allocation list and the hashtables used.
  *
  * @param[in, out] strm EXI stream for which the allocations were made
+ */
+void freeAllMem(EXIStream* strm);
+
+/**
+ * @brief Frees a particular Allocation list
+ *
+ * @param[in, out] list Allocation list to be freed
  * @return Error handling code
  */
-errorCode freeAllMem(EXIStream* strm);
+void freeAllocList(AllocList* list);
 
 #endif /* MEMMANAGEMENT_H_ */

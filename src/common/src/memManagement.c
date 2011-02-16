@@ -44,57 +44,61 @@
 #include "memManagement.h"
 #include "hashtable.h"
 
-void* memManagedAllocate(EXIStream* strm, size_t size)
+void initAllocList(AllocList* list)
+{
+	list->lastBlock = &(list->firtsBlock);
+	list->firtsBlock.currentAlloc = 0;
+	list->firtsBlock.nextBlock = NULL;
+}
+
+void* memManagedAllocate(AllocList* list, size_t size)
 {
 	void* ptr = EXIP_MALLOC(size);
 	if(ptr != NULL)
 	{
-		struct memAlloc* memNode =  EXIP_MALLOC(sizeof(struct memAlloc));
-		if(memNode != NULL)
+		if(list->lastBlock->currentAlloc == ALLOCATION_ARRAY_SIZE)
 		{
-			memNode->allocation = ptr;
-			memNode->nextAlloc = strm->memStack;
-			strm->memStack = memNode;
+			struct allocBlock* newBlock = EXIP_MALLOC(sizeof(struct allocBlock));
+			if(newBlock == NULL)
+				return NULL;
+
+			newBlock->currentAlloc = 0;
+			newBlock->nextBlock = NULL;
+
+			list->lastBlock->nextBlock = newBlock;
+			list->lastBlock = newBlock;
 		}
-		else
-			return NULL;
+
+		list->lastBlock->allocation[list->lastBlock->currentAlloc] = ptr;
+		list->lastBlock->currentAlloc += 1;
 	}
 	return ptr;
 }
 
-void* memManagedAllocatePtr(EXIStream* strm, size_t size, void** p_memNode)
+void* memManagedAllocatePtr(AllocList* list, size_t size, struct reAllocPair* memPair)
 {
-	void* ptr = EXIP_MALLOC(size);
+	void* ptr = memManagedAllocate(list, size);
 	if(ptr != NULL)
 	{
-		struct memAlloc* memNode =  EXIP_MALLOC(sizeof(struct memAlloc));
-		if(memNode != NULL)
-		{
-			memNode->allocation = ptr;
-			memNode->nextAlloc = strm->memStack;
-			strm->memStack = memNode;
-			(*p_memNode) = memNode;
-		}
-		else
-			return NULL;
+		memPair->memBlock = list->lastBlock;
+		memPair->allocIndx = list->lastBlock->currentAlloc - 1;
 	}
 	return ptr;
 }
 
-errorCode memManagedReAllocate(void** ptr, size_t size, void* p_memNode)
+errorCode memManagedReAllocate(void** ptr, size_t size, struct reAllocPair memPair)
 {
 	void* new_ptr = EXIP_REALLOC(*ptr, size);
 	if(new_ptr == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 	*ptr = new_ptr;
-	((struct memAlloc*) p_memNode)->allocation = new_ptr;
+
+	memPair.memBlock->allocation[memPair.allocIndx] = new_ptr;
 	return ERR_OK;
 }
 
-errorCode freeAllMem(EXIStream* strm)
+void freeAllMem(EXIStream* strm)
 {
-	struct memAlloc* tmpNode;
-
 	// Hash tables (GrammarPools) are freed separately
 	// (This includes the keys for the table -> they must be allocated directly with EXIP_MALLOC
 	//  without using memManagedAllocate)
@@ -102,12 +106,27 @@ errorCode freeAllMem(EXIStream* strm)
 	if(strm->ePool != NULL)
 		hashtable_destroy(strm->ePool, 0);
 
-	while(strm->memStack != NULL)
+	freeAllocList(&(strm->memList));
+}
+
+void freeAllocList(AllocList* list)
+{
+	struct allocBlock* tmpBlock = &(list->firtsBlock);
+	struct allocBlock* rmBl;
+	unsigned int i = 0;
+
+	for(; i < tmpBlock->currentAlloc; i++)
+		EXIP_MFREE(tmpBlock->allocation[i]);
+
+	tmpBlock = tmpBlock->nextBlock;
+
+	while(tmpBlock != NULL)
 	{
-		tmpNode = strm->memStack;
-		EXIP_MFREE(strm->memStack->allocation);
-		strm->memStack = strm->memStack->nextAlloc;
-		EXIP_MFREE(tmpNode);
+		for(i = 0; i < tmpBlock->currentAlloc; i++)
+			EXIP_MFREE(tmpBlock->allocation[i]);
+
+		rmBl = tmpBlock;
+		tmpBlock = tmpBlock->nextBlock;
+		EXIP_MFREE(rmBl);
 	}
-	return ERR_OK;
 }

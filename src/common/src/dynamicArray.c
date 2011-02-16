@@ -46,13 +46,13 @@
 #include "memManagement.h"
 #include "string.h"
 
-errorCode createDynArray(DynArray** dArray, size_t elSize, uint16_t defaultSize, EXIStream* strm)
+errorCode createDynArray(DynArray** dArray, size_t elSize, uint16_t defaultSize, AllocList* memList)
 {
-	(*dArray) = (DynArray*) memManagedAllocate(strm, sizeof(DynArray));
+	(*dArray) = (DynArray*) memManagedAllocate(memList, sizeof(DynArray));
 	if(*dArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*dArray)->elements = memManagedAllocatePtr(strm, elSize*defaultSize, &((*dArray)->memNode));
+	(*dArray)->elements = memManagedAllocatePtr(memList, elSize*defaultSize, &(*dArray)->memPair);
 	if((*dArray)->elements == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -64,7 +64,7 @@ errorCode createDynArray(DynArray** dArray, size_t elSize, uint16_t defaultSize,
 	return ERR_OK;
 }
 
-errorCode addDynElement(DynArray* dArray, void* elem, uint32_t* elID, EXIStream* strm)
+errorCode addDynElement(DynArray* dArray, void* elem, uint32_t* elID, AllocList* memList)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
@@ -72,7 +72,7 @@ errorCode addDynElement(DynArray* dArray, void* elem, uint32_t* elID, EXIStream*
 		return NULL_POINTER_REF;
 	if(dArray->arrayDimension == dArray->elementCount)   // The dynamic array must be extended first
 	{
-		tmp_err_code = memManagedReAllocate(&dArray->elements, dArray->elSize*(dArray->elementCount + dArray->defaultSize), dArray->memNode);
+		tmp_err_code = memManagedReAllocate(&dArray->elements, dArray->elSize*(dArray->elementCount + dArray->defaultSize), dArray->memPair);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		dArray->arrayDimension = dArray->arrayDimension + dArray->defaultSize;
