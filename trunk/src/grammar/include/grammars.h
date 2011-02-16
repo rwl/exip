@@ -87,10 +87,10 @@ errorCode popGrammar(EXIGrammarStack** gStack, struct EXIGrammar** grammar);
  *
  * @param[in, out] docGrammar empty grammar container to be filled with rules
  * @param[in, out] strm EXI stream for which the allocations are made; also the EXI options are read from here
- * @param[in] glElems A sorted array of global elements in the schema; if Built-in Document Grammar is created then it is NULL
+ * @param[in] globalElems A sorted array of global elements in the schema; if Built-in Document Grammar is created then it is NULL
  * @return Error handling code
  */
-errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, GlobalElements* glElems);
+errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, GrammarQnameArray* globalElems);
 
 /**
  * @brief Creates an instance of EXI Built-in Element Grammar
@@ -99,6 +99,16 @@ errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, Globa
  * @return Error handling code
  */
 errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, EXIStream* strm);
+
+/**
+ * @brief Creates a deep copy of a grammar with allocation fresh memory for the copy
+ *
+ * @param[in] memList A list storing the memory allocations
+ * @param[in] src source EXI grammar
+ * @param[out] dest destination EXI grammar clone of the src
+ * @return Error handling code
+ */
+errorCode copyGrammar(AllocList* memList, struct EXIGrammar* src, struct EXIGrammar** dest);
 
 /**
  * @brief Creates empty Element or Type Grammar pool

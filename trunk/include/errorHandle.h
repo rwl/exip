@@ -78,6 +78,9 @@ typedef char errorCode;
 /** No error, everything OK. */
 #define ERR_OK    0
 
+/** Function invokation is invalid for the given arguments */
+#define INVALID_OPERATION 13
+
 /** A command to stop the EXI processing received from the application */
 #define HANDLER_STOP_RECEIVED 12
 

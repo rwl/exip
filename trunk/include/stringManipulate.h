@@ -144,7 +144,7 @@ int str_compare(const StringType str1, const StringType str2);
  * @param[in] str2 null terminated string to compare
  * @return 1 if the strings are equal, 0 - otherwise
  */
-char strEqualToAscii(const StringType str1, char* str2);
+char strEqualToAscii(const StringType str1, const char* str2);
 
 /**
  * @brief Returns the UCS [ISO/IEC 10646] code point at particular index from a String

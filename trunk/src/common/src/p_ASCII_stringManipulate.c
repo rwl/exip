@@ -138,7 +138,7 @@ char str_equal(const StringType str1, const StringType str2)
 	}
 }
 
-char strEqualToAscii(const StringType str1, char* str2)
+char strEqualToAscii(const StringType str1, const char* str2)
 {
 	if(str1.length != strlen(str2))
 		return 0;
