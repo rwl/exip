@@ -74,12 +74,12 @@ errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, Globa
 	docGrammar->lastNonTermID = GR_VOID_NON_TERMINAL;
 	docGrammar->nextInStack = NULL;
 	docGrammar->rulesDimension = DEF_DOC_GRAMMAR_RULE_NUMBER;
-	docGrammar->ruleArray = (GrammarRule*) memManagedAllocate(strm, sizeof(GrammarRule)*DEF_DOC_GRAMMAR_RULE_NUMBER);
+	docGrammar->ruleArray = (GrammarRule*) memManagedAllocate(&strm->memList, sizeof(GrammarRule)*DEF_DOC_GRAMMAR_RULE_NUMBER);
 	if(docGrammar->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
 	/* Document : SD DocContent	0 */
-	tmp_err_code = initGrammarRule(&(docGrammar->ruleArray[0]), strm);
+	tmp_err_code = initGrammarRule(&(docGrammar->ruleArray[0]), &strm->memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	docGrammar->ruleArray[0].nonTermID = GR_DOCUMENT;
@@ -88,7 +88,7 @@ errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, Globa
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = initGrammarRule(&(docGrammar->ruleArray[1]), strm);
+	tmp_err_code = initGrammarRule(&(docGrammar->ruleArray[1]), &strm->memList);
 	if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	docGrammar->ruleArray[1].nonTermID = GR_DOC_CONTENT;
@@ -168,7 +168,7 @@ errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, Globa
 				ED	        0
 				CM DocEnd	1.0
 				PI DocEnd	1.1 */
-	tmp_err_code = initGrammarRule(&(docGrammar->ruleArray[2]), strm);
+	tmp_err_code = initGrammarRule(&(docGrammar->ruleArray[2]), &strm->memList);
 	if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	docGrammar->ruleArray[2].nonTermID = GR_DOC_END;
@@ -218,7 +218,7 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, EXIStre
 	elementGrammar->lastNonTermID = GR_VOID_NON_TERMINAL;
 	elementGrammar->nextInStack = NULL;
 	elementGrammar->rulesDimension = DEF_ELEMENT_GRAMMAR_RULE_NUMBER;
-	elementGrammar->ruleArray = (GrammarRule*) memManagedAllocate(strm, sizeof(GrammarRule)*DEF_ELEMENT_GRAMMAR_RULE_NUMBER);
+	elementGrammar->ruleArray = (GrammarRule*) memManagedAllocate(&strm->memList, sizeof(GrammarRule)*DEF_ELEMENT_GRAMMAR_RULE_NUMBER);
 	if(elementGrammar->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -232,7 +232,7 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, EXIStre
 							ER ElementContent	    0.6
 							CM ElementContent	    0.7.0
 							PI ElementContent	    0.7.1 */
-	tmp_err_code = initGrammarRule(&(elementGrammar->ruleArray[0]), strm);
+	tmp_err_code = initGrammarRule(&(elementGrammar->ruleArray[0]), &strm->memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	elementGrammar->ruleArray[0].nonTermID = GR_START_TAG_CONTENT;
@@ -316,7 +316,7 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, EXIStre
 							ER ElementContent	    1.2
 							CM ElementContent	    1.3.0
 							PI ElementContent	    1.3.1 */
-	tmp_err_code = initGrammarRule(&(elementGrammar->ruleArray[1]), strm);
+	tmp_err_code = initGrammarRule(&(elementGrammar->ruleArray[1]), &strm->memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	elementGrammar->ruleArray[1].nonTermID = GR_ELEMENT_CONTENT;
@@ -407,7 +407,7 @@ static errorCode decodeQName(EXIStream* strm, QName* qname)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = addURIRow(strm->uriTable, str, &uriID, strm);
+		tmp_err_code = addURIRow(strm->uriTable, str, &uriID, &strm->memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		qname->uri = &(strm->uriTable->rows[uriID].string_val);
@@ -441,7 +441,7 @@ static errorCode decodeQName(EXIStream* strm, QName* qname)
 			return tmp_err_code;
 		if(strm->uriTable->rows[uriID].lTable == NULL)
 		{
-			tmp_err_code = createLocalNamesTable(&strm->uriTable->rows[uriID].lTable, strm, 0);
+			tmp_err_code = createLocalNamesTable(&strm->uriTable->rows[uriID].lTable, &strm->memList, 0);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -502,7 +502,7 @@ static errorCode decodeStringValue(EXIStream* strm, StringType** value)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = addLVRow(&(strm->uriTable->rows[uriID].lTable->rows[lnID]), gvID, strm);
+		tmp_err_code = addLVRow(&(strm->uriTable->rows[uriID].lTable->rows[lnID]), gvID, &strm->memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -562,7 +562,7 @@ static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHand
 		}
 		else
 		{
-			struct EXIGrammar* elementGrammar = (struct EXIGrammar*) memManagedAllocate(strm, sizeof(struct EXIGrammar));
+			struct EXIGrammar* elementGrammar = (struct EXIGrammar*) memManagedAllocate(&strm->memList, sizeof(struct EXIGrammar));
 			if(elementGrammar == NULL)
 				return MEMORY_ALLOCATION_ERROR;
 			tmp_err_code = createBuildInElementGrammar(elementGrammar, strm);
@@ -957,7 +957,7 @@ errorCode encodeQName(EXIStream* strm, QName qname)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = addURIRow(strm->uriTable, *(qname.uri), &uriID, strm);
+		tmp_err_code = addURIRow(strm->uriTable, *(qname.uri), &uriID, &strm->memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -988,7 +988,7 @@ errorCode encodeQName(EXIStream* strm, QName qname)
 
 		if(strm->uriTable->rows[uriID].lTable == NULL)
 		{
-			tmp_err_code = createLocalNamesTable(&strm->uriTable->rows[uriID].lTable, strm, 0);
+			tmp_err_code = createLocalNamesTable(&strm->uriTable->rows[uriID].lTable, &strm->memList, 0);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -1053,7 +1053,7 @@ errorCode encodeStringData(EXIStream* strm, StringType strng)
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			tmp_err_code = addLVRow(&(strm->uriTable->rows[p_uriID].lTable->rows[p_lnID]), gvRowID, strm);
+			tmp_err_code = addLVRow(&(strm->uriTable->rows[p_uriID].lTable->rows[p_lnID]), gvRowID, &strm->memList);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}

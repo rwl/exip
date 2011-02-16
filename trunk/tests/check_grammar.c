@@ -45,6 +45,7 @@
 #include <stdlib.h>
 #include <check.h>
 #include "grammars.h"
+#include "memManagement.h"
 
 /* BEGIN: grammars tests */
 
@@ -62,6 +63,7 @@ START_TEST (test_createDocGrammar)
 	testStream.buffer = buf;
 	testStream.bufLen = 2;
 	testStream.bufferIndx = 0;
+	initAllocList(&testStream.memList);
 
 	struct EXIGrammar testGrammar;
 
@@ -88,6 +90,7 @@ START_TEST (test_pushGrammar)
 	makeDefaultOpts(&options);
 	EXIStream strm;
 	strm.header.opts = &options;
+	initAllocList(&strm.memList);
 
 	err = createDocGrammar(testGrStack, &strm, NULL);
 	fail_if(err != ERR_OK);
@@ -111,6 +114,7 @@ START_TEST (test_popGrammar)
 	makeDefaultOpts(&options);
 	EXIStream strm;
 	strm.header.opts = &options;
+	initAllocList(&strm.memList);
 
 	err = createDocGrammar(testGrStack, &strm, NULL);
 	fail_if(err != ERR_OK);
@@ -140,6 +144,7 @@ START_TEST (test_createBuildInElementGrammar)
 	makeDefaultOpts(&options);
 	EXIStream strm;
 	strm.header.opts = &options;
+	initAllocList(&strm.memList);
 
 	err = createBuildInElementGrammar(&testElementGrammar, &strm);
 	fail_unless (err == ERR_OK, "createBuildInElementGrammar returns error code %d", err);
@@ -173,6 +178,7 @@ START_TEST (test_checkGrammarInPool)
 	makeDefaultOpts(&options);
 	EXIStream strm;
 	strm.header.opts = &options;
+	initAllocList(&strm.memList);
 
 	unsigned char is_found = 1;
 	struct EXIGrammar* result = NULL;
@@ -213,6 +219,7 @@ START_TEST (test_addGrammarInPool)
 	makeDefaultOpts(&options);
 	EXIStream strm;
 	strm.header.opts = &options;
+	initAllocList(&strm.memList);
 
 	err = createBuildInElementGrammar(&testElementGrammar, &strm);
 	fail_unless (err == ERR_OK, "createBuildInElementGrammar returns error code %d", err);
@@ -262,8 +269,9 @@ START_TEST (test_initGrammarRule)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	GrammarRule rule;
-	EXIStream strm;
-	err = initGrammarRule(&rule, &strm);
+	AllocList memList;
+	initAllocList(&memList);
+	err = initGrammarRule(&rule, &memList);
 
 	fail_unless (err == ERR_OK, "initGrammarRule returns error code %d", err);
 
@@ -279,8 +287,9 @@ START_TEST (test_addProduction)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	GrammarRule rule;
-	EXIStream strm;
-	err = initGrammarRule(&rule, &strm);
+	AllocList memList;
+	initAllocList(&memList);
+	err = initGrammarRule(&rule, &memList);
 	fail_unless (err == ERR_OK, "initGrammarRule returns error code %d", err);
 	EventCode eCode = getEventCode2(20,12);
 	EXIEvent event;
@@ -320,8 +329,9 @@ START_TEST (test_insertZeroProduction)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	GrammarRule rule;
-	EXIStream strm;
-	err = initGrammarRule(&rule, &strm);
+	AllocList memList;
+	initAllocList(&memList);
+	err = initGrammarRule(&rule, &memList);
 	fail_unless (err == ERR_OK, "initGrammarRule returns error code %d", err);
 	EventCode eCode = getEventCode2(0,0);
 	EXIEvent event;

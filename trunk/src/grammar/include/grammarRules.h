@@ -53,10 +53,10 @@
 /**
  * @brief Initialize the dynamic array prodArray with the default size
  * @param[in, out] rule a Grammar Rule
- * @param[in, out] strm EXI stream for which the allocation is made
+ * @param[in, out] memList A list storing the memory allocations
  * @return Error handling code
  */
-errorCode initGrammarRule(GrammarRule* rule, EXIStream* strm);
+errorCode initGrammarRule(GrammarRule* rule, AllocList* memList);
 
 /**
  * @brief Adds a Production to a Grammar Rule
@@ -87,13 +87,13 @@ errorCode insertZeroProduction(GrammarRule* rule, EXIEvent event, unsigned int n
 /**
  * @brief Copies the production in one rule into another
  *
- * @param[in, out] strm EXI stream for which the allocation is made
+ * @param[in, out] memList A list storing the memory allocations
  * @param[in] src Source grammar rule
  * @param[out] dest Destination grammar rule
  * @param[in] nonTermIdShift during grammar concatenation this is used for nonTermId re-numeration
  * @return Error handling code
  */
-errorCode copyGrammarRule(EXIStream* strm, GrammarRule* src, GrammarRule* dest, unsigned int nonTermIdShift);
+errorCode copyGrammarRule(AllocList* memList, GrammarRule* src, GrammarRule* dest, unsigned int nonTermIdShift);
 
 #ifdef EXIP_DEBUG // TODO: document this macro #DOCUMENT#
 /**

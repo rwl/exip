@@ -67,6 +67,7 @@ START_TEST (test_decodeHeader)
 	testStream.buffer = buf;
 	testStream.bufferIndx = 0;
 	testStream.bufLen = 3;
+	initAllocList(&testStream.memList);
 
 	err = decodeHeader(&testStream);
 	fail_unless (err == ERR_OK, "decodeHeader returns error code %d", err);

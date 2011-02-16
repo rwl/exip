@@ -67,6 +67,7 @@ struct ExipSchema
 	GrammarPool* ePool;
 	GrammarPool* tPool;
 	GlobalElements glElems;
+	AllocList memList; // Stores the information for all memory allocations for that schema
 };
 
 typedef struct ExipSchema ExipSchema;

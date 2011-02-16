@@ -49,6 +49,7 @@
 #include "memManagement.h"
 #include "grammars.h"
 #include "normGrammar.h"
+#include "string.h"
 
 struct xsdAppData
 {
@@ -93,14 +94,19 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data);
 static errorCode handleElementEl(struct xsdAppData* app_data);
 
 errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, unsigned char schemaFormat,
-										EXIStream* strm, ExipSchema* schema)
+										 ExipSchema* schema)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	ContentHandler xsdHandler;
 	struct xsdAppData parsing_data;
+	EXIStream strm; // used for temporary memory allocation
 
 	if(schemaFormat != SCHEMA_FORMAT_XSD_EXI)
 		return NOT_IMPLEMENTED_YET;
+
+	strm.ePool = NULL;
+	strm.gStack = NULL;
+	initAllocList(&strm.memList);
 
 	initContentHandler(&xsdHandler);
 	xsdHandler.fatalError = xsd_fatalError;
@@ -123,29 +129,31 @@ errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, un
 
 	parsing_data.pGrammarStack = NULL;
 
-	tmp_err_code = createDynArray(&parsing_data.elNotResolvedArray, sizeof(struct elementNotResolved), 10, strm);
+	tmp_err_code = createDynArray(&parsing_data.elNotResolvedArray, sizeof(struct elementNotResolved), 10, &strm.memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = createDynArray(&parsing_data.attributeUses, sizeof(struct EXIGrammar), 5, strm);
+	tmp_err_code = createDynArray(&parsing_data.attributeUses, sizeof(struct EXIGrammar), 5, &strm.memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = createInitialStringTables(strm, TRUE);
+	tmp_err_code = createInitialStringTables(&strm, TRUE);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	parsing_data.metaURITable = strm->uriTable;
+	parsing_data.metaURITable = strm.uriTable;
 
-	tmp_err_code = createDynArray(&parsing_data.regProdQname, sizeof(struct productionQname), 20, strm);
+	tmp_err_code = createDynArray(&parsing_data.regProdQname, sizeof(struct productionQname), 20, &strm.memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = createDynArray(&parsing_data.globalElements, sizeof(struct globalElementId), 10, strm);
+	tmp_err_code = createDynArray(&parsing_data.globalElements, sizeof(struct globalElementId), 10, &strm.memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	parsing_data.strm = strm;
+	parsing_data.strm = &strm;
+
+	initAllocList(&schema->memList);
 
 	tmp_err_code = createGrammarPool(&(schema->ePool));
 	if(tmp_err_code != ERR_OK)
@@ -180,7 +188,13 @@ static char xsd_endDocument(void* app_data)
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End XML Schema parsing\n"));
 
-	appD->schema->glElems.elems = appD->globalElements->elements;
+	appD->schema->glElems.elems = memManagedAllocate(&appD->schema->memList, sizeof(struct globalElementId)*appD->globalElements->elementCount);
+	if(appD->schema->glElems.elems == NULL)
+	{
+		DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Memory allocation fail\n"));
+		return EXIP_HANDLER_STOP;
+	}
+	memcpy(appD->schema->glElems.elems, appD->globalElements->elements, sizeof(struct globalElementId)*appD->globalElements->elementCount);
 	appD->schema->glElems.count = appD->globalElements->elementCount;
 
 // Only for debugging purposes
@@ -215,7 +229,7 @@ static char xsd_endDocument(void* app_data)
 	}
 #endif
 
-	tmp_err_code = stringTablesSorting(appD->strm, appD->metaURITable, &(appD->schema->initialStringTables), appD->regProdQname);
+	tmp_err_code = stringTablesSorting(&appD->strm->memList, appD->metaURITable, appD->schema, appD->regProdQname);
 	if(tmp_err_code != ERR_OK)
 	{
 		DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">String Tables sorting failed: %d\n", tmp_err_code));
@@ -260,7 +274,7 @@ static char xsd_startElement(QName qname, void* app_data)
 			return EXIP_HANDLER_STOP;
 		}
 
-		elem = (struct elementDescr*) memManagedAllocate(appD->strm, sizeof(struct elementDescr));
+		elem = (struct elementDescr*) memManagedAllocate(&appD->strm->memList, sizeof(struct elementDescr));
 		if(elem == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
@@ -603,7 +617,7 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 	scope.localName = NULL;
 	scope.uri = NULL;
 
-	tmp_err_code = createAttributeUseGrammar(app_data->strm, required, elemDesc->attributePointers[ATTRIBUTE_NAME],
+	tmp_err_code = createAttributeUseGrammar(&app_data->strm->memList, required, elemDesc->attributePointers[ATTRIBUTE_NAME],
 											 target_ns, simpleType, scope, &attrUseGrammar, app_data->metaURITable, app_data->regProdQname);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -620,7 +634,7 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 	}
 #endif
 
-	tmp_err_code = addDynElement(app_data->attributeUses, attrUseGrammar, &attrUseGrammarID, app_data->strm);
+	tmp_err_code = addDynElement(app_data->attributeUses, attrUseGrammar, &attrUseGrammarID, &app_data->strm->memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -641,7 +655,7 @@ static errorCode handleExtentionEl(struct xsdAppData* app_data)
 	simpleType.localName = &(elemDesc->attributePointers[ATTRIBUTE_BASE]);
 	simpleType.uri = NULL;
 
-	tmp_err_code = createSimpleTypeGrammar(app_data->strm, simpleType, &simpleTypeGrammar);
+	tmp_err_code = createSimpleTypeGrammar(&app_data->strm->memList, simpleType, &simpleTypeGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -708,7 +722,7 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 
 	// TODO: the attributeUses array must be sorted first before calling createComplexTypeGrammar()
 
-	tmp_err_code = createComplexTypeGrammar(app_data->strm, typeName, target_ns,
+	tmp_err_code = createComplexTypeGrammar(&app_data->strm->memList, typeName, target_ns,
 			(struct EXIGrammar*) app_data->attributeUses->elements, app_data->attributeUses->elementCount,
 			                           NULL, 0, contentTypeGrammar, &resultComplexGrammar);
 	if(tmp_err_code != ERR_OK)
@@ -726,7 +740,7 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 	}
 #endif
 
-	tmp_err_code = normalizeGrammar(app_data->strm, resultComplexGrammar);
+	tmp_err_code = normalizeGrammar(&app_data->strm->memList, resultComplexGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -744,14 +758,14 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 	{
 		if(!lookupURI(app_data->metaURITable, target_ns, &uriRowId))
 		{
-			tmp_err_code = addURIRow(app_data->metaURITable, target_ns, &uriRowId, app_data->strm);
+			tmp_err_code = addURIRow(app_data->metaURITable, target_ns, &uriRowId, &app_data->strm->memList);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 
 		if(app_data->metaURITable->rows[uriRowId].lTable == NULL)
 		{
-			tmp_err_code = createLocalNamesTable(&(app_data->metaURITable->rows[uriRowId].lTable), app_data->strm, 0);
+			tmp_err_code = createLocalNamesTable(&(app_data->metaURITable->rows[uriRowId].lTable), &app_data->strm->memList, 0);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -810,14 +824,14 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 
 		if(!lookupURI(app_data->metaURITable, target_ns, &uriRowId))
 		{
-			tmp_err_code = addURIRow(app_data->metaURITable, target_ns, &uriRowId, app_data->strm);
+			tmp_err_code = addURIRow(app_data->metaURITable, target_ns, &uriRowId, &app_data->strm->memList);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 
 		if(app_data->metaURITable->rows[uriRowId].lTable == NULL)
 		{
-			tmp_err_code = createLocalNamesTable(&(app_data->metaURITable->rows[uriRowId].lTable), app_data->strm, 0);
+			tmp_err_code = createLocalNamesTable(&(app_data->metaURITable->rows[uriRowId].lTable), &app_data->strm->memList, 0);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -831,7 +845,7 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 		glEl.uriRowId = uriRowId;
 		glEl.lnRowId = lnRowId;
 
-		tmp_err_code = addDynElement(app_data->globalElements, &glEl, &dynArrId, app_data->strm);
+		tmp_err_code = addDynElement(app_data->globalElements, &glEl, &dynArrId, &app_data->strm->memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 

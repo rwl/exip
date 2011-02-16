@@ -52,6 +52,7 @@
 #include "procTypes.h"
 #include "errorHandle.h"
 #include "stringManipulate.h"
+#include "memManagement.h"
 
 /* BEGIN: streamRead tests */
 
@@ -66,6 +67,7 @@ START_TEST (test_readNextBit)
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufferIndx = 0;
+  initAllocList(&testStream.memList);
   unsigned char bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
 
@@ -104,6 +106,7 @@ START_TEST (test_readBits)
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufferIndx = 0;
+  initAllocList(&testStream.memList);
   unsigned int bits_val = 0;
   errorCode err = UNEXPECTED_ERROR;
 
@@ -146,6 +149,7 @@ START_TEST (test_writeNextBit)
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufferIndx = 0;
+  initAllocList(&testStream.memList);
   errorCode err = UNEXPECTED_ERROR;
 
   err = writeNextBit(&testStream, 1);
@@ -187,6 +191,7 @@ START_TEST (test_writeBits)
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufferIndx = 0;
+  initAllocList(&testStream.memList);
   errorCode err = UNEXPECTED_ERROR;
 
   err = writeBits(&testStream, 19);
@@ -230,6 +235,7 @@ START_TEST (test_writeNBits)
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufferIndx = 0;
+  initAllocList(&testStream.memList);
   errorCode err = UNEXPECTED_ERROR;
 
   err = writeNBits(&testStream, 7, 19);
@@ -281,6 +287,7 @@ START_TEST (test_decodeNBitUnsignedInteger)
   testStream.bufLen = 2;
   testStream.bufferIndx = 0;
   unsigned int bit_val = 0;
+  initAllocList(&testStream.memList);
   errorCode err = UNEXPECTED_ERROR;
 
   err = decodeNBitUnsignedInteger(&testStream, 6, &bit_val);
@@ -311,6 +318,7 @@ START_TEST (test_decodeBoolean)
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufferIndx = 0;
+  initAllocList(&testStream.memList);
   unsigned char bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
 
@@ -340,6 +348,7 @@ START_TEST (test_decodeUnsignedInteger)
   testStream.buffer = buf;
   testStream.bufLen = 3;
   testStream.bufferIndx = 0;
+  initAllocList(&testStream.memList);
   unsigned int bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
 
@@ -376,6 +385,7 @@ START_TEST (test_decodeString)
   testStream.buffer = buf;
   testStream.bufLen = 4;
   testStream.bufferIndx = 0;
+  initAllocList(&testStream.memList);
   StringType bit_val;
   CharType cht[100];
   bit_val.length = 0;
@@ -427,6 +437,7 @@ START_TEST (test_decodeBinary)
   buf[15] = (char) 0b00000111;
   testStream.buffer = buf;
   testStream.bufLen = 20;
+  initAllocList(&testStream.memList);
   char testbuf[20];
   int i;
   for(i=0;i<20;i++) testbuf[i]=buf[i];
@@ -506,6 +517,7 @@ START_TEST (test_decodeFloat)
   testStream.buffer = buf;
   testStream.bufLen = 3;
   testStream.bufferIndx = 0;
+  initAllocList(&testStream.memList);
   double dbl_val = 0;
   double res = 500;		// 5 x 10^2
   errorCode err = UNEXPECTED_ERROR;
@@ -541,6 +553,7 @@ START_TEST (test_decodeIntegerValue)
   testStream.buffer = buf;
   testStream.bufLen = 3;
   testStream.bufferIndx = 0;
+  initAllocList(&testStream.memList);
   int bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
 
@@ -578,6 +591,7 @@ START_TEST (test_encodeNBitUnsignedInteger)
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufferIndx = 0;
+  initAllocList(&testStream.memList);
   errorCode err = UNEXPECTED_ERROR;
 
   err = encodeNBitUnsignedInteger(&testStream, 9, 412);
@@ -611,6 +625,7 @@ START_TEST (test_encodeBoolean)
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufferIndx = 0;
+  initAllocList(&testStream.memList);
   errorCode err = UNEXPECTED_ERROR;
 
   err = encodeBoolean(&testStream, 1);
@@ -653,6 +668,7 @@ START_TEST (test_encodeUnsignedInteger)
   testStream.buffer = buf;
   testStream.bufLen = 3;
   testStream.bufferIndx = 0;
+  initAllocList(&testStream.memList);
   errorCode err = UNEXPECTED_ERROR;
 
   err = encodeUnsignedInteger(&testStream, 421);
@@ -707,11 +723,12 @@ START_TEST (test_encodeString)
   buf[1] = (char) 0b01100101;
   buf[2] = (char) 0b01010100;
   buf[3] = (char) 0b01010010;
+  initAllocList(&testStream.memList);
   testStream.buffer = buf;
   testStream.bufLen = 50;
   testStream.bufferIndx = 0;
   StringType testStr;
-  asciiToString("TEST encodeString()", &testStr, &testStream, FALSE);
+  asciiToString("TEST encodeString()", &testStr, &testStream.memList, FALSE);
   errorCode err = UNEXPECTED_ERROR;
 
   err = encodeString(&testStream, &testStr);

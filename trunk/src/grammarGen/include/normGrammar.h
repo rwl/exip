@@ -49,28 +49,28 @@
 /**
  * @brief Eliminates Productions with no Terminal Symbol
  *
- * @param[in] strm EXIStream used to attach the memory allocations to it.
+ * @param[in, out] memList A list storing the memory allocations
  * @param[in, out] grammar the proto-grammar being normalized
  * @return Error handling code
  */
-errorCode deleteNoTermProductions(EXIStream* strm, struct EXIGrammar* grammar);
+errorCode deleteNoTermProductions(AllocList* memList, struct EXIGrammar* grammar);
 
 /**
  * @brief Eliminating Duplicate Terminal Symbols
  *
- * @param[in] strm EXIStream used to attach the memory allocations to it.
+ * @param[in, out] memList A list storing the memory allocations
  * @param[in, out] grammar the proto-grammar being normalized
  * @return Error handling code
  */
-errorCode deleteDuplicateTerminals(EXIStream* strm, struct EXIGrammar* grammar);
+errorCode deleteDuplicateTerminals(AllocList* memList, struct EXIGrammar* grammar);
 
 /**
  * @brief Invokes deleteNoTermProductions() and then deleteDuplicateTerminals() to normalize the grammar
  *
- * @param[in] strm EXIStream used to attach the memory allocations to it.
+ * @param[in, out] memList A list storing the memory allocations
  * @param[in, out] grammar the proto-grammar being normalized
  * @return Error handling code
  */
-errorCode normalizeGrammar(EXIStream* strm, struct EXIGrammar* grammar);
+errorCode normalizeGrammar(AllocList* memList, struct EXIGrammar* grammar);
 
 #endif /* NORMGRAMMAR_H_ */

@@ -63,7 +63,7 @@ struct addedRuleInf
 	GrammarRule* rule;
 };
 
-errorCode deleteNoTermProductions(EXIStream* strm, struct EXIGrammar* grammar)
+errorCode deleteNoTermProductions(AllocList* memList, struct EXIGrammar* grammar)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int i = 0;
@@ -78,7 +78,7 @@ errorCode deleteNoTermProductions(EXIStream* strm, struct EXIGrammar* grammar)
 	struct removedProdInf pr;
 	uint32_t elId = 0;
 
-	tmp_err_code = createDynArray(&removedProdArray, sizeof(struct removedProdInf), 5, strm);
+	tmp_err_code = createDynArray(&removedProdArray, sizeof(struct removedProdInf), 5, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -93,7 +93,7 @@ errorCode deleteNoTermProductions(EXIStream* strm, struct EXIGrammar* grammar)
 				// Register that we are replacing this production without a terminal symbol
 				pr.leftNonTermID = grammar->ruleArray[i].nonTermID;
 				pr.rightNonTermID = rightNonTerm;
-				tmp_err_code = addDynElement(removedProdArray, &pr, &elId, strm);
+				tmp_err_code = addDynElement(removedProdArray, &pr, &elId, memList);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 
@@ -145,7 +145,7 @@ errorCode deleteNoTermProductions(EXIStream* strm, struct EXIGrammar* grammar)
 	return ERR_OK;
 }
 
-errorCode deleteDuplicateTerminals(EXIStream* strm, struct EXIGrammar* grammar)
+errorCode deleteDuplicateTerminals(AllocList* memList, struct EXIGrammar* grammar)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int i = 0;
@@ -166,7 +166,7 @@ errorCode deleteDuplicateTerminals(EXIStream* strm, struct EXIGrammar* grammar)
 	 * of index comparison purposes. Otherwise, if either k or l is not smaller than
 	 * content, k ⊔ l is considered to be larger than content. */
 
-	tmp_err_code = createDynArray(&addedRulesArray, sizeof(struct addedRuleInf), 5, strm);
+	tmp_err_code = createDynArray(&addedRulesArray, sizeof(struct addedRuleInf), 5, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -210,11 +210,11 @@ errorCode deleteDuplicateTerminals(EXIStream* strm, struct EXIGrammar* grammar)
 							tmp.firstNonTermID = grammar->ruleArray[i].prodArray[j].nonTermID;
 							tmp.secondNonTermID = grammar->ruleArray[i].prodArray[k].nonTermID;
 
-							tmp.rule = (GrammarRule*) memManagedAllocate(strm, sizeof(GrammarRule));
+							tmp.rule = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule));
 							if(tmp.rule == NULL)
 								return MEMORY_ALLOCATION_ERROR;
 
-							tmp_err_code = initGrammarRule(tmp.rule, strm);
+							tmp_err_code = initGrammarRule(tmp.rule, memList);
 							if(tmp_err_code != ERR_OK)
 								return tmp_err_code;
 							tmp.rule->nonTermID = lastAddedNonTermID;
@@ -250,20 +250,20 @@ errorCode deleteDuplicateTerminals(EXIStream* strm, struct EXIGrammar* grammar)
 	{
 		GrammarRule* newGrammarRuleArray;
 		/* We do not use realloc() here as the previous GrammarRule pointer must be freed by the EXIP mem menager*/
-		newGrammarRuleArray = (GrammarRule*) memManagedAllocate(strm, sizeof(GrammarRule)*grammar->rulesDimension + addedRulesArray->elementCount);
+		newGrammarRuleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*grammar->rulesDimension + addedRulesArray->elementCount);
 		if(newGrammarRuleArray == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
 		for(i = 0; i < grammar->rulesDimension; i++)  // Copying the initial rules
 		{
-			tmp_err_code = copyGrammarRule(strm, &(grammar->ruleArray[i]), &(newGrammarRuleArray[i]), 0);
+			tmp_err_code = copyGrammarRule(memList, &(grammar->ruleArray[i]), &(newGrammarRuleArray[i]), 0);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 
 		for(i = 0; i < addedRulesArray->elementCount; i++)  // Copying the added rules
 		{
-			tmp_err_code = copyGrammarRule(strm, ((struct addedRuleInf*) addedRulesArray->elements)[i].rule, &(newGrammarRuleArray[grammar->rulesDimension + i]), 0);
+			tmp_err_code = copyGrammarRule(memList, ((struct addedRuleInf*) addedRulesArray->elements)[i].rule, &(newGrammarRuleArray[grammar->rulesDimension + i]), 0);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -272,7 +272,7 @@ errorCode deleteDuplicateTerminals(EXIStream* strm, struct EXIGrammar* grammar)
 		grammar->ruleArray = newGrammarRuleArray;
 
 		/* Recursive calls to the deleteDuplicateTerminals until everything is cleaned*/
-		tmp_err_code = deleteDuplicateTerminals(strm, grammar);
+		tmp_err_code = deleteDuplicateTerminals(memList, grammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -280,14 +280,14 @@ errorCode deleteDuplicateTerminals(EXIStream* strm, struct EXIGrammar* grammar)
 	return ERR_OK;
 }
 
-errorCode normalizeGrammar(EXIStream* strm, struct EXIGrammar* grammar)
+errorCode normalizeGrammar(AllocList* memList, struct EXIGrammar* grammar)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	tmp_err_code = deleteNoTermProductions(strm, grammar);
+	tmp_err_code = deleteNoTermProductions(memList, grammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = deleteDuplicateTerminals(strm, grammar);
+	tmp_err_code = deleteDuplicateTerminals(memList, grammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 

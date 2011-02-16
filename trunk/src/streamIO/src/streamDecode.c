@@ -139,7 +139,7 @@ errorCode decodeStringOnly(EXIStream* strm, uint32_t str_length, StringType* str
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	uint32_t i = 0;
 	uint32_t tmp_code_point = 0;
-	tmp_err_code = allocateStringMemory(&(string_val->str), str_length, strm);
+	tmp_err_code = allocateStringMemory(&(string_val->str), str_length, &strm->memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	string_val->length = str_length;

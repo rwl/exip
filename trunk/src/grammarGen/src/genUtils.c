@@ -51,17 +51,17 @@
 static int sortingURITable(unsigned int prev_val, unsigned int cur_val, void* args);
 static int sortingLNTable(unsigned int prev_val, unsigned int cur_val, void* args);
 
-errorCode concatenateGrammars(EXIStream* strm, struct EXIGrammar* left, struct EXIGrammar* right, struct EXIGrammar** result)
+errorCode concatenateGrammars(AllocList* memList, struct EXIGrammar* left, struct EXIGrammar* right, struct EXIGrammar** result)
 {
 	int i = 0;
 	int j = 0;
-	*result = (struct EXIGrammar*) memManagedAllocate(strm, sizeof(struct EXIGrammar));
+	*result = (struct EXIGrammar*) memManagedAllocate(memList, sizeof(struct EXIGrammar));
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
 	(*result)->nextInStack = NULL;
 	(*result)->rulesDimension = left->rulesDimension + right->rulesDimension;
-	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(strm, sizeof(GrammarRule)*((*result)->rulesDimension));
+	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
 	if((*result)->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -71,7 +71,7 @@ errorCode concatenateGrammars(EXIStream* strm, struct EXIGrammar* left, struct E
 
 	for(;i < left->rulesDimension; i++)
 	{
-		copyGrammarRule(strm, &(left->ruleArray[i]), &((*result)->ruleArray[i]), 0);
+		copyGrammarRule(memList, &(left->ruleArray[i]), &((*result)->ruleArray[i]), 0);
 		(*result)->ruleArray[i].nonTermID = GR_SCHEMA_GRAMMARS_FIRST + i;
 
 		j = 0;
@@ -87,14 +87,14 @@ errorCode concatenateGrammars(EXIStream* strm, struct EXIGrammar* left, struct E
 
 	for(i = 0;i < right->rulesDimension; i++)
 	{
-		copyGrammarRule(strm, &(right->ruleArray[i]), &((*result)->ruleArray[left->rulesDimension + i]), left->rulesDimension);
+		copyGrammarRule(memList, &(right->ruleArray[i]), &((*result)->ruleArray[left->rulesDimension + i]), left->rulesDimension);
 		(*result)->ruleArray[left->rulesDimension + i].nonTermID = GR_SCHEMA_GRAMMARS_FIRST + left->rulesDimension + i;
 	}
 
 	return ERR_OK;
 }
 
-errorCode createElementProtoGrammar(EXIStream* strm, StringType name, StringType target_ns,
+errorCode createElementProtoGrammar(AllocList* memList, StringType name, StringType target_ns,
 									struct EXIGrammar* typeDef, QName scope, unsigned char nillable,
 									struct EXIGrammar** result)
 {
@@ -105,41 +105,41 @@ errorCode createElementProtoGrammar(EXIStream* strm, StringType name, StringType
 
 	int i = 0;
 
-	*result = (struct EXIGrammar*) memManagedAllocate(strm, sizeof(struct EXIGrammar));
+	*result = (struct EXIGrammar*) memManagedAllocate(memList, sizeof(struct EXIGrammar));
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
 	(*result)->nextInStack = NULL;
 	(*result)->rulesDimension = typeDef->rulesDimension;
-	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(strm, sizeof(GrammarRule)*((*result)->rulesDimension));
+	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
 	if((*result)->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
 	for(;i < typeDef->rulesDimension; i++)
 	{
-		copyGrammarRule(strm, &(typeDef->ruleArray[i]), &((*result)->ruleArray[i]), 0);
+		copyGrammarRule(memList, &(typeDef->ruleArray[i]), &((*result)->ruleArray[i]), 0);
 		(*result)->ruleArray[i].nonTermID = GR_SCHEMA_GRAMMARS_FIRST + i;
 	}
 
 	return ERR_OK;
 }
 
-errorCode createSimpleTypeGrammar(EXIStream* strm, QName simpleType, struct EXIGrammar** result)
+errorCode createSimpleTypeGrammar(AllocList* memList, QName simpleType, struct EXIGrammar** result)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIEvent event;
 
-	*result = (struct EXIGrammar*) memManagedAllocate(strm, sizeof(struct EXIGrammar));
+	*result = (struct EXIGrammar*) memManagedAllocate(memList, sizeof(struct EXIGrammar));
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
 	(*result)->nextInStack = NULL;
 	(*result)->rulesDimension = 2;
-	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(strm, sizeof(GrammarRule)*((*result)->rulesDimension));
+	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
 	if((*result)->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_err_code = initGrammarRule(&((*result)->ruleArray[0]), strm);
+	tmp_err_code = initGrammarRule(&((*result)->ruleArray[0]), memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	(*result)->ruleArray[0].nonTermID = GR_SCHEMA_GRAMMARS_FIRST;
@@ -147,7 +147,7 @@ errorCode createSimpleTypeGrammar(EXIStream* strm, QName simpleType, struct EXIG
 	tmp_err_code = getEXIDataType(simpleType, &(event.valueType));
 	tmp_err_code = addProduction(&((*result)->ruleArray[0]), getEventCode1(0), event, GR_SCHEMA_GRAMMARS_FIRST + 1);
 
-	tmp_err_code = initGrammarRule(&((*result)->ruleArray[1]), strm);
+	tmp_err_code = initGrammarRule(&((*result)->ruleArray[1]), memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	(*result)->ruleArray[1].nonTermID = GR_SCHEMA_GRAMMARS_FIRST + 1;
@@ -156,20 +156,20 @@ errorCode createSimpleTypeGrammar(EXIStream* strm, QName simpleType, struct EXIG
 	return ERR_OK;
 }
 
-errorCode createSimpleEmptyTypeGrammar(EXIStream* strm, struct EXIGrammar** result)
+errorCode createSimpleEmptyTypeGrammar(AllocList* memList, struct EXIGrammar** result)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	*result = (struct EXIGrammar*) memManagedAllocate(strm, sizeof(struct EXIGrammar));
+	*result = (struct EXIGrammar*) memManagedAllocate(memList, sizeof(struct EXIGrammar));
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
 	(*result)->nextInStack = NULL;
 	(*result)->rulesDimension = 1;
-	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(strm, sizeof(GrammarRule)*((*result)->rulesDimension));
+	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
 	if((*result)->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_err_code = initGrammarRule(&((*result)->ruleArray[0]), strm);
+	tmp_err_code = initGrammarRule(&((*result)->ruleArray[0]), memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	(*result)->ruleArray[0].nonTermID = GR_SCHEMA_GRAMMARS_FIRST;
@@ -179,7 +179,7 @@ errorCode createSimpleEmptyTypeGrammar(EXIStream* strm, struct EXIGrammar** resu
 	return ERR_OK;
 }
 
-errorCode createComplexTypeGrammar(EXIStream* strm, StringType name, StringType target_ns,
+errorCode createComplexTypeGrammar(AllocList* memList, StringType name, StringType target_ns,
 		                           struct EXIGrammar* attrUsesArray, unsigned int attrUsesArraySize,
 		                           StringType* wildcardArray, unsigned int wildcardArraySize,
 		                           struct EXIGrammar* contentTypeGrammar,
@@ -196,19 +196,19 @@ errorCode createComplexTypeGrammar(EXIStream* strm, StringType name, StringType 
 	tmpGrammar = &(attrUsesArray[0]);
 	for(; i < attrUsesArraySize; i++)
 	{
-		tmp_err_code = concatenateGrammars(strm, tmpGrammar, &(attrUsesArray[i]), &tmpGrammar);
+		tmp_err_code = concatenateGrammars(memList, tmpGrammar, &(attrUsesArray[i]), &tmpGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 
-	tmp_err_code = concatenateGrammars(strm, tmpGrammar, contentTypeGrammar, result);
+	tmp_err_code = concatenateGrammars(memList, tmpGrammar, contentTypeGrammar, result);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
 	return ERR_OK;
 }
 
-errorCode createComplexEmptyTypeGrammar(EXIStream* strm, StringType name, StringType target_ns,
+errorCode createComplexEmptyTypeGrammar(AllocList* memList, StringType name, StringType target_ns,
 		                           struct EXIGrammar* attrUsesArray, unsigned int attrUsesArraySize,
 		                           StringType* wildcardArray, unsigned int wildcardArraySize,
 								   struct EXIGrammar** result)
@@ -225,33 +225,33 @@ errorCode createComplexEmptyTypeGrammar(EXIStream* strm, StringType name, String
 	tmpGrammar = &(attrUsesArray[0]);
 	for(; i < attrUsesArraySize; i++)
 	{
-		tmp_err_code = concatenateGrammars(strm, tmpGrammar, &(attrUsesArray[i]), &tmpGrammar);
+		tmp_err_code = concatenateGrammars(memList, tmpGrammar, &(attrUsesArray[i]), &tmpGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 
-	tmp_err_code = createSimpleEmptyTypeGrammar(strm, &emptyContent);
+	tmp_err_code = createSimpleEmptyTypeGrammar(memList, &emptyContent);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = concatenateGrammars(strm, tmpGrammar, emptyContent, result);
+	tmp_err_code = concatenateGrammars(memList, tmpGrammar, emptyContent, result);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
 	return ERR_OK;
 }
 
-errorCode createComplexUrTypeGrammar(EXIStream* strm, struct EXIGrammar** result)
+errorCode createComplexUrTypeGrammar(AllocList* memList, struct EXIGrammar** result)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode createComplexUrEmptyTypeGrammar(EXIStream* strm, struct EXIGrammar** result)
+errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, struct EXIGrammar** result)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode createAttributeUseGrammar(EXIStream* strm, unsigned char required, StringType name, StringType target_ns,
+errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, StringType name, StringType target_ns,
 										  QName simpleType, QName scope, struct EXIGrammar** result, URITable* metaURITable, DynArray* regProdQname)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -261,17 +261,17 @@ errorCode createAttributeUseGrammar(EXIStream* strm, unsigned char required, Str
 	uint32_t elIndx = 0;
 	uint32_t metaLnID = 0;
 
-	*result = (struct EXIGrammar*) memManagedAllocate(strm, sizeof(struct EXIGrammar));
+	*result = (struct EXIGrammar*) memManagedAllocate(memList, sizeof(struct EXIGrammar));
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
 	(*result)->nextInStack = NULL;
 	(*result)->rulesDimension = 2;
-	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(strm, sizeof(GrammarRule)*((*result)->rulesDimension));
+	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
 	if((*result)->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_err_code = initGrammarRule(&((*result)->ruleArray[0]), strm);
+	tmp_err_code = initGrammarRule(&((*result)->ruleArray[0]), memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	(*result)->ruleArray[0].nonTermID = GR_SCHEMA_GRAMMARS_FIRST;
@@ -286,7 +286,7 @@ errorCode createAttributeUseGrammar(EXIStream* strm, unsigned char required, Str
 
 	if(!lookupURI(metaURITable, target_ns, &metaUriID)) // URI not found in the meta string tables
 	{
-		tmp_err_code = addURIRow(metaURITable, target_ns, &metaUriID, strm);
+		tmp_err_code = addURIRow(metaURITable, target_ns, &metaUriID, memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -294,7 +294,7 @@ errorCode createAttributeUseGrammar(EXIStream* strm, unsigned char required, Str
 
 	if(metaURITable->rows[metaUriID].lTable == NULL)
 	{
-		tmp_err_code = createLocalNamesTable(&metaURITable->rows[metaUriID].lTable, strm, 0);
+		tmp_err_code = createLocalNamesTable(&metaURITable->rows[metaUriID].lTable, memList, 0);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -312,7 +312,7 @@ errorCode createAttributeUseGrammar(EXIStream* strm, unsigned char required, Str
 	pqRow.uriRowID_old = metaUriID;
 	pqRow.lnRowID_old = metaLnID;
 
-	tmp_err_code = addDynElement(regProdQname, &pqRow, &elIndx, strm);
+	tmp_err_code = addDynElement(regProdQname, &pqRow, &elIndx, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -323,7 +323,7 @@ errorCode createAttributeUseGrammar(EXIStream* strm, unsigned char required, Str
 			return tmp_err_code;
 	}
 
-	tmp_err_code = initGrammarRule(&((*result)->ruleArray[1]), strm);
+	tmp_err_code = initGrammarRule(&((*result)->ruleArray[1]), memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	(*result)->ruleArray[1].nonTermID = GR_SCHEMA_GRAMMARS_FIRST + 1;
@@ -335,7 +335,7 @@ errorCode createAttributeUseGrammar(EXIStream* strm, unsigned char required, Str
 	return ERR_OK;
 }
 
-errorCode createParticleGrammar(EXIStream* strm, unsigned int minOccurs, int32_t maxOccurs,
+errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int32_t maxOccurs,
 								struct EXIGrammar* termGrammar, struct EXIGrammar** result)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -345,7 +345,7 @@ errorCode createParticleGrammar(EXIStream* strm, unsigned int minOccurs, int32_t
 	tmpGrammar = termGrammar;
 	for(; i < minOccurs; i++)
 	{
-		tmp_err_code = concatenateGrammars(strm, tmpGrammar, termGrammar, &tmpGrammar);
+		tmp_err_code = concatenateGrammars(memList, tmpGrammar, termGrammar, &tmpGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -374,7 +374,7 @@ errorCode createParticleGrammar(EXIStream* strm, unsigned int minOccurs, int32_t
 			i = 0;
 			for(; i < maxOccurs - minOccurs; i++)
 			{
-				tmp_err_code = concatenateGrammars(strm, tmpGrammar, termGrammar, &tmpGrammar);
+				tmp_err_code = concatenateGrammars(memList, tmpGrammar, termGrammar, &tmpGrammar);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			}
@@ -397,7 +397,7 @@ errorCode createParticleGrammar(EXIStream* strm, unsigned int minOccurs, int32_t
 				}
 			}
 
-			tmp_err_code = concatenateGrammars(strm, tmpGrammar, termGrammar, result);
+			tmp_err_code = concatenateGrammars(memList, tmpGrammar, termGrammar, result);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -410,7 +410,7 @@ errorCode createParticleGrammar(EXIStream* strm, unsigned int minOccurs, int32_t
 	return ERR_OK;
 }
 
-errorCode createElementTermGrammar(EXIStream* strm, StringType name, StringType target_ns,
+errorCode createElementTermGrammar(AllocList* memList, StringType name, StringType target_ns,
 								   struct EXIGrammar** result, URITable* metaURITable, DynArray* regProdQname)
 {
 	//TODO: enable support for {substitution group affiliation} property of the elements
@@ -420,17 +420,17 @@ errorCode createElementTermGrammar(EXIStream* strm, StringType name, StringType 
 	uint32_t metaLnID = 0;
 	struct productionQname pqRow;
 	uint32_t elIndx = 0;
-	*result = (struct EXIGrammar*) memManagedAllocate(strm, sizeof(struct EXIGrammar));
+	*result = (struct EXIGrammar*) memManagedAllocate(memList, sizeof(struct EXIGrammar));
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
 	(*result)->nextInStack = NULL;
 	(*result)->rulesDimension = 2;
-	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(strm, sizeof(GrammarRule)*((*result)->rulesDimension));
+	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
 	if((*result)->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_err_code = initGrammarRule(&((*result)->ruleArray[0]), strm);
+	tmp_err_code = initGrammarRule(&((*result)->ruleArray[0]), memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	(*result)->ruleArray[0].nonTermID = GR_SCHEMA_GRAMMARS_FIRST;
@@ -440,7 +440,7 @@ errorCode createElementTermGrammar(EXIStream* strm, StringType name, StringType 
 
 	if(!lookupURI(metaURITable, target_ns, &metaUriID)) // URI not found in the meta string tables
 	{
-		tmp_err_code = addURIRow(metaURITable, target_ns, &metaUriID, strm);
+		tmp_err_code = addURIRow(metaURITable, target_ns, &metaUriID, memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -448,7 +448,7 @@ errorCode createElementTermGrammar(EXIStream* strm, StringType name, StringType 
 
 	if(metaURITable->rows[metaUriID].lTable == NULL)
 	{
-		tmp_err_code = createLocalNamesTable(&metaURITable->rows[metaUriID].lTable, strm, 0);
+		tmp_err_code = createLocalNamesTable(&metaURITable->rows[metaUriID].lTable, memList, 0);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -466,11 +466,11 @@ errorCode createElementTermGrammar(EXIStream* strm, StringType name, StringType 
 	pqRow.uriRowID_old = metaUriID;
 	pqRow.lnRowID_old = metaLnID;
 
-	tmp_err_code = addDynElement(regProdQname, &pqRow, &elIndx, strm);
+	tmp_err_code = addDynElement(regProdQname, &pqRow, &elIndx, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = initGrammarRule(&((*result)->ruleArray[1]), strm);
+	tmp_err_code = initGrammarRule(&((*result)->ruleArray[1]), memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	(*result)->ruleArray[0].nonTermID = GR_SCHEMA_GRAMMARS_FIRST + 1;
@@ -481,19 +481,19 @@ errorCode createElementTermGrammar(EXIStream* strm, StringType name, StringType 
 	return ERR_OK;
 }
 
-errorCode createWildcardTermGrammar(EXIStream* strm, StringType* wildcardArray, unsigned int wildcardArraySize,
+errorCode createWildcardTermGrammar(AllocList* memList, StringType* wildcardArray, unsigned int wildcardArraySize,
 								   struct EXIGrammar** result)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode createSequenceModelGroupsGrammar(EXIStream* strm, struct EXIGrammar* pTermArray, unsigned int pTermArraySize,
+errorCode createSequenceModelGroupsGrammar(AllocList* memList, struct EXIGrammar* pTermArray, unsigned int pTermArraySize,
 											struct EXIGrammar** result)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	if(pTermArraySize == 0)
 	{
-		tmp_err_code = createSimpleEmptyTypeGrammar(strm, result);
+		tmp_err_code = createSimpleEmptyTypeGrammar(memList, result);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -503,7 +503,7 @@ errorCode createSequenceModelGroupsGrammar(EXIStream* strm, struct EXIGrammar* p
 		int i = 1;
 		for(; i < pTermArraySize; i++)
 		{
-			tmp_err_code = concatenateGrammars(strm, tmpGrammar, &(pTermArray[i]), &tmpGrammar);
+			tmp_err_code = concatenateGrammars(memList, tmpGrammar, &(pTermArray[i]), &tmpGrammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -512,21 +512,21 @@ errorCode createSequenceModelGroupsGrammar(EXIStream* strm, struct EXIGrammar* p
 	return ERR_OK;
 }
 
-errorCode createChoiceModelGroupsGrammar(EXIStream* strm, struct EXIGrammar* pTermArray, unsigned int pTermArraySize,
+errorCode createChoiceModelGroupsGrammar(AllocList* memList, struct EXIGrammar* pTermArray, unsigned int pTermArraySize,
 											struct EXIGrammar** result)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	*result = (struct EXIGrammar*) memManagedAllocate(strm, sizeof(struct EXIGrammar));
+	*result = (struct EXIGrammar*) memManagedAllocate(memList, sizeof(struct EXIGrammar));
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
 	(*result)->nextInStack = NULL;
 	(*result)->rulesDimension = 1;
-	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(strm, sizeof(GrammarRule)*((*result)->rulesDimension));
+	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
 	if((*result)->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_err_code = initGrammarRule(&((*result)->ruleArray[0]), strm);
+	tmp_err_code = initGrammarRule(&((*result)->ruleArray[0]), memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	(*result)->ruleArray[0].nonTermID = GR_SCHEMA_GRAMMARS_FIRST;
@@ -546,7 +546,7 @@ errorCode createChoiceModelGroupsGrammar(EXIStream* strm, struct EXIGrammar* pTe
 	return ERR_OK;
 }
 
-errorCode createAllModelGroupsGrammar(EXIStream* strm, struct EXIGrammar* pTermArray, unsigned int pTermArraySize,
+errorCode createAllModelGroupsGrammar(AllocList* memList, struct EXIGrammar* pTermArray, unsigned int pTermArraySize,
 											struct EXIGrammar** result)
 {
 	return NOT_IMPLEMENTED_YET;
@@ -630,7 +630,7 @@ static int sortingLNTable(unsigned int prev_val, unsigned int cur_val, void* arg
 	return str_compare(lnTable->rows[prev_val].string_val, lnTable->rows[cur_val].string_val);
 }
 
-errorCode stringTablesSorting(EXIStream* strm, URITable* metaURITable, URITable** resultingTable, DynArray* regProdQname)
+errorCode stringTablesSorting(AllocList* memList, URITable* metaURITable, ExipSchema* schema, DynArray* regProdQname)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int* tmpSortUriArray;
@@ -643,7 +643,7 @@ errorCode stringTablesSorting(EXIStream* strm, URITable* metaURITable, URITable*
 	if(tmpSortUriArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_err_code = createDynArray(&tmpLnTablePointes, sizeof(unsigned int *), 10, strm);
+	tmp_err_code = createDynArray(&tmpLnTablePointes, sizeof(unsigned int *), 10, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -652,14 +652,14 @@ errorCode stringTablesSorting(EXIStream* strm, URITable* metaURITable, URITable*
 
 	insertionSort(tmpSortUriArray, metaURITable->rowCount, sortingURITable, metaURITable);
 
-	tmp_err_code = createURITable(resultingTable, strm, metaURITable->rowCount);
+	tmp_err_code = createURITable(&(schema->initialStringTables), memList, metaURITable->rowCount);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
 	for(i = 0; i < metaURITable->rowCount; i++)
 	{
-		(*resultingTable)->rows[tmpSortUriArray[i]].string_val.length = metaURITable->rows[i].string_val.length;
-		(*resultingTable)->rows[tmpSortUriArray[i]].string_val.str = metaURITable->rows[i].string_val.str;
+		schema->initialStringTables->rows[tmpSortUriArray[i]].string_val.length = metaURITable->rows[i].string_val.length;
+		schema->initialStringTables->rows[tmpSortUriArray[i]].string_val.str = metaURITable->rows[i].string_val.str;
 
 		if(metaURITable->rows[i].lTable != NULL)
 		{
@@ -671,29 +671,29 @@ errorCode stringTablesSorting(EXIStream* strm, URITable* metaURITable, URITable*
 			for(n = 0; n < lnRowCount; n++)
 				tmpSortLnArray[n] = n;
 
-			addDynElement(tmpLnTablePointes, &tmpSortLnArray, &dID, strm);
+			addDynElement(tmpLnTablePointes, &tmpSortLnArray, &dID, memList);
 
 			insertionSort(tmpSortLnArray, lnRowCount, sortingLNTable, metaURITable->rows[i].lTable);
 
-			tmp_err_code = createLocalNamesTable(&((*resultingTable)->rows[tmpSortUriArray[i]].lTable), strm, lnRowCount);
+			tmp_err_code = createLocalNamesTable(&(schema->initialStringTables->rows[tmpSortUriArray[i]].lTable), memList, lnRowCount);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
 			for(n = 0; n < lnRowCount; n++)
 			{
-				(*resultingTable)->rows[tmpSortUriArray[i]].lTable->rows[tmpSortLnArray[n]].string_val.length = metaURITable->rows[i].lTable->rows[n].string_val.length;
-				(*resultingTable)->rows[tmpSortUriArray[i]].lTable->rows[tmpSortLnArray[n]].string_val.str = metaURITable->rows[i].lTable->rows[n].string_val.str;
+				schema->initialStringTables->rows[tmpSortUriArray[i]].lTable->rows[tmpSortLnArray[n]].string_val.length = metaURITable->rows[i].lTable->rows[n].string_val.length;
+				schema->initialStringTables->rows[tmpSortUriArray[i]].lTable->rows[tmpSortLnArray[n]].string_val.str = metaURITable->rows[i].lTable->rows[n].string_val.str;
 			}
-			(*resultingTable)->rows[tmpSortUriArray[i]].lTable->rowCount = lnRowCount;
+			schema->initialStringTables->rows[tmpSortUriArray[i]].lTable->rowCount = lnRowCount;
 		}
 		else
 		{
-			(*resultingTable)->rows[tmpSortUriArray[i]].lTable = NULL;
-			addDynElement(tmpLnTablePointes, &(metaURITable->rows[i].lTable), &dID, strm);
+			schema->initialStringTables->rows[tmpSortUriArray[i]].lTable = NULL;
+			addDynElement(tmpLnTablePointes, &(metaURITable->rows[i].lTable), &dID, memList);
 		}
-		(*resultingTable)->rows[tmpSortUriArray[i]].pTable = NULL;
+		schema->initialStringTables->rows[tmpSortUriArray[i]].pTable = NULL;
 	}
-	(*resultingTable)->rowCount = metaURITable->rowCount;
+	schema->initialStringTables->rowCount = metaURITable->rowCount;
 
 	{
 		struct productionQname* pq = (struct productionQname*) regProdQname->elements;

@@ -55,7 +55,7 @@ void parseEXI(char* binaryStream, uint32_t bufLen, ContentHandler* handler, void
 	EXIStream strm;
 	struct EXIOptions options;
 
-	strm.memStack = NULL;
+	initAllocList(&strm.memList);
 	strm.buffer = binaryStream;
 	strm.bitPointer = 0;
 	strm.bufferIndx = 0;

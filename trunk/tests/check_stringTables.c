@@ -46,6 +46,7 @@
 #include <check.h>
 #include "sTables.h"
 #include "stringManipulate.h"
+#include "memManagement.h"
 
 /* BEGIN: table tests */
 
@@ -53,9 +54,10 @@ START_TEST (test_createValueTable)
 {
 	ValueTable* vTable;
 	errorCode err = UNEXPECTED_ERROR;
-	EXIStream strm;
+	AllocList memList;
 
-	err = createValueTable(&vTable, &strm);
+	initAllocList(&memList);
+	err = createValueTable(&vTable, &memList);
 
 	fail_unless (err == ERR_OK, "createValueTable returns error code %d", err);
 	fail_unless (vTable->rowCount == 0,
@@ -70,8 +72,9 @@ START_TEST (test_createURITable)
 {
 	URITable* uTable;
 	errorCode err = UNEXPECTED_ERROR;
-	EXIStream strm;
-	err = createURITable(&uTable, &strm, 0);
+	AllocList memList;
+	initAllocList(&memList);
+	err = createURITable(&uTable, &memList, 0);
 
 	fail_unless (err == ERR_OK, "createURITable returns error code %d", err);
 	fail_unless (uTable->rowCount == 0,
@@ -86,8 +89,9 @@ START_TEST (test_createPrefixTable)
 {
 	PrefixTable* pTable;
 	errorCode err = UNEXPECTED_ERROR;
-	EXIStream strm;
-	err = createPrefixTable(&pTable, &strm);
+	AllocList memList;
+	initAllocList(&memList);
+	err = createPrefixTable(&pTable, &memList);
 
 	fail_unless (err == ERR_OK, "createPrefixTable returns error code %d", err);
 	fail_unless (pTable->rowCount == 0,
@@ -102,8 +106,9 @@ START_TEST (test_createLocalNamesTable)
 {
 	LocalNamesTable* lTable;
 	errorCode err = UNEXPECTED_ERROR;
-	EXIStream strm;
-	err = createLocalNamesTable(&lTable, &strm, 0);
+	AllocList memList;
+	initAllocList(&memList);
+	err = createLocalNamesTable(&lTable, &memList, 0);
 
 	fail_unless (err == ERR_OK, "createLocalNamesTable returns error code %d", err);
 	fail_unless (lTable->rowCount == 0,
@@ -118,8 +123,9 @@ START_TEST (test_createValueLocalCrossTable)
 {
 	ValueLocalCrossTable* vlTable;
 	errorCode err = UNEXPECTED_ERROR;
-	EXIStream strm;
-	err = createValueLocalCrossTable(&vlTable, &strm);
+	AllocList memList;
+	initAllocList(&memList);
+	err = createValueLocalCrossTable(&vlTable, &memList);
 
 	fail_unless (err == ERR_OK, "createValueLocalCrossTable returns error code %d", err);
 	fail_unless (vlTable->rowCount == 0,
@@ -134,16 +140,16 @@ START_TEST (test_addURIRow)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	URITable* uTable;
-	EXIStream strm;
-	err = createURITable(&uTable, &strm, 0);
+	unsigned int rowID = 55;
+	AllocList memList;
+	initAllocList(&memList);
+	err = createURITable(&uTable, &memList, 0);
 	fail_if(err != ERR_OK);
 
 	StringType test_uri;
-	asciiToString("test_uri_string", &test_uri, &strm, FALSE);
+	asciiToString("test_uri_string", &test_uri, &memList, FALSE);
 
-	unsigned int rowID = 55;
-
-	err = addURIRow(uTable, test_uri, &rowID, &strm);
+	err = addURIRow(uTable, test_uri, &rowID, &memList);
 
 	fail_unless (err == ERR_OK, "addURIRow returns error code %d", err);
 	fail_unless (uTable->arrayDimension == DEFAULT_URI_ROWS_NUMBER,
@@ -160,7 +166,7 @@ START_TEST (test_addURIRow)
 
 	uTable->rowCount = DEFAULT_URI_ROWS_NUMBER;
 
-	err = addURIRow(uTable, test_uri, &rowID, &strm);
+	err = addURIRow(uTable, test_uri, &rowID, &memList);
 
 	fail_unless (err == ERR_OK, "addURIRow returns error code %d", err);
 	fail_unless (uTable->arrayDimension == DEFAULT_URI_ROWS_NUMBER*2,
@@ -181,14 +187,14 @@ START_TEST (test_addLNRow)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	LocalNamesTable* lnTable;
-	EXIStream strm;
-	err = createLocalNamesTable(&lnTable, &strm, 0);
+	unsigned int rowID = 55;
+	AllocList memList;
+	initAllocList(&memList);
+	err = createLocalNamesTable(&lnTable, &memList, 0);
 	fail_if(err != ERR_OK);
 
 	StringType test_ln;
-	asciiToString("test_ln_string", &test_ln, &strm, FALSE);
-
-	unsigned int rowID = 55;
+	asciiToString("test_ln_string", &test_ln, &memList, FALSE);
 
 	err = addLNRow(lnTable, test_ln, &rowID);
 
@@ -232,6 +238,7 @@ START_TEST (test_createInitialStringTables)
 	makeDefaultOpts(&options);
 	testStream.header.opts = &options;
 
+	initAllocList(&testStream.memList);
 	char buf[2];
 	buf[0] = (char) 0b11010100;
 	buf[1] = (char) 0b01100000;
@@ -253,14 +260,16 @@ START_TEST (test_addGVRow)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	ValueTable* vTable;
-	EXIStream strm;
-	err = createValueTable(&vTable, &strm);
+	unsigned int rowID = 55;
+	AllocList memList;
+	initAllocList(&memList);
+	err = createValueTable(&vTable, &memList);
 	fail_if(err != ERR_OK);
 
 	StringType test_val;
-	asciiToString("test_val_string", &test_val, &strm, FALSE);
+	asciiToString("test_val_string", &test_val, &memList, FALSE);
 
-	unsigned int rowID = 55;
+
 
 	err = addGVRow(vTable, test_val, &rowID);
 
@@ -294,13 +303,15 @@ START_TEST (test_addLVRow)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	LocalNamesTable* lnTable;
-	EXIStream strm;
-	err = createLocalNamesTable(&lnTable, &strm, 0);
+	unsigned int rowID = 55;
+	unsigned int globalValueRowID = 101;
+	AllocList memList;
+	initAllocList(&memList);
+	err = createLocalNamesTable(&lnTable, &memList, 0);
 	fail_if(err != ERR_OK);
 	StringType test_ln;
 
-	asciiToString("test_ln_string", &test_ln, &strm, FALSE);
-	unsigned int rowID = 55;
+	asciiToString("test_ln_string", &test_ln, &memList, FALSE);
 	err = addLNRow(lnTable, test_ln, &rowID);
 	fail_unless (err == ERR_OK, "addLNRow returns error code %d", err);
 	fail_unless (lnTable->arrayDimension == DEFAULT_LOCALNAMES_ROWS_NUMBER,
@@ -314,9 +325,7 @@ START_TEST (test_addLVRow)
 				"addLNRow returned wrong rowID: %d", rowID);
 	fail_if(lnTable->rows[0].vCrossTable != NULL);
 
-	unsigned int globalValueRowID = 101;
-
-	err = addLVRow(&(lnTable->rows[0]), globalValueRowID, &strm);
+	err = addLVRow(&(lnTable->rows[0]), globalValueRowID, &memList);
 	fail_unless (err == ERR_OK, "addLVRow returns error code %d", err);
 	fail_if(lnTable->rows[0].vCrossTable == NULL);
 	fail_if(lnTable->rows[0].vCrossTable->valueRowIds == NULL);

@@ -86,8 +86,6 @@ int main(int argc, char *argv[])
 			}
 			else
 			{
-				EXIStream strm;
-
 				//Get file length
 				fseek(schemaFile, 0, SEEK_END);
 				schemaLen=ftell(schemaFile);
@@ -106,21 +104,13 @@ int main(int argc, char *argv[])
 				fread(schemaBuffer, schemaLen, 1, schemaFile);
 				fclose(schemaFile);
 
-				strm.ePool = NULL;
-				strm.gStack = NULL;
-				strm.memStack = NULL;
-
-				tmp_err_code = generateSchemaInformedGrammars(schemaBuffer, schemaLen, SCHEMA_FORMAT_XSD_EXI,
-														&strm, &schema);
+				tmp_err_code = generateSchemaInformedGrammars(schemaBuffer, schemaLen, SCHEMA_FORMAT_XSD_EXI, &schema);
 
 				if(tmp_err_code != ERR_OK)
 				{
 					printf("\n Error occured: %d", tmp_err_code);
-					serEXI.closeEXIStream(&strm);
 					return 1;
 				}
-				// TODO: needs to figure out how to allocate the strings and other needed memory on a separate EXIStream
-				serEXI.closeEXIStream(&strm);
 
 				free(schemaBuffer);
 				hasSchema = TRUE;
@@ -174,17 +164,17 @@ int main(int argc, char *argv[])
 
 			tmp_err_code += serEXI.startDocumentSer(&testStrm);
 
-			tmp_err_code += asciiToString("", &uri, &testStrm, FALSE);
-			tmp_err_code += asciiToString("EXIPEncoder", &ln, &testStrm, FALSE);
+			tmp_err_code += asciiToString("", &uri, &testStrm.memList, FALSE);
+			tmp_err_code += asciiToString("EXIPEncoder", &ln, &testStrm.memList, FALSE);
 			tmp_err_code += serEXI.startElementSer(&testStrm, qname);
 
-			tmp_err_code += asciiToString("version", &ln, &testStrm, FALSE);
+			tmp_err_code += asciiToString("version", &ln, &testStrm.memList, FALSE);
 			tmp_err_code += serEXI.attributeSer(&testStrm, qname);
 
-			tmp_err_code += asciiToString("0.1", &chVal, &testStrm, FALSE);
+			tmp_err_code += asciiToString("0.1", &chVal, &testStrm.memList, FALSE);
 			tmp_err_code += serEXI.stringDataSer(&testStrm, chVal);
 
-			tmp_err_code += asciiToString("This is an example of serializing EXI streams using EXIP low level API", &chVal, &testStrm, FALSE);
+			tmp_err_code += asciiToString("This is an example of serializing EXI streams using EXIP low level API", &chVal, &testStrm.memList, FALSE);
 			tmp_err_code += serEXI.stringDataSer(&testStrm, chVal);
 
 			tmp_err_code += serEXI.endElementSer(&testStrm);

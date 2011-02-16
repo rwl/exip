@@ -47,9 +47,9 @@
 #include <string.h>
 #include <stdio.h>
 
-errorCode allocateStringMemory(CharType** str, uint32_t UCSchars, EXIStream* strm)
+errorCode allocateStringMemory(CharType** str, uint32_t UCSchars, AllocList* memList)
 {
-	(*str) = (CharType*) memManagedAllocate(strm, sizeof(CharType)*UCSchars);
+	(*str) = (CharType*) memManagedAllocate(memList, sizeof(CharType)*UCSchars);
 	if((*str) == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 	return ERR_OK;
@@ -88,7 +88,7 @@ char isStrEmpty(const StringType* str)
 	return 0;
 }
 
-errorCode asciiToString(const char* inStr, StringType* outStr, EXIStream* strm, unsigned char clone)
+errorCode asciiToString(const char* inStr, StringType* outStr, AllocList* memList, unsigned char clone)
 {
 	outStr->length = strlen(inStr);
 	if(outStr->length > 0)  // If == 0 -> empty string
@@ -100,7 +100,7 @@ errorCode asciiToString(const char* inStr, StringType* outStr, EXIStream* strm, 
 		}
 		else
 		{
-			outStr->str = (CharType*) memManagedAllocate(strm, sizeof(CharType)*(outStr->length));
+			outStr->str = (CharType*) memManagedAllocate(memList, sizeof(CharType)*(outStr->length));
 			if(outStr->str == NULL)
 				return MEMORY_ALLOCATION_ERROR;
 			memcpy(outStr->str, inStr, outStr->length);

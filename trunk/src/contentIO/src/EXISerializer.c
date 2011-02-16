@@ -81,9 +81,9 @@ errorCode initStream(EXIStream* strm, char* buf, unsigned int bufSize, struct EX
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	GlobalElements* glElems = NULL;
-	strm->memStack = NULL;
-	strm->buffer = buf;
 
+	initAllocList(&strm->memList);
+	strm->buffer = buf;
 	strm->header.opts = opts;
 	strm->bitPointer = 0;
 	strm->bufLen = bufSize;
@@ -93,7 +93,7 @@ errorCode initStream(EXIStream* strm, char* buf, unsigned int bufSize, struct EX
 	strm->sContext.curr_lnID = 0;
 	strm->sContext.expectATData = 0;
 
-	strm->gStack = (EXIGrammarStack*) memManagedAllocate(strm, sizeof(EXIGrammarStack));
+	strm->gStack = (EXIGrammarStack*) memManagedAllocate(&strm->memList, sizeof(EXIGrammarStack));
 	if(strm->gStack == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -103,7 +103,7 @@ errorCode initStream(EXIStream* strm, char* buf, unsigned int bufSize, struct EX
 		strm->ePool = schema->ePool;
 		strm->uriTable = schema->initialStringTables;
 
-		tmp_err_code = createValueTable(&(strm->vTable), strm);
+		tmp_err_code = createValueTable(&(strm->vTable), &strm->memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -257,7 +257,7 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 					}
 					else
 					{
-						struct EXIGrammar* elementGrammar = (struct EXIGrammar*) memManagedAllocate(strm, sizeof(struct EXIGrammar));
+						struct EXIGrammar* elementGrammar = (struct EXIGrammar*) memManagedAllocate(&strm->memList, sizeof(struct EXIGrammar));
 						if(elementGrammar == NULL)
 							return MEMORY_ALLOCATION_ERROR;
 						tmp_err_code = createBuildInElementGrammar(elementGrammar, strm);
@@ -427,5 +427,6 @@ errorCode selfContainedSer(EXIStream* strm)
 
 errorCode closeEXIStream(EXIStream* strm)
 {
-	return freeAllMem(strm);
+	freeAllMem(strm);
+	return ERR_OK;
 }
