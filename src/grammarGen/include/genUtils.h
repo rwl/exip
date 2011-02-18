@@ -54,15 +54,14 @@
  * This structure holds pointers to
  * ruleArray[i].prodArray[j].lnRowID
  * ruleArray[i].prodArray[j].uriRowID
- * and their old values before sorting.
- * Based on the old index, the new values of lnRowID and uriRowID
- * after sorting are updated using the pointers
+ * and their string QNames
+ * Based on the QNames, the new values of lnRowID and uriRowID
+ * after sorting the URITables are updated using the pointers
  */
 struct productionQname {
 	unsigned int* p_uriRowID;
 	unsigned int* p_lnRowID;
-	unsigned int uriRowID_old;
-	unsigned int lnRowID_old;
+	QName qname;
 };
 
 /**
@@ -199,12 +198,11 @@ errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, struct EXIGrammar*
  * @param[in] simpleType qname of the simple type of the attribute type definition
  * @param[in] scope attribute scope - if NULL then the scope is global otherwise the QName of the complex type which is the scope
  * @param[out] result the resulted proto-grammar
- * @param[in, out] metaURITable temporary String table for holding the strings before sorting.
  * @param[in, out] regProdQname dynamic array of struct productionQname elements
  * @return Error handling code
  */
 errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, StringType name, StringType target_ns,
-										  QName simpleType, QName scope, struct EXIGrammar** result, URITable* metaURITable, DynArray* regProdQname);
+										  QName simpleType, QName scope, struct EXIGrammar** result, DynArray* regProdQname);
 
 /**
  * @brief Creates Particle Proto-Grammar from XML Schema particle
@@ -226,12 +224,11 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
  * @param[in] name element local name
  * @param[in] target_ns element target namespace
  * @param[out] result the resulted proto-grammar
- * @param[in, out] metaURITable temporary String table for holding the strings before sorting.
  * @param[in, out] regProdQname dynamic array of struct productionQname elements
  * @return Error handling code
  */
 errorCode createElementTermGrammar(AllocList* memList, StringType name, StringType target_ns,
-								   struct EXIGrammar** result, URITable* metaURITable, DynArray* regProdQname);
+								   struct EXIGrammar** result, DynArray* regProdQname);
 
 /**
  * @brief Creates Wildcard Term Proto-Grammar from Particle term that is XML Schema wildcard
@@ -290,27 +287,5 @@ errorCode createAllModelGroupsGrammar(AllocList* memList, struct EXIGrammar* pTe
  * @return Error handling code
  */
 errorCode getEXIDataType(QName simpleXSDType, ValueType* exiType);
-
-/**
- * @brief Sorts the information in the MetaString tables
- * It also updates all the references to the uri and ln IDs through regProdQname
- *
- * @param[in, out] memList A list storing the temporary memory allocations
- * @param[in] metaURITable temporary String table for holding the strings before sorting
- * @param[out] schema holds the allocations for the sorted string tables stored in schema->initialStringTables
- * @param[in] regProdQname used to update the uri and ln string tables row IDs
- * @return Error handling code
- */
-errorCode stringTablesSorting(AllocList* memList, URITable* metaURITable, ExipSchema* schema, DynArray* regProdQname);
-
-/**
- * @brief Sorts the global elements list
- *
- * @param[in, out] memList A list storing the temporary memory allocations
- * @param[in] globalElements global elements list to be sorted
- * @param[out] schema holds the allocations for the sorted list in schema->globalElems
- * @return Error handling code
- */
-errorCode sortGlobalElements(AllocList* memList, DynArray* globalElements, ExipSchema* schema);
 
 #endif /* GENUTILS_H_ */

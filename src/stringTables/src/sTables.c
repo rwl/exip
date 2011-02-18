@@ -252,12 +252,7 @@ errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, uint32_t* row
 
 errorCode createInitialStringTables(EXIStream* strm, unsigned char withSchema)
 {
-	unsigned int i = 0;
-	uint32_t uriID = 0;
-	uint32_t lnID = 0;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	StringType emptyStr;
-	StringType tmp_str;
 
 	tmp_err_code = createValueTable(&(strm->vTable), &strm->memList);
 	if(tmp_err_code != ERR_OK)
@@ -267,72 +262,85 @@ errorCode createInitialStringTables(EXIStream* strm, unsigned char withSchema)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-    // Insert initial entries in the URI partition
+    return createInitialEntries(&(strm->memList), strm->uriTable, withSchema);
+}
+
+errorCode createInitialEntries(AllocList* memList, URITable* uTable, unsigned char withSchema)
+{
+	unsigned int i = 0;
+	uint32_t uriID = 0;
+	uint32_t lnID = 0;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	StringType emptyStr;
+	StringType tmp_str;
+
+	// Insert initial entries in the URI partition
 	tmp_err_code = getEmptyString(&emptyStr);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
 	/**** URI	0	"" [empty string] */
-	addURIRow(strm->uriTable, emptyStr, &uriID, &strm->memList);
-	addPrefixRow(strm->uriTable->rows[uriID].pTable, emptyStr);
+	addURIRow(uTable, emptyStr, &uriID, memList);
+	addPrefixRow(uTable->rows[uriID].pTable, emptyStr);
 
 	/**** URI	1	"http://www.w3.org/XML/1998/namespace" */
-	tmp_err_code = asciiToString(URI_1, &tmp_str, &strm->memList, FALSE);
+	tmp_err_code = asciiToString(URI_1, &tmp_str, memList, FALSE);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	addURIRow(strm->uriTable, tmp_str, &uriID, &strm->memList);
+	addURIRow(uTable, tmp_str, &uriID, memList);
 
-	tmp_err_code = asciiToString(URI_1_PREFIX, &tmp_str, &strm->memList, FALSE);
+	tmp_err_code = asciiToString(URI_1_PREFIX, &tmp_str, memList, FALSE);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	addPrefixRow(strm->uriTable->rows[uriID].pTable, tmp_str);
+	addPrefixRow(uTable->rows[uriID].pTable, tmp_str);
 
 	for(i = 0; i < URI_1_LOCALNAME_SIZE; i++)
 	{
-		tmp_err_code = asciiToString(URI_1_LOCALNAME[i], &tmp_str, &strm->memList, FALSE);
+		tmp_err_code = asciiToString(URI_1_LOCALNAME[i], &tmp_str, memList, FALSE);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		addLNRow(strm->uriTable->rows[uriID].lTable, tmp_str, &lnID);
+		addLNRow(uTable->rows[uriID].lTable, tmp_str, &lnID);
 	}
 
 	/**** URI	2	"http://www.w3.org/2001/XMLSchema-instance" */
-	tmp_err_code = asciiToString(URI_2, &tmp_str, &strm->memList, FALSE);
+	tmp_err_code = asciiToString(URI_2, &tmp_str, memList, FALSE);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	addURIRow(strm->uriTable, tmp_str, &uriID, &strm->memList);
+	addURIRow(uTable, tmp_str, &uriID, memList);
 
-	tmp_err_code = asciiToString(URI_2_PREFIX, &tmp_str, &strm->memList, FALSE);
+	tmp_err_code = asciiToString(URI_2_PREFIX, &tmp_str, memList, FALSE);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	addPrefixRow(strm->uriTable->rows[uriID].pTable, tmp_str);
+	addPrefixRow(uTable->rows[uriID].pTable, tmp_str);
 
 	for(i = 0; i < URI_2_LOCALNAME_SIZE; i++)
 	{
-		tmp_err_code = asciiToString(URI_2_LOCALNAME[i], &tmp_str, &strm->memList, FALSE);
+		tmp_err_code = asciiToString(URI_2_LOCALNAME[i], &tmp_str, memList, FALSE);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		addLNRow(strm->uriTable->rows[uriID].lTable, tmp_str, &lnID);
+		addLNRow(uTable->rows[uriID].lTable, tmp_str, &lnID);
 	}
 
 	/**** URI	3	"http://www.w3.org/2001/XMLSchema"  */
 	if(withSchema == TRUE)
 	{
-		tmp_err_code = asciiToString(URI_3, &tmp_str, &strm->memList, FALSE);
+		tmp_err_code = asciiToString(URI_3, &tmp_str, memList, FALSE);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		addURIRow(strm->uriTable, tmp_str, &uriID, &strm->memList);
+		addURIRow(uTable, tmp_str, &uriID, memList);
 
 		for(i = 0; i < URI_3_LOCALNAME_SIZE; i++)
 		{
-			tmp_err_code = asciiToString(URI_3_LOCALNAME[i], &tmp_str, &strm->memList, FALSE);
+			tmp_err_code = asciiToString(URI_3_LOCALNAME[i], &tmp_str, memList, FALSE);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			addLNRow(strm->uriTable->rows[uriID].lTable, tmp_str, &lnID);
+			addLNRow(uTable->rows[uriID].lTable, tmp_str, &lnID);
 		}
 	}
+
 	return ERR_OK;
 }
 

@@ -48,16 +48,6 @@
 #include "stringManipulate.h"
 #include "sortingAlgorithms.h"
 
-struct globalElSortingStruct
-{
-	GrammarQnameArray* glQnameArr;
-	URITable* uTable;
-};
-
-static int sortingURITable(unsigned int prev_val, unsigned int cur_val, void* args);
-static int sortingLNTable(unsigned int prev_val, unsigned int cur_val, void* args);
-static int sortingGlobalElems(unsigned int prev_val, unsigned int cur_val, void* args);
-
 errorCode concatenateGrammars(AllocList* memList, struct EXIGrammar* left, struct EXIGrammar* right, struct EXIGrammar** result)
 {
 	int i = 0;
@@ -259,14 +249,12 @@ errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, struct EXIGrammar*
 }
 
 errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, StringType name, StringType target_ns,
-										  QName simpleType, QName scope, struct EXIGrammar** result, URITable* metaURITable, DynArray* regProdQname)
+										  QName simpleType, QName scope, struct EXIGrammar** result, DynArray* regProdQname)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIEvent event1;
-	uint32_t metaUriID = 0;
 	struct productionQname pqRow;
 	uint32_t elIndx = 0;
-	uint32_t metaLnID = 0;
 
 	*result = (struct EXIGrammar*) memManagedAllocate(memList, sizeof(struct EXIGrammar));
 	if(*result == NULL)
@@ -291,33 +279,13 @@ errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, 
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	if(!lookupURI(metaURITable, target_ns, &metaUriID)) // URI not found in the meta string tables
-	{
-		tmp_err_code = addURIRow(metaURITable, target_ns, &metaUriID, memList);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-	(*result)->ruleArray[0].prodArray[0].uriRowID = metaUriID;
-
-	if(metaURITable->rows[metaUriID].lTable == NULL)
-	{
-		tmp_err_code = createLocalNamesTable(&metaURITable->rows[metaUriID].lTable, memList, 0);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-
-	if(!lookupLN(metaURITable->rows[metaUriID].lTable, name, &metaLnID)) // Local name not found in the meta string tables
-	{
-		tmp_err_code = addLNRow(metaURITable->rows[metaUriID].lTable, name, &metaLnID);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-	(*result)->ruleArray[0].prodArray[0].lnRowID = metaLnID;
+	(*result)->ruleArray[0].prodArray[0].uriRowID = 9999;
+	(*result)->ruleArray[0].prodArray[0].lnRowID = 9999;
 
 	pqRow.p_uriRowID = &((*result)->ruleArray[0].prodArray[0].uriRowID);
 	pqRow.p_lnRowID = &((*result)->ruleArray[0].prodArray[0].lnRowID);
-	pqRow.uriRowID_old = metaUriID;
-	pqRow.lnRowID_old = metaLnID;
+	pqRow.qname.uri = &target_ns;
+	pqRow.qname.localName = &name;
 
 	tmp_err_code = addDynElement(regProdQname, &pqRow, &elIndx, memList);
 	if(tmp_err_code != ERR_OK)
@@ -418,13 +386,11 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
 }
 
 errorCode createElementTermGrammar(AllocList* memList, StringType name, StringType target_ns,
-								   struct EXIGrammar** result, URITable* metaURITable, DynArray* regProdQname)
+								   struct EXIGrammar** result, DynArray* regProdQname)
 {
 	//TODO: enable support for {substitution group affiliation} property of the elements
 
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	uint32_t metaUriID = 0;
-	uint32_t metaLnID = 0;
 	struct productionQname pqRow;
 	uint32_t elIndx = 0;
 	*result = (struct EXIGrammar*) memManagedAllocate(memList, sizeof(struct EXIGrammar));
@@ -445,33 +411,13 @@ errorCode createElementTermGrammar(AllocList* memList, StringType name, StringTy
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	if(!lookupURI(metaURITable, target_ns, &metaUriID)) // URI not found in the meta string tables
-	{
-		tmp_err_code = addURIRow(metaURITable, target_ns, &metaUriID, memList);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-	(*result)->ruleArray[0].prodArray[0].uriRowID = metaUriID;
-
-	if(metaURITable->rows[metaUriID].lTable == NULL)
-	{
-		tmp_err_code = createLocalNamesTable(&metaURITable->rows[metaUriID].lTable, memList, 0);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-
-	if(!lookupLN(metaURITable->rows[metaUriID].lTable, name, &metaLnID)) // Local name not found in the meta string tables
-	{
-		tmp_err_code = addLNRow(metaURITable->rows[metaUriID].lTable, name, &metaLnID);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-	(*result)->ruleArray[0].prodArray[0].lnRowID = metaLnID;
+	(*result)->ruleArray[0].prodArray[0].uriRowID = 9999;
+	(*result)->ruleArray[0].prodArray[0].lnRowID = 9999;
 
 	pqRow.p_uriRowID = &((*result)->ruleArray[0].prodArray[0].uriRowID);
 	pqRow.p_lnRowID = &((*result)->ruleArray[0].prodArray[0].lnRowID);
-	pqRow.uriRowID_old = metaUriID;
-	pqRow.lnRowID_old = metaLnID;
+	pqRow.qname.uri = &target_ns;
+	pqRow.qname.localName = &name;
 
 	tmp_err_code = addDynElement(regProdQname, &pqRow, &elIndx, memList);
 	if(tmp_err_code != ERR_OK)
@@ -617,175 +563,4 @@ errorCode getEXIDataType(QName simpleXSDType, ValueType* exiType)
 	}
 
 	return INCONSISTENT_PROC_STATE;
-}
-
-static int sortingURITable(unsigned int prev_val, unsigned int cur_val, void* args)
-{
-	URITable* metaURITable = (URITable*) args;
-	return str_compare(metaURITable->rows[prev_val].string_val, metaURITable->rows[cur_val].string_val);
-}
-
-static int sortingLNTable(unsigned int prev_val, unsigned int cur_val, void* args)
-{
-	LocalNamesTable* lnTable = (LocalNamesTable*) args;
-	return str_compare(lnTable->rows[prev_val].string_val, lnTable->rows[cur_val].string_val);
-}
-
-errorCode stringTablesSorting(AllocList* memList, URITable* metaURITable, ExipSchema* schema, DynArray* regProdQname)
-{
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned int* tmpSortUriArray;
-	unsigned int i;
-	unsigned int n;
-	uint32_t dID = 0;
-	DynArray* tmpLnTablePointes;
-
-	tmpSortUriArray = EXIP_MALLOC(metaURITable->rowCount * sizeof(unsigned int));
-	if(tmpSortUriArray == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	tmp_err_code = createDynArray(&tmpLnTablePointes, sizeof(unsigned int *), 10, memList);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	for(i = 0; i < metaURITable->rowCount; i++)
-		tmpSortUriArray[i] = i;
-
-//	The first four entries are not sorted
-//	URI	0	"" [empty string]
-//	URI	1	"http://www.w3.org/XML/1998/namespace"
-//	URI	2	"http://www.w3.org/2001/XMLSchema-instance"
-//	URI	3	"http://www.w3.org/2001/XMLSchema"
-	insertionSort(tmpSortUriArray + 4, metaURITable->rowCount - 4, sortingURITable, metaURITable);
-
-	tmp_err_code = createURITable(&(schema->initialStringTables), &schema->memList, metaURITable->rowCount);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	for(i = 0; i < metaURITable->rowCount; i++)
-	{
-		schema->initialStringTables->rows[tmpSortUriArray[i]].string_val.length = metaURITable->rows[i].string_val.length;
-		schema->initialStringTables->rows[tmpSortUriArray[i]].string_val.str = metaURITable->rows[i].string_val.str;
-
-		if(metaURITable->rows[i].lTable != NULL)
-		{
-			unsigned int initialEntries = 0;
-			unsigned int lnRowCount = metaURITable->rows[i].lTable->rowCount;
-			unsigned int* tmpSortLnArray = EXIP_MALLOC(lnRowCount * sizeof(unsigned int));
-			if(tmpSortLnArray == NULL)
-				return MEMORY_ALLOCATION_ERROR;
-
-			for(n = 0; n < lnRowCount; n++)
-				tmpSortLnArray[n] = n;
-
-			addDynElement(tmpLnTablePointes, &tmpSortLnArray, &dID, memList);
-
-			//	The initialEntries entries in "http://www.w3.org/XML/1998/namespace",
-			//	"http://www.w3.org/2001/XMLSchema-instance" and "http://www.w3.org/2001/XMLSchema"
-			//  are not sorted
-			if(i == 1) // "http://www.w3.org/XML/1998/namespace"
-			{
-				initialEntries = 4;
-			}
-			else if(i == 2) // "http://www.w3.org/2001/XMLSchema-instance"
-			{
-				initialEntries = 2;
-			}
-			else if(i == 3) // "http://www.w3.org/2001/XMLSchema"
-			{
-				initialEntries = 46;
-			}
-			insertionSort(tmpSortLnArray + initialEntries, lnRowCount - initialEntries, sortingLNTable, metaURITable->rows[i].lTable);
-
-			tmp_err_code = createLocalNamesTable(&(schema->initialStringTables->rows[tmpSortUriArray[i]].lTable), &schema->memList, lnRowCount);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-
-			for(n = 0; n < lnRowCount; n++)
-			{
-				schema->initialStringTables->rows[tmpSortUriArray[i]].lTable->rows[tmpSortLnArray[n]].string_val.length = metaURITable->rows[i].lTable->rows[n].string_val.length;
-				schema->initialStringTables->rows[tmpSortUriArray[i]].lTable->rows[tmpSortLnArray[n]].string_val.str = metaURITable->rows[i].lTable->rows[n].string_val.str;
-			}
-			schema->initialStringTables->rows[tmpSortUriArray[i]].lTable->rowCount = lnRowCount;
-		}
-		else
-		{
-			schema->initialStringTables->rows[tmpSortUriArray[i]].lTable = NULL;
-			addDynElement(tmpLnTablePointes, &(metaURITable->rows[i].lTable), &dID, memList);
-		}
-		schema->initialStringTables->rows[tmpSortUriArray[i]].pTable = NULL;
-	}
-	schema->initialStringTables->rowCount = metaURITable->rowCount;
-
-	{
-		struct productionQname* pq = (struct productionQname*) regProdQname->elements;
-
-		for(i = 0; i < regProdQname->elementCount; i++)
-		{
-			unsigned int* lnTable = ((unsigned int**) tmpLnTablePointes->elements)[i];
-			*(pq[i].p_uriRowID) = tmpSortUriArray[pq[i].uriRowID_old];
-			if(lnTable != NULL)
-				*(pq[i].p_lnRowID) = lnTable[pq[i].uriRowID_old];
-			else
-				return INCONSISTENT_PROC_STATE; // There must be such local name table
- 		}
-	}
-
-	for(i = 0; i < tmpLnTablePointes->elementCount; i++)
-	{
-		if(((unsigned int**) tmpLnTablePointes->elements)[i] != NULL)
-		{
-			EXIP_MFREE(((unsigned int**) tmpLnTablePointes->elements)[i]);
-		}
-	}
-
-	EXIP_MFREE(tmpSortUriArray);
-	return ERR_OK;
-}
-
-static int sortingGlobalElems(unsigned int prev_val, unsigned int cur_val, void* args)
-{
-	struct globalElSortingStruct* srtStruct = (struct globalElSortingStruct*) args;
-	int uri_cmp_res = str_compare(srtStruct->uTable->rows[srtStruct->glQnameArr->elems[prev_val].uriRowId].string_val, srtStruct->uTable->rows[srtStruct->glQnameArr->elems[cur_val].uriRowId].string_val);
-	if(uri_cmp_res == 0) // equal URIs
-	{
-		return str_compare(srtStruct->uTable->rows[srtStruct->glQnameArr->elems[prev_val].uriRowId].lTable->rows[srtStruct->glQnameArr->elems[prev_val].lnRowId].string_val, srtStruct->uTable->rows[srtStruct->glQnameArr->elems[cur_val].uriRowId].lTable->rows[srtStruct->glQnameArr->elems[cur_val].lnRowId].string_val);
-	}
-	return uri_cmp_res;
-}
-
-errorCode sortGlobalElements(AllocList* memList, DynArray* globalElements, ExipSchema* schema)
-{
-	unsigned int* tmpSortGlArray;
-	struct globalElSortingStruct tmpSortingStruct;
-	unsigned int i;
-	struct grammarQname* glArr;
-
-	schema->globalElems.elems = memManagedAllocate(&schema->memList, sizeof(struct grammarQname) * globalElements->elementCount);
-	if(schema->globalElems.elems == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	schema->globalElems.count = globalElements->elementCount;
-	glArr = (struct grammarQname*) globalElements->elements;
-
-	tmpSortGlArray = EXIP_MALLOC(schema->globalElems.count * sizeof(unsigned int));
-	if(tmpSortGlArray == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	for(i = 0; i < schema->globalElems.count; i++)
-		tmpSortGlArray[i] = i;
-
-	tmpSortingStruct.glQnameArr = &schema->globalElems;
-	tmpSortingStruct.uTable = schema->initialStringTables;
-
-	insertionSort(tmpSortGlArray, schema->globalElems.count, sortingGlobalElems, &tmpSortingStruct);
-
-	for(i = 0; i < schema->globalElems.count; i++)
-	{
-		schema->globalElems.elems[tmpSortGlArray[i]].uriRowId = glArr[i].uriRowId;
-		schema->globalElems.elems[tmpSortGlArray[i]].lnRowId = glArr[i].lnRowId;
-	}
-
-	EXIP_MFREE(tmpSortGlArray);
-	return ERR_OK;
 }
