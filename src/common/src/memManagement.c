@@ -115,7 +115,7 @@ void freeAllocList(AllocList* list)
 	struct allocBlock* rmBl;
 	unsigned int i = 0;
 
-	for(; i < tmpBlock->currentAlloc; i++)
+	for(i = 0; i < tmpBlock->currentAlloc; i++)
 		EXIP_MFREE(tmpBlock->allocation[i]);
 
 	tmpBlock = tmpBlock->nextBlock;

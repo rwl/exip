@@ -46,6 +46,7 @@
 #include <check.h>
 #include "headerDecode.h"
 #include "bodyDecode.h"
+#include "memManagement.h"
 
 /* BEGIN: header tests */
 

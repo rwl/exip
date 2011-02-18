@@ -80,7 +80,7 @@ errorCode writeEventCode(EXIStream* strm, EventCode code, unsigned char* bits)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	int i = 0;
-	for(; i < code.size; i++)
+	for(i = 0; i < code.size; i++)
 	{
 		tmp_err_code = encodeNBitUnsignedInteger(strm, bits[i], code.code[i]);
 		if(tmp_err_code != ERR_OK)

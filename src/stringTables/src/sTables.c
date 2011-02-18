@@ -408,7 +408,7 @@ char lookupURI(URITable* uTable, StringType value, uint32_t* rowID)
 	uint32_t i = 0;
 	if(uTable == NULL)
 			return 0;
-	for(; i < uTable->rowCount; i++)
+	for(i = 0; i < uTable->rowCount; i++)
 	{
 		if(str_equal(uTable->rows[i].string_val, value))
 		{
@@ -424,7 +424,7 @@ char lookupLN(LocalNamesTable* lTable, StringType value, uint32_t* rowID)
 	uint32_t i = 0;
 	if(lTable == NULL)
 		return 0;
-	for(; i < lTable->rowCount; i++)
+	for(i = 0; i < lTable->rowCount; i++)
 	{
 		if(str_equal(lTable->rows[i].string_val, value))
 		{
@@ -440,7 +440,7 @@ char lookupLV(ValueTable* vTable, ValueLocalCrossTable* lvTable, StringType valu
 	uint16_t i = 0;
 	if(lvTable == NULL)
 		return 0;
-	for(; i < lvTable->rowCount; i++)
+	for(i = 0; i < lvTable->rowCount; i++)
 	{
 		if(str_equal(vTable->rows[lvTable->valueRowIds[i]].string_val, value))
 		{
@@ -456,7 +456,7 @@ char lookupVal(ValueTable* vTable, StringType value, uint32_t* rowID)
 	uint32_t i = 0;
 	if(vTable == NULL)
 		return 0;
-	for(; i < vTable->rowCount; i++)
+	for(i = 0; i < vTable->rowCount; i++)
 	{
 		if(str_equal(vTable->rows[i].string_val, value))
 		{
