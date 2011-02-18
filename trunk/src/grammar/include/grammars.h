@@ -87,10 +87,10 @@ errorCode popGrammar(EXIGrammarStack** gStack, struct EXIGrammar** grammar);
  *
  * @param[in, out] docGrammar empty grammar container to be filled with rules
  * @param[in, out] strm EXI stream for which the allocations are made; also the EXI options are read from here
- * @param[in] globalElems A sorted array of global elements in the schema; if Built-in Document Grammar is created then it is NULL
+ * @param[in] schema the schema describing the document if any; if Built-in Document Grammar is created then the schema is NULL
  * @return Error handling code
  */
-errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, GrammarQnameArray* globalElems);
+errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, ExipSchema* schema);
 
 /**
  * @brief Creates an instance of EXI Built-in Element Grammar

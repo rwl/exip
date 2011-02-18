@@ -59,7 +59,7 @@
 #define DEF_ELEMENT_GRAMMAR_RULE_NUMBER 2
 #define GRAMMAR_POOL_DIMENSION 16
 
-errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, GrammarQnameArray* globalElems)
+errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, ExipSchema* schema)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int n = 0; // first part of the event codes in the second rule
@@ -93,7 +93,7 @@ errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, Gramm
 			return tmp_err_code;
 	docGrammar->ruleArray[1].nonTermID = GR_DOC_CONTENT;
 
-	if(globalElems != NULL)   // Creates Schema Informed Grammar
+	if(schema != NULL)   // Creates Schema Informed Grammar
 	{
 		unsigned int e = 0;
 
@@ -109,15 +109,15 @@ errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, Gramm
 					//	PI DocContent		n+1.1.1	//  This is created as part of the Build-In grammar down
 		 */
 
-		for(e = 0; e < globalElems->count; e++)
+		for(e = 0; e < schema->globalElemGrammars.count; e++)
 		{
 			tmp_err_code = addProduction(&(docGrammar->ruleArray[1]), getEventCode1(e), getEventDefType(EVENT_SE_QNAME), GR_DOC_END);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
-			docGrammar->ruleArray[1].prodArray[docGrammar->ruleArray[1].prodCount - 1].lnRowID = globalElems->elems[e].lnRowId;
-			docGrammar->ruleArray[1].prodArray[docGrammar->ruleArray[1].prodCount - 1].uriRowID = globalElems->elems[e].uriRowId;
+			docGrammar->ruleArray[1].prodArray[docGrammar->ruleArray[1].prodCount - 1].lnRowID = schema->globalElemGrammars.elems[e].lnRowId;
+			docGrammar->ruleArray[1].prodArray[docGrammar->ruleArray[1].prodCount - 1].uriRowID = schema->globalElemGrammars.elems[e].uriRowId;
 		}
-		n = globalElems->count;
+		n = schema->globalElemGrammars.count;
 	}
 
 	/*

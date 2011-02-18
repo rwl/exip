@@ -109,7 +109,6 @@ struct globalSchemaProps {
 	unsigned char propsStat; // 0 - initial state, 1 - <schema> element is parsed expect attributes, 2 - the properties are all set (<schema> attr. parsed)
 	unsigned char expectAttributeData;
 	StringType* charDataPointer; // Pointer to the expected character data
-//	StringType tmpCharData; // Store temporary string before its processing further
 	StringType targetNamespace;
 	unsigned char attributeFormDefault; // 0 unqualified, 1 qualified, 2 expecting value, 3 initial state
 	unsigned char elementFormDefault;  // 0 unqualified, 1 qualified, 2 expecting value, 3 initial state

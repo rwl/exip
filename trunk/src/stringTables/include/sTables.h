@@ -136,6 +136,21 @@ errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, uint32_t* row
 errorCode createInitialStringTables(EXIStream* strm, unsigned char withSchema);
 
 /**
+ * @brief Create all string table partitions for a URI table
+ * It also inserts the default entries in the table.
+ * Because the behavior depends on the EXI options of the stream
+ * it is important that the options are initialized before
+ * calling this function.
+ *
+ * @param[in] memList A list storing the memory allocations
+ * @param[in, out] uTable an empty URITable; The memory must be already allocated for it
+ * @param[in] withSchema TRUE if there is schema for this stream; FALSE otherwise;
+ * Can be retrieved from strm->opts->schemaID != NULL
+ * @return Error handling code
+ */
+errorCode createInitialEntries(AllocList* memList, URITable* uTable, unsigned char withSchema);
+
+/**
  * @brief Add a new row into the ValueTable string table
  *
  * @param[out] vTable ValueTable string table

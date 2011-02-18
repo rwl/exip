@@ -80,7 +80,6 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 errorCode initStream(EXIStream* strm, char* buf, unsigned int bufSize, struct EXIOptions* opts, ExipSchema* schema)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	GrammarQnameArray* globalElems = NULL;
 
 	initAllocList(&strm->memList);
 	strm->buffer = buf;
@@ -99,10 +98,8 @@ errorCode initStream(EXIStream* strm, char* buf, unsigned int bufSize, struct EX
 
 	if(schema != NULL)
 	{
-		globalElems = &(schema->globalElems);
-		strm->ePool = schema->ePool;
+		// TODO: when schema is available setup everything here!
 		strm->uriTable = schema->initialStringTables;
-
 		tmp_err_code = createValueTable(&(strm->vTable), &strm->memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -118,7 +115,7 @@ errorCode initStream(EXIStream* strm, char* buf, unsigned int bufSize, struct EX
 			return tmp_err_code;
 	}
 
-	tmp_err_code = createDocGrammar(strm->gStack, strm, globalElems);
+	tmp_err_code = createDocGrammar(strm->gStack, strm, schema);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
