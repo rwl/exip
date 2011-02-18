@@ -127,7 +127,7 @@ errorCode copyGrammarRule(AllocList* memList, GrammarRule* src, GrammarRule* des
 
 	{
 		int i = 0;
-		for(;i < dest->prodCount; i++)
+		for(i = 0;i < dest->prodCount; i++)
 		{
 			dest->prodArray[i] = src->prodArray[i];
 			if(dest->prodArray[i].nonTermID >= GR_SCHEMA_GRAMMARS_FIRST)

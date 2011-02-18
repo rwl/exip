@@ -66,13 +66,12 @@ errorCode concatenateGrammars(AllocList* memList, struct EXIGrammar* left, struc
 	 * To ensure this is true after the concatenating, the right Non-terminal IDs
 	 * are re-numerated starting from the biggest left Non-terminal ID value + 1*/
 
-	for(;i < left->rulesDimension; i++)
+	for(i = 0;i < left->rulesDimension; i++)
 	{
 		copyGrammarRule(memList, &(left->ruleArray[i]), &((*result)->ruleArray[i]), 0);
 		(*result)->ruleArray[i].nonTermID = GR_SCHEMA_GRAMMARS_FIRST + i;
 
-		j = 0;
-		for(; j < (*result)->ruleArray[i].prodCount; j++)
+		for(j = 0; j < (*result)->ruleArray[i].prodCount; j++)
 		{
 			if((*result)->ruleArray[i].prodArray[j].event.eventType == EVENT_EE)
 			{
@@ -112,7 +111,7 @@ errorCode createElementProtoGrammar(AllocList* memList, StringType name, StringT
 	if((*result)->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	for(;i < typeDef->rulesDimension; i++)
+	for(i = 0; i < typeDef->rulesDimension; i++)
 	{
 		copyGrammarRule(memList, &(typeDef->ruleArray[i]), &((*result)->ruleArray[i]), 0);
 		(*result)->ruleArray[i].nonTermID = GR_SCHEMA_GRAMMARS_FIRST + i;
@@ -186,12 +185,11 @@ errorCode createComplexTypeGrammar(AllocList* memList, StringType name, StringTy
 	//TODO: Consider freeing the intermediate grammars which are not longer needed resulting from the use of concatenateGrammars()
 
 	struct EXIGrammar* tmpGrammar;
-
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned int i = 1;
+	unsigned int i;
 
 	tmpGrammar = &(attrUsesArray[0]);
-	for(; i < attrUsesArraySize; i++)
+	for(i = 1; i < attrUsesArraySize; i++)
 	{
 		tmp_err_code = concatenateGrammars(memList, tmpGrammar, &(attrUsesArray[i]), &tmpGrammar);
 		if(tmp_err_code != ERR_OK)
@@ -216,11 +214,11 @@ errorCode createComplexEmptyTypeGrammar(AllocList* memList, StringType name, Str
 	struct EXIGrammar* tmpGrammar;
 
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned int i = 1;
+	unsigned int i;
 	struct EXIGrammar* emptyContent;
 
 	tmpGrammar = &(attrUsesArray[0]);
-	for(; i < attrUsesArraySize; i++)
+	for(i = 1; i < attrUsesArraySize; i++)
 	{
 		tmp_err_code = concatenateGrammars(memList, tmpGrammar, &(attrUsesArray[i]), &tmpGrammar);
 		if(tmp_err_code != ERR_OK)
@@ -318,7 +316,7 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
 	unsigned int i = 0;
 
 	tmpGrammar = termGrammar;
-	for(; i < minOccurs; i++)
+	for(i = 0; i < minOccurs; i++)
 	{
 		tmp_err_code = concatenateGrammars(memList, tmpGrammar, termGrammar, &tmpGrammar);
 		if(tmp_err_code != ERR_OK)
@@ -328,8 +326,7 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
 	if(maxOccurs - minOccurs > 0 || maxOccurs < 0) // Only if maxOccurs is unbounded or maxOccurs > minOccurs
 	{
 		unsigned char prodEEFound = 0;
-		i = 0;
-		for(; i < termGrammar->ruleArray[0].prodCount; i++)
+		for(i = 0; i < termGrammar->ruleArray[0].prodCount; i++)
 		{
 			if(termGrammar->ruleArray[0].prodArray[i].nonTermID == GR_VOID_NON_TERMINAL && termGrammar->ruleArray[0].prodArray[i].event.eventType == EVENT_EE)
 			{
@@ -346,8 +343,7 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
 
 		if(maxOccurs >= 0) // {max occurs} is not unbounded
 		{
-			i = 0;
-			for(; i < maxOccurs - minOccurs; i++)
+			for(i = 0; i < maxOccurs - minOccurs; i++)
 			{
 				tmp_err_code = concatenateGrammars(memList, tmpGrammar, termGrammar, &tmpGrammar);
 				if(tmp_err_code != ERR_OK)
@@ -358,11 +354,10 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
 		else // {max occurs} is unbounded
 		{
 			int j = 0;
-			i = 1;  // Excluding the first rule
-			for(; i < termGrammar->rulesDimension; i++)
+			// Excluding the first rule
+			for(i = 1; i < termGrammar->rulesDimension; i++)
 			{
-				j = 0;
-				for(; j < termGrammar->ruleArray[i].prodCount; j++)
+				for(j = 0; j < termGrammar->ruleArray[i].prodCount; j++)
 				{
 					if(termGrammar->ruleArray[i].prodArray[j].nonTermID == GR_VOID_NON_TERMINAL && termGrammar->ruleArray[i].prodArray[j].event.eventType == EVENT_EE)
 					{
@@ -453,8 +448,8 @@ errorCode createSequenceModelGroupsGrammar(AllocList* memList, struct EXIGrammar
 	else
 	{
 		struct EXIGrammar* tmpGrammar = &(pTermArray[0]);
-		int i = 1;
-		for(; i < pTermArraySize; i++)
+		int i;
+		for(i = 1; i < pTermArraySize; i++)
 		{
 			tmp_err_code = concatenateGrammars(memList, tmpGrammar, &(pTermArray[i]), &tmpGrammar);
 			if(tmp_err_code != ERR_OK)
@@ -563,4 +558,14 @@ errorCode getEXIDataType(QName simpleXSDType, ValueType* exiType)
 	}
 
 	return INCONSISTENT_PROC_STATE;
+}
+
+int qnamesCompare(const StringType uri1, const StringType ln1, const StringType uri2, const StringType ln2)
+{
+	int uri_cmp_res = str_compare(uri1, uri2);
+	if(uri_cmp_res == 0) // equal URIs
+	{
+		return str_compare(ln1, ln2);
+	}
+	return uri_cmp_res;
 }

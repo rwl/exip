@@ -83,7 +83,7 @@ errorCode deleteNoTermProductions(AllocList* memList, struct EXIGrammar* grammar
 		return tmp_err_code;
 
 
-	for(; i < grammar->rulesDimension; i++) // For every rule in the grammar
+	for(i = 0; i < grammar->rulesDimension; i++) // For every rule in the grammar
 	{
 		for(j = 0; j < grammar->ruleArray[i].prodCount; j++) // For every production in a rule
 		{
@@ -172,7 +172,7 @@ errorCode deleteDuplicateTerminals(AllocList* memList, struct EXIGrammar* gramma
 
 	lastAddedNonTermID = GR_SCHEMA_GRAMMARS_FIRST + grammar->rulesDimension;
 
-	for(; i < grammar->rulesDimension; i++) // For every rule in the grammar
+	for(i = 0; i < grammar->rulesDimension; i++) // For every rule in the grammar
 	{
 		for(j = 0; j < grammar->ruleArray[i].prodCount; j++) // For every production in a rule
 		{

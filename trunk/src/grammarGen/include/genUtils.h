@@ -288,4 +288,15 @@ errorCode createAllModelGroupsGrammar(AllocList* memList, struct EXIGrammar* pTe
  */
 errorCode getEXIDataType(QName simpleXSDType, ValueType* exiType);
 
+/**
+ * @brief Compare lexicographically two qnames
+ *
+ * @param[in] uri1 uri of the first qname
+ * @param[in] ln1 local name of the first qname
+ * @param[in] uri2 uri of the second qname
+ * @param[in] ln2 local name of the second qname
+ * @return 0 when the qnames are equal; negative int when qname1<qname2; positive when qname1>qname2
+ */
+int qnamesCompare(const StringType uri1, const StringType ln1, const StringType uri2, const StringType ln2);
+
 #endif /* GENUTILS_H_ */

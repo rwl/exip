@@ -53,7 +53,8 @@
 
 struct metaGrammarNode
 {
-	QName qname;
+	StringType uri;
+	StringType ln;
 	struct EXIGrammar* grammar;
 	struct metaGrammarNode* nextNode;
 };
@@ -220,7 +221,7 @@ static char xsd_endDocument(void* app_data)
 			if(is_found)
 			{
 				int t = 0;
-				for(; t < result->rulesDimension; t++)
+				for(t = 0; t < result->rulesDimension; t++)
 				{
 					tmp_err_code = printGrammarRule(&(result->ruleArray[t]));
 					if(tmp_err_code != ERR_OK)
@@ -574,7 +575,7 @@ static void initElemContext(struct elementDescr* elem)
 	int i = 0;
 	elem->element = ELEMENT_VOID;
 	elem->nextInStack = NULL;
-	for(; i < ATTRIBUTE_CONTEXT_ARRAY_SIZE; i++)
+	for(i = 0; i < ATTRIBUTE_CONTEXT_ARRAY_SIZE; i++)
 	{
 		elem->attributePointers[i].length = 0;
 		elem->attributePointers[i].str = NULL;
@@ -624,7 +625,7 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 #if DEBUG_GRAMMAR_GEN == ON
 	{
 		int t = 0;
-		for(; t < attrUseGrammar->rulesDimension; t++)
+		for(t = 0; t < attrUseGrammar->rulesDimension; t++)
 		{
 			tmp_err_code = printGrammarRule(&(attrUseGrammar->ruleArray[t]));
 			if(tmp_err_code != ERR_OK)
@@ -708,7 +709,7 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 #if DEBUG_GRAMMAR_GEN == ON
 	{
 		int tt = 0;
-		for(; tt < contentTypeGrammar->rulesDimension; tt++)
+		for(tt = 0; tt < contentTypeGrammar->rulesDimension; tt++)
 		{
 			tmp_err_code = printGrammarRule(&(contentTypeGrammar->ruleArray[tt]));
 			if(tmp_err_code != ERR_OK)
@@ -728,7 +729,7 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 #if DEBUG_GRAMMAR_GEN == ON
 	{
 		int t = 0;
-		for(; t < resultComplexGrammar->rulesDimension; t++)
+		for(t = 0; t < resultComplexGrammar->rulesDimension; t++)
 		{
 			tmp_err_code = printGrammarRule(&(resultComplexGrammar->ruleArray[t]));
 			if(tmp_err_code != ERR_OK)
@@ -821,8 +822,10 @@ static errorCode appendMetaGrammarNode(AllocList* tmpMemList, MetaGrammarList* g
 		return MEMORY_ALLOCATION_ERROR;
 
 	node->grammar = grammar;
-	node->qname.uri = &ns;
-	node->qname.localName = &name;
+	node->uri.length = ns.length;
+	node->uri.str = ns.str;
+	node->ln.length = name.length;
+	node->ln.str = name.str;
 	node->nextNode = NULL;
 
 	gList->last->nextNode = node;
@@ -834,5 +837,52 @@ static errorCode appendMetaGrammarNode(AllocList* tmpMemList, MetaGrammarList* g
 
 static errorCode orderedAddMetaGrammarNode(AllocList* tmpMemList, MetaGrammarList* gList, struct EXIGrammar* grammar, StringType name, StringType ns)
 {
-	return NOT_IMPLEMENTED_YET;
+	struct metaGrammarNode* newNode = memManagedAllocate(tmpMemList, sizeof(struct metaGrammarNode));
+	if(newNode == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	newNode->grammar = grammar;
+	newNode->uri.length = ns.length;
+	newNode->uri.str = ns.str;
+	newNode->ln.length = name.length;
+	newNode->ln.str = name.str;
+
+	if(gList->first == NULL) // Empty list
+	{
+		gList->first = newNode;
+		gList->last = newNode;
+		gList->size = 1;
+	}
+	else if(qnamesCompare(gList->first->uri, gList->first->ln, ns, name) >= 0) // The added grammar is less or equal to the smallest grammar in the ordered list
+	{
+		// insert the node at the beginning of the list
+		newNode->nextNode = gList->first;
+		gList->first = newNode;
+		gList->size += 1;
+	}
+	else if(qnamesCompare(gList->last->uri, gList->last->ln, ns, name) <= 0) // The added grammar is bigger or equal to the biggest grammar in the ordered list
+	{
+		// insert the node at the end of the list
+		newNode->nextNode = NULL;
+		gList->last->nextNode = newNode;
+		gList->last = newNode;
+		gList->size += 1;
+	}
+	else  // find the right place for the node
+	{
+		struct metaGrammarNode* tmpNode = gList->first;
+		while(tmpNode)
+		{
+			if(qnamesCompare(tmpNode->nextNode->uri, tmpNode->nextNode->ln, ns, name) >= 0) // The added grammar is less or equal to the currently tested grammar in the ordered list
+			{
+				// insert the node after the tmpNode
+				newNode->nextNode = tmpNode->nextNode;
+				tmpNode->nextNode = newNode;
+				gList->size += 1;
+				break;
+			}
+			tmpNode = tmpNode->nextNode;
+		}
+	}
+	return ERR_OK;
 }

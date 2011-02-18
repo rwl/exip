@@ -387,7 +387,7 @@ errorCode copyGrammar(AllocList* memList, struct EXIGrammar* src, struct EXIGram
 	if((*dest)->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	for(; i < (*dest)->rulesDimension; i++)
+	for(i = 0; i < (*dest)->rulesDimension; i++)
 	{
 		tmp_err_code = copyGrammarRule(memList, &src->ruleArray[i], &(*dest)->ruleArray[i], 0);
 		if(tmp_err_code != ERR_OK)

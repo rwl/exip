@@ -50,6 +50,16 @@
 #include "headerEncode.h"
 #include "bodyEncode.h"
 
+#define ELEMENT_EVNT 1
+#define ATTRIBUTE_EVNT 2
+
+// What type of event (ALL, URI, QNAME) is hit so far; 0-nothing, 1-ALL, 2-URI, 3-QNAME
+#define EVENT_CATEGORY_NONE  0
+#define EVENT_CATEGORY_ALL   1
+#define EVENT_CATEGORY_URI   2
+#define EVENT_CATEGORY_QNAME 3
+
+
 /**
  * The handler to be used by the applications to serialize EXI streams
  */
@@ -125,14 +135,13 @@ errorCode initStream(EXIStream* strm, char* buf, unsigned int bufSize, struct EX
 static errorCode encodeEXIEvent(EXIStream* strm, EXIEvent event)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	int j = 0;
-	int i = 0;
-	for(; i < strm->gStack->rulesDimension; i++)
+	unsigned int j = 0;
+	unsigned int i = 0;
+	for(i = 0; i < strm->gStack->rulesDimension; i++)
 	{
 		if(strm->gStack->ruleArray[i].nonTermID == strm->nonTermID)
 		{
-			j = 0;
-			for(; j < strm->gStack->ruleArray[i].prodCount; j++)
+			for(j = 0; j < strm->gStack->ruleArray[i].prodCount; j++)
 			{
 				if(eventsEqual(strm->gStack->ruleArray[i].prodArray[j].event, event))
 				{
@@ -154,10 +163,10 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 	unsigned char e_uri;
 	unsigned char e_all;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	int j = 0;
-	int i = 0;
+	unsigned int j = 0;
+	unsigned int i = 0;
 
-	if(isElemOrAttr == 1) // SE event, Element
+	if(isElemOrAttr == ELEMENT_EVNT) // SE event, Element
 	{
 		e_qname = EVENT_SE_QNAME;
 		e_uri = EVENT_SE_URI;
@@ -169,31 +178,31 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 		e_uri = EVENT_AT_URI;
 		e_all = EVENT_AT_ALL;
 	}
-	for(; i < strm->gStack->rulesDimension; i++)
+	for(i = 0; i < strm->gStack->rulesDimension; i++)
 	{
 		if(strm->gStack->ruleArray[i].nonTermID == strm->nonTermID)
 		{
 			int prodHit = -1;
-			int prodHitIndicator = 0; // What type of event (ALL, URI, QNAME) is hit so far; 0-nothing, 1-ALL, 2-URI, 3-QNAME
-			j = 0;
-			for(; j < strm->gStack->ruleArray[i].prodCount; j++)
+			int prodHitIndicator = EVENT_CATEGORY_NONE; // What type of event (ALL, URI, QNAME) is hit so far; 0-nothing, 1-ALL, 2-URI, 3-QNAME
+
+			for(j = 0; j < strm->gStack->ruleArray[i].prodCount; j++)
 			{
 				if(strm->gStack->ruleArray[i].prodArray[j].event.eventType == e_all)
 				{
-					if(prodHitIndicator == 0)
+					if(prodHitIndicator == EVENT_CATEGORY_NONE)
 					{
 						prodHit = j;
-						prodHitIndicator = 1;
+						prodHitIndicator = EVENT_CATEGORY_ALL;
 					}
 				}
 				else if(strm->gStack->ruleArray[i].prodArray[j].event.eventType == e_uri)
 				{
 					if(str_equal(strm->uriTable->rows[strm->gStack->ruleArray[i].prodArray[j].uriRowID].string_val, *(qname.uri)))
 					{
-						if(prodHitIndicator < 3)
+						if(prodHitIndicator < EVENT_CATEGORY_QNAME)
 						{
 							prodHit = j;
-							prodHitIndicator = 2;
+							prodHitIndicator = EVENT_CATEGORY_URI;
 						}
 					}
 				}
@@ -203,7 +212,7 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 							str_equal(strm->uriTable->rows[strm->gStack->ruleArray[i].prodArray[j].uriRowID].lTable->rows[strm->gStack->ruleArray[i].prodArray[j].lnRowID].string_val, *(qname.localName)))
 					{
 						prodHit = j;
-						prodHitIndicator = 3;
+						prodHitIndicator = EVENT_CATEGORY_QNAME;
 						break; // There is not a shorter code for that Event code
 					}
 				}
@@ -216,14 +225,14 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 				strm->nonTermID = strm->gStack->ruleArray[i].prodArray[prodHit].nonTermID;
 				strm->sContext.curr_uriID = strm->gStack->ruleArray[i].prodArray[prodHit].uriRowID;
 				strm->sContext.curr_lnID = strm->gStack->ruleArray[i].prodArray[prodHit].lnRowID;
-				if(prodHitIndicator == 1)
+				if(prodHitIndicator == EVENT_CATEGORY_ALL)
 				{
 					tmp_err_code = encodeQName(strm, qname);
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
 				}
 
-				if(prodHitIndicator == 1 && isElemOrAttr == 1) // SE(*) Event
+				if(prodHitIndicator == EVENT_CATEGORY_ALL && isElemOrAttr == ELEMENT_EVNT) // SE(*) Event
 				{
 					unsigned char isDocGr = 0;
 					struct EXIGrammar* res = NULL;
@@ -269,7 +278,7 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 							return tmp_err_code;
 					}
 				}
-				else if(prodHitIndicator == 3 && isElemOrAttr == 1) // SE(QName) Event
+				else if(prodHitIndicator == EVENT_CATEGORY_QNAME && isElemOrAttr == ELEMENT_EVNT) // SE(QName) Event
 				{
 					// New element grammar is pushed on the stack
 					struct EXIGrammar* res = NULL;
@@ -290,15 +299,15 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 						return INCONSISTENT_PROC_STATE;  // The event require the presence of Element Grammar In the Pool
 					}
 				}
-				else if(prodHitIndicator == 1 && isElemOrAttr != 1) // AT(*) Event
+				else if(prodHitIndicator == EVENT_CATEGORY_ALL && isElemOrAttr == ATTRIBUTE_EVNT) // AT(*) Event
 				{
 					tmp_err_code = insertZeroProduction(&(strm->gStack->ruleArray[i]), getEventDefType(EVENT_AT_QNAME), strm->nonTermID, strm->sContext.curr_lnID, strm->sContext.curr_uriID);
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
 				}
 
-				if(isElemOrAttr != 1) // AT event
-					strm->sContext.expectATData = 1;
+				if(isElemOrAttr == ATTRIBUTE_EVNT) // AT event
+					strm->sContext.expectATData = TRUE;
 				return ERR_OK;
 			}
 		}
@@ -324,7 +333,7 @@ errorCode endDocumentSer(EXIStream* strm)
 
 errorCode startElementSer(EXIStream* strm, QName qname)
 {
-	return encodeEXIComplexEvent(strm, qname, 1);
+	return encodeEXIComplexEvent(strm, qname, ELEMENT_EVNT);
 }
 
 errorCode endElementSer(EXIStream* strm)
@@ -347,7 +356,7 @@ errorCode endElementSer(EXIStream* strm)
 
 errorCode attributeSer(EXIStream* strm, QName qname)
 {
-	return encodeEXIComplexEvent(strm, qname, 2);
+	return encodeEXIComplexEvent(strm, qname, ATTRIBUTE_EVNT);
 }
 
 errorCode intDataSer(EXIStream* strm, int32_t int_val)
@@ -369,7 +378,7 @@ errorCode stringDataSer(EXIStream* strm, const StringType str_val)
 {
 	if(strm->sContext.expectATData) // Value for an attribute
 	{
-		strm->sContext.expectATData = 0;
+		strm->sContext.expectATData = FALSE;
 		return encodeStringData(strm, str_val);
 	}
 	else

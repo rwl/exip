@@ -87,7 +87,7 @@ errorCode encodeUnsignedInteger(EXIStream* strm, uint32_t int_val)
 	int i = 0;
 	if(nbyte7 == 0)
 		nbyte7 = 1;  // the 0 Unsigned Integer is encoded with one 7bit byte
-	for(; i < nbyte7; i++)
+	for(i = 0; i < nbyte7; i++)
 	{
 		tmp_byte_buf = (int_val & (127ul << (i * 7))) >> (i * 7);
 		if(i == nbyte7 - 1)
@@ -129,7 +129,7 @@ errorCode encodeStringOnly(EXIStream* strm, const StringType* string_val)
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	uint32_t tmp_val= 0;
 	uint32_t i = 0;
-	for(; i < string_val->length; i++)
+	for(i = 0; i < string_val->length; i++)
 	{
 		tmp_err_code = getUCSCodePoint(string_val, i, &tmp_val);
 		if(tmp_err_code != ERR_OK)
