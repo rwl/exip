@@ -371,7 +371,7 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, EXIStre
 errorCode copyGrammar(AllocList* memList, struct EXIGrammar* src, struct EXIGrammar** dest)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	int i = 0;
+	uint16_t i = 0;
 	if(src->nextInStack != NULL)  // Only single grammars can be copied - not grammar stacks
 		return INVALID_OPERATION;
 
@@ -419,9 +419,10 @@ static errorCode decodeQName(EXIStream* strm, QName* qname)
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	uint32_t tmp_val_buf = 0;
 	unsigned char uriBits = getBitsNumber(strm->uriTable->rowCount);
-	uint32_t uriID = 0; // The URI id in the URI string table
-	uint32_t flag_StringLiteralsPartition = 0;
-	uint32_t lnID = 0;
+	uint16_t uriID = 0; // The URI id in the URI string table
+	uint32_t tmpVar = 0;
+	size_t lnID = 0;
+
 
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Decoding QName\n"));
 	tmp_err_code = decodeNBitUnsignedInteger(strm, uriBits, &tmp_val_buf);
@@ -447,24 +448,25 @@ static errorCode decodeQName(EXIStream* strm, QName* qname)
 		uriID = tmp_val_buf-1;
 	}
 
-	tmp_err_code = decodeUnsignedInteger(strm, &flag_StringLiteralsPartition);
+	tmp_err_code = decodeUnsignedInteger(strm, &tmpVar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	if(flag_StringLiteralsPartition == 0) // local-name table hit
+	if(tmpVar == 0) // local-name table hit
 	{
 		unsigned char lnBits = getBitsNumber(strm->uriTable->rows[uriID].lTable->rowCount - 1);
 		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">local-name table hit\n"));
-		tmp_err_code = decodeNBitUnsignedInteger(strm, lnBits, &lnID);
+		tmp_err_code = decodeNBitUnsignedInteger(strm, lnBits, &tmpVar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
+		lnID = (size_t) tmpVar;
 		qname->localName = &(strm->uriTable->rows[uriID].lTable->rows[lnID].string_val);
 	}
 	else // local-name table miss
 	{
 		StringType lnStr;
 		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">local-name table miss\n"));
-		tmp_err_code = decodeStringOnly(strm, flag_StringLiteralsPartition - 1, &lnStr);
+		tmp_err_code = decodeStringOnly(strm, tmpVar - 1, &lnStr);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		if(strm->uriTable->rows[uriID].lTable == NULL)
@@ -488,39 +490,41 @@ static errorCode decodeStringValue(EXIStream* strm, StringType** value);
 static errorCode decodeStringValue(EXIStream* strm, StringType** value)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	uint32_t uriID = strm->sContext.curr_uriID;
-	uint32_t lnID = strm->sContext.curr_lnID;
-	uint32_t flag_StringLiteralsPartition = 0;
-	tmp_err_code = decodeUnsignedInteger(strm, &flag_StringLiteralsPartition);
+	uint16_t uriID = strm->sContext.curr_uriID;
+	size_t lnID = strm->sContext.curr_lnID;
+	uint32_t tmpVar = 0;
+	tmp_err_code = decodeUnsignedInteger(strm, &tmpVar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	if(flag_StringLiteralsPartition == 0) // "local" value partition table hit
+	if(tmpVar == 0) // "local" value partition table hit
 	{
-		uint32_t lvID = 0;
-		uint32_t value_table_rowID;
+		uint16_t lvID = 0;
+		size_t value_table_rowID;
 
 		unsigned char lvBits = getBitsNumber(strm->uriTable->rows[uriID].lTable->rows[lnID].vCrossTable->rowCount - 1);
-		tmp_err_code = decodeNBitUnsignedInteger(strm, lvBits, &lvID);
+		tmp_err_code = decodeNBitUnsignedInteger(strm, lvBits, &tmpVar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
+		lvID = (uint16_t) tmpVar;
 		value_table_rowID = strm->uriTable->rows[uriID].lTable->rows[lnID].vCrossTable->valueRowIds[lvID];
 		(*value) = &(strm->vTable->rows[value_table_rowID].string_val);
 	}
-	else if(flag_StringLiteralsPartition == 1)// global value partition table hit
+	else if(tmpVar == 1)// global value partition table hit
 	{
-		uint32_t gvID = 0;
+		size_t gvID = 0;
 		unsigned char gvBits = getBitsNumber(strm->vTable->rowCount - 1);
-		tmp_err_code = decodeNBitUnsignedInteger(strm, gvBits, &gvID);
+		tmp_err_code = decodeNBitUnsignedInteger(strm, gvBits, &tmpVar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
+		gvID = (size_t) tmpVar;
 		(*value) = &(strm->vTable->rows[gvID].string_val);
 	}
 	else  // "local" value partition and global value partition table miss
 	{
 		StringType gvStr;
-		uint32_t gvID = 0;
-		tmp_err_code = decodeStringOnly(strm, flag_StringLiteralsPartition - 2, &gvStr);
+		size_t gvID = 0;
+		tmp_err_code = decodeStringOnly(strm, tmpVar - 2, &gvStr);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -728,9 +732,9 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	uint32_t tmp_bits_val = 0;
-	unsigned int currProduction = 0;
-	unsigned int i = 0;
-	unsigned int j = 0;
+	uint16_t currProduction = 0;
+	uint16_t i = 0;
+	uint16_t j = 0;
 	unsigned int b = 0;
 
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Next production non-term-id: %d\n", strm->nonTermID));
@@ -918,8 +922,8 @@ errorCode createGrammarPool(GrammarPool** pool)
 	return ERR_OK;
 }
 
-errorCode checkGrammarInPool(GrammarPool* pool, uint32_t uriRowID,
-									uint32_t lnRowID, unsigned char* is_found, struct EXIGrammar** result)
+errorCode checkGrammarInPool(GrammarPool* pool, uint16_t uriRowID,
+									size_t lnRowID, unsigned char* is_found, struct EXIGrammar** result)
 {
 	char key[8];
 	createKey64bits(uriRowID, lnRowID, key);
@@ -933,8 +937,8 @@ errorCode checkGrammarInPool(GrammarPool* pool, uint32_t uriRowID,
 	return ERR_OK;
 }
 
-errorCode addGrammarInPool(GrammarPool* pool, uint32_t uriRowID,
-								uint32_t lnRowID, struct EXIGrammar* newGr)
+errorCode addGrammarInPool(GrammarPool* pool, uint16_t uriRowID,
+								size_t lnRowID, struct EXIGrammar* newGr)
 {
 	char* key = (char*) EXIP_MALLOC(8); // Keys are freed from the hash table
 	if(key == NULL)
@@ -965,10 +969,10 @@ errorCode encodeQName(EXIStream* strm, QName qname)
 {
 	//TODO: add the case when Preserve.prefixes is true
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	uint32_t lnID = 0;
+	size_t lnID = 0;
 
 /******* Start: URI **********/
-	uint32_t uriID = 0;
+	uint16_t uriID = 0;
 	unsigned char uriBits = getBitsNumber(strm->uriTable->rowCount);
 	if(lookupURI(strm->uriTable, *(qname.uri), &uriID)) // uri hit
 	{
@@ -1034,9 +1038,9 @@ errorCode encodeStringData(EXIStream* strm, StringType strng)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char flag_StringLiteralsPartition = 0;
-	uint32_t p_uriID = strm->sContext.curr_uriID;
-	uint32_t p_lnID = strm->sContext.curr_lnID;
-	uint32_t lvRowID = 0;
+	uint16_t p_uriID = strm->sContext.curr_uriID;
+	size_t p_lnID = strm->sContext.curr_lnID;
+	uint16_t lvRowID = 0;
 	flag_StringLiteralsPartition = lookupLV(strm->vTable, strm->uriTable->rows[p_uriID].lTable->rows[p_lnID].vCrossTable, strng, &lvRowID);
 	if(flag_StringLiteralsPartition) //  "local" value partition table hit
 	{
@@ -1052,7 +1056,7 @@ errorCode encodeStringData(EXIStream* strm, StringType strng)
 	}
 	else //  "local" value partition table miss
 	{
-		uint32_t gvRowID = 0;
+		size_t gvRowID = 0;
 		flag_StringLiteralsPartition = lookupVal(strm->vTable, strng, &gvRowID);
 		if(flag_StringLiteralsPartition) // global value partition table hit
 		{

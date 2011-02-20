@@ -150,7 +150,7 @@ struct elementNotResolved {
  * @param[out] exipSchema the resulted schema information used for processing EXI streams
  * @return Error handling code
  */
-errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, unsigned char schemaFormat,
+errorCode generateSchemaInformedGrammars(char* binaryStream, size_t bufLen, unsigned char schemaFormat,
 										 ExipSchema* schema);
 
 #endif /* GRAMMARGENERATOR_H_ */

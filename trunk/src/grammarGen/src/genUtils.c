@@ -50,8 +50,8 @@
 
 errorCode concatenateGrammars(AllocList* memList, struct EXIGrammar* left, struct EXIGrammar* right, struct EXIGrammar** result)
 {
-	int i = 0;
-	int j = 0;
+	uint16_t i = 0;
+	uint16_t j = 0;
 	*result = (struct EXIGrammar*) memManagedAllocate(memList, sizeof(struct EXIGrammar));
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -252,7 +252,7 @@ errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, 
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIEvent event1;
 	struct productionQname pqRow;
-	uint32_t elIndx = 0;
+	size_t elIndx = 0;
 
 	*result = (struct EXIGrammar*) memManagedAllocate(memList, sizeof(struct EXIGrammar));
 	if(*result == NULL)
@@ -313,7 +313,7 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	struct EXIGrammar* tmpGrammar;
-	unsigned int i = 0;
+	uint16_t i = 0;
 
 	tmpGrammar = termGrammar;
 	for(i = 0; i < minOccurs; i++)
@@ -353,7 +353,7 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
 		}
 		else // {max occurs} is unbounded
 		{
-			int j = 0;
+			uint16_t j = 0;
 			// Excluding the first rule
 			for(i = 1; i < termGrammar->rulesDimension; i++)
 			{
@@ -387,7 +387,7 @@ errorCode createElementTermGrammar(AllocList* memList, StringType name, StringTy
 
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	struct productionQname pqRow;
-	uint32_t elIndx = 0;
+	size_t elIndx = 0;
 	*result = (struct EXIGrammar*) memManagedAllocate(memList, sizeof(struct EXIGrammar));
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -448,7 +448,7 @@ errorCode createSequenceModelGroupsGrammar(AllocList* memList, struct EXIGrammar
 	else
 	{
 		struct EXIGrammar* tmpGrammar = &(pTermArray[0]);
-		int i;
+		unsigned int i;
 		for(i = 1; i < pTermArraySize; i++)
 		{
 			tmp_err_code = concatenateGrammars(memList, tmpGrammar, &(pTermArray[i]), &tmpGrammar);

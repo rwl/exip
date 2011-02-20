@@ -87,7 +87,7 @@ const EXISerializer serEXI  =  {startDocumentSer,
 static errorCode encodeEXIEvent(EXIStream* strm, EXIEvent event);
 static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned char isElemOrAttr);
 
-errorCode initStream(EXIStream* strm, char* buf, unsigned int bufSize, struct EXIOptions* opts, ExipSchema* schema)
+errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, struct EXIOptions* opts, ExipSchema* schema)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
@@ -135,8 +135,8 @@ errorCode initStream(EXIStream* strm, char* buf, unsigned int bufSize, struct EX
 static errorCode encodeEXIEvent(EXIStream* strm, EXIEvent event)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned int j = 0;
-	unsigned int i = 0;
+	uint16_t j = 0;
+	uint16_t i = 0;
 	for(i = 0; i < strm->gStack->rulesDimension; i++)
 	{
 		if(strm->gStack->ruleArray[i].nonTermID == strm->nonTermID)
@@ -163,8 +163,8 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 	unsigned char e_uri;
 	unsigned char e_all;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned int j = 0;
-	unsigned int i = 0;
+	uint16_t j = 0;
+	uint16_t i = 0;
 
 	if(isElemOrAttr == ELEMENT_EVNT) // SE event, Element
 	{
@@ -401,7 +401,7 @@ errorCode bigFloatDataSer(EXIStream* strm, BigFloat float_val)
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode binaryDataSer(EXIStream* strm, const char* binary_val, uint32_t nbytes)
+errorCode binaryDataSer(EXIStream* strm, const char* binary_val, size_t nbytes)
 {
 	return NOT_IMPLEMENTED_YET;
 }

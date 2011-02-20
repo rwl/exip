@@ -63,6 +63,6 @@ typedef int (*comapreFunc)(unsigned int prev_val, unsigned int cur_val, void* ar
  * @param[in] args optional arguments needed for comapreFunc
  * @return Error handling code
  */
-void insertionSort(unsigned int array[], uint32_t length, comapreFunc cmpFunc, void* args);
+void insertionSort(unsigned int array[], size_t length, comapreFunc cmpFunc, void* args);
 
 #endif /* SORTINGALGORITHMS_H_ */

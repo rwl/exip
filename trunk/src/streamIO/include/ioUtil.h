@@ -75,6 +75,6 @@ unsigned char getBitsNumber(unsigned int val);
  *
  * @return The number of bits needed
  */
-uint32_t log2INT(uint32_t val);
+unsigned int log2INT(unsigned int val);
 
 #endif /* IOUTIL_H_ */

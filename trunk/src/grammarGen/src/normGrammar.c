@@ -66,17 +66,17 @@ struct addedRuleInf
 errorCode deleteNoTermProductions(AllocList* memList, struct EXIGrammar* grammar)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned int i = 0;
-	unsigned int j = 0;
+	uint16_t i = 0;
+	uint16_t j = 0;
 
-	unsigned int k = 0;
-	unsigned int l = 0;
-	unsigned int t = 0;
+	uint16_t k = 0;
+	uint16_t l = 0;
+	size_t t = 0;
 	unsigned char rmPrFlag = 0;
 	DynArray* removedProdArray;
 	unsigned int rightNonTerm = 0;
 	struct removedProdInf pr;
-	uint32_t elId = 0;
+	size_t elId = 0;
 
 	tmp_err_code = createDynArray(&removedProdArray, sizeof(struct removedProdInf), 5, memList);
 	if(tmp_err_code != ERR_OK)
@@ -148,12 +148,12 @@ errorCode deleteNoTermProductions(AllocList* memList, struct EXIGrammar* grammar
 errorCode deleteDuplicateTerminals(AllocList* memList, struct EXIGrammar* grammar)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned int i = 0;
-	unsigned int j = 0;
-	unsigned int k = 0;
-	unsigned int l = 0;
-	unsigned int t = 0;
-	unsigned int p = 0;
+	uint16_t i = 0;
+	uint16_t j = 0;
+	uint16_t k = 0;
+	uint16_t l = 0;
+	uint16_t t = 0;
+	uint16_t p = 0;
 	unsigned char foundFlag = 0;
 
 	DynArray* addedRulesArray;

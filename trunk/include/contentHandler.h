@@ -69,7 +69,7 @@ struct ContentHandler
 	char (*stringData)(const StringType str_val, void* app_data);
 	char (*floatData)(double float_val, void* app_data);
 	char (*bigFloatData)(BigFloat float_val, void* app_data);
-	char (*binaryData)(const char* binary_val, uint32_t nbytes, void* app_data);
+	char (*binaryData)(const char* binary_val, size_t nbytes, void* app_data);
 	char (*dateTimeData)(struct tm dt_val, uint16_t presenceMask, void* app_data);
 	char (*decimalData)(decimal dec_val, void* app_data);
 	char (*bigDecimalData)(bigDecimal dec_val, void* app_data);

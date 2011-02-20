@@ -44,9 +44,9 @@
 
 #include "sortingAlgorithms.h"
 
-void insertionSort(unsigned int array[], uint32_t length, comapreFunc cmpFunc, void* args)
+void insertionSort(unsigned int array[], size_t length, comapreFunc cmpFunc, void* args)
 {
-	uint32_t indx;
+	size_t indx;
 	unsigned int cur_val;
 	unsigned int prev_val;
 
@@ -61,13 +61,13 @@ void insertionSort(unsigned int array[], uint32_t length, comapreFunc cmpFunc, v
 		if((*cmpFunc)(prev_val, cur_val, args) > 0)
 		{
 			/* out of order: array[indx-1] > array[indx] */
-			uint32_t indx2;
+			size_t indx2;
 			array[indx] = prev_val; /* move up the larger item first */
 
 			/* find the insertion point for the smaller item */
 			for (indx2 = indx - 1; indx2 > 0;)
 			{
-				int temp_val = array[indx2 - 1];
+				unsigned int temp_val = array[indx2 - 1];
 				if((*cmpFunc)(temp_val, cur_val, args) > 0)
 				{
 					array[indx2--] = temp_val;

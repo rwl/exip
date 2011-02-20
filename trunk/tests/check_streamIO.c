@@ -444,7 +444,7 @@ START_TEST (test_decodeBinary)
   char* res;
 
   testStream.bufferIndx = 0;
-  unsigned int bytes = 0;
+  size_t bytes = 0;
   errorCode err = UNEXPECTED_ERROR;
 //Test1:
   err = decodeBinary(&testStream, &res, &bytes);

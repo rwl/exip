@@ -55,10 +55,10 @@ errorCode decodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, uint32_t* 
 	}
 	else
 	{
-		int byte_number = ((int) n) / 8 + (n % 8 != 0);
+		unsigned int byte_number = ((unsigned int) n) / 8 + (n % 8 != 0);
 		uint32_t tmp_byte_buf = 0;
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		int i = 0;
+		unsigned int i = 0;
 
 		*int_val = 0;
 		for(i = 0; i < byte_number; i++)
@@ -121,15 +121,15 @@ errorCode decodeString(EXIStream* strm, StringType* string_val)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	string_val->length = string_length;
+	string_val->length = (size_t) string_length;
 
-	tmp_err_code = decodeStringOnly(strm, string_length, string_val);
+	tmp_err_code = decodeStringOnly(strm, string_val->length, string_val);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	return ERR_OK;
 }
 
-errorCode decodeStringOnly(EXIStream* strm, uint32_t str_length, StringType* string_val)
+errorCode decodeStringOnly(EXIStream* strm, size_t str_length, StringType* string_val)
 {
 	// Assume no Restricted Character Set is defined
 	//TODO: Handle the case when Restricted Character Set is defined
@@ -137,7 +137,7 @@ errorCode decodeStringOnly(EXIStream* strm, uint32_t str_length, StringType* str
 	// The exact size of the string is known at this point. This means that
 	// this is the place to allocate the memory for the  { CharType* str; }!!!
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	uint32_t i = 0;
+	size_t i = 0;
 	uint32_t tmp_code_point = 0;
 	tmp_err_code = allocateStringMemory(&(string_val->str), str_length, &strm->memList);
 	if(tmp_err_code != ERR_OK)
@@ -154,7 +154,7 @@ errorCode decodeStringOnly(EXIStream* strm, uint32_t str_length, StringType* str
 	return ERR_OK;
 }
 
-errorCode decodeBinary(EXIStream* strm, char** binary_val, uint32_t* nbytes)
+errorCode decodeBinary(EXIStream* strm, char** binary_val, size_t* nbytes)
 {
 	errorCode err;
 	uint32_t length=0;

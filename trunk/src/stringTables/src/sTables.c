@@ -188,7 +188,7 @@ errorCode createValueLocalCrossTable(ValueLocalCrossTable** vlTable, AllocList* 
 	if(*vlTable == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*vlTable)->valueRowIds = (uint32_t*) memManagedAllocatePtr(memList, sizeof(uint32_t)*DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER, &(*vlTable)->memPair);
+	(*vlTable)->valueRowIds = (size_t*) memManagedAllocatePtr(memList, sizeof(size_t)*DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER, &(*vlTable)->memPair);
 	if((*vlTable)->valueRowIds == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -197,7 +197,7 @@ errorCode createValueLocalCrossTable(ValueLocalCrossTable** vlTable, AllocList* 
 	return ERR_OK;
 }
 
-errorCode addURIRow(URITable* uTable, StringType uri, uint32_t* rowID, AllocList* memList)
+errorCode addURIRow(URITable* uTable, StringType uri, uint16_t* rowID, AllocList* memList)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	if(uTable == NULL)
@@ -227,7 +227,7 @@ errorCode addURIRow(URITable* uTable, StringType uri, uint32_t* rowID, AllocList
 	return ERR_OK;
 }
 
-errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, uint32_t* rowID)
+errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, size_t* rowID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	if(lTable->arrayDimension == lTable->rowCount)   // The dynamic array must be extended first
@@ -268,8 +268,8 @@ errorCode createInitialStringTables(EXIStream* strm, unsigned char withSchema)
 errorCode createInitialEntries(AllocList* memList, URITable* uTable, unsigned char withSchema)
 {
 	unsigned int i = 0;
-	uint32_t uriID = 0;
-	uint32_t lnID = 0;
+	uint16_t uriID = 0;
+	size_t lnID = 0;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	StringType emptyStr;
 	StringType tmp_str;
@@ -344,7 +344,7 @@ errorCode createInitialEntries(AllocList* memList, URITable* uTable, unsigned ch
 	return ERR_OK;
 }
 
-errorCode addGVRow(ValueTable* vTable, StringType global_value, uint32_t* rowID)
+errorCode addGVRow(ValueTable* vTable, StringType global_value, size_t* rowID)
 {
 	if(vTable->arrayDimension == vTable->rowCount)   // The dynamic array must be extended first
 	{
@@ -381,7 +381,7 @@ errorCode addPrefixRow(PrefixTable* pTable, StringType px_value)
 	return ERR_OK;
 }
 
-errorCode addLVRow(struct LocalNamesRow* lnRow, uint32_t globalValueRowID, AllocList* memList)
+errorCode addLVRow(struct LocalNamesRow* lnRow, size_t globalValueRowID, AllocList* memList)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	if(lnRow->vCrossTable == NULL)
@@ -392,7 +392,7 @@ errorCode addLVRow(struct LocalNamesRow* lnRow, uint32_t globalValueRowID, Alloc
 	}
 	else if(lnRow->vCrossTable->rowCount == lnRow->vCrossTable->arrayDimension)   // The dynamic array must be extended first
 	{
-		tmp_err_code = memManagedReAllocate((void *) &lnRow->vCrossTable->valueRowIds, sizeof(uint32_t)*(lnRow->vCrossTable->rowCount + DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER), lnRow->vCrossTable->memPair);
+		tmp_err_code = memManagedReAllocate((void *) &lnRow->vCrossTable->valueRowIds, sizeof(size_t)*(lnRow->vCrossTable->rowCount + DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER), lnRow->vCrossTable->memPair);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		lnRow->vCrossTable->arrayDimension += DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER;
@@ -403,9 +403,9 @@ errorCode addLVRow(struct LocalNamesRow* lnRow, uint32_t globalValueRowID, Alloc
 	return ERR_OK;
 }
 
-char lookupURI(URITable* uTable, StringType value, uint32_t* rowID)
+char lookupURI(URITable* uTable, StringType value, uint16_t* rowID)
 {
-	uint32_t i = 0;
+	uint16_t i = 0;
 	if(uTable == NULL)
 			return 0;
 	for(i = 0; i < uTable->rowCount; i++)
@@ -419,9 +419,9 @@ char lookupURI(URITable* uTable, StringType value, uint32_t* rowID)
 	return 0;
 }
 
-char lookupLN(LocalNamesTable* lTable, StringType value, uint32_t* rowID)
+char lookupLN(LocalNamesTable* lTable, StringType value, size_t* rowID)
 {
-	uint32_t i = 0;
+	size_t i = 0;
 	if(lTable == NULL)
 		return 0;
 	for(i = 0; i < lTable->rowCount; i++)
@@ -435,7 +435,7 @@ char lookupLN(LocalNamesTable* lTable, StringType value, uint32_t* rowID)
 	return 0;
 }
 
-char lookupLV(ValueTable* vTable, ValueLocalCrossTable* lvTable, StringType value, uint32_t* rowID)
+char lookupLV(ValueTable* vTable, ValueLocalCrossTable* lvTable, StringType value, uint16_t* rowID)
 {
 	uint16_t i = 0;
 	if(lvTable == NULL)
@@ -451,9 +451,9 @@ char lookupLV(ValueTable* vTable, ValueLocalCrossTable* lvTable, StringType valu
 	return 0;
 }
 
-char lookupVal(ValueTable* vTable, StringType value, uint32_t* rowID)
+char lookupVal(ValueTable* vTable, StringType value, size_t* rowID)
 {
-	uint32_t i = 0;
+	size_t i = 0;
 	if(vTable == NULL)
 		return 0;
 	for(i = 0; i < vTable->rowCount; i++)

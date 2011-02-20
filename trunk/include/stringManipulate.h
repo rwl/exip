@@ -57,7 +57,7 @@
  * @param[in, out] memList A list storing the memory allocations
  * @return Error handling code
  */
-errorCode allocateStringMemory(CharType** str, uint32_t UCSchars, AllocList* memList);
+errorCode allocateStringMemory(CharType** str, size_t UCSchars, AllocList* memList);
 
 /**
  * @brief Translate the UCS [ISO/IEC 10646] code point to CharType
@@ -88,7 +88,7 @@ errorCode UCSToChar(uint32_t code_point, CharType* ch);
  * @param[in] UCSposition the position of the code point relatively to the beginning of the string
  * @return Error handling code
  */
-errorCode writeCharToString(StringType* str, uint32_t code_point, uint32_t UCSposition);
+errorCode writeCharToString(StringType* str, uint32_t code_point, size_t UCSposition);
 
 /**
  * @brief Creates an empty string
@@ -154,7 +154,7 @@ char strEqualToAscii(const StringType str1, const char* str2);
  * @param[out] UCScp the returned UCS code point
  * @return 1 if the strings are equal, 0 - otherwise
  */
-errorCode getUCSCodePoint(const StringType* str, uint32_t charIndex, uint32_t* UCScp);
+errorCode getUCSCodePoint(const StringType* str, size_t charIndex, uint32_t* UCScp);
 
 //TODO: At first glance this function is only useful for debugging. If so consider
 //      removing it with the preprocessor macro EXIP_DEBUG

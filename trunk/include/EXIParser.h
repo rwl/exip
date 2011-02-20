@@ -55,6 +55,6 @@
  * @param[in] handler collection of callback functions for parsing events
  * @param[in] app_data Application data to be passed to the content handler callbacks
  */
-void parseEXI(char* binaryStream, uint32_t bufLen, ContentHandler* handler, void* app_data);
+void parseEXI(char* binaryStream, size_t bufLen, ContentHandler* handler, void* app_data);
 
 #endif /* EXIPARSER_H_ */

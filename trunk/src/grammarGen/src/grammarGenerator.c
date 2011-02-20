@@ -118,7 +118,7 @@ static errorCode appendMetaGrammarNode(AllocList* tmpMemList, MetaGrammarList* g
 
 static errorCode orderedAddMetaGrammarNode(AllocList* tmpMemList, MetaGrammarList* gList, struct EXIGrammar* grammar, StringType name, StringType ns);
 
-errorCode generateSchemaInformedGrammars(char* binaryStream, uint32_t bufLen, unsigned char schemaFormat,
+errorCode generateSchemaInformedGrammars(char* binaryStream, size_t bufLen, unsigned char schemaFormat,
 										 ExipSchema* schema)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -206,7 +206,7 @@ static char xsd_endDocument(void* app_data)
 // Only for debugging purposes
 #if DEBUG_GRAMMAR_GEN == ON
 	{
-		int i = 0;
+		unsigned int i = 0;
 		unsigned char is_found = 0;
 		struct EXIGrammar* result;
 		for(i = 0; i < exipSchemaLocal->glElems.count; i++)
@@ -220,7 +220,7 @@ static char xsd_endDocument(void* app_data)
 			}
 			if(is_found)
 			{
-				int t = 0;
+				uint16_t t = 0;
 				for(t = 0; t < result->rulesDimension; t++)
 				{
 					tmp_err_code = printGrammarRule(&(result->ruleArray[t]));
@@ -572,7 +572,7 @@ void popElemContext(ContextStack** cStack, struct elementDescr** elem)
 
 static void initElemContext(struct elementDescr* elem)
 {
-	int i = 0;
+	unsigned int i = 0;
 	elem->element = ELEMENT_VOID;
 	elem->nextInStack = NULL;
 	for(i = 0; i < ATTRIBUTE_CONTEXT_ARRAY_SIZE; i++)
@@ -590,7 +590,7 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 	QName simpleType;
 	QName scope;
 	struct EXIGrammar* attrUseGrammar;
-	uint32_t attrUseGrammarID;
+	size_t attrUseGrammarID;
 	struct elementDescr* elemDesc;
 
 	popElemContext(&(app_data->contextStack), &elemDesc);
@@ -624,7 +624,7 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 
 #if DEBUG_GRAMMAR_GEN == ON
 	{
-		int t = 0;
+		uint16_t t = 0;
 		for(t = 0; t < attrUseGrammar->rulesDimension; t++)
 		{
 			tmp_err_code = printGrammarRule(&(attrUseGrammar->ruleArray[t]));
@@ -708,7 +708,7 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 
 #if DEBUG_GRAMMAR_GEN == ON
 	{
-		int tt = 0;
+		uint16_t tt = 0;
 		for(tt = 0; tt < contentTypeGrammar->rulesDimension; tt++)
 		{
 			tmp_err_code = printGrammarRule(&(contentTypeGrammar->ruleArray[tt]));
@@ -728,7 +728,7 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 
 #if DEBUG_GRAMMAR_GEN == ON
 	{
-		int t = 0;
+		uint16_t t = 0;
 		for(t = 0; t < resultComplexGrammar->rulesDimension; t++)
 		{
 			tmp_err_code = printGrammarRule(&(resultComplexGrammar->ruleArray[t]));

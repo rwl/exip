@@ -126,8 +126,8 @@ errorCode createGrammarPool(GrammarPool** pool);
  * @param[out] result if found - a pointer to the searched grammar
  * @return Error handling code
  */
-errorCode checkGrammarInPool(GrammarPool* pool, uint32_t uriRowID,
-									uint32_t lnRowID, unsigned char* is_found, struct EXIGrammar** result);
+errorCode checkGrammarInPool(GrammarPool* pool, uint16_t uriRowID,
+									size_t lnRowID, unsigned char* is_found, struct EXIGrammar** result);
 
 
 /**
@@ -138,8 +138,8 @@ errorCode checkGrammarInPool(GrammarPool* pool, uint32_t uriRowID,
  * @param[in] newGr the grammar to be added
  * @return Error handling code
  */
-errorCode addGrammarInPool(GrammarPool* pool, uint32_t uriRowID,
-									uint32_t lnRowID, struct EXIGrammar* newGr);
+errorCode addGrammarInPool(GrammarPool* pool, uint16_t uriRowID,
+									size_t lnRowID, struct EXIGrammar* newGr);
 
 /**
  * @brief Checks if particular grammar is a Document grammar (not Element grammar)

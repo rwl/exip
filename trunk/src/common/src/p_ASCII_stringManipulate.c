@@ -47,7 +47,7 @@
 #include <string.h>
 #include <stdio.h>
 
-errorCode allocateStringMemory(CharType** str, uint32_t UCSchars, AllocList* memList)
+errorCode allocateStringMemory(CharType** str, size_t UCSchars, AllocList* memList)
 {
 	(*str) = (CharType*) memManagedAllocate(memList, sizeof(CharType)*UCSchars);
 	if((*str) == NULL)
@@ -67,7 +67,7 @@ errorCode UCSToChar(uint32_t code_point, CharType* ch)
 /**
  * Simple translation working only for ASCII characters
  */
-errorCode writeCharToString(StringType* str, uint32_t code_point, uint32_t UCSposition)
+errorCode writeCharToString(StringType* str, uint32_t code_point, size_t UCSposition)
 {
 	str->str[UCSposition] = (CharType) code_point;
 	return ERR_OK;
@@ -127,7 +127,7 @@ char str_equal(const StringType str1, const StringType str2)
 		}
 		else
 		{
-			int i = 0;
+			size_t i = 0;
 			for(i = 0; i < str1.length; i++)
 			{
 				if(str1.str[i] != str2.str[i])
@@ -144,7 +144,7 @@ char strEqualToAscii(const StringType str1, const char* str2)
 		return 0;
 	else
 	{
-		int i = 0;
+		size_t i = 0;
 		for(i = 0; i < str1.length; i++)
 		{
 			if(str1.str[i] != str2[i])
@@ -170,17 +170,17 @@ int str_compare(const StringType str1, const StringType str2)
 
 }
 
-errorCode getUCSCodePoint(const StringType* str, uint32_t charIndex, uint32_t* UCScp)
+errorCode getUCSCodePoint(const StringType* str, size_t charIndex, uint32_t* UCScp)
 {
 	if(str->length <= charIndex)
 		return OUT_OF_BOUND_BUFFER;
-	*UCScp = (unsigned int) str->str[charIndex];
+	*UCScp = (uint32_t) str->str[charIndex];
 	return ERR_OK;
 }
 
 void printString(const StringType* inStr)
 {
-	int i = 0;
+	size_t i = 0;
 	if(inStr->length == 0)
 		return;
 	for(i = 0; i < inStr->length; i++)
