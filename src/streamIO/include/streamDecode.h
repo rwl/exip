@@ -115,7 +115,7 @@ errorCode decodeString(EXIStream* strm, StringType* string_val);
  * @param[out] string_val decoded string
  * @return Error handling code
  */
-errorCode decodeStringOnly(EXIStream* strm, uint32_t str_length, StringType* string_val);
+errorCode decodeStringOnly(EXIStream* strm, size_t str_length, StringType* string_val);
 
 /**
  * @brief Decode EXI Binary type
@@ -127,7 +127,7 @@ errorCode decodeStringOnly(EXIStream* strm, uint32_t str_length, StringType* str
  * @param[out] nbytes length of decoded binary content
  * @return Error handling code
  */
-errorCode decodeBinary(EXIStream* strm, char** binary_val, uint32_t* nbytes);
+errorCode decodeBinary(EXIStream* strm, char** binary_val, size_t* nbytes);
 
 /**
  * @brief Decode EXI (signed) Integer type

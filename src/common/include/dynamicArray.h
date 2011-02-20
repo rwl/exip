@@ -52,8 +52,8 @@ struct dynArray {
 	void* elements; // Dynamic array elements
 	size_t elSize;	// The size of a single array element in bytes
 	uint16_t defaultSize; // Initial number of elements and the number of elements to be added each expansion time
-	uint32_t elementCount; // The actual number of elements
-	uint32_t arrayDimension; // The size of the Dynamic array
+	size_t elementCount; // The actual number of elements
+	size_t arrayDimension; // The size of the Dynamic array
 	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
 };
 
@@ -80,6 +80,6 @@ errorCode createDynArray(DynArray** dArray, size_t elSize, uint16_t defaultSize,
  * @param[in, out] memList A list storing the memory allocations
  * @return Error handling code
  */
-errorCode addDynElement(DynArray* dArray, void* elem, uint32_t* elID, AllocList* memList);
+errorCode addDynElement(DynArray* dArray, void* elem, size_t* elID, AllocList* memList);
 
 #endif /* DYNAMICARRAY_H_ */

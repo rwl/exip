@@ -82,7 +82,7 @@ errorCode addProduction(GrammarRule* rule, EventCode eCode, EXIEvent event, unsi
  * @return Error handling code
  */
 errorCode insertZeroProduction(GrammarRule* rule, EXIEvent event, unsigned int nonTermID,
-								uint32_t lnRowID, uint32_t uriRowID);
+								size_t lnRowID, uint16_t uriRowID);
 
 /**
  * @brief Copies the production in one rule into another

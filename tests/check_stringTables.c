@@ -140,7 +140,7 @@ START_TEST (test_addURIRow)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	URITable* uTable;
-	unsigned int rowID = 55;
+	uint16_t rowID = 55;
 	AllocList memList;
 	initAllocList(&memList);
 	err = createURITable(&uTable, &memList, 0);
@@ -187,7 +187,7 @@ START_TEST (test_addLNRow)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	LocalNamesTable* lnTable;
-	unsigned int rowID = 55;
+	size_t rowID = 55;
 	AllocList memList;
 	initAllocList(&memList);
 	err = createLocalNamesTable(&lnTable, &memList, 0);
@@ -260,7 +260,7 @@ START_TEST (test_addGVRow)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	ValueTable* vTable;
-	unsigned int rowID = 55;
+	size_t rowID = 55;
 	AllocList memList;
 	initAllocList(&memList);
 	err = createValueTable(&vTable, &memList);
@@ -303,7 +303,7 @@ START_TEST (test_addLVRow)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	LocalNamesTable* lnTable;
-	unsigned int rowID = 55;
+	size_t rowID = 55;
 	unsigned int globalValueRowID = 101;
 	AllocList memList;
 	initAllocList(&memList);

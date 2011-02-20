@@ -46,7 +46,7 @@
 
 errorCode moveBitPointer(EXIStream* strm, unsigned int bitPositions)
 {
-	uint32_t tmpLen = strm->bufferIndx + bitPositions/8;
+	size_t tmpLen = strm->bufferIndx + bitPositions/8;
 	int nbits;
 
 	if(strm->bufLen < tmpLen)
@@ -74,13 +74,13 @@ unsigned char getBitsNumber(unsigned int val)
 	return log2INT(val) + 1;
 }
 
-uint32_t log2INT(uint32_t val)
+unsigned int log2INT(unsigned int val)
 {
 	const uint32_t b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
 	const unsigned int S[] = {1, 2, 4, 8, 16};
 	int i;
 
-	uint32_t r = 0; // result of log2(v) will go here
+	unsigned int r = 0; // result of log2(v) will go here
 	for (i = 4; i >= 0; i--) // unroll for speed...
 	{
 	  if (val & b[i])

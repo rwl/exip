@@ -109,7 +109,7 @@ errorCode createValueLocalCrossTable(ValueLocalCrossTable** vlTable, AllocList* 
  * @param[in, out] memList A list storing the memory allocations
  * @return Error handling code
  */
-errorCode addURIRow(URITable* uTable, StringType uri, uint32_t* rowID, AllocList* memList);
+errorCode addURIRow(URITable* uTable, StringType uri, uint16_t* rowID, AllocList* memList);
 
 /**
  * @brief Add new row into the Local-Names string table
@@ -119,7 +119,7 @@ errorCode addURIRow(URITable* uTable, StringType uri, uint32_t* rowID, AllocList
  * @param[out] rowID the ID of the row inserted
  * @return Error handling code
  */
-errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, uint32_t* rowID);
+errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, size_t* rowID);
 
 /**
  * @brief Create string tables for an EXI stream.
@@ -158,7 +158,7 @@ errorCode createInitialEntries(AllocList* memList, URITable* uTable, unsigned ch
  * @param[out] rowID the ID of the row inserted
  * @return Error handling code
  */
-errorCode addGVRow(ValueTable* vTable, StringType global_value, uint32_t* rowID);
+errorCode addGVRow(ValueTable* vTable, StringType global_value, size_t* rowID);
 
 /**
  * @brief Add a new row into the Local value cross string table
@@ -168,7 +168,7 @@ errorCode addGVRow(ValueTable* vTable, StringType global_value, uint32_t* rowID)
  * @param[in, out] memList A list storing the memory allocations
  * @return Error handling code
  */
-errorCode addLVRow(struct LocalNamesRow* lnRow, uint32_t globalValueRowID, AllocList* memList);
+errorCode addLVRow(struct LocalNamesRow* lnRow, size_t globalValueRowID, AllocList* memList);
 
 /**
  * @brief Add a new row into the Prefix string table
@@ -188,7 +188,7 @@ errorCode addPrefixRow(PrefixTable* pTable, StringType px_value);
  * @param[out] rowID if found, ID of the URI row with that string
  * @return 0-not found, 1 found
  */
-char lookupURI(URITable* uTable, StringType value, uint32_t* rowID); //TODO: try to optimize
+char lookupURI(URITable* uTable, StringType value, uint16_t* rowID); //TODO: try to optimize
 
 /**
  * @brief Search the Local names table for a particular string value
@@ -199,7 +199,7 @@ char lookupURI(URITable* uTable, StringType value, uint32_t* rowID); //TODO: try
  * @param[out] rowID if found, ID of the Local names row with that string
  * @return 0-not found, 1 found
  */
-char lookupLN(LocalNamesTable* lTable, StringType value, uint32_t* rowID); //TODO: try to optimize
+char lookupLN(LocalNamesTable* lTable, StringType value, size_t* rowID); //TODO: try to optimize
 
 /**
  * @brief Search the Local partition of the Value table for a particular string value
@@ -211,7 +211,7 @@ char lookupLN(LocalNamesTable* lTable, StringType value, uint32_t* rowID); //TOD
  * @param[out] rowID if found, ID of the ValueLocalCrossTable row with that string
  * @return 0-not found, 1 found
  */
-char lookupLV(ValueTable* vTable, ValueLocalCrossTable* lvTable, StringType value, uint32_t* rowID); //TODO: try to optimize
+char lookupLV(ValueTable* vTable, ValueLocalCrossTable* lvTable, StringType value, uint16_t* rowID); //TODO: try to optimize
 
 /**
  * @brief Search the global Value table for a particular string value
@@ -222,6 +222,6 @@ char lookupLV(ValueTable* vTable, ValueLocalCrossTable* lvTable, StringType valu
  * @param[out] rowID if found, ID of the global Value table row with that string
  * @return 0-not found, 1 found
  */
-char lookupVal(ValueTable* vTable, StringType value, uint32_t* rowID); //TODO: try to optimize
+char lookupVal(ValueTable* vTable, StringType value, size_t* rowID); //TODO: try to optimize
 
 #endif /* STABLES_H_ */

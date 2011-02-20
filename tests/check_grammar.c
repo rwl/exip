@@ -171,8 +171,8 @@ START_TEST (test_checkGrammarInPool)
 
 	fail_unless (err == ERR_OK, "createGrammarPool returns error code %d", err);
 
-	uint32_t uriRowID = 10;
-	uint32_t lnRowID = 22;
+	uint16_t uriRowID = 10;
+	size_t lnRowID = 22;
 	struct EXIGrammar testElementGrammar;
 	struct EXIOptions options;
 	makeDefaultOpts(&options);
@@ -212,8 +212,8 @@ START_TEST (test_addGrammarInPool)
 
 	fail_unless (err == ERR_OK, "createGrammarPool returns error code %d", err);
 
-	uint32_t uriRowID = 10;
-	uint32_t lnRowID = 22;
+	uint16_t uriRowID = 10;
+	size_t lnRowID = 22;
 	struct EXIGrammar testElementGrammar;
 	struct EXIOptions options;
 	makeDefaultOpts(&options);

@@ -64,7 +64,7 @@ errorCode createDynArray(DynArray** dArray, size_t elSize, uint16_t defaultSize,
 	return ERR_OK;
 }
 
-errorCode addDynElement(DynArray* dArray, void* elem, uint32_t* elID, AllocList* memList)
+errorCode addDynElement(DynArray* dArray, void* elem, size_t* elID, AllocList* memList)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 

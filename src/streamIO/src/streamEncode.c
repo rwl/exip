@@ -56,10 +56,10 @@ errorCode encodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, uint32_t i
 	}
 	else
 	{
-		int byte_number = n / 8 + (n % 8 != 0);
+		unsigned int byte_number = n / 8 + (n % 8 != 0);
 		int tmp_byte_buf = 0;
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		int i = 0;
+		unsigned int i = 0;
 		for(i = 0; i < byte_number; i++)
 		{
 			tmp_byte_buf = (int_val & (255ul << (i * 8))) >> (i * 8);
@@ -81,7 +81,7 @@ errorCode encodeBoolean(EXIStream* strm, unsigned char bool_val)
 errorCode encodeUnsignedInteger(EXIStream* strm, uint32_t int_val)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	int nbits = getBitsNumber(int_val);
+	unsigned int nbits = getBitsNumber(int_val);
 	int nbyte7 = nbits / 7 + (nbits % 7 != 0);
 	int tmp_byte_buf = 0;
 	int i = 0;
@@ -128,7 +128,7 @@ errorCode encodeStringOnly(EXIStream* strm, const StringType* string_val)
 
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	uint32_t tmp_val= 0;
-	uint32_t i = 0;
+	size_t i = 0;
 	for(i = 0; i < string_val->length; i++)
 	{
 		tmp_err_code = getUCSCodePoint(string_val, i, &tmp_val);
@@ -142,7 +142,7 @@ errorCode encodeStringOnly(EXIStream* strm, const StringType* string_val)
 	return ERR_OK;
 }
 
-errorCode encodeBinary(EXIStream* strm, char* binary_val, uint32_t nbytes)
+errorCode encodeBinary(EXIStream* strm, char* binary_val, size_t nbytes)
 {
 	return NOT_IMPLEMENTED_YET;
 }

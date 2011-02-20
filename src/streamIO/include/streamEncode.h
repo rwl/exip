@@ -123,7 +123,7 @@ errorCode encodeStringOnly(EXIStream* strm, const StringType* string_val);
  * @param[in] nbytes length of the binary content
  * @return Error handling code
  */
-errorCode encodeBinary(EXIStream* strm, char* binary_val, uint32_t nbytes);
+errorCode encodeBinary(EXIStream* strm, char* binary_val, size_t nbytes);
 
 /**
  * @brief Encode EXI (signed) Integer type

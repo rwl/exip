@@ -78,9 +78,9 @@ errorCode addProduction(GrammarRule* rule, EventCode eCode, EXIEvent event, unsi
 }
 
 errorCode insertZeroProduction(GrammarRule* rule, EXIEvent event, unsigned int nonTermID,
-								uint32_t lnRowID, uint32_t uriRowID)
+								size_t lnRowID, uint16_t uriRowID)
 {
-	unsigned int i = 0;
+	uint16_t i = 0;
 	unsigned int maxCodePart = 0;
 
 	if(rule->prodCount == rule->prodDimension) // The dynamic array prodArray needs to be resized
@@ -126,7 +126,7 @@ errorCode copyGrammarRule(AllocList* memList, GrammarRule* src, GrammarRule* des
 		return MEMORY_ALLOCATION_ERROR;
 
 	{
-		int i = 0;
+		uint16_t i = 0;
 		for(i = 0;i < dest->prodCount; i++)
 		{
 			dest->prodArray[i] = src->prodArray[i];
@@ -142,7 +142,7 @@ errorCode copyGrammarRule(AllocList* memList, GrammarRule* src, GrammarRule* des
 
 errorCode printGrammarRule(GrammarRule* rule)
 {
-	unsigned int i = 0;
+	uint16_t i = 0;
 
 	DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\n>RULE\n"));
 	switch(rule->nonTermID)
@@ -175,7 +175,7 @@ errorCode printGrammarRule(GrammarRule* rule)
 	DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\n"));
 	for(i = 0; i < rule->prodCount; i++)
 	{
-		int j = 0;
+		unsigned char j = 0;
 
 		DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\t"));
 		switch(rule->prodArray[i].event.eventType)

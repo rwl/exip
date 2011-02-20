@@ -49,8 +49,8 @@
 
 
 struct grammarDescr {
-	uint32_t uriRowId;
-	uint32_t lnRowId;
+	uint16_t uriRowId;
+	size_t lnRowId;
 	struct EXIGrammar grammar;
 };
 

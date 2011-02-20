@@ -59,8 +59,8 @@
  * after sorting the URITables are updated using the pointers
  */
 struct productionQname {
-	unsigned int* p_uriRowID;
-	unsigned int* p_lnRowID;
+	uint16_t* p_uriRowID;
+	size_t* p_lnRowID;
 	QName qname;
 };
 

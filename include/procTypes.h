@@ -192,7 +192,7 @@ typedef CHAR_TYPE CharType;
 struct StringType
 {
 	CharType* str;
-	uint32_t length;
+	size_t length;
 };
 
 typedef struct StringType StringType;
@@ -230,15 +230,15 @@ struct ValueRow {
 
 struct ValueTable {
 	struct ValueRow* rows; // Dynamic array
-	uint32_t rowCount; // The number of rows
-	uint32_t arrayDimension; // The size of the Dynamic array
+	size_t rowCount; // The number of rows
+	size_t arrayDimension; // The size of the Dynamic array
 	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
 };
 
 typedef struct ValueTable ValueTable;
 
 struct ValueLocalCrossTable {
-	uint32_t* valueRowIds; // Dynamic array
+	size_t* valueRowIds; // Dynamic array
 	uint16_t rowCount; // The number of rows
 	uint16_t arrayDimension; // The size of the Dynamic array
 	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
@@ -266,8 +266,8 @@ struct LocalNamesRow {
 
 struct LocalNamesTable {
 	struct LocalNamesRow* rows; // Dynamic array
-	uint32_t rowCount; // The number of rows
-	uint32_t arrayDimension; // The size of the Dynamic array
+	size_t rowCount; // The number of rows
+	size_t arrayDimension; // The size of the Dynamic array
 	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
 };
 
@@ -392,8 +392,8 @@ struct Production
 	 * For SE(qname), SE(uri:*), AT(qname) and AT(uri:*). Points to the qname or its local name
 	 * of the element/attribute
 	 */
-	unsigned int uriRowID;
-	unsigned int lnRowID;
+	uint16_t uriRowID;
+	size_t lnRowID;
 };
 
 typedef struct Production Production;
@@ -420,8 +420,8 @@ struct GrammarRule
 {
 	unsigned int nonTermID; // unique identifier of left-hand side Non-terminal
 	Production* prodArray; // Array of grammar productions included in that rule
-	unsigned int prodCount; // The number of productions in this Grammar Rule
-	unsigned int prodDimension; // The size of the productions' array /allocated space for Productions/
+	uint16_t prodCount; // The number of productions in this Grammar Rule
+	uint16_t prodDimension; // The size of the productions' array /allocated space for Productions/
 	unsigned char bits[3]; // The number of bits used for the integers constituting the EventCode
 	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
 };
@@ -431,7 +431,7 @@ typedef struct GrammarRule GrammarRule;
 struct EXIGrammar
 {
 	GrammarRule* ruleArray; // Array of grammar rules which constitute that grammar
-	unsigned int rulesDimension; // The size of the array
+	uint16_t rulesDimension; // The size of the array
 	struct EXIGrammar* nextInStack;
 	unsigned int lastNonTermID; // Stores the last NonTermID before another grammar is added on top of the stack
 };
@@ -444,8 +444,8 @@ typedef struct hashtable GrammarPool; // Element grammar pool or Type grammar po
 
 struct StringTablesContext
 {
-	uint32_t curr_uriID;
-	uint32_t curr_lnID;
+	uint16_t curr_uriID;
+	size_t curr_lnID;
 	unsigned char expectATData; // 1- Expecting value for an attribute, 0 - otherwise
 };
 
@@ -470,7 +470,7 @@ struct EXIheader
 	/**
 	 * EXI stream version
 	 */
-	int version_number;
+	int16_t version_number;
 
 	struct EXIOptions* opts;
 };
@@ -490,12 +490,12 @@ struct EXIStream
 	/**
 	 * The size of the buffer
 	 */
-	uint32_t bufLen;
+	size_t bufLen;
 
 	/**
 	 * Current position in the buffer - bytewise
 	 */
-	uint32_t bufferIndx;
+	size_t bufferIndx;
 
 	/**
 	 * Value between 0 and 7; shows the current position within the current byte

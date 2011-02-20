@@ -66,7 +66,7 @@ struct EXISerializer
 	errorCode (*stringDataSer)(EXIStream* strm, const StringType str_val);
 	errorCode (*floatDataSer)(EXIStream* strm, double float_val);
 	errorCode (*bigFloatDataSer)(EXIStream* strm, BigFloat float_val);
-	errorCode (*binaryDataSer)(EXIStream* strm, const char* binary_val, uint32_t nbytes);
+	errorCode (*binaryDataSer)(EXIStream* strm, const char* binary_val, size_t nbytes);
 	errorCode (*dateTimeDataSer)(EXIStream* strm, struct tm dt_val, uint16_t presenceMask);
 	errorCode (*decimalDataSer)(EXIStream* strm, decimal dec_val);
 	errorCode (*bigDecimalDataSer)(EXIStream* strm, bigDecimal dec_val);
@@ -75,7 +75,7 @@ struct EXISerializer
 	errorCode (*processingInstructionSer)(EXIStream* strm); // TODO: define the parameters!
 
 	// EXI specific
-	errorCode (*initStream)(EXIStream* strm, char* buf, unsigned int bufSize, struct EXIOptions* opts, ExipSchema* schema);
+	errorCode (*initStream)(EXIStream* strm, char* buf, size_t bufSize, struct EXIOptions* opts, ExipSchema* schema);
 	errorCode (*exiHeaderSer)(EXIStream* strm, EXIheader* header);
 	errorCode (*selfContainedSer)(EXIStream* strm);  // Used for indexing independent elements for random access
 

@@ -79,7 +79,7 @@ EventCode getEventCode1(unsigned int first)
 errorCode writeEventCode(EXIStream* strm, EventCode code, unsigned char* bits)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	int i = 0;
+	unsigned char i = 0;
 	for(i = 0; i < code.size; i++)
 	{
 		tmp_err_code = encodeNBitUnsignedInteger(strm, bits[i], code.code[i]);
