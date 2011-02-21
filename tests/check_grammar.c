@@ -53,19 +53,19 @@ START_TEST (test_createDocGrammar)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	EXIStream testStream;
-	testStream.bitPointer = 0;
 	struct EXIOptions options;
+	struct EXIGrammar testGrammar;
+	char buf[2];
+	buf[0] = (char) 0xD4; /* 0b11010100 */
+	buf[1] = (char) 0x60; /* 0b01100000 */
+
+	testStream.bitPointer = 0;
 	makeDefaultOpts(&options);
 	testStream.header.opts = &options;
-	char buf[2];
-	buf[0] = (char) 0b11010100;
-	buf[1] = (char) 0b01100000;
 	testStream.buffer = buf;
 	testStream.bufLen = 2;
 	testStream.bufferIndx = 0;
 	initAllocList(&testStream.memList);
-
-	struct EXIGrammar testGrammar;
 
 	err = createDocGrammar(&testGrammar, &testStream, NULL);
 
@@ -87,15 +87,16 @@ START_TEST (test_pushGrammar)
 	EXIGrammarStack testGr;
 	EXIGrammarStack* testGrStack = &testGr;
 	struct EXIOptions options;
-	makeDefaultOpts(&options);
 	EXIStream strm;
+	struct EXIGrammar testElementGrammar;
+
+	makeDefaultOpts(&options);
 	strm.header.opts = &options;
 	initAllocList(&strm.memList);
 
 	err = createDocGrammar(testGrStack, &strm, NULL);
 	fail_if(err != ERR_OK);
 
-	struct EXIGrammar testElementGrammar;
 	err = createBuildInElementGrammar(&testElementGrammar, &strm);
 	fail_if(err != ERR_OK);
 
@@ -111,15 +112,17 @@ START_TEST (test_popGrammar)
 	EXIGrammarStack testGr;
 	EXIGrammarStack* testGrStack = &testGr;
 	struct EXIOptions options;
-	makeDefaultOpts(&options);
 	EXIStream strm;
+	struct EXIGrammar testElementGrammar;
+	struct EXIGrammar* testGR;
+
+	makeDefaultOpts(&options);
 	strm.header.opts = &options;
 	initAllocList(&strm.memList);
 
 	err = createDocGrammar(testGrStack, &strm, NULL);
 	fail_if(err != ERR_OK);
 
-	struct EXIGrammar testElementGrammar;
 	err = createBuildInElementGrammar(&testElementGrammar, &strm);
 	fail_if(err != ERR_OK);
 
@@ -127,7 +130,6 @@ START_TEST (test_popGrammar)
 	fail_unless (err == ERR_OK, "pushGrammar returns error code %d", err);
 	fail_if(testGrStack->nextInStack == NULL);
 
-	struct EXIGrammar* testGR;
 	err = popGrammar(&testGrStack, &testGR);
 	fail_unless (err == ERR_OK, "popGrammar returns error code %d", err);
 	fail_if(testGrStack->nextInStack != NULL);
@@ -141,8 +143,9 @@ START_TEST (test_createBuildInElementGrammar)
 	errorCode err = UNEXPECTED_ERROR;
 	struct EXIGrammar testElementGrammar;
 	struct EXIOptions options;
-	makeDefaultOpts(&options);
 	EXIStream strm;
+
+	makeDefaultOpts(&options);
 	strm.header.opts = &options;
 	initAllocList(&strm.memList);
 
@@ -167,21 +170,21 @@ START_TEST (test_checkGrammarInPool)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	GrammarPool* testPool;
-	err = createGrammarPool(&testPool);
-
-	fail_unless (err == ERR_OK, "createGrammarPool returns error code %d", err);
-
 	uint16_t uriRowID = 10;
 	size_t lnRowID = 22;
 	struct EXIGrammar testElementGrammar;
 	struct EXIOptions options;
-	makeDefaultOpts(&options);
 	EXIStream strm;
-	strm.header.opts = &options;
-	initAllocList(&strm.memList);
-
 	unsigned char is_found = 1;
 	struct EXIGrammar* result = NULL;
+
+	err = createGrammarPool(&testPool);
+	fail_unless (err == ERR_OK, "createGrammarPool returns error code %d", err);
+
+	makeDefaultOpts(&options);
+	strm.header.opts = &options;
+
+	initAllocList(&strm.memList);
 
 	err = checkGrammarInPool(testPool, uriRowID, lnRowID, &is_found, &result);
 
@@ -208,16 +211,16 @@ START_TEST (test_addGrammarInPool)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	GrammarPool* testPool;
-	err = createGrammarPool(&testPool);
-
-	fail_unless (err == ERR_OK, "createGrammarPool returns error code %d", err);
-
 	uint16_t uriRowID = 10;
 	size_t lnRowID = 22;
 	struct EXIGrammar testElementGrammar;
 	struct EXIOptions options;
-	makeDefaultOpts(&options);
 	EXIStream strm;
+
+	err = createGrammarPool(&testPool);
+	fail_unless (err == ERR_OK, "createGrammarPool returns error code %d", err);
+
+	makeDefaultOpts(&options);
 	strm.header.opts = &options;
 	initAllocList(&strm.memList);
 
@@ -225,7 +228,6 @@ START_TEST (test_addGrammarInPool)
 	fail_unless (err == ERR_OK, "createBuildInElementGrammar returns error code %d", err);
 
 	err = addGrammarInPool(testPool, uriRowID, lnRowID, &testElementGrammar);
-
 	fail_unless (err == ERR_OK, "addGrammarInPool returns error code %d", err);
 }
 END_TEST
@@ -288,14 +290,16 @@ START_TEST (test_addProduction)
 	errorCode err = UNEXPECTED_ERROR;
 	GrammarRule rule;
 	AllocList memList;
+	EventCode eCode = getEventCode2(20,12);
+	EXIEvent event;
+	unsigned int nonTermID = GR_DOC_CONTENT;
+
+	event.eventType = EVENT_SE_ALL;
+	event.valueType = VALUE_TYPE_NONE;
+
 	initAllocList(&memList);
 	err = initGrammarRule(&rule, &memList);
 	fail_unless (err == ERR_OK, "initGrammarRule returns error code %d", err);
-	EventCode eCode = getEventCode2(20,12);
-	EXIEvent event;
-	event.eventType = EVENT_SE_ALL;
-	event.valueType = VALUE_TYPE_NONE;
-	unsigned int nonTermID = GR_DOC_CONTENT;
 
 	err = addProduction(&rule, eCode, event, nonTermID);
 	fail_unless (err == ERR_OK, "addProduction returns error code %d", err);
@@ -330,16 +334,20 @@ START_TEST (test_insertZeroProduction)
 	errorCode err = UNEXPECTED_ERROR;
 	GrammarRule rule;
 	AllocList memList;
+	EventCode eCode = getEventCode2(0,0);
+	EXIEvent event;
+	unsigned int nonTermID = GR_DOC_CONTENT;
+
+	event.eventType = EVENT_SE_ALL;
+	event.valueType = VALUE_TYPE_NONE;
+
 	initAllocList(&memList);
 	err = initGrammarRule(&rule, &memList);
 	fail_unless (err == ERR_OK, "initGrammarRule returns error code %d", err);
-	EventCode eCode = getEventCode2(0,0);
-	EXIEvent event;
-	event.eventType = EVENT_SE_ALL;
-	event.valueType = VALUE_TYPE_NONE;
+
 	rule.bits[0] = 0;
 	rule.bits[1] = 0;
-	unsigned int nonTermID = GR_DOC_CONTENT;
+
 	err = addProduction(&rule, eCode, event, nonTermID);
 	fail_unless (err == ERR_OK, "addProduction returns error code %d", err);
 	fail_unless(rule.prodCount == 1 && rule.prodDimension == DEFAULT_PROD_ARRAY_DIM,
@@ -375,31 +383,37 @@ Suite * grammar_suite (void)
 {
   Suite *s = suite_create ("Grammar");
 
-  /* Grammars test case */
-  TCase *tc_gGrammars = tcase_create ("Grammars");
-  tcase_add_test (tc_gGrammars, test_createDocGrammar);
-  tcase_add_test (tc_gGrammars, test_processNextProduction);
-  tcase_add_test (tc_gGrammars, test_pushGrammar);
-  tcase_add_test (tc_gGrammars, test_popGrammar);
-  tcase_add_test (tc_gGrammars, test_createBuildInElementGrammar);
-  tcase_add_test (tc_gGrammars, test_createGrammarPool);
-  tcase_add_test (tc_gGrammars, test_checkGrammarInPool);
-  tcase_add_test (tc_gGrammars, test_addGrammarInPool);
-  suite_add_tcase (s, tc_gGrammars);
+  {
+	  /* Grammars test case */
+	  TCase *tc_gGrammars = tcase_create ("Grammars");
+	  tcase_add_test (tc_gGrammars, test_createDocGrammar);
+	  tcase_add_test (tc_gGrammars, test_processNextProduction);
+	  tcase_add_test (tc_gGrammars, test_pushGrammar);
+	  tcase_add_test (tc_gGrammars, test_popGrammar);
+	  tcase_add_test (tc_gGrammars, test_createBuildInElementGrammar);
+	  tcase_add_test (tc_gGrammars, test_createGrammarPool);
+	  tcase_add_test (tc_gGrammars, test_checkGrammarInPool);
+	  tcase_add_test (tc_gGrammars, test_addGrammarInPool);
+	  suite_add_tcase (s, tc_gGrammars);
+  }
 
-  /* Events test case */
-  TCase *tc_gEvents = tcase_create ("Events");
-  tcase_add_test (tc_gEvents, test_getEventCode1);
-  tcase_add_test (tc_gEvents, test_getEventCode2);
-  tcase_add_test (tc_gEvents, test_getEventCode3);
-  suite_add_tcase (s, tc_gEvents);
+  {
+	  /* Events test case */
+	  TCase *tc_gEvents = tcase_create ("Events");
+	  tcase_add_test (tc_gEvents, test_getEventCode1);
+	  tcase_add_test (tc_gEvents, test_getEventCode2);
+	  tcase_add_test (tc_gEvents, test_getEventCode3);
+	  suite_add_tcase (s, tc_gEvents);
+  }
 
-  /* Rules test case */
-  TCase *tc_gRules = tcase_create ("Rules");
-  tcase_add_test (tc_gRules, test_initGrammarRule);
-  tcase_add_test (tc_gRules, test_addProduction);
-  tcase_add_test (tc_gRules, test_insertZeroProduction);
-  suite_add_tcase (s, tc_gRules);
+  {
+	  /* Rules test case */
+	  TCase *tc_gRules = tcase_create ("Rules");
+	  tcase_add_test (tc_gRules, test_initGrammarRule);
+	  tcase_add_test (tc_gRules, test_addProduction);
+	  tcase_add_test (tc_gRules, test_insertZeroProduction);
+	  suite_add_tcase (s, tc_gRules);
+  }
 
   return s;
 }
@@ -409,6 +423,9 @@ int main (void)
 	int number_failed;
 	Suite *s = grammar_suite();
 	SRunner *sr = srunner_create (s);
+#ifdef _MSC_VER
+	srunner_set_fork_status(sr, CK_NOFORK);
+#endif
 	srunner_run_all (sr, CK_NORMAL);
 	number_failed = srunner_ntests_failed (sr);
 	srunner_free (sr);

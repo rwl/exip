@@ -59,17 +59,18 @@
 START_TEST (test_readNextBit)
 {
   EXIStream testStream;
-  testStream.bitPointer = 0;
 
   char buf[2];
-  buf[0] = (char) 0b11010100;
-  buf[1] = (char) 0b01100000;
+  unsigned char bit_val = 0;
+  errorCode err = UNEXPECTED_ERROR;
+
+  testStream.bitPointer = 0;
+  buf[0] = (char) 0xD4; /* 0b11010100 */
+  buf[1] = (char) 0x60; /* 0b01100000 */
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufferIndx = 0;
   initAllocList(&testStream.memList);
-  unsigned char bit_val = 0;
-  errorCode err = UNEXPECTED_ERROR;
 
   err = readNextBit(&testStream, &bit_val);
 
@@ -98,17 +99,17 @@ END_TEST
 START_TEST (test_readBits)
 {
   EXIStream testStream;
-  testStream.bitPointer = 0;
-
   char buf[2];
-  buf[0] = (char) 0b11010100;
-  buf[1] = (char) 0b01100000;
+  unsigned int bits_val = 0;
+  errorCode err = UNEXPECTED_ERROR;
+
+  testStream.bitPointer = 0;
+  buf[0] = (char) 0xD4; /* 0b11010100 */
+  buf[1] = (char) 0x60; /* 0b01100000 */
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufferIndx = 0;
   initAllocList(&testStream.memList);
-  unsigned int bits_val = 0;
-  errorCode err = UNEXPECTED_ERROR;
 
   err = readBits(&testStream, 4, &bits_val);
 
@@ -141,20 +142,21 @@ END_TEST
 START_TEST (test_writeNextBit)
 {
   EXIStream testStream;
-  testStream.bitPointer = 0;
-
   char buf[2];
-  buf[0] = (char) 0b00000001;
-  buf[1] = (char) 0b00000000;
+  errorCode err = UNEXPECTED_ERROR;
+  int test;
+
+  testStream.bitPointer = 0;
+  buf[0] = (char) 0x01; /* 0b00000001 */
+  buf[1] = (char) 0x00; /* 0b00000000 */
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufferIndx = 0;
   initAllocList(&testStream.memList);
-  errorCode err = UNEXPECTED_ERROR;
 
   err = writeNextBit(&testStream, 1);
 
-  int test = (buf[0] & 0b10000000) != 0;
+  test = (buf[0] & 0x80 /* 0b10000000 */ ) != 0;
 
   fail_unless (test == 1,
 	       "The bit 1 was written as 0");
@@ -168,7 +170,7 @@ START_TEST (test_writeNextBit)
 
   err = writeNextBit(&testStream, 0);
 
-  test = (buf[0] & 0b00000001) != 0;
+  test = (buf[0] & 0x01) != 0;
 
   fail_unless (test == 0,
   	       "The bit 0 was written as 1");
@@ -183,20 +185,21 @@ END_TEST
 START_TEST (test_writeBits)
 {
   EXIStream testStream;
-  testStream.bitPointer = 0;
-
   char buf[2];
-  buf[0] = (char) 0b00000000;
-  buf[1] = (char) 0b11100000;
+  errorCode err = UNEXPECTED_ERROR;
+  int test, test1;
+
+  testStream.bitPointer = 0;
+  buf[0] = (char) 0x00; /* 0b00000000 */
+  buf[1] = (char) 0xE0;	/* 0b11100000 */
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufferIndx = 0;
   initAllocList(&testStream.memList);
-  errorCode err = UNEXPECTED_ERROR;
 
   err = writeBits(&testStream, 19);
 
-  int test = (buf[0] & 0b11111000) >> 3;
+  test = (buf[0] & 0xF8 /* 0b11111000 */ ) >> 3;
 
   fail_unless (test == 19,
 	       "The number 19 was written as %d", test);
@@ -210,9 +213,9 @@ START_TEST (test_writeBits)
 
   err = writeBits(&testStream, 9);
 
-  test = (buf[0] & 0b00000001) != 0;
+  test = (buf[0] & 0x01) != 0;
 
-  int test1 = (buf[1] & 0b11100000) >> 5;
+  test1 = (buf[1] & 0xE0 /* 0b11100000 */ ) >> 5;
 
   fail_unless (test == 1 && test1 == 1,
 		      "writeBits function doesn't write correctly");
@@ -227,20 +230,21 @@ END_TEST
 START_TEST (test_writeNBits)
 {
   EXIStream testStream;
-  testStream.bitPointer = 0;
-
   char buf[2];
-  buf[0] = (char) 0b10100000;
-  buf[1] = (char) 0b11100000;
+  errorCode err = UNEXPECTED_ERROR;
+  int test, test1;
+
+  testStream.bitPointer = 0;
+  buf[0] = (char) 0xA0; /* 0b10100000 */
+  buf[1] = (char) 0xE0; /* 0b11100000 */
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufferIndx = 0;
   initAllocList(&testStream.memList);
-  errorCode err = UNEXPECTED_ERROR;
 
   err = writeNBits(&testStream, 7, 19);
 
-  int test = ((unsigned int) buf[0]) >> 1;
+  test = ((unsigned int) buf[0]) >> 1;
 
   fail_unless (test == 19,
 	       "The number 19 was written as %d", test);
@@ -254,9 +258,9 @@ START_TEST (test_writeNBits)
 
   err = writeNBits(&testStream, 5, 9);
 
-  test = (buf[0] & 0b00000001) != 0;
+  test = (buf[0] & 0x01 ) != 0;
 
-  int test1 = (buf[1] & 0b11110000) >> 4;
+  test1 = (buf[1] & 0xF0 /* 0b11110000 */ ) >> 4;
 
   fail_unless (test == 0 && test1 == 9,
 		      "writeNBits function doesn't write correctly");
@@ -275,20 +279,22 @@ END_TEST
 START_TEST (test_decodeNBitUnsignedInteger)
 {
   EXIStream testStream;
-  testStream.bitPointer = 0;
   struct EXIOptions options;
+
+  char buf[2];
+  unsigned int bit_val = 0;
+  errorCode err = UNEXPECTED_ERROR;
+
+  testStream.bitPointer = 0;
   makeDefaultOpts(&options);
   testStream.header.opts = &options;
 
-  char buf[2];
-  buf[0] = (char) 0b11010100;
-  buf[1] = (char) 0b01100000;
+  buf[0] = (char) 0xD4; /* 0b11010100 */
+  buf[1] = (char) 0x60; /* 0b01100000 */
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufferIndx = 0;
-  unsigned int bit_val = 0;
   initAllocList(&testStream.memList);
-  errorCode err = UNEXPECTED_ERROR;
 
   err = decodeNBitUnsignedInteger(&testStream, 6, &bit_val);
 
@@ -307,20 +313,21 @@ END_TEST
 START_TEST (test_decodeBoolean)
 {
   EXIStream testStream;
-  testStream.bitPointer = 0;
   struct EXIOptions options;
+  char buf[2];
+  unsigned char bit_val = 0;
+  errorCode err = UNEXPECTED_ERROR;
+
+  testStream.bitPointer = 0;
   makeDefaultOpts(&options);
   testStream.header.opts = &options;
 
-  char buf[2];
-  buf[0] = (char) 0b11010100;
-  buf[1] = (char) 0b01100000;
+  buf[0] = (char) 0xD4; /* 0b11010100 */
+  buf[1] = (char) 0x60; /* 0b01100000 */
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufferIndx = 0;
   initAllocList(&testStream.memList);
-  unsigned char bit_val = 0;
-  errorCode err = UNEXPECTED_ERROR;
 
   err = decodeBoolean(&testStream, &bit_val);
 
@@ -336,21 +343,22 @@ END_TEST
 START_TEST (test_decodeUnsignedInteger)
 {
   EXIStream testStream;
-  testStream.bitPointer = 0;
   struct EXIOptions options;
+  char buf[3];
+  unsigned int bit_val = 0;
+  errorCode err = UNEXPECTED_ERROR;
+
+  testStream.bitPointer = 0;
   makeDefaultOpts(&options);
   testStream.header.opts = &options;
 
-  char buf[3];
-  buf[0] = (char) 0b11010100;
-  buf[1] = (char) 0b01100000;
-  buf[2] = (char) 0b01001000;
+  buf[0] = (char) 0xD4; /* 0b11010100 */
+  buf[1] = (char) 0x60; /* 0b01100000 */
+  buf[2] = (char) 0x48; /* 0b01001000 */
   testStream.buffer = buf;
   testStream.bufLen = 3;
   testStream.bufferIndx = 0;
   initAllocList(&testStream.memList);
-  unsigned int bit_val = 0;
-  errorCode err = UNEXPECTED_ERROR;
 
   err = decodeUnsignedInteger(&testStream, &bit_val);
 
@@ -372,25 +380,26 @@ END_TEST
 START_TEST (test_decodeString)
 {
   EXIStream testStream;
-  testStream.bitPointer = 0;
   struct EXIOptions options;
+  char buf[4];
+  StringType bit_val;
+  CharType cht[100];
+  errorCode err = UNEXPECTED_ERROR;
+
+  testStream.bitPointer = 0;
   makeDefaultOpts(&options);
   testStream.header.opts = &options;
 
-  char buf[4];
-  buf[0] = (char) 0b00000010;
-  buf[1] = (char) 0b01100101; // e - ASCII
-  buf[2] = (char) 0b01010100; // T - ASCII
-  buf[3] = (char) 0b01010010;
+  buf[0] = (char) 0x02; /* 0b00000010 */
+  buf[1] = (char) 0x65; /* 0b01100101 */ // e - ASCII
+  buf[2] = (char) 0x54; /* 0b01010100 */ // T - ASCII
+  buf[3] = (char) 0x52; /* 0b01010010 */
   testStream.buffer = buf;
   testStream.bufLen = 4;
   testStream.bufferIndx = 0;
   initAllocList(&testStream.memList);
-  StringType bit_val;
-  CharType cht[100];
   bit_val.length = 0;
   bit_val.str = cht;
-  errorCode err = UNEXPECTED_ERROR;
 
   err = decodeString(&testStream, &bit_val);
 
@@ -413,43 +422,45 @@ END_TEST
 START_TEST (test_decodeBinary)
 {
   EXIStream testStream;
-  testStream.bitPointer = 0;
   struct EXIOptions options;
+  char buf[20];
+  char testbuf[20];
+  int i;
+  char* res;
+  size_t bytes = 0;
+  errorCode err = UNEXPECTED_ERROR;
+  int same=1;
+
+  testStream.bitPointer = 0;
   makeDefaultOpts(&options);
   testStream.header.opts = &options;
 
-  char buf[20];
-  buf[0] = (char) 0b00000101;		//5
-  buf[1] = (char) 0b11110000;
-  buf[2] = (char) 0b11001100;
-  buf[3] = (char) 0b10101010;
-  buf[4] = (char) 0b01010101;
-  buf[5] = (char) 0b00110011;
-  buf[6] = (char) 0b00001000;		//8
-  buf[7] = (char) 0b01101110;
-  buf[8] = (char) 0b11001010;
-  buf[9] = (char) 0b01011001;
-  buf[10] = (char) 0b11011000;
-  buf[11] = (char) 0b01011001;
-  buf[12] = (char) 0b11001010;
-  buf[13] = (char) 0b01101100;
-  buf[14] = (char) 0b11011000;
-  buf[15] = (char) 0b00000111;
+  buf[0] = (char)  0x05; /* 0b00000101 */		//5
+  buf[1] = (char)  0xF0; /* 0b11110000 */
+  buf[2] = (char)  0xCC; /* 0b11001100 */
+  buf[3] = (char)  0xAA; /* 0b10101010 */
+  buf[4] = (char)  0x55; /* 0b01010101 */
+  buf[5] = (char)  0x33; /* 0b00110011 */
+  buf[6] = (char)  0x08; /* 0b00001000 */		//8
+  buf[7] = (char)  0x6E; /* 0b01101110 */
+  buf[8] = (char)  0xCA; /* 0b11001010 */
+  buf[9] = (char)  0x59; /* 0b01011001 */
+  buf[10] = (char) 0xD8; /* 0b11011000 */
+  buf[11] = (char) 0x59; /* 0b01011001 */
+  buf[12] = (char) 0xCA; /* 0b11001010 */
+  buf[13] = (char) 0x6C; /* 0b01101100 */
+  buf[14] = (char) 0xD8; /* 0b11011000 */
+  buf[15] = (char) 0x07; /* 0b00000111 */
   testStream.buffer = buf;
   testStream.bufLen = 20;
   initAllocList(&testStream.memList);
-  char testbuf[20];
-  int i;
   for(i=0;i<20;i++) testbuf[i]=buf[i];
-  char* res;
 
   testStream.bufferIndx = 0;
-  size_t bytes = 0;
-  errorCode err = UNEXPECTED_ERROR;
-//Test1:
+
+  //Test1:
   err = decodeBinary(&testStream, &res, &bytes);
 
-  int same=1;
   for(i=0;i<5;i++)
   {
     if(res[i]!=testbuf[i+1])
@@ -505,22 +516,23 @@ END_TEST
 START_TEST (test_decodeFloat)
 {
   EXIStream testStream;
-  testStream.bitPointer = 0;
   struct EXIOptions options;
+  char buf[3];
+  double dbl_val = 0;
+  double res = 500;		// 5 x 10^2
+  errorCode err = UNEXPECTED_ERROR;
+
+  testStream.bitPointer = 0;
   makeDefaultOpts(&options);
   testStream.header.opts = &options;
 
-  char buf[3];
-  buf[0] = (char) 0b00000101;	//5
-  buf[1] = (char) 0b00000010;	//2
-  buf[2] = (char) 0b01010010;
+  buf[0] = (char) 0x05; /* 0b00000101 */	//5
+  buf[1] = (char) 0x02; /* 0b00000010 */	//2
+  buf[2] = (char) 0x52; /* 0b01010010 */
   testStream.buffer = buf;
   testStream.bufLen = 3;
   testStream.bufferIndx = 0;
   initAllocList(&testStream.memList);
-  double dbl_val = 0;
-  double res = 500;		// 5 x 10^2
-  errorCode err = UNEXPECTED_ERROR;
 
   err = decodeFloatValue(&testStream, &dbl_val);
 
@@ -541,21 +553,22 @@ END_TEST
 START_TEST (test_decodeIntegerValue)
 {
   EXIStream testStream;
-  testStream.bitPointer = 0;
   struct EXIOptions options;
+  char buf[3];
+  int bit_val = 0;
+  errorCode err = UNEXPECTED_ERROR;
+
+  testStream.bitPointer = 0;
   makeDefaultOpts(&options);
   testStream.header.opts = &options;
 
-  char buf[3];
-  buf[0] = (char) 0b10010100;
-  buf[1] = (char) 0b01100000;
-  buf[2] = (char) 0b01001000;
+  buf[0] = (char) 0x94; /* 0b10010100 */
+  buf[1] = (char) 0x60; /* 0b01100000 */
+  buf[2] = (char) 0x48; /* 0b01001000 */
   testStream.buffer = buf;
   testStream.bufLen = 3;
   testStream.bufferIndx = 0;
   initAllocList(&testStream.memList);
-  int bit_val = 0;
-  errorCode err = UNEXPECTED_ERROR;
 
   err = decodeIntegerValue(&testStream, &bit_val);
 
@@ -580,24 +593,26 @@ END_TEST
 START_TEST (test_encodeNBitUnsignedInteger)
 {
   EXIStream testStream;
-  testStream.bitPointer = 0;
   struct EXIOptions options;
+  char buf[2];
+  errorCode err = UNEXPECTED_ERROR;
+  unsigned char test, test2;
+
+  testStream.bitPointer = 0;
   makeDefaultOpts(&options);
   testStream.header.opts = &options;
 
-  char buf[2];
-  buf[0] = (char) 0b11001110;
-  buf[1] = (char) 0b11100000;
+  buf[0] = (char) 0xCE; /* 0b11001110 */
+  buf[1] = (char) 0xE0; /* 0b11100000 */
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufferIndx = 0;
   initAllocList(&testStream.memList);
-  errorCode err = UNEXPECTED_ERROR;
 
   err = encodeNBitUnsignedInteger(&testStream, 9, 412);
 
-  unsigned char test = buf[0] | 0;
-  unsigned char test2 = (unsigned char) buf[1] >> 7;
+  test = buf[0] | 0;
+  test2 = (unsigned char) buf[1] >> 7;
 
   fail_unless (err == ERR_OK,
   	       "encodeNBitUnsignedInteger returns error code %d", err);
@@ -614,23 +629,24 @@ END_TEST
 START_TEST (test_encodeBoolean)
 {
   EXIStream testStream;
-  testStream.bitPointer = 0;
   struct EXIOptions options;
+  char buf[2];
+  errorCode err = UNEXPECTED_ERROR;
+  unsigned char bit_val = 0;
+
+  testStream.bitPointer = 0;
   makeDefaultOpts(&options);
   testStream.header.opts = &options;
 
-  char buf[2];
-  buf[0] = (char) 0b01010100;
-  buf[1] = (char) 0b01100000;
+  buf[0] = (char) 0x54; /* 0b01010100 */
+  buf[1] = (char) 0x60; /* 0b01100000 */
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufferIndx = 0;
   initAllocList(&testStream.memList);
-  errorCode err = UNEXPECTED_ERROR;
 
   err = encodeBoolean(&testStream, 1);
 
-  unsigned char bit_val = 0;
   bit_val = (unsigned char) buf[0] >> 7;
 
   fail_unless (err == ERR_OK,
@@ -656,25 +672,27 @@ END_TEST
 START_TEST (test_encodeUnsignedInteger)
 {
   EXIStream testStream;
-  testStream.bitPointer = 0;
   struct EXIOptions options;
+  char buf[3];
+  errorCode err = UNEXPECTED_ERROR;
+  unsigned char test1, test2;
+
+  testStream.bitPointer = 0;
   makeDefaultOpts(&options);
   testStream.header.opts = &options;
 
-  char buf[3];
-  buf[0] = (char) 0b11010100;
-  buf[1] = (char) 0b00000000;
-  buf[2] = (char) 0b00000000;
+  buf[0] = (char) 0xD4; /* 0b11010100 */
+  buf[1] = (char) 0x00;	/* 0b00000000 */
+  buf[2] = (char) 0x00;	/* 0b00000000 */
   testStream.buffer = buf;
   testStream.bufLen = 3;
   testStream.bufferIndx = 0;
   initAllocList(&testStream.memList);
-  errorCode err = UNEXPECTED_ERROR;
 
   err = encodeUnsignedInteger(&testStream, 421);
 
-  unsigned char test1 = (unsigned char) buf[0];
-  unsigned char test2 = (unsigned char) buf[1];
+  test1 = (unsigned char) buf[0];
+  test2 = (unsigned char) buf[1];
 
   fail_unless (err == ERR_OK,
 		   "encodeUnsignedInteger returns error code %d", err);
@@ -686,9 +704,9 @@ START_TEST (test_encodeUnsignedInteger)
   fail_unless (testStream.bufferIndx == 2,
       	       "The encodeUnsignedInteger function did not move the byte Pointer of the stream correctly");
 
-  buf[0] = (char) 0b00010000;
-  buf[1] = (char) 0b00000000;
-  buf[2] = (char) 0b00000000;
+  buf[0] = (char) 0x10;	/* 0b00010000 */
+  buf[1] = (char) 0x00;	/* 0b00000000 */
+  buf[2] = (char) 0x00;	/* 0b00000000 */ 
   testStream.bufferIndx = 0;
   testStream.bitPointer = 0;
   err = UNEXPECTED_ERROR;
@@ -713,27 +731,29 @@ END_TEST
 START_TEST (test_encodeString)
 {
   EXIStream testStream;
-  testStream.bitPointer = 0;
   struct EXIOptions options;
+  char buf[50];
+  StringType testStr;
+  errorCode err = UNEXPECTED_ERROR;
+  unsigned char str_len;
+
+  testStream.bitPointer = 0;
   makeDefaultOpts(&options);
   testStream.header.opts = &options;
 
-  char buf[50];
-  buf[0] = (char) 0b00000010;
-  buf[1] = (char) 0b01100101;
-  buf[2] = (char) 0b01010100;
-  buf[3] = (char) 0b01010010;
+  buf[0] = (char) 0x02; /* 0b00000010 */
+  buf[1] = (char) 0x65; /* 0b01100101 */
+  buf[2] = (char) 0x64; /* 0b01010100 */
+  buf[3] = (char) 0x62; /* 0b01010010 */
   initAllocList(&testStream.memList);
   testStream.buffer = buf;
   testStream.bufLen = 50;
   testStream.bufferIndx = 0;
-  StringType testStr;
   asciiToString("TEST encodeString()", &testStr, &testStream.memList, FALSE);
-  errorCode err = UNEXPECTED_ERROR;
 
   err = encodeString(&testStream, &testStr);
 
-  unsigned char str_len = buf[0];
+  str_len = buf[0];
 
   fail_unless (err == ERR_OK,
 	       "encodeString returns error code %d", err);
@@ -775,41 +795,48 @@ Suite * streamIO_suite (void)
 {
   Suite *s = suite_create ("StreamIO");
 
-  /* StreamRead test case */
-  TCase *tc_sRead = tcase_create ("StreamRead");
-  tcase_add_test (tc_sRead, test_readNextBit);
-  tcase_add_test (tc_sRead, test_readBits);
-  suite_add_tcase (s, tc_sRead);
+  {
+	  /* StreamRead test case */
+	  TCase *tc_sRead = tcase_create ("StreamRead");
+	  tcase_add_test (tc_sRead, test_readNextBit);
+	  tcase_add_test (tc_sRead, test_readBits);
+	  suite_add_tcase (s, tc_sRead);
+  }
 
-  /* StreamWrite test case */
-  TCase *tc_sWrite = tcase_create ("StreamWrite");
-  tcase_add_test (tc_sWrite, test_writeNextBit);
-  tcase_add_test (tc_sWrite, test_writeBits);
-  tcase_add_test (tc_sWrite, test_writeNBits);
-  suite_add_tcase (s, tc_sWrite);
+  {
+	  /* StreamWrite test case */
+	  TCase *tc_sWrite = tcase_create ("StreamWrite");
+	  tcase_add_test (tc_sWrite, test_writeNextBit);
+	  tcase_add_test (tc_sWrite, test_writeBits);
+	  tcase_add_test (tc_sWrite, test_writeNBits);
+	  suite_add_tcase (s, tc_sWrite);
+  }
 
-  /* StreamDecode test case */
-  TCase *tc_sDecode = tcase_create ("StreamDecode");
-  tcase_add_test (tc_sDecode, test_decodeNBitUnsignedInteger);
-  tcase_add_test (tc_sDecode, test_decodeBoolean);
-  tcase_add_test (tc_sDecode, test_decodeUnsignedInteger);
-  tcase_add_test (tc_sDecode, test_decodeString);
-  tcase_add_test (tc_sDecode, test_decodeBinary);
-  tcase_add_test (tc_sDecode, test_decodeFloat);
-  tcase_add_test (tc_sDecode, test_decodeIntegerValue);
-  suite_add_tcase (s, tc_sDecode);
+  {
+	  /* StreamDecode test case */
+	  TCase *tc_sDecode = tcase_create ("StreamDecode");
+	  tcase_add_test (tc_sDecode, test_decodeNBitUnsignedInteger);
+	  tcase_add_test (tc_sDecode, test_decodeBoolean);
+	  tcase_add_test (tc_sDecode, test_decodeUnsignedInteger);
+	  tcase_add_test (tc_sDecode, test_decodeString);
+	  tcase_add_test (tc_sDecode, test_decodeBinary);
+	  tcase_add_test (tc_sDecode, test_decodeFloat);
+	  tcase_add_test (tc_sDecode, test_decodeIntegerValue);
+	  suite_add_tcase (s, tc_sDecode);
+  }
 
-  /* StreamEncode test case */
-  TCase *tc_sEncode = tcase_create ("StreamEncode");
-  tcase_add_test (tc_sEncode, test_encodeNBitUnsignedInteger);
-  tcase_add_test (tc_sDecode, test_encodeBoolean);
-  tcase_add_test (tc_sDecode, test_encodeUnsignedInteger);
-  tcase_add_test (tc_sDecode, test_encodeString);
-  tcase_add_test (tc_sDecode, test_encodeBinary);
-  tcase_add_test (tc_sDecode, test_encodeFloatValue);
-  tcase_add_test (tc_sDecode, test_encodeIntegerValue);
-
-  suite_add_tcase (s, tc_sEncode);
+  {
+	  /* StreamEncode test case */
+	  TCase *tc_sEncode = tcase_create ("StreamEncode");
+	  tcase_add_test (tc_sEncode, test_encodeNBitUnsignedInteger);
+	  tcase_add_test (tc_sEncode, test_encodeBoolean);
+	  tcase_add_test (tc_sEncode, test_encodeUnsignedInteger);
+	  tcase_add_test (tc_sEncode, test_encodeString);
+	  tcase_add_test (tc_sEncode, test_encodeBinary);
+	  tcase_add_test (tc_sEncode, test_encodeFloatValue);
+	  tcase_add_test (tc_sEncode, test_encodeIntegerValue);
+	  suite_add_tcase (s, tc_sEncode);
+  }
 
   return s;
 }
@@ -819,6 +846,9 @@ int main (void)
 	int number_failed;
 	Suite *s = streamIO_suite();
 	SRunner *sr = srunner_create (s);
+#ifdef _MSC_VER
+	srunner_set_fork_status(sr, CK_NOFORK);
+#endif
 	srunner_run_all (sr, CK_NORMAL);
 	number_failed = srunner_ntests_failed (sr);
 	srunner_free (sr);
