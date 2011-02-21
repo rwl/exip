@@ -142,11 +142,12 @@ START_TEST (test_addURIRow)
 	URITable* uTable;
 	uint16_t rowID = 55;
 	AllocList memList;
+	StringType test_uri;
+
 	initAllocList(&memList);
 	err = createURITable(&uTable, &memList, 0);
 	fail_if(err != ERR_OK);
 
-	StringType test_uri;
 	asciiToString("test_uri_string", &test_uri, &memList, FALSE);
 
 	err = addURIRow(uTable, test_uri, &rowID, &memList);
@@ -189,11 +190,12 @@ START_TEST (test_addLNRow)
 	LocalNamesTable* lnTable;
 	size_t rowID = 55;
 	AllocList memList;
+	StringType test_ln;
+
 	initAllocList(&memList);
 	err = createLocalNamesTable(&lnTable, &memList, 0);
 	fail_if(err != ERR_OK);
 
-	StringType test_ln;
 	asciiToString("test_ln_string", &test_ln, &memList, FALSE);
 
 	err = addLNRow(lnTable, test_ln, &rowID);
@@ -232,16 +234,17 @@ START_TEST (test_createInitialStringTables)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	EXIStream testStream;
+	struct EXIOptions options;
+	char buf[2];
+
 	testStream.bufferIndx = 0;
 	testStream.bitPointer = 0;
-	struct EXIOptions options;
 	makeDefaultOpts(&options);
 	testStream.header.opts = &options;
 
 	initAllocList(&testStream.memList);
-	char buf[2];
-	buf[0] = (char) 0b11010100;
-	buf[1] = (char) 0b01100000;
+	buf[0] = (char) 0xD4; /* 0b11010100 */
+	buf[1] = (char) 0x60; /* 0b01100000 */
 	testStream.buffer = buf;
 	testStream.bufLen = 2;
 
@@ -261,12 +264,13 @@ START_TEST (test_addGVRow)
 	errorCode err = UNEXPECTED_ERROR;
 	ValueTable* vTable;
 	size_t rowID = 55;
+	StringType test_val;
+
 	AllocList memList;
 	initAllocList(&memList);
 	err = createValueTable(&vTable, &memList);
 	fail_if(err != ERR_OK);
 
-	StringType test_val;
 	asciiToString("test_val_string", &test_val, &memList, FALSE);
 
 
@@ -306,10 +310,11 @@ START_TEST (test_addLVRow)
 	size_t rowID = 55;
 	unsigned int globalValueRowID = 101;
 	AllocList memList;
+	StringType test_ln;
+
 	initAllocList(&memList);
 	err = createLocalNamesTable(&lnTable, &memList, 0);
 	fail_if(err != ERR_OK);
-	StringType test_ln;
 
 	asciiToString("test_ln_string", &test_ln, &memList, FALSE);
 	err = addLNRow(lnTable, test_ln, &rowID);
@@ -344,20 +349,22 @@ Suite * tables_suite (void)
 {
   Suite *s = suite_create ("stringTables");
 
-  /* Table test case */
-  TCase *tc_tables = tcase_create ("Tables");
-  tcase_add_test (tc_tables, test_createValueTable);
-  tcase_add_test (tc_tables, test_createURITable);
-  tcase_add_test (tc_tables, test_createPrefixTable);
-  tcase_add_test (tc_tables, test_createLocalNamesTable);
-  tcase_add_test (tc_tables, test_addURIRow);
-  tcase_add_test (tc_tables, test_createInitialStringTables);
-  tcase_add_test (tc_tables, test_createValueLocalCrossTable);
-  tcase_add_test (tc_tables, test_addLNRow);
-  tcase_add_test (tc_tables, test_addGVRow);
-  tcase_add_test (tc_tables, test_addLVRow);
+  {
+	  /* Table test case */
+	  TCase *tc_tables = tcase_create ("Tables");
+	  tcase_add_test (tc_tables, test_createValueTable);
+	  tcase_add_test (tc_tables, test_createURITable);
+	  tcase_add_test (tc_tables, test_createPrefixTable);
+	  tcase_add_test (tc_tables, test_createLocalNamesTable);
+	  tcase_add_test (tc_tables, test_addURIRow);
+	  tcase_add_test (tc_tables, test_createInitialStringTables);
+	  tcase_add_test (tc_tables, test_createValueLocalCrossTable);
+	  tcase_add_test (tc_tables, test_addLNRow);
+	  tcase_add_test (tc_tables, test_addGVRow);
+	  tcase_add_test (tc_tables, test_addLVRow);
+	  suite_add_tcase (s, tc_tables);
+  }
 
-  suite_add_tcase (s, tc_tables);
   return s;
 }
 
@@ -366,6 +373,9 @@ int main (void)
 	int number_failed;
 	Suite *s = tables_suite();
 	SRunner *sr = srunner_create (s);
+#ifdef _MSC_VER
+	srunner_set_fork_status(sr, CK_NOFORK);
+#endif
 	srunner_run_all (sr, CK_NORMAL);
 	number_failed = srunner_ntests_failed (sr);
 	srunner_free (sr);
