@@ -42,13 +42,77 @@
  */
 
 #include "grammarAugment.h"
+#include "ioUtil.h"
+#include "eventsEXI.h"
 
-errorCode assignCodes(AllocList* memList, struct EXIGrammar* grammar)
+static int compareProductions(const void* prod1, const void* prod2);
+
+errorCode assignCodes(struct EXIGrammar* grammar)
 {
-	return NOT_IMPLEMENTED_YET;
+	uint16_t i = 0;
+	uint16_t j = 0;
+
+	for (i = 0; i < grammar->rulesDimension; i++)
+	{
+		qsort(grammar->ruleArray[i].prodArray, grammar->ruleArray[i].prodCount, sizeof(Production), compareProductions);
+		grammar->ruleArray[i].bits[0] = getBitsNumber(grammar->ruleArray[i].prodCount - 1);
+		for (j = 0; j < grammar->ruleArray[i].prodCount; j++)
+		{
+			grammar->ruleArray[i].prodArray[j].code = getEventCode1(j);
+		}
+	}
+	return ERR_OK;
 }
 
 errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, struct EXIGrammar* grammar)
 {
 	return NOT_IMPLEMENTED_YET;
+}
+
+static int compareProductions(const void* prod1, const void* prod2)
+{
+	Production* p1 = (Production*) prod1;
+	Production* p2 = (Production*) prod2;
+
+	if(p1->event.eventType < p2->event.eventType)
+		return -1;
+	else if(p1->event.eventType > p2->event.eventType)
+		return 1;
+	else // the same event Type
+	{
+		if(p1->event.eventType == EVENT_AT_QNAME)
+		{
+			if(p1->lnRowID < p2->lnRowID)
+				return -1;
+			else if(p1->lnRowID > p2->lnRowID)
+				return 1;
+			else
+			{
+				if(p1->uriRowID < p2->uriRowID)
+					return -1;
+				else if(p1->uriRowID > p2->uriRowID)
+					return 1;
+				else
+					return 0;
+			}
+		}
+		else if(p1->event.eventType == EVENT_AT_URI)
+		{
+			if(p1->uriRowID < p2->uriRowID)
+				return -1;
+			else if(p1->uriRowID > p2->uriRowID)
+				return 1;
+			else
+				return 0;
+		}
+		else if(p1->event.eventType == EVENT_SE_QNAME)
+		{
+			// TODO: figure out how it should be done
+		}
+		else if(p1->event.eventType == EVENT_SE_URI)
+		{
+			// TODO: figure out how it should be done
+		}
+		return 0;
+	}
 }

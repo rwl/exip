@@ -308,13 +308,13 @@ typedef struct QName QName;
  * -------------------------------------
  * Start Document |      SD      |  0
  * End Document   |      ED      |  1
- * Start Element  |  SE( qname ) |  2
- * Start Element  |  SE( uri:* ) |  3
- * Start Element  |  SE( * )	 |  4
- * End Element	  |      EE      |  5
- * Attribute	  |  AT( qname ) |  6
- * Attribute      |  AT( uri:* ) |  7
- * Attribute      |  AT( * )     |  8
+ * Start Element  |  SE( qname ) |  5
+ * Start Element  |  SE( uri:* ) |  6
+ * Start Element  |  SE( * )	 |  7
+ * End Element	  |      EE      |  8
+ * Attribute	  |  AT( qname ) |  2
+ * Attribute      |  AT( uri:* ) |  3
+ * Attribute      |  AT( * )     |  4
  * Characters	  |      CH      |  9
  * Nm-space Decl  |	     NS	     | 10
  * Comment	      |      CM      | 11
@@ -328,13 +328,13 @@ typedef unsigned char EventType;
 
 #define EVENT_SD       0
 #define EVENT_ED       1
-#define EVENT_SE_QNAME 2
-#define EVENT_SE_URI   3
-#define EVENT_SE_ALL   4
-#define EVENT_EE       5
-#define EVENT_AT_QNAME 6
-#define EVENT_AT_URI   7
-#define EVENT_AT_ALL   8
+#define EVENT_SE_QNAME 5
+#define EVENT_SE_URI   6
+#define EVENT_SE_ALL   7
+#define EVENT_EE       8
+#define EVENT_AT_QNAME 2
+#define EVENT_AT_URI   3
+#define EVENT_AT_ALL   4
 #define EVENT_CH       9
 #define EVENT_NS      10
 #define EVENT_CM      11

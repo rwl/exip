@@ -156,6 +156,16 @@ char strEqualToAscii(const StringType str1, const char* str2);
  */
 errorCode getUCSCodePoint(const StringType* str, size_t charIndex, uint32_t* UCScp);
 
+/**
+ * @brief Makes a copy of the string in a new location
+ * Note! The implementation of this function is platform-specific.
+ * @param[in] src the string to be copied
+ * @param[in] newStr will point to the newly allocated memory with scr->CharType* copied there
+ * @param[in, out] memList A list storing the memory allocations
+ * @return Error handling code
+ */
+errorCode cloneString(const StringType* src, StringType* newStr, AllocList* memList);
+
 //TODO: At first glance this function is only useful for debugging. If so consider
 //      removing it with the preprocessor macro EXIP_DEBUG
 /**
