@@ -46,7 +46,6 @@
 #include "grammarRules.h"
 #include "eventsEXI.h"
 #include "stringManipulate.h"
-#include "sortingAlgorithms.h"
 
 errorCode concatenateGrammars(AllocList* memList, struct EXIGrammar* left, struct EXIGrammar* right, struct EXIGrammar** result)
 {

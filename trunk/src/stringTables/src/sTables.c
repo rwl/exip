@@ -129,21 +129,17 @@ errorCode createValueTable(ValueTable** vTable, AllocList* memList)
 	return ERR_OK;
 }
 
-errorCode createURITable(URITable** uTable, AllocList* memList, unsigned int initialRows)
+errorCode createURITable(URITable** uTable, AllocList* memList)
 {
-	unsigned int rowNum = DEFAULT_URI_ROWS_NUMBER;
 	*uTable = (URITable*) memManagedAllocate(memList, sizeof(URITable));
 	if(*uTable == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	if(initialRows > 0)
-		rowNum = initialRows;
-
-	(*uTable)->rows = (struct URIRow*) memManagedAllocatePtr(memList, sizeof(struct URIRow)*rowNum, &(*uTable)->memPair);
+	(*uTable)->rows = (struct URIRow*) memManagedAllocatePtr(memList, sizeof(struct URIRow)*DEFAULT_URI_ROWS_NUMBER, &(*uTable)->memPair);
 	if((*uTable)->rows == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*uTable)->arrayDimension = rowNum;
+	(*uTable)->arrayDimension = DEFAULT_URI_ROWS_NUMBER;
 	(*uTable)->rowCount = 0;
 	return ERR_OK;
 }
@@ -163,21 +159,17 @@ errorCode createPrefixTable(PrefixTable** pTable, AllocList* memList)
 	return ERR_OK;
 }
 
-errorCode createLocalNamesTable(LocalNamesTable** lTable, AllocList* memList, unsigned int initialRows)
+errorCode createLocalNamesTable(LocalNamesTable** lTable, AllocList* memList)
 {
-	unsigned int rowNum = DEFAULT_LOCALNAMES_ROWS_NUMBER;
 	*lTable = (LocalNamesTable*) memManagedAllocate(memList, sizeof(LocalNamesTable));
 	if(*lTable == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	if(initialRows > 0)
-		rowNum = initialRows;
-
-	(*lTable)->rows = (struct LocalNamesRow*) memManagedAllocatePtr(memList, sizeof(struct LocalNamesRow)*rowNum, &(*lTable)->memPair);
+	(*lTable)->rows = (struct LocalNamesRow*) memManagedAllocatePtr(memList, sizeof(struct LocalNamesRow)*DEFAULT_LOCALNAMES_ROWS_NUMBER, &(*lTable)->memPair);
 	if((*lTable)->rows == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*lTable)->arrayDimension = rowNum;
+	(*lTable)->arrayDimension = DEFAULT_LOCALNAMES_ROWS_NUMBER;
 	(*lTable)->rowCount = 0;
 	return ERR_OK;
 }
@@ -213,7 +205,7 @@ errorCode addURIRow(URITable* uTable, StringType uri, uint16_t* rowID, AllocList
 	uTable->rows[uTable->rowCount].string_val.length = uri.length;
 	uTable->rows[uTable->rowCount].string_val.str = uri.str;
 
-	tmp_err_code = createLocalNamesTable(&(uTable->rows[uTable->rowCount].lTable), memList, 0);
+	tmp_err_code = createLocalNamesTable(&(uTable->rows[uTable->rowCount].lTable), memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -258,7 +250,7 @@ errorCode createInitialStringTables(EXIStream* strm, unsigned char withSchema)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = createURITable(&(strm->uriTable), &strm->memList, 0);
+	tmp_err_code = createURITable(&(strm->uriTable), &strm->memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 

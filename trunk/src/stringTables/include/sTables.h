@@ -67,10 +67,9 @@ errorCode createValueTable(ValueTable** vTable, AllocList* memList);
  * This operation includes allocation of memory for DEFAULT_URI_ROWS_NUMBER number of uri rows
  * @param[out] uTable URITable string table
  * @param[in, out] memList A list storing the memory allocations
- * @param[in] initialRows initial number of URI rows allocated; 0 - for default value
  * @return Error handling code
  */
-errorCode createURITable(URITable** uTable, AllocList* memList, unsigned int initialRows);
+errorCode createURITable(URITable** uTable, AllocList* memList);
 
 /**
  * @brief Creates fresh empty PrefixTable (prefix partition of EXI string table)
@@ -86,10 +85,9 @@ errorCode createPrefixTable(PrefixTable** pTable, AllocList* memList);
  * This operation includes allocation of memory for DEFAULT_LOCALNAMES_ROWS_NUMBER number of local names rows
  * @param[out] lTable LocalNamesTable string table
  * @param[in, out] memList A list storing the memory allocations
- * @param[in] initialRows initial number of LN rows allocated; 0 - for default value
  * @return Error handling code
  */
-errorCode createLocalNamesTable(LocalNamesTable** lTable, AllocList* memList, unsigned int initialRows);
+errorCode createLocalNamesTable(LocalNamesTable** lTable, AllocList* memList);
 
 /**
  * @brief Creates fresh empty ValueLocalCrossTable

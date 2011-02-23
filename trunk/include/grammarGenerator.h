@@ -110,6 +110,7 @@ struct globalSchemaProps {
 	unsigned char expectAttributeData;
 	StringType* charDataPointer; // Pointer to the expected character data
 	StringType targetNamespace;
+	uint16_t targetNSMetaID;  // the uri row ID in the metaURI table of the targetNamespace
 	unsigned char attributeFormDefault; // 0 unqualified, 1 qualified, 2 expecting value, 3 initial state
 	unsigned char elementFormDefault;  // 0 unqualified, 1 qualified, 2 expecting value, 3 initial state
 };

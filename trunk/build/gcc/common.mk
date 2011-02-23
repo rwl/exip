@@ -2,8 +2,7 @@
 
 COMMON_OBJ = $(COMMON_BIN)/p_ASCII_stringManipulate.o $(COMMON_BIN)/procTypes.o \
 			 $(COMMON_BIN)/contentHandler.o $(COMMON_BIN)/memManagement.o \
-			 $(COMMON_BIN)/hashtable.o $(COMMON_BIN)/hashUtils.o $(COMMON_BIN)/dynamicArray.o \
-			 $(COMMON_BIN)/sortingAlgorithms.o
+			 $(COMMON_BIN)/hashtable.o $(COMMON_BIN)/hashUtils.o $(COMMON_BIN)/dynamicArray.o
 
 $(COMMON_BIN)/lib$(COMMON).a : $(COMMON_OBJ)
 		ar rcs $(COMMON_BIN)/lib$(COMMON).a $(COMMON_OBJ)
@@ -27,7 +26,4 @@ $(COMMON_BIN)/hashUtils.o : $(COMMON_SRC)/include/hashUtils.h $(COMMON_SRC)/src/
 		$(CC) -c $(CFLAGS) $(COMMON_SRC)/src/hashUtils.c -o $(COMMON_BIN)/hashUtils.o
 		
 $(COMMON_BIN)/dynamicArray.o: $(COMMON_SRC)/include/dynamicArray.h $(COMMON_SRC)/src/dynamicArray.c
-		$(CC) -c $(CFLAGS) $(COMMON_SRC)/src/dynamicArray.c -o $(COMMON_BIN)/dynamicArray.o
-
-$(COMMON_BIN)/sortingAlgorithms.o: $(COMMON_SRC)/include/sortingAlgorithms.h $(COMMON_SRC)/src/sortingAlgorithms.c
-		$(CC) -c $(CFLAGS) $(COMMON_SRC)/src/sortingAlgorithms.c -o $(COMMON_BIN)/sortingAlgorithms.o	
+		$(CC) -c $(CFLAGS) $(COMMON_SRC)/src/dynamicArray.c -o $(COMMON_BIN)/dynamicArray.o	

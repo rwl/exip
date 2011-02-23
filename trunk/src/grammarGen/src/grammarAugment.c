@@ -43,12 +43,12 @@
 
 #include "grammarAugment.h"
 
-errorCode assignCodes(EXIStream* strm, struct EXIGrammar* grammar)
+errorCode assignCodes(AllocList* memList, struct EXIGrammar* grammar)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode addUndeclaredProductions(EXIStream* strm, unsigned char strict, struct EXIGrammar* grammar)
+errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, struct EXIGrammar* grammar)
 {
 	return NOT_IMPLEMENTED_YET;
 }
