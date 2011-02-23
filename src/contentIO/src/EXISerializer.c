@@ -106,20 +106,31 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, struct EXIOptio
 	if(strm->gStack == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
+	tmp_err_code = createGrammarPool(&(strm->ePool));
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
 	if(schema != NULL)
 	{
-		// TODO: when schema is available setup everything here!
+		unsigned int i = 0;
 		strm->uriTable = schema->initialStringTables;
 		tmp_err_code = createValueTable(&(strm->vTable), &(strm->memList));
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
+
+		for (i = 0; i < schema->globalElemGrammars.count; i++)
+		{
+			addGrammarInPool(strm->ePool, schema->globalElemGrammars.elems[i].uriRowId, schema->globalElemGrammars.elems[i].lnRowId, &schema->globalElemGrammars.elems[i].grammar);
+		}
+		for (i = 0; i < schema->subElementGrammars.count; i++)
+		{
+			addGrammarInPool(strm->ePool, schema->subElementGrammars.elems[i].uriRowId, schema->subElementGrammars.elems[i].lnRowId, &schema->subElementGrammars.elems[i].grammar);
+		}
+
+		// TODO: the same for the type grammar pool
 	}
 	else
 	{
-		tmp_err_code = createGrammarPool(&(strm->ePool));
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
 		tmp_err_code = createInitialStringTables(strm, FALSE);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;

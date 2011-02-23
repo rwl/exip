@@ -178,6 +178,18 @@ errorCode getUCSCodePoint(const StringType* str, size_t charIndex, uint32_t* UCS
 	return ERR_OK;
 }
 
+errorCode cloneString(const StringType* src, StringType* newStr, AllocList* memList)
+{
+	if(newStr == NULL)
+		return NULL_POINTER_REF;
+	newStr->str = memManagedAllocate(memList, sizeof(CharType)*src->length);
+	if(newStr->str == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+	newStr->length = src->length;
+	memcpy(newStr->str, src->str, src->length);
+	return ERR_OK;
+}
+
 void printString(const StringType* inStr)
 {
 	size_t i = 0;

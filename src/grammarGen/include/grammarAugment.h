@@ -50,11 +50,10 @@
 /**
  * @brief Event Code Assignment to normalized grammar
  *
- * @param[in, out] memList A list storing the memory allocations
  * @param[in, out] grammar the normalized grammar for assigning the event codes
  * @return Error handling code
  */
-errorCode assignCodes(AllocList* memList, struct EXIGrammar* grammar);
+errorCode assignCodes(struct EXIGrammar* grammar);
 
 /**
  * @brief Adds Undeclared Productions
