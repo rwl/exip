@@ -199,7 +199,7 @@ typedef struct StringType StringType;
 
 /********* START: Memory management definitions ***************/
 
-#define ALLOCATION_ARRAY_SIZE 50 // #DOCUMENT#
+#define ALLOCATION_ARRAY_SIZE 100 // #DOCUMENT#
 
 struct allocBlock {
 	void* allocation[ALLOCATION_ARRAY_SIZE];
@@ -208,7 +208,7 @@ struct allocBlock {
 };
 
 struct allocList {
-	struct allocBlock firtsBlock;
+	struct allocBlock firstBlock;
 	struct allocBlock* lastBlock;
 };
 

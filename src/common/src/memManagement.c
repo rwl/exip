@@ -46,9 +46,9 @@
 
 void initAllocList(AllocList* list)
 {
-	list->lastBlock = &(list->firtsBlock);
-	list->firtsBlock.currentAlloc = 0;
-	list->firtsBlock.nextBlock = NULL;
+	list->lastBlock = &(list->firstBlock);
+	list->firstBlock.currentAlloc = 0;
+	list->firstBlock.nextBlock = NULL;
 }
 
 void* memManagedAllocate(AllocList* list, size_t size)
@@ -111,7 +111,7 @@ void freeAllMem(EXIStream* strm)
 
 void freeAllocList(AllocList* list)
 {
-	struct allocBlock* tmpBlock = &(list->firtsBlock);
+	struct allocBlock* tmpBlock = &(list->firstBlock);
 	struct allocBlock* rmBl;
 	unsigned int i = 0;
 

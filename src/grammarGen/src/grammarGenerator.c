@@ -50,6 +50,7 @@
 #include "grammars.h"
 #include "normGrammar.h"
 #include "string.h"
+#include "grammarAugment.h"
 
 struct metaGrammarNode
 {
@@ -118,6 +119,16 @@ static errorCode appendMetaGrammarNode(AllocList* tmpMemList, MetaGrammarList* g
 
 static errorCode orderedAddMetaGrammarNode(AllocList* tmpMemList, MetaGrammarList* gList, struct EXIGrammar* grammar, StringType name, StringType ns);
 
+static errorCode addLocalName(uint16_t uriId, AllocList* memList, URITable* stringTables, StringType ln);
+
+static void sortStringTables(URITable* stringTables);
+
+static int compareLN(const void* lnRow1, const void* lnRow2);
+
+static int compareURI(const void* uriRow1, const void* uriRow2);
+
+////////////
+
 errorCode generateSchemaInformedGrammars(char* binaryStream, size_t bufLen, unsigned char schemaFormat,
 										 ExipSchema* schema)
 {
@@ -163,6 +174,8 @@ errorCode generateSchemaInformedGrammars(char* binaryStream, size_t bufLen, unsi
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
+	parsing_data.props.targetNSMetaID = 0;
+
 	parsing_data.globalElemGrammars.first = NULL;
 	parsing_data.globalElemGrammars.last = NULL;
 	parsing_data.globalElemGrammars.size = 0;
@@ -176,6 +189,12 @@ errorCode generateSchemaInformedGrammars(char* binaryStream, size_t bufLen, unsi
 	parsing_data.typeGrammars.size = 0;
 
 	initAllocList(&schema->memList);
+
+	tmp_err_code = createURITable(&schema->initialStringTables, &schema->memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	createInitialEntries(&schema->memList, schema->initialStringTables, TRUE);
 
 	parsing_data.schema = schema;
 
@@ -199,8 +218,15 @@ static char xsd_startDocument(void* app_data)
 
 static char xsd_endDocument(void* app_data)
 {
-//	struct xsdAppData* appD = (struct xsdAppData*) app_data;
-//	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	struct xsdAppData* appD = (struct xsdAppData*) app_data;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	unsigned int i = 0;
+	unsigned int j = 0;
+	struct productionQname* tmpPQ;
+	struct metaGrammarNode* tmpGNode;
+	uint16_t uriRowID;
+	size_t lnRowID;
+
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End XML Schema parsing\n"));
 
 // Only for debugging purposes
@@ -235,6 +261,43 @@ static char xsd_endDocument(void* app_data)
 	}
 #endif
 
+	sortStringTables(appD->schema->initialStringTables);
+
+	for(i = 0; i < appD->regProdQname->elementCount; i++)
+	{
+		tmpPQ = ((struct productionQname*) appD->regProdQname->elements) + i;
+		lookupURI(appD->schema->initialStringTables, *(tmpPQ->qname.uri), &uriRowID);
+		*(tmpPQ->p_uriRowID) = uriRowID;
+		lookupLN(appD->schema->initialStringTables->rows[uriRowID].lTable, *(tmpPQ->qname.localName), &lnRowID);
+		*(tmpPQ->p_lnRowID) = lnRowID;
+	}
+
+	appD->schema->globalElemGrammars.count = appD->globalElemGrammars.size;
+	appD->schema->globalElemGrammars.elems = (GrammarDescr*) memManagedAllocate(&appD->schema->memList, sizeof(GrammarDescr)*appD->globalElemGrammars.size);
+	tmpGNode = appD->globalElemGrammars.first;
+	for(i = 0; i < appD->globalElemGrammars.size; i++)
+	{
+		appD->schema->globalElemGrammars.elems[i].grammar.lastNonTermID = tmpGNode->grammar->lastNonTermID;
+		appD->schema->globalElemGrammars.elems[i].grammar.nextInStack = tmpGNode->grammar->nextInStack;
+		appD->schema->globalElemGrammars.elems[i].grammar.rulesDimension = tmpGNode->grammar->rulesDimension;
+		appD->schema->globalElemGrammars.elems[i].grammar.ruleArray = (GrammarRule*) memManagedAllocate(&appD->schema->memList, sizeof(GrammarRule) * tmpGNode->grammar->rulesDimension);
+		for(j = 0; j < tmpGNode->grammar->rulesDimension; j++)
+		{
+			tmp_err_code = copyGrammarRule(&appD->schema->memList, &tmpGNode->grammar->ruleArray[j], &appD->schema->globalElemGrammars.elems[i].grammar.ruleArray[j], 0);
+			if(tmp_err_code != ERR_OK)
+			{
+				DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Schema parsing error: %d\n", tmp_err_code));
+				return EXIP_HANDLER_STOP;
+			}
+		}
+		lookupURI(appD->schema->initialStringTables, tmpGNode->uri, &uriRowID);
+		appD->schema->globalElemGrammars.elems[i].uriRowId = uriRowID;
+		lookupLN(appD->schema->initialStringTables->rows[uriRowID].lTable, tmpGNode->ln, &lnRowID);
+		appD->schema->globalElemGrammars.elems[i].lnRowId = lnRowID;
+		tmpGNode = tmpGNode->nextNode;
+	}
+
+	// TODO: the same for the type grammars and subelement grammars
 
 	return EXIP_HANDLER_OK;
 }
@@ -266,6 +329,24 @@ static char xsd_startElement(QName qname, void* app_data)
 				appD->props.elementFormDefault = FORM_DEF_UNQUALIFIED; // The default value is unqualified
 			if(appD->props.attributeFormDefault == FORM_DEF_INITIAL_STATE)
 				appD->props.attributeFormDefault = FORM_DEF_UNQUALIFIED; // The default value is unqualified
+
+			if(!isStrEmpty(&appD->props.targetNamespace)) // Add the declared target namespace in the String Tables
+			{
+				uint16_t uriID;
+				errorCode tmp_err_code = UNEXPECTED_ERROR;
+
+				// If the target namespace is not in the initial uri entries add it
+				if(!lookupURI(appD->schema->initialStringTables, appD->props.targetNamespace, &uriID))
+				{
+					tmp_err_code = addURIRow(appD->schema->initialStringTables, appD->props.targetNamespace, &uriID, &appD->schema->memList);
+					if(tmp_err_code != ERR_OK)
+					{
+						DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Schema parsing error: %d\n", tmp_err_code));
+						return EXIP_HANDLER_STOP;
+					}
+				}
+				appD->props.targetNSMetaID = uriID;
+			}
 		}
 
 		if(!strEqualToAscii(*qname.uri, "http://www.w3.org/2001/XMLSchema"))
@@ -602,9 +683,12 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 	}
 	if(app_data->props.attributeFormDefault == FORM_DEF_QUALIFIED || strEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_FORM], "qualified"))
 	{
-		//TODO: must take into account the parent element target namespace
+		//TODO: must take into account the parent element target namespace - might be different from the global target namespace
 
-		target_ns = app_data->props.targetNamespace;
+		target_ns = app_data->props.targetNamespace; // it is the globally defined target namespace
+		tmp_err_code = addLocalName(app_data->props.targetNSMetaID, &app_data->schema->memList, app_data->schema->initialStringTables, elemDesc->attributePointers[ATTRIBUTE_NAME]);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 	}
 	else
 	{
@@ -694,6 +778,9 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 		//TODO: must take into account the parent element target namespace
 
 		target_ns = app_data->props.targetNamespace;
+		tmp_err_code = addLocalName(app_data->props.targetNSMetaID, &app_data->schema->memList, app_data->schema->initialStringTables, elemDesc->attributePointers[ATTRIBUTE_NAME]);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 	}
 	else
 	{
@@ -742,6 +829,10 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
+	tmp_err_code = assignCodes(&app_data->tmpMemList, resultComplexGrammar);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
 	//TODO: the attributeUses array must be emptied here
 
 	if(isStrEmpty(&typeName))  // The name is empty i.e. anonymous complex type
@@ -783,6 +874,9 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 		//TODO: must take into account the parent element target namespace
 
 		target_ns = app_data->props.targetNamespace;
+		tmp_err_code = addLocalName(app_data->props.targetNSMetaID, &app_data->schema->memList, app_data->schema->initialStringTables, elemDesc->attributePointers[ATTRIBUTE_NAME]);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 	}
 	else
 	{
@@ -885,4 +979,84 @@ static errorCode orderedAddMetaGrammarNode(AllocList* tmpMemList, MetaGrammarLis
 		}
 	}
 	return ERR_OK;
+}
+
+// Only adds it if it is not there yet
+static errorCode addLocalName(uint16_t uriId, AllocList* memList, URITable* stringTables, StringType ln)
+{
+	size_t lnID;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+
+	if(stringTables->rows[uriId].lTable == NULL)
+	{
+		tmp_err_code = createLocalNamesTable(&stringTables->rows[uriId].lTable, memList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		tmp_err_code = addLNRow(stringTables->rows[uriId].lTable, ln, &lnID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else if(!lookupLN(stringTables->rows[uriId].lTable, ln, &lnID))
+	{
+		tmp_err_code = addLNRow(stringTables->rows[uriId].lTable, ln, &lnID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	return ERR_OK;
+}
+
+static int compareLN(const void* lnRow1, const void* lnRow2)
+{
+	struct LocalNamesRow* r1 = (struct LocalNamesRow*) lnRow1;
+	struct LocalNamesRow* r2 = (struct LocalNamesRow*) lnRow2;
+
+	return str_compare(r1->string_val, r2->string_val);
+}
+
+static int compareURI(const void* uriRow1, const void* uriRow2)
+{
+	struct URIRow* r1 = (struct URIRow*) uriRow1;
+	struct URIRow* r2 = (struct URIRow*) uriRow2;
+
+	return str_compare(r1->string_val, r2->string_val);
+}
+
+static void sortStringTables(URITable* stringTables)
+{
+	uint16_t i = 0;
+
+	// First sort the local name tables
+
+	for (i = 0; i < stringTables->rowCount; i++)
+	{
+		unsigned int initialEntries = 0;
+
+		//	The initialEntries entries in "http://www.w3.org/XML/1998/namespace",
+		//	"http://www.w3.org/2001/XMLSchema-instance" and "http://www.w3.org/2001/XMLSchema"
+		//  are not sorted
+		if(i == 1) // "http://www.w3.org/XML/1998/namespace"
+		{
+			initialEntries = 4;
+		}
+		else if(i == 2) // "http://www.w3.org/2001/XMLSchema-instance"
+		{
+			initialEntries = 2;
+		}
+		else if(i == 3) // "http://www.w3.org/2001/XMLSchema"
+		{
+			initialEntries = 46;
+		}
+
+		if(stringTables->rows[i].lTable != NULL)
+			qsort(stringTables->rows[i].lTable->rows + initialEntries, stringTables->rows[i].lTable->rowCount - initialEntries, sizeof(struct LocalNamesRow), compareLN);
+	}
+
+	// Then sort the uri tables
+
+	//	The first four initial entries are not sorted
+	//	URI	0	"" [empty string]
+	//	URI	1	"http://www.w3.org/XML/1998/namespace"
+	//	URI	2	"http://www.w3.org/2001/XMLSchema-instance"
+	//	URI	3	"http://www.w3.org/2001/XMLSchema"
+	qsort(stringTables->rows + 4, stringTables->rowCount - 4, sizeof(struct URIRow), compareURI);
 }

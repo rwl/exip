@@ -50,21 +50,21 @@
 /**
  * @brief Event Code Assignment to normalized grammar
  *
- * @param[in] strm EXIStream used to attach the memory allocations to it.
+ * @param[in, out] memList A list storing the memory allocations
  * @param[in, out] grammar the normalized grammar for assigning the event codes
  * @return Error handling code
  */
-errorCode assignCodes(EXIStream* strm, struct EXIGrammar* grammar);
+errorCode assignCodes(AllocList* memList, struct EXIGrammar* grammar);
 
 /**
  * @brief Adds Undeclared Productions
  *
- * @param[in] strm EXIStream used to attach the memory allocations to it.
+ * @param[in, out] memList A list storing the memory allocations
  * @param[in] strict strict option value; 0-false, true otherwise
  * @param[in, out] grammar the normalized grammar for assigning the event codes
  * @return Error handling code
  */
-errorCode addUndeclaredProductions(EXIStream* strm, unsigned char strict, struct EXIGrammar* grammar);
+errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, struct EXIGrammar* grammar);
 
 
 #endif /* GRAMMARAUGMENT_H_ */

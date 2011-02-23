@@ -91,7 +91,7 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, struct EXIOptio
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
-	initAllocList(&strm->memList);
+	initAllocList(&(strm->memList));
 	strm->buffer = buf;
 	strm->header.opts = opts;
 	strm->bitPointer = 0;
@@ -102,7 +102,7 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, struct EXIOptio
 	strm->sContext.curr_lnID = 0;
 	strm->sContext.expectATData = 0;
 
-	strm->gStack = (EXIGrammarStack*) memManagedAllocate(&strm->memList, sizeof(EXIGrammarStack));
+	strm->gStack = (EXIGrammarStack*) memManagedAllocate(&(strm->memList), sizeof(EXIGrammarStack));
 	if(strm->gStack == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -110,7 +110,7 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, struct EXIOptio
 	{
 		// TODO: when schema is available setup everything here!
 		strm->uriTable = schema->initialStringTables;
-		tmp_err_code = createValueTable(&(strm->vTable), &strm->memList);
+		tmp_err_code = createValueTable(&(strm->vTable), &(strm->memList));
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
