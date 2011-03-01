@@ -64,6 +64,8 @@ START_TEST (test_createDocGrammar)
 	testStream.header.opts = &options;
 	testStream.buffer = buf;
 	testStream.bufLen = 2;
+	testStream.bufContent = 2;
+	testStream.ioStrm = NULL;
 	testStream.bufferIndx = 0;
 	initAllocList(&testStream.memList);
 

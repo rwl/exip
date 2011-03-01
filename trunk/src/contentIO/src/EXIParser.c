@@ -49,14 +49,14 @@
 #include "headerDecode.h"
 #include "memManagement.h"
 
-void parseEXI(char* binaryStream, size_t bufLen, ContentHandler* handler, void* app_data)
+void parseEXI(char* binaryBuf, size_t bufLen, size_t bufContent, IOStream* ioStrm, ContentHandler* handler, void* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIStream strm;
 	struct EXIOptions options;
 
 	initAllocList(&strm.memList);
-	strm.buffer = binaryStream;
+	strm.buffer = binaryBuf;
 	strm.bitPointer = 0;
 	strm.bufferIndx = 0;
 	strm.bufLen = bufLen;
@@ -65,6 +65,8 @@ void parseEXI(char* binaryStream, size_t bufLen, ContentHandler* handler, void* 
 	strm.sContext.curr_lnID = 0;
 	strm.sContext.curr_uriID = 0;
 	strm.sContext.expectATData = 0;
+	strm.bufContent = bufContent;
+	strm.ioStrm = ioStrm;
 
 	tmp_err_code = decodeHeader(&strm);
 	if(tmp_err_code != ERR_OK)

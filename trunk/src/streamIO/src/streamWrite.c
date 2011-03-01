@@ -49,6 +49,18 @@ extern const unsigned char BIT_MASK[];
 
 errorCode writeNextBit(EXIStream* strm, unsigned char bit_val)
 {
+	if(strm->bufLen <= strm->bufferIndx) // the whole buffer is filled! flush it!
+	{
+		size_t numBytesWritten = 0;
+		if(strm->ioStrm == NULL || strm->ioStrm->readWriteToStream == NULL)
+			return BUFFER_END_REACHED;
+		numBytesWritten = strm->ioStrm->readWriteToStream(strm->buffer, strm->bufLen, strm->ioStrm->stream);
+		if(numBytesWritten < strm->bufLen)
+			return BUFFER_END_REACHED;
+		strm->bitPointer = 0;
+		strm->bufferIndx = 0;
+	}
+
 	if(bit_val == 0)
 		strm->buffer[strm->bufferIndx] = strm->buffer[strm->bufferIndx] & (~(1<<REVERSE_BIT_POSITION(strm->bitPointer)));
 	else
@@ -59,19 +71,35 @@ errorCode writeNextBit(EXIStream* strm, unsigned char bit_val)
 
 errorCode writeBits(EXIStream* strm, uint32_t bits_val)
 {
-	//TODO: Handle error cases i.e. end of the stream and so on
 	unsigned char nbits = getBitsNumber(bits_val);
 	return writeNBits(strm, nbits, bits_val);
 }
 
 errorCode writeNBits(EXIStream* strm, unsigned char nbits, uint32_t bits_val)
 {
-	//TODO: Handle error cases i.e. end of the stream and so on
-
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int numBitsWrite = 0; // Number of the bits written so far
 	unsigned char tmp = 0;
 	int bits_in_byte = 0; // Number of bits written in one iteration
+	unsigned int numBytesToBeWritten = ((unsigned int) nbits) / 8 + (8 - strm->bitPointer < nbits % 8 );
+
+	if(strm->bufLen <= strm->bufferIndx + numBytesToBeWritten)
+	{
+		// The buffer end is reached: there are fewer than nbits bits left in the buffer
+		char leftOverBits;
+		size_t numBytesWritten = 0;
+		if(strm->ioStrm == NULL || strm->ioStrm->readWriteToStream == NULL)
+			return BUFFER_END_REACHED;
+
+		leftOverBits = strm->buffer[strm->bufferIndx];
+
+		numBytesWritten = strm->ioStrm->readWriteToStream(strm->buffer, strm->bufferIndx, strm->ioStrm->stream);
+		if(numBytesWritten < strm->bufferIndx)
+			return BUFFER_END_REACHED;
+
+		strm->buffer[0] = leftOverBits;
+		strm->bufferIndx = 0;
+	}
 
 	while(numBitsWrite < nbits)
 	{

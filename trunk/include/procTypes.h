@@ -450,6 +450,25 @@ struct StringTablesContext
 };
 
 /**
+ * Representation of an Input/Output Stream
+ */
+struct ioStream
+{
+	/**
+	 * When parsing: A function pointer used to fill the EXI buffer when emptied by reading from "stream" "size" number of bytes
+	 * When serializing: A function pointer used to write "size" number of bytes of the buffer to the stream
+	 * Return the number of bytes read/write
+	 */
+	size_t (*readWriteToStream)(void* buf, size_t size, void* stream);
+	/**
+	 * The input stream to be passed to the readInput function pointer
+	 */
+	void* stream;
+};
+
+typedef struct ioStream IOStream;
+
+/**
  * Represents an EXI header
  */
 struct EXIheader
@@ -491,6 +510,16 @@ struct EXIStream
 	 * The size of the buffer
 	 */
 	size_t bufLen;
+
+	/**
+	 * The size of the data stored in buffer - number of bytes
+	 */
+	size_t bufContent;
+
+	/**
+	 * Input stream used to fill the buffer when parsed
+	 */
+	IOStream* ioStrm;
 
 	/**
 	 * Current position in the buffer - bytewise
