@@ -51,6 +51,7 @@ static void printfHelp();
 
 #define OUT_EXI 0
 #define OUT_XML 1
+#define INPUT_BUFFER_SIZE 200
 
 struct appData
 {
@@ -85,15 +86,16 @@ static char sample_endElement(void* app_data);
 static char sample_attribute(QName qname, void* app_data);
 static char sample_stringData(const StringType value, void* app_data);
 
+size_t readFileInputStream(void* buf, size_t readSize, void* stream);
 
 int main(int argc, char *argv[])
 {
 	ContentHandler sampleHandler;
 	FILE *infile;
-	unsigned long fileLen;
-	char *buffer;
-	char sourceFile[50];
+	char buffer[INPUT_BUFFER_SIZE];
+	char sourceFileName[100];
 	struct appData parsingData;
+	IOStream ioStrm;
 
 	parsingData.expectAttributeData = 0;
 	parsingData.outputFormat = OUT_EXI; // Default output option
@@ -109,6 +111,8 @@ int main(int argc, char *argv[])
 	sampleHandler.attribute = sample_attribute;
 	sampleHandler.stringData = sample_stringData;
 	sampleHandler.endElement = sample_endElement;
+
+	ioStrm.readWriteToStream = readFileInputStream;
 
 	if(argc > 1)
 	{
@@ -126,7 +130,7 @@ int main(int argc, char *argv[])
 				return 0;
 			}
 			else
-				strcpy(sourceFile, argv[2]);
+				strcpy(sourceFileName, argv[2]);
 		}
 		else if(strcmp(argv[1], "-xml") == 0)
 		{
@@ -137,42 +141,25 @@ int main(int argc, char *argv[])
 				return 0;
 			}
 			else
-				strcpy(sourceFile, argv[2]);
+				strcpy(sourceFileName, argv[2]);
 		}
 		else
 		{
-			strcpy(sourceFile, argv[1]);
+			strcpy(sourceFileName, argv[1]);
 		}
-		infile = fopen(sourceFile, "rb" );
+		infile = fopen(sourceFileName, "rb" );
 		if(!infile)
 		{
-			fprintf(stderr, "Unable to open file %s", sourceFile);
+			fprintf(stderr, "Unable to open file %s", sourceFileName);
 			return 1;
 		}
 		else
 		{
-			//Get file length
-			fseek(infile, 0, SEEK_END);
-			fileLen=ftell(infile);
-			fseek(infile, 0, SEEK_SET);
-
-			//Allocate memory
-			buffer=(char *)malloc(fileLen+1);
-			if (!buffer)
-			{
-				fprintf(stderr, "Memory allocation error!");
-				fclose(infile);
-				return 1;
-			}
-
-			//Read file contents into buffer
-			fread(buffer, fileLen, 1, infile);
-			fclose(infile);
-
+			ioStrm.stream = infile;
 			// Parse the EXI stream
-			parseEXI(buffer, fileLen, &sampleHandler, &parsingData);
+			parseEXI(buffer, INPUT_BUFFER_SIZE, 0, &ioStrm, &sampleHandler, &parsingData);
 
-			free(buffer);
+			fclose(infile);
 		}
 	}
 	else
@@ -390,3 +377,9 @@ static void destroyElement(struct element* el)
 	free(el);
 }
 // ******************************************
+
+size_t readFileInputStream(void* buf, size_t readSize, void* stream)
+{
+	FILE *infile = (FILE*) stream;
+	return fread(buf, 1, readSize, infile);
+}

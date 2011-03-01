@@ -74,7 +74,7 @@ START_TEST (test_createURITable)
 	errorCode err = UNEXPECTED_ERROR;
 	AllocList memList;
 	initAllocList(&memList);
-	err = createURITable(&uTable, &memList, 0);
+	err = createURITable(&uTable, &memList);
 
 	fail_unless (err == ERR_OK, "createURITable returns error code %d", err);
 	fail_unless (uTable->rowCount == 0,
@@ -108,7 +108,7 @@ START_TEST (test_createLocalNamesTable)
 	errorCode err = UNEXPECTED_ERROR;
 	AllocList memList;
 	initAllocList(&memList);
-	err = createLocalNamesTable(&lTable, &memList, 0);
+	err = createLocalNamesTable(&lTable, &memList);
 
 	fail_unless (err == ERR_OK, "createLocalNamesTable returns error code %d", err);
 	fail_unless (lTable->rowCount == 0,
@@ -145,7 +145,7 @@ START_TEST (test_addURIRow)
 	StringType test_uri;
 
 	initAllocList(&memList);
-	err = createURITable(&uTable, &memList, 0);
+	err = createURITable(&uTable, &memList);
 	fail_if(err != ERR_OK);
 
 	asciiToString("test_uri_string", &test_uri, &memList, FALSE);
@@ -193,7 +193,7 @@ START_TEST (test_addLNRow)
 	StringType test_ln;
 
 	initAllocList(&memList);
-	err = createLocalNamesTable(&lnTable, &memList, 0);
+	err = createLocalNamesTable(&lnTable, &memList);
 	fail_if(err != ERR_OK);
 
 	asciiToString("test_ln_string", &test_ln, &memList, FALSE);
@@ -247,6 +247,8 @@ START_TEST (test_createInitialStringTables)
 	buf[1] = (char) 0x60; /* 0b01100000 */
 	testStream.buffer = buf;
 	testStream.bufLen = 2;
+	testStream.ioStrm = NULL;
+	testStream.bufContent = 2;
 
 
 	err = createInitialStringTables(&testStream, 0);
@@ -313,7 +315,7 @@ START_TEST (test_addLVRow)
 	StringType test_ln;
 
 	initAllocList(&memList);
-	err = createLocalNamesTable(&lnTable, &memList, 0);
+	err = createLocalNamesTable(&lnTable, &memList);
 	fail_if(err != ERR_OK);
 
 	asciiToString("test_ln_string", &test_ln, &memList, FALSE);

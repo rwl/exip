@@ -129,8 +129,8 @@ static int compareURI(const void* uriRow1, const void* uriRow2);
 
 ////////////
 
-errorCode generateSchemaInformedGrammars(char* binaryStream, size_t bufLen, unsigned char schemaFormat,
-										 ExipSchema* schema)
+errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t bufContent, IOStream* ioStrm,
+										unsigned char schemaFormat, ExipSchema* schema)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	ContentHandler xsdHandler;
@@ -199,7 +199,7 @@ errorCode generateSchemaInformedGrammars(char* binaryStream, size_t bufLen, unsi
 	parsing_data.schema = schema;
 
 	// Parse the EXI stream
-	parseEXI(binaryStream, bufLen, &xsdHandler, &parsing_data);
+	parseEXI(binaryBuf, bufLen, bufContent, ioStrm, &xsdHandler, &parsing_data);
 
 	return ERR_OK;
 }

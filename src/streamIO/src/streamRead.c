@@ -44,6 +44,7 @@
 
 #include "streamRead.h"
 #include "ioUtil.h"
+#include "string.h"
 
 const unsigned char BIT_MASK[] = {	(char) 0x00,	// 0b00000000
 									(char) 0x01,	// 0b00000001
@@ -58,7 +59,16 @@ const unsigned char BIT_MASK[] = {	(char) 0x00,	// 0b00000000
 
 errorCode readNextBit(EXIStream* strm, unsigned char* bit_val)
 {
-	//TODO: Handle error cases i.e. end of the stream and so on
+	if(strm->bufContent <= strm->bufferIndx) // the whole buffer is parsed! read another portion
+	{
+		if(strm->ioStrm == NULL || strm->ioStrm->readWriteToStream == NULL)
+			return BUFFER_END_REACHED;
+		strm->bufContent = strm->ioStrm->readWriteToStream(strm->buffer, strm->bufLen, strm->ioStrm->stream);
+		if(strm->bufContent == 0)
+			return BUFFER_END_REACHED;
+		strm->bitPointer = 0;
+		strm->bufferIndx = 0;
+	}
 	*bit_val = 0;
 	*bit_val = (strm->buffer[strm->bufferIndx] & (1<<REVERSE_BIT_POSITION(strm->bitPointer))) != 0;
 
@@ -67,13 +77,34 @@ errorCode readNextBit(EXIStream* strm, unsigned char* bit_val)
 
 errorCode readBits(EXIStream* strm, unsigned char n, uint32_t* bits_val)
 {
-	//TODO: Handle error cases i.e. end of the stream and so on
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int numBitsRead = 0; // Number of the bits read so far
 	int tmp = 0;
 	int shift = 0;
 	int bits_in_byte = 0; // Number of bits read in one iteration
+	unsigned int numBytesToBeRead = ((unsigned int) n) / 8 + (8 - strm->bitPointer < n % 8 );
 	*bits_val = 0;
+
+	if(strm->bufContent <= strm->bufferIndx + numBytesToBeRead)
+	{
+		// The buffer end is reached: there are fewer than n bits left unparsed
+		char leftOverBits[8];
+		unsigned int bytesCopied = strm->bufContent - strm->bufferIndx;
+		unsigned int bytesRead = 0;
+		if(strm->ioStrm == NULL || strm->ioStrm->readWriteToStream == NULL)
+			return BUFFER_END_REACHED;
+
+		memcpy(leftOverBits, strm->buffer + strm->bufferIndx, bytesCopied);
+
+		bytesRead = strm->ioStrm->readWriteToStream(strm->buffer + bytesCopied, strm->bufLen - bytesCopied, strm->ioStrm->stream);
+		strm->bufContent = bytesRead + bytesCopied;
+		if(strm->bufContent < numBytesToBeRead)
+			return BUFFER_END_REACHED;
+
+		memcpy(strm->buffer, leftOverBits, bytesCopied);
+		strm->bufferIndx = 0;
+	}
+
 	while(numBitsRead < n)
 	{
 		tmp = 0;

@@ -87,7 +87,7 @@ const EXISerializer serEXI  =  {startDocumentSer,
 static errorCode encodeEXIEvent(EXIStream* strm, EXIEvent event);
 static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned char isElemOrAttr);
 
-errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, struct EXIOptions* opts, ExipSchema* schema)
+errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStrm, struct EXIOptions* opts, ExipSchema* schema)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
@@ -96,11 +96,13 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, struct EXIOptio
 	strm->header.opts = opts;
 	strm->bitPointer = 0;
 	strm->bufLen = bufSize;
+	strm->bufContent = 0;
 	strm->bufferIndx = 0;
 	strm->nonTermID = GR_DOCUMENT;
 	strm->sContext.curr_uriID = 0;
 	strm->sContext.curr_lnID = 0;
 	strm->sContext.expectATData = 0;
+	strm->ioStrm = ioStrm;
 
 	strm->gStack = (EXIGrammarStack*) memManagedAllocate(&(strm->memList), sizeof(EXIGrammarStack));
 	if(strm->gStack == NULL)
@@ -444,6 +446,12 @@ errorCode selfContainedSer(EXIStream* strm)
 
 errorCode closeEXIStream(EXIStream* strm)
 {
+	// Flush the buffer first if there is output Stream
+	if(strm->ioStrm != NULL && strm->ioStrm->readWriteToStream != NULL)
+	{
+		if(strm->ioStrm->readWriteToStream(strm->buffer, strm->bufferIndx + 1, strm->ioStrm->stream) < strm->bufferIndx + 1)
+			return BUFFER_END_REACHED;
+	}
 	freeAllMem(strm);
 	return ERR_OK;
 }

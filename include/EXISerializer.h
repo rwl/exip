@@ -75,11 +75,11 @@ struct EXISerializer
 	errorCode (*processingInstructionSer)(EXIStream* strm); // TODO: define the parameters!
 
 	// EXI specific
-	errorCode (*initStream)(EXIStream* strm, char* buf, size_t bufSize, struct EXIOptions* opts, ExipSchema* schema);
 	errorCode (*exiHeaderSer)(EXIStream* strm, EXIheader* header);
 	errorCode (*selfContainedSer)(EXIStream* strm);  // Used for indexing independent elements for random access
 
 	// EXIP specific
+	errorCode (*initStream)(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStrm, struct EXIOptions* opts, ExipSchema* schema);
 	errorCode (*closeEXIStream)(EXIStream* strm);
 };
 

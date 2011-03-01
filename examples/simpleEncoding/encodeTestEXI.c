@@ -51,8 +51,12 @@
 
 extern const EXISerializer serEXI;
 
+#define OUTPUT_BUFFER_SIZE 200
+
 static void printfHelp();
 static void printError(errorCode err_code, EXIStream* strm, FILE *outfile);
+
+size_t writeFileOutputStream(void* buf, size_t readSize, void* stream);
 
 int main(int argc, char *argv[])
 {
@@ -104,7 +108,7 @@ int main(int argc, char *argv[])
 				fread(schemaBuffer, schemaLen, 1, schemaFile);
 				fclose(schemaFile);
 
-				tmp_err_code = generateSchemaInformedGrammars(schemaBuffer, schemaLen, SCHEMA_FORMAT_XSD_EXI, &schema);
+				tmp_err_code = generateSchemaInformedGrammars(schemaBuffer, schemaLen, schemaLen, NULL, SCHEMA_FORMAT_XSD_EXI, &schema);
 
 				if(tmp_err_code != ERR_OK)
 				{
@@ -136,21 +140,25 @@ int main(int argc, char *argv[])
 			StringType ln;
 			QName qname= {&uri, &ln};
 			StringType chVal;
-			char buf[200];
-			
+			char buf[OUTPUT_BUFFER_SIZE];
+			IOStream outStrm;
+
 			tmp_err_code = makeDefaultOpts(&opts);
 			if(tmp_err_code != ERR_OK)
 				printError(tmp_err_code, &testStrm, outfile);
 
+			outStrm.readWriteToStream = writeFileOutputStream;
+			outStrm.stream = outfile;
+
 			if(hasSchema == TRUE)
 			{
-				tmp_err_code = serEXI.initStream(&testStrm, buf, 200, &opts, &schema);
+				tmp_err_code = serEXI.initStream(&testStrm, buf, OUTPUT_BUFFER_SIZE, &outStrm, &opts, &schema);
 				if(tmp_err_code != ERR_OK)
 					printError(tmp_err_code, &testStrm, outfile);
 			}
 			else
 			{
-				tmp_err_code = serEXI.initStream(&testStrm, buf, 200, &opts, NULL);
+				tmp_err_code = serEXI.initStream(&testStrm, buf, OUTPUT_BUFFER_SIZE, &outStrm, &opts, NULL);
 				if(tmp_err_code != ERR_OK)
 					printError(tmp_err_code, &testStrm, outfile);
 			}
@@ -159,8 +167,6 @@ int main(int argc, char *argv[])
 			header.is_preview_version = 0;
 			header.version_number = 1;
 			tmp_err_code += serEXI.exiHeaderSer(&testStrm, &header);
-
-
 
 			tmp_err_code += serEXI.startDocumentSer(&testStrm);
 
@@ -183,13 +189,6 @@ int main(int argc, char *argv[])
 			if(tmp_err_code != ERR_OK)
 				printError(tmp_err_code, &testStrm, outfile);
 
-			if(fwrite(testStrm.buffer, sizeof(char), testStrm.bufferIndx+1, outfile) < testStrm.bufferIndx+1)
-			{
-				fprintf(stderr, "Error writing to the file");
-				fclose(outfile);
-				return 1;
-			}
-
 			tmp_err_code = serEXI.closeEXIStream(&testStrm);
 			fclose(outfile);
 		}
@@ -200,6 +199,12 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	return 0;
+}
+
+size_t writeFileOutputStream(void* buf, size_t readSize, void* stream)
+{
+	FILE *outfile = (FILE*) stream;
+	return fwrite(buf, 1, readSize, outfile);
 }
 
 static void printfHelp()
