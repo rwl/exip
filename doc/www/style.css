@@ -1,8 +1,5 @@
+@CHARSET "UTF-8";
 
-{
-    padding : 0;
-    margin : 0;
-}
 body
 {
     background : #e6f9f7;
@@ -17,10 +14,12 @@ line-height : 20px;
 .header
 {
 	font-size: 25pt;
-	font-family: courier, monospace;
+	font-family: Verdana, Tahoma, Arial, Times New Roman;
 	font-weight: bold;
 	font-style: italic;
-	vertical-align: top;
+	vertical-align: center;
+	text-align: left;
+	padding-left: 8%;
 }
 
 .title
