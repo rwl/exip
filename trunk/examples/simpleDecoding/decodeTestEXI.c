@@ -44,10 +44,13 @@
 #include "EXIParser.h"
 #include "procTypes.h"
 #include "stringManipulate.h"
+#include "schema.h"
+#include "grammarGenerator.h"
 #include <stdio.h>
 #include <string.h>
 
 static void printfHelp();
+static void parseSchema(char* fileName, ExipSchema* schema);
 
 #define OUT_EXI 0
 #define OUT_XML 1
@@ -96,6 +99,8 @@ int main(int argc, char *argv[])
 	char sourceFileName[100];
 	struct appData parsingData;
 	IOStream ioStrm;
+	ExipSchema schema;
+	unsigned char hasSchema = FALSE;
 
 	parsingData.expectAttributeData = 0;
 	parsingData.outputFormat = OUT_EXI; // Default output option
@@ -129,6 +134,17 @@ int main(int argc, char *argv[])
 				printfHelp();
 				return 0;
 			}
+			else if(strcmp(argv[2], "-schema") == 0)
+			{
+				if(argc <= 4)
+				{
+					printfHelp();
+					return 0;
+				}
+				hasSchema = TRUE;
+				parseSchema(argv[3], &schema);
+				strcpy(sourceFileName, argv[4]);
+			}
 			else
 				strcpy(sourceFileName, argv[2]);
 		}
@@ -140,13 +156,39 @@ int main(int argc, char *argv[])
 				printfHelp();
 				return 0;
 			}
+			else if(strcmp(argv[2], "-schema") == 0)
+			{
+				if(argc <= 4)
+				{
+					printfHelp();
+					return 0;
+				}
+				hasSchema = TRUE;
+				parseSchema(argv[3], &schema);
+				strcpy(sourceFileName, argv[4]);
+			}
 			else
 				strcpy(sourceFileName, argv[2]);
+		}
+		else if(strcmp(argv[1], "-schema") == 0)
+		{
+			if(argc <= 3)
+			{
+				printfHelp();
+				return 0;
+			}
+			else
+			{
+				hasSchema = TRUE;
+				parseSchema(argv[2], &schema);
+				strcpy(sourceFileName, argv[3]);
+			}
 		}
 		else
 		{
 			strcpy(sourceFileName, argv[1]);
 		}
+
 		infile = fopen(sourceFileName, "rb" );
 		if(!infile)
 		{
@@ -156,8 +198,12 @@ int main(int argc, char *argv[])
 		else
 		{
 			ioStrm.stream = infile;
+
 			// Parse the EXI stream
-			parseEXI(buffer, INPUT_BUFFER_SIZE, 0, &ioStrm, &sampleHandler, &parsingData);
+			if(hasSchema)
+				parseEXI(buffer, INPUT_BUFFER_SIZE, 0, &ioStrm, &sampleHandler, &schema, &parsingData);
+			else
+				parseEXI(buffer, INPUT_BUFFER_SIZE, 0, &ioStrm, &sampleHandler, NULL, &parsingData);
 
 			fclose(infile);
 		}
@@ -382,4 +428,49 @@ size_t readFileInputStream(void* buf, size_t readSize, void* stream)
 {
 	FILE *infile = (FILE*) stream;
 	return fread(buf, 1, readSize, infile);
+}
+
+static void parseSchema(char* fileName, ExipSchema* schema)
+{
+	FILE *schemaFile;
+	unsigned long schemaLen;
+	char *schemaBuffer;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+
+	schemaFile = fopen(fileName, "rb" );
+	if(!schemaFile)
+	{
+		fprintf(stderr, "Unable to open file %s", fileName);
+		exit(1);
+	}
+	else
+	{
+		//Get file length
+		fseek(schemaFile, 0, SEEK_END);
+		schemaLen=ftell(schemaFile);
+		fseek(schemaFile, 0, SEEK_SET);
+
+		//Allocate memory
+		schemaBuffer=(char *)malloc(schemaLen+1);
+		if (!schemaBuffer)
+		{
+			fprintf(stderr, "Memory allocation error!");
+			fclose(schemaFile);
+			exit(1);
+		}
+
+		//Read file contents into buffer
+		fread(schemaBuffer, schemaLen, 1, schemaFile);
+		fclose(schemaFile);
+
+		tmp_err_code = generateSchemaInformedGrammars(schemaBuffer, schemaLen, schemaLen, NULL, SCHEMA_FORMAT_XSD_EXI, schema);
+
+		if(tmp_err_code != ERR_OK)
+		{
+			printf("\n Error occured: %d", tmp_err_code);
+			exit(1);
+		}
+
+		free(schemaBuffer);
+	}
 }

@@ -127,11 +127,10 @@ errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, size_t* rowID
  * calling this function.
  *
  * @param[in, out] strm EXI stream of bits
- * @param[in] withSchema TRUE if there is schema for this stream; FALSE otherwise;
  * Can be retrieved from strm->opts->schemaID != NULL
  * @return Error handling code
  */
-errorCode createInitialStringTables(EXIStream* strm, unsigned char withSchema);
+errorCode createInitialStringTables(EXIStream* strm);
 
 /**
  * @brief Create all string table partitions for a URI table

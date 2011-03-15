@@ -45,7 +45,8 @@
 #define BODYDECODE_H_
 
 #include "contentHandler.h"
+#include "schema.h"
 
-void decodeBody(EXIStream* strm, ContentHandler* handler, void* app_data);
+void decodeBody(EXIStream* strm, ContentHandler* handler, ExipSchema* schema, void* app_data);
 
 #endif /* BODYDECODE_H_ */

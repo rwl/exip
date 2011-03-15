@@ -46,9 +46,7 @@
 #include "sTables.h"
 #include "memManagement.h"
 
-// TODO: use macros for conditional debugging for error messages
-
-void decodeBody(EXIStream* strm, ContentHandler* handler, void* app_data)
+void decodeBody(EXIStream* strm, ContentHandler* handler, ExipSchema* schema, void* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIGrammarStack docGr;
@@ -56,23 +54,12 @@ void decodeBody(EXIStream* strm, ContentHandler* handler, void* app_data)
 	EXIEvent event;
 
 	strm->gStack = &docGr;
-	tmp_err_code = createDocGrammar(strm->gStack, strm, NULL);
+	tmp_err_code = createDocGrammar(strm->gStack, strm, schema);
 	if(tmp_err_code != ERR_OK)
 	{
 		if(handler->fatalError != NULL)
 		{
 			handler->fatalError(tmp_err_code, "Cannot create BuildInDocGrammar", app_data);
-		}
-		freeAllMem(strm);
-		return;
-	}
-
-	tmp_err_code = createInitialStringTables(strm, FALSE);
-	if(tmp_err_code != ERR_OK)
-	{
-		if(handler->fatalError != NULL)
-		{
-			handler->fatalError(tmp_err_code, "Cannot create InitialStringTables", app_data);
 		}
 		freeAllMem(strm);
 		return;
@@ -87,6 +74,46 @@ void decodeBody(EXIStream* strm, ContentHandler* handler, void* app_data)
 		}
 		freeAllMem(strm);
 		return;
+	}
+
+	if(schema != NULL)
+	{
+		unsigned int i = 0;
+		strm->uriTable = schema->initialStringTables;
+		tmp_err_code = createValueTable(&(strm->vTable), &(strm->memList));
+		if(tmp_err_code != ERR_OK)
+		{
+			if(handler->fatalError != NULL)
+			{
+				handler->fatalError(tmp_err_code, "Cannot create InitialStringTables", app_data);
+			}
+			freeAllMem(strm);
+			return;
+		}
+
+		for (i = 0; i < schema->globalElemGrammars.count; i++)
+		{
+			addGrammarInPool(strm->ePool, schema->globalElemGrammars.elems[i].uriRowId, schema->globalElemGrammars.elems[i].lnRowId, &schema->globalElemGrammars.elems[i].grammar);
+		}
+		for (i = 0; i < schema->subElementGrammars.count; i++)
+		{
+			addGrammarInPool(strm->ePool, schema->subElementGrammars.elems[i].uriRowId, schema->subElementGrammars.elems[i].lnRowId, &schema->subElementGrammars.elems[i].grammar);
+		}
+
+		// TODO: the same for the type grammar pool
+	}
+	else
+	{
+		tmp_err_code = createInitialStringTables(strm);
+		if(tmp_err_code != ERR_OK)
+		{
+			if(handler->fatalError != NULL)
+			{
+				handler->fatalError(tmp_err_code, "Cannot create InitialStringTables", app_data);
+			}
+			freeAllMem(strm);
+			return;
+		}
 	}
 
 	while(strm->nonTermID != GR_VOID_NON_TERMINAL)  // Process grammar productions until gets to the end of the stream
