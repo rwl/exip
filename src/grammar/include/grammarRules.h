@@ -99,10 +99,11 @@ errorCode copyGrammarRule(AllocList* memList, GrammarRule* src, GrammarRule* des
 /**
  * @brief Prints a grammar rule
  * Note! This is only for debugging purposes!
+ * @param[in] nonTermID The left hand side nonTerminal of the Rule
  * @param[in] rule a Grammar Rule to be printed
  * @return Error handling code
  */
-errorCode printGrammarRule(GrammarRule* rule);
+errorCode printGrammarRule(unsigned int nonTermID, GrammarRule* rule);
 
 #endif // EXIP_DEBUG
 

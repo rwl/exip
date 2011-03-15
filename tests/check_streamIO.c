@@ -561,7 +561,7 @@ START_TEST (test_decodeFloat)
   fail_unless (err == ERR_OK,
 	       "decodeFloat returns error code %d", err);
   fail_unless (dbl_val == res,
-	       "The float value is read as %Lf (actual : %Lf)", dbl_val, res);
+	       "The float value is read as %f (actual : %f)", dbl_val, res);
  fail_unless (testStream.bitPointer == 0,
     	       "The decodeBinary function did not move the bit Pointer of the stream correctly");
   fail_unless (testStream.bufferIndx == 2,

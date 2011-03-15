@@ -57,6 +57,7 @@ errorCode concatenateGrammars(AllocList* memList, struct EXIGrammar* left, struc
 
 	(*result)->nextInStack = NULL;
 	(*result)->rulesDimension = left->rulesDimension + right->rulesDimension;
+	(*result)->grammarType = left->grammarType;
 	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
 	if((*result)->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -68,14 +69,13 @@ errorCode concatenateGrammars(AllocList* memList, struct EXIGrammar* left, struc
 	for(i = 0;i < left->rulesDimension; i++)
 	{
 		copyGrammarRule(memList, &(left->ruleArray[i]), &((*result)->ruleArray[i]), 0);
-		(*result)->ruleArray[i].nonTermID = GR_SCHEMA_GRAMMARS_FIRST + i;
 
 		for(j = 0; j < (*result)->ruleArray[i].prodCount; j++)
 		{
 			if((*result)->ruleArray[i].prodArray[j].event.eventType == EVENT_EE)
 			{
 				(*result)->ruleArray[i].prodArray[j].event.eventType = EVENT_VOID;
-				(*result)->ruleArray[i].prodArray[j].nonTermID = GR_SCHEMA_GRAMMARS_FIRST + left->rulesDimension;
+				(*result)->ruleArray[i].prodArray[j].nonTermID = left->rulesDimension;
 			}
 		}
 	}
@@ -83,7 +83,6 @@ errorCode concatenateGrammars(AllocList* memList, struct EXIGrammar* left, struc
 	for(i = 0;i < right->rulesDimension; i++)
 	{
 		copyGrammarRule(memList, &(right->ruleArray[i]), &((*result)->ruleArray[left->rulesDimension + i]), left->rulesDimension);
-		(*result)->ruleArray[left->rulesDimension + i].nonTermID = GR_SCHEMA_GRAMMARS_FIRST + left->rulesDimension + i;
 	}
 
 	return ERR_OK;
@@ -106,6 +105,7 @@ errorCode createElementProtoGrammar(AllocList* memList, StringType name, StringT
 
 	(*result)->nextInStack = NULL;
 	(*result)->rulesDimension = typeDef->rulesDimension;
+	(*result)->grammarType = GR_TYPE_SCHEMA_ELEM;
 	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
 	if((*result)->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -113,7 +113,6 @@ errorCode createElementProtoGrammar(AllocList* memList, StringType name, StringT
 	for(i = 0; i < typeDef->rulesDimension; i++)
 	{
 		copyGrammarRule(memList, &(typeDef->ruleArray[i]), &((*result)->ruleArray[i]), 0);
-		(*result)->ruleArray[i].nonTermID = GR_SCHEMA_GRAMMARS_FIRST + i;
 	}
 
 	return ERR_OK;
@@ -130,6 +129,7 @@ errorCode createSimpleTypeGrammar(AllocList* memList, QName simpleType, struct E
 
 	(*result)->nextInStack = NULL;
 	(*result)->rulesDimension = 2;
+	(*result)->grammarType = GR_TYPE_SCHEMA_TYPE;
 	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
 	if((*result)->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -137,15 +137,13 @@ errorCode createSimpleTypeGrammar(AllocList* memList, QName simpleType, struct E
 	tmp_err_code = initGrammarRule(&((*result)->ruleArray[0]), memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	(*result)->ruleArray[0].nonTermID = GR_SCHEMA_GRAMMARS_FIRST;
 	event.eventType = EVENT_CH;
 	tmp_err_code = getEXIDataType(simpleType, &(event.valueType));
-	tmp_err_code = addProduction(&((*result)->ruleArray[0]), getEventCode1(0), event, GR_SCHEMA_GRAMMARS_FIRST + 1);
+	tmp_err_code = addProduction(&((*result)->ruleArray[0]), getEventCode1(0), event, 1);
 
 	tmp_err_code = initGrammarRule(&((*result)->ruleArray[1]), memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	(*result)->ruleArray[1].nonTermID = GR_SCHEMA_GRAMMARS_FIRST + 1;
 	tmp_err_code = addProduction(&((*result)->ruleArray[1]), getEventCode1(0), getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL);
 
 	return ERR_OK;
@@ -160,6 +158,7 @@ errorCode createSimpleEmptyTypeGrammar(AllocList* memList, struct EXIGrammar** r
 
 	(*result)->nextInStack = NULL;
 	(*result)->rulesDimension = 1;
+	(*result)->grammarType = GR_TYPE_SCHEMA_EMPTY_TYPE;
 	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
 	if((*result)->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -167,7 +166,6 @@ errorCode createSimpleEmptyTypeGrammar(AllocList* memList, struct EXIGrammar** r
 	tmp_err_code = initGrammarRule(&((*result)->ruleArray[0]), memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	(*result)->ruleArray[0].nonTermID = GR_SCHEMA_GRAMMARS_FIRST;
 	tmp_err_code = addProduction(&((*result)->ruleArray[0]), getEventCode1(0), getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -198,6 +196,8 @@ errorCode createComplexTypeGrammar(AllocList* memList, StringType name, StringTy
 	tmp_err_code = concatenateGrammars(memList, tmpGrammar, contentTypeGrammar, result);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
+
+	(*result)->grammarType = GR_TYPE_SCHEMA_TYPE;
 
 	return ERR_OK;
 }
@@ -231,6 +231,8 @@ errorCode createComplexEmptyTypeGrammar(AllocList* memList, StringType name, Str
 	tmp_err_code = concatenateGrammars(memList, tmpGrammar, emptyContent, result);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
+
+	(*result)->grammarType = GR_TYPE_SCHEMA_EMPTY_TYPE;
 
 	return ERR_OK;
 }
@@ -266,13 +268,12 @@ errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, 
 	tmp_err_code = initGrammarRule(&((*result)->ruleArray[0]), memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	(*result)->ruleArray[0].nonTermID = GR_SCHEMA_GRAMMARS_FIRST;
 	event1.eventType = EVENT_AT_QNAME;
 	tmp_err_code = getEXIDataType(simpleType, &event1.valueType);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = addProduction(&((*result)->ruleArray[0]), getEventCode1(0), event1, GR_SCHEMA_GRAMMARS_FIRST + 1);
+	tmp_err_code = addProduction(&((*result)->ruleArray[0]), getEventCode1(0), event1, 1);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -298,7 +299,6 @@ errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, 
 	tmp_err_code = initGrammarRule(&((*result)->ruleArray[1]), memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	(*result)->ruleArray[1].nonTermID = GR_SCHEMA_GRAMMARS_FIRST + 1;
 
 	tmp_err_code = addProduction(&((*result)->ruleArray[1]), getEventCode1(0), getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL);
 	if(tmp_err_code != ERR_OK)
@@ -360,7 +360,7 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
 				{
 					if(termGrammar->ruleArray[i].prodArray[j].nonTermID == GR_VOID_NON_TERMINAL && termGrammar->ruleArray[i].prodArray[j].event.eventType == EVENT_EE)
 					{
-						termGrammar->ruleArray[i].prodArray[j].nonTermID = GR_SCHEMA_GRAMMARS_FIRST;
+						termGrammar->ruleArray[i].prodArray[j].nonTermID = 0;
 						termGrammar->ruleArray[i].prodArray[j].event.eventType = EVENT_VOID;
 					}
 				}
@@ -400,8 +400,7 @@ errorCode createElementTermGrammar(AllocList* memList, StringType name, StringTy
 	tmp_err_code = initGrammarRule(&((*result)->ruleArray[0]), memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	(*result)->ruleArray[0].nonTermID = GR_SCHEMA_GRAMMARS_FIRST;
-	tmp_err_code = addProduction(&((*result)->ruleArray[0]), getEventCode1(0), getEventDefType(EVENT_SE_QNAME), GR_SCHEMA_GRAMMARS_FIRST + 1);
+	tmp_err_code = addProduction(&((*result)->ruleArray[0]), getEventCode1(0), getEventDefType(EVENT_SE_QNAME), 1);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -420,8 +419,7 @@ errorCode createElementTermGrammar(AllocList* memList, StringType name, StringTy
 	tmp_err_code = initGrammarRule(&((*result)->ruleArray[1]), memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	(*result)->ruleArray[0].nonTermID = GR_SCHEMA_GRAMMARS_FIRST + 1;
-	tmp_err_code = addProduction(&((*result)->ruleArray[0]), getEventCode1(0), getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL);
+	tmp_err_code = addProduction(&((*result)->ruleArray[1]), getEventCode1(0), getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -476,8 +474,6 @@ errorCode createChoiceModelGroupsGrammar(AllocList* memList, struct EXIGrammar* 
 	tmp_err_code = initGrammarRule(&((*result)->ruleArray[0]), memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	(*result)->ruleArray[0].nonTermID = GR_SCHEMA_GRAMMARS_FIRST;
-
 	if(pTermArraySize == 0)
 	{
 		tmp_err_code = addProduction(&((*result)->ruleArray[0]), getEventCode1(0), getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL);

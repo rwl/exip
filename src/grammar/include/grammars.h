@@ -142,14 +142,6 @@ errorCode addGrammarInPool(GrammarPool* pool, uint16_t uriRowID,
 									size_t lnRowID, struct EXIGrammar* newGr);
 
 /**
- * @brief Checks if particular grammar is a Document grammar (not Element grammar)
- * @param[in] grammar EXI Grammar to be tested
- * @param[out] bool_result 0 - false, 1 - true
- * @return Error handling code
- */
-errorCode isDocumentGrammar(struct EXIGrammar* grammar, unsigned char* bool_result);
-
-/**
  * @brief Encodes QName into EXI stream
  * @param[in, out] strm EXI stream
  * @param[in] qname qname to be written

@@ -281,7 +281,7 @@ START_TEST (test_initGrammarRule)
 
 	fail_unless(rule.bits[0] == 0 && rule.bits[1] == 0 && rule.bits[2] == 0,
 				"initGrammarRule does not initialize the number of bits used for the integers constituting the EventCode");
-	fail_unless(rule.nonTermID == GR_VOID_NON_TERMINAL && rule.prodCount == 0 && rule.prodDimension == DEFAULT_PROD_ARRAY_DIM,
+	fail_unless(rule.prodCount == 0 && rule.prodDimension == DEFAULT_PROD_ARRAY_DIM,
 			    "initGrammarRule doesn't initialize the GrammarRule structure correctly");
 	fail_if(rule.prodArray == NULL);
 }

@@ -56,7 +56,6 @@ errorCode initGrammarRule(GrammarRule* rule, AllocList* memList)
 	rule->bits[0] = 0;
 	rule->bits[1] = 0;
 	rule->bits[2] = 0;
-	rule->nonTermID = GR_VOID_NON_TERMINAL;
 	return ERR_OK;
 }
 
@@ -117,7 +116,6 @@ errorCode copyGrammarRule(AllocList* memList, GrammarRule* src, GrammarRule* des
 
 	dest->memPair.memBlock = NULL;
 	dest->memPair.allocIndx = 0;
-	dest->nonTermID = src->nonTermID;
 	dest->prodCount = src->prodCount;
 	dest->prodDimension = src->prodDimension;
 
@@ -130,7 +128,7 @@ errorCode copyGrammarRule(AllocList* memList, GrammarRule* src, GrammarRule* des
 		for(i = 0;i < dest->prodCount; i++)
 		{
 			dest->prodArray[i] = src->prodArray[i];
-			if(dest->prodArray[i].nonTermID >= GR_SCHEMA_GRAMMARS_FIRST)
+			if(src->prodArray[i].nonTermID != GR_VOID_NON_TERMINAL)
 				dest->prodArray[i].nonTermID = src->prodArray[i].nonTermID + nonTermIdShift;
 		}
 	}
@@ -140,37 +138,12 @@ errorCode copyGrammarRule(AllocList* memList, GrammarRule* src, GrammarRule* des
 
 #ifdef EXIP_DEBUG // TODO: document this macro #DOCUMENT#
 
-errorCode printGrammarRule(GrammarRule* rule)
+errorCode printGrammarRule(unsigned int nonTermID, GrammarRule* rule)
 {
 	uint16_t i = 0;
 
 	DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\n>RULE\n"));
-	switch(rule->nonTermID)
-	{
-		case GR_VOID_NON_TERMINAL:
-			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("VOID:"));
-			break;
-		case GR_DOCUMENT:
-			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("Document:"));
-			break;
-		case GR_DOC_CONTENT:
-			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("DocContent:"));
-			break;
-		case GR_DOC_END:
-			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("DocEnd:"));
-			break;
-		case GR_START_TAG_CONTENT:
-			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("StartTagContent:"));
-			break;
-		case GR_ELEMENT_CONTENT:
-			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("ElementContent:"));
-			break;
-		case GR_FRAGMENT:
-			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("Fragment:"));
-			break;
-		default:
-			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("NT-%d:",rule->nonTermID));
-	}
+	DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("NT-%d:", nonTermID));
 
 	DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\n"));
 	for(i = 0; i < rule->prodCount; i++)
@@ -235,33 +208,8 @@ errorCode printGrammarRule(GrammarRule* rule)
 				return UNEXPECTED_ERROR;
 		}
 		DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\t"));
-		switch(rule->prodArray[i].nonTermID)
-		{
-			case GR_VOID_NON_TERMINAL:
-				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("VOID"));
-				break;
-			case GR_DOCUMENT:
-				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("Document"));
-				break;
-			case GR_DOC_CONTENT:
-				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("DocContent"));
-				break;
-			case GR_DOC_END:
-				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("DocEnd"));
-				break;
-			case GR_START_TAG_CONTENT:
-				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("StartTagContent"));
-				break;
-			case GR_ELEMENT_CONTENT:
-				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("ElementContent"));
-				break;
-			case GR_FRAGMENT:
-				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("Fragment"));
-				break;
-			default:
-				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("NT-%d",rule->prodArray[i].nonTermID));
+		DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("NT-%d",rule->prodArray[i].nonTermID));
 
-		}
 		DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\t\t"));
 		for(j = 0; j < rule->prodArray[i].code.size; j++)
 		{
