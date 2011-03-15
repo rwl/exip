@@ -244,7 +244,7 @@ static char xsd_endDocument(void* app_data)
 
 			for(t = 0; t < tmp->grammar->rulesDimension; t++)
 			{
-				tmp_err_code = printGrammarRule(&(tmp->grammar->ruleArray[t]));
+				tmp_err_code = printGrammarRule(t, &(tmp->grammar->ruleArray[t]));
 				if(tmp_err_code != ERR_OK)
 				{
 					DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">printGrammarRule() fail\n"));
@@ -715,7 +715,7 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 		uint16_t t = 0;
 		for(t = 0; t < attrUseGrammar->rulesDimension; t++)
 		{
-			tmp_err_code = printGrammarRule(&(attrUseGrammar->ruleArray[t]));
+			tmp_err_code = printGrammarRule(t, &(attrUseGrammar->ruleArray[t]));
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -812,7 +812,7 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 		uint16_t tt = 0;
 		for(tt = 0; tt < contentTypeGrammar->rulesDimension; tt++)
 		{
-			tmp_err_code = printGrammarRule(&(contentTypeGrammar->ruleArray[tt]));
+			tmp_err_code = printGrammarRule(tt, &(contentTypeGrammar->ruleArray[tt]));
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -832,7 +832,7 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 		uint16_t t = 0;
 		for(t = 0; t < resultComplexGrammar->rulesDimension; t++)
 		{
-			tmp_err_code = printGrammarRule(&(resultComplexGrammar->ruleArray[t]));
+			tmp_err_code = printGrammarRule(t, &(resultComplexGrammar->ruleArray[t]));
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}

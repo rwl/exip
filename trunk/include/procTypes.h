@@ -398,27 +398,21 @@ struct Production
 
 typedef struct Production Production;
 
-// TODO: The NON_TERMINAL Ids should be assigned in such way that they are equal to the RULE array index
-//       In this way the rule search based on a NON_TERMINAL will be a constant time operation!
-//       This will affect in great extend the GrammarGen module
-
 // Define Built-in Grammars non-terminals
-#define GR_VOID_NON_TERMINAL 0 // Used to indicate that the production does not have NON_TERMINAL on the right-hand side
-#define GR_DOCUMENT          1
-#define GR_DOC_CONTENT       2
-#define GR_DOC_END           3
-#define GR_START_TAG_CONTENT 4
-#define GR_ELEMENT_CONTENT   5
-#define GR_FRAGMENT          6
-#define GR_FRAGMENT_CONTENT  7
+#define GR_VOID_NON_TERMINAL 9999 // Used to indicate that the production does not have NON_TERMINAL on the right-hand side
 
-#define GR_SCHEMA_GRAMMARS_FIRST 100
-/* The non-terminals IDs of all other grammars should start from value GR_SCHEMA_GRAMMARS_FIRST.
- * The value GR_SCHEMA_GRAMMARS_FIRST indicates the NON_TERMINAL describing the content of the entire grammar */
+#define GR_DOCUMENT          0
+#define GR_DOC_CONTENT       1
+#define GR_DOC_END           2
+
+#define GR_START_TAG_CONTENT 0
+#define GR_ELEMENT_CONTENT   1
+
+#define GR_FRAGMENT          0
+#define GR_FRAGMENT_CONTENT  1
 
 struct GrammarRule
 {
-	unsigned int nonTermID; // unique identifier of left-hand side Non-terminal
 	Production* prodArray; // Array of grammar productions included in that rule
 	uint16_t prodCount; // The number of productions in this Grammar Rule
 	uint16_t prodDimension; // The size of the productions' array /allocated space for Productions/
@@ -428,12 +422,28 @@ struct GrammarRule
 
 typedef struct GrammarRule GrammarRule;
 
+#define GR_TYPE_BUILD_IN_DOC       0
+#define GR_TYPE_BUILD_IN_FRAG      1
+#define GR_TYPE_BUILD_IN_ELEM      2
+
+#define GR_TYPE_SCHEMA_DOC        10
+#define GR_TYPE_SCHEMA_FRAG       11
+#define GR_TYPE_SCHEMA_ELEM_FRAG  12
+#define GR_TYPE_SCHEMA_ELEM       13
+#define GR_TYPE_SCHEMA_TYPE       14
+#define GR_TYPE_SCHEMA_EMPTY_TYPE 15
+
+
+/**
+ * The rule index in the ruleArray is the left hand side nonTermID of the particular grammar Rule
+ */
 struct EXIGrammar
 {
 	GrammarRule* ruleArray; // Array of grammar rules which constitute that grammar
 	uint16_t rulesDimension; // The size of the array
 	struct EXIGrammar* nextInStack;
 	unsigned int lastNonTermID; // Stores the last NonTermID before another grammar is added on top of the stack
+	unsigned char grammarType;
 };
 
 typedef struct EXIGrammar EXIGrammarStack; // Used to differentiate between single grammar (nextInStack == NULL) and stack of grammars

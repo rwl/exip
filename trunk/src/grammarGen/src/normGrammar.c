@@ -59,7 +59,7 @@ struct addedRuleInf
 {
 	unsigned int firstNonTermID; // smaller index, part of the union
 	unsigned int secondNonTermID;  // higher index, part of the union
-
+	unsigned int ruleNonTermID;
 	GrammarRule* rule;
 };
 
@@ -91,7 +91,7 @@ errorCode deleteNoTermProductions(AllocList* memList, struct EXIGrammar* grammar
 			{
 				rightNonTerm = grammar->ruleArray[i].prodArray[j].nonTermID;
 				// Register that we are replacing this production without a terminal symbol
-				pr.leftNonTermID = grammar->ruleArray[i].nonTermID;
+				pr.leftNonTermID = i;
 				pr.rightNonTermID = rightNonTerm;
 				tmp_err_code = addDynElement(removedProdArray, &pr, &elId, memList);
 				if(tmp_err_code != ERR_OK)
@@ -99,12 +99,12 @@ errorCode deleteNoTermProductions(AllocList* memList, struct EXIGrammar* grammar
 
 				for(k = 0; k < grammar->rulesDimension; k++)  // For every rule in the grammar
 				{
-					if(grammar->ruleArray[k].nonTermID == rightNonTerm) // If the Left NON-TERM is eq to the previous Production rightNonTerm
+					if(k == rightNonTerm) // If the Left NON-TERM is eq to the previous Production rightNonTerm
 					{
 						for(l = 0; l < grammar->ruleArray[k].prodCount; l++) // For every production in this second rule
 						{
 							if(!(grammar->ruleArray[k].prodArray[l].event.eventType == EVENT_VOID &&
-									grammar->ruleArray[k].prodArray[l].nonTermID == grammar->ruleArray[i].nonTermID)) // If the right-hand side is not identical to the left-hand side
+									grammar->ruleArray[k].prodArray[l].nonTermID == i)) // If the right-hand side is not identical to the left-hand side
 							{
 								struct removedProdInf* tmpPr;
 								rmPrFlag = 0;   // Shows if a there is already such production replaced
@@ -112,7 +112,7 @@ errorCode deleteNoTermProductions(AllocList* memList, struct EXIGrammar* grammar
 								{
 									tmpPr = &((struct removedProdInf* ) (removedProdArray->elements))[t];
 									if(grammar->ruleArray[k].prodArray[l].nonTermID == tmpPr->rightNonTermID
-										&& grammar->ruleArray[i].nonTermID == tmpPr->leftNonTermID
+										&& i == tmpPr->leftNonTermID
 										&& grammar->ruleArray[k].prodArray[l].event.eventType == EVENT_VOID)
 									{
 										rmPrFlag = 1; // This production was already replaced - DO NOT INSERT IT!
@@ -170,7 +170,7 @@ errorCode deleteDuplicateTerminals(AllocList* memList, struct EXIGrammar* gramma
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	lastAddedNonTermID = GR_SCHEMA_GRAMMARS_FIRST + grammar->rulesDimension;
+	lastAddedNonTermID = grammar->rulesDimension;
 
 	for(i = 0; i < grammar->rulesDimension; i++) // For every rule in the grammar
 	{
@@ -197,7 +197,7 @@ errorCode deleteDuplicateTerminals(AllocList* memList, struct EXIGrammar* gramma
 									 grammar->ruleArray[i].prodArray[k].nonTermID == tmp.secondNonTermID)
 							{
 								foundFlag = 1;
-								grammar->ruleArray[i].prodArray[j].nonTermID = tmp.rule->nonTermID;
+								grammar->ruleArray[i].prodArray[j].nonTermID = tmp.ruleNonTermID;
 								// delete the second one
 								memcpy(grammar->ruleArray[i].prodArray + k, grammar->ruleArray[i].prodArray + k + 1,grammar->ruleArray[i].prodCount - k + 1);
 								grammar->ruleArray[i].prodCount -= 1;
@@ -217,12 +217,11 @@ errorCode deleteDuplicateTerminals(AllocList* memList, struct EXIGrammar* gramma
 							tmp_err_code = initGrammarRule(tmp.rule, memList);
 							if(tmp_err_code != ERR_OK)
 								return tmp_err_code;
-							tmp.rule->nonTermID = lastAddedNonTermID;
+							tmp.ruleNonTermID = lastAddedNonTermID;
 
 							for(t = 0; t < grammar->rulesDimension; t++)  // For every rule in the grammar
 							{
-								if(grammar->ruleArray[t].nonTermID == tmp.firstNonTermID ||
-										grammar->ruleArray[t].nonTermID == tmp.secondNonTermID)  // if this rule is one of the two with Non-Term we are looking for
+								if(t == tmp.firstNonTermID || t == tmp.secondNonTermID)  // if this rule is one of the two with Non-Term we are looking for
 								{
 									for(p = 0; p < grammar->ruleArray[t].prodCount; p++) // For every production in the rule
 									{
@@ -234,7 +233,7 @@ errorCode deleteDuplicateTerminals(AllocList* memList, struct EXIGrammar* gramma
 									}
 								}
 							}
-							grammar->ruleArray[i].prodArray[j].nonTermID = tmp.rule->nonTermID;
+							grammar->ruleArray[i].prodArray[j].nonTermID = tmp.ruleNonTermID;
 							// delete the second one
 							memcpy(grammar->ruleArray[i].prodArray + k, grammar->ruleArray[i].prodArray + k + 1,grammar->ruleArray[i].prodCount - k + 1);
 							grammar->ruleArray[i].prodCount -= 1;
@@ -250,7 +249,7 @@ errorCode deleteDuplicateTerminals(AllocList* memList, struct EXIGrammar* gramma
 	{
 		GrammarRule* newGrammarRuleArray;
 		/* We do not use realloc() here as the previous GrammarRule pointer must be freed by the EXIP mem menager*/
-		newGrammarRuleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*grammar->rulesDimension + addedRulesArray->elementCount);
+		newGrammarRuleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*(grammar->rulesDimension + addedRulesArray->elementCount));
 		if(newGrammarRuleArray == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
@@ -263,7 +262,7 @@ errorCode deleteDuplicateTerminals(AllocList* memList, struct EXIGrammar* gramma
 
 		for(i = 0; i < addedRulesArray->elementCount; i++)  // Copying the added rules
 		{
-			tmp_err_code = copyGrammarRule(memList, ((struct addedRuleInf*) addedRulesArray->elements)[i].rule, &(newGrammarRuleArray[grammar->rulesDimension + i]), 0);
+			tmp_err_code = copyGrammarRule(memList, ((struct addedRuleInf*) addedRulesArray->elements)[i].rule, &(newGrammarRuleArray[((struct addedRuleInf*) addedRulesArray->elements)[i].ruleNonTermID]), 0);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
