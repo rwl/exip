@@ -79,9 +79,9 @@ const EXISerializer serEXI  =  {startDocumentSer,
 								decimalDataSer,
 								bigDecimalDataSer,
 								processingInstructionSer,
-								initStream,
 								encodeHeader,
 								selfContainedSer,
+								initStream,
 								closeEXIStream};
 
 static errorCode encodeEXIEvent(EXIStream* strm, EXIEvent event);
@@ -133,7 +133,7 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 	}
 	else
 	{
-		tmp_err_code = createInitialStringTables(strm, FALSE);
+		tmp_err_code = createInitialStringTables(strm);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}

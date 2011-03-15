@@ -251,7 +251,7 @@ START_TEST (test_createInitialStringTables)
 	testStream.bufContent = 2;
 
 
-	err = createInitialStringTables(&testStream, 0);
+	err = createInitialStringTables(&testStream);
 
 	fail_unless (err == ERR_OK, "createInitialStringTables returns error code %d", err);
 	fail_if(testStream.uriTable == NULL);

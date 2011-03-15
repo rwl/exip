@@ -49,7 +49,7 @@
 #include "headerDecode.h"
 #include "memManagement.h"
 
-void parseEXI(char* binaryBuf, size_t bufLen, size_t bufContent, IOStream* ioStrm, ContentHandler* handler, void* app_data)
+void parseEXI(char* binaryBuf, size_t bufLen, size_t bufContent, IOStream* ioStrm, ContentHandler* handler, ExipSchema* schema, void* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIStream strm;
@@ -82,5 +82,5 @@ void parseEXI(char* binaryBuf, size_t bufLen, size_t bufContent, IOStream* ioStr
 			return;
 	}
 
-	decodeBody(&strm, handler, app_data);
+	decodeBody(&strm, handler, schema, app_data);
 }

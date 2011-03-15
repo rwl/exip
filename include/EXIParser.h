@@ -47,6 +47,7 @@
 #define EXIPARSER_H_
 
 #include "contentHandler.h"
+#include "schema.h"
 
 /**
  * @brief The EXIP parser API
@@ -55,8 +56,9 @@
  * @param[in] bufContent the size of the data stored in binaryBuf - number of bytes
  * @param[in] ioStrm input stream used to fill the binaryBuf when parsed. If NULL the whole EXI stream is stored in binaryBuf
  * @param[in] handler collection of callback functions for parsing events
+ * @param[in] schema schema information when in schema-decoding mode. NULL when in schema-less mode
  * @param[in] app_data Application data to be passed to the content handler callbacks
  */
-void parseEXI(char* binaryBuf, size_t bufLen, size_t bufContent, IOStream* ioStrm, ContentHandler* handler, void* app_data);
+void parseEXI(char* binaryBuf, size_t bufLen, size_t bufContent, IOStream* ioStrm, ContentHandler* handler, ExipSchema* schema, void* app_data);
 
 #endif /* EXIPARSER_H_ */

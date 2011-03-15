@@ -199,7 +199,7 @@ errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t 
 	parsing_data.schema = schema;
 
 	// Parse the EXI stream
-	parseEXI(binaryBuf, bufLen, bufContent, ioStrm, &xsdHandler, &parsing_data);
+	parseEXI(binaryBuf, bufLen, bufContent, ioStrm, &xsdHandler, NULL, &parsing_data);
 
 	return ERR_OK;
 }
@@ -921,7 +921,15 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 	}
 	else  // Local element definition i.e within complex type
 	{
-		return NOT_IMPLEMENTED_YET;
+		struct EXIGrammar* elTermGrammar;
+
+		tmp_err_code = createElementTermGrammar(&app_data->tmpMemList, elName, target_ns, &elTermGrammar, app_data->regProdQname);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = pushGrammar((EXIGrammarStack**) &(app_data->pGrammarStack), elTermGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 	}
 	return ERR_OK;
 }

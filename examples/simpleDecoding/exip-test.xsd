@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" 
+		targetNamespace="http://www.ltu.se/EISLAB/schema-test"
+		xmlns:tns="http://www.ltu.se/EISLAB/schema-test"
+		elementFormDefault="unqualified">
+
+	<element name="EXIP">
+		<complexType>
+			<sequence minOccurs="1" maxOccurs="1">
+				<element name="release-notes" type="string" minOccurs="1"
+					maxOccurs="1">
+				</element>
+				<element name="modules" minOccurs="1" maxOccurs="1">
+					<complexType>
+						<sequence minOccurs="1" maxOccurs="1">
+							<element name="module" minOccurs="1" maxOccurs="unbounded">
+								<complexType>
+									<sequence minOccurs="0" maxOccurs="1">
+										<element name="Description" type="string" minOccurs="0" maxOccurs="1"></element>
+									</sequence>
+									<attribute name="name" type="string" use="required"></attribute>
+									<attribute name="pct_complete" type="unsignedInt" use="required"></attribute>
+								</complexType>
+							</element>
+						</sequence>
+					</complexType>
+				</element>
+			</sequence>
+			<attribute name="language" type="string" use="required"></attribute>
+			<attribute name="version" type="decimal" use="required"></attribute>
+		</complexType>
+	</element>
+</schema>

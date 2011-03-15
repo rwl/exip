@@ -242,7 +242,7 @@ errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, size_t* rowID
 	return ERR_OK;
 }
 
-errorCode createInitialStringTables(EXIStream* strm, unsigned char withSchema)
+errorCode createInitialStringTables(EXIStream* strm)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
@@ -254,7 +254,7 @@ errorCode createInitialStringTables(EXIStream* strm, unsigned char withSchema)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-    return createInitialEntries(&(strm->memList), strm->uriTable, withSchema);
+    return createInitialEntries(&(strm->memList), strm->uriTable, FALSE);
 }
 
 errorCode createInitialEntries(AllocList* memList, URITable* uTable, unsigned char withSchema)
