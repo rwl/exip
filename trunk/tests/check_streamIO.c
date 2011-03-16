@@ -610,6 +610,12 @@ START_TEST (test_decodeIntegerValue)
 }
 END_TEST
 
+START_TEST (test_decodeDecimalValue)
+{
+	fail("Not implemented yet");
+}
+END_TEST
+
 /* END: streamDecode tests */
 
 /* BEGIN: streamEncode tests */
@@ -821,6 +827,12 @@ START_TEST (test_encodeIntegerValue)
 }
 END_TEST
 
+START_TEST (test_encodeDecimalValue)
+{
+	fail("Not implemented yet");
+}
+END_TEST
+
 /* END: streamEncode tests */
 
 Suite * streamIO_suite (void)
@@ -854,6 +866,7 @@ Suite * streamIO_suite (void)
 	  tcase_add_test (tc_sDecode, test_decodeBinary);
 	  tcase_add_test (tc_sDecode, test_decodeFloat);
 	  tcase_add_test (tc_sDecode, test_decodeIntegerValue);
+	  tcase_add_test (tc_sDecode, test_decodeDecimalValue);
 	  suite_add_tcase (s, tc_sDecode);
   }
 
@@ -867,6 +880,7 @@ Suite * streamIO_suite (void)
 	  tcase_add_test (tc_sEncode, test_encodeBinary);
 	  tcase_add_test (tc_sEncode, test_encodeFloatValue);
 	  tcase_add_test (tc_sEncode, test_encodeIntegerValue);
+	  tcase_add_test (tc_sEncode, test_encodeDecimalValue);
 	  suite_add_tcase (s, tc_sEncode);
   }
 
