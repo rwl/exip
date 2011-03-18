@@ -50,8 +50,6 @@
 #include "sTables.h"
 #include "schema.h"
 
-typedef struct EXIGrammar ProtoGrammarsStack;
-
 /**
  * This structure holds pointers to
  * ruleArray[i].prodArray[j].lnRowID
@@ -253,7 +251,7 @@ errorCode createWildcardTermGrammar(AllocList* memList, StringType* wildcardArra
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createSequenceModelGroupsGrammar(AllocList* memList, ProtoGrammarsStack* pGrammars,
+errorCode createSequenceModelGroupsGrammar(AllocList* memList, EXIGrammarStack* pGrammars,
 											struct EXIGrammar** result);
 
 /**

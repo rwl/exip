@@ -74,8 +74,6 @@ errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, ExipS
 	if(strm->header.opts->preserve == 0) //all preserve opts are false
 		is_default_fidelity = 1;
 
-	docGrammar->lastNonTermID = GR_VOID_NON_TERMINAL;
-	docGrammar->nextInStack = NULL;
 	docGrammar->rulesDimension = DEF_DOC_GRAMMAR_RULE_NUMBER;
 	docGrammar->grammarType = GR_TYPE_BUILD_IN_DOC;
 	docGrammar->ruleArray = (GrammarRule*) memManagedAllocate(&strm->memList, sizeof(GrammarRule)*DEF_DOC_GRAMMAR_RULE_NUMBER);
@@ -217,8 +215,6 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, EXIStre
 	if(strm->header.opts->preserve == 0 && strm->header.opts->selfContained == 0) //all preserve opts are false and selfContained is also false
 		is_default_fidelity = 1;
 
-	elementGrammar->lastNonTermID = GR_VOID_NON_TERMINAL;
-	elementGrammar->nextInStack = NULL;
 	elementGrammar->rulesDimension = DEF_ELEMENT_GRAMMAR_RULE_NUMBER;
 	elementGrammar->grammarType = GR_TYPE_BUILD_IN_ELEM;
 	elementGrammar->ruleArray = (GrammarRule*) memManagedAllocate(&strm->memList, sizeof(GrammarRule)*DEF_ELEMENT_GRAMMAR_RULE_NUMBER);
@@ -373,15 +369,11 @@ errorCode copyGrammar(AllocList* memList, struct EXIGrammar* src, struct EXIGram
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	uint16_t i = 0;
-	if(src->nextInStack != NULL)  // Only single grammars can be copied - not grammar stacks
-		return INVALID_OPERATION;
 
 	*dest = memManagedAllocate(memList, sizeof(struct EXIGrammar));
 	if(*dest == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*dest)->lastNonTermID = src->lastNonTermID;
-	(*dest)->nextInStack = NULL;
 	(*dest)->rulesDimension = src->rulesDimension;
 	(*dest)->grammarType = src->grammarType;
 
@@ -400,16 +392,24 @@ errorCode copyGrammar(AllocList* memList, struct EXIGrammar* src, struct EXIGram
 
 errorCode pushGrammar(EXIGrammarStack** gStack, struct EXIGrammar* grammar)
 {
-	grammar->nextInStack = *gStack;
-	*gStack = grammar;
+	struct GrammarStackNode* node = EXIP_MALLOC(sizeof(struct GrammarStackNode));
+	if(node == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	node->grammar = grammar;
+	node->lastNonTermID = GR_VOID_NON_TERMINAL;
+	node->nextInStack = *gStack;
+	*gStack = node;
 	return ERR_OK;
 }
 
 errorCode popGrammar(EXIGrammarStack** gStack, struct EXIGrammar** grammar)
 {
-	*grammar = *gStack;
+	struct GrammarStackNode* node = *gStack;
 	*gStack = (*gStack)->nextInStack;
-	(*grammar)->nextInStack = NULL;
+
+	(*grammar) = node->grammar;
+	EXIP_MFREE(node);
 	return ERR_OK;
 }
 
@@ -570,7 +570,7 @@ static errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHand
 				return HANDLER_STOP_RECEIVED;
 		}
 
-		if(strm->gStack->grammarType == GR_TYPE_BUILD_IN_ELEM)  // If the current grammar is build-in Element grammar ...
+		if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)  // If the current grammar is build-in Element grammar ...
 		{
 			tmp_err_code = insertZeroProduction(currRule, getEventDefType(EVENT_SE_QNAME), *nonTermID_out, strm->sContext.curr_lnID, strm->sContext.curr_uriID);
 			if(tmp_err_code != ERR_OK)
@@ -715,36 +715,38 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 	uint16_t currProduction = 0;
 	uint16_t j = 0;
 	unsigned int b = 0;
+	GrammarRule* ruleArr;
 
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Next production non-term-id: %d\n", strm->nonTermID));
 
-	if(strm->nonTermID >=  strm->gStack->rulesDimension)
+	if(strm->nonTermID >=  strm->gStack->grammar->rulesDimension)
 		return INCONSISTENT_PROC_STATE;
 
+	ruleArr = strm->gStack->grammar->ruleArray;
 	for(b = 0; b < 3; b++)
 	{
-		if(strm->gStack->ruleArray[strm->nonTermID].bits[b] == 0 &&
-			strm->gStack->ruleArray[strm->nonTermID].prodCount > b) // zero bits encoded part of event code with more parts available
+		if(ruleArr[strm->nonTermID].bits[b] == 0 &&
+				ruleArr[strm->nonTermID].prodCount > b) // zero bits encoded part of event code with more parts available
 		{
 			continue;
 		}
-		else if(strm->gStack->ruleArray[strm->nonTermID].bits[b] == 0) // encoded with zero bits
+		else if(ruleArr[strm->nonTermID].bits[b] == 0) // encoded with zero bits
 		{
 			return handleProduction(strm, strm->nonTermID, currProduction, event, nonTermID_out, handler, app_data, b);
 		}
 		else
 		{
-			tmp_err_code = decodeNBitUnsignedInteger(strm, strm->gStack->ruleArray[strm->nonTermID].bits[b], &tmp_bits_val);
+			tmp_err_code = decodeNBitUnsignedInteger(strm, ruleArr[strm->nonTermID].bits[b], &tmp_bits_val);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			for(j = 0; j < strm->gStack->ruleArray[strm->nonTermID].prodCount; j++)
+			for(j = 0; j < ruleArr[strm->nonTermID].prodCount; j++)
 			{
-				if(strm->gStack->ruleArray[strm->nonTermID].prodArray[j].code.size < b + 1)
+				if(ruleArr[strm->nonTermID].prodArray[j].code.size < b + 1)
 					continue;
-				if(strm->gStack->ruleArray[strm->nonTermID].prodArray[j].code.code[b] == tmp_bits_val)
+				if(ruleArr[strm->nonTermID].prodArray[j].code.code[b] == tmp_bits_val)
 				{
-					if(strm->gStack->ruleArray[strm->nonTermID].prodArray[j].code.size == b + 1)
+					if(ruleArr[strm->nonTermID].prodArray[j].code.size == b + 1)
 					{
 						return handleProduction(strm, strm->nonTermID, j, event, nonTermID_out, handler, app_data, b);
 					}
@@ -781,9 +783,10 @@ static errorCode handleProduction(EXIStream* strm, unsigned int ruleIndx, unsign
 				EXIEvent* event, unsigned int* nonTermID_out, ContentHandler* handler, void* app_data, unsigned int codeIndx)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	GrammarRule* ruleArr = strm->gStack->grammar->ruleArray;
 
-	*event = strm->gStack->ruleArray[ruleIndx].prodArray[prodIndx].event;
-	*nonTermID_out = strm->gStack->ruleArray[ruleIndx].prodArray[prodIndx].nonTermID;
+	*event = ruleArr[ruleIndx].prodArray[prodIndx].event;
+	*nonTermID_out = ruleArr[ruleIndx].prodArray[prodIndx].nonTermID;
 	if(event->eventType == EVENT_SD)
 	{
 		if(handler->startDocument != NULL)
@@ -810,9 +813,9 @@ static errorCode handleProduction(EXIStream* strm, unsigned int ruleIndx, unsign
 
 		if(codeIndx > 0)   // #1# COMMENT
 		{
-			strm->sContext.curr_uriID = strm->gStack->ruleArray[ruleIndx].prodArray[prodIndx].uriRowID;
-			strm->sContext.curr_lnID = strm->gStack->ruleArray[ruleIndx].prodArray[prodIndx].lnRowID;
-			tmp_err_code = insertZeroProduction(&(strm->gStack->ruleArray[ruleIndx]), getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL,
+			strm->sContext.curr_uriID = ruleArr[ruleIndx].prodArray[prodIndx].uriRowID;
+			strm->sContext.curr_lnID = ruleArr[ruleIndx].prodArray[prodIndx].lnRowID;
+			tmp_err_code = insertZeroProduction(&(ruleArr[ruleIndx]), getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL,
 												strm->sContext.curr_lnID, strm->sContext.curr_uriID);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
@@ -830,20 +833,20 @@ static errorCode handleProduction(EXIStream* strm, unsigned int ruleIndx, unsign
 	{
 		if(event->eventType != EVENT_CH) // CH events do not have QName in their content
 		{
-			strm->sContext.curr_uriID = strm->gStack->ruleArray[ruleIndx].prodArray[prodIndx].uriRowID;
-			strm->sContext.curr_lnID = strm->gStack->ruleArray[ruleIndx].prodArray[prodIndx].lnRowID;
+			strm->sContext.curr_uriID = ruleArr[ruleIndx].prodArray[prodIndx].uriRowID;
+			strm->sContext.curr_lnID = ruleArr[ruleIndx].prodArray[prodIndx].lnRowID;
 		}
 		if(event->eventType == EVENT_CH)
 		{
 			if(codeIndx > 0)   // #2# COMMENT
 			{
-				tmp_err_code = insertZeroProduction(&(strm->gStack->ruleArray[ruleIndx]),getEventDefType(EVENT_CH), *nonTermID_out,
+				tmp_err_code = insertZeroProduction(&(ruleArr[ruleIndx]),getEventDefType(EVENT_CH), *nonTermID_out,
 													strm->sContext.curr_lnID, strm->sContext.curr_uriID);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			}
 		}
-		tmp_err_code = decodeEventContent(strm, *event, handler, nonTermID_out, &(strm->gStack->ruleArray[ruleIndx]), app_data);
+		tmp_err_code = decodeEventContent(strm, *event, handler, nonTermID_out, &(ruleArr[ruleIndx]), app_data);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}

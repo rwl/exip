@@ -48,6 +48,12 @@
 #include "procTypes.h"
 #include "schema.h"
 
+/** Supported schema formats like XML-XSD, EXI-XSD, DTD or any other schema representation supported */
+#define SCHEMA_FORMAT_XSD_EXI           0
+#define SCHEMA_FORMAT_XSD_XML           1
+#define SCHEMA_FORMAT_DTD               2
+#define SCHEMA_FORMAT_RELAX_NG          3
+
 /**
  * @brief Generate a Schema-informed Document Grammar and all Schema-informed Element and Type Grammars
  * Initial implementation is targeted at XML Schema definitions encoded with EXI with default options.

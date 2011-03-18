@@ -52,12 +52,6 @@
 #include "string.h"
 #include "grammarAugment.h"
 
-/** Supported schema formats like XML-XSD, EXI-XSD, DTD or any other schema representation supported */
-#define SCHEMA_FORMAT_XSD_EXI           0
-#define SCHEMA_FORMAT_XSD_XML           1
-#define SCHEMA_FORMAT_DTD               2
-#define SCHEMA_FORMAT_RELAX_NG          3
-
 /** Form Choice values */
 #define FORM_CHOICE_UNQUALIFIED           0
 #define FORM_CHOICE_QUALIFIED             1
@@ -126,7 +120,7 @@ struct globalSchemaProps {
 struct elementDescr {
 	unsigned char element;  // represented with codes defined above
 	StringType attributePointers[ATTRIBUTE_CONTEXT_ARRAY_SIZE]; // the index is the code of the attribute
-	ProtoGrammarsStack* pGrammarStack; // A number of proto-grammars created so far and connected to this elemDescr
+	EXIGrammarStack* pGrammarStack; // The proto-grammars created so far and connected to this elemDescr
 	DynArray* attributeUses; // For complex types/content this array stores the number of attribute uses
 	struct elementDescr* nextInStack;
 };
@@ -358,8 +352,6 @@ static char xsd_endDocument(void* app_data)
 	tmpGNode = appD->globalElemGrammars.first;
 	for(i = 0; i < appD->globalElemGrammars.size; i++)
 	{
-		appD->schema->globalElemGrammars.elems[i].grammar.lastNonTermID = tmpGNode->grammar->lastNonTermID;
-		appD->schema->globalElemGrammars.elems[i].grammar.nextInStack = tmpGNode->grammar->nextInStack;
 		appD->schema->globalElemGrammars.elems[i].grammar.rulesDimension = tmpGNode->grammar->rulesDimension;
 		appD->schema->globalElemGrammars.elems[i].grammar.ruleArray = (GrammarRule*) memManagedAllocate(&appD->schema->memList, sizeof(GrammarRule) * tmpGNode->grammar->rulesDimension);
 		for(j = 0; j < tmpGNode->grammar->rulesDimension; j++)
@@ -763,6 +755,7 @@ static void initElemContext(struct elementDescr* elem)
 	unsigned int i = 0;
 	elem->element = ELEMENT_VOID;
 	elem->pGrammarStack = NULL;
+	elem->attributeUses = NULL;
 	elem->nextInStack = NULL;
 	for(i = 0; i < ATTRIBUTE_CONTEXT_ARRAY_SIZE; i++)
 	{
@@ -869,7 +862,7 @@ static errorCode handleExtentionEl(struct xsdAppData* app_data)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = pushGrammar((EXIGrammarStack**) &(app_data->contextStack->pGrammarStack), resultComplexGrammar);
+	tmp_err_code = pushGrammar(&(app_data->contextStack->pGrammarStack), resultComplexGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -880,9 +873,14 @@ static errorCode handleSimpleContentEl(struct xsdAppData* app_data)
 {
 	struct elementDescr* elemDesc;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	struct EXIGrammar* contentGr;
 
 	popElemContext(&(app_data->contextStack), &elemDesc);
-	tmp_err_code = pushGrammar((EXIGrammarStack**) &(app_data->contextStack->pGrammarStack), (struct EXIGrammar *) elemDesc->pGrammarStack);
+	tmp_err_code = popGrammar(&elemDesc->pGrammarStack, &contentGr);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = pushGrammar(&(app_data->contextStack->pGrammarStack), contentGr);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	return ERR_OK;
@@ -927,7 +925,7 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 		}
 	}
 
-	tmp_err_code = popGrammar((EXIGrammarStack**) &(elemDesc->pGrammarStack), &contentTypeGrammar);
+	tmp_err_code = popGrammar(&(elemDesc->pGrammarStack), &contentTypeGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -977,7 +975,7 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 	{
 		// Put the ComplexTypeGrammar on top of the pGrammarStack
 		// There should be a parent <element> declaration for this grammar
-		tmp_err_code = pushGrammar((EXIGrammarStack**) &(app_data->contextStack->pGrammarStack), resultComplexGrammar);
+		tmp_err_code = pushGrammar(&(app_data->contextStack->pGrammarStack), resultComplexGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -1030,7 +1028,7 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 	{
 		if(isStrEmpty(&type))  // There is no type attribute i.e. there must be some complex type in the pGrammarStack
 		{
-			tmp_err_code = popGrammar((EXIGrammarStack**) &(elemDesc->pGrammarStack), &typeGrammar);
+			tmp_err_code = popGrammar(&(elemDesc->pGrammarStack), &typeGrammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -1068,7 +1066,7 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 		tmp_err_code = createParticleGrammar(&app_data->tmpMemList, minOccurs, maxOccurs,
 											elTermGrammar, &elParticleGrammar);
 
-		tmp_err_code = pushGrammar((EXIGrammarStack**) &(app_data->contextStack->pGrammarStack), elParticleGrammar);
+		tmp_err_code = pushGrammar(&(app_data->contextStack->pGrammarStack), elParticleGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -1087,7 +1085,7 @@ static errorCode handleElementSequence(struct xsdAppData* app_data)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = pushGrammar((EXIGrammarStack**) &(app_data->contextStack->pGrammarStack), seqGrammar);
+	tmp_err_code = pushGrammar(&(app_data->contextStack->pGrammarStack), seqGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
