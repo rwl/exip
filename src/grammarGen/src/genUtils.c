@@ -432,11 +432,10 @@ errorCode createWildcardTermGrammar(AllocList* memList, StringType* wildcardArra
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode createSequenceModelGroupsGrammar(AllocList* memList, struct EXIGrammar* pTermArray, unsigned int pTermArraySize,
-											struct EXIGrammar** result)
+errorCode createSequenceModelGroupsGrammar(AllocList* memList, ProtoGrammarsStack* pGrammars, struct EXIGrammar** result)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	if(pTermArraySize == 0)
+	if(pGrammars == NULL)
 	{
 		tmp_err_code = createSimpleEmptyTypeGrammar(memList, result);
 		if(tmp_err_code != ERR_OK)
@@ -444,13 +443,14 @@ errorCode createSequenceModelGroupsGrammar(AllocList* memList, struct EXIGrammar
 	}
 	else
 	{
-		struct EXIGrammar* tmpGrammar = &(pTermArray[0]);
-		unsigned int i;
-		for(i = 1; i < pTermArraySize; i++)
+		struct EXIGrammar* tmpGrammar = (struct EXIGrammar*) pGrammars;
+		pGrammars = pGrammars->nextInStack;
+		while(pGrammars != NULL)
 		{
-			tmp_err_code = concatenateGrammars(memList, tmpGrammar, &(pTermArray[i]), &tmpGrammar);
+			tmp_err_code = concatenateGrammars(memList, tmpGrammar, pGrammars, &tmpGrammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
+			pGrammars = pGrammars->nextInStack;
 		}
 		*result = tmpGrammar;
 	}

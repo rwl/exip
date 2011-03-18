@@ -50,6 +50,8 @@
 #include "sTables.h"
 #include "schema.h"
 
+typedef struct EXIGrammar ProtoGrammarsStack;
+
 /**
  * This structure holds pointers to
  * ruleArray[i].prodArray[j].lnRowID
@@ -247,12 +249,11 @@ errorCode createWildcardTermGrammar(AllocList* memList, StringType* wildcardArra
  * @brief Creates Sequence Model Group Proto-Grammar from Particle term that is XML Schema Model Group with {compositor} equal to "sequence"
  *
  * @param[in, out] memList A list storing the memory allocations
- * @param[in] pTermArray an array of ParticleTerm grammars included in the sequence Model Group
- * @param[in] pTermArraySize the size of the ParticleTerm grammar array
+ * @param[in] pGrammars ParticleTerm grammars included in the sequence Model Group
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createSequenceModelGroupsGrammar(AllocList* memList, struct EXIGrammar* pTermArray, unsigned int pTermArraySize,
+errorCode createSequenceModelGroupsGrammar(AllocList* memList, ProtoGrammarsStack* pGrammars,
 											struct EXIGrammar** result);
 
 /**
