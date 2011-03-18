@@ -49,17 +49,28 @@
 void decodeBody(EXIStream* strm, ContentHandler* handler, ExipSchema* schema, void* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	EXIGrammarStack docGr;
+	struct EXIGrammar docGr;
 	unsigned int tmpNonTermID = GR_VOID_NON_TERMINAL;
 	EXIEvent event;
 
-	strm->gStack = &docGr;
-	tmp_err_code = createDocGrammar(strm->gStack, strm, schema);
+	strm->gStack = NULL;
+	tmp_err_code = createDocGrammar(&docGr, strm, schema);
 	if(tmp_err_code != ERR_OK)
 	{
 		if(handler->fatalError != NULL)
 		{
 			handler->fatalError(tmp_err_code, "Cannot create BuildInDocGrammar", app_data);
+		}
+		freeAllMem(strm);
+		return;
+	}
+
+	tmp_err_code = pushGrammar(&strm->gStack, &docGr);
+	if(tmp_err_code != ERR_OK)
+	{
+		if(handler->fatalError != NULL)
+		{
+			handler->fatalError(tmp_err_code, "Cannot create grammar stack", app_data);
 		}
 		freeAllMem(strm);
 		return;

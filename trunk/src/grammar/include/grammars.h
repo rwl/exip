@@ -75,7 +75,7 @@ errorCode pushGrammar(EXIGrammarStack** gStack, struct EXIGrammar* grammar);
 /**
  * @brief Pop a grammar off the top of the Grammar Stack
  * @param[in, out] grStack the Grammar stack
- * @param[out] grammar the terminal part of the production
+ * @param[out] grammar the popped out grammar
  * @return Error handling code
  */
 errorCode popGrammar(EXIGrammarStack** gStack, struct EXIGrammar** grammar);

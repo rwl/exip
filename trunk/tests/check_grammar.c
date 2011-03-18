@@ -86,8 +86,8 @@ END_TEST
 START_TEST (test_pushGrammar)
 {
 	errorCode err = UNEXPECTED_ERROR;
-	EXIGrammarStack testGr;
-	EXIGrammarStack* testGrStack = &testGr;
+	EXIGrammarStack* testGrStack = NULL;
+	struct EXIGrammar docGr;
 	struct EXIOptions options;
 	EXIStream strm;
 	struct EXIGrammar testElementGrammar;
@@ -96,8 +96,11 @@ START_TEST (test_pushGrammar)
 	strm.header.opts = &options;
 	initAllocList(&strm.memList);
 
-	err = createDocGrammar(testGrStack, &strm, NULL);
+	err = createDocGrammar(&docGr, &strm, NULL);
 	fail_if(err != ERR_OK);
+
+	err = pushGrammar(&testGrStack, &docGr);
+	fail_unless (err == ERR_OK, "pushGrammar returns error code %d", err);
 
 	err = createBuildInElementGrammar(&testElementGrammar, &strm);
 	fail_if(err != ERR_OK);
@@ -105,14 +108,15 @@ START_TEST (test_pushGrammar)
 	err = pushGrammar(&testGrStack, &testElementGrammar);
 	fail_unless (err == ERR_OK, "pushGrammar returns error code %d", err);
 	fail_if(testGrStack->nextInStack == NULL);
+	fail_if(testGrStack->nextInStack->grammar != &docGr);
 }
 END_TEST
 
 START_TEST (test_popGrammar)
 {
 	errorCode err = UNEXPECTED_ERROR;
-	EXIGrammarStack testGr;
-	EXIGrammarStack* testGrStack = &testGr;
+	EXIGrammarStack* testGrStack = NULL;
+	struct EXIGrammar docGr;
 	struct EXIOptions options;
 	EXIStream strm;
 	struct EXIGrammar testElementGrammar;
@@ -122,8 +126,11 @@ START_TEST (test_popGrammar)
 	strm.header.opts = &options;
 	initAllocList(&strm.memList);
 
-	err = createDocGrammar(testGrStack, &strm, NULL);
+	err = createDocGrammar(&docGr, &strm, NULL);
 	fail_if(err != ERR_OK);
+
+	err = pushGrammar(&testGrStack, &docGr);
+	fail_unless (err == ERR_OK, "pushGrammar returns error code %d", err);
 
 	err = createBuildInElementGrammar(&testElementGrammar, &strm);
 	fail_if(err != ERR_OK);
@@ -136,7 +143,7 @@ START_TEST (test_popGrammar)
 	fail_unless (err == ERR_OK, "popGrammar returns error code %d", err);
 	fail_if(testGrStack->nextInStack != NULL);
 	fail_if(testGR == NULL);
-	fail_if(testGR->nextInStack != NULL);
+	fail_if(testGR != &testElementGrammar);
 }
 END_TEST
 

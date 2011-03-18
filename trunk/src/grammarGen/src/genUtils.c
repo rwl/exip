@@ -46,6 +46,7 @@
 #include "grammarRules.h"
 #include "eventsEXI.h"
 #include "stringManipulate.h"
+#include "grammars.h"
 
 errorCode concatenateGrammars(AllocList* memList, struct EXIGrammar* left, struct EXIGrammar* right, struct EXIGrammar** result)
 {
@@ -55,7 +56,6 @@ errorCode concatenateGrammars(AllocList* memList, struct EXIGrammar* left, struc
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*result)->nextInStack = NULL;
 	(*result)->rulesDimension = left->rulesDimension + right->rulesDimension;
 	(*result)->grammarType = left->grammarType;
 	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
@@ -103,7 +103,6 @@ errorCode createElementProtoGrammar(AllocList* memList, StringType name, StringT
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*result)->nextInStack = NULL;
 	(*result)->rulesDimension = typeDef->rulesDimension;
 	(*result)->grammarType = GR_TYPE_SCHEMA_ELEM;
 	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
@@ -127,7 +126,6 @@ errorCode createSimpleTypeGrammar(AllocList* memList, QName simpleType, struct E
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*result)->nextInStack = NULL;
 	(*result)->rulesDimension = 2;
 	(*result)->grammarType = GR_TYPE_SCHEMA_TYPE;
 	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
@@ -156,7 +154,6 @@ errorCode createSimpleEmptyTypeGrammar(AllocList* memList, struct EXIGrammar** r
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*result)->nextInStack = NULL;
 	(*result)->rulesDimension = 1;
 	(*result)->grammarType = GR_TYPE_SCHEMA_EMPTY_TYPE;
 	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
@@ -259,7 +256,6 @@ errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, 
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*result)->nextInStack = NULL;
 	(*result)->rulesDimension = 2;
 	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
 	if((*result)->ruleArray == NULL)
@@ -391,7 +387,6 @@ errorCode createElementTermGrammar(AllocList* memList, StringType name, StringTy
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*result)->nextInStack = NULL;
 	(*result)->rulesDimension = 2;
 	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
 	if((*result)->ruleArray == NULL)
@@ -432,7 +427,7 @@ errorCode createWildcardTermGrammar(AllocList* memList, StringType* wildcardArra
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode createSequenceModelGroupsGrammar(AllocList* memList, ProtoGrammarsStack* pGrammars, struct EXIGrammar** result)
+errorCode createSequenceModelGroupsGrammar(AllocList* memList, EXIGrammarStack* pGrammars, struct EXIGrammar** result)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	if(pGrammars == NULL)
@@ -443,14 +438,19 @@ errorCode createSequenceModelGroupsGrammar(AllocList* memList, ProtoGrammarsStac
 	}
 	else
 	{
-		struct EXIGrammar* tmpGrammar = (struct EXIGrammar*) pGrammars;
-		pGrammars = pGrammars->nextInStack;
+		struct EXIGrammar* tmpGrammar;
+		tmp_err_code = popGrammar(&pGrammars, &tmpGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
 		while(pGrammars != NULL)
 		{
-			tmp_err_code = concatenateGrammars(memList, tmpGrammar, pGrammars, &tmpGrammar);
+			tmp_err_code = concatenateGrammars(memList, tmpGrammar, pGrammars->grammar, &tmpGrammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
-			pGrammars = pGrammars->nextInStack;
+			tmp_err_code = popGrammar(&pGrammars, &tmpGrammar);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
 		}
 		*result = tmpGrammar;
 	}
@@ -465,7 +465,6 @@ errorCode createChoiceModelGroupsGrammar(AllocList* memList, struct EXIGrammar* 
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*result)->nextInStack = NULL;
 	(*result)->rulesDimension = 1;
 	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
 	if((*result)->ruleArray == NULL)
@@ -499,7 +498,15 @@ errorCode getEXIDataType(QName simpleXSDType, ValueType* exiType)
 {
 	if(strEqualToAscii(*simpleXSDType.localName, "string") ||
 	   strEqualToAscii(*simpleXSDType.localName, "duration") ||
-	   strEqualToAscii(*simpleXSDType.localName, "anyURI"))
+	   strEqualToAscii(*simpleXSDType.localName, "anyURI") ||
+	   strEqualToAscii(*simpleXSDType.localName, "normalizedString") ||
+	   strEqualToAscii(*simpleXSDType.localName, "token") ||
+	   strEqualToAscii(*simpleXSDType.localName, "Name") ||
+	   strEqualToAscii(*simpleXSDType.localName, "NMTOKEN") ||
+	   strEqualToAscii(*simpleXSDType.localName, "NCName") ||
+	   strEqualToAscii(*simpleXSDType.localName, "ID") ||
+	   strEqualToAscii(*simpleXSDType.localName, "IDREF") ||
+	   strEqualToAscii(*simpleXSDType.localName, "ENTITY"))
 	{
 		*exiType = VALUE_TYPE_STRING;
 		return ERR_OK;
@@ -517,7 +524,11 @@ errorCode getEXIDataType(QName simpleXSDType, ValueType* exiType)
 			strEqualToAscii(*simpleXSDType.localName, "short") ||
 			strEqualToAscii(*simpleXSDType.localName, "byte") ||
 			strEqualToAscii(*simpleXSDType.localName, "negativeInteger") ||
-			strEqualToAscii(*simpleXSDType.localName, "positiveInteger"))
+			strEqualToAscii(*simpleXSDType.localName, "positiveInteger") ||
+			strEqualToAscii(*simpleXSDType.localName, "unsignedLong") ||
+			strEqualToAscii(*simpleXSDType.localName, "unsignedInt") ||
+			strEqualToAscii(*simpleXSDType.localName, "unsignedShort") ||
+			strEqualToAscii(*simpleXSDType.localName, "unsignedByte"))
 	{
 		*exiType = VALUE_TYPE_INTEGER;
 		return ERR_OK;
@@ -549,6 +560,13 @@ errorCode getEXIDataType(QName simpleXSDType, ValueType* exiType)
 			strEqualToAscii(*simpleXSDType.localName, "gMonth"))
 	{
 		*exiType = VALUE_TYPE_DATE_TIME;
+		return ERR_OK;
+	}
+	else if(strEqualToAscii(*simpleXSDType.localName, "NMTOKENS") ||
+			strEqualToAscii(*simpleXSDType.localName, "IDREFS") ||
+			strEqualToAscii(*simpleXSDType.localName, "ENTITIES"))
+	{
+		*exiType = VALUE_TYPE_LIST;
 		return ERR_OK;
 	}
 

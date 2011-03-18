@@ -365,6 +365,8 @@ typedef unsigned char ValueType;
 #define VALUE_TYPE_DATE_TIME 5
 #define VALUE_TYPE_BOOLEAN   6
 #define VALUE_TYPE_BINARY    7
+#define VALUE_TYPE_LIST      8
+#define VALUE_TYPE_QNAME     9
 
 struct EXIEvent
 {
@@ -441,12 +443,17 @@ struct EXIGrammar
 {
 	GrammarRule* ruleArray; // Array of grammar rules which constitute that grammar
 	uint16_t rulesDimension; // The size of the array
-	struct EXIGrammar* nextInStack;
-	unsigned int lastNonTermID; // Stores the last NonTermID before another grammar is added on top of the stack
 	unsigned char grammarType;
 };
 
-typedef struct EXIGrammar EXIGrammarStack; // Used to differentiate between single grammar (nextInStack == NULL) and stack of grammars
+struct GrammarStackNode
+{
+	struct EXIGrammar* grammar;
+	unsigned int lastNonTermID; // Stores the last NonTermID before another grammar is added on top of the stack
+	struct GrammarStackNode* nextInStack;
+};
+
+typedef struct GrammarStackNode EXIGrammarStack;
 
 typedef struct hashtable GrammarPool; // Element grammar pool or Type grammar pool
 

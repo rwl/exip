@@ -90,6 +90,7 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStrm, struct EXIOptions* opts, ExipSchema* schema)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	struct EXIGrammar* docGr;
 
 	initAllocList(&(strm->memList));
 	strm->buffer = buf;
@@ -103,9 +104,10 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 	strm->sContext.curr_lnID = 0;
 	strm->sContext.expectATData = 0;
 	strm->ioStrm = ioStrm;
+	strm->gStack = NULL;
 
-	strm->gStack = (EXIGrammarStack*) memManagedAllocate(&(strm->memList), sizeof(EXIGrammarStack));
-	if(strm->gStack == NULL)
+	docGr = (struct EXIGrammar*) memManagedAllocate(&(strm->memList), sizeof(struct EXIGrammar));
+	if(docGr == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
 	tmp_err_code = createGrammarPool(&(strm->ePool));
@@ -138,7 +140,11 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 			return tmp_err_code;
 	}
 
-	tmp_err_code = createDocGrammar(strm->gStack, strm, schema);
+	tmp_err_code = createDocGrammar(docGr, strm, schema);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = pushGrammar(&strm->gStack, docGr);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -149,18 +155,21 @@ static errorCode encodeEXIEvent(EXIStream* strm, EXIEvent event)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	uint16_t j = 0;
+	GrammarRule* ruleArr;
 
-	if(strm->nonTermID >=  strm->gStack->rulesDimension)
+	if(strm->nonTermID >=  strm->gStack->grammar->rulesDimension)
 		return INCONSISTENT_PROC_STATE;
 
-	for(j = 0; j < strm->gStack->ruleArray[strm->nonTermID].prodCount; j++)
+	ruleArr = strm->gStack->grammar->ruleArray;
+
+	for(j = 0; j < ruleArr[strm->nonTermID].prodCount; j++)
 	{
-		if(eventsEqual(strm->gStack->ruleArray[strm->nonTermID].prodArray[j].event, event))
+		if(eventsEqual(ruleArr[strm->nonTermID].prodArray[j].event, event))
 		{
-			tmp_err_code = writeEventCode(strm, strm->gStack->ruleArray[strm->nonTermID].prodArray[j].code, strm->gStack->ruleArray[strm->nonTermID].bits);
+			tmp_err_code = writeEventCode(strm, ruleArr[strm->nonTermID].prodArray[j].code, ruleArr[strm->nonTermID].bits);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
-			strm->nonTermID = strm->gStack->ruleArray[strm->nonTermID].prodArray[j].nonTermID;
+			strm->nonTermID = ruleArr[strm->nonTermID].prodArray[j].nonTermID;
 			return ERR_OK;
 		}
 	}
@@ -177,6 +186,7 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 	uint16_t j = 0;
 	int prodHit = -1;
 	int prodHitIndicator = EVENT_CATEGORY_NONE; // What type of event (ALL, URI, QNAME) is hit so far; 0-nothing, 1-ALL, 2-URI, 3-QNAME
+	GrammarRule* ruleArr;
 
 	if(isElemOrAttr == ELEMENT_EVNT) // SE event, Element
 	{
@@ -191,12 +201,14 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 		e_all = EVENT_AT_ALL;
 	}
 
-	if(strm->nonTermID >=  strm->gStack->rulesDimension)
+	if(strm->nonTermID >=  strm->gStack->grammar->rulesDimension)
 			return INCONSISTENT_PROC_STATE;
 
-	for(j = 0; j < strm->gStack->ruleArray[strm->nonTermID].prodCount; j++)
+	ruleArr = strm->gStack->grammar->ruleArray;
+
+	for(j = 0; j < ruleArr[strm->nonTermID].prodCount; j++)
 	{
-		if(strm->gStack->ruleArray[strm->nonTermID].prodArray[j].event.eventType == e_all)
+		if(ruleArr[strm->nonTermID].prodArray[j].event.eventType == e_all)
 		{
 			if(prodHitIndicator == EVENT_CATEGORY_NONE)
 			{
@@ -204,9 +216,9 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 				prodHitIndicator = EVENT_CATEGORY_ALL;
 			}
 		}
-		else if(strm->gStack->ruleArray[strm->nonTermID].prodArray[j].event.eventType == e_uri)
+		else if(ruleArr[strm->nonTermID].prodArray[j].event.eventType == e_uri)
 		{
-			if(str_equal(strm->uriTable->rows[strm->gStack->ruleArray[strm->nonTermID].prodArray[j].uriRowID].string_val, *(qname.uri)))
+			if(str_equal(strm->uriTable->rows[ruleArr[strm->nonTermID].prodArray[j].uriRowID].string_val, *(qname.uri)))
 			{
 				if(prodHitIndicator < EVENT_CATEGORY_QNAME)
 				{
@@ -215,10 +227,10 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 				}
 			}
 		}
-		else if(strm->gStack->ruleArray[strm->nonTermID].prodArray[j].event.eventType == e_qname)
+		else if(ruleArr[strm->nonTermID].prodArray[j].event.eventType == e_qname)
 		{
-			if(str_equal(strm->uriTable->rows[strm->gStack->ruleArray[strm->nonTermID].prodArray[j].uriRowID].string_val, *(qname.uri)) &&
-					str_equal(strm->uriTable->rows[strm->gStack->ruleArray[strm->nonTermID].prodArray[j].uriRowID].lTable->rows[strm->gStack->ruleArray[strm->nonTermID].prodArray[j].lnRowID].string_val, *(qname.localName)))
+			if(str_equal(strm->uriTable->rows[ruleArr[strm->nonTermID].prodArray[j].uriRowID].string_val, *(qname.uri)) &&
+					str_equal(strm->uriTable->rows[ruleArr[strm->nonTermID].prodArray[j].uriRowID].lTable->rows[ruleArr[strm->nonTermID].prodArray[j].lnRowID].string_val, *(qname.localName)))
 			{
 				prodHit = j;
 				prodHitIndicator = EVENT_CATEGORY_QNAME;
@@ -228,12 +240,12 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 	}
 	if(prodHit >= 0)
 	{
-		tmp_err_code = writeEventCode(strm, strm->gStack->ruleArray[strm->nonTermID].prodArray[prodHit].code, strm->gStack->ruleArray[strm->nonTermID].bits);
+		tmp_err_code = writeEventCode(strm, ruleArr[strm->nonTermID].prodArray[prodHit].code, ruleArr[strm->nonTermID].bits);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		strm->nonTermID = strm->gStack->ruleArray[strm->nonTermID].prodArray[prodHit].nonTermID;
-		strm->sContext.curr_uriID = strm->gStack->ruleArray[strm->nonTermID].prodArray[prodHit].uriRowID;
-		strm->sContext.curr_lnID = strm->gStack->ruleArray[strm->nonTermID].prodArray[prodHit].lnRowID;
+		strm->nonTermID = ruleArr[strm->nonTermID].prodArray[prodHit].nonTermID;
+		strm->sContext.curr_uriID = ruleArr[strm->nonTermID].prodArray[prodHit].uriRowID;
+		strm->sContext.curr_lnID = ruleArr[strm->nonTermID].prodArray[prodHit].lnRowID;
 		if(prodHitIndicator == EVENT_CATEGORY_ALL)
 		{
 			tmp_err_code = encodeQName(strm, qname);
@@ -245,9 +257,9 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 				struct EXIGrammar* res = NULL;
 				unsigned char is_found = 0;
 
-				if(strm->gStack->grammarType == GR_TYPE_BUILD_IN_ELEM)  // If the current grammar is build-in Element grammar ...
+				if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)  // If the current grammar is build-in Element grammar ...
 				{
-					tmp_err_code = insertZeroProduction(&(strm->gStack->ruleArray[strm->nonTermID]), getEventDefType(EVENT_SE_QNAME), strm->nonTermID, strm->sContext.curr_lnID, strm->sContext.curr_uriID);
+					tmp_err_code = insertZeroProduction(&(ruleArr[strm->nonTermID]), getEventDefType(EVENT_SE_QNAME), strm->nonTermID, strm->sContext.curr_lnID, strm->sContext.curr_uriID);
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
 				}
@@ -283,7 +295,7 @@ static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned ch
 			}
 			else if(isElemOrAttr == ATTRIBUTE_EVNT) // AT(*) Event
 			{
-				tmp_err_code = insertZeroProduction(&(strm->gStack->ruleArray[strm->nonTermID]), getEventDefType(EVENT_AT_QNAME), strm->nonTermID, strm->sContext.curr_lnID, strm->sContext.curr_uriID);
+				tmp_err_code = insertZeroProduction(&(ruleArr[strm->nonTermID]), getEventDefType(EVENT_AT_QNAME), strm->nonTermID, strm->sContext.curr_lnID, strm->sContext.curr_uriID);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			}
