@@ -52,6 +52,8 @@
 #include "string.h"
 #include "grammarAugment.h"
 
+#define XML_SCHEMA_NAMESPACE "http://www.w3.org/2001/XMLSchema"
+
 /** Form Choice values */
 #define FORM_CHOICE_UNQUALIFIED           0
 #define FORM_CHOICE_QUALIFIED             1
@@ -111,6 +113,7 @@ struct globalSchemaProps {
 	uint16_t targetNSMetaID;  // the uri row ID in the metaURI table of the targetNamespace
 	unsigned char attributeFormDefault; // 0 unqualified, 1 qualified, 2 expecting value, 3 initial state
 	unsigned char elementFormDefault;  // 0 unqualified, 1 qualified, 2 expecting value, 3 initial state
+	StringType emptyString; // A holder for the empty string constant used throughout the generation
 };
 
 /**
@@ -201,17 +204,21 @@ static errorCode handleElementSequence(struct xsdAppData* app_data);
 
 //////////// Helper functions
 
-static errorCode appendMetaGrammarNode(AllocList* tmpMemList, MetaGrammarList* gList, struct EXIGrammar* grammar, StringType name, StringType ns);
+static errorCode appendMetaGrammarNode(AllocList* tmpMemList, MetaGrammarList* gList, struct EXIGrammar* grammar, StringType* name, StringType* ns);
 
-static errorCode orderedAddMetaGrammarNode(AllocList* tmpMemList, MetaGrammarList* gList, struct EXIGrammar* grammar, StringType name, StringType ns);
+static errorCode orderedAddMetaGrammarNode(AllocList* tmpMemList, MetaGrammarList* gList, struct EXIGrammar* grammar, StringType* name, StringType* ns);
 
-static errorCode addLocalName(uint16_t uriId, AllocList* memList, URITable* stringTables, StringType ln);
+static errorCode addLocalName(uint16_t uriId, AllocList* memList, URITable* stringTables, StringType* ln);
 
 static void sortInitialStringTables(URITable* stringTables);
 
 static int compareLN(const void* lnRow1, const void* lnRow2);
 
 static int compareURI(const void* uriRow1, const void* uriRow2);
+
+static int parseOccuranceAttribute(const StringType occurance);
+
+static errorCode getTypeQName(AllocList* memList, const StringType typeLiteral, QName* qname);
 
 ////////////
 
@@ -243,6 +250,10 @@ errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t 
 	parsing_data.props.attributeFormDefault = FORM_DEF_INITIAL_STATE;
 	parsing_data.props.elementFormDefault = FORM_DEF_INITIAL_STATE;
 	parsing_data.props.charDataPointer = NULL;
+	parsing_data.props.targetNSMetaID = 0;
+	tmp_err_code = getEmptyString(&parsing_data.props.emptyString);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	parsing_data.contextStack = NULL;
 
@@ -253,8 +264,6 @@ errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t 
 	tmp_err_code = createDynArray(&parsing_data.regProdQname, sizeof(struct productionQname), 20, &parsing_data.tmpMemList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-
-	parsing_data.props.targetNSMetaID = 0;
 
 	parsing_data.globalElemGrammars.first = NULL;
 	parsing_data.globalElemGrammars.last = NULL;
@@ -382,7 +391,7 @@ static char xsd_startElement(QName qname, void* app_data)
 	struct xsdAppData* appD = (struct xsdAppData*) app_data;
 	if(appD->props.propsStat == INITIAL_STATE) // This should be the first <schema> element
 	{
-		if(strEqualToAscii(*qname.uri, "http://www.w3.org/2001/XMLSchema") &&
+		if(strEqualToAscii(*qname.uri, XML_SCHEMA_NAMESPACE) &&
 				strEqualToAscii(*qname.localName, "schema"))
 		{
 			appD->props.propsStat = SCHEMA_ELEMENT_STATE;
@@ -429,7 +438,7 @@ static char xsd_startElement(QName qname, void* app_data)
 			}
 		}
 
-		if(!strEqualToAscii(*qname.uri, "http://www.w3.org/2001/XMLSchema"))
+		if(!strEqualToAscii(*qname.uri, XML_SCHEMA_NAMESPACE))
 		{
 			DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Invalid namespace of XML Schema element\n"));
 			return EXIP_HANDLER_STOP;
@@ -768,7 +777,7 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char required = 0;
-	StringType target_ns;
+	StringType* target_ns;
 	QName simpleType;
 	QName scope;
 	struct EXIGrammar* attrUseGrammar;
@@ -786,26 +795,25 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 	{
 		//TODO: must take into account the parent element target namespace - might be different from the global target namespace
 
-		target_ns = app_data->props.targetNamespace; // it is the globally defined target namespace
-		tmp_err_code = addLocalName(app_data->props.targetNSMetaID, &app_data->schema->memList, app_data->schema->initialStringTables, elemDesc->attributePointers[ATTRIBUTE_NAME]);
+		target_ns = &(app_data->props.targetNamespace); // it is the globally defined target namespace
+		tmp_err_code = addLocalName(app_data->props.targetNSMetaID, &app_data->schema->memList, app_data->schema->initialStringTables, &(elemDesc->attributePointers[ATTRIBUTE_NAME]));
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 	else
 	{
-		target_ns.length = 0;
-		target_ns.str = NULL;
-		tmp_err_code = addLocalName(0, &app_data->schema->memList, app_data->schema->initialStringTables, elemDesc->attributePointers[ATTRIBUTE_NAME]);
+		target_ns = &app_data->props.emptyString;
+		tmp_err_code = addLocalName(0, &app_data->schema->memList, app_data->schema->initialStringTables, &(elemDesc->attributePointers[ATTRIBUTE_NAME]));
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 	simpleType.localName = &(elemDesc->attributePointers[ATTRIBUTE_TYPE]);
-	simpleType.uri = NULL;
+	simpleType.uri =  &app_data->props.emptyString;
 
-	scope.localName = NULL;
-	scope.uri = NULL;
+	scope.localName = &app_data->props.emptyString;
+	scope.uri = &app_data->props.emptyString;
 
-	tmp_err_code = createAttributeUseGrammar(&app_data->tmpMemList, required, elemDesc->attributePointers[ATTRIBUTE_NAME],
+	tmp_err_code = createAttributeUseGrammar(&app_data->tmpMemList, required, &(elemDesc->attributePointers[ATTRIBUTE_NAME]),
 											 target_ns, simpleType, scope, &attrUseGrammar, app_data->regProdQname);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -833,23 +841,18 @@ static errorCode handleExtentionEl(struct xsdAppData* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	QName simpleType;
-	StringType typeName;
-	StringType target_ns;
+	StringType* typeName;
+	StringType* target_ns;
 	struct EXIGrammar* simpleTypeGrammar;
 	struct elementDescr* elemDesc;
 	struct EXIGrammar* resultComplexGrammar;
 
 	popElemContext(&(app_data->contextStack), &elemDesc);
-	tmp_err_code = getEmptyString(&typeName);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	tmp_err_code = getEmptyString(&target_ns);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	typeName = &app_data->props.emptyString;
+	target_ns = &app_data->props.emptyString;
 
 	simpleType.localName = &(elemDesc->attributePointers[ATTRIBUTE_BASE]);
-	simpleType.uri = NULL;
+	simpleType.uri = &app_data->props.emptyString;
 
 	tmp_err_code = createSimpleTypeGrammar(&app_data->tmpMemList, simpleType, &simpleTypeGrammar);
 	if(tmp_err_code != ERR_OK)
@@ -891,22 +894,22 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 	// TODO: The attribute uses must be sorted first
 
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	StringType typeName;
-	StringType target_ns;
+	StringType* typeName;
+	StringType* target_ns;
 	struct EXIGrammar* contentTypeGrammar;
 	struct EXIGrammar* resultComplexGrammar;
 	struct elementDescr* elemDesc;
 
 	popElemContext(&(app_data->contextStack), &elemDesc);
 
-	typeName = elemDesc->attributePointers[ATTRIBUTE_NAME];
+	typeName = &(elemDesc->attributePointers[ATTRIBUTE_NAME]);
 
 	if(app_data->props.elementFormDefault == FORM_DEF_QUALIFIED || strEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_FORM], "qualified"))
 	{
 		//TODO: must take into account the parent element target namespace
 
-		target_ns = app_data->props.targetNamespace;
-		if(!isStrEmpty(&typeName))
+		target_ns = &(app_data->props.targetNamespace);
+		if(!isStrEmpty(typeName))
 		{
 			tmp_err_code = addLocalName(app_data->props.targetNSMetaID, &app_data->schema->memList, app_data->schema->initialStringTables, typeName);
 			if(tmp_err_code != ERR_OK)
@@ -915,9 +918,8 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 	}
 	else
 	{
-		target_ns.length = 0;
-		target_ns.str = NULL;
-		if(!isStrEmpty(&typeName))
+		target_ns = &app_data->props.emptyString;
+		if(!isStrEmpty(typeName))
 		{
 			tmp_err_code = addLocalName(0, &app_data->schema->memList, app_data->schema->initialStringTables, typeName);
 			if(tmp_err_code != ERR_OK)
@@ -928,18 +930,6 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 	tmp_err_code = popGrammar(&(elemDesc->pGrammarStack), &contentTypeGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-
-#if DEBUG_GRAMMAR_GEN == ON
-	{
-		uint16_t tt = 0;
-		for(tt = 0; tt < contentTypeGrammar->rulesDimension; tt++)
-		{
-			tmp_err_code = printGrammarRule(tt, &(contentTypeGrammar->ruleArray[tt]));
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-		}
-	}
-#endif
 
 	// TODO: the attributeUses array must be sorted first before calling createComplexTypeGrammar()
 
@@ -971,7 +961,7 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 
 	//TODO: the attributeUses array must be emptied here
 
-	if(isStrEmpty(&typeName))  // The name is empty i.e. anonymous complex type
+	if(isStrEmpty(typeName))  // The name is empty i.e. anonymous complex type
 	{
 		// Put the ComplexTypeGrammar on top of the pGrammarStack
 		// There should be a parent <element> declaration for this grammar
@@ -995,8 +985,8 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 	struct elementDescr* elemDesc;
 	StringType type;
 	struct EXIGrammar* typeGrammar;
-	StringType elName;
-	StringType target_ns;
+	StringType* elName;
+	StringType* target_ns;
 	unsigned char isGlobal = 0;
 
 	popElemContext(&(app_data->contextStack), &elemDesc);
@@ -1009,20 +999,19 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 	{
 		//TODO: must take into account the parent element target namespace
 
-		target_ns = app_data->props.targetNamespace;
-		tmp_err_code = addLocalName(app_data->props.targetNSMetaID, &app_data->schema->memList, app_data->schema->initialStringTables, elemDesc->attributePointers[ATTRIBUTE_NAME]);
+		target_ns = &(app_data->props.targetNamespace);
+		tmp_err_code = addLocalName(app_data->props.targetNSMetaID, &app_data->schema->memList, app_data->schema->initialStringTables, &(elemDesc->attributePointers[ATTRIBUTE_NAME]));
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 	else
 	{
-		target_ns.length = 0;
-		target_ns.str = NULL;
-		tmp_err_code = addLocalName(0, &app_data->schema->memList, app_data->schema->initialStringTables, elemDesc->attributePointers[ATTRIBUTE_NAME]);
+		target_ns = &app_data->props.emptyString;
+		tmp_err_code = addLocalName(0, &app_data->schema->memList, app_data->schema->initialStringTables, &(elemDesc->attributePointers[ATTRIBUTE_NAME]));
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
-	elName = elemDesc->attributePointers[ATTRIBUTE_NAME];
+	elName = &(elemDesc->attributePointers[ATTRIBUTE_NAME]);
 
 	if(isGlobal)
 	{
@@ -1047,17 +1036,42 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 		struct EXIGrammar* elParticleGrammar;
 		unsigned int minOccurs = 1;
 		int32_t maxOccurs = 1;
+		QName typeQname;
 
-		if(!isStrEmpty(&elemDesc->attributePointers[ATTRIBUTE_MIN_OCCURS]))
+		if(isStrEmpty(&type))  // There is no type attribute i.e. there must be some complex type in the pGrammarStack
 		{
-			// TODO: extract the numeric data from the string in attributePointers[ATTRIBUTE_MIN_OCCURS]
-			minOccurs = elemDesc->attributePointers[ATTRIBUTE_MIN_OCCURS].length; // Error! Just for testing!
+			tmp_err_code = popGrammar(&(elemDesc->pGrammarStack), &typeGrammar);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			tmp_err_code = appendMetaGrammarNode(&app_data->tmpMemList, &app_data->subElementGrammars, typeGrammar, elName, target_ns);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
 		}
-		if(!isStrEmpty(&elemDesc->attributePointers[ATTRIBUTE_MAX_OCCURS]))
+		else // The element has a particular named type
 		{
-			// TODO: extract the numeric data from the string in attributePointers[ATTRIBUTE_MAX_OCCURS]
-			maxOccurs = elemDesc->attributePointers[ATTRIBUTE_MAX_OCCURS].length; // Error! Just for testing!
+			tmp_err_code = getTypeQName(&app_data->tmpMemList, type, &typeQname);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			if(isStrEmpty(typeQname.uri) || strEqualToAscii(*typeQname.uri, XML_SCHEMA_NAMESPACE)) // This is simple type definition
+			{
+				tmp_err_code = createSimpleTypeGrammar(&app_data->tmpMemList, typeQname, &typeGrammar);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				tmp_err_code = appendMetaGrammarNode(&app_data->tmpMemList, &app_data->subElementGrammars, typeGrammar, elName, target_ns);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
+			else // A complex type name
+			{
+				return NOT_IMPLEMENTED_YET;
+			}
 		}
+
+		minOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MIN_OCCURS]);
+		maxOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MAX_OCCURS]);
 
 		tmp_err_code = createElementTermGrammar(&app_data->tmpMemList, elName, target_ns, &elTermGrammar, app_data->regProdQname);
 		if(tmp_err_code != ERR_OK)
@@ -1078,51 +1092,67 @@ static errorCode handleElementSequence(struct xsdAppData* app_data)
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	struct elementDescr* elemDesc;
 	struct EXIGrammar* seqGrammar;
+	struct EXIGrammar* seqPartGrammar;
+	unsigned int minOccurs = 1;
+	int32_t maxOccurs = 1;
 
 	popElemContext(&(app_data->contextStack), &elemDesc);
+
+	minOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MIN_OCCURS]);
+	maxOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MAX_OCCURS]);
 
 	tmp_err_code = createSequenceModelGroupsGrammar(&app_data->tmpMemList, elemDesc->pGrammarStack, &seqGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = pushGrammar(&(app_data->contextStack->pGrammarStack), seqGrammar);
+	tmp_err_code = createParticleGrammar(&app_data->tmpMemList, minOccurs, maxOccurs, seqGrammar, &seqPartGrammar);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = pushGrammar(&(app_data->contextStack->pGrammarStack), seqPartGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
 	return ERR_OK;
 }
 
-static errorCode appendMetaGrammarNode(AllocList* tmpMemList, MetaGrammarList* gList, struct EXIGrammar* grammar, StringType name, StringType ns)
+static errorCode appendMetaGrammarNode(AllocList* tmpMemList, MetaGrammarList* gList, struct EXIGrammar* grammar, StringType* name, StringType* ns)
 {
 	struct metaGrammarNode* node = (struct metaGrammarNode*) memManagedAllocate(tmpMemList, sizeof(struct metaGrammarNode));
 	if(node == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
 	node->grammar = grammar;
-	node->uri.length = ns.length;
-	node->uri.str = ns.str;
-	node->ln.length = name.length;
-	node->ln.str = name.str;
+	node->uri.length = ns->length;
+	node->uri.str = ns->str;
+	node->ln.length = name->length;
+	node->ln.str = name->str;
 	node->nextNode = NULL;
 
-	gList->last->nextNode = node;
+	if(gList->size == 0)
+	{
+		gList->first = node;
+		gList->last = node;
+	}
+	else
+		gList->last->nextNode = node;
 	gList->last = node;
 	gList->size += 1;
 
 	return ERR_OK;
 }
 
-static errorCode orderedAddMetaGrammarNode(AllocList* tmpMemList, MetaGrammarList* gList, struct EXIGrammar* grammar, StringType name, StringType ns)
+static errorCode orderedAddMetaGrammarNode(AllocList* tmpMemList, MetaGrammarList* gList, struct EXIGrammar* grammar, StringType* name, StringType* ns)
 {
 	struct metaGrammarNode* newNode = memManagedAllocate(tmpMemList, sizeof(struct metaGrammarNode));
 	if(newNode == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
 	newNode->grammar = grammar;
-	newNode->uri.length = ns.length;
-	newNode->uri.str = ns.str;
-	newNode->ln.length = name.length;
-	newNode->ln.str = name.str;
+	newNode->uri.length = ns->length;
+	newNode->uri.str = ns->str;
+	newNode->ln.length = name->length;
+	newNode->ln.str = name->str;
 
 	if(gList->first == NULL) // Empty list
 	{
@@ -1130,14 +1160,14 @@ static errorCode orderedAddMetaGrammarNode(AllocList* tmpMemList, MetaGrammarLis
 		gList->last = newNode;
 		gList->size = 1;
 	}
-	else if(qnamesCompare(gList->first->uri, gList->first->ln, ns, name) >= 0) // The added grammar is less or equal to the smallest grammar in the ordered list
+	else if(qnamesCompare(&gList->first->uri, &gList->first->ln, ns, name) >= 0) // The added grammar is less or equal to the smallest grammar in the ordered list
 	{
 		// insert the node at the beginning of the list
 		newNode->nextNode = gList->first;
 		gList->first = newNode;
 		gList->size += 1;
 	}
-	else if(qnamesCompare(gList->last->uri, gList->last->ln, ns, name) <= 0) // The added grammar is bigger or equal to the biggest grammar in the ordered list
+	else if(qnamesCompare(&gList->last->uri, &gList->last->ln, ns, name) <= 0) // The added grammar is bigger or equal to the biggest grammar in the ordered list
 	{
 		// insert the node at the end of the list
 		newNode->nextNode = NULL;
@@ -1150,7 +1180,7 @@ static errorCode orderedAddMetaGrammarNode(AllocList* tmpMemList, MetaGrammarLis
 		struct metaGrammarNode* tmpNode = gList->first;
 		while(tmpNode)
 		{
-			if(qnamesCompare(tmpNode->nextNode->uri, tmpNode->nextNode->ln, ns, name) >= 0) // The added grammar is less or equal to the currently tested grammar in the ordered list
+			if(qnamesCompare(&tmpNode->nextNode->uri, &tmpNode->nextNode->ln, ns, name) >= 0) // The added grammar is less or equal to the currently tested grammar in the ordered list
 			{
 				// insert the node after the tmpNode
 				newNode->nextNode = tmpNode->nextNode;
@@ -1165,7 +1195,7 @@ static errorCode orderedAddMetaGrammarNode(AllocList* tmpMemList, MetaGrammarLis
 }
 
 // Only adds it if it is not there yet
-static errorCode addLocalName(uint16_t uriId, AllocList* memList, URITable* stringTables, StringType ln)
+static errorCode addLocalName(uint16_t uriId, AllocList* memList, URITable* stringTables, StringType* ln)
 {
 	size_t lnID;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -1176,16 +1206,16 @@ static errorCode addLocalName(uint16_t uriId, AllocList* memList, URITable* stri
 		tmp_err_code = createLocalNamesTable(&stringTables->rows[uriId].lTable, memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		tmp_err_code = cloneString(&ln, &lnClone, memList);
+		tmp_err_code = cloneString(ln, &lnClone, memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		tmp_err_code = addLNRow(stringTables->rows[uriId].lTable, lnClone, &lnID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
-	else if(!lookupLN(stringTables->rows[uriId].lTable, ln, &lnID))
+	else if(!lookupLN(stringTables->rows[uriId].lTable, *ln, &lnID))
 	{
-		tmp_err_code = cloneString(&ln, &lnClone, memList);
+		tmp_err_code = cloneString(ln, &lnClone, memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		tmp_err_code = addLNRow(stringTables->rows[uriId].lTable, lnClone, &lnID);
@@ -1249,4 +1279,67 @@ static void sortInitialStringTables(URITable* stringTables)
 	//	URI	2	"http://www.w3.org/2001/XMLSchema-instance"
 	//	URI	3	"http://www.w3.org/2001/XMLSchema"
 	qsort(stringTables->rows + 4, stringTables->rowCount - 4, sizeof(struct URIRow), compareURI);
+}
+
+static int parseOccuranceAttribute(const StringType occurance)
+{
+	// TODO: Just a temporary implementation. Only works for the ASCII string representation. Fix that!
+	char buff[20];
+
+	if(isStrEmpty(&occurance))
+		return 1; // The default value
+
+	if(strEqualToAscii(occurance, "unbounded"))
+		return -1;
+
+	memcpy(buff, occurance.str, occurance.length);
+	buff[occurance.length] = '\0';
+
+	return atoi(buff);
+}
+
+static errorCode getTypeQName(AllocList* memList, const StringType typeLiteral, QName* qname)
+{
+	// TODO: Just a temporary implementation. Only works for the ASCII string representation. Fix that!
+	int i;
+	StringType* ln;
+	StringType* uri;
+
+	ln = memManagedAllocate(memList, sizeof(StringType));
+	if(ln == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	uri = memManagedAllocate(memList, sizeof(StringType));
+	if(uri == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	for(i = 0; i < typeLiteral.length; i++)
+	{
+		if(typeLiteral.str[i] == ':')
+		{
+			uri->length = i;
+			uri->str = typeLiteral.str;
+
+			ln->length = typeLiteral.length - i - 1;
+			ln->str = &typeLiteral.str[i + 1];
+
+			qname->localName = ln;
+			qname->uri = uri;
+
+			return ERR_OK;
+		}
+	}
+
+	// Else, there are not ':' character; i.e. no prefix
+
+	if(getEmptyString(uri) != ERR_OK)
+		return UNEXPECTED_ERROR;
+
+	ln->length = typeLiteral.length;
+	ln->str = typeLiteral.str;
+
+	qname->localName = ln;
+	qname->uri = uri;
+
+	return ERR_OK;
 }

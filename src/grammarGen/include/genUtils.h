@@ -141,7 +141,7 @@ errorCode createSimpleEmptyTypeGrammar(AllocList* memList, struct EXIGrammar** r
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createComplexTypeGrammar(AllocList* memList, StringType name, StringType target_ns,
+errorCode createComplexTypeGrammar(AllocList* memList, StringType* name, StringType* target_ns,
 		                           struct EXIGrammar* attrUsesArray, unsigned int attrUsesArraySize,
 		                           StringType* wildcardArray, unsigned int wildcardArraySize,
 		                           struct EXIGrammar* contentTypeGrammar,
@@ -201,7 +201,7 @@ errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, struct EXIGrammar*
  * @param[in, out] regProdQname dynamic array of struct productionQname elements
  * @return Error handling code
  */
-errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, StringType name, StringType target_ns,
+errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, StringType* name, StringType* target_ns,
 										  QName simpleType, QName scope, struct EXIGrammar** result, DynArray* regProdQname);
 
 /**
@@ -227,7 +227,7 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
  * @param[in, out] regProdQname dynamic array of struct productionQname elements
  * @return Error handling code
  */
-errorCode createElementTermGrammar(AllocList* memList, StringType name, StringType target_ns,
+errorCode createElementTermGrammar(AllocList* memList, StringType* name, StringType* target_ns,
 								   struct EXIGrammar** result, DynArray* regProdQname);
 
 /**
@@ -296,6 +296,6 @@ errorCode getEXIDataType(QName simpleXSDType, ValueType* exiType);
  * @param[in] ln2 local name of the second qname
  * @return 0 when the qnames are equal; negative int when qname1<qname2; positive when qname1>qname2
  */
-int qnamesCompare(const StringType uri1, const StringType ln1, const StringType uri2, const StringType ln2);
+int qnamesCompare(const StringType* uri1, const StringType* ln1, const StringType* uri2, const StringType* ln2);
 
 #endif /* GENUTILS_H_ */
