@@ -723,6 +723,17 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 		return INCONSISTENT_PROC_STATE;
 
 	ruleArr = strm->gStack->grammar->ruleArray;
+
+#if DEBUG_GRAMMAR == ON
+	{
+		tmp_err_code = printGrammarRule(strm->nonTermID, &ruleArr[strm->nonTermID]);
+		if(tmp_err_code != ERR_OK)
+		{
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Error printing grammar rule\n"));
+		}
+	}
+#endif
+
 	for(b = 0; b < 3; b++)
 	{
 		if(ruleArr[strm->nonTermID].bits[b] == 0 &&
@@ -811,7 +822,7 @@ static errorCode handleProduction(EXIStream* strm, unsigned int ruleIndx, unsign
 				return HANDLER_STOP_RECEIVED;
 		}
 
-		if(codeIndx > 0)   // #1# COMMENT
+		if(codeIndx > 0 && strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)   // #1# COMMENT
 		{
 			strm->sContext.curr_uriID = ruleArr[ruleIndx].prodArray[prodIndx].uriRowID;
 			strm->sContext.curr_lnID = ruleArr[ruleIndx].prodArray[prodIndx].lnRowID;
@@ -831,20 +842,20 @@ static errorCode handleProduction(EXIStream* strm, unsigned int ruleIndx, unsign
 	}
 	else // The event has content!
 	{
-		if(event->eventType != EVENT_CH) // CH events do not have QName in their content
-		{
-			strm->sContext.curr_uriID = ruleArr[ruleIndx].prodArray[prodIndx].uriRowID;
-			strm->sContext.curr_lnID = ruleArr[ruleIndx].prodArray[prodIndx].lnRowID;
-		}
 		if(event->eventType == EVENT_CH)
 		{
-			if(codeIndx > 0)   // #2# COMMENT
+			if(codeIndx > 0 && strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)   // #2# COMMENT
 			{
 				tmp_err_code = insertZeroProduction(&(ruleArr[ruleIndx]),getEventDefType(EVENT_CH), *nonTermID_out,
 													strm->sContext.curr_lnID, strm->sContext.curr_uriID);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			}
+		}
+		else // event->eventType != EVENT_CH; CH events do not have QName in their content
+		{
+			strm->sContext.curr_uriID = ruleArr[ruleIndx].prodArray[prodIndx].uriRowID;
+			strm->sContext.curr_lnID = ruleArr[ruleIndx].prodArray[prodIndx].lnRowID;
 		}
 		tmp_err_code = decodeEventContent(strm, *event, handler, nonTermID_out, &(ruleArr[ruleIndx]), app_data);
 		if(tmp_err_code != ERR_OK)
