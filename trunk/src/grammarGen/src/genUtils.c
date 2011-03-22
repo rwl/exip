@@ -48,6 +48,8 @@
 #include "stringManipulate.h"
 #include "grammars.h"
 
+static errorCode recursiveGrammarConcat(AllocList* memList, EXIGrammarStack* pGrammars, struct EXIGrammar** result);
+
 errorCode concatenateGrammars(AllocList* memList, struct EXIGrammar* left, struct EXIGrammar* right, struct EXIGrammar** result)
 {
 	uint16_t i = 0;
@@ -66,7 +68,7 @@ errorCode concatenateGrammars(AllocList* memList, struct EXIGrammar* left, struc
 	 * To ensure this is true after the concatenating, the right Non-terminal IDs
 	 * are re-numerated starting from the biggest left Non-terminal ID value + 1*/
 
-	for(i = 0;i < left->rulesDimension; i++)
+	for(i = 0; i < left->rulesDimension; i++)
 	{
 		copyGrammarRule(memList, &(left->ruleArray[i]), &((*result)->ruleArray[i]), 0);
 
@@ -80,7 +82,7 @@ errorCode concatenateGrammars(AllocList* memList, struct EXIGrammar* left, struc
 		}
 	}
 
-	for(i = 0;i < right->rulesDimension; i++)
+	for(i = 0; i < right->rulesDimension; i++)
 	{
 		copyGrammarRule(memList, &(right->ruleArray[i]), &((*result)->ruleArray[left->rulesDimension + i]), left->rulesDimension);
 	}
@@ -169,7 +171,7 @@ errorCode createSimpleEmptyTypeGrammar(AllocList* memList, struct EXIGrammar** r
 	return ERR_OK;
 }
 
-errorCode createComplexTypeGrammar(AllocList* memList, StringType name, StringType target_ns,
+errorCode createComplexTypeGrammar(AllocList* memList, StringType* name, StringType* target_ns,
 		                           struct EXIGrammar* attrUsesArray, unsigned int attrUsesArraySize,
 		                           StringType* wildcardArray, unsigned int wildcardArraySize,
 		                           struct EXIGrammar* contentTypeGrammar,
@@ -244,7 +246,7 @@ errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, struct EXIGrammar*
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, StringType name, StringType target_ns,
+errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, StringType* name, StringType* target_ns,
 										  QName simpleType, QName scope, struct EXIGrammar** result, DynArray* regProdQname)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -278,8 +280,8 @@ errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, 
 
 	pqRow.p_uriRowID = &((*result)->ruleArray[0].prodArray[0].uriRowID);
 	pqRow.p_lnRowID = &((*result)->ruleArray[0].prodArray[0].lnRowID);
-	pqRow.qname.uri = &target_ns;
-	pqRow.qname.localName = &name;
+	pqRow.qname.uri = target_ns;
+	pqRow.qname.localName = name;
 
 	tmp_err_code = addDynElement(regProdQname, &pqRow, &elIndx, memList);
 	if(tmp_err_code != ERR_OK)
@@ -311,7 +313,7 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
 	uint16_t i = 0;
 
 	tmpGrammar = termGrammar;
-	for(i = 0; i < minOccurs; i++)
+	for(i = 0; i + 1 < minOccurs; i++)
 	{
 		tmp_err_code = concatenateGrammars(memList, tmpGrammar, termGrammar, &tmpGrammar);
 		if(tmp_err_code != ERR_OK)
@@ -336,9 +338,12 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
 				return tmp_err_code;
 		}
 
+		if(minOccurs == 0)
+			tmpGrammar = termGrammar;
+
 		if(maxOccurs >= 0) // {max occurs} is not unbounded
 		{
-			for(i = 0; i < maxOccurs - minOccurs; i++)
+			for(i = 0; i + 1 < maxOccurs - minOccurs; i++)
 			{
 				tmp_err_code = concatenateGrammars(memList, tmpGrammar, termGrammar, &tmpGrammar);
 				if(tmp_err_code != ERR_OK)
@@ -362,9 +367,12 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
 				}
 			}
 
-			tmp_err_code = concatenateGrammars(memList, tmpGrammar, termGrammar, result);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			if(minOccurs > 0)
+			{
+				tmp_err_code = concatenateGrammars(memList, tmpGrammar, termGrammar, result);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
 		}
 	}
 	else // maxOccurs == minOccurs
@@ -375,7 +383,7 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
 	return ERR_OK;
 }
 
-errorCode createElementTermGrammar(AllocList* memList, StringType name, StringType target_ns,
+errorCode createElementTermGrammar(AllocList* memList, StringType* name, StringType* target_ns,
 								   struct EXIGrammar** result, DynArray* regProdQname)
 {
 	//TODO: enable support for {substitution group affiliation} property of the elements
@@ -404,8 +412,8 @@ errorCode createElementTermGrammar(AllocList* memList, StringType name, StringTy
 
 	pqRow.p_uriRowID = &((*result)->ruleArray[0].prodArray[0].uriRowID);
 	pqRow.p_lnRowID = &((*result)->ruleArray[0].prodArray[0].lnRowID);
-	pqRow.qname.uri = &target_ns;
-	pqRow.qname.localName = &name;
+	pqRow.qname.uri = target_ns;
+	pqRow.qname.localName = name;
 
 	tmp_err_code = addDynElement(regProdQname, &pqRow, &elIndx, memList);
 	if(tmp_err_code != ERR_OK)
@@ -438,21 +446,37 @@ errorCode createSequenceModelGroupsGrammar(AllocList* memList, EXIGrammarStack* 
 	}
 	else
 	{
-		struct EXIGrammar* tmpGrammar;
-		tmp_err_code = popGrammar(&pGrammars, &tmpGrammar);
+		tmp_err_code = recursiveGrammarConcat(memList, pGrammars, result);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	return ERR_OK;
+}
+
+static errorCode recursiveGrammarConcat(AllocList* memList, EXIGrammarStack* pGrammars, struct EXIGrammar** result)
+{
+	struct EXIGrammar* tmpGrammar;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+
+	tmp_err_code = popGrammar(&pGrammars, &tmpGrammar);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	if(pGrammars == NULL)
+	{
+		*result = tmpGrammar;
+		return ERR_OK;
+	}
+	else
+	{
+		struct EXIGrammar* metaResult;
+		tmp_err_code = recursiveGrammarConcat(memList, pGrammars, &metaResult);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		while(pGrammars != NULL)
-		{
-			tmp_err_code = concatenateGrammars(memList, tmpGrammar, pGrammars->grammar, &tmpGrammar);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-			tmp_err_code = popGrammar(&pGrammars, &tmpGrammar);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-		}
-		*result = tmpGrammar;
+		tmp_err_code = concatenateGrammars(memList, metaResult, tmpGrammar, result);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 	}
 	return ERR_OK;
 }
@@ -573,12 +597,12 @@ errorCode getEXIDataType(QName simpleXSDType, ValueType* exiType)
 	return INCONSISTENT_PROC_STATE;
 }
 
-int qnamesCompare(const StringType uri1, const StringType ln1, const StringType uri2, const StringType ln2)
+int qnamesCompare(const StringType* uri1, const StringType* ln1, const StringType* uri2, const StringType* ln2)
 {
-	int uri_cmp_res = str_compare(uri1, uri2);
+	int uri_cmp_res = str_compare(*uri1, *uri2);
 	if(uri_cmp_res == 0) // equal URIs
 	{
-		return str_compare(ln1, ln2);
+		return str_compare(*ln1, *ln2);
 	}
 	return uri_cmp_res;
 }
