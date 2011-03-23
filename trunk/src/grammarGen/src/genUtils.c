@@ -312,7 +312,10 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
 	struct EXIGrammar* tmpGrammar;
 	uint16_t i = 0;
 
-	tmpGrammar = termGrammar;
+	tmp_err_code = copyGrammar(memList, termGrammar, &tmpGrammar);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
 	for(i = 0; i + 1 < minOccurs; i++)
 	{
 		tmp_err_code = concatenateGrammars(memList, tmpGrammar, termGrammar, &tmpGrammar);

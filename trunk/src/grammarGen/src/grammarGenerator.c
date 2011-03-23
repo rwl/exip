@@ -323,6 +323,31 @@ static char xsd_endDocument(void* app_data)
 		uint16_t t = 0;
 		struct metaGrammarNode* tmp = appD->globalElemGrammars.first;
 
+		DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\nList of global element grammars:"));
+
+		while(tmp)
+		{
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\nURI: "));
+			printString(&tmp->uri);
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\nLN: "));
+			printString(&tmp->ln);
+
+			for(t = 0; t < tmp->grammar->rulesDimension; t++)
+			{
+				tmp_err_code = printGrammarRule(t, &(tmp->grammar->ruleArray[t]));
+				if(tmp_err_code != ERR_OK)
+				{
+					DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">printGrammarRule() fail\n"));
+					return EXIP_HANDLER_STOP;
+				}
+			}
+			tmp = tmp->nextNode;
+		}
+
+		DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\nList of sub element grammars:"));
+
+		tmp = appD->subElementGrammars.first;
+
 		while(tmp)
 		{
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\nURI: "));
@@ -938,6 +963,14 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
+	tmp_err_code = normalizeGrammar(&app_data->tmpMemList, resultComplexGrammar);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = assignCodes(resultComplexGrammar);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
 #if DEBUG_GRAMMAR_GEN == ON
 	{
 		uint16_t t = 0;
@@ -949,14 +982,6 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 		}
 	}
 #endif
-
-	tmp_err_code = normalizeGrammar(&app_data->tmpMemList, resultComplexGrammar);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	tmp_err_code = assignCodes(resultComplexGrammar);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
 
 	//TODO: the attributeUses array must be emptied here
 
@@ -1079,6 +1104,19 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 		tmp_err_code = createParticleGrammar(&app_data->tmpMemList, minOccurs, maxOccurs,
 											elTermGrammar, &elParticleGrammar);
 
+#if DEBUG_GRAMMAR_GEN == ON
+	{
+		uint16_t t = 0;
+		DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, (">Particle for element term:\n"));
+		for(t = 0; t < elParticleGrammar->rulesDimension; t++)
+		{
+			tmp_err_code = printGrammarRule(t, &(elParticleGrammar->ruleArray[t]));
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+	}
+#endif
+
 		tmp_err_code = pushGrammar(&(app_data->contextStack->pGrammarStack), elParticleGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -1107,6 +1145,19 @@ static errorCode handleElementSequence(struct xsdAppData* app_data)
 	tmp_err_code = createParticleGrammar(&app_data->tmpMemList, minOccurs, maxOccurs, seqGrammar, &seqPartGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
+
+#if DEBUG_GRAMMAR_GEN == ON
+	{
+		uint16_t t = 0;
+		DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, (">Sequence Particle Grammar:\n"));
+		for(t = 0; t < seqPartGrammar->rulesDimension; t++)
+		{
+			tmp_err_code = printGrammarRule(t, &(seqPartGrammar->ruleArray[t]));
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+	}
+#endif
 
 	tmp_err_code = pushGrammar(&(app_data->contextStack->pGrammarStack), seqPartGrammar);
 	if(tmp_err_code != ERR_OK)
