@@ -49,7 +49,6 @@
 #include "memManagement.h"
 #include "grammars.h"
 #include "normGrammar.h"
-#include "string.h"
 #include "grammarAugment.h"
 
 #define XML_SCHEMA_NAMESPACE "http://www.w3.org/2001/XMLSchema"

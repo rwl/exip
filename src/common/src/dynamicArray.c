@@ -44,7 +44,6 @@
 
 #include "dynamicArray.h"
 #include "memManagement.h"
-#include "string.h"
 
 errorCode createDynArray(DynArray** dArray, size_t elSize, uint16_t defaultSize, AllocList* memList)
 {

@@ -44,7 +44,6 @@
 
 #include "streamRead.h"
 #include "ioUtil.h"
-#include "string.h"
 
 const unsigned char BIT_MASK[] = {	(char) 0x00,	// 0b00000000
 									(char) 0x01,	// 0b00000001

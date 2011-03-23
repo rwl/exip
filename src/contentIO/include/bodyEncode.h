@@ -46,6 +46,9 @@
 
 #include "errorHandle.h"
 #include "procTypes.h"
+#include "schema.h"
+
+/**** START: Serializer API implementation  ****/
 
 // For handling the meta-data (document structure)
 errorCode startDocumentSer(EXIStream* strm);
@@ -75,5 +78,41 @@ errorCode selfContainedSer(EXIStream* strm);  // Used for indexing independent e
 
 // EXIP specific
 errorCode closeEXIStream(EXIStream* strm);
+
+/****  END: Serializer API implementation  ****/
+
+
+/**
+ * @brief Encodes String value into EXI stream
+ * @param[in, out] strm EXI stream
+ * @param[in] strng string to be written
+ * @return Error handling code
+ */
+errorCode encodeStringData(EXIStream* strm, StringType strng);
+
+/**
+ * @brief Encodes SD, ED, EE, CH events
+ * @param[in, out] strm EXI stream
+ * @param[in] event event to be encoded
+ * @return Error handling code
+ */
+errorCode encodeSimpleEXIEvent(EXIStream* strm, EXIEvent event);
+
+/**
+ * @brief Encodes SE, AT events
+ * @param[in, out] strm EXI stream
+ * @param[in] qname element or attribute QName
+ * @param[in] event event to be encoded
+ * @return Error handling code
+ */
+errorCode encodeComplexEXIEvent(EXIStream* strm, QName qname, EXIEvent event);
+
+/**
+ * @brief Encodes QName into EXI stream
+ * @param[in, out] strm EXI stream
+ * @param[in] qname qname to be written
+ * @return Error handling code
+ */
+errorCode encodeQName(EXIStream* strm, QName qname);
 
 #endif /* BODYENCODE_H_ */

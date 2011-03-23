@@ -47,6 +47,43 @@
 #include "contentHandler.h"
 #include "schema.h"
 
+/**
+ * @brief After the header is decoded, this functions is called to process the stream body by one production each step
+ *
+ * @param[in] strm EXI stream representation
+ * @param[in] handler application content handler; stores the callback functions
+ * @param[in] schema schema information when in schema-decoding mode. NULL when in schema-less mode
+ * @param[in] app_data Application data to be passed to the content handler callbacks
+ */
 void decodeBody(EXIStream* strm, ContentHandler* handler, ExipSchema* schema, void* app_data);
+
+/**
+ * @brief Decodes a QName from the EXI stream
+ * @param[in, out] strm EXI stream representation
+ * @param[out] qname the QName decoded
+ * @return Error handling code
+ */
+errorCode decodeQName(EXIStream* strm, QName* qname);
+
+/**
+ * @brief Decodes a string value from the EXI stream
+ * @param[in, out] strm EXI stream representation
+ * @param[out] value the string decoded
+ * @return Error handling code
+ */
+errorCode decodeStringValue(EXIStream* strm, StringType** value);
+
+/**
+ * @brief Decodes the content of EXI event
+ * @param[in, out] strm EXI stream representation
+ * @param[in] event the event which content will be decoded
+ * @param[in] handler application content handler; stores the callback functions
+ * @param[out] nonTermID_out nonTerminal ID after the content decoding
+ * @param[in] currRule the current grammar rule in use for the event
+ * @param[in] app_data Application data to be passed to the content handler callbacks
+ * @return Error handling code
+ */
+errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* handler,
+									unsigned int* nonTermID_out, GrammarRule* currRule, void* app_data);
 
 #endif /* BODYDECODE_H_ */

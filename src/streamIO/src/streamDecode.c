@@ -138,6 +138,7 @@ errorCode decodeStringOnly(EXIStream* strm, size_t str_length, StringType* strin
 	// this is the place to allocate the memory for the  { CharType* str; }!!!
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	size_t i = 0;
+	size_t UCSCharPosition = 0;
 	uint32_t tmp_code_point = 0;
 	tmp_err_code = allocateStringMemory(&(string_val->str), str_length, &strm->memList);
 	if(tmp_err_code != ERR_OK)
@@ -149,7 +150,7 @@ errorCode decodeStringOnly(EXIStream* strm, size_t str_length, StringType* strin
 		tmp_err_code = decodeUnsignedInteger(strm, &tmp_code_point);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		writeCharToString(string_val, tmp_code_point, i);
+		writeCharToString(string_val, tmp_code_point, &UCSCharPosition);
 	}
 	return ERR_OK;
 }

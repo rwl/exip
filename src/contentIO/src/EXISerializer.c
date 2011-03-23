@@ -34,7 +34,7 @@
 
 /**
  * @file EXISerializer.c
- * @brief Implementation of serializer of EXI streams
+ * @brief Implementation of the serializer of EXI streams
  *
  * @date Sep 30, 2010
  * @author Rumen Kyusakov
@@ -44,21 +44,10 @@
 
 #include "EXISerializer.h"
 #include "grammars.h"
-#include "stringManipulate.h"
 #include "memManagement.h"
 #include "sTables.h"
 #include "headerEncode.h"
 #include "bodyEncode.h"
-
-#define ELEMENT_EVNT 1
-#define ATTRIBUTE_EVNT 2
-
-// What type of event (ALL, URI, QNAME) is hit so far; 0-nothing, 1-ALL, 2-URI, 3-QNAME
-#define EVENT_CATEGORY_NONE  0
-#define EVENT_CATEGORY_ALL   1
-#define EVENT_CATEGORY_URI   2
-#define EVENT_CATEGORY_QNAME 3
-
 
 /**
  * The handler to be used by the applications to serialize EXI streams
@@ -83,9 +72,6 @@ const EXISerializer serEXI  =  {startDocumentSer,
 								selfContainedSer,
 								initStream,
 								closeEXIStream};
-
-static errorCode encodeEXIEvent(EXIStream* strm, EXIEvent event);
-static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned char isElemOrAttr);
 
 errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStrm, struct EXIOptions* opts, ExipSchema* schema)
 {
@@ -153,252 +139,12 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 	return ERR_OK;
 }
 
-static errorCode encodeEXIEvent(EXIStream* strm, EXIEvent event)
-{
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	uint16_t j = 0;
-	GrammarRule* ruleArr;
-	int32_t prodWithShortestCode = -1;
-
-	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Ser EXI simple event: %d\n", event.eventType));
-
-	if(strm->nonTermID >=  strm->gStack->grammar->rulesDimension)
-		return INCONSISTENT_PROC_STATE;
-
-	ruleArr = strm->gStack->grammar->ruleArray;
-
-#if DEBUG_CONTENT_IO == ON
-	{
-		tmp_err_code = printGrammarRule(strm->nonTermID, &ruleArr[strm->nonTermID]);
-		if(tmp_err_code != ERR_OK)
-		{
-			DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Error printing grammar rule\n"));
-		}
-	}
-#endif
-
-	for(j = 0; j < ruleArr[strm->nonTermID].prodCount; j++)
-	{
-		if(eventsEqual(ruleArr[strm->nonTermID].prodArray[j].event, event))
-		{
-			if(prodWithShortestCode == -1)
-				prodWithShortestCode = j;
-			else
-			{
-				if(ruleArr[strm->nonTermID].prodArray[j].code.size < ruleArr[strm->nonTermID].prodArray[prodWithShortestCode].code.size)
-					prodWithShortestCode = j;
-			}
-		}
-	}
-
-	if(prodWithShortestCode == -1)
-		return EVENT_CODE_MISSING;
-
-	tmp_err_code = writeEventCode(strm, ruleArr[strm->nonTermID].prodArray[prodWithShortestCode].code, ruleArr[strm->nonTermID].bits);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM && ruleArr[strm->nonTermID].prodArray[prodWithShortestCode].code.size > 1
-		&& (event.eventType == EVENT_CH || event.eventType == EVENT_EE))  // If the current grammar is build-in Element grammar and the event code size is bigger than 1 and the event is CH or EE...
-	{
-		// #1# COMMENT and #2# COMMENT
-		tmp_err_code = insertZeroProduction(&(ruleArr[strm->nonTermID]),getEventDefType(event.eventType), ruleArr[strm->nonTermID].prodArray[prodWithShortestCode].nonTermID,
-				ruleArr[strm->nonTermID].prodArray[prodWithShortestCode].lnRowID, ruleArr[strm->nonTermID].prodArray[prodWithShortestCode].uriRowID);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-
-	strm->nonTermID = ruleArr[strm->nonTermID].prodArray[prodWithShortestCode].nonTermID;
-	return ERR_OK;
-}
-
-static errorCode encodeEXIComplexEvent(EXIStream* strm, QName qname, unsigned char isElemOrAttr)
-{
-	unsigned char e_qname;
-	unsigned char e_uri;
-	unsigned char e_all;
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	uint16_t j = 0;
-	int prodHit = -1;
-	int prodHitIndicator = EVENT_CATEGORY_NONE; // What type of event (ALL, URI, QNAME) is hit so far; 0-nothing, 1-ALL, 2-URI, 3-QNAME
-	GrammarRule* ruleArr;
-
-	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Ser EXI complex event\n"));
-
-	if(isElemOrAttr == ELEMENT_EVNT) // SE event, Element
-	{
-		e_qname = EVENT_SE_QNAME;
-		e_uri = EVENT_SE_URI;
-		e_all = EVENT_SE_ALL;
-	}
-	else // AT event, Attribute
-	{
-		e_qname = EVENT_AT_QNAME;
-		e_uri = EVENT_AT_URI;
-		e_all = EVENT_AT_ALL;
-	}
-
-	if(strm->nonTermID >=  strm->gStack->grammar->rulesDimension)
-			return INCONSISTENT_PROC_STATE;
-
-	ruleArr = strm->gStack->grammar->ruleArray;
-
-#if DEBUG_CONTENT_IO == ON
-	{
-		tmp_err_code = printGrammarRule(strm->nonTermID, &ruleArr[strm->nonTermID]);
-		if(tmp_err_code != ERR_OK)
-		{
-			DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Error printing grammar rule\n"));
-		}
-	}
-#endif
-
-	for(j = 0; j < ruleArr[strm->nonTermID].prodCount; j++)
-	{
-		if(ruleArr[strm->nonTermID].prodArray[j].event.eventType == e_all)
-		{
-			if(prodHitIndicator == EVENT_CATEGORY_NONE)
-			{
-				prodHit = j;
-				prodHitIndicator = EVENT_CATEGORY_ALL;
-			}
-		}
-		else if(ruleArr[strm->nonTermID].prodArray[j].event.eventType == e_uri)
-		{
-			if(str_equal(strm->uriTable->rows[ruleArr[strm->nonTermID].prodArray[j].uriRowID].string_val, *(qname.uri)))
-			{
-				if(prodHitIndicator < EVENT_CATEGORY_QNAME)
-				{
-					prodHit = j;
-					prodHitIndicator = EVENT_CATEGORY_URI;
-				}
-			}
-		}
-		else if(ruleArr[strm->nonTermID].prodArray[j].event.eventType == e_qname)
-		{
-			if(str_equal(strm->uriTable->rows[ruleArr[strm->nonTermID].prodArray[j].uriRowID].string_val, *(qname.uri)) &&
-					str_equal(strm->uriTable->rows[ruleArr[strm->nonTermID].prodArray[j].uriRowID].lTable->rows[ruleArr[strm->nonTermID].prodArray[j].lnRowID].string_val, *(qname.localName)))
-			{
-				prodHit = j;
-				prodHitIndicator = EVENT_CATEGORY_QNAME;
-				break; // There is not a shorter code for that Event code
-			}
-		}
-	}
-	if(prodHit >= 0)
-	{
-		tmp_err_code = writeEventCode(strm, ruleArr[strm->nonTermID].prodArray[prodHit].code, ruleArr[strm->nonTermID].bits);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		strm->sContext.curr_uriID = ruleArr[strm->nonTermID].prodArray[prodHit].uriRowID;
-		strm->sContext.curr_lnID = ruleArr[strm->nonTermID].prodArray[prodHit].lnRowID;
-		if(prodHitIndicator == EVENT_CATEGORY_ALL)
-		{
-			tmp_err_code = encodeQName(strm, qname);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-
-			if(isElemOrAttr == ELEMENT_EVNT) // SE(*) Event
-			{
-				struct EXIGrammar* res = NULL;
-				unsigned char is_found = 0;
-
-				DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Ser SE(*) Event \n"));
-
-				if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)  // If the current grammar is build-in Element grammar ...
-				{
-					tmp_err_code = insertZeroProduction(&(ruleArr[strm->nonTermID]), getEventDefType(EVENT_SE_QNAME), ruleArr[strm->nonTermID].prodArray[prodHit].nonTermID, strm->sContext.curr_lnID, strm->sContext.curr_uriID);
-					if(tmp_err_code != ERR_OK)
-						return tmp_err_code;
-				}
-
-				// New element grammar is pushed on the stack
-				tmp_err_code = checkGrammarInPool(strm->ePool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, &is_found, &res);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
-				strm->gStack->lastNonTermID = ruleArr[strm->nonTermID].prodArray[prodHit].nonTermID;
-				if(is_found)
-				{
-					DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Element grammar found in the pool \n"));
-					strm->nonTermID = GR_START_TAG_CONTENT;
-					tmp_err_code = pushGrammar(&(strm->gStack), res);
-					if(tmp_err_code != ERR_OK)
-						return tmp_err_code;
-				}
-				else
-				{
-					DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Element grammar NOT found in the pool \n"));
-					struct EXIGrammar* elementGrammar = (struct EXIGrammar*) memManagedAllocate(&strm->memList, sizeof(struct EXIGrammar));
-					if(elementGrammar == NULL)
-						return MEMORY_ALLOCATION_ERROR;
-					tmp_err_code = createBuildInElementGrammar(elementGrammar, strm);
-					if(tmp_err_code != ERR_OK)
-						return tmp_err_code;
-					tmp_err_code = addGrammarInPool(strm->ePool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, elementGrammar);
-					if(tmp_err_code != ERR_OK)
-						return tmp_err_code;
-					strm->nonTermID = GR_START_TAG_CONTENT;
-					tmp_err_code = pushGrammar(&(strm->gStack), elementGrammar);
-					if(tmp_err_code != ERR_OK)
-						return tmp_err_code;
-				}
-			}
-			else if(isElemOrAttr == ATTRIBUTE_EVNT) // AT(*) Event
-			{
-				DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Ser AT(*) Event \n"));
-				tmp_err_code = insertZeroProduction(&(ruleArr[strm->nonTermID]), getEventDefType(EVENT_AT_QNAME), ruleArr[strm->nonTermID].prodArray[prodHit].nonTermID, strm->sContext.curr_lnID, strm->sContext.curr_uriID);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
-
-				strm->nonTermID = ruleArr[strm->nonTermID].prodArray[prodHit].nonTermID;
-			}
-		}
-		else if(prodHitIndicator == EVENT_CATEGORY_QNAME)
-		{
-			if(isElemOrAttr == ELEMENT_EVNT) // SE(QName) Event
-			{
-				// New element grammar is pushed on the stack
-				struct EXIGrammar* res = NULL;
-				unsigned char is_found = 0;
-
-				DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Ser SE(QName) Event \n"));
-
-				tmp_err_code = checkGrammarInPool(strm->ePool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, &is_found, &res);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
-				strm->gStack->lastNonTermID = ruleArr[strm->nonTermID].prodArray[prodHit].nonTermID;
-				if(is_found)
-				{
-					strm->nonTermID = GR_START_TAG_CONTENT;
-					tmp_err_code = pushGrammar(&(strm->gStack), res);
-					if(tmp_err_code != ERR_OK)
-						return tmp_err_code;
-				}
-				else
-				{
-					return INCONSISTENT_PROC_STATE;  // The event require the presence of Element Grammar In the Pool
-				}
-			}
-			else if(isElemOrAttr == ATTRIBUTE_EVNT) // AT(QName) Event
-			{
-				DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Ser AT(QName) Event \n"));
-				return NOT_IMPLEMENTED_YET;
-			}
-		}
-
-		if(isElemOrAttr == ATTRIBUTE_EVNT) // AT event
-			strm->sContext.expectATData = TRUE;
-		return ERR_OK;
-	}
-	return EVENT_CODE_MISSING;
-}
-
 errorCode startDocumentSer(EXIStream* strm)
 {
 	if(strm->nonTermID != GR_DOCUMENT)
 		return INCONSISTENT_PROC_STATE;
 
-	return encodeEXIEvent(strm, getEventDefType(EVENT_SD));
+	return encodeSimpleEXIEvent(strm, getEventDefType(EVENT_SD));
 }
 
 errorCode endDocumentSer(EXIStream* strm)
@@ -406,18 +152,18 @@ errorCode endDocumentSer(EXIStream* strm)
 	if(strm->nonTermID != GR_DOC_END)
 		return INCONSISTENT_PROC_STATE;
 
-	return encodeEXIEvent(strm, getEventDefType(EVENT_ED));
+	return encodeSimpleEXIEvent(strm, getEventDefType(EVENT_ED));
 }
 
 errorCode startElementSer(EXIStream* strm, QName qname)
 {
-	return encodeEXIComplexEvent(strm, qname, ELEMENT_EVNT);
+	return encodeComplexEXIEvent(strm, qname, getEventDefType(EVENT_SE_ALL));
 }
 
 errorCode endElementSer(EXIStream* strm)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	tmp_err_code = encodeEXIEvent(strm, getEventDefType(EVENT_EE));
+	tmp_err_code = encodeSimpleEXIEvent(strm, getEventDefType(EVENT_EE));
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	if(strm->nonTermID == GR_VOID_NON_TERMINAL)
@@ -434,7 +180,7 @@ errorCode endElementSer(EXIStream* strm)
 
 errorCode attributeSer(EXIStream* strm, QName qname)
 {
-	return encodeEXIComplexEvent(strm, qname, ATTRIBUTE_EVNT);
+	return encodeComplexEXIEvent(strm, qname, getEventDefType(EVENT_AT_ALL));
 }
 
 errorCode intDataSer(EXIStream* strm, int32_t int_val)
@@ -462,7 +208,7 @@ errorCode stringDataSer(EXIStream* strm, const StringType str_val)
 	else
 	{
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		tmp_err_code = encodeEXIEvent(strm, getEventDefType(EVENT_CH));
+		tmp_err_code = encodeSimpleEXIEvent(strm, getEventDefType(EVENT_CH));
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		return encodeStringData(strm, str_val);

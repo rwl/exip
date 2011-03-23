@@ -44,8 +44,6 @@
 
 #include "stringManipulate.h"
 #include "memManagement.h"
-#include <string.h>
-#include <stdio.h>
 
 errorCode allocateStringMemory(CharType** str, size_t UCSchars, AllocList* memList)
 {
@@ -56,20 +54,12 @@ errorCode allocateStringMemory(CharType** str, size_t UCSchars, AllocList* memLi
 }
 
 /**
- * Simple translation working only for ASCII characters
+ * Simple translation working only for ASCII characters. No error checking implemented!
  */
-errorCode UCSToChar(uint32_t code_point, CharType* ch)
+errorCode writeCharToString(StringType* str, uint32_t code_point, size_t* UCSposition)
 {
-	*ch = (CharType) code_point;
-	return ERR_OK;
-}
-
-/**
- * Simple translation working only for ASCII characters
- */
-errorCode writeCharToString(StringType* str, uint32_t code_point, size_t UCSposition)
-{
-	str->str[UCSposition] = (CharType) code_point;
+	str->str[*UCSposition] = (CharType) code_point;
+	*UCSposition += 1;
 	return ERR_OK;
 }
 
@@ -190,6 +180,8 @@ errorCode cloneString(const StringType* src, StringType* newStr, AllocList* memL
 	return ERR_OK;
 }
 
+#if EXIP_DEBUG == ON
+
 void printString(const StringType* inStr)
 {
 	size_t i = 0;
@@ -200,3 +192,5 @@ void printString(const StringType* inStr)
 		DEBUG_CHAR_OUTPUT(inStr->str[i]);
 	}
 }
+
+#endif /* EXIP_DEBUG */
