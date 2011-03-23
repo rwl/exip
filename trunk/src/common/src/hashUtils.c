@@ -42,7 +42,6 @@
  */
 
 #include "procTypes.h"
-#include "string.h"
 
 uint32_t djbHash(void* str, unsigned int len)
 {

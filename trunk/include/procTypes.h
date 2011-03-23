@@ -48,7 +48,11 @@
 #include "errorHandle.h"
 #include <stdint.h>
 #include <time.h>
+#include <string.h>
 #include "exipConfig.h"
+
+#define TRUE  1
+#define FALSE 0
 
 #ifndef NULL
 #define NULL ((void *)0)

@@ -35,6 +35,7 @@
 /**
  * @file exipConfig.h
  * @brief Configuration parameters of the EXIP library
+ * To be defined per application
  *
  * @date Oct 13, 2010
  * @author Rumen Kyusakov
@@ -44,40 +45,41 @@
 #ifndef EXIPCONFIG_H_
 #define EXIPCONFIG_H_
 
-#define INFO 1
-#define WARNING 2
-#define ERROR 3
-
 #define ON  1
 #define OFF 0
 
-#define EXIP_DEBUG  	  OFF   //TODO: document this macro #DOCUMENT#
-#define EXIP_DEBUG_LEVEL INFO   //TODO: document this macro #DOCUMENT#
+#ifdef EXIP_APP_CONFIG
 
-#define DEBUG_STREAM_IO   OFF	//TODO: document this macro #DOCUMENT#
-#define DEBUG_COMMON      OFF	//TODO: document this macro #DOCUMENT#
-#define DEBUG_CONTENT_IO  OFF	//TODO: document this macro #DOCUMENT#
-#define DEBUG_GRAMMAR     OFF	//TODO: document this macro #DOCUMENT#
-#define DEBUG_GRAMMAR_GEN OFF	//TODO: document this macro #DOCUMENT#
-#define DEBUG_STRING_TBLS OFF	//TODO: document this macro #DOCUMENT#
+#  include "app_config.h"
 
-#define DEBUG_ALL_MODULES (DEBUG_STREAM_IO || DEBUG_COMMON || DEBUG_CONTENT_IO || DEBUG_GRAMMAR || DEBUG_GRAMMAR_GEN || DEBUG_STRING_TBLS) //TODO: document this macro #DOCUMENT#
+#else  // The default EXIP parameters
 
-#define TRUE  1
-#define FALSE 0
+#  define EXIP_DEBUG  	     ON //TODO: document this macro #DOCUMENT#
+#  define EXIP_DEBUG_LEVEL INFO //TODO: document this macro #DOCUMENT#
+
+#  define DEBUG_STREAM_IO   OFF	//TODO: document this macro #DOCUMENT#
+#  define DEBUG_COMMON      OFF	//TODO: document this macro #DOCUMENT#
+#  define DEBUG_CONTENT_IO  OFF	//TODO: document this macro #DOCUMENT#
+#  define DEBUG_GRAMMAR     OFF	//TODO: document this macro #DOCUMENT#
+#  define DEBUG_GRAMMAR_GEN OFF	//TODO: document this macro #DOCUMENT#
+#  define DEBUG_STRING_TBLS OFF	//TODO: document this macro #DOCUMENT#
+
+#  define DEBUG_ALL_MODULES (DEBUG_STREAM_IO || DEBUG_COMMON || DEBUG_CONTENT_IO || DEBUG_GRAMMAR || DEBUG_GRAMMAR_GEN || DEBUG_STRING_TBLS) //TODO: document this macro #DOCUMENT#
 
 /**
  * Define the memory allocation functions
  */
-#include <stdlib.h> //TODO: make it conditional!
-#define EXIP_MALLOC malloc   //TODO: document this macro #DOCUMENT#
-#define EXIP_REALLOC realloc //TODO: document this macro #DOCUMENT#
+#  include <stdlib.h>
+#  define EXIP_MALLOC malloc   //TODO: document this macro #DOCUMENT#
+#  define EXIP_REALLOC realloc //TODO: document this macro #DOCUMENT#
 
 /**
  * Define the memory freeing function
  */
-#define EXIP_MFREE free  //TODO: document this macro #DOCUMENT#
+#  define EXIP_MFREE free  //TODO: document this macro #DOCUMENT#
 
-#define MAX_HASH_TABLE_SIZE 16000 //TODO: document this macro #DOCUMENT#
+#  define MAX_HASH_TABLE_SIZE 16000 //TODO: document this macro #DOCUMENT#
+
+#endif /* EXIP_APP_CONFIG */
 
 #endif /* EXIPCONFIG_H_ */

@@ -4,7 +4,6 @@
 
 #include "hashtable.h"
 #include "hashtable_private.h"
-#include <string.h>
 #include "procTypes.h"
 
 static unsigned int simple_ceil(float var);

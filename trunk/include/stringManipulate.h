@@ -60,23 +60,6 @@
 errorCode allocateStringMemory(CharType** str, size_t UCSchars, AllocList* memList);
 
 /**
- * @brief Translate the UCS [ISO/IEC 10646] code point to CharType
- * Note! The implementation of this function is platform-specific.
- * It depends on the representation of the characters
- *
- * @deprecated In some encodings (ex. UTF-8) there is no direct correspondence
- * 			   between the character in UCS and the number of CharTypes that it
- * 			   takes in the encoding. For example 1 UCS character may require 2 or
- * 			   3  CharTypes to be encoded.
- *             Use writeCharToString() instead.
- *
- * @param[in] code_point  UCS [ISO/IEC 10646] code point
- * @param[out] ch the character corresponding to the code_point
- * @return Error handling code
- */
-errorCode UCSToChar(uint32_t code_point, CharType* ch);
-
-/**
  * @brief Writes a UCS [ISO/IEC 10646] code point to a string
  * Note! The implementation of this function is platform-specific.
  * It depends on the representation of the characters.
@@ -85,10 +68,14 @@ errorCode UCSToChar(uint32_t code_point, CharType* ch);
  *
  * @param[in, out] str string to be written on
  * @param[in] code_point UCS [ISO/IEC 10646] code point
- * @param[in] UCSposition the position of the code point relatively to the beginning of the string
+ * @param[in, out] UCSposition the position of the code point relatively to the beginning of the string.
+ * 				   If the string is empty, then 0 should be passed. The position of the next character is
+ * 				   returned in the same parameter. This is needed because in some encodings (ex. UTF-8)
+ * 				   there is no direct correspondence between the character in UCS and the number of CharTypes that it
+ * 			       takes in the encoding. For example 1 UCS character may require 2 or 3  CharTypes to be encoded.
  * @return Error handling code
  */
-errorCode writeCharToString(StringType* str, uint32_t code_point, size_t UCSposition);
+errorCode writeCharToString(StringType* str, uint32_t code_point, size_t* UCSposition);
 
 /**
  * @brief Creates an empty string
@@ -166,8 +153,8 @@ errorCode getUCSCodePoint(const StringType* str, size_t charIndex, uint32_t* UCS
  */
 errorCode cloneString(const StringType* src, StringType* newStr, AllocList* memList);
 
-//TODO: At first glance this function is only useful for debugging. If so consider
-//      removing it with the preprocessor macro EXIP_DEBUG
+#if EXIP_DEBUG == ON
+
 /**
  * @brief Prints out a StringType
  * Note! The implementation of this function is platform-specific.
@@ -175,5 +162,7 @@ errorCode cloneString(const StringType* src, StringType* newStr, AllocList* memL
  * @param[in] inStr Input string to be printed
  */
 void printString(const StringType* inStr);
+
+#endif /* EXIP_DEBUG */
 
 #endif /* STRINGMANIPULATE_H_ */

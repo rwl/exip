@@ -141,20 +141,4 @@ errorCode checkGrammarInPool(GrammarPool* pool, uint16_t uriRowID,
 errorCode addGrammarInPool(GrammarPool* pool, uint16_t uriRowID,
 									size_t lnRowID, struct EXIGrammar* newGr);
 
-/**
- * @brief Encodes QName into EXI stream
- * @param[in, out] strm EXI stream
- * @param[in] qname qname to be written
- * @return Error handling code
- */
-errorCode encodeQName(EXIStream* strm, QName qname);
-
-/**
- * @brief Encodes String value into EXI stream
- * @param[in, out] strm EXI stream
- * @param[in] strng string to be written
- * @return Error handling code
- */
-errorCode encodeStringData(EXIStream* strm, StringType strng);
-
 #endif /* GRAMMARS_H_ */

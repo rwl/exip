@@ -45,6 +45,8 @@
 #include "grammars.h"
 #include "sTables.h"
 #include "memManagement.h"
+#include "ioUtil.h"
+#include "streamDecode.h"
 
 void decodeBody(EXIStream* strm, ContentHandler* handler, ExipSchema* schema, void* app_data)
 {
@@ -168,4 +170,291 @@ void decodeBody(EXIStream* strm, ContentHandler* handler, ExipSchema* schema, vo
 		tmpNonTermID = GR_VOID_NON_TERMINAL;
 	}
 	freeAllMem(strm);
+}
+
+errorCode decodeQName(EXIStream* strm, QName* qname)
+{
+	//TODO: add the case when Preserve.prefixes is true
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	uint32_t tmp_val_buf = 0;
+	unsigned char uriBits = getBitsNumber(strm->uriTable->rowCount);
+	uint16_t uriID = 0; // The URI id in the URI string table
+	uint32_t tmpVar = 0;
+	size_t lnID = 0;
+
+
+	DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Decoding QName\n"));
+	tmp_err_code = decodeNBitUnsignedInteger(strm, uriBits, &tmp_val_buf);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+	if(tmp_val_buf == 0) // uri miss
+	{
+		StringType str;
+		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">URI miss\n"));
+		tmp_err_code = decodeString(strm, &str);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = addURIRow(strm->uriTable, str, &uriID, &strm->memList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		qname->uri = &(strm->uriTable->rows[uriID].string_val);
+	}
+	else // uri hit
+	{
+		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">URI hit\n"));
+		qname->uri = &(strm->uriTable->rows[tmp_val_buf-1].string_val);
+		uriID = tmp_val_buf-1;
+	}
+
+	tmp_err_code = decodeUnsignedInteger(strm, &tmpVar);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	if(tmpVar == 0) // local-name table hit
+	{
+		unsigned char lnBits = getBitsNumber(strm->uriTable->rows[uriID].lTable->rowCount - 1);
+		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">local-name table hit\n"));
+		tmp_err_code = decodeNBitUnsignedInteger(strm, lnBits, &tmpVar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		lnID = (size_t) tmpVar;
+		qname->localName = &(strm->uriTable->rows[uriID].lTable->rows[lnID].string_val);
+	}
+	else // local-name table miss
+	{
+		StringType lnStr;
+		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">local-name table miss\n"));
+		tmp_err_code = decodeStringOnly(strm, tmpVar - 1, &lnStr);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		if(strm->uriTable->rows[uriID].lTable == NULL)
+		{
+			tmp_err_code = createLocalNamesTable(&strm->uriTable->rows[uriID].lTable, &strm->memList);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+		tmp_err_code = addLNRow(strm->uriTable->rows[uriID].lTable, lnStr, &lnID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		qname->localName = &(strm->uriTable->rows[uriID].lTable->rows[lnID].string_val);
+	}
+	strm->sContext.curr_uriID = uriID;
+	strm->sContext.curr_lnID = lnID;
+	return ERR_OK;
+}
+
+errorCode decodeStringValue(EXIStream* strm, StringType** value)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	uint16_t uriID = strm->sContext.curr_uriID;
+	size_t lnID = strm->sContext.curr_lnID;
+	uint32_t tmpVar = 0;
+	tmp_err_code = decodeUnsignedInteger(strm, &tmpVar);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	if(tmpVar == 0) // "local" value partition table hit
+	{
+		uint16_t lvID = 0;
+		size_t value_table_rowID;
+
+		unsigned char lvBits = getBitsNumber(strm->uriTable->rows[uriID].lTable->rows[lnID].vCrossTable->rowCount - 1);
+		tmp_err_code = decodeNBitUnsignedInteger(strm, lvBits, &tmpVar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		lvID = (uint16_t) tmpVar;
+		value_table_rowID = strm->uriTable->rows[uriID].lTable->rows[lnID].vCrossTable->valueRowIds[lvID];
+		(*value) = &(strm->vTable->rows[value_table_rowID].string_val);
+	}
+	else if(tmpVar == 1)// global value partition table hit
+	{
+		size_t gvID = 0;
+		unsigned char gvBits = getBitsNumber(strm->vTable->rowCount - 1);
+		tmp_err_code = decodeNBitUnsignedInteger(strm, gvBits, &tmpVar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		gvID = (size_t) tmpVar;
+		(*value) = &(strm->vTable->rows[gvID].string_val);
+	}
+	else  // "local" value partition and global value partition table miss
+	{
+		StringType gvStr;
+		size_t gvID = 0;
+		tmp_err_code = decodeStringOnly(strm, tmpVar - 2, &gvStr);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		//TODO: Take into account valuePartitionCapacity parameter for setting globalID variable
+
+		tmp_err_code = addGVRow(strm->vTable, gvStr, &gvID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = addLVRow(&(strm->uriTable->rows[uriID].lTable->rows[lnID]), gvID, &strm->memList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		(*value) = &(strm->vTable->rows[gvID].string_val);
+	}
+	return ERR_OK;
+}
+
+errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* handler,
+									unsigned int* nonTermID_out, GrammarRule* currRule,  void* app_data)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	// TODO: implement all cases
+	QName qname;
+	if(event.eventType == EVENT_SE_ALL)
+	{
+		struct EXIGrammar* res = NULL;
+		unsigned char is_found = 0;
+
+		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">SE(*) event\n"));
+		// The content of SE event is the element qname
+		tmp_err_code = decodeQName(strm, &qname);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		if(handler->startElement != NULL)  // Invoke handler method passing the element qname
+		{
+			if(handler->startElement(qname, app_data) == EXIP_HANDLER_STOP)
+				return HANDLER_STOP_RECEIVED;
+		}
+
+		if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)  // If the current grammar is build-in Element grammar ...
+		{
+			tmp_err_code = insertZeroProduction(currRule, getEventDefType(EVENT_SE_QNAME), *nonTermID_out, strm->sContext.curr_lnID, strm->sContext.curr_uriID);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+
+		// New element grammar is pushed on the stack
+		tmp_err_code = checkGrammarInPool(strm->ePool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, &is_found, &res);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		strm->gStack->lastNonTermID = *nonTermID_out;
+		if(is_found)
+		{
+			*nonTermID_out = GR_START_TAG_CONTENT;
+			tmp_err_code = pushGrammar(&(strm->gStack), res);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+		else
+		{
+			struct EXIGrammar* elementGrammar = (struct EXIGrammar*) memManagedAllocate(&strm->memList, sizeof(struct EXIGrammar));
+			if(elementGrammar == NULL)
+				return MEMORY_ALLOCATION_ERROR;
+			tmp_err_code = createBuildInElementGrammar(elementGrammar, strm);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+			tmp_err_code = addGrammarInPool(strm->ePool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, elementGrammar);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+			*nonTermID_out = GR_START_TAG_CONTENT;
+			tmp_err_code = pushGrammar(&(strm->gStack), elementGrammar);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+
+	}
+	else if(event.eventType == EVENT_AT_ALL)
+	{
+		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">AT(*) event\n"));
+		tmp_err_code = decodeQName(strm, &qname);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		if(handler->attribute != NULL)  // Invoke handler method
+		{
+			if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
+				return HANDLER_STOP_RECEIVED;
+		}
+		if(event.valueType == VALUE_TYPE_STRING || event.valueType == VALUE_TYPE_NONE)
+		{
+			StringType* value;
+			tmp_err_code = decodeStringValue(strm, &value);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+			if(handler->stringData != NULL)  // Invoke handler method
+			{
+				if(handler->stringData(*value, app_data) == EXIP_HANDLER_STOP)
+					return HANDLER_STOP_RECEIVED;
+			}
+		}
+		tmp_err_code = insertZeroProduction(currRule, getEventDefType(EVENT_AT_QNAME), *nonTermID_out, strm->sContext.curr_lnID, strm->sContext.curr_uriID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else if(event.eventType == EVENT_SE_QNAME)
+	{
+		struct EXIGrammar* res = NULL;
+		unsigned char is_found = 0;
+
+		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">SE(qname) event\n"));
+		qname.uri = &(strm->uriTable->rows[strm->sContext.curr_uriID].string_val);
+		qname.localName = &(strm->uriTable->rows[strm->sContext.curr_uriID].lTable->rows[strm->sContext.curr_lnID].string_val);
+		if(handler->startElement != NULL)  // Invoke handler method passing the element qname
+		{
+			if(handler->startElement(qname, app_data) == EXIP_HANDLER_STOP)
+				return HANDLER_STOP_RECEIVED;
+		}
+
+		// New element grammar is pushed on the stack
+		tmp_err_code = checkGrammarInPool(strm->ePool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, &is_found, &res);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		strm->gStack->lastNonTermID = *nonTermID_out;
+		if(is_found)
+		{
+			*nonTermID_out = GR_START_TAG_CONTENT;
+			tmp_err_code = pushGrammar(&(strm->gStack), res);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+		else
+		{
+			return INCONSISTENT_PROC_STATE;  // The event require the presence of Element Grammar In the Pool
+		}
+	}
+	else if(event.eventType == EVENT_AT_QNAME)
+	{
+		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">AT(qname) event\n"));
+		qname.uri = &(strm->uriTable->rows[strm->sContext.curr_uriID].string_val);
+		qname.localName = &(strm->uriTable->rows[strm->sContext.curr_uriID].lTable->rows[strm->sContext.curr_lnID].string_val);
+		if(handler->attribute != NULL)  // Invoke handler method
+		{
+			if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
+				return HANDLER_STOP_RECEIVED;
+		}
+		if(event.valueType == VALUE_TYPE_STRING || event.valueType == VALUE_TYPE_NONE)
+		{
+			StringType* value;
+			tmp_err_code = decodeStringValue(strm, &value);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+			if(handler->stringData != NULL)  // Invoke handler method
+			{
+				if(handler->stringData(*value, app_data) == EXIP_HANDLER_STOP)
+					return HANDLER_STOP_RECEIVED;
+			}
+		}
+	}
+	else if(event.eventType == EVENT_CH)
+	{
+		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">CH event\n"));
+		if(event.valueType == VALUE_TYPE_STRING || event.valueType == VALUE_TYPE_NONE)
+		{
+			StringType* value;
+			tmp_err_code = decodeStringValue(strm, &value);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+			if(handler->stringData != NULL)  // Invoke handler method
+			{
+				if(handler->stringData(*value, app_data) == EXIP_HANDLER_STOP)
+					return HANDLER_STOP_RECEIVED;
+			}
+		}
+	}
+	return ERR_OK;
 }

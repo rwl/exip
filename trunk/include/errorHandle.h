@@ -47,19 +47,23 @@
 
 #include "exipConfig.h"
 
-/* Platform specific debugging output */
-#ifndef DEBUG_OUTPUT	// TODO: document this macro #DOCUMENT#
-#  define DEBUG_OUTPUT(msg)	do {printf msg;} while(0)
-#endif
+#define INFO 1
+#define WARNING 2
+#define ERROR 3
+
+#if EXIP_DEBUG == ON // TODO: document this macro #DOCUMENT#
+
+#  include <stdio.h>
 
 /* Platform specific debugging character output */
 #ifndef DEBUG_CHAR_OUTPUT	// TODO: document this macro #DOCUMENT#
 #  define DEBUG_CHAR_OUTPUT(character)	do {putchar (character);} while(0)
 #endif
 
-#if EXIP_DEBUG == ON // TODO: document this macro #DOCUMENT#
-
-#  include <stdio.h>
+/* Platform specific debugging output */
+#  ifndef DEBUG_OUTPUT	// TODO: document this macro #DOCUMENT#
+#    define DEBUG_OUTPUT(msg)	do {printf msg;} while(0)
+#  endif
 
 #  ifndef EXIP_DEBUG_LEVEL // TODO: document this macro #DOCUMENT#
 #    define EXIP_DEBUG_LEVEL INFO

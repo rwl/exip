@@ -45,7 +45,6 @@
 #include "dynamicArray.h"
 #include "grammarRules.h"
 #include "memManagement.h"
-#include <string.h>
 
 /** Store the information for a single already removed production - used for deleteNoTermProductions() */
 struct removedProdInf
