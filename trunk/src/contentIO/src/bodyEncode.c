@@ -352,7 +352,7 @@ errorCode encodeComplexEXIEvent(EXIStream* strm, QName qname, EXIEvent event)
 			else if(isElement == FALSE) // AT(QName) Event
 			{
 				DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Ser AT(QName) Event \n"));
-				return NOT_IMPLEMENTED_YET;
+				strm->nonTermID = ruleArr[strm->nonTermID].prodArray[prodHit].nonTermID;
 			}
 		}
 
