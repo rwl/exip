@@ -52,7 +52,7 @@ void decodeBody(EXIStream* strm, ContentHandler* handler, ExipSchema* schema, vo
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	struct EXIGrammar docGr;
-	unsigned int tmpNonTermID = GR_VOID_NON_TERMINAL;
+	size_t tmpNonTermID = GR_VOID_NON_TERMINAL;
 	EXIEvent event;
 
 	strm->gStack = NULL;
@@ -301,7 +301,7 @@ errorCode decodeStringValue(EXIStream* strm, StringType** value)
 }
 
 errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* handler,
-									unsigned int* nonTermID_out, GrammarRule* currRule,  void* app_data)
+									size_t* nonTermID_out, GrammarRule* currRule,  void* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	// TODO: implement all cases

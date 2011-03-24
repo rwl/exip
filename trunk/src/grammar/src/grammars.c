@@ -58,7 +58,7 @@
 #define GRAMMAR_POOL_DIMENSION 16
 
 static errorCode handleProduction(EXIStream* strm, unsigned int ruleIndx, unsigned int prodIndx,
-				EXIEvent* event, unsigned int* nonTermID_out, ContentHandler* handler, void* app_data, unsigned int codeIndx);
+				EXIEvent* event, size_t* nonTermID_out, ContentHandler* handler, void* app_data, unsigned int codeIndx);
 
 errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, ExipSchema* schema)
 {
@@ -74,6 +74,7 @@ errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, ExipS
 
 	docGrammar->rulesDimension = DEF_DOC_GRAMMAR_RULE_NUMBER;
 	docGrammar->grammarType = GR_TYPE_BUILD_IN_DOC;
+	docGrammar->contentIndex = 0;
 	docGrammar->ruleArray = (GrammarRule*) memManagedAllocate(&strm->memList, sizeof(GrammarRule)*DEF_DOC_GRAMMAR_RULE_NUMBER);
 	if(docGrammar->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -215,6 +216,7 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, EXIStre
 
 	elementGrammar->rulesDimension = DEF_ELEMENT_GRAMMAR_RULE_NUMBER;
 	elementGrammar->grammarType = GR_TYPE_BUILD_IN_ELEM;
+	elementGrammar->contentIndex = 0;
 	elementGrammar->ruleArray = (GrammarRule*) memManagedAllocate(&strm->memList, sizeof(GrammarRule)*DEF_ELEMENT_GRAMMAR_RULE_NUMBER);
 	if(elementGrammar->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -374,6 +376,7 @@ errorCode copyGrammar(AllocList* memList, struct EXIGrammar* src, struct EXIGram
 
 	(*dest)->rulesDimension = src->rulesDimension;
 	(*dest)->grammarType = src->grammarType;
+	(*dest)->contentIndex = src->contentIndex;
 
 	(*dest)->ruleArray = memManagedAllocate(memList, sizeof(GrammarRule) * (*dest)->rulesDimension);
 	if((*dest)->ruleArray == NULL)
@@ -412,7 +415,7 @@ errorCode popGrammar(EXIGrammarStack** gStack, struct EXIGrammar** grammar)
 }
 
 errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
-							    unsigned int* nonTermID_out, ContentHandler* handler, void* app_data)
+							    size_t* nonTermID_out, ContentHandler* handler, void* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	uint32_t tmp_bits_val = 0;
@@ -495,7 +498,7 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
  * */
 
 static errorCode handleProduction(EXIStream* strm, unsigned int ruleIndx, unsigned int prodIndx,
-				EXIEvent* event, unsigned int* nonTermID_out, ContentHandler* handler, void* app_data, unsigned int codeIndx)
+				EXIEvent* event, size_t* nonTermID_out, ContentHandler* handler, void* app_data, unsigned int codeIndx)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	GrammarRule* ruleArr = strm->gStack->grammar->ruleArray;
