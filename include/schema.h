@@ -51,7 +51,7 @@
 struct grammarDescr {
 	uint16_t uriRowId;
 	size_t lnRowId;
-	struct EXIGrammar grammar;
+	struct EXIGrammar* grammar;
 };
 
 typedef struct grammarDescr GrammarDescr;

@@ -309,7 +309,6 @@ static char xsd_endDocument(void* app_data)
 	struct xsdAppData* appD = (struct xsdAppData*) app_data;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int i = 0;
-	unsigned int j = 0;
 	struct productionQname* tmpPQ;
 	struct metaGrammarNode* tmpGNode;
 	uint16_t uriRowID;
@@ -382,20 +381,21 @@ static char xsd_endDocument(void* app_data)
 
 	appD->schema->globalElemGrammars.count = appD->globalElemGrammars.size;
 	appD->schema->globalElemGrammars.elems = (GrammarDescr*) memManagedAllocate(&appD->schema->memList, sizeof(GrammarDescr)*appD->globalElemGrammars.size);
+	if(appD->schema->globalElemGrammars.elems == NULL)
+	{
+		DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Memory allocation error\n"));
+		return EXIP_HANDLER_STOP;
+	}
 	tmpGNode = appD->globalElemGrammars.first;
 	for(i = 0; i < appD->globalElemGrammars.size; i++)
 	{
-		appD->schema->globalElemGrammars.elems[i].grammar.rulesDimension = tmpGNode->grammar->rulesDimension;
-		appD->schema->globalElemGrammars.elems[i].grammar.ruleArray = (GrammarRule*) memManagedAllocate(&appD->schema->memList, sizeof(GrammarRule) * tmpGNode->grammar->rulesDimension);
-		for(j = 0; j < tmpGNode->grammar->rulesDimension; j++)
+		tmp_err_code = copyGrammar(&appD->schema->memList, tmpGNode->grammar, &appD->schema->globalElemGrammars.elems[i].grammar);
+		if(tmp_err_code != ERR_OK)
 		{
-			tmp_err_code = copyGrammarRule(&appD->schema->memList, &tmpGNode->grammar->ruleArray[j], &appD->schema->globalElemGrammars.elems[i].grammar.ruleArray[j], 0);
-			if(tmp_err_code != ERR_OK)
-			{
-				DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Schema parsing error: %d\n", tmp_err_code));
-				return EXIP_HANDLER_STOP;
-			}
+			DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Schema parsing error: %d\n", tmp_err_code));
+			return EXIP_HANDLER_STOP;
 		}
+
 		lookupURI(appD->schema->initialStringTables, tmpGNode->uri, &uriRowID);
 		appD->schema->globalElemGrammars.elems[i].uriRowId = uriRowID;
 		lookupLN(appD->schema->initialStringTables->rows[uriRowID].lTable, tmpGNode->ln, &lnRowID);
@@ -403,8 +403,29 @@ static char xsd_endDocument(void* app_data)
 		tmpGNode = tmpGNode->nextNode;
 	}
 
-	// TODO: the same for the type grammars and subelement grammars
-	appD->schema->subElementGrammars.count = 0;
+	appD->schema->subElementGrammars.count = appD->subElementGrammars.size;
+	appD->schema->subElementGrammars.elems = (GrammarDescr*) memManagedAllocate(&appD->schema->memList, sizeof(GrammarDescr)*appD->subElementGrammars.size);
+	if(appD->schema->subElementGrammars.elems == NULL)
+	{
+		DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Memory allocation error\n"));
+		return EXIP_HANDLER_STOP;
+	}
+	tmpGNode = appD->subElementGrammars.first;
+	for(i = 0; i < appD->subElementGrammars.size; i++)
+	{
+		tmp_err_code = copyGrammar(&appD->schema->memList, tmpGNode->grammar, &appD->schema->subElementGrammars.elems[i].grammar);
+		if(tmp_err_code != ERR_OK)
+		{
+			DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Schema parsing error: %d\n", tmp_err_code));
+			return EXIP_HANDLER_STOP;
+		}
+
+		lookupURI(appD->schema->initialStringTables, tmpGNode->uri, &uriRowID);
+		appD->schema->subElementGrammars.elems[i].uriRowId = uriRowID;
+		lookupLN(appD->schema->initialStringTables->rows[uriRowID].lTable, tmpGNode->ln, &lnRowID);
+		appD->schema->subElementGrammars.elems[i].lnRowId = lnRowID;
+		tmpGNode = tmpGNode->nextNode;
+	}
 
 	freeAllocList(&appD->tmpMemList);
 	return EXIP_HANDLER_OK;

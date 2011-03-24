@@ -106,11 +106,11 @@ void decodeBody(EXIStream* strm, ContentHandler* handler, ExipSchema* schema, vo
 
 		for (i = 0; i < schema->globalElemGrammars.count; i++)
 		{
-			addGrammarInPool(strm->ePool, schema->globalElemGrammars.elems[i].uriRowId, schema->globalElemGrammars.elems[i].lnRowId, &schema->globalElemGrammars.elems[i].grammar);
+			addGrammarInPool(strm->ePool, schema->globalElemGrammars.elems[i].uriRowId, schema->globalElemGrammars.elems[i].lnRowId, schema->globalElemGrammars.elems[i].grammar);
 		}
 		for (i = 0; i < schema->subElementGrammars.count; i++)
 		{
-			addGrammarInPool(strm->ePool, schema->subElementGrammars.elems[i].uriRowId, schema->subElementGrammars.elems[i].lnRowId, &schema->subElementGrammars.elems[i].grammar);
+			addGrammarInPool(strm->ePool, schema->subElementGrammars.elems[i].uriRowId, schema->subElementGrammars.elems[i].lnRowId, schema->subElementGrammars.elems[i].grammar);
 		}
 
 		// TODO: the same for the type grammar pool
