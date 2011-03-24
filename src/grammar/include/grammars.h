@@ -62,7 +62,7 @@
  * @return Error handling code
  */
 errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
-							    unsigned int* nonTermID_out, ContentHandler* handler, void* app_data);
+							    size_t* nonTermID_out, ContentHandler* handler, void* app_data);
 
 /**
  * @brief Push a grammar on top of the Grammar Stack

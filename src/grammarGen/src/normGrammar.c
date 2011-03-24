@@ -49,16 +49,16 @@
 /** Store the information for a single already removed production - used for deleteNoTermProductions() */
 struct removedProdInf
 {
-	unsigned int leftNonTermID;
-	unsigned int rightNonTermID;
+	size_t leftNonTermID;
+	size_t rightNonTermID;
 };
 
 /** Store the information for a single assigned for addition grammar rule - used for deleteDuplicateTerminals() */
 struct addedRuleInf
 {
-	unsigned int firstNonTermID; // smaller index, part of the union
-	unsigned int secondNonTermID;  // higher index, part of the union
-	unsigned int ruleNonTermID;
+	size_t firstNonTermID; // smaller index, part of the union
+	size_t secondNonTermID;  // higher index, part of the union
+	size_t ruleNonTermID;
 	GrammarRule* rule;
 };
 
@@ -73,7 +73,7 @@ errorCode deleteNoTermProductions(AllocList* memList, struct EXIGrammar* grammar
 	size_t t = 0;
 	unsigned char rmPrFlag = 0;
 	DynArray* removedProdArray;
-	unsigned int rightNonTerm = 0;
+	size_t rightNonTerm = 0;
 	struct removedProdInf pr;
 	size_t elId = 0;
 

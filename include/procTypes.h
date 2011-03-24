@@ -50,6 +50,11 @@
 #include <time.h>
 #include <string.h>
 #include "exipConfig.h"
+#include <limits.h>
+
+#ifdef _MSC_VER
+	SIZE_MAX ((size_t) -1)
+#endif
 
 #define TRUE  1
 #define FALSE 0
@@ -392,7 +397,7 @@ struct Production
 {
 	EventCode code;
 	EXIEvent event;
-	unsigned int nonTermID; // unique identifier of right-hand side Non-terminal
+	size_t nonTermID; // unique identifier of right-hand side Non-terminal
 
 	/**
 	 * For SE(qname), SE(uri:*), AT(qname) and AT(uri:*). Points to the qname or its local name
@@ -405,7 +410,7 @@ struct Production
 typedef struct Production Production;
 
 // Define Built-in Grammars non-terminals
-#define GR_VOID_NON_TERMINAL 9999 // Used to indicate that the production does not have NON_TERMINAL on the right-hand side
+#define GR_VOID_NON_TERMINAL SIZE_MAX // Used to indicate that the production does not have NON_TERMINAL on the right-hand side
 
 #define GR_DOCUMENT          0
 #define GR_DOC_CONTENT       1
@@ -446,14 +451,15 @@ typedef struct GrammarRule GrammarRule;
 struct EXIGrammar
 {
 	GrammarRule* ruleArray; // Array of grammar rules which constitute that grammar
-	uint16_t rulesDimension; // The size of the array
+	size_t rulesDimension; // The size of the array
 	unsigned char grammarType;
+	size_t contentIndex;
 };
 
 struct GrammarStackNode
 {
 	struct EXIGrammar* grammar;
-	unsigned int lastNonTermID; // Stores the last NonTermID before another grammar is added on top of the stack
+	size_t lastNonTermID; // Stores the last NonTermID before another grammar is added on top of the stack
 	struct GrammarStackNode* nextInStack;
 };
 
@@ -587,7 +593,7 @@ struct EXIStream
 	/**
 	 * Current (Left-hand side) Non terminal ID (Define the context/processor state)
 	 */
-	unsigned int nonTermID;
+	size_t nonTermID;
 
 	/**
 	 * Current position in the string tables

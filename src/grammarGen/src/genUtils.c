@@ -60,6 +60,7 @@ errorCode concatenateGrammars(AllocList* memList, struct EXIGrammar* left, struc
 
 	(*result)->rulesDimension = left->rulesDimension + right->rulesDimension;
 	(*result)->grammarType = left->grammarType;
+	(*result)->contentIndex = left->rulesDimension; // The content index of grammar ComplexType is the index of the first non-terminal symbol of Content within the context of Type i .
 	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
 	if((*result)->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -107,6 +108,7 @@ errorCode createElementProtoGrammar(AllocList* memList, StringType name, StringT
 
 	(*result)->rulesDimension = typeDef->rulesDimension;
 	(*result)->grammarType = GR_TYPE_SCHEMA_ELEM;
+	(*result)->contentIndex = 0;
 	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
 	if((*result)->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -130,6 +132,7 @@ errorCode createSimpleTypeGrammar(AllocList* memList, QName simpleType, struct E
 
 	(*result)->rulesDimension = 2;
 	(*result)->grammarType = GR_TYPE_SCHEMA_TYPE;
+	(*result)->contentIndex = 0;
 	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
 	if((*result)->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -158,6 +161,7 @@ errorCode createSimpleEmptyTypeGrammar(AllocList* memList, struct EXIGrammar** r
 
 	(*result)->rulesDimension = 1;
 	(*result)->grammarType = GR_TYPE_SCHEMA_EMPTY_TYPE;
+	(*result)->contentIndex = 0;
 	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
 	if((*result)->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -232,6 +236,7 @@ errorCode createComplexEmptyTypeGrammar(AllocList* memList, StringType name, Str
 		return tmp_err_code;
 
 	(*result)->grammarType = GR_TYPE_SCHEMA_EMPTY_TYPE;
+	(*result)->contentIndex = (*result)->rulesDimension - 1; // The content index of grammar TypeEmpty i  is the index of its last non-terminal symbol.
 
 	return ERR_OK;
 }
@@ -259,6 +264,8 @@ errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, 
 		return MEMORY_ALLOCATION_ERROR;
 
 	(*result)->rulesDimension = 2;
+	(*result)->grammarType = GR_TYPE_SCHEMA_TYPE;
+	(*result)->contentIndex = 0;
 	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
 	if((*result)->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -399,6 +406,8 @@ errorCode createElementTermGrammar(AllocList* memList, StringType* name, StringT
 		return MEMORY_ALLOCATION_ERROR;
 
 	(*result)->rulesDimension = 2;
+	(*result)->grammarType = GR_TYPE_SCHEMA_TYPE;
+	(*result)->contentIndex = 0;
 	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
 	if((*result)->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -493,6 +502,8 @@ errorCode createChoiceModelGroupsGrammar(AllocList* memList, struct EXIGrammar* 
 		return MEMORY_ALLOCATION_ERROR;
 
 	(*result)->rulesDimension = 1;
+	(*result)->grammarType = GR_TYPE_SCHEMA_TYPE;
+	(*result)->contentIndex = 0;
 	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
 	if((*result)->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;

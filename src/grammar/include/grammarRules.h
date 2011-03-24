@@ -68,7 +68,7 @@ errorCode initGrammarRule(GrammarRule* rule, AllocList* memList);
  * @param[in] nonTermID unique identifier of right-hand side Non-terminal
  * @return Error handling code
  */
-errorCode addProduction(GrammarRule* rule, EventCode eCode, EXIEvent event, unsigned int nonTermID);
+errorCode addProduction(GrammarRule* rule, EventCode eCode, EXIEvent event, size_t nonTermID);
 
 /**
  * @brief Inserts a Production to a Grammar Rule (with LeftHandSide) with an event code 0
@@ -81,7 +81,7 @@ errorCode addProduction(GrammarRule* rule, EventCode eCode, EXIEvent event, unsi
  * @param[in] uriRowID URI part of the qname of the Event Type corresponding to the inserted production
  * @return Error handling code
  */
-errorCode insertZeroProduction(GrammarRule* rule, EXIEvent event, unsigned int nonTermID,
+errorCode insertZeroProduction(GrammarRule* rule, EXIEvent event, size_t nonTermID,
 								size_t lnRowID, uint16_t uriRowID);
 
 /**
@@ -103,7 +103,7 @@ errorCode copyGrammarRule(AllocList* memList, GrammarRule* src, GrammarRule* des
  * @param[in] rule a Grammar Rule to be printed
  * @return Error handling code
  */
-errorCode printGrammarRule(unsigned int nonTermID, GrammarRule* rule);
+errorCode printGrammarRule(size_t nonTermID, GrammarRule* rule);
 
 #endif // EXIP_DEBUG
 

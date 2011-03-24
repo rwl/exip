@@ -84,6 +84,6 @@ errorCode decodeStringValue(EXIStream* strm, StringType** value);
  * @return Error handling code
  */
 errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* handler,
-									unsigned int* nonTermID_out, GrammarRule* currRule, void* app_data);
+									size_t* nonTermID_out, GrammarRule* currRule, void* app_data);
 
 #endif /* BODYDECODE_H_ */

@@ -44,7 +44,7 @@
 #include "eventsEXI.h"
 #include "streamEncode.h"
 
-#define UNUSED_CODE_PART_VALUE 9999
+#define UNUSED_CODE_PART_VALUE UINT_MAX
 
 EventCode getEventCode3(unsigned int first, unsigned int second, unsigned int third)
 {

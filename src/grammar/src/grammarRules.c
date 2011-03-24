@@ -59,7 +59,7 @@ errorCode initGrammarRule(GrammarRule* rule, AllocList* memList)
 	return ERR_OK;
 }
 
-errorCode addProduction(GrammarRule* rule, EventCode eCode, EXIEvent event, unsigned int nonTermID)
+errorCode addProduction(GrammarRule* rule, EventCode eCode, EXIEvent event, size_t nonTermID)
 {
 	if(rule->prodCount == rule->prodDimension) // The dynamic array prodArray needs to be resized
 	{
@@ -76,7 +76,7 @@ errorCode addProduction(GrammarRule* rule, EventCode eCode, EXIEvent event, unsi
 	return ERR_OK;
 }
 
-errorCode insertZeroProduction(GrammarRule* rule, EXIEvent event, unsigned int nonTermID,
+errorCode insertZeroProduction(GrammarRule* rule, EXIEvent event, size_t nonTermID,
 								size_t lnRowID, uint16_t uriRowID)
 {
 	uint16_t i = 0;
@@ -138,7 +138,7 @@ errorCode copyGrammarRule(AllocList* memList, GrammarRule* src, GrammarRule* des
 
 #ifdef EXIP_DEBUG // TODO: document this macro #DOCUMENT#
 
-errorCode printGrammarRule(unsigned int nonTermID, GrammarRule* rule)
+errorCode printGrammarRule(size_t nonTermID, GrammarRule* rule)
 {
 	uint16_t i = 0;
 
