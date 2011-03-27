@@ -143,7 +143,7 @@ errorCode printGrammarRule(size_t nonTermID, GrammarRule* rule)
 	uint16_t i = 0;
 
 	DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\n>RULE\n"));
-	DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("NT-%d:", nonTermID));
+	DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("NT-%u:", (unsigned int) nonTermID));
 
 	DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\n"));
 	for(i = 0; i < rule->prodCount; i++)
@@ -208,7 +208,7 @@ errorCode printGrammarRule(size_t nonTermID, GrammarRule* rule)
 				return UNEXPECTED_ERROR;
 		}
 		DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\t"));
-		DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("NT-%d",rule->prodArray[i].nonTermID));
+		DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("NT-%u", (unsigned int) rule->prodArray[i].nonTermID));
 
 		DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\t\t"));
 		for(j = 0; j < rule->prodArray[i].code.size; j++)
