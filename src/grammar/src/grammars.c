@@ -424,7 +424,7 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 	unsigned int b = 0;
 	GrammarRule* ruleArr;
 
-	DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Next production non-term-id: %d\n", strm->nonTermID));
+	DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Next production non-term-id: %u\n", (unsigned int) strm->nonTermID));
 
 	if(strm->nonTermID >=  strm->gStack->grammar->rulesDimension)
 		return INCONSISTENT_PROC_STATE;
