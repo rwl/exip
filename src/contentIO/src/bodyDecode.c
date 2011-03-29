@@ -438,16 +438,24 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 			return INCONSISTENT_PROC_STATE;  // The event require the presence of Element Grammar In the Pool
 		}
 	}
-	else if(event.eventType == EVENT_AT_QNAME)
+	else if(event.eventType == EVENT_AT_QNAME || event.eventType == EVENT_CH)
 	{
-		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">AT(qname) event\n"));
-		qname.uri = &(strm->uriTable->rows[strm->sContext.curr_uriID].string_val);
-		qname.localName = &(strm->uriTable->rows[strm->sContext.curr_uriID].lTable->rows[strm->sContext.curr_lnID].string_val);
-		if(handler->attribute != NULL)  // Invoke handler method
+		if(event.eventType == EVENT_AT_QNAME)
 		{
-			if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
-				return HANDLER_STOP_RECEIVED;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">AT(qname) event\n"));
+			qname.uri = &(strm->uriTable->rows[strm->sContext.curr_uriID].string_val);
+			qname.localName = &(strm->uriTable->rows[strm->sContext.curr_uriID].lTable->rows[strm->sContext.curr_lnID].string_val);
+			if(handler->attribute != NULL)  // Invoke handler method
+			{
+				if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
+					return HANDLER_STOP_RECEIVED;
+			}
 		}
+		else
+		{
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">CH event\n"));
+		}
+
 		if(event.valueType == VALUE_TYPE_STRING || event.valueType == VALUE_TYPE_NONE || event.valueType == VALUE_TYPE_UNTYPED)
 		{
 			StringType* value;
@@ -474,65 +482,45 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		}
 		else if(event.valueType == VALUE_TYPE_DECIMAL)
 		{
-			return NOT_IMPLEMENTED_YET;
-		}
-		else if(event.valueType == VALUE_TYPE_FLOAT)
-		{
-			return NOT_IMPLEMENTED_YET;
-		}
-		else if(event.valueType == VALUE_TYPE_INTEGER)
-		{
-			return NOT_IMPLEMENTED_YET;
-		}
-		else if(event.valueType == VALUE_TYPE_LIST)
-		{
-			return NOT_IMPLEMENTED_YET;
-		}
-		else if(event.valueType == VALUE_TYPE_QNAME)
-		{
-			return NOT_IMPLEMENTED_YET;
-		}
-		else
-			return INCONSISTENT_PROC_STATE;
-	}
-	else if(event.eventType == EVENT_CH)
-	{
-		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">CH event\n"));
-		if(event.valueType == VALUE_TYPE_STRING || event.valueType == VALUE_TYPE_NONE)
-		{
-			StringType* value;
-			tmp_err_code = decodeStringValue(strm, &value);
+			decimal decVal;
+			tmp_err_code = decodeDecimalValue(strm, &decVal);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
-			if(handler->stringData != NULL)  // Invoke handler method
+			if(handler->decimalData != NULL)  // Invoke handler method
 			{
-				if(handler->stringData(*value, app_data) == EXIP_HANDLER_STOP)
+				if(handler->decimalData(decVal, app_data) == EXIP_HANDLER_STOP)
 					return HANDLER_STOP_RECEIVED;
 			}
 		}
-		else if(event.valueType == VALUE_TYPE_BOOLEAN)
-		{
-			return NOT_IMPLEMENTED_YET;
-		}
-		else if(event.valueType == VALUE_TYPE_BINARY)
-		{
-			return NOT_IMPLEMENTED_YET;
-		}
-		else if(event.valueType == VALUE_TYPE_DATE_TIME)
-		{
-			return NOT_IMPLEMENTED_YET;
-		}
-		else if(event.valueType == VALUE_TYPE_DECIMAL)
-		{
-			return NOT_IMPLEMENTED_YET;
-		}
 		else if(event.valueType == VALUE_TYPE_FLOAT)
 		{
 			return NOT_IMPLEMENTED_YET;
 		}
 		else if(event.valueType == VALUE_TYPE_INTEGER)
 		{
-			return NOT_IMPLEMENTED_YET;
+			int32_t sintVal;
+			tmp_err_code = decodeIntegerValue(strm, &sintVal);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+			if(handler->intData != NULL)  // Invoke handler method
+			{
+				if(handler->intData(sintVal, app_data) == EXIP_HANDLER_STOP)
+					return HANDLER_STOP_RECEIVED;
+			}
+		}
+		else if(event.valueType == VALUE_TYPE_NON_NEGATIVE_INT)
+		{
+			uint32_t uintVal;
+			tmp_err_code = decodeUnsignedInteger(strm, &uintVal);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			if(handler->intData != NULL)  // Invoke handler method
+			{
+				// TODO: the cast to signed int can introduce errors. Check first!
+				if(handler->intData((int32_t) uintVal, app_data) == EXIP_HANDLER_STOP)
+					return HANDLER_STOP_RECEIVED;
+			}
 		}
 		else if(event.valueType == VALUE_TYPE_LIST)
 		{
@@ -545,5 +533,10 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		else
 			return INCONSISTENT_PROC_STATE;
 	}
+	else
+	{
+		return NOT_IMPLEMENTED_YET;
+	}
+
 	return ERR_OK;
 }

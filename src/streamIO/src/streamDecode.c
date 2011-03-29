@@ -214,7 +214,21 @@ errorCode decodeBigIntegerValue(EXIStream* strm, BigSignedInt* sint_val)
 
 errorCode decodeDecimalValue(EXIStream* strm, decimal* dec_val)
 {
-	return NOT_IMPLEMENTED_YET;
+	// TODO: the digits in the fraction part are not reversed as required by the spec!!!
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	tmp_err_code = decodeBoolean(strm, &dec_val->sign);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = decodeUnsignedInteger(strm, &dec_val->integral);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = decodeUnsignedInteger(strm, &dec_val->fraction);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	return ERR_OK;
 }
 
 errorCode decodeBigDecimalValue(EXIStream* strm, bigDecimal* dec_val)
