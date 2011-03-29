@@ -163,7 +163,7 @@ struct xsdAppData
 	AllocList tmpMemList;   			// Temporary allocations during the schema creation
 	ContextStack* contextStack;
 	DynArray* elNotResolvedArray;
-	DynArray* regProdQname;
+	URITable* metaStringTables;
 	MetaGrammarList globalElemGrammars; // Sorting while adding
 	MetaGrammarList subElementGrammars;
 	MetaGrammarList typeGrammars;
@@ -207,7 +207,7 @@ static errorCode appendMetaGrammarNode(AllocList* tmpMemList, MetaGrammarList* g
 
 static errorCode orderedAddMetaGrammarNode(AllocList* tmpMemList, MetaGrammarList* gList, struct EXIGrammar* grammar, StringType* name, StringType* ns);
 
-static errorCode addLocalName(uint16_t uriId, AllocList* memList, URITable* stringTables, StringType* ln);
+static errorCode addLocalName(uint16_t uriId, struct xsdAppData* app_data, StringType* ln, size_t* lnRowId);
 
 static void sortInitialStringTables(URITable* stringTables);
 
@@ -218,6 +218,8 @@ static int compareURI(const void* uriRow1, const void* uriRow2);
 static int parseOccuranceAttribute(const StringType occurance);
 
 static errorCode getTypeQName(AllocList* memList, const StringType typeLiteral, QName* qname);
+
+static errorCode copyGrammarQnameFix(struct xsdAppData* app_data, struct EXIGrammar* src, struct EXIGrammar** dest);
 
 ////////////
 
@@ -253,14 +255,13 @@ errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t 
 	tmp_err_code = getEmptyString(&parsing_data.props.emptyString);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
+	tmp_err_code = getEmptyString(&parsing_data.props.targetNamespace);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 
 	parsing_data.contextStack = NULL;
 
 	tmp_err_code = createDynArray(&parsing_data.elNotResolvedArray, sizeof(struct elementNotResolved), 10, &parsing_data.tmpMemList);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	tmp_err_code = createDynArray(&parsing_data.regProdQname, sizeof(struct productionQname), 20, &parsing_data.tmpMemList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -283,6 +284,12 @@ errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t 
 		return tmp_err_code;
 
 	createInitialEntries(&schema->memList, schema->initialStringTables, TRUE);
+
+	tmp_err_code = createURITable(&parsing_data.metaStringTables, &parsing_data.tmpMemList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	createInitialEntries(&parsing_data.tmpMemList, parsing_data.metaStringTables, TRUE);
 
 	parsing_data.schema = schema;
 
@@ -309,7 +316,6 @@ static char xsd_endDocument(void* app_data)
 	struct xsdAppData* appD = (struct xsdAppData*) app_data;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int i = 0;
-	struct productionQname* tmpPQ;
 	struct metaGrammarNode* tmpGNode;
 	uint16_t uriRowID;
 	size_t lnRowID;
@@ -370,15 +376,6 @@ static char xsd_endDocument(void* app_data)
 
 	sortInitialStringTables(appD->schema->initialStringTables);
 
-	for(i = 0; i < appD->regProdQname->elementCount; i++)
-	{
-		tmpPQ = ((struct productionQname*) appD->regProdQname->elements) + i;
-		lookupURI(appD->schema->initialStringTables, *(tmpPQ->qname.uri), &uriRowID);
-		*(tmpPQ->p_uriRowID) = uriRowID;
-		lookupLN(appD->schema->initialStringTables->rows[uriRowID].lTable, *(tmpPQ->qname.localName), &lnRowID);
-		*(tmpPQ->p_lnRowID) = lnRowID;
-	}
-
 	appD->schema->globalElemGrammars.count = appD->globalElemGrammars.size;
 	appD->schema->globalElemGrammars.elems = (GrammarDescr*) memManagedAllocate(&appD->schema->memList, sizeof(GrammarDescr)*appD->globalElemGrammars.size);
 	if(appD->schema->globalElemGrammars.elems == NULL)
@@ -389,7 +386,7 @@ static char xsd_endDocument(void* app_data)
 	tmpGNode = appD->globalElemGrammars.first;
 	for(i = 0; i < appD->globalElemGrammars.size; i++)
 	{
-		tmp_err_code = copyGrammar(&appD->schema->memList, tmpGNode->grammar, &appD->schema->globalElemGrammars.elems[i].grammar);
+		tmp_err_code = copyGrammarQnameFix(appD, tmpGNode->grammar, &appD->schema->globalElemGrammars.elems[i].grammar);
 		if(tmp_err_code != ERR_OK)
 		{
 			DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Schema parsing error: %d\n", tmp_err_code));
@@ -413,7 +410,7 @@ static char xsd_endDocument(void* app_data)
 	tmpGNode = appD->subElementGrammars.first;
 	for(i = 0; i < appD->subElementGrammars.size; i++)
 	{
-		tmp_err_code = copyGrammar(&appD->schema->memList, tmpGNode->grammar, &appD->schema->subElementGrammars.elems[i].grammar);
+		tmp_err_code = copyGrammarQnameFix(appD, tmpGNode->grammar, &appD->schema->subElementGrammars.elems[i].grammar);
 		if(tmp_err_code != ERR_OK)
 		{
 			DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Schema parsing error: %d\n", tmp_err_code));
@@ -828,6 +825,8 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 	struct EXIGrammar* attrUseGrammar;
 	size_t attrUseGrammarID;
 	struct elementDescr* elemDesc;
+	size_t lnRowID;
+	uint16_t uriRowID;
 
 	popElemContext(&(app_data->contextStack), &elemDesc);
 
@@ -841,14 +840,16 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 		//TODO: must take into account the parent element target namespace - might be different from the global target namespace
 
 		target_ns = &(app_data->props.targetNamespace); // it is the globally defined target namespace
-		tmp_err_code = addLocalName(app_data->props.targetNSMetaID, &app_data->schema->memList, app_data->schema->initialStringTables, &(elemDesc->attributePointers[ATTRIBUTE_NAME]));
+		uriRowID = app_data->props.targetNSMetaID;
+		tmp_err_code = addLocalName(app_data->props.targetNSMetaID, app_data, &(elemDesc->attributePointers[ATTRIBUTE_NAME]), &lnRowID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 	else
 	{
 		target_ns = &app_data->props.emptyString;
-		tmp_err_code = addLocalName(0, &app_data->schema->memList, app_data->schema->initialStringTables, &(elemDesc->attributePointers[ATTRIBUTE_NAME]));
+		uriRowID = 0;
+		tmp_err_code = addLocalName(0, app_data, &(elemDesc->attributePointers[ATTRIBUTE_NAME]), &lnRowID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -859,7 +860,7 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 	scope.uri = &app_data->props.emptyString;
 
 	tmp_err_code = createAttributeUseGrammar(&app_data->tmpMemList, required, &(elemDesc->attributePointers[ATTRIBUTE_NAME]),
-											 target_ns, simpleType, scope, &attrUseGrammar, app_data->regProdQname);
+											 target_ns, simpleType, scope, &attrUseGrammar, uriRowID, lnRowID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -944,6 +945,7 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 	struct EXIGrammar* contentTypeGrammar;
 	struct EXIGrammar* resultComplexGrammar;
 	struct elementDescr* elemDesc;
+	size_t lnRowID;
 
 	popElemContext(&(app_data->contextStack), &elemDesc);
 
@@ -956,7 +958,7 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 		target_ns = &(app_data->props.targetNamespace);
 		if(!isStrEmpty(typeName))
 		{
-			tmp_err_code = addLocalName(app_data->props.targetNSMetaID, &app_data->schema->memList, app_data->schema->initialStringTables, typeName);
+			tmp_err_code = addLocalName(app_data->props.targetNSMetaID, app_data, typeName, &lnRowID);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -966,7 +968,7 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 		target_ns = &app_data->props.emptyString;
 		if(!isStrEmpty(typeName))
 		{
-			tmp_err_code = addLocalName(0, &app_data->schema->memList, app_data->schema->initialStringTables, typeName);
+			tmp_err_code = addLocalName(0, app_data, typeName, &lnRowID);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -1033,6 +1035,8 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 	StringType* elName;
 	StringType* target_ns;
 	unsigned char isGlobal = 0;
+	uint16_t uriRowId;
+	size_t lnRowId;
 
 	popElemContext(&(app_data->contextStack), &elemDesc);
 	type = elemDesc->attributePointers[ATTRIBUTE_TYPE];
@@ -1045,14 +1049,16 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 		//TODO: must take into account the parent element target namespace
 
 		target_ns = &(app_data->props.targetNamespace);
-		tmp_err_code = addLocalName(app_data->props.targetNSMetaID, &app_data->schema->memList, app_data->schema->initialStringTables, &(elemDesc->attributePointers[ATTRIBUTE_NAME]));
+		uriRowId = app_data->props.targetNSMetaID;
+		tmp_err_code = addLocalName(app_data->props.targetNSMetaID, app_data, &(elemDesc->attributePointers[ATTRIBUTE_NAME]), &lnRowId);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 	else
 	{
 		target_ns = &app_data->props.emptyString;
-		tmp_err_code = addLocalName(0, &app_data->schema->memList, app_data->schema->initialStringTables, &(elemDesc->attributePointers[ATTRIBUTE_NAME]));
+		uriRowId = 0;
+		tmp_err_code = addLocalName(0, app_data, &(elemDesc->attributePointers[ATTRIBUTE_NAME]), &lnRowId);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -1118,7 +1124,7 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 		minOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MIN_OCCURS]);
 		maxOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MAX_OCCURS]);
 
-		tmp_err_code = createElementTermGrammar(&app_data->tmpMemList, elName, target_ns, &elTermGrammar, app_data->regProdQname);
+		tmp_err_code = createElementTermGrammar(&app_data->tmpMemList, elName, target_ns, &elTermGrammar, uriRowId, lnRowId);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -1266,30 +1272,40 @@ static errorCode orderedAddMetaGrammarNode(AllocList* tmpMemList, MetaGrammarLis
 }
 
 // Only adds it if it is not there yet
-static errorCode addLocalName(uint16_t uriId, AllocList* memList, URITable* stringTables, StringType* ln)
+static errorCode addLocalName(uint16_t uriId, struct xsdAppData* app_data, StringType* ln, size_t* lnRowId)
 {
-	size_t lnID;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	StringType lnClone;   // The local name string is copied to the schema MemList
 
-	if(stringTables->rows[uriId].lTable == NULL)
+	if(app_data->schema->initialStringTables->rows[uriId].lTable == NULL)
 	{
-		tmp_err_code = createLocalNamesTable(&stringTables->rows[uriId].lTable, memList);
+		tmp_err_code = createLocalNamesTable(&app_data->schema->initialStringTables->rows[uriId].lTable, &app_data->schema->memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		tmp_err_code = cloneString(ln, &lnClone, memList);
+		tmp_err_code = cloneString(ln, &lnClone, &app_data->schema->memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		tmp_err_code = addLNRow(stringTables->rows[uriId].lTable, lnClone, &lnID);
+		tmp_err_code = addLNRow(app_data->schema->initialStringTables->rows[uriId].lTable, lnClone, lnRowId);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = createLocalNamesTable(&app_data->metaStringTables->rows[uriId].lTable, &app_data->tmpMemList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		tmp_err_code = addLNRow(app_data->metaStringTables->rows[uriId].lTable, *ln, lnRowId);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
-	else if(!lookupLN(stringTables->rows[uriId].lTable, *ln, &lnID))
+	else if(!lookupLN(app_data->schema->initialStringTables->rows[uriId].lTable, *ln, lnRowId))
 	{
-		tmp_err_code = cloneString(ln, &lnClone, memList);
+		tmp_err_code = cloneString(ln, &lnClone, &app_data->schema->memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		tmp_err_code = addLNRow(stringTables->rows[uriId].lTable, lnClone, &lnID);
+		tmp_err_code = addLNRow(app_data->schema->initialStringTables->rows[uriId].lTable, lnClone, lnRowId);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = addLNRow(app_data->metaStringTables->rows[uriId].lTable, *ln, lnRowId);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -1412,5 +1428,68 @@ static errorCode getTypeQName(AllocList* memList, const StringType typeLiteral, 
 	qname->localName = ln;
 	qname->uri = uri;
 
+	return ERR_OK;
+}
+
+static errorCode copyGrammarQnameFix(struct xsdAppData* app_data, struct EXIGrammar* src, struct EXIGrammar** dest)
+{
+	GrammarRule* srcRule;
+	GrammarRule* destRule;
+	uint16_t uriRowID;
+	size_t lnRowID;
+
+	uint16_t i = 0;
+	uint16_t j = 0;
+
+	*dest = memManagedAllocate(&app_data->schema->memList, sizeof(struct EXIGrammar));
+	if(*dest == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	(*dest)->rulesDimension = src->rulesDimension;
+	(*dest)->grammarType = src->grammarType;
+	(*dest)->contentIndex = src->contentIndex;
+
+	(*dest)->ruleArray = memManagedAllocate(&app_data->schema->memList, sizeof(GrammarRule) * (*dest)->rulesDimension);
+	if((*dest)->ruleArray == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	for(i = 0; i < (*dest)->rulesDimension; i++)
+	{
+		srcRule = &src->ruleArray[i];
+		destRule = &(*dest)->ruleArray[i];
+
+		destRule->bits[0] = srcRule->bits[0];
+		destRule->bits[1] = srcRule->bits[1];
+		destRule->bits[2] = srcRule->bits[2];
+
+		destRule->memPair.memBlock = NULL;
+		destRule->memPair.allocIndx = 0;
+		destRule->prodCount = srcRule->prodCount;
+		destRule->prodDimension = srcRule->prodDimension;
+
+		destRule->prodArray = (Production*) memManagedAllocate(&app_data->schema->memList, sizeof(Production)*(destRule->prodDimension));
+		if(destRule->prodArray == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+
+		for(j = 0; j < destRule->prodCount; j++)
+		{
+			destRule->prodArray[j] = srcRule->prodArray[j];
+			if(srcRule->prodArray[j].event.eventType == EVENT_AT_QNAME || srcRule->prodArray[j].event.eventType == EVENT_SE_QNAME)
+			{
+				if(!lookupURI(app_data->schema->initialStringTables, app_data->metaStringTables->rows[srcRule->prodArray[j].uriRowID].string_val, &uriRowID))
+				{
+					DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">String tables problem\n"));
+					return UNEXPECTED_ERROR;
+				}
+				if(!lookupLN(app_data->schema->initialStringTables->rows[uriRowID].lTable, app_data->metaStringTables->rows[srcRule->prodArray[j].uriRowID].lTable->rows[srcRule->prodArray[j].lnRowID].string_val, &lnRowID))
+				{
+					DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">String tables problem\n"));
+					return UNEXPECTED_ERROR;
+				}
+				destRule->prodArray[j].uriRowID = uriRowID;
+				destRule->prodArray[j].lnRowID = lnRowID;
+			}
+		}
+	}
 	return ERR_OK;
 }

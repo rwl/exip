@@ -51,20 +51,6 @@
 #include "schema.h"
 
 /**
- * This structure holds pointers to
- * ruleArray[i].prodArray[j].lnRowID
- * ruleArray[i].prodArray[j].uriRowID
- * and their string QNames
- * Based on the QNames, the new values of lnRowID and uriRowID
- * after sorting the URITables are updated using the pointers
- */
-struct productionQname {
-	uint16_t* p_uriRowID;
-	size_t* p_lnRowID;
-	QName qname;
-};
-
-/**
  * @brief Grammar Concatenation Operator
  * The grammar concatenation operator ⊕ is a binary, associative
  * operator that creates a new grammar from its left and right
@@ -198,11 +184,12 @@ errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, struct EXIGrammar*
  * @param[in] simpleType qname of the simple type of the attribute type definition
  * @param[in] scope attribute scope - if NULL then the scope is global otherwise the QName of the complex type which is the scope
  * @param[out] result the resulted proto-grammar
- * @param[in, out] regProdQname dynamic array of struct productionQname elements
+ * @param[in] uriRowID row index of the uri in the unsorted string tables
+ * @param[in] lnRowID row index of the local name in the unsorted string tables
  * @return Error handling code
  */
 errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, StringType* name, StringType* target_ns,
-										  QName simpleType, QName scope, struct EXIGrammar** result, DynArray* regProdQname);
+										  QName simpleType, QName scope, struct EXIGrammar** result, uint16_t uriRowID, size_t lnRowID);
 
 /**
  * @brief Creates Particle Proto-Grammar from XML Schema particle
@@ -224,11 +211,12 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
  * @param[in] name element local name
  * @param[in] target_ns element target namespace
  * @param[out] result the resulted proto-grammar
- * @param[in, out] regProdQname dynamic array of struct productionQname elements
+ * @param[in] uriRowID row index of the uri in the unsorted string tables
+ * @param[in] lnRowID row index of the local name in the unsorted string tables
  * @return Error handling code
  */
 errorCode createElementTermGrammar(AllocList* memList, StringType* name, StringType* target_ns,
-								   struct EXIGrammar** result, DynArray* regProdQname);
+								   struct EXIGrammar** result, uint16_t uriRowID, size_t lnRowID);
 
 /**
  * @brief Creates Wildcard Term Proto-Grammar from Particle term that is XML Schema wildcard

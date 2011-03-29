@@ -44,6 +44,9 @@
 #include "grammarAugment.h"
 #include "ioUtil.h"
 #include "eventsEXI.h"
+#include "grammarRules.h"
+
+#define ATTR_PROD_ARRAY_SIZE 30
 
 static int compareProductions(const void* prod1, const void* prod2);
 
@@ -66,7 +69,130 @@ errorCode assignCodes(struct EXIGrammar* grammar)
 
 errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, struct EXIGrammar* grammar)
 {
-	return NOT_IMPLEMENTED_YET;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	size_t i = 0;
+	uint16_t j = 0;
+	uint16_t a = 0;
+	unsigned int maxFirstCodePart = 0;
+	unsigned int maxSecondCodePart = 0;
+	EXIEvent tmpEvent;
+
+	if(strict == FALSE)
+	{
+		unsigned char maxCodeSizeInRule = 1;
+		unsigned char prodEEFound = 0;
+		Production* attrProdArray[ATTR_PROD_ARRAY_SIZE];
+
+		for(i = 0; i <= grammar->contentIndex; i++)
+		{
+			maxFirstCodePart = 0;
+			maxSecondCodePart = 0;
+			maxCodeSizeInRule = 1;
+			a = 0;
+			prodEEFound = 0;
+			for(j = 0; j < grammar->ruleArray[i].prodCount; j++)
+			{
+				if(grammar->ruleArray[i].prodArray[j].code.code[0] > maxFirstCodePart)
+					maxFirstCodePart = grammar->ruleArray[i].prodArray[j].code.code[0];
+
+				if(grammar->ruleArray[i].prodArray[j].code.size > 1 && grammar->ruleArray[i].prodArray[j].code.code[1] > maxSecondCodePart)
+				{
+					maxSecondCodePart = grammar->ruleArray[i].prodArray[j].code.code[1];
+					maxCodeSizeInRule = 2;
+				}
+
+				if(grammar->ruleArray[i].prodArray[j].nonTermID == GR_VOID_NON_TERMINAL && grammar->ruleArray[i].prodArray[j].event.eventType == EVENT_EE)
+				{
+					prodEEFound = 1;
+				}
+
+				if(grammar->ruleArray[i].prodArray[j].event.eventType == EVENT_AT_QNAME)
+				{
+					if(a >= ATTR_PROD_ARRAY_SIZE)
+						return INCONSISTENT_PROC_STATE;
+
+					attrProdArray[a] = &grammar->ruleArray[i].prodArray[j];
+					a++;
+				}
+			}
+
+			if(maxCodeSizeInRule == 1)
+			{
+				maxFirstCodePart += 1;
+				grammar->ruleArray[i].bits[0] = getBitsNumber(maxFirstCodePart);
+			}
+
+			if(!prodEEFound) //	There is no production Gi,0 : EE so add one
+			{
+				tmp_err_code = addProduction(&(grammar->ruleArray[i]), getEventCode2(maxFirstCodePart, maxSecondCodePart + 1), getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				maxSecondCodePart += 1;
+				grammar->ruleArray[i].bits[1] = getBitsNumber(maxSecondCodePart);
+			}
+
+			if(i == 0)  // AT(xsi:type) Element i, 0 and AT(xsi:nil) Element i, 0
+			{
+				tmpEvent.eventType = EVENT_AT_QNAME;
+				tmpEvent.valueType = VALUE_TYPE_QNAME;
+
+				tmp_err_code = addProduction(&grammar->ruleArray[0], getEventCode2(maxFirstCodePart, maxSecondCodePart + 1), tmpEvent, 0);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				grammar->ruleArray[0].prodArray[grammar->ruleArray[0].prodCount-1].uriRowID = 2; // "http://www.w3.org/2001/XMLSchema-instance"
+				grammar->ruleArray[0].prodArray[grammar->ruleArray[0].prodCount-1].lnRowID = 1; // type
+
+				tmp_err_code = addProduction(&grammar->ruleArray[0], getEventCode2(maxFirstCodePart, maxSecondCodePart + 2), tmpEvent, 0);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				grammar->ruleArray[0].prodArray[grammar->ruleArray[0].prodCount-1].uriRowID = 2; // "http://www.w3.org/2001/XMLSchema-instance"
+				grammar->ruleArray[0].prodArray[grammar->ruleArray[0].prodCount-1].lnRowID = 0; // nil
+
+				maxSecondCodePart += 2;
+				grammar->ruleArray[0].bits[1] = getBitsNumber(maxSecondCodePart);
+			}
+
+			tmpEvent.eventType = EVENT_AT_ALL;
+			tmpEvent.valueType = VALUE_TYPE_NONE;
+
+			tmp_err_code = addProduction(&grammar->ruleArray[i], getEventCode2(maxFirstCodePart, maxSecondCodePart + 1), tmpEvent, i);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			maxSecondCodePart += 1;
+			grammar->ruleArray[i].bits[1] = getBitsNumber(maxSecondCodePart);
+
+			for(j = 0; j < a; j++)
+			{
+
+				tmpEvent.eventType = EVENT_AT_QNAME;
+				tmpEvent.valueType = VALUE_TYPE_UNTYPED;
+
+				tmp_err_code = addProduction(&grammar->ruleArray[i], getEventCode3(maxFirstCodePart, maxSecondCodePart, a), tmpEvent, attrProdArray[a]->nonTermID);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				maxSecondCodePart += 1;
+
+
+				grammar->ruleArray[i].prodArray[grammar->ruleArray[i].prodCount-1].uriRowID = attrProdArray[a]->uriRowID;
+				grammar->ruleArray[i].prodArray[grammar->ruleArray[i].prodCount-1].lnRowID = attrProdArray[a]->lnRowID;
+
+			}
+			grammar->ruleArray[i].bits[2] = getBitsNumber(a);
+			// TODO: not finished!
+		}
+
+		// TODO: not finished yet!
+	}
+	else // strict == TRUE
+	{
+		return NOT_IMPLEMENTED_YET;
+	}
+	return ERR_OK;
 }
 
 static int compareProductions(const void* prod1, const void* prod2)

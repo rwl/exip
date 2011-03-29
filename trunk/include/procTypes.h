@@ -376,6 +376,7 @@ typedef unsigned char ValueType;
 #define VALUE_TYPE_BINARY    7
 #define VALUE_TYPE_LIST      8
 #define VALUE_TYPE_QNAME     9
+#define VALUE_TYPE_UNTYPED  10
 
 struct EXIEvent
 {

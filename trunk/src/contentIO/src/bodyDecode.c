@@ -47,6 +47,7 @@
 #include "memManagement.h"
 #include "ioUtil.h"
 #include "streamDecode.h"
+#include "grammarAugment.h"
 
 void decodeBody(EXIStream* strm, ContentHandler* handler, ExipSchema* schema, void* app_data)
 {
@@ -106,10 +107,30 @@ void decodeBody(EXIStream* strm, ContentHandler* handler, ExipSchema* schema, vo
 
 		for (i = 0; i < schema->globalElemGrammars.count; i++)
 		{
+			tmp_err_code = addUndeclaredProductions(&strm->memList, strm->header.opts->strict, schema->globalElemGrammars.elems[i].grammar);
+			if(tmp_err_code != ERR_OK)
+			{
+				if(handler->fatalError != NULL)
+				{
+					handler->fatalError(tmp_err_code, "Cannot add Undeclared Productions", app_data);
+				}
+				freeAllMem(strm);
+				return;
+			}
 			addGrammarInPool(strm->ePool, schema->globalElemGrammars.elems[i].uriRowId, schema->globalElemGrammars.elems[i].lnRowId, schema->globalElemGrammars.elems[i].grammar);
 		}
 		for (i = 0; i < schema->subElementGrammars.count; i++)
 		{
+			tmp_err_code = addUndeclaredProductions(&strm->memList, strm->header.opts->strict, schema->subElementGrammars.elems[i].grammar);
+			if(tmp_err_code != ERR_OK)
+			{
+				if(handler->fatalError != NULL)
+				{
+					handler->fatalError(tmp_err_code, "Cannot add Undeclared Productions", app_data);
+				}
+				freeAllMem(strm);
+				return;
+			}
 			addGrammarInPool(strm->ePool, schema->subElementGrammars.elems[i].uriRowId, schema->subElementGrammars.elems[i].lnRowId, schema->subElementGrammars.elems[i].grammar);
 		}
 
@@ -427,7 +448,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 			if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
 				return HANDLER_STOP_RECEIVED;
 		}
-		if(event.valueType == VALUE_TYPE_STRING || event.valueType == VALUE_TYPE_NONE)
+		if(event.valueType == VALUE_TYPE_STRING || event.valueType == VALUE_TYPE_NONE || event.valueType == VALUE_TYPE_UNTYPED)
 		{
 			StringType* value;
 			tmp_err_code = decodeStringValue(strm, &value);
@@ -439,6 +460,40 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 					return HANDLER_STOP_RECEIVED;
 			}
 		}
+		else if(event.valueType == VALUE_TYPE_BOOLEAN)
+		{
+			return NOT_IMPLEMENTED_YET;
+		}
+		else if(event.valueType == VALUE_TYPE_BINARY)
+		{
+			return NOT_IMPLEMENTED_YET;
+		}
+		else if(event.valueType == VALUE_TYPE_DATE_TIME)
+		{
+			return NOT_IMPLEMENTED_YET;
+		}
+		else if(event.valueType == VALUE_TYPE_DECIMAL)
+		{
+			return NOT_IMPLEMENTED_YET;
+		}
+		else if(event.valueType == VALUE_TYPE_FLOAT)
+		{
+			return NOT_IMPLEMENTED_YET;
+		}
+		else if(event.valueType == VALUE_TYPE_INTEGER)
+		{
+			return NOT_IMPLEMENTED_YET;
+		}
+		else if(event.valueType == VALUE_TYPE_LIST)
+		{
+			return NOT_IMPLEMENTED_YET;
+		}
+		else if(event.valueType == VALUE_TYPE_QNAME)
+		{
+			return NOT_IMPLEMENTED_YET;
+		}
+		else
+			return INCONSISTENT_PROC_STATE;
 	}
 	else if(event.eventType == EVENT_CH)
 	{
@@ -455,6 +510,40 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 					return HANDLER_STOP_RECEIVED;
 			}
 		}
+		else if(event.valueType == VALUE_TYPE_BOOLEAN)
+		{
+			return NOT_IMPLEMENTED_YET;
+		}
+		else if(event.valueType == VALUE_TYPE_BINARY)
+		{
+			return NOT_IMPLEMENTED_YET;
+		}
+		else if(event.valueType == VALUE_TYPE_DATE_TIME)
+		{
+			return NOT_IMPLEMENTED_YET;
+		}
+		else if(event.valueType == VALUE_TYPE_DECIMAL)
+		{
+			return NOT_IMPLEMENTED_YET;
+		}
+		else if(event.valueType == VALUE_TYPE_FLOAT)
+		{
+			return NOT_IMPLEMENTED_YET;
+		}
+		else if(event.valueType == VALUE_TYPE_INTEGER)
+		{
+			return NOT_IMPLEMENTED_YET;
+		}
+		else if(event.valueType == VALUE_TYPE_LIST)
+		{
+			return NOT_IMPLEMENTED_YET;
+		}
+		else if(event.valueType == VALUE_TYPE_QNAME)
+		{
+			return NOT_IMPLEMENTED_YET;
+		}
+		else
+			return INCONSISTENT_PROC_STATE;
 	}
 	return ERR_OK;
 }
