@@ -252,12 +252,10 @@ errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, struct EXIGrammar*
 }
 
 errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, StringType* name, StringType* target_ns,
-										  QName simpleType, QName scope, struct EXIGrammar** result, DynArray* regProdQname)
+										  QName simpleType, QName scope, struct EXIGrammar** result,  uint16_t uriRowID, size_t lnRowID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIEvent event1;
-	struct productionQname pqRow;
-	size_t elIndx = 0;
 
 	*result = (struct EXIGrammar*) memManagedAllocate(memList, sizeof(struct EXIGrammar));
 	if(*result == NULL)
@@ -282,17 +280,8 @@ errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, 
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	(*result)->ruleArray[0].prodArray[0].uriRowID = 9999;
-	(*result)->ruleArray[0].prodArray[0].lnRowID = 9999;
-
-	pqRow.p_uriRowID = &((*result)->ruleArray[0].prodArray[0].uriRowID);
-	pqRow.p_lnRowID = &((*result)->ruleArray[0].prodArray[0].lnRowID);
-	pqRow.qname.uri = target_ns;
-	pqRow.qname.localName = name;
-
-	tmp_err_code = addDynElement(regProdQname, &pqRow, &elIndx, memList);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	(*result)->ruleArray[0].prodArray[0].uriRowID = uriRowID;
+	(*result)->ruleArray[0].prodArray[0].lnRowID = lnRowID;
 
 	if(!required)
 	{
@@ -394,13 +383,12 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
 }
 
 errorCode createElementTermGrammar(AllocList* memList, StringType* name, StringType* target_ns,
-								   struct EXIGrammar** result, DynArray* regProdQname)
+								   struct EXIGrammar** result, uint16_t uriRowID, size_t lnRowID)
 {
 	//TODO: enable support for {substitution group affiliation} property of the elements
 
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	struct productionQname pqRow;
-	size_t elIndx = 0;
+
 	*result = (struct EXIGrammar*) memManagedAllocate(memList, sizeof(struct EXIGrammar));
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -419,17 +407,8 @@ errorCode createElementTermGrammar(AllocList* memList, StringType* name, StringT
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	(*result)->ruleArray[0].prodArray[0].uriRowID = 9999;
-	(*result)->ruleArray[0].prodArray[0].lnRowID = 9999;
-
-	pqRow.p_uriRowID = &((*result)->ruleArray[0].prodArray[0].uriRowID);
-	pqRow.p_lnRowID = &((*result)->ruleArray[0].prodArray[0].lnRowID);
-	pqRow.qname.uri = target_ns;
-	pqRow.qname.localName = name;
-
-	tmp_err_code = addDynElement(regProdQname, &pqRow, &elIndx, memList);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	(*result)->ruleArray[0].prodArray[0].uriRowID = uriRowID;
+	(*result)->ruleArray[0].prodArray[0].lnRowID = lnRowID;
 
 	tmp_err_code = initGrammarRule(&((*result)->ruleArray[1]), memList);
 	if(tmp_err_code != ERR_OK)

@@ -125,6 +125,8 @@ errorCode deleteNoTermProductions(AllocList* memList, struct EXIGrammar* grammar
 										grammar->ruleArray[i].prodArray[j].event.eventType = grammar->ruleArray[k].prodArray[l].event.eventType;
 										grammar->ruleArray[i].prodArray[j].event.valueType = grammar->ruleArray[k].prodArray[l].event.valueType;
 										grammar->ruleArray[i].prodArray[j].nonTermID = grammar->ruleArray[k].prodArray[l].nonTermID;
+										grammar->ruleArray[i].prodArray[j].uriRowID = grammar->ruleArray[k].prodArray[l].uriRowID;
+										grammar->ruleArray[i].prodArray[j].lnRowID = grammar->ruleArray[k].prodArray[l].lnRowID;
 									}
 									else // Second or above production for insertion - insert at the end of Production array
 									{
