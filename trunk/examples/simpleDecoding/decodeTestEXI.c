@@ -88,6 +88,8 @@ static char sample_startElement(QName qname, void* app_data);
 static char sample_endElement(void* app_data);
 static char sample_attribute(QName qname, void* app_data);
 static char sample_stringData(const StringType value, void* app_data);
+static char sample_decimalData(decimal value, void* app_data);
+static char sample_intData(int32_t int_val, void* app_data);
 
 size_t readFileInputStream(void* buf, size_t readSize, void* stream);
 
@@ -116,6 +118,8 @@ int main(int argc, char *argv[])
 	sampleHandler.attribute = sample_attribute;
 	sampleHandler.stringData = sample_stringData;
 	sampleHandler.endElement = sample_endElement;
+	sampleHandler.decimalData = sample_decimalData;
+	sampleHandler.intData = sample_intData;
 
 	ioStrm.readWriteToStream = readFileInputStream;
 
@@ -370,6 +374,102 @@ static char sample_stringData(const StringType value, void* app_data)
 				printf(">\n");
 			appD->unclosedElement = 0;
 			printString(&value);
+			printf("\n");
+		}
+	}
+
+	return EXIP_HANDLER_OK;
+}
+
+static char sample_decimalData(decimal value, void* app_data)
+{
+	struct appData* appD = (struct appData*) app_data;
+	char tmp_buf[30];
+	if(appD->outputFormat == OUT_EXI)
+	{
+		if(appD->expectAttributeData)
+		{
+			if(value.sign == TRUE)
+				printf("-");
+			sprintf(tmp_buf, "%d.%d", value.integral, value.fraction);
+			printf("%s", tmp_buf);
+			printf("\"\n");
+			appD->expectAttributeData = 0;
+		}
+		else
+		{
+			printf("CH ");
+			if(value.sign == TRUE)
+				printf("-");
+			sprintf(tmp_buf, "%d.%d", value.integral, value.fraction);
+			printf("%s", tmp_buf);
+			printf("\n");
+		}
+	}
+	else if(appD->outputFormat == OUT_XML)
+	{
+		if(appD->expectAttributeData)
+		{
+			if(value.sign == TRUE)
+				printf("-");
+			sprintf(tmp_buf, "%d.%d", value.integral, value.fraction);
+			printf("%s", tmp_buf);
+			printf("\"");
+			appD->expectAttributeData = 0;
+		}
+		else
+		{
+			if(appD->unclosedElement)
+				printf(">\n");
+			appD->unclosedElement = 0;
+			if(value.sign == TRUE)
+				printf("-");
+			sprintf(tmp_buf, "%d.%d", value.integral, value.fraction);
+			printf("%s", tmp_buf);
+			printf("\n");
+		}
+	}
+
+	return EXIP_HANDLER_OK;
+}
+
+static char sample_intData(int32_t int_val, void* app_data)
+{
+	struct appData* appD = (struct appData*) app_data;
+	char tmp_buf[30];
+	if(appD->outputFormat == OUT_EXI)
+	{
+		if(appD->expectAttributeData)
+		{
+			sprintf(tmp_buf, "%d", int_val);
+			printf("%s", tmp_buf);
+			printf("\"\n");
+			appD->expectAttributeData = 0;
+		}
+		else
+		{
+			printf("CH ");
+			sprintf(tmp_buf, "%d", int_val);
+			printf("%s", tmp_buf);
+			printf("\n");
+		}
+	}
+	else if(appD->outputFormat == OUT_XML)
+	{
+		if(appD->expectAttributeData)
+		{
+			sprintf(tmp_buf, "%d", int_val);
+			printf("%s", tmp_buf);
+			printf("\"");
+			appD->expectAttributeData = 0;
+		}
+		else
+		{
+			if(appD->unclosedElement)
+				printf(">\n");
+			appD->unclosedElement = 0;
+			sprintf(tmp_buf, "%d", int_val);
+			printf("%s", tmp_buf);
 			printf("\n");
 		}
 	}

@@ -366,17 +366,18 @@ typedef unsigned char EventType;
  * */
 typedef unsigned char ValueType;
 
-#define VALUE_TYPE_NONE      0
-#define VALUE_TYPE_STRING    1
-#define VALUE_TYPE_INTEGER   2
-#define VALUE_TYPE_FLOAT     3
-#define VALUE_TYPE_DECIMAL   4
-#define VALUE_TYPE_DATE_TIME 5
-#define VALUE_TYPE_BOOLEAN   6
-#define VALUE_TYPE_BINARY    7
-#define VALUE_TYPE_LIST      8
-#define VALUE_TYPE_QNAME     9
-#define VALUE_TYPE_UNTYPED  10
+#define VALUE_TYPE_NONE              0
+#define VALUE_TYPE_STRING            1
+#define VALUE_TYPE_INTEGER           2
+#define VALUE_TYPE_FLOAT             3
+#define VALUE_TYPE_DECIMAL           4
+#define VALUE_TYPE_DATE_TIME         5
+#define VALUE_TYPE_BOOLEAN           6
+#define VALUE_TYPE_BINARY            7
+#define VALUE_TYPE_LIST              8
+#define VALUE_TYPE_QNAME             9
+#define VALUE_TYPE_NON_NEGATIVE_INT 10
+#define VALUE_TYPE_UNTYPED          11
 
 struct EXIEvent
 {

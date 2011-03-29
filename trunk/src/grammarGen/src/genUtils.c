@@ -536,18 +536,22 @@ errorCode getEXIDataType(QName simpleXSDType, ValueType* exiType)
 	else if(strEqualToAscii(*simpleXSDType.localName, "integer") ||
 			strEqualToAscii(*simpleXSDType.localName, "nonPositiveInteger") ||
 			strEqualToAscii(*simpleXSDType.localName, "long") ||
-			strEqualToAscii(*simpleXSDType.localName, "nonNegativeInteger") ||
 			strEqualToAscii(*simpleXSDType.localName, "int") ||
 			strEqualToAscii(*simpleXSDType.localName, "short") ||
 			strEqualToAscii(*simpleXSDType.localName, "byte") ||
-			strEqualToAscii(*simpleXSDType.localName, "negativeInteger") ||
+			strEqualToAscii(*simpleXSDType.localName, "negativeInteger"))
+	{
+		*exiType = VALUE_TYPE_INTEGER;
+		return ERR_OK;
+	}
+	else if(strEqualToAscii(*simpleXSDType.localName, "nonNegativeInteger") ||
 			strEqualToAscii(*simpleXSDType.localName, "positiveInteger") ||
 			strEqualToAscii(*simpleXSDType.localName, "unsignedLong") ||
 			strEqualToAscii(*simpleXSDType.localName, "unsignedInt") ||
 			strEqualToAscii(*simpleXSDType.localName, "unsignedShort") ||
 			strEqualToAscii(*simpleXSDType.localName, "unsignedByte"))
 	{
-		*exiType = VALUE_TYPE_INTEGER;
+		*exiType = VALUE_TYPE_NON_NEGATIVE_INT;
 		return ERR_OK;
 	}
 	else if(strEqualToAscii(*simpleXSDType.localName, "float") ||

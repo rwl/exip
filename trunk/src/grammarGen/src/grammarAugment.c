@@ -111,7 +111,7 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, str
 					if(a >= ATTR_PROD_ARRAY_SIZE)
 						return INCONSISTENT_PROC_STATE;
 
-					attrProdArray[a] = &grammar->ruleArray[i].prodArray[j];
+					attrProdArray[a] = &(grammar->ruleArray[i].prodArray[j]);
 					a++;
 				}
 			}
@@ -165,18 +165,20 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, str
 			maxSecondCodePart += 1;
 			grammar->ruleArray[i].bits[1] = getBitsNumber(maxSecondCodePart);
 
+			if(a > 0)
+			{
+				maxSecondCodePart += 1;
+				grammar->ruleArray[i].bits[1] = getBitsNumber(maxSecondCodePart);
+			}
+
 			for(j = 0; j < a; j++)
 			{
-
 				tmpEvent.eventType = EVENT_AT_QNAME;
 				tmpEvent.valueType = VALUE_TYPE_UNTYPED;
 
 				tmp_err_code = addProduction(&grammar->ruleArray[i], getEventCode3(maxFirstCodePart, maxSecondCodePart, a), tmpEvent, attrProdArray[a]->nonTermID);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
-
-				maxSecondCodePart += 1;
-
 
 				grammar->ruleArray[i].prodArray[grammar->ruleArray[i].prodCount-1].uriRowID = attrProdArray[a]->uriRowID;
 				grammar->ruleArray[i].prodArray[grammar->ruleArray[i].prodCount-1].lnRowID = attrProdArray[a]->lnRowID;
