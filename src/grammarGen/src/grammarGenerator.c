@@ -475,6 +475,13 @@ static char xsd_startElement(QName qname, void* app_data)
 						DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Schema parsing error: %d\n", tmp_err_code));
 						return EXIP_HANDLER_STOP;
 					}
+
+					tmp_err_code = addURIRow(appD->metaStringTables, appD->props.targetNamespace, &uriID, &appD->tmpMemList);
+					if(tmp_err_code != ERR_OK)
+					{
+						DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Schema parsing error: %d\n", tmp_err_code));
+						return EXIP_HANDLER_STOP;
+					}
 				}
 				appD->props.targetNSMetaID = uriID;
 			}

@@ -9,3 +9,5 @@
 Module name: Grammar Generator
 
 Purpose: To derive schema-informed grammars from XML Schemas
+
+Description: Converts schema information to EXIP grammar definitions

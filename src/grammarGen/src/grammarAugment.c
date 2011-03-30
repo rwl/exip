@@ -176,16 +176,82 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, str
 				tmpEvent.eventType = EVENT_AT_QNAME;
 				tmpEvent.valueType = VALUE_TYPE_UNTYPED;
 
-				tmp_err_code = addProduction(&grammar->ruleArray[i], getEventCode3(maxFirstCodePart, maxSecondCodePart, a), tmpEvent, attrProdArray[a]->nonTermID);
+				tmp_err_code = addProduction(&grammar->ruleArray[i], getEventCode3(maxFirstCodePart, maxSecondCodePart, j), tmpEvent, attrProdArray[j]->nonTermID);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 
-				grammar->ruleArray[i].prodArray[grammar->ruleArray[i].prodCount-1].uriRowID = attrProdArray[a]->uriRowID;
-				grammar->ruleArray[i].prodArray[grammar->ruleArray[i].prodCount-1].lnRowID = attrProdArray[a]->lnRowID;
+				grammar->ruleArray[i].prodArray[grammar->ruleArray[i].prodCount-1].uriRowID = attrProdArray[j]->uriRowID;
+				grammar->ruleArray[i].prodArray[grammar->ruleArray[i].prodCount-1].lnRowID = attrProdArray[j]->lnRowID;
 
 			}
+
+			tmpEvent.eventType = EVENT_AT_ALL;
+			tmpEvent.valueType = VALUE_TYPE_UNTYPED;
+
+			tmp_err_code = addProduction(&grammar->ruleArray[i], getEventCode3(maxFirstCodePart, maxSecondCodePart, a), tmpEvent, i);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
 			grammar->ruleArray[i].bits[2] = getBitsNumber(a);
+
 			// TODO: not finished!
+		}
+
+		for(i = grammar->contentIndex + 1; i < grammar->rulesDimension; i++)
+		{
+			maxFirstCodePart = 0;
+			maxSecondCodePart = 0;
+			maxCodeSizeInRule = 1;
+			prodEEFound = 0;
+			for(j = 0; j < grammar->ruleArray[i].prodCount; j++)
+			{
+				if(grammar->ruleArray[i].prodArray[j].code.code[0] > maxFirstCodePart)
+					maxFirstCodePart = grammar->ruleArray[i].prodArray[j].code.code[0];
+
+				if(grammar->ruleArray[i].prodArray[j].code.size > 1 && grammar->ruleArray[i].prodArray[j].code.code[1] > maxSecondCodePart)
+				{
+					maxSecondCodePart = grammar->ruleArray[i].prodArray[j].code.code[1];
+					maxCodeSizeInRule = 2;
+				}
+
+				if(grammar->ruleArray[i].prodArray[j].nonTermID == GR_VOID_NON_TERMINAL && grammar->ruleArray[i].prodArray[j].event.eventType == EVENT_EE)
+				{
+					prodEEFound = 1;
+				}
+			}
+
+			if(maxCodeSizeInRule == 1)
+			{
+				maxFirstCodePart += 1;
+				grammar->ruleArray[i].bits[0] = getBitsNumber(maxFirstCodePart);
+			}
+
+			if(!prodEEFound) //	There is no production Gi,0 : EE so add one
+			{
+				tmp_err_code = addProduction(&(grammar->ruleArray[i]), getEventCode2(maxFirstCodePart, maxSecondCodePart + 1), getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				maxSecondCodePart += 1;
+				grammar->ruleArray[i].bits[1] = getBitsNumber(maxSecondCodePart);
+			}
+
+			tmpEvent.eventType = EVENT_SE_ALL;
+			tmpEvent.valueType = VALUE_TYPE_NONE;
+
+			tmp_err_code = addProduction(&(grammar->ruleArray[i]), getEventCode2(maxFirstCodePart, maxSecondCodePart + 1), tmpEvent, i);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			tmpEvent.eventType = EVENT_CH;
+			tmpEvent.valueType = VALUE_TYPE_UNTYPED;
+
+			tmp_err_code = addProduction(&(grammar->ruleArray[i]), getEventCode2(maxFirstCodePart, maxSecondCodePart + 2), tmpEvent, i);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			maxSecondCodePart += 2;
+			grammar->ruleArray[i].bits[1] = getBitsNumber(maxSecondCodePart);
 		}
 
 		// TODO: not finished yet!
