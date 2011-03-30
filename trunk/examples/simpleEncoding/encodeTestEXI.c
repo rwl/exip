@@ -210,8 +210,8 @@ size_t writeFileOutputStream(void* buf, size_t readSize, void* stream)
 static void printfHelp()
 {
     printf("\n" );
-    printf("  EXIP     Efficient XML Interchange Processor, Rumen Kyusakov, 13.10.2010 \n");
-    printf("           Copyright (c) 2010, EISLAB - Luleå University of Technology Version 0.1 \n");
+    printf("  EXIP     Efficient XML Interchange Processor, Rumen Kyusakov, 2011 \n");
+    printf("           Copyright (c) 2010 - 2011, EISLAB - Luleå University of Technology Version 0.2 \n");
     printf("  Usage:   exipe [options] <EXI_FileOut>\n\n");
     printf("           Options: [-help | -schema <schema_file_in>] \n");
     printf("           -schema :   uses schema defined in <schema_file_in> for encoding\n");
