@@ -206,7 +206,10 @@ mk_tests:
 		mkdir -p $(TESTS_BIN_DIR)
 		
 test_sets_copy:
-		cp $(EXAMPLES_SRC_DIR)/simpleEncoding/exip-test-xsd.exi $(EXAMPLES_BIN_DIR)/exip-test-xsd.exi
+		cp $(EXAMPLES_SRC_DIR)/simpleEncoding/exip-test-xsd.exi $(EXAMPLES_BIN_DIR)/exipe-test-xsd.exi
+		cp $(EXAMPLES_SRC_DIR)/simpleDecoding/exip-test-xsd.exi $(EXAMPLES_BIN_DIR)/exipd-test-xsd.exi
+		cp $(EXAMPLES_SRC_DIR)/simpleDecoding/exip-test.exi $(EXAMPLES_BIN_DIR)/exipd-test.exi
+		cp $(EXAMPLES_SRC_DIR)/simpleDecoding/exip-test-schema.exi $(EXAMPLES_BIN_DIR)/exipd-test-schema.exi
 		
 mk_all: mk_common mk_streamIO mk_stringTables mk_grammar mk_contentIO mk_grammarGen
 	
