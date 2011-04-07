@@ -34,8 +34,7 @@
 
 /**
  * @file grammarAugment.h
- * @brief Definitions and utility functions for augmenting a normalized grammar.
- *        It includes Event Code Assignment and Undeclared Productions additions
+ * @brief Utility functions for adding Undeclared Productions to a normalized grammar.
  * @date Feb 3, 2011
  * @author Rumen Kyusakov
  * @version 0.1
@@ -46,14 +45,6 @@
 #define GRAMMARAUGMENT_H_
 
 #include "procTypes.h"
-
-/**
- * @brief Event Code Assignment to normalized grammar
- *
- * @param[in, out] grammar the normalized grammar for assigning the event codes
- * @return Error handling code
- */
-errorCode assignCodes(struct EXIGrammar* grammar);
 
 /**
  * @brief Adds Undeclared Productions
