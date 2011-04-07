@@ -286,4 +286,12 @@ errorCode getEXIDataType(QName simpleXSDType, ValueType* exiType);
  */
 int qnamesCompare(const StringType* uri1, const StringType* ln1, const StringType* uri2, const StringType* ln2);
 
+/**
+ * @brief Event Code Assignment to normalized grammar
+ *
+ * @param[in, out] grammar the normalized grammar for assigning the event codes
+ * @return Error handling code
+ */
+errorCode assignCodes(struct EXIGrammar* grammar);
+
 #endif /* GENUTILS_H_ */
