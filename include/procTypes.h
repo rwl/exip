@@ -53,7 +53,7 @@
 #include <limits.h>
 
 #ifdef _MSC_VER
-	SIZE_MAX ((size_t) -1)
+#  define SIZE_MAX ((size_t) -1)
 #endif
 
 #define TRUE  1

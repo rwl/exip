@@ -12,7 +12,7 @@ struct entry
 {
     void *k, *v;
     unsigned int key_len;
-    unsigned int h;
+    uint32_t h;
     struct entry *next;
 };
 
@@ -38,7 +38,7 @@ indexFor(unsigned int tablelength, unsigned int hashvalue) {
     return (hashvalue % tablelength);
 };
 */
-#define indexFor(tablelength,hashvalue)		((unsigned int)(hashvalue)%(unsigned int)(tablelength))
+#define indexFor(tablelength,hashvalue)		((unsigned int) (hashvalue % (uint32_t) tablelength))
 
 /* Only works if tablelength == 2^N */
 /*static inline unsigned int
