@@ -191,17 +191,26 @@ errorCode createComplexTypeGrammar(AllocList* memList, StringType* name, StringT
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int i;
 
-	tmpGrammar = &(attrUsesArray[0]);
-	for(i = 1; i < attrUsesArraySize; i++)
+	if(attrUsesArraySize > 0)
 	{
-		tmp_err_code = concatenateGrammars(memList, tmpGrammar, &(attrUsesArray[i]), &tmpGrammar);
+		tmpGrammar = &(attrUsesArray[0]);
+		for(i = 1; i < attrUsesArraySize; i++)
+		{
+			tmp_err_code = concatenateGrammars(memList, tmpGrammar, &(attrUsesArray[i]), &tmpGrammar);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+
+		tmp_err_code = concatenateGrammars(memList, tmpGrammar, contentTypeGrammar, result);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
-
-	tmp_err_code = concatenateGrammars(memList, tmpGrammar, contentTypeGrammar, result);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	else
+	{
+		tmp_err_code = copyGrammar(memList, contentTypeGrammar, result);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
 
 	(*result)->grammarType = GR_TYPE_SCHEMA_TYPE;
 

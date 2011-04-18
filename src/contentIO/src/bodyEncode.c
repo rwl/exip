@@ -297,8 +297,8 @@ errorCode encodeComplexEXIEvent(EXIStream* strm, QName qname, EXIEvent event)
 				}
 				else
 				{
-					DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Element grammar NOT found in the pool \n"));
 					struct EXIGrammar* elementGrammar = (struct EXIGrammar*) memManagedAllocate(&strm->memList, sizeof(struct EXIGrammar));
+					DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Element grammar NOT found in the pool \n"));
 					if(elementGrammar == NULL)
 						return MEMORY_ALLOCATION_ERROR;
 					tmp_err_code = createBuildInElementGrammar(elementGrammar, strm);
@@ -369,11 +369,11 @@ errorCode encodeQName(EXIStream* strm, QName qname)
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	size_t lnID = 0;
 
-	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Encoding QName\n"));
-
 /******* Start: URI **********/
 	uint16_t uriID = 0;
 	unsigned char uriBits = getBitsNumber(strm->uriTable->rowCount);
+
+	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Encoding QName\n"));
 	if(lookupURI(strm->uriTable, *(qname.uri), &uriID)) // uri hit
 	{
 		tmp_err_code = encodeNBitUnsignedInteger(strm, uriBits, uriID + 1);

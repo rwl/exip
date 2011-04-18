@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
 			tmp_err_code += asciiToString("version", &ln, &testStrm.memList, FALSE);
 			tmp_err_code += serEXI.attributeSer(&testStrm, qname);
 
-			tmp_err_code += asciiToString("0.1", &chVal, &testStrm.memList, FALSE);
+			tmp_err_code += asciiToString("0.2", &chVal, &testStrm.memList, FALSE);
 			tmp_err_code += serEXI.stringDataSer(&testStrm, chVal);
 
 			tmp_err_code += asciiToString("This is an example of serializing EXI streams using EXIP low level API", &chVal, &testStrm.memList, FALSE);

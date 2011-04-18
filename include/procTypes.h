@@ -52,10 +52,6 @@
 #include "exipConfig.h"
 #include <limits.h>
 
-#ifdef _MSC_VER
-#  define SIZE_MAX ((size_t) -1)
-#endif
-
 #define TRUE  1
 #define FALSE 0
 
