@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="exip"
 	ProjectGUID="{38F909ED-6BBE-4F85-823F-E8E36160B5D2}"
 	RootNamespace="exip"
@@ -181,10 +181,6 @@
 					RelativePath="..\..\src\common\src\procTypes.c"
 					>
 				</File>
-				<File
-					RelativePath="..\..\src\common\src\sortingAlgorithms.c"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="contentIO"
@@ -194,11 +190,19 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\src\contentIO\src\bodyEncode.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\contentIO\src\EXIParser.c"
 					>
 				</File>
 				<File
 					RelativePath="..\..\src\contentIO\src\EXISerializer.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\contentIO\src\grammarAugment.c"
 					>
 				</File>
 				<File
@@ -263,10 +267,6 @@
 				>
 				<File
 					RelativePath="..\..\src\grammarGen\src\genUtils.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\grammarGen\src\grammarAugment.c"
 					>
 				</File>
 				<File
@@ -343,10 +343,6 @@
 					RelativePath="..\..\src\common\include\memManagement.h"
 					>
 				</File>
-				<File
-					RelativePath="..\..\src\common\include\sortingAlgorithms.h"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="contentIO"
@@ -357,6 +353,10 @@
 				</File>
 				<File
 					RelativePath="..\..\src\contentIO\include\bodyEncode.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\contentIO\include\grammarAugment.h"
 					>
 				</File>
 				<File
@@ -421,10 +421,6 @@
 				>
 				<File
 					RelativePath="..\..\src\grammarGen\include\genUtils.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\grammarGen\include\grammarAugment.h"
 					>
 				</File>
 				<File
