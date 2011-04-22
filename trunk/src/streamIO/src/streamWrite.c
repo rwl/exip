@@ -103,7 +103,7 @@ errorCode writeNBits(EXIStream* strm, unsigned char nbits, uint32_t bits_val)
 
 	while(numBitsWrite < nbits)
 	{
-		if(nbits - numBitsWrite <= 8 - strm->bitPointer) // The rest of the unwritten bits can be put in the current byte from the stream
+		if((unsigned int)(nbits - numBitsWrite) <= (unsigned int)(8 - strm->bitPointer)) // The rest of the unwritten bits can be put in the current byte from the stream
 			bits_in_byte = nbits - numBitsWrite;
 		else // The rest of the unwritten bits are more than the bits in the current byte from the stream
 			bits_in_byte = 8 - strm->bitPointer;

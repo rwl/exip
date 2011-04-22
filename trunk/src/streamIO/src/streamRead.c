@@ -88,8 +88,8 @@ errorCode readBits(EXIStream* strm, unsigned char n, uint32_t* bits_val)
 	{
 		// The buffer end is reached: there are fewer than n bits left unparsed
 		char leftOverBits[8];
-		unsigned int bytesCopied = strm->bufContent - strm->bufferIndx;
-		unsigned int bytesRead = 0;
+		size_t bytesCopied = strm->bufContent - strm->bufferIndx;
+		size_t bytesRead = 0;
 		if(strm->ioStrm == NULL || strm->ioStrm->readWriteToStream == NULL)
 			return BUFFER_END_REACHED;
 
@@ -107,7 +107,7 @@ errorCode readBits(EXIStream* strm, unsigned char n, uint32_t* bits_val)
 	while(numBitsRead < n)
 	{
 		tmp = 0;
-		if(n - numBitsRead <= 8 - strm->bitPointer) // The rest of the unread bits are located in the current byte from the stream
+		if((unsigned int)(n - numBitsRead) <= (unsigned int)(8 - strm->bitPointer)) // The rest of the unread bits are located in the current byte from the stream
 		{
 			int tmp_shift;
 			bits_in_byte = n - numBitsRead;

@@ -450,7 +450,7 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 		}
 		else if(ruleArr[strm->nonTermID].bits[b] == 0) // encoded with zero bits
 		{
-			return handleProduction(strm, strm->nonTermID, currProduction, event, nonTermID_out, handler, app_data, b);
+			return handleProduction(strm, (unsigned int)strm->nonTermID, currProduction, event, nonTermID_out, handler, app_data, b);
 		}
 		else
 		{
@@ -466,7 +466,7 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 				{
 					if(ruleArr[strm->nonTermID].prodArray[j].code.size == b + 1)
 					{
-						return handleProduction(strm, strm->nonTermID, j, event, nonTermID_out, handler, app_data, b);
+						return handleProduction(strm, (unsigned int)strm->nonTermID, j, event, nonTermID_out, handler, app_data, b);
 					}
 					else
 					{
@@ -584,7 +584,7 @@ errorCode checkGrammarInPool(GrammarPool* pool, uint16_t uriRowID,
 									size_t lnRowID, unsigned char* is_found, struct EXIGrammar** result)
 {
 	char key[8];
-	createKey64bits(uriRowID, lnRowID, key);
+	createKey64bits(uriRowID, (uint32_t)lnRowID, key);
 
 	*result = hashtable_search(pool, key, 8);
 	if(*result == NULL)
@@ -601,7 +601,7 @@ errorCode addGrammarInPool(GrammarPool* pool, uint16_t uriRowID,
 	char* key = (char*) EXIP_MALLOC(8); // Keys are freed from the hash table
 	if(key == NULL)
 		return MEMORY_ALLOCATION_ERROR;
-	createKey64bits(uriRowID, lnRowID, key);
+	createKey64bits(uriRowID, (uint32_t)lnRowID, key);
 
 	if (! hashtable_insert(pool, key, 8, newGr) )
 		return HASH_TABLE_ERROR;

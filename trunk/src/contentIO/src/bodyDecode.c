@@ -234,7 +234,7 @@ errorCode decodeQName(EXIStream* strm, QName* qname)
 
 	if(tmpVar == 0) // local-name table hit
 	{
-		unsigned char lnBits = getBitsNumber(strm->uriTable->rows[uriID].lTable->rowCount - 1);
+		unsigned char lnBits = getBitsNumber((unsigned int)(strm->uriTable->rows[uriID].lTable->rowCount - 1));
 		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">local-name table hit\n"));
 		tmp_err_code = decodeNBitUnsignedInteger(strm, lnBits, &tmpVar);
 		if(tmp_err_code != ERR_OK)
@@ -291,7 +291,7 @@ errorCode decodeStringValue(EXIStream* strm, StringType** value)
 	else if(tmpVar == 1)// global value partition table hit
 	{
 		size_t gvID = 0;
-		unsigned char gvBits = getBitsNumber(strm->vTable->rowCount - 1);
+		unsigned char gvBits = getBitsNumber((unsigned int)(strm->vTable->rowCount - 1));
 		tmp_err_code = decodeNBitUnsignedInteger(strm, gvBits, &tmpVar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;

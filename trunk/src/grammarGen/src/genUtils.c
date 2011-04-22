@@ -88,7 +88,7 @@ errorCode concatenateGrammars(AllocList* memList, struct EXIGrammar* left, struc
 
 	for(i = 0; i < right->rulesDimension; i++)
 	{
-		copyGrammarRule(memList, &(right->ruleArray[i]), &((*result)->ruleArray[left->rulesDimension + i]), left->rulesDimension);
+		copyGrammarRule(memList, &(right->ruleArray[i]), &((*result)->ruleArray[left->rulesDimension + i]), (unsigned int)(left->rulesDimension));
 	}
 
 	return ERR_OK;
@@ -116,7 +116,7 @@ errorCode createElementProtoGrammar(AllocList* memList, StringType name, StringT
 	if((*result)->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	for(i = 0; i < typeDef->rulesDimension; i++)
+	for(i = 0; i < (int)typeDef->rulesDimension; i++)
 	{
 		copyGrammarRule(memList, &(typeDef->ruleArray[i]), &((*result)->ruleArray[i]), 0);
 	}
@@ -324,7 +324,7 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	for(i = 0; i + 1 < minOccurs; i++)
+	for(i = 0; i + 1 < (int)minOccurs; i++)
 	{
 		tmp_err_code = concatenateGrammars(memList, tmpGrammar, termGrammar, &tmpGrammar);
 		if(tmp_err_code != ERR_OK)
@@ -354,7 +354,7 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
 
 		if(maxOccurs >= 0) // {max occurs} is not unbounded
 		{
-			for(i = 0; i + 1 < maxOccurs - minOccurs; i++)
+			for(i = 0; i + 1 < maxOccurs - (int)minOccurs; i++)
 			{
 				tmp_err_code = concatenateGrammars(memList, tmpGrammar, termGrammar, &tmpGrammar);
 				if(tmp_err_code != ERR_OK)
