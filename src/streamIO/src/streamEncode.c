@@ -114,7 +114,7 @@ errorCode encodeString(EXIStream* strm, const StringType* string_val)
 
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
-	tmp_err_code = encodeUnsignedInteger(strm, string_val->length);
+	tmp_err_code = encodeUnsignedInteger(strm, (uint32_t)(string_val->length) );
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 

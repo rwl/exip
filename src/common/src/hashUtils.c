@@ -72,7 +72,7 @@ int keyEqual(char* key1, unsigned int len1, char* key2, unsigned int len2)
 		}
 		else
 		{
-			int i = 0;
+			unsigned int i = 0;
 			for(i = 0; i < len1; i++)
 			{
 				if(key1[i] != key2[i])

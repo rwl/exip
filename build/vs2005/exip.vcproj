@@ -179,10 +179,6 @@
 					RelativePath="..\..\src\common\src\procTypes.c"
 					>
 				</File>
-				<File
-					RelativePath="..\..\src\common\src\sortingAlgorithms.c"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="contentIO"
@@ -192,12 +188,38 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\src\contentIO\src\bodyEncode.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\contentIO\src\EXIParser.c"
 					>
 				</File>
 				<File
 					RelativePath="..\..\src\contentIO\src\EXISerializer.c"
 					>
+				</File>
+				<File
+					RelativePath="..\..\src\contentIO\src\grammarAugment.c"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\$(InputName)1.obj"
+							XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\$(InputName)1.obj"
+							XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\src\contentIO\src\headerDecode.c"
@@ -264,10 +286,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\grammarGen\src\grammarAugment.c"
-					>
-				</File>
-				<File
 					RelativePath="..\..\src\grammarGen\src\grammarGenerator.c"
 					>
 				</File>
@@ -300,6 +318,10 @@
 			</File>
 			<File
 				RelativePath="..\..\include\EXISerializer.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\grammarGenerator.h"
 				>
 			</File>
 			<File
@@ -341,10 +363,6 @@
 					RelativePath="..\..\src\common\include\memManagement.h"
 					>
 				</File>
-				<File
-					RelativePath="..\..\src\common\include\sortingAlgorithms.h"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="contentIO"
@@ -355,6 +373,10 @@
 				</File>
 				<File
 					RelativePath="..\..\src\contentIO\include\bodyEncode.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\contentIO\include\grammarAugment.h"
 					>
 				</File>
 				<File
@@ -419,10 +441,6 @@
 				>
 				<File
 					RelativePath="..\..\src\grammarGen\include\genUtils.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\grammarGen\include\grammarAugment.h"
 					>
 				</File>
 				<File

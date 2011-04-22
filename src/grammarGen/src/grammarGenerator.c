@@ -913,7 +913,7 @@ static errorCode handleExtentionEl(struct xsdAppData* app_data)
 
 	// TODO: the attributeUses array must be sorted first before calling createComplexTypeGrammar()
 	tmp_err_code = createComplexTypeGrammar(&app_data->tmpMemList, typeName, target_ns,
-			(struct EXIGrammar*) elemDesc->attributeUses->elements, elemDesc->attributeUses->elementCount,
+			(struct EXIGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount),
 									   NULL, 0, simpleTypeGrammar, &resultComplexGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -988,7 +988,7 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 	// TODO: the attributeUses array must be sorted first before calling createComplexTypeGrammar()
 
 	tmp_err_code = createComplexTypeGrammar(&app_data->tmpMemList, typeName, target_ns,
-			(struct EXIGrammar*) elemDesc->attributeUses->elements, elemDesc->attributeUses->elementCount,
+			(struct EXIGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount),
 			                           NULL, 0, contentTypeGrammar, &resultComplexGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -1407,7 +1407,7 @@ static errorCode getTypeQName(AllocList* memList, const StringType typeLiteral, 
 	if(uri == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	for(i = 0; i < typeLiteral.length; i++)
+	for(i = 0; i < (int)(typeLiteral.length); i++)
 	{
 		if(typeLiteral.str[i] == ':')
 		{

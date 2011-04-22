@@ -171,7 +171,7 @@ errorCode deleteDuplicateTerminals(AllocList* memList, struct EXIGrammar* gramma
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	lastAddedNonTermID = grammar->rulesDimension;
+	lastAddedNonTermID = (unsigned int)(grammar->rulesDimension);
 
 	for(i = 0; i < grammar->rulesDimension; i++) // For every rule in the grammar
 	{

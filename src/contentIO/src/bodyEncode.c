@@ -89,14 +89,14 @@ errorCode encodeStringData(EXIStream* strm, StringType strng)
 			tmp_err_code = encodeUnsignedInteger(strm, 1);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
-			gvBits = getBitsNumber(strm->vTable->rowCount - 1);
-			tmp_err_code = encodeNBitUnsignedInteger(strm, gvBits, gvRowID);
+			gvBits = getBitsNumber((unsigned int)(strm->vTable->rowCount - 1));
+			tmp_err_code = encodeNBitUnsignedInteger(strm, gvBits, (uint32_t)(gvRowID) );
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 		else // "local" value partition and global value partition table miss
 		{
-			tmp_err_code = encodeUnsignedInteger(strm, strng.length + 2);
+			tmp_err_code = encodeUnsignedInteger(strm, (uint32_t)(strng.length + 2));
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 			tmp_err_code = encodeStringOnly(strm, &strng);
@@ -399,18 +399,18 @@ errorCode encodeQName(EXIStream* strm, QName qname)
 /******* Start: Local name **********/
 	if(lookupLN(strm->uriTable->rows[uriID].lTable, *(qname.localName), &lnID)) // local-name table hit
 	{
-		unsigned char lnBits = getBitsNumber(strm->uriTable->rows[uriID].lTable->rowCount - 1);
+		unsigned char lnBits = getBitsNumber((unsigned int)(strm->uriTable->rows[uriID].lTable->rowCount - 1));
 		tmp_err_code = encodeUnsignedInteger(strm, 0);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = encodeNBitUnsignedInteger(strm, lnBits, lnID);
+		tmp_err_code = encodeNBitUnsignedInteger(strm, lnBits, (uint32_t)(lnID) );
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 	else // local-name table miss
 	{
-		tmp_err_code = encodeUnsignedInteger(strm, qname.localName->length + 1);
+		tmp_err_code = encodeUnsignedInteger(strm, (uint32_t)(qname.localName->length + 1) );
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
