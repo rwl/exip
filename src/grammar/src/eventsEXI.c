@@ -46,48 +46,48 @@
 
 #define UNUSED_CODE_PART_VALUE UINT_MAX
 
-EventCode getEventCode3(unsigned int first, unsigned int second, unsigned int third)
-{
-	EventCode res;
-	res.size = 3;
-	res.code[0] = first;
-	res.code[1] = second;
-	res.code[2] = third;
-	return res;
-}
-
-EventCode getEventCode2(unsigned int first, unsigned int second)
-{
-	EventCode res;
-	res.size = 2;
-	res.code[0] = first;
-	res.code[1] = second;
-	res.code[2] = UNUSED_CODE_PART_VALUE;
-	return res;
-}
-
-EventCode getEventCode1(unsigned int first)
-{
-	EventCode res;
-	res.size = 1;
-	res.code[0] = first;
-	res.code[1] = UNUSED_CODE_PART_VALUE;
-	res.code[2] = UNUSED_CODE_PART_VALUE;
-	return res;
-}
-
-errorCode writeEventCode(EXIStream* strm, EventCode code, unsigned char* bits)
-{
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned char i = 0;
-	for(i = 0; i < code.size; i++)
-	{
-		tmp_err_code = encodeNBitUnsignedInteger(strm, bits[i], code.code[i]);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-	return ERR_OK;
-}
+//EventCode getEventCode3(unsigned int first, unsigned int second, unsigned int third)
+//{
+//	EventCode res;
+//	res.size = 3;
+//	res.code[0] = first;
+//	res.code[1] = second;
+//	res.code[2] = third;
+//	return res;
+//}
+//
+//EventCode getEventCode2(unsigned int first, unsigned int second)
+//{
+//	EventCode res;
+//	res.size = 2;
+//	res.code[0] = first;
+//	res.code[1] = second;
+//	res.code[2] = UNUSED_CODE_PART_VALUE;
+//	return res;
+//}
+//
+//EventCode getEventCode1(unsigned int first)
+//{
+//	EventCode res;
+//	res.size = 1;
+//	res.code[0] = first;
+//	res.code[1] = UNUSED_CODE_PART_VALUE;
+//	res.code[2] = UNUSED_CODE_PART_VALUE;
+//	return res;
+//}
+//
+//errorCode writeEventCode(EXIStream* strm, EventCode code, unsigned char* bits)
+//{
+//	errorCode tmp_err_code = UNEXPECTED_ERROR;
+//	unsigned char i = 0;
+//	for(i = 0; i < code.size; i++)
+//	{
+//		tmp_err_code = encodeNBitUnsignedInteger(strm, bits[i], code.code[i]);
+//		if(tmp_err_code != ERR_OK)
+//			return tmp_err_code;
+//	}
+//	return ERR_OK;
+//}
 
 EXIEvent getEventDefType(EventType eType)
 {

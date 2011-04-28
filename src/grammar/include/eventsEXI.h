@@ -46,38 +46,38 @@
 #include "errorHandle.h"
 #include "procTypes.h"
 
-/**
- * @brief Creates an EventCode instance giving its 3 integer parts
- * @param[in] first first part
- * @param[in] second second part
- * @param[in] third third part
- * @return EventCode the newly created Event Code
- */
-EventCode getEventCode3(unsigned int first, unsigned int second, unsigned int third);
-
-/**
- * @brief Creates an EventCode instance giving its 2 integer parts
- * @param[in] first first part
- * @param[in] second second part
- * @return EventCode the newly created Event Code
- */
-EventCode getEventCode2(unsigned int first, unsigned int second);
-
-/**
- * @brief Creates an EventCode instance giving its 1 integer parts
- * @param[in] first first part
- * @return EventCode the newly created Event Code
- */
-EventCode getEventCode1(unsigned int first);
-
-/**
- * @brief Serialize an event code to an EXI stream
- * @param[in, out] strm EXI bit stream
- * @param[in] code EventCode to be serialized
- * @param[in] bits The number of bits used for the integers constituting the EventCode
- * @return EventCode the newly created Event Code
- */
-errorCode writeEventCode(EXIStream* strm, EventCode code, unsigned char* bits);
+///**
+// * @brief Creates an EventCode instance giving its 3 integer parts
+// * @param[in] first first part
+// * @param[in] second second part
+// * @param[in] third third part
+// * @return EventCode the newly created Event Code
+// */
+//EventCode getEventCode3(unsigned int first, unsigned int second, unsigned int third);
+//
+///**
+// * @brief Creates an EventCode instance giving its 2 integer parts
+// * @param[in] first first part
+// * @param[in] second second part
+// * @return EventCode the newly created Event Code
+// */
+//EventCode getEventCode2(unsigned int first, unsigned int second);
+//
+///**
+// * @brief Creates an EventCode instance giving its 1 integer parts
+// * @param[in] first first part
+// * @return EventCode the newly created Event Code
+// */
+//EventCode getEventCode1(unsigned int first);
+//
+///**
+// * @brief Serialize an event code to an EXI stream
+// * @param[in, out] strm EXI bit stream
+// * @param[in] code EventCode to be serialized
+// * @param[in] bits The number of bits used for the integers constituting the EventCode
+// * @return EventCode the newly created Event Code
+// */
+//errorCode writeEventCode(EXIStream* strm, EventCode code, unsigned char* bits);
 
 /**
  * @brief Creates EXI event given only EventType.

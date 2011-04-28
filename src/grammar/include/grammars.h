@@ -82,7 +82,7 @@ errorCode popGrammar(EXIGrammarStack** gStack, struct EXIGrammar** grammar);
 
 /**
  * @brief Creates an instance of the EXI Built-in Document Grammar or Schema-Informed Document Grammar
- * If glElems is NULL -> then it creates EXI Built-in Document Grammar, otherwise
+ * If schema is NULL then it creates EXI Built-in Document Grammar, otherwise
  * it creates Schema-Informed Document Grammar
  *
  * @param[in, out] docGrammar empty grammar container to be filled with rules
