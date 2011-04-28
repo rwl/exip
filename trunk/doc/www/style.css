@@ -19,6 +19,7 @@ line-height : 20px;
 	font-style: italic;
 	vertical-align: center;
 	text-align: center;
+	white-space:nowrap;
 }
 
 .title

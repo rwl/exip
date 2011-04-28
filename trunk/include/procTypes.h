@@ -383,26 +383,17 @@ struct EXIEvent
 
 typedef struct EXIEvent EXIEvent;
 
-struct EventCode
-{
-	unsigned int code[3];
-	unsigned char size; // The number of integers constituting the EventCode
-};
-
-typedef struct EventCode EventCode;
-
 struct Production
 {
-	EventCode code;
 	EXIEvent event;
-	size_t nonTermID; // unique identifier of right-hand side Non-terminal
-
 	/**
 	 * For SE(qname), SE(uri:*), AT(qname) and AT(uri:*). Points to the qname or its local name
 	 * of the element/attribute
 	 */
 	uint16_t uriRowID;
 	size_t lnRowID;
+
+	size_t nonTermID; // unique identifier of right-hand side Non-terminal
 };
 
 typedef struct Production Production;
@@ -422,11 +413,17 @@ typedef struct Production Production;
 
 struct GrammarRule
 {
-	Production* prodArray; // Array of grammar productions included in that rule
-	uint16_t prodCount; // The number of productions in this Grammar Rule
-	uint16_t prodDimension; // The size of the productions' array /allocated space for Productions/
+	Production* code1_ProdArray; // Dynamic array of grammar productions that have event codes of length 1
+	size_t code1_ProdCount; // The number of productions in the code1_ProdArray
+	size_t code1_ProdDimension; // The size of the code1_ProdArray production array /allocated space for Productions/
+	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation for code1_ProdArray
 	unsigned char bits[3]; // The number of bits used for the integers constituting the EventCode
-	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
+
+	Production* code2_ProdArray; // Static array of grammar productions that have event codes of length 2
+	size_t code2_ProdCount; // The number of productions in the code1_ProdArray
+
+	Production* code3_ProdArray; // Static array of grammar productions that have event codes of length 3
+	uint16_t code3_ProdCount; // The number of productions in the code1_ProdArray
 };
 
 typedef struct GrammarRule GrammarRule;
