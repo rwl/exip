@@ -69,15 +69,16 @@
 // * @return EventCode the newly created Event Code
 // */
 //EventCode getEventCode1(unsigned int first);
-//
-///**
-// * @brief Serialize an event code to an EXI stream
-// * @param[in, out] strm EXI bit stream
-// * @param[in] code EventCode to be serialized
-// * @param[in] bits The number of bits used for the integers constituting the EventCode
-// * @return EventCode the newly created Event Code
-// */
-//errorCode writeEventCode(EXIStream* strm, EventCode code, unsigned char* bits);
+
+/**
+ * @brief Serialize an event code to an EXI stream
+ * @param[in, out] strm EXI bit stream
+ * @param[in] currentRule the current grammar rule
+ * @param[in] codeLength the number of parts in the event code to be written
+ * @param[in] codeLastPart the last part of the event code
+ * @return EventCode the newly created Event Code
+ */
+errorCode writeEventCode(EXIStream* strm, GrammarRule* currentRule, unsigned char codeLength, size_t codeLastPart);
 
 /**
  * @brief Creates EXI event given only EventType.

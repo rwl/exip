@@ -141,36 +141,20 @@
 errorCode printGrammarRule(size_t nonTermID, GrammarRule* rule)
 {
 	size_t i = 0;
+	unsigned char p = 0;
 	unsigned char prodArrNum = 0;
-	Production* tmp_ProdArray;
-	size_t tmp_ProdCount;
 
 	DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\n>RULE\n"));
 	DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("NT-%u:", (unsigned int) nonTermID));
 
 	DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\n"));
 
-	tmp_ProdArray = rule->code1_ProdArray;
-	tmp_ProdCount = rule->code1_ProdCount;
-
-	for(prodArrNum = 0; prodArrNum < 3; prodArrNum++)
+	for(p = 0; p < 3; p++)
 	{
-		if(prodArrNum == 1)
-		{
-			tmp_ProdArray = rule->code2_ProdArray;
-			tmp_ProdCount = rule->code2_ProdCount;
-		}
-		else if(prodArrNum == 2)
-		{
-			tmp_ProdArray = rule->code3_ProdArray;
-			tmp_ProdCount = rule->code3_ProdCount;
-		}
-
-
-		for(i = tmp_ProdCount - 1; i >=0; i--)
+		for(i = rule->prodCounts[p] - 1; i >=0; i--)
 		{
 			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\t"));
-			switch(tmp_ProdArray[i].event.eventType)
+			switch(rule->prodArrays[p][i].event.eventType)
 			{
 				case EVENT_SD:
 					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("SD "));
@@ -179,7 +163,7 @@ errorCode printGrammarRule(size_t nonTermID, GrammarRule* rule)
 					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("ED "));
 					break;
 				case EVENT_SE_QNAME:
-					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("SE (qname: %d:%d) ", tmp_ProdArray[i].uriRowID, tmp_ProdArray[i].lnRowID));
+					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("SE (qname: %d:%d) ", rule->prodArrays[p][i].uriRowID, rule->prodArrays[p][i].lnRowID));
 					break;
 				case EVENT_SE_URI:
 					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("SE (uri) "));
@@ -227,10 +211,10 @@ errorCode printGrammarRule(size_t nonTermID, GrammarRule* rule)
 					return UNEXPECTED_ERROR;
 			}
 			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\t"));
-			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("NT-%u", (unsigned int) tmp_ProdArray[i].nonTermID));
+			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("NT-%u", (unsigned int) rule->prodArrays[p][i].nonTermID));
 			if(prodArrNum > 0)
 				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("."));
-			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("%d", tmp_ProdCount - 1 - i));
+			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("%d", rule->prodCounts[p] - 1 - i));
 			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\n"));
 		}
 	}

@@ -413,17 +413,11 @@ typedef struct Production Production;
 
 struct GrammarRule
 {
-	Production* code1_ProdArray; // Dynamic array of grammar productions that have event codes of length 1
-	size_t code1_ProdCount; // The number of productions in the code1_ProdArray
-	size_t code1_ProdDimension; // The size of the code1_ProdArray production array /allocated space for Productions/
-	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation for code1_ProdArray
+	Production* prodArrays[3]; // 3 arrays of grammar productions that have event codes of length 1 (Dynamic array prodArrays[0]), 2 (prodArrays[1]) and 3 (prodArrays[2])
+	size_t prodCounts[3]; // The number of productions in the prodArrays
+	size_t prod1Dimension; // The size of the prodArrays[0] Dynamic production array /allocated space for Productions in it/
+	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation for prodArrays[0]
 	unsigned char bits[3]; // The number of bits used for the integers constituting the EventCode
-
-	Production* code2_ProdArray; // Static array of grammar productions that have event codes of length 2
-	size_t code2_ProdCount; // The number of productions in the code1_ProdArray
-
-	Production* code3_ProdArray; // Static array of grammar productions that have event codes of length 3
-	uint16_t code3_ProdCount; // The number of productions in the code1_ProdArray
 };
 
 typedef struct GrammarRule GrammarRule;

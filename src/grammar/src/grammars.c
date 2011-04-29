@@ -57,8 +57,8 @@
 #define DEF_ELEMENT_GRAMMAR_RULE_NUMBER 2
 #define GRAMMAR_POOL_DIMENSION 16
 
-static errorCode handleProduction(EXIStream* strm, unsigned int ruleIndx, unsigned int prodIndx,
-				EXIEvent* event, size_t* nonTermID_out, ContentHandler* handler, void* app_data, unsigned int codeIndx);
+static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Production* prodHit,
+				EXIEvent* event, size_t* nonTermID_out, ContentHandler* handler, void* app_data, unsigned int codeLength);
 
 errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, ExipSchema* schema)
 {
@@ -76,28 +76,28 @@ errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, ExipS
 
 	/* Document : SD DocContent	0 */
 	tmp_rule = &docGrammar->ruleArray[GR_DOCUMENT];
-	tmp_rule->code1_ProdArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production));
-	if(tmp_rule->code1_ProdArray == NULL)
+	tmp_rule->prodArrays[0] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production));
+	if(tmp_rule->prodArrays[0] == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_rule->code1_ProdArray->event = getEventDefType(EVENT_SD);
-	tmp_rule->code1_ProdArray->nonTermID = GR_DOC_CONTENT;
-	tmp_rule->code1_ProdCount = 1;
-	tmp_rule->code1_ProdDimension = 1;
+	tmp_rule->prodArrays[0]->event = getEventDefType(EVENT_SD);
+	tmp_rule->prodArrays[0]->nonTermID = GR_DOC_CONTENT;
+	tmp_rule->prodCounts[0] = 1;
+	tmp_rule->prod1Dimension = 1;
 	tmp_rule->bits[0] = 0;
 	tmp_rule->bits[1] = 0;
 	tmp_rule->bits[2] = 0;
-	tmp_rule->code2_ProdArray = NULL;
-	tmp_rule->code2_ProdCount = 0;
-	tmp_rule->code3_ProdArray = NULL;
-	tmp_rule->code3_ProdCount = 0;
+	tmp_rule->prodArrays[1] = NULL;
+	tmp_rule->prodCounts[1] = 0;
+	tmp_rule->prodArrays[2] = NULL;
+	tmp_rule->prodCounts[2] = 0;
 
 
 	tmp_rule = &docGrammar->ruleArray[GR_DOC_CONTENT];
-	tmp_rule->code2_ProdArray = NULL;
-	tmp_rule->code2_ProdCount = 0;
-	tmp_rule->code3_ProdArray = NULL;
-	tmp_rule->code3_ProdCount = 0;
+	tmp_rule->prodArrays[1] = NULL;
+	tmp_rule->prodCounts[1] = 0;
+	tmp_rule->prodArrays[2] = NULL;
+	tmp_rule->prodCounts[2] = 0;
 	if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_DTD))
 		tmp_code2 += 1;
 	if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_COMMENTS))
@@ -112,12 +112,12 @@ errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, ExipS
 		docGrammar->grammarType = GR_TYPE_SCHEMA_DOC;
 		tmp_code1 = schema->globalElemGrammars.count + 1;
 
-		tmp_rule->code1_ProdArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code1);
-		if(tmp_rule->code1_ProdArray == NULL)
+		tmp_rule->prodArrays[0] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code1);
+		if(tmp_rule->prodArrays[0] == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		tmp_rule->code1_ProdCount = tmp_code1;
-		tmp_rule->code1_ProdDimension = tmp_code1;
+		tmp_rule->prodCounts[0] = tmp_code1;
+		tmp_rule->prod1Dimension = tmp_code1;
 		tmp_rule->bits[0] = getBitsNumber(schema->globalElemGrammars.count + ((tmp_code2 + tmp_code3) > 0));
 
 		/*
@@ -134,22 +134,22 @@ errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, ExipS
 
 		for(e = schema->globalElemGrammars.count; e > 0; e--)
 		{
-			tmp_rule->code1_ProdArray[e].event = getEventDefType(EVENT_SE_QNAME);
-			tmp_rule->code1_ProdArray[e].nonTermID = GR_DOC_END;
-			tmp_rule->code1_ProdArray[e].lnRowID = schema->globalElemGrammars.elems[schema->globalElemGrammars.count - e].lnRowId;
-			tmp_rule->code1_ProdArray[e].uriRowID = schema->globalElemGrammars.elems[schema->globalElemGrammars.count - e].uriRowId;
+			tmp_rule->prodArrays[0][e].event = getEventDefType(EVENT_SE_QNAME);
+			tmp_rule->prodArrays[0][e].nonTermID = GR_DOC_END;
+			tmp_rule->prodArrays[0][e].lnRowID = schema->globalElemGrammars.elems[schema->globalElemGrammars.count - e].lnRowId;
+			tmp_rule->prodArrays[0][e].uriRowID = schema->globalElemGrammars.elems[schema->globalElemGrammars.count - e].uriRowId;
 		}
 	}
 	else
 	{
-		tmp_rule->code1_ProdArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production));
-		if(tmp_rule->code1_ProdArray == NULL)
+		tmp_rule->prodArrays[0] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production));
+		if(tmp_rule->prodArrays[0] == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
 		tmp_code1 = 1;
 
-		tmp_rule->code1_ProdCount = 1;
-		tmp_rule->code1_ProdDimension = 1;
+		tmp_rule->prodCounts[0] = 1;
+		tmp_rule->prod1Dimension = 1;
 		tmp_rule->bits[0] = (tmp_code2 + tmp_code3) > 0;
 	}
 
@@ -164,37 +164,37 @@ errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, ExipS
 	tmp_rule->bits[1] = (tmp_code2 && (tmp_code3 > 0));
 	tmp_rule->bits[2] = tmp_code3 > 1;
 
-	tmp_rule->code1_ProdArray[0].event = getEventDefType(EVENT_SE_ALL);
-	tmp_rule->code1_ProdArray[0].nonTermID = GR_DOC_END;
+	tmp_rule->prodArrays[0][0].event = getEventDefType(EVENT_SE_ALL);
+	tmp_rule->prodArrays[0][0].nonTermID = GR_DOC_END;
 
 	if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_DTD))
 	{
-		tmp_rule->code2_ProdArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production));
-		if(tmp_rule->code2_ProdArray == NULL)
+		tmp_rule->prodArrays[1] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production));
+		if(tmp_rule->prodArrays[1] == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		tmp_rule->code2_ProdCount = 1;
-		tmp_rule->code2_ProdArray->event = getEventDefType(EVENT_DT);
-		tmp_rule->code2_ProdArray->nonTermID = GR_DOC_CONTENT;
+		tmp_rule->prodCounts[1] = 1;
+		tmp_rule->prodArrays[1]->event = getEventDefType(EVENT_DT);
+		tmp_rule->prodArrays[1]->nonTermID = GR_DOC_CONTENT;
 	}
 	if(tmp_code3 > 0)
 	{
-		tmp_rule->code3_ProdArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code3);
-		if(tmp_rule->code3_ProdArray == NULL)
+		tmp_rule->prodArrays[2] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code3);
+		if(tmp_rule->prodArrays[2] == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		tmp_rule->code3_ProdCount = tmp_code3;
+		tmp_rule->prodCounts[2] = tmp_code3;
 
 		if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_COMMENTS))
 		{
-			tmp_rule->code3_ProdArray[tmp_code3 - 1].event = getEventDefType(EVENT_CM);
-			tmp_rule->code3_ProdArray[tmp_code3 - 1].nonTermID = GR_DOC_CONTENT;
+			tmp_rule->prodArrays[2][tmp_code3 - 1].event = getEventDefType(EVENT_CM);
+			tmp_rule->prodArrays[2][tmp_code3 - 1].nonTermID = GR_DOC_CONTENT;
 		}
 
 		if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_PIS))
 		{
-			tmp_rule->code3_ProdArray[0].event = getEventDefType(EVENT_PI);
-			tmp_rule->code3_ProdArray[0].nonTermID = GR_DOC_CONTENT;
+			tmp_rule->prodArrays[2][0].event = getEventDefType(EVENT_PI);
+			tmp_rule->prodArrays[2][0].nonTermID = GR_DOC_CONTENT;
 		}
 	}
 
@@ -208,10 +208,10 @@ errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, ExipS
 	tmp_code1 = 1;
 	tmp_code2 = 0;
 	tmp_code3 = 0;
-	tmp_rule->code2_ProdArray = NULL;
-	tmp_rule->code2_ProdCount = 0;
-	tmp_rule->code3_ProdArray = NULL;
-	tmp_rule->code3_ProdCount = 0;
+	tmp_rule->prodArrays[1] = NULL;
+	tmp_rule->prodCounts[1] = 0;
+	tmp_rule->prodArrays[2] = NULL;
+	tmp_rule->prodCounts[2] = 0;
 
 	if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_COMMENTS))
 		tmp_code2 += 1;
@@ -222,33 +222,33 @@ errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, ExipS
 	tmp_rule->bits[1] = tmp_code2 > 1;
 	tmp_rule->bits[2] = 0;
 
-	tmp_rule->code1_ProdArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production));
-	if(tmp_rule->code1_ProdArray == NULL)
+	tmp_rule->prodArrays[0] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production));
+	if(tmp_rule->prodArrays[0] == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_rule->code1_ProdCount = 1;
-	tmp_rule->code1_ProdDimension = 1;
-	tmp_rule->code1_ProdArray->event = getEventDefType(EVENT_ED);
-	tmp_rule->code1_ProdArray->nonTermID = GR_VOID_NON_TERMINAL;
+	tmp_rule->prodCounts[0] = 1;
+	tmp_rule->prod1Dimension = 1;
+	tmp_rule->prodArrays[0]->event = getEventDefType(EVENT_ED);
+	tmp_rule->prodArrays[0]->nonTermID = GR_VOID_NON_TERMINAL;
 
 	if(tmp_code2 > 0)
 	{
-		tmp_rule->code2_ProdArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code2);
-		if(tmp_rule->code2_ProdArray == NULL)
+		tmp_rule->prodArrays[1] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code2);
+		if(tmp_rule->prodArrays[1] == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		tmp_rule->code2_ProdCount = tmp_code2;
+		tmp_rule->prodCounts[1] = tmp_code2;
 
 		if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_COMMENTS))
 		{
-			tmp_rule->code2_ProdArray[tmp_code2 - 1].event = getEventDefType(EVENT_CM);
-			tmp_rule->code2_ProdArray[tmp_code2 - 1].nonTermID = GR_DOC_END;
+			tmp_rule->prodArrays[1][tmp_code2 - 1].event = getEventDefType(EVENT_CM);
+			tmp_rule->prodArrays[1][tmp_code2 - 1].nonTermID = GR_DOC_END;
 		}
 
 		if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_PIS))
 		{
-			tmp_rule->code2_ProdArray[0].event = getEventDefType(EVENT_PI);
-			tmp_rule->code2_ProdArray[0].nonTermID = GR_DOC_END;
+			tmp_rule->prodArrays[1][0].event = getEventDefType(EVENT_PI);
+			tmp_rule->prodArrays[1][0].nonTermID = GR_DOC_END;
 		}
 	}
 
@@ -282,16 +282,16 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, EXIStre
 							PI ElementContent	    0.7.1 */
 
 	tmp_rule = &elementGrammar->ruleArray[GR_START_TAG_CONTENT];
-	tmp_rule->code1_ProdArray = (Production*) memManagedAllocatePtr(&strm->memList, sizeof(Production)*DEFAULT_PROD_ARRAY_DIM, &tmp_rule->memPair);
-	if(tmp_rule->code1_ProdArray == NULL)
+	tmp_rule->prodArrays[0] = (Production*) memManagedAllocatePtr(&strm->memList, sizeof(Production)*DEFAULT_PROD_ARRAY_DIM, &tmp_rule->memPair);
+	if(tmp_rule->prodArrays[0] == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_rule->code1_ProdCount = 0;
-	tmp_rule->code1_ProdDimension = DEFAULT_PROD_ARRAY_DIM;
-	tmp_rule->code2_ProdArray = NULL;
-	tmp_rule->code2_ProdCount = 0;
-	tmp_rule->code3_ProdArray = NULL;
-	tmp_rule->code3_ProdCount = 0;
+	tmp_rule->prodCounts[0] = 0;
+	tmp_rule->prod1Dimension = DEFAULT_PROD_ARRAY_DIM;
+	tmp_rule->prodArrays[1] = NULL;
+	tmp_rule->prodCounts[1] = 0;
+	tmp_rule->prodArrays[2] = NULL;
+	tmp_rule->prodCounts[2] = 0;
 
 	tmp_code1 = 0;
 	tmp_code2 = 4;
@@ -313,53 +313,53 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, EXIStre
 	tmp_rule->bits[2] = tmp_code3 > 1;
 
 
-	tmp_rule->code2_ProdArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code2);
-	if(tmp_rule->code2_ProdArray == NULL)
+	tmp_rule->prodArrays[1] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code2);
+	if(tmp_rule->prodArrays[1] == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_rule->code2_ProdCount = tmp_code2;
+	tmp_rule->prodCounts[1] = tmp_code2;
 
 	/* EE	                    0.0 */
-	tmp_rule->code2_ProdArray[tmp_code2-p].event = getEventDefType(EVENT_EE);
-	tmp_rule->code2_ProdArray[tmp_code2-p].nonTermID = GR_VOID_NON_TERMINAL;
+	tmp_rule->prodArrays[1][tmp_code2-p].event = getEventDefType(EVENT_EE);
+	tmp_rule->prodArrays[1][tmp_code2-p].nonTermID = GR_VOID_NON_TERMINAL;
 	p += 1;
 
 	/* AT (*) StartTagContent	0.1 */
-	tmp_rule->code2_ProdArray[tmp_code2-p].event = getEventDefType(EVENT_AT_ALL);
-	tmp_rule->code2_ProdArray[tmp_code2-p].nonTermID = GR_START_TAG_CONTENT;
+	tmp_rule->prodArrays[1][tmp_code2-p].event = getEventDefType(EVENT_AT_ALL);
+	tmp_rule->prodArrays[1][tmp_code2-p].nonTermID = GR_START_TAG_CONTENT;
 	p += 1;
 
 	if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_PREFIXES))
 	{
 		/* NS StartTagContent	    0.2 */
-		tmp_rule->code2_ProdArray[tmp_code2-p].event = getEventDefType(EVENT_NS);
-		tmp_rule->code2_ProdArray[tmp_code2-p].nonTermID = GR_START_TAG_CONTENT;
+		tmp_rule->prodArrays[1][tmp_code2-p].event = getEventDefType(EVENT_NS);
+		tmp_rule->prodArrays[1][tmp_code2-p].nonTermID = GR_START_TAG_CONTENT;
 		p += 1;
 	}
 
 	if(strm->header.opts->selfContained == TRUE)
 	{
 		/* SC Fragment	            0.3 */
-		tmp_rule->code2_ProdArray[tmp_code2-p].event = getEventDefType(EVENT_SC);
-		tmp_rule->code2_ProdArray[tmp_code2-p].nonTermID = GR_FRAGMENT;
+		tmp_rule->prodArrays[1][tmp_code2-p].event = getEventDefType(EVENT_SC);
+		tmp_rule->prodArrays[1][tmp_code2-p].nonTermID = GR_FRAGMENT;
 		p += 1;
 	}
 
 	/* SE (*) ElementContent	0.2 */
-	tmp_rule->code2_ProdArray[tmp_code2-p].event = getEventDefType(EVENT_SE_ALL);
-	tmp_rule->code2_ProdArray[tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
+	tmp_rule->prodArrays[1][tmp_code2-p].event = getEventDefType(EVENT_SE_ALL);
+	tmp_rule->prodArrays[1][tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
 	p += 1;
 
 	/* CH ElementContent	    0.3 */
-	tmp_rule->code2_ProdArray[tmp_code2-p].event = getEventDefType(EVENT_CH);
-	tmp_rule->code2_ProdArray[tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
+	tmp_rule->prodArrays[1][tmp_code2-p].event = getEventDefType(EVENT_CH);
+	tmp_rule->prodArrays[1][tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
 	p += 1;
 
 	if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_DTD))
 	{
 		/* ER ElementContent	    0.6 */
-		tmp_rule->code2_ProdArray[tmp_code2-p].event = getEventDefType(EVENT_ER);
-		tmp_rule->code2_ProdArray[tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
+		tmp_rule->prodArrays[1][tmp_code2-p].event = getEventDefType(EVENT_ER);
+		tmp_rule->prodArrays[1][tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
 		p += 1;
 	}
 
@@ -367,24 +367,24 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, EXIStre
 	{
 		p = 1;
 
-		tmp_rule->code3_ProdArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code3);
-		if(tmp_rule->code3_ProdArray == NULL)
+		tmp_rule->prodArrays[2] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code3);
+		if(tmp_rule->prodArrays[2] == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		tmp_rule->code3_ProdCount = tmp_code3;
+		tmp_rule->prodCounts[2] = tmp_code3;
 
 		if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_COMMENTS))
 		{
 			/* CM ElementContent	    0.7.0 */
-			tmp_rule->code3_ProdArray[tmp_code3-p].event = getEventDefType(EVENT_CM);
-			tmp_rule->code3_ProdArray[tmp_code3-p].nonTermID = GR_ELEMENT_CONTENT;
+			tmp_rule->prodArrays[2][tmp_code3-p].event = getEventDefType(EVENT_CM);
+			tmp_rule->prodArrays[2][tmp_code3-p].nonTermID = GR_ELEMENT_CONTENT;
 			p += 1;
 		}
 		if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_PIS))
 		{
 			/* PI ElementContent	    0.7.1 */
-			tmp_rule->code3_ProdArray[tmp_code3-p].event = getEventDefType(EVENT_PI);
-			tmp_rule->code3_ProdArray[tmp_code3-p].nonTermID = GR_ELEMENT_CONTENT;
+			tmp_rule->prodArrays[2][tmp_code3-p].event = getEventDefType(EVENT_PI);
+			tmp_rule->prodArrays[2][tmp_code3-p].nonTermID = GR_ELEMENT_CONTENT;
 		}
 	}
 
@@ -399,19 +399,19 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, EXIStre
 							PI ElementContent	    1.3.1 */
 
 	tmp_rule = &elementGrammar->ruleArray[GR_ELEMENT_CONTENT];
-	tmp_rule->code1_ProdArray = (Production*) memManagedAllocatePtr(&strm->memList, sizeof(Production)*DEFAULT_PROD_ARRAY_DIM, &tmp_rule->memPair);
-	if(tmp_rule->code1_ProdArray == NULL)
+	tmp_rule->prodArrays[0] = (Production*) memManagedAllocatePtr(&strm->memList, sizeof(Production)*DEFAULT_PROD_ARRAY_DIM, &tmp_rule->memPair);
+	if(tmp_rule->prodArrays[0] == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
 	/* EE	                  0 */
-	tmp_rule->code1_ProdArray[0].event = getEventDefType(EVENT_EE);
-	tmp_rule->code1_ProdArray[0].nonTermID = GR_VOID_NON_TERMINAL;
-	tmp_rule->code1_ProdCount = 1;
-	tmp_rule->code1_ProdDimension = DEFAULT_PROD_ARRAY_DIM;
-	tmp_rule->code2_ProdArray = NULL;
-	tmp_rule->code2_ProdCount = 0;
-	tmp_rule->code3_ProdArray = NULL;
-	tmp_rule->code3_ProdCount = 0;
+	tmp_rule->prodArrays[0][0].event = getEventDefType(EVENT_EE);
+	tmp_rule->prodArrays[0][0].nonTermID = GR_VOID_NON_TERMINAL;
+	tmp_rule->prodCounts[0] = 1;
+	tmp_rule->prod1Dimension = DEFAULT_PROD_ARRAY_DIM;
+	tmp_rule->prodArrays[1] = NULL;
+	tmp_rule->prodCounts[1] = 0;
+	tmp_rule->prodArrays[2] = NULL;
+	tmp_rule->prodCounts[2] = 0;
 
 	tmp_code1 = 1;
 	tmp_code2 = 2;
@@ -430,51 +430,51 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, EXIStre
 	tmp_rule->bits[2] = tmp_code3 > 1;
 
 
-	tmp_rule->code2_ProdArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code2);
-	if(tmp_rule->code2_ProdArray == NULL)
+	tmp_rule->prodArrays[1] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code2);
+	if(tmp_rule->prodArrays[1] == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_rule->code2_ProdCount = tmp_code2;
+	tmp_rule->prodCounts[1] = tmp_code2;
 
 	/* SE (*) ElementContent	1.0 */
-	tmp_rule->code2_ProdArray[tmp_code2-p].event = getEventDefType(EVENT_SE_ALL);
-	tmp_rule->code2_ProdArray[tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
+	tmp_rule->prodArrays[1][tmp_code2-p].event = getEventDefType(EVENT_SE_ALL);
+	tmp_rule->prodArrays[1][tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
 	p += 1;
 
 	/* CH ElementContent	    1.1 */
-	tmp_rule->code2_ProdArray[tmp_code2-p].event = getEventDefType(EVENT_CH);
-	tmp_rule->code2_ProdArray[tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
+	tmp_rule->prodArrays[1][tmp_code2-p].event = getEventDefType(EVENT_CH);
+	tmp_rule->prodArrays[1][tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
 	p += 1;
 
 	if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_DTD))
 	{
 		/* ER ElementContent	    1.2 */
-		tmp_rule->code2_ProdArray[tmp_code2-p].event = getEventDefType(EVENT_ER);
-		tmp_rule->code2_ProdArray[tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
+		tmp_rule->prodArrays[1][tmp_code2-p].event = getEventDefType(EVENT_ER);
+		tmp_rule->prodArrays[1][tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
 	}
 
 	if(tmp_code3 > 0)
 	{
 		p = 1;
 
-		tmp_rule->code3_ProdArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code3);
-		if(tmp_rule->code3_ProdArray == NULL)
+		tmp_rule->prodArrays[2] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code3);
+		if(tmp_rule->prodArrays[2] == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		tmp_rule->code3_ProdCount = tmp_code3;
+		tmp_rule->prodCounts[2] = tmp_code3;
 
 		if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_COMMENTS))
 		{
 			/* CM ElementContent	    1.3.0 */
-			tmp_rule->code3_ProdArray[tmp_code3-p].event = getEventDefType(EVENT_CM);
-			tmp_rule->code3_ProdArray[tmp_code3-p].nonTermID = GR_ELEMENT_CONTENT;
+			tmp_rule->prodArrays[2][tmp_code3-p].event = getEventDefType(EVENT_CM);
+			tmp_rule->prodArrays[2][tmp_code3-p].nonTermID = GR_ELEMENT_CONTENT;
 			p += 1;
 		}
 		if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_PIS))
 		{
 			/* PI ElementContent	    1.3.1 */
-			tmp_rule->code3_ProdArray[tmp_code3-p].event = getEventDefType(EVENT_PI);
-			tmp_rule->code3_ProdArray[tmp_code3-p].nonTermID = GR_ELEMENT_CONTENT;
+			tmp_rule->prodArrays[2][tmp_code3-p].event = getEventDefType(EVENT_PI);
+			tmp_rule->prodArrays[2][tmp_code3-p].nonTermID = GR_ELEMENT_CONTENT;
 		}
 	}
 
@@ -535,21 +535,19 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	uint32_t tmp_bits_val = 0;
-	uint16_t currProduction = 0;
-	uint16_t j = 0;
-	unsigned int b = 0;
-	GrammarRule* ruleArr;
+	unsigned char b = 0;
+	GrammarRule* currentRule;
 
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Next production non-term-id: %u\n", (unsigned int) strm->nonTermID));
 
 	if(strm->nonTermID >=  strm->gStack->grammar->rulesDimension)
 		return INCONSISTENT_PROC_STATE;
 
-	ruleArr = strm->gStack->grammar->ruleArray;
+	currentRule = &strm->gStack->grammar->ruleArray[strm->nonTermID];
 
 #if DEBUG_GRAMMAR == ON
 	{
-		tmp_err_code = printGrammarRule(strm->nonTermID, &ruleArr[strm->nonTermID]);
+		tmp_err_code = printGrammarRule(strm->nonTermID, currentRule);
 		if(tmp_err_code != ERR_OK)
 		{
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Error printing grammar rule\n"));
@@ -559,39 +557,19 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 
 	for(b = 0; b < 3; b++)
 	{
-		if(ruleArr[strm->nonTermID].bits[b] == 0 &&
-				ruleArr[strm->nonTermID].prodCount > b) // zero bits encoded part of event code with more parts available
-		{
+		if(currentRule->prodCounts[b] == 0) // No productions available with this length code
 			continue;
-		}
-		else if(ruleArr[strm->nonTermID].bits[b] == 0) // encoded with zero bits
-		{
-			return handleProduction(strm, (unsigned int)strm->nonTermID, currProduction, event, nonTermID_out, handler, app_data, b);
-		}
-		else
-		{
-			tmp_err_code = decodeNBitUnsignedInteger(strm, ruleArr[strm->nonTermID].bits[b], &tmp_bits_val);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+		if(currentRule->bits[b] == 0) // encoded with zero bits
+			return handleProduction(strm, currentRule, &currentRule->prodArrays[b][0], event, nonTermID_out, handler, app_data, b + 1);
 
-			for(j = 0; j < ruleArr[strm->nonTermID].prodCount; j++)
-			{
-				if(ruleArr[strm->nonTermID].prodArray[j].code.size < b + 1)
-					continue;
-				if(ruleArr[strm->nonTermID].prodArray[j].code.code[b] == tmp_bits_val)
-				{
-					if(ruleArr[strm->nonTermID].prodArray[j].code.size == b + 1)
-					{
-						return handleProduction(strm, (unsigned int)strm->nonTermID, j, event, nonTermID_out, handler, app_data, b);
-					}
-					else
-					{
-						currProduction = j;
-					}
-					break;
-				}
-			}
-		}
+		tmp_err_code = decodeNBitUnsignedInteger(strm, currentRule->bits[b], &tmp_bits_val);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		if(tmp_bits_val == currentRule->prodCounts[b]) // The code has more parts
+			continue;
+
+		return handleProduction(strm, currentRule, &currentRule->prodArrays[b][currentRule->prodCounts[b] - 1 - tmp_bits_val], event, nonTermID_out, handler, app_data, b + 1);
 	}
 	return tmp_err_code;
 }
@@ -613,14 +591,13 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
  * - Evaluate the remainder of event sequence using RightHandSide.
  * */
 
-static errorCode handleProduction(EXIStream* strm, unsigned int ruleIndx, unsigned int prodIndx,
-				EXIEvent* event, size_t* nonTermID_out, ContentHandler* handler, void* app_data, unsigned int codeIndx)
+static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Production* prodHit,
+				EXIEvent* event, size_t* nonTermID_out, ContentHandler* handler, void* app_data, unsigned int codeLength)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	GrammarRule* ruleArr = strm->gStack->grammar->ruleArray;
 
-	*event = ruleArr[ruleIndx].prodArray[prodIndx].event;
-	*nonTermID_out = ruleArr[ruleIndx].prodArray[prodIndx].nonTermID;
+	*event = prodHit->event;
+	*nonTermID_out = prodHit->nonTermID;
 	if(event->eventType == EVENT_SD)
 	{
 		if(handler->startDocument != NULL)
@@ -645,11 +622,11 @@ static errorCode handleProduction(EXIStream* strm, unsigned int ruleIndx, unsign
 				return HANDLER_STOP_RECEIVED;
 		}
 
-		if(codeIndx > 0 && strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)   // #1# COMMENT
+		if(codeLength > 1 && strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)   // #1# COMMENT
 		{
-			strm->sContext.curr_uriID = ruleArr[ruleIndx].prodArray[prodIndx].uriRowID;
-			strm->sContext.curr_lnID = ruleArr[ruleIndx].prodArray[prodIndx].lnRowID;
-			tmp_err_code = insertZeroProduction(&(ruleArr[ruleIndx]), getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL,
+			strm->sContext.curr_uriID = prodHit->uriRowID;
+			strm->sContext.curr_lnID = prodHit->lnRowID;
+			tmp_err_code = insertZeroProduction(currentRule, getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL,
 												strm->sContext.curr_lnID, strm->sContext.curr_uriID);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
@@ -667,9 +644,9 @@ static errorCode handleProduction(EXIStream* strm, unsigned int ruleIndx, unsign
 	{
 		if(event->eventType == EVENT_CH)
 		{
-			if(codeIndx > 0 && strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)   // #2# COMMENT
+			if(codeLength > 1 && strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)   // #2# COMMENT
 			{
-				tmp_err_code = insertZeroProduction(&(ruleArr[ruleIndx]),getEventDefType(EVENT_CH), *nonTermID_out,
+				tmp_err_code = insertZeroProduction(currentRule, getEventDefType(EVENT_CH), *nonTermID_out,
 													strm->sContext.curr_lnID, strm->sContext.curr_uriID);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
@@ -677,10 +654,10 @@ static errorCode handleProduction(EXIStream* strm, unsigned int ruleIndx, unsign
 		}
 		else // event->eventType != EVENT_CH; CH events do not have QName in their content
 		{
-			strm->sContext.curr_uriID = ruleArr[ruleIndx].prodArray[prodIndx].uriRowID;
-			strm->sContext.curr_lnID = ruleArr[ruleIndx].prodArray[prodIndx].lnRowID;
+			strm->sContext.curr_uriID = prodHit->uriRowID;
+			strm->sContext.curr_lnID = prodHit->lnRowID;
 		}
-		tmp_err_code = decodeEventContent(strm, *event, handler, nonTermID_out, &(ruleArr[ruleIndx]), app_data);
+		tmp_err_code = decodeEventContent(strm, *event, handler, nonTermID_out, currentRule, app_data);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
