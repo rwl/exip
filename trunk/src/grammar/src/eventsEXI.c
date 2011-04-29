@@ -76,18 +76,23 @@
 //	return res;
 //}
 //
-//errorCode writeEventCode(EXIStream* strm, EventCode code, unsigned char* bits)
-//{
-//	errorCode tmp_err_code = UNEXPECTED_ERROR;
-//	unsigned char i = 0;
-//	for(i = 0; i < code.size; i++)
-//	{
-//		tmp_err_code = encodeNBitUnsignedInteger(strm, bits[i], code.code[i]);
-//		if(tmp_err_code != ERR_OK)
-//			return tmp_err_code;
-//	}
-//	return ERR_OK;
-//}
+errorCode writeEventCode(EXIStream* strm, GrammarRule* currentRule, unsigned char codeLength, size_t codeLastPart)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	unsigned char i = 0;
+	for(i = 0; i < codeLength - 1; i++)
+	{
+		tmp_err_code = encodeNBitUnsignedInteger(strm, currentRule->bits[i], currentRule->prodCounts[i]);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+
+	tmp_err_code = encodeNBitUnsignedInteger(strm, currentRule->bits[codeLength - 1], codeLastPart);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	return ERR_OK;
+}
 
 EXIEvent getEventDefType(EventType eType)
 {

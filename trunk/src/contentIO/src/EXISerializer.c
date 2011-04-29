@@ -164,7 +164,43 @@ errorCode endDocumentSer(EXIStream* strm)
 
 errorCode startElementSer(EXIStream* strm, QName qname)
 {
-	return encodeComplexEXIEvent(strm, qname, getEventDefType(EVENT_SE_ALL));
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	struct EXIGrammar* res = NULL;
+	unsigned char is_found = 0;
+
+	tmp_err_code = encodeComplexEXIEvent(strm, qname, EVENT_SE_ALL, EVENT_SE_URI, EVENT_SE_QNAME);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// New element grammar is pushed on the stack
+	tmp_err_code = checkGrammarInPool(strm->ePool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, &is_found, &res);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+	strm->gStack->lastNonTermID = strm->nonTermID;
+	if(is_found)
+	{
+		strm->nonTermID = GR_START_TAG_CONTENT;
+		tmp_err_code = pushGrammar(&(strm->gStack), res);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else
+	{
+		struct EXIGrammar* elementGrammar = (struct EXIGrammar*) memManagedAllocate(&strm->memList, sizeof(struct EXIGrammar));
+		if(elementGrammar == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+		tmp_err_code = createBuildInElementGrammar(elementGrammar, strm);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		tmp_err_code = addGrammarInPool(strm->ePool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, elementGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		strm->nonTermID = GR_START_TAG_CONTENT;
+		tmp_err_code = pushGrammar(&(strm->gStack), elementGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	return ERR_OK;
 }
 
 errorCode endElementSer(EXIStream* strm)
@@ -187,7 +223,8 @@ errorCode endElementSer(EXIStream* strm)
 
 errorCode attributeSer(EXIStream* strm, QName qname)
 {
-	return encodeComplexEXIEvent(strm, qname, getEventDefType(EVENT_AT_ALL));
+	strm->sContext.expectATData = TRUE;
+	return encodeComplexEXIEvent(strm, qname, EVENT_AT_ALL, EVENT_AT_URI, EVENT_AT_QNAME);
 }
 
 errorCode intDataSer(EXIStream* strm, int32_t int_val)

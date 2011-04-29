@@ -102,10 +102,12 @@ errorCode encodeSimpleEXIEvent(EXIStream* strm, EXIEvent event);
  * @brief Encodes SE, AT events
  * @param[in, out] strm EXI stream
  * @param[in] qname element or attribute QName
- * @param[in] event event to be encoded
+ * @param[in] event_all EVENT_SE_ALL or EVENT_AT_ALL
+ * @param[in] event_uri EVENT_SE_URI or EVENT_AT_URI
+ * @param[in] event_qname EVENT_SE_QNAME or EVENT_AT_QNAME
  * @return Error handling code
  */
-errorCode encodeComplexEXIEvent(EXIStream* strm, QName qname, EXIEvent event);
+errorCode encodeComplexEXIEvent(EXIStream* strm, QName qname, unsigned char event_all, unsigned char event_uri, unsigned char event_qname);
 
 /**
  * @brief Encodes QName into EXI stream
