@@ -46,115 +46,48 @@
 #include "memManagement.h"
 #include "ioUtil.h"
 
-//errorCode initGrammarRule(GrammarRule* rule, AllocList* memList)
-//{
-//	rule->code1_ProdArray = (Production*) memManagedAllocatePtr(memList, sizeof(Production)*DEFAULT_PROD_ARRAY_DIM, &rule->memPair);
-//	if(rule->code1_ProdArray == NULL)
-//		return MEMORY_ALLOCATION_ERROR;
-//	rule->code1_ProdCount = 0;
-//	rule->code1_ProdDimension = DEFAULT_PROD_ARRAY_DIM;
-//	rule->bits[0] = 0;
-//	rule->bits[1] = 0;
-//	rule->bits[2] = 0;
-//	return ERR_OK;
-//}
+errorCode insertZeroProduction(DynGrammarRule* rule, EXIEvent event, size_t nonTermID,
+								size_t lnRowID, uint16_t uriRowID)
+{
+	if(rule->prodCounts[0] == rule->prod1Dimension) // The dynamic array rule->prodArrays[0] needs to be resized
+	{
+		errorCode tmp_err_code = UNEXPECTED_ERROR;
+		tmp_err_code = memManagedReAllocate((void *) &rule->prodArrays[0], sizeof(Production)*(rule->prod1Dimension + DEFAULT_PROD_ARRAY_DIM), rule->memPair);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		rule->prod1Dimension += DEFAULT_PROD_ARRAY_DIM;
+	}
 
-//errorCode addProduction(GrammarRule* rule, EventCode eCode, EXIEvent event, size_t nonTermID)
-//{
-//	if(rule->prodCount == rule->prodDimension) // The dynamic array prodArray needs to be resized
-//	{
-//		errorCode tmp_err_code = UNEXPECTED_ERROR;
-//		tmp_err_code = memManagedReAllocate((void *) &rule->prodArray, sizeof(Production)*(rule->prodCount + DEFAULT_PROD_ARRAY_DIM), rule->memPair);
-//		if(tmp_err_code != ERR_OK)
-//			return tmp_err_code;
-//		rule->prodDimension = rule->prodDimension + DEFAULT_PROD_ARRAY_DIM;
-//	}
-//	rule->prodArray[rule->prodCount].code = eCode;
-//	rule->prodArray[rule->prodCount].event = event;
-//	rule->prodArray[rule->prodCount].nonTermID = nonTermID;
-//	rule->prodCount = rule->prodCount + 1;
-//	return ERR_OK;
-//}
+	rule->prodArrays[0][rule->prodCounts[0]].event = event;
+	rule->prodArrays[0][rule->prodCounts[0]].nonTermID = nonTermID;
+	rule->prodArrays[0][rule->prodCounts[0]].lnRowID = lnRowID;
+	rule->prodArrays[0][rule->prodCounts[0]].uriRowID = uriRowID;
 
-//errorCode insertZeroProduction(GrammarRule* rule, EXIEvent event, size_t nonTermID,
-//								size_t lnRowID, uint16_t uriRowID)
-//{
-//	uint16_t i = 0;
-//	unsigned int maxCodePart = 0;
-//
-//	if(rule->prodCount == rule->prodDimension) // The dynamic array prodArray needs to be resized
-//	{
-//		errorCode tmp_err_code = UNEXPECTED_ERROR;
-//		tmp_err_code = memManagedReAllocate((void *) &rule->prodArray, sizeof(Production)*(rule->prodCount + DEFAULT_PROD_ARRAY_DIM), rule->memPair);
-//		if(tmp_err_code != ERR_OK)
-//			return tmp_err_code;
-//		rule->prodDimension = rule->prodDimension + DEFAULT_PROD_ARRAY_DIM;
-//	}
-//
-//	for(i = 0; i < rule->prodCount; i++)
-//	{
-//		rule->prodArray[i].code.code[0] += 1;
-//		if(rule->prodArray[i].code.code[0] > maxCodePart)
-//			maxCodePart = rule->prodArray[i].code.code[0];
-//	}
-//	rule->bits[0] = getBitsNumber(maxCodePart);
-//
-//	rule->prodArray[rule->prodCount].code = getEventCode1(0);
-//	rule->prodArray[rule->prodCount].event = event;
-//	rule->prodArray[rule->prodCount].nonTermID = nonTermID;
-//	rule->prodArray[rule->prodCount].lnRowID = lnRowID;
-//	rule->prodArray[rule->prodCount].uriRowID = uriRowID;
-//	rule->prodCount = rule->prodCount + 1;
-//	return ERR_OK;
-//}
-
-//errorCode copyGrammarRule(AllocList* memList, GrammarRule* src, GrammarRule* dest, unsigned int nonTermIdShift)
-//{
-//	dest->bits[0] = src->bits[0];
-//	dest->bits[1] = src->bits[1];
-//	dest->bits[2] = src->bits[2];
-//
-//	dest->memPair.memBlock = NULL;
-//	dest->memPair.allocIndx = 0;
-//	dest->prodCount = src->prodCount;
-//	dest->prodDimension = src->prodDimension;
-//
-//	dest->prodArray = (Production*) memManagedAllocate(memList, sizeof(Production)*dest->prodDimension);
-//	if(dest->prodArray == NULL)
-//		return MEMORY_ALLOCATION_ERROR;
-//
-//	{
-//		uint16_t i = 0;
-//		for(i = 0;i < dest->prodCount; i++)
-//		{
-//			dest->prodArray[i] = src->prodArray[i];
-//			if(src->prodArray[i].nonTermID != GR_VOID_NON_TERMINAL)
-//				dest->prodArray[i].nonTermID = src->prodArray[i].nonTermID + nonTermIdShift;
-//		}
-//	}
-//
-//	return ERR_OK;
-//}
+	rule->prodCounts[0] += 1;
+	rule->bits[0] = getBitsNumber(rule->prodCounts[0] - 1 + (rule->prodCounts[1] + rule->prodCounts[2] > 0));
+	return ERR_OK;
+}
 
 #ifdef EXIP_DEBUG // TODO: document this macro #DOCUMENT#
 
 errorCode printGrammarRule(size_t nonTermID, GrammarRule* rule)
 {
-	size_t i = 0;
-	unsigned char p = 0;
-	unsigned char prodArrNum = 0;
+	size_t j = 0;
+	unsigned char b = 0;
+	size_t tmp_prod_indx = 0;
 
 	DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\n>RULE\n"));
 	DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("NT-%u:", (unsigned int) nonTermID));
 
 	DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\n"));
 
-	for(p = 0; p < 3; p++)
+	for(b = 0; b < 3; b++)
 	{
-		for(i = rule->prodCounts[p] - 1; i >=0; i--)
+		for(j = 0; j < rule->prodCounts[b]; j++)
 		{
+			tmp_prod_indx = rule->prodCounts[b] - 1 - j;
 			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\t"));
-			switch(rule->prodArrays[p][i].event.eventType)
+			switch(rule->prodArrays[b][tmp_prod_indx].event.eventType)
 			{
 				case EVENT_SD:
 					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("SD "));
@@ -163,7 +96,7 @@ errorCode printGrammarRule(size_t nonTermID, GrammarRule* rule)
 					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("ED "));
 					break;
 				case EVENT_SE_QNAME:
-					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("SE (qname: %d:%d) ", rule->prodArrays[p][i].uriRowID, rule->prodArrays[p][i].lnRowID));
+					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("SE (qname: %d:%d) ", rule->prodArrays[b][tmp_prod_indx].uriRowID, rule->prodArrays[b][tmp_prod_indx].lnRowID));
 					break;
 				case EVENT_SE_URI:
 					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("SE (uri) "));
@@ -211,10 +144,10 @@ errorCode printGrammarRule(size_t nonTermID, GrammarRule* rule)
 					return UNEXPECTED_ERROR;
 			}
 			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\t"));
-			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("NT-%u", (unsigned int) rule->prodArrays[p][i].nonTermID));
-			if(prodArrNum > 0)
+			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("NT-%u", (unsigned int) rule->prodArrays[b][tmp_prod_indx].nonTermID));
+			if(b > 0)
 				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("."));
-			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("%d", rule->prodCounts[p] - 1 - i));
+			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("%d", j));
 			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\n"));
 		}
 	}

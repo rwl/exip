@@ -83,7 +83,6 @@ errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, ExipS
 	tmp_rule->prodArrays[0]->event = getEventDefType(EVENT_SD);
 	tmp_rule->prodArrays[0]->nonTermID = GR_DOC_CONTENT;
 	tmp_rule->prodCounts[0] = 1;
-	tmp_rule->prod1Dimension = 1;
 	tmp_rule->bits[0] = 0;
 	tmp_rule->bits[1] = 0;
 	tmp_rule->bits[2] = 0;
@@ -117,7 +116,6 @@ errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, ExipS
 			return MEMORY_ALLOCATION_ERROR;
 
 		tmp_rule->prodCounts[0] = tmp_code1;
-		tmp_rule->prod1Dimension = tmp_code1;
 		tmp_rule->bits[0] = getBitsNumber(schema->globalElemGrammars.count + ((tmp_code2 + tmp_code3) > 0));
 
 		/*
@@ -132,12 +130,12 @@ errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, ExipS
 					//	PI DocContent		n+1.1.1	//  This is created as part of the Build-In grammar down
 		 */
 
-		for(e = schema->globalElemGrammars.count; e > 0; e--)
+		for(e = 0; e < schema->globalElemGrammars.count; e++)
 		{
-			tmp_rule->prodArrays[0][e].event = getEventDefType(EVENT_SE_QNAME);
-			tmp_rule->prodArrays[0][e].nonTermID = GR_DOC_END;
-			tmp_rule->prodArrays[0][e].lnRowID = schema->globalElemGrammars.elems[schema->globalElemGrammars.count - e].lnRowId;
-			tmp_rule->prodArrays[0][e].uriRowID = schema->globalElemGrammars.elems[schema->globalElemGrammars.count - e].uriRowId;
+			tmp_rule->prodArrays[0][schema->globalElemGrammars.count - e].event = getEventDefType(EVENT_SE_QNAME);
+			tmp_rule->prodArrays[0][schema->globalElemGrammars.count - e].nonTermID = GR_DOC_END;
+			tmp_rule->prodArrays[0][schema->globalElemGrammars.count - e].lnRowID = schema->globalElemGrammars.elems[e].lnRowId;
+			tmp_rule->prodArrays[0][schema->globalElemGrammars.count - e].uriRowID = schema->globalElemGrammars.elems[e].uriRowId;
 		}
 	}
 	else
@@ -149,7 +147,6 @@ errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, ExipS
 		tmp_code1 = 1;
 
 		tmp_rule->prodCounts[0] = 1;
-		tmp_rule->prod1Dimension = 1;
 		tmp_rule->bits[0] = (tmp_code2 + tmp_code3) > 0;
 	}
 
@@ -227,7 +224,6 @@ errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, ExipS
 		return MEMORY_ALLOCATION_ERROR;
 
 	tmp_rule->prodCounts[0] = 1;
-	tmp_rule->prod1Dimension = 1;
 	tmp_rule->prodArrays[0]->event = getEventDefType(EVENT_ED);
 	tmp_rule->prodArrays[0]->nonTermID = GR_VOID_NON_TERMINAL;
 
@@ -260,13 +256,13 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, EXIStre
 	unsigned int tmp_code1 = 0; // the number of productions with event codes with length 1
 	unsigned int tmp_code2 = 0; // the number of productions with event codes with length 2
 	unsigned int tmp_code3 = 0; // the number of productions with event codes with length 3
-	GrammarRule* tmp_rule;
+	DynGrammarRule* tmp_rule;
 	unsigned int p = 1;
 
 	elementGrammar->rulesDimension = DEF_ELEMENT_GRAMMAR_RULE_NUMBER;
 	elementGrammar->grammarType = GR_TYPE_BUILD_IN_ELEM;
 	elementGrammar->contentIndex = 0;
-	elementGrammar->ruleArray = (GrammarRule*) memManagedAllocate(&strm->memList, sizeof(GrammarRule)*DEF_ELEMENT_GRAMMAR_RULE_NUMBER);
+	elementGrammar->ruleArray = (GrammarRule*) memManagedAllocate(&strm->memList, sizeof(DynGrammarRule)*DEF_ELEMENT_GRAMMAR_RULE_NUMBER);
 	if(elementGrammar->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -281,7 +277,7 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, EXIStre
 							CM ElementContent	    0.7.0
 							PI ElementContent	    0.7.1 */
 
-	tmp_rule = &elementGrammar->ruleArray[GR_START_TAG_CONTENT];
+	tmp_rule = (DynGrammarRule*) &elementGrammar->ruleArray[GR_START_TAG_CONTENT];
 	tmp_rule->prodArrays[0] = (Production*) memManagedAllocatePtr(&strm->memList, sizeof(Production)*DEFAULT_PROD_ARRAY_DIM, &tmp_rule->memPair);
 	if(tmp_rule->prodArrays[0] == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -398,7 +394,7 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, EXIStre
 							CM ElementContent	    1.3.0
 							PI ElementContent	    1.3.1 */
 
-	tmp_rule = &elementGrammar->ruleArray[GR_ELEMENT_CONTENT];
+	tmp_rule = (DynGrammarRule*) &elementGrammar->ruleArray[GR_ELEMENT_CONTENT];
 	tmp_rule->prodArrays[0] = (Production*) memManagedAllocatePtr(&strm->memList, sizeof(Production)*DEFAULT_PROD_ARRAY_DIM, &tmp_rule->memPair);
 	if(tmp_rule->prodArrays[0] == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -478,32 +474,6 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, EXIStre
 		}
 	}
 
-	return ERR_OK;
-}
-
-errorCode copyGrammar(AllocList* memList, struct EXIGrammar* src, struct EXIGrammar** dest)
-{
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	uint16_t i = 0;
-
-	*dest = memManagedAllocate(memList, sizeof(struct EXIGrammar));
-	if(*dest == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	(*dest)->rulesDimension = src->rulesDimension;
-	(*dest)->grammarType = src->grammarType;
-	(*dest)->contentIndex = src->contentIndex;
-
-	(*dest)->ruleArray = memManagedAllocate(memList, sizeof(GrammarRule) * (*dest)->rulesDimension);
-	if((*dest)->ruleArray == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	for(i = 0; i < (*dest)->rulesDimension; i++)
-	{
-		tmp_err_code = copyGrammarRule(memList, &src->ruleArray[i], &(*dest)->ruleArray[i], 0);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
 	return ERR_OK;
 }
 
@@ -626,7 +596,7 @@ static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Pro
 		{
 			strm->sContext.curr_uriID = prodHit->uriRowID;
 			strm->sContext.curr_lnID = prodHit->lnRowID;
-			tmp_err_code = insertZeroProduction(currentRule, getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL,
+			tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL,
 												strm->sContext.curr_lnID, strm->sContext.curr_uriID);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
@@ -646,7 +616,7 @@ static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Pro
 		{
 			if(codeLength > 1 && strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)   // #2# COMMENT
 			{
-				tmp_err_code = insertZeroProduction(currentRule, getEventDefType(EVENT_CH), *nonTermID_out,
+				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, getEventDefType(EVENT_CH), *nonTermID_out,
 													strm->sContext.curr_lnID, strm->sContext.curr_uriID);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;

@@ -413,14 +413,30 @@ typedef struct Production Production;
 
 struct GrammarRule
 {
-	Production* prodArrays[3]; // 3 arrays of grammar productions that have event codes of length 1 (Dynamic array prodArrays[0]), 2 (prodArrays[1]) and 3 (prodArrays[2])
+	Production* prodArrays[3]; // 3 arrays of grammar productions that have event codes of length 1 (array prodArrays[0]), 2 (prodArrays[1]) and 3 (prodArrays[2])
 	size_t prodCounts[3]; // The number of productions in the prodArrays
-	size_t prod1Dimension; // The size of the prodArrays[0] Dynamic production array /allocated space for Productions in it/
-	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation for prodArrays[0]
 	unsigned char bits[3]; // The number of bits used for the integers constituting the EventCode
 };
 
 typedef struct GrammarRule GrammarRule;
+
+/**
+ * Extension to the GrammarRule. In the DynGrammarRule the first production array i.e. the one holding the
+ * productions with event code with length 1 (prodArrays[0]) is dynamic array.
+ * The dynamic GrammarRule is used for Built-in Element Grammar and Built-in Fragment Grammar
+ */
+struct DynGrammarRule
+{
+	Production* prodArrays[3]; // 3 arrays of grammar productions that have event codes of length 1 (Dynamic array prodArrays[0]), 2 (prodArrays[1]) and 3 (prodArrays[2])
+	size_t prodCounts[3]; // The number of productions in the prodArrays
+	unsigned char bits[3]; // The number of bits used for the integers constituting the EventCode
+
+	// Additional fields
+	size_t prod1Dimension; // The size of the prodArrays[0] Dynamic production array /allocated space for Productions in it/
+	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation for prodArrays[0]
+};
+
+typedef struct DynGrammarRule DynGrammarRule;
 
 #define GR_TYPE_BUILD_IN_DOC       0
 #define GR_TYPE_BUILD_IN_FRAG      1
