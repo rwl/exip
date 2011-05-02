@@ -113,14 +113,14 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 
 		for (i = 0; i < schema->globalElemGrammars.count; i++)
 		{
-			tmp_err_code = addUndeclaredProductions(&strm->memList, strm->header.opts->strict, schema->globalElemGrammars.elems[i].grammar);
+			tmp_err_code = addUndeclaredProductions(&strm->memList, strm->header.opts->strict, strm->header.opts->selfContained, strm->header.opts->preserve, schema->globalElemGrammars.elems[i].grammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 			addGrammarInPool(strm->ePool, schema->globalElemGrammars.elems[i].uriRowId, schema->globalElemGrammars.elems[i].lnRowId, schema->globalElemGrammars.elems[i].grammar);
 		}
 		for (i = 0; i < schema->subElementGrammars.count; i++)
 		{
-			tmp_err_code = addUndeclaredProductions(&strm->memList, strm->header.opts->strict, schema->subElementGrammars.elems[i].grammar);
+			tmp_err_code = addUndeclaredProductions(&strm->memList, strm->header.opts->strict, strm->header.opts->selfContained, strm->header.opts->preserve, schema->subElementGrammars.elems[i].grammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 			addGrammarInPool(strm->ePool, schema->subElementGrammars.elems[i].uriRowId, schema->subElementGrammars.elems[i].lnRowId, schema->subElementGrammars.elems[i].grammar);

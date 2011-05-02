@@ -64,6 +64,18 @@
 errorCode insertZeroProduction(DynGrammarRule* rule, EXIEvent event, size_t nonTermID,
 								size_t lnRowID, uint16_t uriRowID);
 
+/**
+ * @brief Copies the productions in one rule into another
+ *
+ * @param[in, out] memList A list storing the memory allocations
+ * @param[in] src Source grammar rule
+ * @param[out] dest Destination grammar rule
+ * @param[in] nonTermIdShift during grammar concatenation this is used for nonTermId re-numeration
+ * @return Error handling code
+ */
+errorCode copyGrammarRule(AllocList* memList, GrammarRule* src, GrammarRule* dest, unsigned int nonTermIdShift);
+
+
 #ifdef EXIP_DEBUG // TODO: document this macro #DOCUMENT#
 /**
  * @brief Prints a grammar rule

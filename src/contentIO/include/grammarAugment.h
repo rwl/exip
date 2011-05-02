@@ -51,10 +51,13 @@
  *
  * @param[in, out] memList A list storing the memory allocations
  * @param[in] strict strict option value; 0-false, true otherwise
+ * @param[in] selfContained Enables self-contained elements: TRUE or FALSE
+ * @param[in] preserve Specifies whether comments, pis, etc. are preserved - bit mask of booleans
+ * Use IS_PRESERVED macro to retrieve the values different preserve options
  * @param[in, out] grammar the normalized grammar for assigning the event codes
  * @return Error handling code
  */
-errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, struct EXIGrammar* grammar);
+errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, unsigned char selfContained, unsigned char preserve, struct EXIGrammar* grammar);
 
 
 #endif /* GRAMMARAUGMENT_H_ */
