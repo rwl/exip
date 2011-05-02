@@ -107,7 +107,7 @@ void decodeBody(EXIStream* strm, ContentHandler* handler, ExipSchema* schema, vo
 
 		for (i = 0; i < schema->globalElemGrammars.count; i++)
 		{
-			tmp_err_code = addUndeclaredProductions(&strm->memList, strm->header.opts->strict, schema->globalElemGrammars.elems[i].grammar);
+			tmp_err_code = addUndeclaredProductions(&strm->memList, strm->header.opts->strict, strm->header.opts->selfContained, strm->header.opts->preserve, schema->globalElemGrammars.elems[i].grammar);
 			if(tmp_err_code != ERR_OK)
 			{
 				if(handler->fatalError != NULL)
@@ -121,7 +121,7 @@ void decodeBody(EXIStream* strm, ContentHandler* handler, ExipSchema* schema, vo
 		}
 		for (i = 0; i < schema->subElementGrammars.count; i++)
 		{
-			tmp_err_code = addUndeclaredProductions(&strm->memList, strm->header.opts->strict, schema->subElementGrammars.elems[i].grammar);
+			tmp_err_code = addUndeclaredProductions(&strm->memList, strm->header.opts->strict, strm->header.opts->selfContained, strm->header.opts->preserve, schema->subElementGrammars.elems[i].grammar);
 			if(tmp_err_code != ERR_OK)
 			{
 				if(handler->fatalError != NULL)

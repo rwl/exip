@@ -68,6 +68,36 @@ errorCode insertZeroProduction(DynGrammarRule* rule, EXIEvent event, size_t nonT
 	return ERR_OK;
 }
 
+errorCode copyGrammarRule(AllocList* memList, GrammarRule* src, GrammarRule* dest, unsigned int nonTermIdShift)
+{
+	unsigned char b;
+	size_t j = 0;
+
+	for(b = 0; b < 3; b++)
+	{
+		dest->bits[b] = src->bits[b];
+		dest->prodCounts[b] = src->prodCounts[b];
+
+		if(src->prodCounts[b] != 0)
+		{
+			dest->prodArrays[b] = (Production*) memManagedAllocate(memList, sizeof(Production)*dest->prodCounts[b]);
+			if(dest->prodArrays[b])
+				return MEMORY_ALLOCATION_ERROR;
+
+			for(j = 0;j < dest->prodCounts[b]; j++)
+			{
+				dest->prodArrays[b][j] = src->prodArrays[b][j];
+				if(src->prodArrays[b][j].nonTermID != GR_VOID_NON_TERMINAL)
+					dest->prodArrays[b][j].nonTermID = src->prodArrays[b][j].nonTermID + nonTermIdShift;
+			}
+		}
+		else
+			dest->prodArrays[b] = NULL;
+	}
+
+	return ERR_OK;
+}
+
 #ifdef EXIP_DEBUG // TODO: document this macro #DOCUMENT#
 
 errorCode printGrammarRule(size_t nonTermID, GrammarRule* rule)
