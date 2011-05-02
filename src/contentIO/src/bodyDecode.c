@@ -345,7 +345,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 
 		if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)  // If the current grammar is build-in Element grammar ...
 		{
-			tmp_err_code = insertZeroProduction(currRule, getEventDefType(EVENT_SE_QNAME), *nonTermID_out, strm->sContext.curr_lnID, strm->sContext.curr_uriID);
+			tmp_err_code = insertZeroProduction((DynGrammarRule*) currRule, getEventDefType(EVENT_SE_QNAME), *nonTermID_out, strm->sContext.curr_lnID, strm->sContext.curr_uriID);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -403,7 +403,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 					return HANDLER_STOP_RECEIVED;
 			}
 		}
-		tmp_err_code = insertZeroProduction(currRule, getEventDefType(EVENT_AT_QNAME), *nonTermID_out, strm->sContext.curr_lnID, strm->sContext.curr_uriID);
+		tmp_err_code = insertZeroProduction((DynGrammarRule*) currRule, getEventDefType(EVENT_AT_QNAME), *nonTermID_out, strm->sContext.curr_lnID, strm->sContext.curr_uriID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}

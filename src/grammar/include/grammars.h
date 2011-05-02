@@ -101,16 +101,6 @@ errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, ExipS
 errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, EXIStream* strm);
 
 /**
- * @brief Creates a deep copy of a grammar with allocation fresh memory for the copy
- *
- * @param[in] memList A list storing the memory allocations
- * @param[in] src source EXI grammar
- * @param[out] dest destination EXI grammar clone of the src
- * @return Error handling code
- */
-errorCode copyGrammar(AllocList* memList, struct EXIGrammar* src, struct EXIGrammar** dest);
-
-/**
  * @brief Creates empty Element or Type Grammar pool
  * @param[in, out] pool empty pool container
  * @return Error handling code

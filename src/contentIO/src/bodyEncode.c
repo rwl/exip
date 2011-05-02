@@ -138,11 +138,11 @@ errorCode encodeSimpleEXIEvent(EXIStream* strm, EXIEvent event)
 #endif
 	for (b = 0; b < 3; b++)
 	{
-		for(j = currentRule->prodCounts[b] - 1; j >= 0; j--)
+		for(j = 0; j < currentRule->prodCounts[b]; j++)
 		{
-			if(eventsEqual(currentRule->prodArrays[b][j].event, event))
+			if(eventsEqual(currentRule->prodArrays[b][currentRule->prodCounts[b] - 1 - j].event, event))
 			{
-				prodHit = &currentRule->prodArrays[b][j];
+				prodHit = &currentRule->prodArrays[b][currentRule->prodCounts[b] - 1 - j];
 				break;
 			}
 		}
@@ -150,7 +150,7 @@ errorCode encodeSimpleEXIEvent(EXIStream* strm, EXIEvent event)
 			break;
 	}
 
-	tmp_err_code = writeEventCode(strm, currentRule, b + 1, currentRule->prodCounts[b] - 1 - j);
+	tmp_err_code = writeEventCode(strm, currentRule, b + 1, j);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -158,7 +158,7 @@ errorCode encodeSimpleEXIEvent(EXIStream* strm, EXIEvent event)
 		&& (event.eventType == EVENT_CH || event.eventType == EVENT_EE))  // If the current grammar is build-in Element grammar and the event code size is bigger than 1 and the event is CH or EE...
 	{
 		// #1# COMMENT and #2# COMMENT
-		tmp_err_code = insertZeroProduction(currentRule, getEventDefType(event.eventType), prodHit->nonTermID,
+		tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, getEventDefType(event.eventType), prodHit->nonTermID,
 				prodHit->lnRowID, prodHit->uriRowID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -173,6 +173,7 @@ errorCode encodeComplexEXIEvent(EXIStream* strm, QName qname, unsigned char even
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char b = 0;
 	size_t j = 0;
+	size_t tmp_prod_indx = 0;
 	GrammarRule* currentRule;
 	Production* prodHit = NULL;
 
@@ -194,17 +195,18 @@ errorCode encodeComplexEXIEvent(EXIStream* strm, QName qname, unsigned char even
 #endif
 	for (b = 0; b < 3; b++)
 	{
-		for(j = currentRule->prodCounts[b] - 1; j >= 0; j--)
+		for(j = 0; j < currentRule->prodCounts[b]; j++)
 		{
-			if(currentRule->prodArrays[b][j].event.eventType == event_all ||   // (1)
-		       (currentRule->prodArrays[b][j].event.eventType == event_uri &&    // (2)
-			    str_equal(strm->uriTable->rows[currentRule->prodArrays[b][j].uriRowID].string_val, *(qname.uri))) ||
-			    (currentRule->prodArrays[b][j].event.eventType == event_qname && // (3)
-				 str_equal(strm->uriTable->rows[currentRule->prodArrays[b][j].uriRowID].string_val, *(qname.uri)) &&
-				 str_equal(strm->uriTable->rows[currentRule->prodArrays[b][j].uriRowID].lTable->rows[currentRule->prodArrays[b][j].lnRowID].string_val, *(qname.localName)))
+			tmp_prod_indx = currentRule->prodCounts[b] - 1 - j;
+			if(currentRule->prodArrays[b][tmp_prod_indx].event.eventType == event_all ||   // (1)
+		       (currentRule->prodArrays[b][tmp_prod_indx].event.eventType == event_uri &&    // (2)
+			    str_equal(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].string_val, *(qname.uri))) ||
+			    (currentRule->prodArrays[b][tmp_prod_indx].event.eventType == event_qname && // (3)
+				 str_equal(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].string_val, *(qname.uri)) &&
+				 str_equal(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].lTable->rows[currentRule->prodArrays[b][tmp_prod_indx].lnRowID].string_val, *(qname.localName)))
 		       )
 			{
-				prodHit = &currentRule->prodArrays[b][j];
+				prodHit = &currentRule->prodArrays[b][tmp_prod_indx];
 				break;
 			}
 		}
@@ -212,7 +214,7 @@ errorCode encodeComplexEXIEvent(EXIStream* strm, QName qname, unsigned char even
 			break;
 	}
 
-	tmp_err_code = writeEventCode(strm, currentRule, b + 1, currentRule->prodCounts[b] - 1 - j);
+	tmp_err_code = writeEventCode(strm, currentRule, b + 1, j);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -224,7 +226,7 @@ errorCode encodeComplexEXIEvent(EXIStream* strm, QName qname, unsigned char even
 
 		if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)  // If the current grammar is build-in Element grammar ...
 		{
-			tmp_err_code = insertZeroProduction(currentRule, getEventDefType(EVENT_SE_QNAME), prodHit->nonTermID, strm->sContext.curr_lnID, strm->sContext.curr_uriID);
+			tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, getEventDefType(EVENT_SE_QNAME), prodHit->nonTermID, strm->sContext.curr_lnID, strm->sContext.curr_uriID);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}

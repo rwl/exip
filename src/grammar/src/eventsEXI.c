@@ -46,36 +46,6 @@
 
 #define UNUSED_CODE_PART_VALUE UINT_MAX
 
-//EventCode getEventCode3(unsigned int first, unsigned int second, unsigned int third)
-//{
-//	EventCode res;
-//	res.size = 3;
-//	res.code[0] = first;
-//	res.code[1] = second;
-//	res.code[2] = third;
-//	return res;
-//}
-//
-//EventCode getEventCode2(unsigned int first, unsigned int second)
-//{
-//	EventCode res;
-//	res.size = 2;
-//	res.code[0] = first;
-//	res.code[1] = second;
-//	res.code[2] = UNUSED_CODE_PART_VALUE;
-//	return res;
-//}
-//
-//EventCode getEventCode1(unsigned int first)
-//{
-//	EventCode res;
-//	res.size = 1;
-//	res.code[0] = first;
-//	res.code[1] = UNUSED_CODE_PART_VALUE;
-//	res.code[2] = UNUSED_CODE_PART_VALUE;
-//	return res;
-//}
-//
 errorCode writeEventCode(EXIStream* strm, GrammarRule* currentRule, unsigned char codeLength, size_t codeLastPart)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;

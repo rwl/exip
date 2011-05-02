@@ -50,26 +50,6 @@
 // Defines the initial dimension of the dynamic array - prodArray
 #define DEFAULT_PROD_ARRAY_DIM 10
 
-///**
-// * @brief Initialize the dynamic array prodArray with the default size
-// * @param[in, out] rule a Grammar Rule
-// * @param[in, out] memList A list storing the memory allocations
-// * @return Error handling code
-// */
-//errorCode initGrammarRule(GrammarRule* rule, AllocList* memList);
-
-///**
-// * @brief Adds a Production to a Grammar Rule
-// * Note! The number of bits used for the integers constituting the EventCode must be set
-// * separately. This function does not set them.
-// * @param[in, out] rule a Grammar Rule
-// * @param[in] eCode event code
-// * @param[in] eType event type
-// * @param[in] nonTermID unique identifier of right-hand side Non-terminal
-// * @return Error handling code
-// */
-//errorCode addProduction(GrammarRule* rule, EventCode eCode, EXIEvent event, size_t nonTermID);
-
 /**
  * @brief Inserts a Production to a Grammar Rule (with LeftHandSide) with an event code 0
  * Note! It increments the first part of the event code of each production
@@ -81,19 +61,8 @@
  * @param[in] uriRowID URI part of the qname of the Event Type corresponding to the inserted production
  * @return Error handling code
  */
-errorCode insertZeroProduction(GrammarRule* rule, EXIEvent event, size_t nonTermID,
+errorCode insertZeroProduction(DynGrammarRule* rule, EXIEvent event, size_t nonTermID,
 								size_t lnRowID, uint16_t uriRowID);
-
-/**
- * @brief Copies the production in one rule into another
- *
- * @param[in, out] memList A list storing the memory allocations
- * @param[in] src Source grammar rule
- * @param[out] dest Destination grammar rule
- * @param[in] nonTermIdShift during grammar concatenation this is used for nonTermId re-numeration
- * @return Error handling code
- */
-errorCode copyGrammarRule(AllocList* memList, GrammarRule* src, GrammarRule* dest, unsigned int nonTermIdShift);
 
 #ifdef EXIP_DEBUG // TODO: document this macro #DOCUMENT#
 /**
