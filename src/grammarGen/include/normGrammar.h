@@ -53,7 +53,7 @@
  * @param[in, out] grammar the proto-grammar being normalized
  * @return Error handling code
  */
-errorCode deleteNoTermProductions(AllocList* memList, struct EXIGrammar* grammar);
+errorCode deleteNoTermProductions(AllocList* memList, EXIGrammar* grammar);
 
 /**
  * @brief Eliminating Duplicate Terminal Symbols
@@ -62,7 +62,7 @@ errorCode deleteNoTermProductions(AllocList* memList, struct EXIGrammar* grammar
  * @param[in, out] grammar the proto-grammar being normalized
  * @return Error handling code
  */
-errorCode deleteDuplicateTerminals(AllocList* memList, struct EXIGrammar* grammar);
+errorCode deleteDuplicateTerminals(AllocList* memList, EXIGrammar* grammar);
 
 /**
  * @brief Invokes deleteNoTermProductions() and then deleteDuplicateTerminals() to normalize the grammar
@@ -71,6 +71,6 @@ errorCode deleteDuplicateTerminals(AllocList* memList, struct EXIGrammar* gramma
  * @param[in, out] grammar the proto-grammar being normalized
  * @return Error handling code
  */
-errorCode normalizeGrammar(AllocList* memList, struct EXIGrammar* grammar);
+errorCode normalizeGrammar(AllocList* memList, EXIGrammar* grammar);
 
 #endif /* NORMGRAMMAR_H_ */

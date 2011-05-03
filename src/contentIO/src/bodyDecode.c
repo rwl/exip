@@ -52,7 +52,7 @@
 void decodeBody(EXIStream* strm, ContentHandler* handler, ExipSchema* schema, void* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	struct EXIGrammar docGr;
+	EXIGrammar docGr;
 	size_t tmpNonTermID = GR_VOID_NON_TERMINAL;
 	EXIEvent event;
 
@@ -74,17 +74,6 @@ void decodeBody(EXIStream* strm, ContentHandler* handler, ExipSchema* schema, vo
 		if(handler->fatalError != NULL)
 		{
 			handler->fatalError(tmp_err_code, "Cannot create grammar stack", app_data);
-		}
-		freeAllMem(strm);
-		return;
-	}
-
-	tmp_err_code = createGrammarPool(&(strm->ePool));
-	if(tmp_err_code != ERR_OK)
-	{
-		if(handler->fatalError != NULL)
-		{
-			handler->fatalError(tmp_err_code, "Cannot create ElementGrammarPool", app_data);
 		}
 		freeAllMem(strm);
 		return;
@@ -117,7 +106,6 @@ void decodeBody(EXIStream* strm, ContentHandler* handler, ExipSchema* schema, vo
 				freeAllMem(strm);
 				return;
 			}
-			addGrammarInPool(strm->ePool, schema->globalElemGrammars.elems[i].uriRowId, schema->globalElemGrammars.elems[i].lnRowId, schema->globalElemGrammars.elems[i].grammar);
 		}
 		for (i = 0; i < schema->subElementGrammars.count; i++)
 		{
@@ -131,10 +119,9 @@ void decodeBody(EXIStream* strm, ContentHandler* handler, ExipSchema* schema, vo
 				freeAllMem(strm);
 				return;
 			}
-			addGrammarInPool(strm->ePool, schema->subElementGrammars.elems[i].uriRowId, schema->subElementGrammars.elems[i].lnRowId, schema->subElementGrammars.elems[i].grammar);
 		}
 
-		// TODO: the same for the type grammar pool
+		// TODO: the same for the type grammars
 	}
 	else
 	{
@@ -164,7 +151,7 @@ void decodeBody(EXIStream* strm, ContentHandler* handler, ExipSchema* schema, vo
 		}
 		if(tmpNonTermID == GR_VOID_NON_TERMINAL)
 		{
-			struct EXIGrammar* grammar;
+			EXIGrammar* grammar;
 			tmp_err_code = popGrammar(&(strm->gStack), &grammar);
 			if(tmp_err_code != ERR_OK)
 			{
@@ -329,8 +316,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 	QName qname;
 	if(event.eventType == EVENT_SE_ALL)
 	{
-		struct EXIGrammar* res = NULL;
-		unsigned char is_found = 0;
+		EXIGrammar* elemGrammar = NULL;
 
 		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">SE(*) event\n"));
 		// The content of SE event is the element qname
@@ -351,30 +337,28 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		}
 
 		// New element grammar is pushed on the stack
-		tmp_err_code = checkGrammarInPool(strm->ePool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, &is_found, &res);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		elemGrammar = strm->uriTable->rows[strm->sContext.curr_uriID].lTable->rows[strm->sContext.curr_lnID].globalGrammar;
+
 		strm->gStack->lastNonTermID = *nonTermID_out;
-		if(is_found)
+		if(elemGrammar != NULL) // The grammar is found
 		{
 			*nonTermID_out = GR_START_TAG_CONTENT;
-			tmp_err_code = pushGrammar(&(strm->gStack), res);
+			tmp_err_code = pushGrammar(&(strm->gStack), elemGrammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 		else
 		{
-			struct EXIGrammar* elementGrammar = (struct EXIGrammar*) memManagedAllocate(&strm->memList, sizeof(struct EXIGrammar));
-			if(elementGrammar == NULL)
+			EXIGrammar* newElementGrammar = (EXIGrammar*) memManagedAllocate(&strm->memList, sizeof(EXIGrammar));
+			if(newElementGrammar == NULL)
 				return MEMORY_ALLOCATION_ERROR;
-			tmp_err_code = createBuildInElementGrammar(elementGrammar, strm);
+			tmp_err_code = createBuildInElementGrammar(newElementGrammar, strm);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
-			tmp_err_code = addGrammarInPool(strm->ePool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, elementGrammar);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+
+			strm->uriTable->rows[strm->sContext.curr_uriID].lTable->rows[strm->sContext.curr_lnID].globalGrammar = newElementGrammar;
 			*nonTermID_out = GR_START_TAG_CONTENT;
-			tmp_err_code = pushGrammar(&(strm->gStack), elementGrammar);
+			tmp_err_code = pushGrammar(&(strm->gStack), newElementGrammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -409,8 +393,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 	}
 	else if(event.eventType == EVENT_SE_QNAME)
 	{
-		struct EXIGrammar* res = NULL;
-		unsigned char is_found = 0;
+		EXIGrammar* elemGrammar = NULL;
 
 		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">SE(qname) event\n"));
 		qname.uri = &(strm->uriTable->rows[strm->sContext.curr_uriID].string_val);
@@ -422,20 +405,18 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		}
 
 		// New element grammar is pushed on the stack
-		tmp_err_code = checkGrammarInPool(strm->ePool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, &is_found, &res);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		elemGrammar = strm->uriTable->rows[strm->sContext.curr_uriID].lTable->rows[strm->sContext.curr_lnID].globalGrammar;
 		strm->gStack->lastNonTermID = *nonTermID_out;
-		if(is_found)
+		if(elemGrammar != NULL) // The grammar is found
 		{
 			*nonTermID_out = GR_START_TAG_CONTENT;
-			tmp_err_code = pushGrammar(&(strm->gStack), res);
+			tmp_err_code = pushGrammar(&(strm->gStack), elemGrammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 		else
 		{
-			return INCONSISTENT_PROC_STATE;  // The event require the presence of Element Grammar In the Pool
+			return INCONSISTENT_PROC_STATE;  // The event require the presence of Element Grammar previously created
 		}
 	}
 	else if(event.eventType == EVENT_AT_QNAME || event.eventType == EVENT_CH)

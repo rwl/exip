@@ -65,7 +65,7 @@
  * @param[out] result the result grammar of Concatenation Operator
  * @return Error handling code
  */
-errorCode concatenateGrammars(AllocList* memList, struct EXIGrammar* left, struct EXIGrammar* right, struct EXIGrammar** result);
+errorCode concatenateGrammars(AllocList* memList, EXIGrammar* left, EXIGrammar* right, EXIGrammar** result);
 
 /**
  * @brief Creates new Element Proto-Grammar from XML Schema element declaration
@@ -83,8 +83,8 @@ errorCode concatenateGrammars(AllocList* memList, struct EXIGrammar* left, struc
  * @return Error handling code
  */
 errorCode createElementProtoGrammar(AllocList* memList, StringType name, StringType target_ns,
-									struct EXIGrammar* typeDef, QName scope, unsigned char nillable,
-									struct EXIGrammar** result);
+									EXIGrammar* typeDef, QName scope, unsigned char nillable,
+									EXIGrammar** result);
 
 /**
  * @brief Creates Simple Type Grammar from XML Schema simple type definition
@@ -94,7 +94,7 @@ errorCode createElementProtoGrammar(AllocList* memList, StringType name, StringT
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createSimpleTypeGrammar(AllocList* memList, QName simpleType, struct EXIGrammar** result);
+errorCode createSimpleTypeGrammar(AllocList* memList, QName simpleType, EXIGrammar** result);
 
 /**
  * @brief Creates Simple EmptyType Grammar from XML Schema simple type definition
@@ -104,7 +104,7 @@ errorCode createSimpleTypeGrammar(AllocList* memList, QName simpleType, struct E
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createSimpleEmptyTypeGrammar(AllocList* memList, struct EXIGrammar** result);
+errorCode createSimpleEmptyTypeGrammar(AllocList* memList, EXIGrammar** result);
 
 /**
  * @brief Creates Complex Type Proto-Grammar from XML Schema complex type definition
@@ -128,10 +128,10 @@ errorCode createSimpleEmptyTypeGrammar(AllocList* memList, struct EXIGrammar** r
  * @return Error handling code
  */
 errorCode createComplexTypeGrammar(AllocList* memList, StringType* name, StringType* target_ns,
-		                           struct EXIGrammar* attrUsesArray, unsigned int attrUsesArraySize,
+		                           EXIGrammar* attrUsesArray, unsigned int attrUsesArraySize,
 		                           StringType* wildcardArray, unsigned int wildcardArraySize,
-		                           struct EXIGrammar* contentTypeGrammar,
-								   struct EXIGrammar** result);
+		                           EXIGrammar* contentTypeGrammar,
+								   EXIGrammar** result);
 
 /**
  * @brief Creates Complex EmptyType Proto-Grammar from XML Schema complex type definition
@@ -152,9 +152,9 @@ errorCode createComplexTypeGrammar(AllocList* memList, StringType* name, StringT
  * @return Error handling code
  */
 errorCode createComplexEmptyTypeGrammar(AllocList* memList, StringType name, StringType target_ns,
-		                           struct EXIGrammar* attrUsesArray, unsigned int attrUsesArraySize,
+		                           EXIGrammar* attrUsesArray, unsigned int attrUsesArraySize,
 		                           StringType* wildcardArray, unsigned int wildcardArraySize,
-								   struct EXIGrammar** result);
+								   EXIGrammar** result);
 
 /**
  * @brief Creates Complex Ur-Type Grammar from XML Schema complex ur-type
@@ -163,7 +163,7 @@ errorCode createComplexEmptyTypeGrammar(AllocList* memList, StringType name, Str
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createComplexUrTypeGrammar(AllocList* memList, struct EXIGrammar** result);
+errorCode createComplexUrTypeGrammar(AllocList* memList, EXIGrammar** result);
 
 /**
  * @brief Creates Complex Ur-EmptyType Grammar from XML Schema complex ur-type
@@ -172,7 +172,7 @@ errorCode createComplexUrTypeGrammar(AllocList* memList, struct EXIGrammar** res
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, struct EXIGrammar** result);
+errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, EXIGrammar** result);
 
 /**
  * @brief Creates Attribute Use Grammar from XML Schema Attribute Use
@@ -189,7 +189,7 @@ errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, struct EXIGrammar*
  * @return Error handling code
  */
 errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, StringType* name, StringType* target_ns,
-										  QName simpleType, QName scope, struct EXIGrammar** result, uint16_t uriRowID, size_t lnRowID);
+										  QName simpleType, QName scope, EXIGrammar** result, uint16_t uriRowID, size_t lnRowID);
 
 /**
  * @brief Creates Particle Proto-Grammar from XML Schema particle
@@ -202,7 +202,7 @@ errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, 
  * @return Error handling code
  */
 errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int32_t maxOccurs,
-								struct EXIGrammar* termGrammar, struct EXIGrammar** result);
+								EXIGrammar* termGrammar, EXIGrammar** result);
 
 /**
  * @brief Creates Element Term Proto-Grammar from Particle term that is XML Schema element declaration
@@ -216,7 +216,7 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
  * @return Error handling code
  */
 errorCode createElementTermGrammar(AllocList* memList, StringType* name, StringType* target_ns,
-								   struct EXIGrammar** result, uint16_t uriRowID, size_t lnRowID);
+								   EXIGrammar** result, uint16_t uriRowID, size_t lnRowID);
 
 /**
  * @brief Creates Wildcard Term Proto-Grammar from Particle term that is XML Schema wildcard
@@ -229,7 +229,7 @@ errorCode createElementTermGrammar(AllocList* memList, StringType* name, StringT
  * @return Error handling code
  */
 errorCode createWildcardTermGrammar(AllocList* memList, StringType* wildcardArray, unsigned int wildcardArraySize,
-								   struct EXIGrammar** result);
+								   EXIGrammar** result);
 
 /**
  * @brief Creates Sequence Model Group Proto-Grammar from Particle term that is XML Schema Model Group with {compositor} equal to "sequence"
@@ -240,7 +240,7 @@ errorCode createWildcardTermGrammar(AllocList* memList, StringType* wildcardArra
  * @return Error handling code
  */
 errorCode createSequenceModelGroupsGrammar(AllocList* memList, EXIGrammarStack* pGrammars,
-											struct EXIGrammar** result);
+											EXIGrammar** result);
 
 /**
  * @brief Creates Choice Model Group Proto-Grammar from Particle term that is XML Schema Model Group with {compositor} equal to "choice"
@@ -251,8 +251,8 @@ errorCode createSequenceModelGroupsGrammar(AllocList* memList, EXIGrammarStack* 
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createChoiceModelGroupsGrammar(AllocList* memList, struct EXIGrammar* pTermArray, unsigned int pTermArraySize,
-											struct EXIGrammar** result);
+errorCode createChoiceModelGroupsGrammar(AllocList* memList, EXIGrammar* pTermArray, unsigned int pTermArraySize,
+											EXIGrammar** result);
 
 /**
  * @brief Creates All Model Group Proto-Grammar from Particle term that is XML Schema Model Group with {compositor} equal to "all"
@@ -263,8 +263,8 @@ errorCode createChoiceModelGroupsGrammar(AllocList* memList, struct EXIGrammar* 
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createAllModelGroupsGrammar(AllocList* memList, struct EXIGrammar* pTermArray, unsigned int pTermArraySize,
-											struct EXIGrammar** result);
+errorCode createAllModelGroupsGrammar(AllocList* memList, EXIGrammar* pTermArray, unsigned int pTermArraySize,
+											EXIGrammar** result);
 
 /**
  * @brief Maps a simple XSD type to its EXI datatype representation
@@ -292,6 +292,6 @@ int qnamesCompare(const StringType* uri1, const StringType* ln1, const StringTyp
  * @param[in, out] grammar the normalized grammar for assigning the event codes
  * @return Error handling code
  */
-errorCode assignCodes(struct EXIGrammar* grammar);
+errorCode assignCodes(EXIGrammar* grammar);
 
 #endif /* GENUTILS_H_ */

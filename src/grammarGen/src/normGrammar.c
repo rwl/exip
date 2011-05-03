@@ -62,7 +62,7 @@ struct addedRuleInf
 	GrammarRule* rule;
 };
 
-errorCode deleteNoTermProductions(AllocList* memList, struct EXIGrammar* grammar)
+errorCode deleteNoTermProductions(AllocList* memList, EXIGrammar* grammar)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	uint16_t i = 0;
@@ -146,7 +146,7 @@ errorCode deleteNoTermProductions(AllocList* memList, struct EXIGrammar* grammar
 	return ERR_OK;
 }
 
-errorCode deleteDuplicateTerminals(AllocList* memList, struct EXIGrammar* grammar)
+errorCode deleteDuplicateTerminals(AllocList* memList, EXIGrammar* grammar)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	uint16_t i = 0;
@@ -280,7 +280,7 @@ errorCode deleteDuplicateTerminals(AllocList* memList, struct EXIGrammar* gramma
 	return ERR_OK;
 }
 
-errorCode normalizeGrammar(AllocList* memList, struct EXIGrammar* grammar)
+errorCode normalizeGrammar(AllocList* memList, EXIGrammar* grammar)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	tmp_err_code = deleteNoTermProductions(memList, grammar);

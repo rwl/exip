@@ -232,6 +232,7 @@ errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, size_t* rowID
 
 	lTable->rows[lTable->rowCount].string_val.length = local_name.length;
 	lTable->rows[lTable->rowCount].string_val.str = local_name.str;
+	lTable->rows[lTable->rowCount].globalGrammar = NULL;
 
 	/* Additions to value cross table are done when a value is inserted
 	 * in the value string table*/

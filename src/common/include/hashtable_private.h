@@ -28,7 +28,7 @@ struct hashtable {
 
 /*****************************************************************************/
 
-uint32_t hash(struct hashtable *h, void *k, unsigned int len);
+// uint32_t hash(struct hashtable *h, void *k, unsigned int len);
 
 /*****************************************************************************/
 /* indexFor */

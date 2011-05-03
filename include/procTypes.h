@@ -227,81 +227,6 @@ struct reAllocPair {
 
 /********* END: Memory management definitions ***************/
 
-/********* BEGIN: String Table Types ***************/
-
-struct ValueRow {
-	StringType string_val;
-};
-
-struct ValueTable {
-	struct ValueRow* rows; // Dynamic array
-	size_t rowCount; // The number of rows
-	size_t arrayDimension; // The size of the Dynamic array
-	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
-};
-
-typedef struct ValueTable ValueTable;
-
-struct ValueLocalCrossTable {
-	size_t* valueRowIds; // Dynamic array
-	uint16_t rowCount; // The number of rows
-	uint16_t arrayDimension; // The size of the Dynamic array
-	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
-};
-
-typedef struct ValueLocalCrossTable ValueLocalCrossTable;
-
-struct PrefixRow {
-	StringType string_val;
-};
-
-struct PrefixTable {
-	struct PrefixRow* rows; // Dynamic array
-	uint16_t rowCount; // The number of rows
-	uint16_t arrayDimension; // The size of the Dynamic array
-	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
-};
-
-typedef struct PrefixTable PrefixTable;
-
-struct LocalNamesRow {
-	ValueLocalCrossTable* vCrossTable;
-	StringType string_val;
-};
-
-struct LocalNamesTable {
-	struct LocalNamesRow* rows; // Dynamic array
-	size_t rowCount; // The number of rows
-	size_t arrayDimension; // The size of the Dynamic array
-	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
-};
-
-typedef struct LocalNamesTable LocalNamesTable;
-
-struct URIRow {
-	PrefixTable* pTable;
-	LocalNamesTable* lTable;
-	StringType string_val;
-};
-
-struct URITable {
-	struct URIRow* rows; // Dynamic array
-	uint16_t rowCount; // The number of rows
-	uint16_t arrayDimension; // The size of the Dynamic array
-	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
-};
-
-typedef struct URITable URITable;
-
-/********* END: String Table Types ***************/
-
-
-struct QName {
-	const StringType* uri;       // Pointer to a String value in the string table. It is not allowed to modify the string table content from this pointer.
-	const StringType* localName; // Pointer to a String value in the string table. It is not allowed to modify the string table content from this pointer.
-};
-
-typedef struct QName QName;
 
 /********* START: Grammar Types ***************/
 /**
@@ -461,18 +386,96 @@ struct EXIGrammar
 	size_t contentIndex;
 };
 
+typedef struct EXIGrammar EXIGrammar;
+
 struct GrammarStackNode
 {
-	struct EXIGrammar* grammar;
+	EXIGrammar* grammar;
 	size_t lastNonTermID; // Stores the last NonTermID before another grammar is added on top of the stack
 	struct GrammarStackNode* nextInStack;
 };
 
 typedef struct GrammarStackNode EXIGrammarStack;
 
-typedef struct hashtable GrammarPool; // Element grammar pool or Type grammar pool
-
 /*********** END: Grammar Types ***************/
+
+
+/********* BEGIN: String Table Types ***************/
+
+struct ValueRow {
+	StringType string_val;
+};
+
+struct ValueTable {
+	struct ValueRow* rows; // Dynamic array
+	size_t rowCount; // The number of rows
+	size_t arrayDimension; // The size of the Dynamic array
+	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
+};
+
+typedef struct ValueTable ValueTable;
+
+struct ValueLocalCrossTable {
+	size_t* valueRowIds; // Dynamic array
+	uint16_t rowCount; // The number of rows
+	uint16_t arrayDimension; // The size of the Dynamic array
+	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
+};
+
+typedef struct ValueLocalCrossTable ValueLocalCrossTable;
+
+struct PrefixRow {
+	StringType string_val;
+};
+
+struct PrefixTable {
+	struct PrefixRow* rows; // Dynamic array
+	uint16_t rowCount; // The number of rows
+	uint16_t arrayDimension; // The size of the Dynamic array
+	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
+};
+
+typedef struct PrefixTable PrefixTable;
+
+struct LocalNamesRow {
+	ValueLocalCrossTable* vCrossTable;
+	StringType string_val;
+	EXIGrammar* globalGrammar;
+};
+
+struct LocalNamesTable {
+	struct LocalNamesRow* rows; // Dynamic array
+	size_t rowCount; // The number of rows
+	size_t arrayDimension; // The size of the Dynamic array
+	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
+};
+
+typedef struct LocalNamesTable LocalNamesTable;
+
+struct URIRow {
+	PrefixTable* pTable;
+	LocalNamesTable* lTable;
+	StringType string_val;
+};
+
+struct URITable {
+	struct URIRow* rows; // Dynamic array
+	uint16_t rowCount; // The number of rows
+	uint16_t arrayDimension; // The size of the Dynamic array
+	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
+};
+
+typedef struct URITable URITable;
+
+/********* END: String Table Types ***************/
+
+
+struct QName {
+	const StringType* uri;       // Pointer to a String value in the string table. It is not allowed to modify the string table content from this pointer.
+	const StringType* localName; // Pointer to a String value in the string table. It is not allowed to modify the string table content from this pointer.
+};
+
+typedef struct QName QName;
 
 struct StringTablesContext
 {
@@ -534,7 +537,7 @@ typedef struct EXIheader EXIheader;
 struct EXIStream
 {
 	/**
-	 * Bit stream representing EXI message
+	 * Read/write buffer
 	 */
 	char* buffer;
 
@@ -544,12 +547,12 @@ struct EXIStream
 	size_t bufLen;
 
 	/**
-	 * The size of the data stored in buffer - number of bytes
+	 * The size of the data stored in the buffer - number of bytes
 	 */
 	size_t bufContent;
 
 	/**
-	 * Input stream used to fill the buffer when parsed
+	 * Input/Output Stream used to fill/flush the buffer when parsed
 	 */
 	IOStream* ioStrm;
 
@@ -584,16 +587,6 @@ struct EXIStream
 	 * The grammar stack used during processing
 	 */
 	EXIGrammarStack* gStack;
-
-	/**
-	 * The grammar pool of Element Grammars used during processing
-	 */
-	GrammarPool* ePool;
-
-	/**
-	 * The grammar pool of Type Grammars used during processing
-	 */
-	GrammarPool* tPool;
 
 	/**
 	 * Current (Left-hand side) Non terminal ID (Define the context/processor state)

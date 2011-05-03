@@ -77,7 +77,7 @@ const EXISerializer serEXI  =  {startDocumentSer,
 errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStrm, struct EXIOptions* opts, ExipSchema* schema)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	struct EXIGrammar* docGr;
+	EXIGrammar* docGr;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">EXI stream initialization \n"));
 
@@ -95,13 +95,9 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 	strm->ioStrm = ioStrm;
 	strm->gStack = NULL;
 
-	docGr = (struct EXIGrammar*) memManagedAllocate(&(strm->memList), sizeof(struct EXIGrammar));
+	docGr = (EXIGrammar*) memManagedAllocate(&(strm->memList), sizeof(EXIGrammar));
 	if(docGr == NULL)
 		return MEMORY_ALLOCATION_ERROR;
-
-	tmp_err_code = createGrammarPool(&(strm->ePool));
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
 
 	if(schema != NULL)
 	{
@@ -116,17 +112,15 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 			tmp_err_code = addUndeclaredProductions(&strm->memList, strm->header.opts->strict, strm->header.opts->selfContained, strm->header.opts->preserve, schema->globalElemGrammars.elems[i].grammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
-			addGrammarInPool(strm->ePool, schema->globalElemGrammars.elems[i].uriRowId, schema->globalElemGrammars.elems[i].lnRowId, schema->globalElemGrammars.elems[i].grammar);
 		}
 		for (i = 0; i < schema->subElementGrammars.count; i++)
 		{
 			tmp_err_code = addUndeclaredProductions(&strm->memList, strm->header.opts->strict, strm->header.opts->selfContained, strm->header.opts->preserve, schema->subElementGrammars.elems[i].grammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
-			addGrammarInPool(strm->ePool, schema->subElementGrammars.elems[i].uriRowId, schema->subElementGrammars.elems[i].lnRowId, schema->subElementGrammars.elems[i].grammar);
 		}
 
-		// TODO: the same for the type grammar pool
+		// TODO: the same for the type grammars
 	}
 	else
 	{
@@ -165,38 +159,35 @@ errorCode endDocumentSer(EXIStream* strm)
 errorCode startElementSer(EXIStream* strm, QName qname)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	struct EXIGrammar* res = NULL;
-	unsigned char is_found = 0;
+	EXIGrammar* elemGrammar = NULL;
 
 	tmp_err_code = encodeComplexEXIEvent(strm, qname, EVENT_SE_ALL, EVENT_SE_URI, EVENT_SE_QNAME);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
 	// New element grammar is pushed on the stack
-	tmp_err_code = checkGrammarInPool(strm->ePool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, &is_found, &res);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	elemGrammar = strm->uriTable->rows[strm->sContext.curr_uriID].lTable->rows[strm->sContext.curr_lnID].globalGrammar;
 	strm->gStack->lastNonTermID = strm->nonTermID;
-	if(is_found)
+	if(elemGrammar != NULL) // The grammar is found
 	{
 		strm->nonTermID = GR_START_TAG_CONTENT;
-		tmp_err_code = pushGrammar(&(strm->gStack), res);
+		tmp_err_code = pushGrammar(&(strm->gStack), elemGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 	else
 	{
-		struct EXIGrammar* elementGrammar = (struct EXIGrammar*) memManagedAllocate(&strm->memList, sizeof(struct EXIGrammar));
-		if(elementGrammar == NULL)
+		EXIGrammar* newElementGrammar = (EXIGrammar*) memManagedAllocate(&strm->memList, sizeof(EXIGrammar));
+		if(newElementGrammar == NULL)
 			return MEMORY_ALLOCATION_ERROR;
-		tmp_err_code = createBuildInElementGrammar(elementGrammar, strm);
+		tmp_err_code = createBuildInElementGrammar(newElementGrammar, strm);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		tmp_err_code = addGrammarInPool(strm->ePool, strm->sContext.curr_uriID, strm->sContext.curr_lnID, elementGrammar);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+
+		strm->uriTable->rows[strm->sContext.curr_uriID].lTable->rows[strm->sContext.curr_lnID].globalGrammar = newElementGrammar;
+
 		strm->nonTermID = GR_START_TAG_CONTENT;
-		tmp_err_code = pushGrammar(&(strm->gStack), elementGrammar);
+		tmp_err_code = pushGrammar(&(strm->gStack), newElementGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -211,7 +202,7 @@ errorCode endElementSer(EXIStream* strm)
 		return tmp_err_code;
 	if(strm->nonTermID == GR_VOID_NON_TERMINAL)
 	{
-		struct EXIGrammar* grammar;
+		EXIGrammar* grammar;
 		tmp_err_code = popGrammar(&(strm->gStack), &grammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;

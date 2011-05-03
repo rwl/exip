@@ -57,7 +57,7 @@
  * @param[in, out] grammar the normalized grammar for assigning the event codes
  * @return Error handling code
  */
-errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, unsigned char selfContained, unsigned char preserve, struct EXIGrammar* grammar);
+errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, unsigned char selfContained, unsigned char preserve, EXIGrammar* grammar);
 
 
 #endif /* GRAMMARAUGMENT_H_ */

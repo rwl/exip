@@ -49,7 +49,7 @@
 
 #define ATTR_PROD_ARRAY_SIZE 30
 
-errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, unsigned char selfContained, unsigned char preserve, struct EXIGrammar* grammar)
+errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, unsigned char selfContained, unsigned char preserve, EXIGrammar* grammar)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	size_t i = 0;
