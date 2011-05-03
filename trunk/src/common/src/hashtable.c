@@ -6,16 +6,7 @@
 #include "hashtable_private.h"
 #include "procTypes.h"
 
-static unsigned int simple_ceil(float var);
-
-static unsigned int simple_ceil(float var)
-{
-	unsigned int integer = (unsigned int) var;
-	if(var - integer == 0) return integer;
-	else return integer + 1;
-}
-
-#define CEIL(VARIABLE) ( (VARIABLE - (int)VARIABLE)==0 ? (int)VARIABLE : (int)VARIABLE+1 )
+#define CEIL(VARIABLE) ( (VARIABLE - (unsigned int)VARIABLE)==0 ? (unsigned int)VARIABLE : (unsigned int) VARIABLE+1 )
 
 /*
 Credit for primes table: Aaron Krowne
@@ -58,7 +49,7 @@ create_hashtable(unsigned int minsize,
     h->entrycount   = 0;
     h->hashfn       = hashf;
     h->eqfn         = eqf;
-    h->loadlimit    = simple_ceil(size * max_load_factor);
+    h->loadlimit    = CEIL(size * max_load_factor);
     return h;
 }
 
@@ -66,17 +57,17 @@ create_hashtable(unsigned int minsize,
 
 // Currently this function is not used. Some performance tests must be written
 // and performed to show if it is better when it is used
-uint32_t hash(struct hashtable *h, void *k, unsigned int len)
-{
-    /* Aim to protect against poor hash functions by adding logic here
-     * - logic taken from java 1.4 hashtable source */
-    uint32_t i = h->hashfn(k, len);
-    i += ~(i << 9);
-    i ^=  ((i >> 14) | (i << 18)); /* >>> */
-    i +=  (i << 4);
-    i ^=  ((i >> 10) | (i << 22)); /* >>> */
-    return i;
-}
+//uint32_t hash(struct hashtable *h, void *k, unsigned int len)
+//{
+//    /* Aim to protect against poor hash functions by adding logic here
+//     * - logic taken from java 1.4 hashtable source */
+//    uint32_t i = h->hashfn(k, len);
+//    i += ~(i << 9);
+//    i ^=  ((i >> 14) | (i << 18)); /* >>> */
+//    i +=  (i << 4);
+//    i ^=  ((i >> 10) | (i << 22)); /* >>> */
+//    return i;
+//}
 
 /*****************************************************************************/
 static int
@@ -133,7 +124,7 @@ hashtable_expand(struct hashtable *h)
         }
     }
     h->tablelength = newsize;
-    h->loadlimit   = simple_ceil(newsize * max_load_factor);
+    h->loadlimit   = CEIL(newsize * max_load_factor);
     return -1;
 }
 

@@ -144,7 +144,7 @@ struct metaGrammarNode
 {
 	StringType uri;
 	StringType ln;
-	struct EXIGrammar* grammar;
+	EXIGrammar* grammar;
 	struct metaGrammarNode* nextNode;
 };
 
@@ -203,9 +203,9 @@ static errorCode handleElementSequence(struct xsdAppData* app_data);
 
 //////////// Helper functions
 
-static errorCode appendMetaGrammarNode(AllocList* tmpMemList, MetaGrammarList* gList, struct EXIGrammar* grammar, StringType* name, StringType* ns);
+static errorCode appendMetaGrammarNode(AllocList* tmpMemList, MetaGrammarList* gList, EXIGrammar* grammar, StringType* name, StringType* ns);
 
-static errorCode orderedAddMetaGrammarNode(AllocList* tmpMemList, MetaGrammarList* gList, struct EXIGrammar* grammar, StringType* name, StringType* ns);
+static errorCode orderedAddMetaGrammarNode(AllocList* tmpMemList, MetaGrammarList* gList, EXIGrammar* grammar, StringType* name, StringType* ns);
 
 static errorCode addLocalName(uint16_t uriId, struct xsdAppData* app_data, StringType* ln, size_t* lnRowId);
 
@@ -219,7 +219,7 @@ static int parseOccuranceAttribute(const StringType occurance);
 
 static errorCode getTypeQName(AllocList* memList, const StringType typeLiteral, QName* qname);
 
-static errorCode copyGrammarQnameFix(struct xsdAppData* app_data, struct EXIGrammar* src, struct EXIGrammar** dest);
+static errorCode copyGrammarQnameFix(struct xsdAppData* app_data, EXIGrammar* src, EXIGrammar** dest);
 
 ////////////
 
@@ -521,7 +521,7 @@ static char xsd_startElement(QName qname, void* app_data)
 		{
 			elem->element = ELEMENT_COMPLEX_TYPE;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <complexType> element\n"));
-			tmp_err_code = createDynArray(&elem->attributeUses, sizeof(struct EXIGrammar), 5, &appD->tmpMemList);
+			tmp_err_code = createDynArray(&elem->attributeUses, sizeof(EXIGrammar), 5, &appD->tmpMemList);
 			if(tmp_err_code != ERR_OK)
 				return EXIP_HANDLER_STOP;
 		}
@@ -554,7 +554,7 @@ static char xsd_startElement(QName qname, void* app_data)
 		{
 			elem->element = ELEMENT_EXTENSION;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <extension> element\n"));
-			tmp_err_code = createDynArray(&elem->attributeUses, sizeof(struct EXIGrammar), 5, &appD->tmpMemList);
+			tmp_err_code = createDynArray(&elem->attributeUses, sizeof(EXIGrammar), 5, &appD->tmpMemList);
 			if(tmp_err_code != ERR_OK)
 				return EXIP_HANDLER_STOP;
 		}
@@ -829,7 +829,7 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 	StringType* target_ns;
 	QName simpleType;
 	QName scope;
-	struct EXIGrammar* attrUseGrammar;
+	EXIGrammar* attrUseGrammar;
 	size_t attrUseGrammarID;
 	struct elementDescr* elemDesc;
 	size_t lnRowID;
@@ -896,9 +896,9 @@ static errorCode handleExtentionEl(struct xsdAppData* app_data)
 	QName simpleType;
 	StringType* typeName;
 	StringType* target_ns;
-	struct EXIGrammar* simpleTypeGrammar;
+	EXIGrammar* simpleTypeGrammar;
 	struct elementDescr* elemDesc;
-	struct EXIGrammar* resultComplexGrammar;
+	EXIGrammar* resultComplexGrammar;
 
 	popElemContext(&(app_data->contextStack), &elemDesc);
 	typeName = &app_data->props.emptyString;
@@ -913,7 +913,7 @@ static errorCode handleExtentionEl(struct xsdAppData* app_data)
 
 	// TODO: the attributeUses array must be sorted first before calling createComplexTypeGrammar()
 	tmp_err_code = createComplexTypeGrammar(&app_data->tmpMemList, typeName, target_ns,
-			(struct EXIGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount),
+			(EXIGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount),
 									   NULL, 0, simpleTypeGrammar, &resultComplexGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -929,7 +929,7 @@ static errorCode handleSimpleContentEl(struct xsdAppData* app_data)
 {
 	struct elementDescr* elemDesc;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	struct EXIGrammar* contentGr;
+	EXIGrammar* contentGr;
 
 	popElemContext(&(app_data->contextStack), &elemDesc);
 	tmp_err_code = popGrammar(&elemDesc->pGrammarStack, &contentGr);
@@ -949,8 +949,8 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	StringType* typeName;
 	StringType* target_ns;
-	struct EXIGrammar* contentTypeGrammar;
-	struct EXIGrammar* resultComplexGrammar;
+	EXIGrammar* contentTypeGrammar;
+	EXIGrammar* resultComplexGrammar;
 	struct elementDescr* elemDesc;
 	size_t lnRowID;
 
@@ -988,7 +988,7 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 	// TODO: the attributeUses array must be sorted first before calling createComplexTypeGrammar()
 
 	tmp_err_code = createComplexTypeGrammar(&app_data->tmpMemList, typeName, target_ns,
-			(struct EXIGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount),
+			(EXIGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount),
 			                           NULL, 0, contentTypeGrammar, &resultComplexGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -1038,7 +1038,7 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	struct elementDescr* elemDesc;
 	StringType type;
-	struct EXIGrammar* typeGrammar;
+	EXIGrammar* typeGrammar;
 	StringType* elName;
 	StringType* target_ns;
 	unsigned char isGlobal = 0;
@@ -1090,8 +1090,8 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 	}
 	else  // Local element definition i.e within complex type
 	{
-		struct EXIGrammar* elTermGrammar;
-		struct EXIGrammar* elParticleGrammar;
+		EXIGrammar* elTermGrammar;
+		EXIGrammar* elParticleGrammar;
 		unsigned int minOccurs = 1;
 		int32_t maxOccurs = 1;
 		QName typeQname;
@@ -1162,8 +1162,8 @@ static errorCode handleElementSequence(struct xsdAppData* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	struct elementDescr* elemDesc;
-	struct EXIGrammar* seqGrammar;
-	struct EXIGrammar* seqPartGrammar;
+	EXIGrammar* seqGrammar;
+	EXIGrammar* seqPartGrammar;
 	unsigned int minOccurs = 1;
 	int32_t maxOccurs = 1;
 
@@ -1200,7 +1200,7 @@ static errorCode handleElementSequence(struct xsdAppData* app_data)
 	return ERR_OK;
 }
 
-static errorCode appendMetaGrammarNode(AllocList* tmpMemList, MetaGrammarList* gList, struct EXIGrammar* grammar, StringType* name, StringType* ns)
+static errorCode appendMetaGrammarNode(AllocList* tmpMemList, MetaGrammarList* gList, EXIGrammar* grammar, StringType* name, StringType* ns)
 {
 	struct metaGrammarNode* node = (struct metaGrammarNode*) memManagedAllocate(tmpMemList, sizeof(struct metaGrammarNode));
 	if(node == NULL)
@@ -1226,7 +1226,7 @@ static errorCode appendMetaGrammarNode(AllocList* tmpMemList, MetaGrammarList* g
 	return ERR_OK;
 }
 
-static errorCode orderedAddMetaGrammarNode(AllocList* tmpMemList, MetaGrammarList* gList, struct EXIGrammar* grammar, StringType* name, StringType* ns)
+static errorCode orderedAddMetaGrammarNode(AllocList* tmpMemList, MetaGrammarList* gList, EXIGrammar* grammar, StringType* name, StringType* ns)
 {
 	struct metaGrammarNode* newNode = memManagedAllocate(tmpMemList, sizeof(struct metaGrammarNode));
 	if(newNode == NULL)
@@ -1438,7 +1438,7 @@ static errorCode getTypeQName(AllocList* memList, const StringType typeLiteral, 
 	return ERR_OK;
 }
 
-static errorCode copyGrammarQnameFix(struct xsdAppData* app_data, struct EXIGrammar* src, struct EXIGrammar** dest)
+static errorCode copyGrammarQnameFix(struct xsdAppData* app_data, EXIGrammar* src, EXIGrammar** dest)
 {
 	GrammarRule* srcRule;
 	GrammarRule* destRule;
@@ -1448,7 +1448,7 @@ static errorCode copyGrammarQnameFix(struct xsdAppData* app_data, struct EXIGram
 	uint16_t i = 0;
 	uint16_t j = 0;
 
-	*dest = memManagedAllocate(&app_data->schema->memList, sizeof(struct EXIGrammar));
+	*dest = memManagedAllocate(&app_data->schema->memList, sizeof(EXIGrammar));
 	if(*dest == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 

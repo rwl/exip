@@ -55,12 +55,11 @@
 
 #define DEF_DOC_GRAMMAR_RULE_NUMBER 3
 #define DEF_ELEMENT_GRAMMAR_RULE_NUMBER 2
-#define GRAMMAR_POOL_DIMENSION 16
 
 static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Production* prodHit,
 				EXIEvent* event, size_t* nonTermID_out, ContentHandler* handler, void* app_data, unsigned int codeLength);
 
-errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, ExipSchema* schema)
+errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, ExipSchema* schema)
 {
 	GrammarRule* tmp_rule;
 	unsigned int tmp_code1 = 0; // the number of productions with event codes with length 1
@@ -251,7 +250,7 @@ errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, ExipS
 	return ERR_OK;
 }
 
-errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, EXIStream* strm)
+errorCode createBuildInElementGrammar(EXIGrammar* elementGrammar, EXIStream* strm)
 {
 	unsigned int tmp_code1 = 0; // the number of productions with event codes with length 1
 	unsigned int tmp_code2 = 0; // the number of productions with event codes with length 2
@@ -477,7 +476,7 @@ errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, EXIStre
 	return ERR_OK;
 }
 
-errorCode pushGrammar(EXIGrammarStack** gStack, struct EXIGrammar* grammar)
+errorCode pushGrammar(EXIGrammarStack** gStack, EXIGrammar* grammar)
 {
 	struct GrammarStackNode* node = EXIP_MALLOC(sizeof(struct GrammarStackNode));
 	if(node == NULL)
@@ -490,7 +489,7 @@ errorCode pushGrammar(EXIGrammarStack** gStack, struct EXIGrammar* grammar)
 	return ERR_OK;
 }
 
-errorCode popGrammar(EXIGrammarStack** gStack, struct EXIGrammar** grammar)
+errorCode popGrammar(EXIGrammarStack** gStack, EXIGrammar** grammar)
 {
 	struct GrammarStackNode* node = *gStack;
 	*gStack = (*gStack)->nextInStack;
@@ -631,44 +630,6 @@ static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Pro
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
-	return ERR_OK;
-}
-
-errorCode createGrammarPool(GrammarPool** pool)
-{
-	*pool = (GrammarPool*) create_hashtable(GRAMMAR_POOL_DIMENSION, djbHash, keyEqual);
-	if(*pool == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	return ERR_OK;
-}
-
-errorCode checkGrammarInPool(GrammarPool* pool, uint16_t uriRowID,
-									size_t lnRowID, unsigned char* is_found, struct EXIGrammar** result)
-{
-	char key[8];
-	createKey64bits(uriRowID, (uint32_t)lnRowID, key);
-
-	*result = hashtable_search(pool, key, 8);
-	if(*result == NULL)
-		*is_found = 0;
-	else
-		*is_found = 1;
-
-	return ERR_OK;
-}
-
-errorCode addGrammarInPool(GrammarPool* pool, uint16_t uriRowID,
-								size_t lnRowID, struct EXIGrammar* newGr)
-{
-	char* key = (char*) EXIP_MALLOC(8); // Keys are freed from the hash table
-	if(key == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-	createKey64bits(uriRowID, (uint32_t)lnRowID, key);
-
-	if (! hashtable_insert(pool, key, 8, newGr) )
-		return HASH_TABLE_ERROR;
-
 	return ERR_OK;
 }
 

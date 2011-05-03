@@ -49,15 +49,15 @@
 #include "grammars.h"
 #include "ioUtil.h"
 
-static errorCode recursiveGrammarConcat(AllocList* memList, EXIGrammarStack* pGrammars, struct EXIGrammar** result);
+static errorCode recursiveGrammarConcat(AllocList* memList, EXIGrammarStack* pGrammars, EXIGrammar** result);
 
 static int compareProductions(const void* prod1, const void* prod2);
 
-errorCode concatenateGrammars(AllocList* memList, struct EXIGrammar* left, struct EXIGrammar* right, struct EXIGrammar** result)
+errorCode concatenateGrammars(AllocList* memList, EXIGrammar* left, EXIGrammar* right, EXIGrammar** result)
 {
 	uint16_t i = 0;
 	uint16_t j = 0;
-	*result = (struct EXIGrammar*) memManagedAllocate(memList, sizeof(struct EXIGrammar));
+	*result = (EXIGrammar*) memManagedAllocate(memList, sizeof(EXIGrammar));
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -95,8 +95,8 @@ errorCode concatenateGrammars(AllocList* memList, struct EXIGrammar* left, struc
 }
 
 errorCode createElementProtoGrammar(AllocList* memList, StringType name, StringType target_ns,
-									struct EXIGrammar* typeDef, QName scope, unsigned char nillable,
-									struct EXIGrammar** result)
+									EXIGrammar* typeDef, QName scope, unsigned char nillable,
+									EXIGrammar** result)
 {
 	// TODO: Element-i,0 : Type-j,0 - this basically means that the Element Grammar equals to the type grammar
 	// Here only needs to add already normalized type grammar in a element grammar pool
@@ -105,7 +105,7 @@ errorCode createElementProtoGrammar(AllocList* memList, StringType name, StringT
 
 	int i = 0;
 
-	*result = (struct EXIGrammar*) memManagedAllocate(memList, sizeof(struct EXIGrammar));
+	*result = (EXIGrammar*) memManagedAllocate(memList, sizeof(EXIGrammar));
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -124,12 +124,12 @@ errorCode createElementProtoGrammar(AllocList* memList, StringType name, StringT
 	return ERR_OK;
 }
 
-errorCode createSimpleTypeGrammar(AllocList* memList, QName simpleType, struct EXIGrammar** result)
+errorCode createSimpleTypeGrammar(AllocList* memList, QName simpleType, EXIGrammar** result)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIEvent event;
 
-	*result = (struct EXIGrammar*) memManagedAllocate(memList, sizeof(struct EXIGrammar));
+	*result = (EXIGrammar*) memManagedAllocate(memList, sizeof(EXIGrammar));
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -155,10 +155,10 @@ errorCode createSimpleTypeGrammar(AllocList* memList, QName simpleType, struct E
 	return ERR_OK;
 }
 
-errorCode createSimpleEmptyTypeGrammar(AllocList* memList, struct EXIGrammar** result)
+errorCode createSimpleEmptyTypeGrammar(AllocList* memList, EXIGrammar** result)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	*result = (struct EXIGrammar*) memManagedAllocate(memList, sizeof(struct EXIGrammar));
+	*result = (EXIGrammar*) memManagedAllocate(memList, sizeof(EXIGrammar));
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -179,15 +179,15 @@ errorCode createSimpleEmptyTypeGrammar(AllocList* memList, struct EXIGrammar** r
 }
 
 errorCode createComplexTypeGrammar(AllocList* memList, StringType* name, StringType* target_ns,
-		                           struct EXIGrammar* attrUsesArray, unsigned int attrUsesArraySize,
+		                           EXIGrammar* attrUsesArray, unsigned int attrUsesArraySize,
 		                           StringType* wildcardArray, unsigned int wildcardArraySize,
-		                           struct EXIGrammar* contentTypeGrammar,
-								   struct EXIGrammar** result)
+		                           EXIGrammar* contentTypeGrammar,
+								   EXIGrammar** result)
 {
 	//TODO: Implement the case when there are wildcards i.e. wildcardArray is not empty
 	//TODO: Consider freeing the intermediate grammars which are not longer needed resulting from the use of concatenateGrammars()
 
-	struct EXIGrammar* tmpGrammar;
+	EXIGrammar* tmpGrammar;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int i;
 
@@ -218,18 +218,18 @@ errorCode createComplexTypeGrammar(AllocList* memList, StringType* name, StringT
 }
 
 errorCode createComplexEmptyTypeGrammar(AllocList* memList, StringType name, StringType target_ns,
-		                           struct EXIGrammar* attrUsesArray, unsigned int attrUsesArraySize,
+		                           EXIGrammar* attrUsesArray, unsigned int attrUsesArraySize,
 		                           StringType* wildcardArray, unsigned int wildcardArraySize,
-								   struct EXIGrammar** result)
+								   EXIGrammar** result)
 {
 	//TODO: Implement the case when there are wildcards i.e. wildcardArray is not empty
 	//TODO: Consider freeing the intermediate grammars which are not longer needed resulting from the use of concatenateGrammars()
 
-	struct EXIGrammar* tmpGrammar;
+	EXIGrammar* tmpGrammar;
 
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int i;
-	struct EXIGrammar* emptyContent;
+	EXIGrammar* emptyContent;
 
 	tmpGrammar = &(attrUsesArray[0]);
 	for(i = 1; i < attrUsesArraySize; i++)
@@ -253,23 +253,23 @@ errorCode createComplexEmptyTypeGrammar(AllocList* memList, StringType name, Str
 	return ERR_OK;
 }
 
-errorCode createComplexUrTypeGrammar(AllocList* memList, struct EXIGrammar** result)
+errorCode createComplexUrTypeGrammar(AllocList* memList, EXIGrammar** result)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, struct EXIGrammar** result)
+errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, EXIGrammar** result)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
 errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, StringType* name, StringType* target_ns,
-										  QName simpleType, QName scope, struct EXIGrammar** result,  uint16_t uriRowID, size_t lnRowID)
+										  QName simpleType, QName scope, EXIGrammar** result,  uint16_t uriRowID, size_t lnRowID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIEvent event1;
 
-	*result = (struct EXIGrammar*) memManagedAllocate(memList, sizeof(struct EXIGrammar));
+	*result = (EXIGrammar*) memManagedAllocate(memList, sizeof(EXIGrammar));
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -314,10 +314,10 @@ errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, 
 }
 
 errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int32_t maxOccurs,
-								struct EXIGrammar* termGrammar, struct EXIGrammar** result)
+								EXIGrammar* termGrammar, EXIGrammar** result)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	struct EXIGrammar* tmpGrammar;
+	EXIGrammar* tmpGrammar;
 	uint16_t i = 0;
 
 	tmp_err_code = copyGrammar(memList, termGrammar, &tmpGrammar);
@@ -395,13 +395,13 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
 }
 
 errorCode createElementTermGrammar(AllocList* memList, StringType* name, StringType* target_ns,
-								   struct EXIGrammar** result, uint16_t uriRowID, size_t lnRowID)
+								   EXIGrammar** result, uint16_t uriRowID, size_t lnRowID)
 {
 	//TODO: enable support for {substitution group affiliation} property of the elements
 
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
-	*result = (struct EXIGrammar*) memManagedAllocate(memList, sizeof(struct EXIGrammar));
+	*result = (EXIGrammar*) memManagedAllocate(memList, sizeof(EXIGrammar));
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -433,12 +433,12 @@ errorCode createElementTermGrammar(AllocList* memList, StringType* name, StringT
 }
 
 errorCode createWildcardTermGrammar(AllocList* memList, StringType* wildcardArray, unsigned int wildcardArraySize,
-								   struct EXIGrammar** result)
+								   EXIGrammar** result)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode createSequenceModelGroupsGrammar(AllocList* memList, EXIGrammarStack* pGrammars, struct EXIGrammar** result)
+errorCode createSequenceModelGroupsGrammar(AllocList* memList, EXIGrammarStack* pGrammars, EXIGrammar** result)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	if(pGrammars == NULL)
@@ -456,9 +456,9 @@ errorCode createSequenceModelGroupsGrammar(AllocList* memList, EXIGrammarStack* 
 	return ERR_OK;
 }
 
-static errorCode recursiveGrammarConcat(AllocList* memList, EXIGrammarStack* pGrammars, struct EXIGrammar** result)
+static errorCode recursiveGrammarConcat(AllocList* memList, EXIGrammarStack* pGrammars, EXIGrammar** result)
 {
-	struct EXIGrammar* tmpGrammar;
+	EXIGrammar* tmpGrammar;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
 	tmp_err_code = popGrammar(&pGrammars, &tmpGrammar);
@@ -472,7 +472,7 @@ static errorCode recursiveGrammarConcat(AllocList* memList, EXIGrammarStack* pGr
 	}
 	else
 	{
-		struct EXIGrammar* metaResult;
+		EXIGrammar* metaResult;
 		tmp_err_code = recursiveGrammarConcat(memList, pGrammars, &metaResult);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -484,11 +484,11 @@ static errorCode recursiveGrammarConcat(AllocList* memList, EXIGrammarStack* pGr
 	return ERR_OK;
 }
 
-errorCode createChoiceModelGroupsGrammar(AllocList* memList, struct EXIGrammar* pTermArray, unsigned int pTermArraySize,
-											struct EXIGrammar** result)
+errorCode createChoiceModelGroupsGrammar(AllocList* memList, EXIGrammar* pTermArray, unsigned int pTermArraySize,
+											EXIGrammar** result)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	*result = (struct EXIGrammar*) memManagedAllocate(memList, sizeof(struct EXIGrammar));
+	*result = (EXIGrammar*) memManagedAllocate(memList, sizeof(EXIGrammar));
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -517,8 +517,8 @@ errorCode createChoiceModelGroupsGrammar(AllocList* memList, struct EXIGrammar* 
 	return ERR_OK;
 }
 
-errorCode createAllModelGroupsGrammar(AllocList* memList, struct EXIGrammar* pTermArray, unsigned int pTermArraySize,
-											struct EXIGrammar** result)
+errorCode createAllModelGroupsGrammar(AllocList* memList, EXIGrammar* pTermArray, unsigned int pTermArraySize,
+											EXIGrammar** result)
 {
 	return NOT_IMPLEMENTED_YET;
 }
@@ -616,7 +616,7 @@ int qnamesCompare(const StringType* uri1, const StringType* ln1, const StringTyp
 	return uri_cmp_res;
 }
 
-errorCode assignCodes(struct EXIGrammar* grammar)
+errorCode assignCodes(EXIGrammar* grammar)
 {
 	uint16_t i = 0;
 	uint16_t j = 0;

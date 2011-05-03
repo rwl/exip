@@ -99,12 +99,10 @@ errorCode memManagedReAllocate(void** ptr, size_t size, struct reAllocPair memPa
 
 void freeAllMem(EXIStream* strm)
 {
-	// Hash tables (GrammarPools) are freed separately
+	// Hash tables are freed separately
 	// (This includes the keys for the table -> they must be allocated directly with EXIP_MALLOC
 	//  without using memManagedAllocate)
 	// #DOCUMENT#
-	if(strm->ePool != NULL)
-		hashtable_destroy(strm->ePool, 0);
 
 	freeAllocList(&(strm->memList));
 }

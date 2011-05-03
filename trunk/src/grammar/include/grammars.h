@@ -70,7 +70,7 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
  * @param[in] grammar a grammar
  * @return Error handling code
  */
-errorCode pushGrammar(EXIGrammarStack** gStack, struct EXIGrammar* grammar);
+errorCode pushGrammar(EXIGrammarStack** gStack, EXIGrammar* grammar);
 
 /**
  * @brief Pop a grammar off the top of the Grammar Stack
@@ -78,7 +78,7 @@ errorCode pushGrammar(EXIGrammarStack** gStack, struct EXIGrammar* grammar);
  * @param[out] grammar the popped out grammar
  * @return Error handling code
  */
-errorCode popGrammar(EXIGrammarStack** gStack, struct EXIGrammar** grammar);
+errorCode popGrammar(EXIGrammarStack** gStack, EXIGrammar** grammar);
 
 /**
  * @brief Creates an instance of the EXI Built-in Document Grammar or Schema-Informed Document Grammar
@@ -90,7 +90,7 @@ errorCode popGrammar(EXIGrammarStack** gStack, struct EXIGrammar** grammar);
  * @param[in] schema the schema describing the document if any; if Built-in Document Grammar is created then the schema is NULL
  * @return Error handling code
  */
-errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, ExipSchema* schema);
+errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, ExipSchema* schema);
 
 /**
  * @brief Creates an instance of EXI Built-in Element Grammar
@@ -98,37 +98,6 @@ errorCode createDocGrammar(struct EXIGrammar* docGrammar, EXIStream* strm, ExipS
  * @param[in, out] strm EXI stream for which the allocation is made
  * @return Error handling code
  */
-errorCode createBuildInElementGrammar(struct EXIGrammar* elementGrammar, EXIStream* strm);
-
-/**
- * @brief Creates empty Element or Type Grammar pool
- * @param[in, out] pool empty pool container
- * @return Error handling code
- */
-errorCode createGrammarPool(GrammarPool** pool);
-
-/**
- * @brief Checks if a specific element or type grammar is already in the Element/Type Grammar pool
- * @param[in] pool Element/Type Grammar pool
- * @param[in] uriRowID Row id in the URI string table
- * @param[in] lnRowID Row id in the Local names string table
- * @param[out] is_found 0 is not found; 1 otherwise
- * @param[out] result if found - a pointer to the searched grammar
- * @return Error handling code
- */
-errorCode checkGrammarInPool(GrammarPool* pool, uint16_t uriRowID,
-									size_t lnRowID, unsigned char* is_found, struct EXIGrammar** result);
-
-
-/**
- * @brief Adds a specific element or type grammar in the Element/Type Grammar pool
- * @param[in, out] pool Element/Type Grammar pool
- * @param[in] uriRowID Row id in the URI string table
- * @param[in] lnRowID Row id in the Local names string table
- * @param[in] newGr the grammar to be added
- * @return Error handling code
- */
-errorCode addGrammarInPool(GrammarPool* pool, uint16_t uriRowID,
-									size_t lnRowID, struct EXIGrammar* newGr);
+errorCode createBuildInElementGrammar(EXIGrammar* elementGrammar, EXIStream* strm);
 
 #endif /* GRAMMARS_H_ */
