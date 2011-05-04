@@ -201,13 +201,14 @@ char lookupLV(ValueTable* vTable, ValueLocalCrossTable* lvTable, StringType valu
 
 /**
  * @brief Search the global Value table for a particular string value
- * Implements full scan
+ * Implements full scan when opts->valuePartitionCapacity < DEFAULT_VALUE_ROWS_NUMBER
+ * Hash search otherwise
  *
  * @param[in] vTable global Value table to be searched
  * @param[in] value The string searched for
  * @param[out] rowID if found, ID of the global Value table row with that string
  * @return 0-not found, 1 found
  */
-char lookupVal(ValueTable* vTable, StringType value, size_t* rowID); //TODO: try to optimize
+char lookupVal(ValueTable* vTable, StringType value, size_t* rowID);
 
 #endif /* STABLES_H_ */

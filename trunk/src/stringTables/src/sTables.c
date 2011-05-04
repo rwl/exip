@@ -44,6 +44,7 @@
 #include "sTables.h"
 #include "stringManipulate.h"
 #include "memManagement.h"
+#include "hashtable.h"
 
 /********* BEGIN: String table default entries ***************/
 
@@ -127,6 +128,8 @@ errorCode createValueTable(ValueTable** vTable, AllocList* memList)
 	(*vTable)->arrayDimension = DEFAULT_VALUE_ROWS_NUMBER;
 	(*vTable)->rowCount = 0;
 	(*vTable)->globalID = 0;
+	(*vTable)->hashTbl = NULL;
+
 	return ERR_OK;
 }
 
@@ -375,6 +378,9 @@ errorCode addValueRows(EXIStream* strm, StringType* value)
 	{
 		if(strm->vTable->rows[strm->vTable->globalID].valueLocalCrossTableRowPointer != NULL)
 			*(strm->vTable->rows[strm->vTable->globalID].valueLocalCrossTableRowPointer) = SIZE_MAX;
+
+		if(strm->vTable->hashTbl != NULL)
+			hashtable_remove(strm->vTable->hashTbl, &strm->vTable->rows[strm->vTable->globalID].string_val);
 	}
 	else
 		strm->vTable->rowCount += 1;
@@ -383,6 +389,13 @@ errorCode addValueRows(EXIStream* strm, StringType* value)
 	strm->vTable->rows[strm->vTable->globalID].string_val.str = value->str;
 	strm->vTable->rows[strm->vTable->globalID].valueLocalCrossTableRowPointer = vLocalCrossTablePtr;
 	*vLocalCrossTablePtr = strm->vTable->globalID;
+
+	if(strm->vTable->hashTbl != NULL)
+	{
+		tmp_err_code = hashtable_insert(strm->vTable->hashTbl, value, strm->vTable->globalID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
 
 	strm->vTable->globalID += 1;
 
@@ -463,13 +476,27 @@ char lookupVal(ValueTable* vTable, StringType value, size_t* rowID)
 	size_t i = 0;
 	if(vTable == NULL)
 		return 0;
-	for(i = 0; i < vTable->rowCount; i++)
+
+	if(vTable->hashTbl != NULL)
 	{
-		if(str_equal(vTable->rows[i].string_val, value))
+		i = hashtable_search(vTable->hashTbl, &value);
+		if(i != SIZE_MAX)
 		{
 			*rowID = i;
 			return 1;
 		}
 	}
+	else
+	{
+		for(i = 0; i < vTable->rowCount; i++)
+		{
+			if(str_equal(vTable->rows[i].string_val, value))
+			{
+				*rowID = i;
+				return 1;
+			}
+		}
+	}
+
 	return 0;
 }

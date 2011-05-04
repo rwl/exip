@@ -55,18 +55,6 @@
  * the magic of number 33 (why it works better than many other constants, prime or not) has never
  * been adequately explained.
  **/
-uint32_t djbHash(void* str, unsigned int len);
-
-/**
- * @brief Check two hash table keys for equality
- * The keys are character strings with lengths passed as parameters
- *
- * @param[in] key1 a pointer to the first key
- * @param[in] len1 the length of the first key in bytes
- * @param[in] key2 a pointer to the second key
- * @param[in] len2 the length of the second key in bytes
- * @return 0 if NOT equal, 1 - if the two keys are equal
- */
-int keyEqual(char* key1, unsigned int len1, char* key2, unsigned int len2);
+uint32_t djbHash(StringType* str);
 
 #endif /* HASHUTILS_H_ */
