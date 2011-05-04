@@ -49,6 +49,9 @@
 #include "headerEncode.h"
 #include "bodyEncode.h"
 #include "grammarAugment.h"
+#include "hashtable.h"
+#include "hashUtils.h"
+#include "stringManipulate.h"
 
 /**
  * The handler to be used by the applications to serialize EXI streams
@@ -136,6 +139,19 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 	tmp_err_code = pushGrammar(&strm->gStack, docGr);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
+
+	// #DOCUMENT#
+	// Hashtable for fast look-up of global values in the table.
+	// Only used when:
+	// serializing &&
+	// valuePartitionCapacity > 50  &&   //for small table full-scan will work better
+	// valueMaxLength > 0 // this is essentially equal to valuePartitionCapacity == 0
+	if(opts->valuePartitionCapacity > DEFAULT_VALUE_ROWS_NUMBER && opts->valueMaxLength > 0)
+	{
+		strm->vTable->hashTbl = create_hashtable(53, djbHash, str_equal);
+		if(strm->vTable->hashTbl == NULL)
+			return HASH_TABLE_ERROR;
+	}
 
 	return ERR_OK;
 }

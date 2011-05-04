@@ -43,42 +43,16 @@
 
 #include "procTypes.h"
 
-uint32_t djbHash(void* str, unsigned int len)
+uint32_t djbHash(StringType* str)
 {
-	char* tmp = str;
+	char* tmp = (char*) str->str;
 	uint32_t hash = 5381;
 	unsigned int i = 0;
 
-	for(i = 0; i < len; tmp++, i++)
+	for(i = 0; i < sizeof(CharType)*str->length; tmp++, i++)
 	{
 		hash = ((hash << 5) + hash) + (*tmp);
 	}
 
 	return hash;
-}
-
-int keyEqual(char* key1, unsigned int len1, char* key2, unsigned int len2)
-{
-	if(len1 != len2)
-		return 0;
-	else
-	{
-		if(len1 == 0)
-		{
-			if(key1 == NULL && key2 == NULL)
-				return 1;
-			else
-				return 0;
-		}
-		else
-		{
-			unsigned int i = 0;
-			for(i = 0; i < len1; i++)
-			{
-				if(key1[i] != key2[i])
-					return 0;
-			}
-			return 1;
-		}
-	}
 }

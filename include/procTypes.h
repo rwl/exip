@@ -413,6 +413,14 @@ struct ValueTable {
 	size_t arrayDimension; // The size of the Dynamic array
 	size_t globalID; // http://www.w3.org/TR/2011/REC-exi-20110310/#key-globalID
 	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
+
+	// #DOCUMENT#
+	// Hashtable for fast look-up of global values in the table.
+	// Only used when:
+	// serializing &&
+	// valuePartitionCapacity > 50  &&   //for small table full-scan will work better
+	// valueMaxLength > 0 // this is essentially equal to valuePartitionCapacity == 0
+	struct hashtable *hashTbl;
 };
 
 typedef struct ValueTable ValueTable;

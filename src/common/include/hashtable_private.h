@@ -10,9 +10,9 @@
 /*****************************************************************************/
 struct entry
 {
-    void *k, *v;
-    unsigned int key_len;
-    uint32_t h;
+    StringType* key;
+    size_t value;
+    uint32_t hash;
     struct entry *next;
 };
 
@@ -22,8 +22,8 @@ struct hashtable {
     unsigned int entrycount;
     unsigned int loadlimit;
     unsigned int primeindex;
-    uint32_t (*hashfn) (void *k, unsigned int len);
-    int (*eqfn) (char *k1, unsigned int len1, char *k2, unsigned int len2);
+    uint32_t (*hashfn) (StringType* key);
+    char (*eqfn) (const StringType str1, const StringType str2);
 };
 
 /*****************************************************************************/

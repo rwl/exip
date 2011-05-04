@@ -110,9 +110,9 @@ void freeLastManagedAlloc(AllocList* list)
 void freeAllMem(EXIStream* strm)
 {
 	// Hash tables are freed separately
-	// (This includes the keys for the table -> they must be allocated directly with EXIP_MALLOC
-	//  without using memManagedAllocate)
 	// #DOCUMENT#
+	if(strm->vTable->hashTbl != NULL)
+		hashtable_destroy(strm->vTable->hashTbl);
 
 	freeAllocList(&(strm->memList));
 }
