@@ -404,19 +404,21 @@ typedef struct GrammarStackNode EXIGrammarStack;
 
 struct ValueRow {
 	StringType string_val;
+	size_t* valueLocalCrossTableRowPointer;
 };
 
 struct ValueTable {
 	struct ValueRow* rows; // Dynamic array
 	size_t rowCount; // The number of rows
 	size_t arrayDimension; // The size of the Dynamic array
+	size_t globalID; // http://www.w3.org/TR/2011/REC-exi-20110310/#key-globalID
 	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
 };
 
 typedef struct ValueTable ValueTable;
 
 struct ValueLocalCrossTable {
-	size_t* valueRowIds; // Dynamic array
+	size_t* valueRowIds; // Dynamic array; If the value of an element is SIZE_MAX, then this compact identifier is permanently unassigned
 	uint16_t rowCount; // The number of rows
 	uint16_t arrayDimension; // The size of the Dynamic array
 	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
