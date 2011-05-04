@@ -252,7 +252,7 @@ errorCode decodeQName(EXIStream* strm, QName* qname)
 	return ERR_OK;
 }
 
-errorCode decodeStringValue(EXIStream* strm, StringType** value)
+errorCode decodeStringValue(EXIStream* strm, StringType* value, unsigned char* freeable)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	uint16_t uriID = strm->context.curr_uriID;
@@ -261,6 +261,8 @@ errorCode decodeStringValue(EXIStream* strm, StringType** value)
 	tmp_err_code = decodeUnsignedInteger(strm, &tmpVar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
+
+	*freeable = FALSE;
 
 	if(tmpVar == 0) // "local" value partition table hit
 	{
@@ -273,7 +275,7 @@ errorCode decodeStringValue(EXIStream* strm, StringType** value)
 			return tmp_err_code;
 		lvID = (uint16_t) tmpVar;
 		value_table_rowID = strm->uriTable->rows[uriID].lTable->rows[lnID].vCrossTable->valueRowIds[lvID];
-		(*value) = &(strm->vTable->rows[value_table_rowID].string_val);
+		*value = strm->vTable->rows[value_table_rowID].string_val;
 	}
 	else if(tmpVar == 1)// global value partition table hit
 	{
@@ -283,27 +285,22 @@ errorCode decodeStringValue(EXIStream* strm, StringType** value)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		gvID = (size_t) tmpVar;
-		(*value) = &(strm->vTable->rows[gvID].string_val);
+		*value = strm->vTable->rows[gvID].string_val;
 	}
 	else  // "local" value partition and global value partition table miss
 	{
-		StringType gvStr;
-		size_t gvID = 0;
-		tmp_err_code = decodeStringOnly(strm, tmpVar - 2, &gvStr);
+		tmp_err_code = decodeStringOnly(strm, tmpVar - 2, value);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		//TODO: Take into account valuePartitionCapacity parameter for setting globalID variable
-
-		tmp_err_code = addGVRow(strm->vTable, gvStr, &gvID);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = addLVRow(&(strm->uriTable->rows[uriID].lTable->rows[lnID]), gvID, &strm->memList);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		(*value) = &(strm->vTable->rows[gvID].string_val);
+		if(value->length > 0 && value->length <= strm->header.opts->valueMaxLength && strm->header.opts->valuePartitionCapacity > 0)
+		{
+			tmp_err_code = addValueRows(strm, value);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+		else
+			*freeable = TRUE;
 	}
 	return ERR_OK;
 }
@@ -377,15 +374,18 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		}
 		if(event.valueType == VALUE_TYPE_STRING || event.valueType == VALUE_TYPE_NONE)
 		{
-			StringType* value;
-			tmp_err_code = decodeStringValue(strm, &value);
+			StringType value;
+			unsigned char freeable = FALSE;
+			tmp_err_code = decodeStringValue(strm, &value, &freeable);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 			if(handler->stringData != NULL)  // Invoke handler method
 			{
-				if(handler->stringData(*value, app_data) == EXIP_HANDLER_STOP)
+				if(handler->stringData(value, app_data) == EXIP_HANDLER_STOP)
 					return HANDLER_STOP_RECEIVED;
 			}
+			if(freeable)
+				freeLastManagedAlloc(&strm->memList);
 		}
 		tmp_err_code = insertZeroProduction((DynGrammarRule*) currRule, getEventDefType(EVENT_AT_QNAME), *nonTermID_out, strm->context.curr_lnID, strm->context.curr_uriID);
 		if(tmp_err_code != ERR_OK)
@@ -439,15 +439,18 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 
 		if(event.valueType == VALUE_TYPE_STRING || event.valueType == VALUE_TYPE_NONE || event.valueType == VALUE_TYPE_UNTYPED)
 		{
-			StringType* value;
-			tmp_err_code = decodeStringValue(strm, &value);
+			StringType value;
+			unsigned char freeable = FALSE;
+			tmp_err_code = decodeStringValue(strm, &value, &freeable);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 			if(handler->stringData != NULL)  // Invoke handler method
 			{
-				if(handler->stringData(*value, app_data) == EXIP_HANDLER_STOP)
+				if(handler->stringData(value, app_data) == EXIP_HANDLER_STOP)
 					return HANDLER_STOP_RECEIVED;
 			}
+			if(freeable)
+				freeLastManagedAlloc(&strm->memList);
 		}
 		else if(event.valueType == VALUE_TYPE_BOOLEAN)
 		{

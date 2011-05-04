@@ -59,15 +59,17 @@ errorCode encodeStringData(EXIStream* strm, StringType strng)
 	uint16_t p_uriID = strm->context.curr_uriID;
 	size_t p_lnID = strm->context.curr_lnID;
 	uint16_t lvRowID = 0;
-	flag_StringLiteralsPartition = lookupLV(strm->vTable, strm->uriTable->rows[p_uriID].lTable->rows[p_lnID].vCrossTable, strng, &lvRowID);
-	if(flag_StringLiteralsPartition) //  "local" value partition table hit
+	ValueLocalCrossTable* vlTable = strm->uriTable->rows[p_uriID].lTable->rows[p_lnID].vCrossTable;
+
+	flag_StringLiteralsPartition = lookupLV(strm->vTable, vlTable, strng, &lvRowID);
+	if(flag_StringLiteralsPartition && vlTable->valueRowIds[lvRowID] != SIZE_MAX) //  "local" value partition table hit; when SIZE_MAX -> compact identifier permanently unassigned
 	{
 		unsigned char lvBits;
 
 		tmp_err_code = encodeUnsignedInteger(strm, 0);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		lvBits = getBitsNumber(strm->uriTable->rows[p_uriID].lTable->rows[p_lnID].vCrossTable->rowCount - 1);
+		lvBits = getBitsNumber(vlTable->rowCount - 1);
 		tmp_err_code = encodeNBitUnsignedInteger(strm, lvBits, lvRowID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -97,15 +99,17 @@ errorCode encodeStringData(EXIStream* strm, StringType strng)
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			//TODO: Take into account valuePartitionCapacity parameter for setting globalID variable
+			if(strng.length > 0 && strng.length <= strm->header.opts->valueMaxLength && strm->header.opts->valuePartitionCapacity > 0)
+			{
+				StringType copiedValue;
+				tmp_err_code = cloneString(&strng, &copiedValue, &strm->memList);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
 
-			tmp_err_code = addGVRow(strm->vTable, strng, &gvRowID);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-
-			tmp_err_code = addLVRow(&(strm->uriTable->rows[p_uriID].lTable->rows[p_lnID]), gvRowID, &strm->memList);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+				tmp_err_code = addValueRows(strm, &copiedValue);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
 		}
 	}
 
@@ -264,6 +268,7 @@ errorCode encodeQName(EXIStream* strm, QName qname)
 	}
 	else  // uri miss
 	{
+		StringType copiedURI;
 		tmp_err_code = encodeNBitUnsignedInteger(strm, uriBits, 0);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -271,7 +276,11 @@ errorCode encodeQName(EXIStream* strm, QName qname)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = addURIRow(strm->uriTable, *(qname.uri), &uriID, &strm->memList);
+		tmp_err_code = cloneString(qname.uri, &copiedURI, &strm->memList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = addURIRow(strm->uriTable, copiedURI, &uriID, &strm->memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -292,6 +301,7 @@ errorCode encodeQName(EXIStream* strm, QName qname)
 	}
 	else // local-name table miss
 	{
+		StringType copiedLN;
 		tmp_err_code = encodeUnsignedInteger(strm, (uint32_t)(qname.localName->length + 1) );
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -306,7 +316,12 @@ errorCode encodeQName(EXIStream* strm, QName qname)
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
-		tmp_err_code = addLNRow(strm->uriTable->rows[uriID].lTable, *(qname.localName), &lnID);
+
+		tmp_err_code = cloneString(qname.localName, &copiedLN, &strm->memList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = addLNRow(strm->uriTable->rows[uriID].lTable, copiedLN, &lnID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}

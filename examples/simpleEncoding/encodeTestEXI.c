@@ -162,9 +162,9 @@ int main(int argc, char *argv[])
 				if(tmp_err_code != ERR_OK)
 					printError(tmp_err_code, &testStrm, outfile);
 			}
-			header.has_cookie = 0;
-			header.has_options = 0;
-			header.is_preview_version = 0;
+			header.has_cookie = FALSE;
+			header.has_options = FALSE;
+			header.is_preview_version = FALSE;
 			header.version_number = 1;
 			tmp_err_code += serEXI.exiHeaderSer(&testStrm, &header);
 

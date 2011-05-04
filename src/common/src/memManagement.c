@@ -97,6 +97,16 @@ errorCode memManagedReAllocate(void** ptr, size_t size, struct reAllocPair memPa
 	return ERR_OK;
 }
 
+void freeLastManagedAlloc(AllocList* list)
+{
+	if(list->lastBlock->currentAlloc > 0)
+	{
+		EXIP_MFREE(list->lastBlock->allocation[list->lastBlock->currentAlloc - 1]);
+		list->lastBlock->currentAlloc -= 1;
+	}
+}
+
+
 void freeAllMem(EXIStream* strm)
 {
 	// Hash tables are freed separately

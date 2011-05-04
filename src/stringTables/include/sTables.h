@@ -47,7 +47,7 @@
 #include "procTypes.h"
 #include "errorHandle.h"
 
-#define DEFAULT_VALUE_ROWS_NUMBER             10
+#define DEFAULT_VALUE_ROWS_NUMBER             50
 #define DEFAULT_URI_ROWS_NUMBER               10
 #define DEFAULT_PREFIX_ROWS_NUMBER            10
 #define DEFAULT_LOCALNAMES_ROWS_NUMBER        10
@@ -148,24 +148,13 @@ errorCode createInitialStringTables(EXIStream* strm);
 errorCode createInitialEntries(AllocList* memList, URITable* uTable, unsigned char withSchema);
 
 /**
- * @brief Add a new row into the ValueTable string table
+ * @brief Add a new row into the Global ValueTable string table and Local value cross string table
  *
- * @param[out] vTable ValueTable string table
+ * @param[in, out] strm EXI stream of bits
  * @param[in] global_value the string representing this global value. The StringType can be allocated on the stack.
- * @param[out] rowID the ID of the row inserted
  * @return Error handling code
  */
-errorCode addGVRow(ValueTable* vTable, StringType global_value, size_t* rowID);
-
-/**
- * @brief Add a new row into the Local value cross string table
- *
- * @param[in, out] lnRow The local name row at which the Local value cross string table is attached
- * @param[in] globalValueRowID the rowID of the string in the global value string table
- * @param[in, out] memList A list storing the memory allocations
- * @return Error handling code
- */
-errorCode addLVRow(struct LocalNamesRow* lnRow, size_t globalValueRowID, AllocList* memList);
+errorCode addValueRows(EXIStream* strm, StringType* value);
 
 /**
  * @brief Add a new row into the Prefix string table

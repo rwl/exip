@@ -126,6 +126,7 @@ errorCode createValueTable(ValueTable** vTable, AllocList* memList)
 
 	(*vTable)->arrayDimension = DEFAULT_VALUE_ROWS_NUMBER;
 	(*vTable)->rowCount = 0;
+	(*vTable)->globalID = 0;
 	return ERR_OK;
 }
 
@@ -337,22 +338,57 @@ errorCode createInitialEntries(AllocList* memList, URITable* uTable, unsigned ch
 	return ERR_OK;
 }
 
-errorCode addGVRow(ValueTable* vTable, StringType global_value, size_t* rowID)
+errorCode addValueRows(EXIStream* strm, StringType* value)
 {
-	if(vTable->arrayDimension == vTable->rowCount)   // The dynamic array must be extended first
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	size_t* vLocalCrossTablePtr = NULL;
+	struct LocalNamesRow* lnRow = &(strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID]);
+
+	// Add entry to the local value table
+	if(lnRow->vCrossTable == NULL)
 	{
-		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		tmp_err_code = memManagedReAllocate((void *) &vTable->rows, sizeof(struct ValueRow)*(vTable->rowCount + DEFAULT_VALUE_ROWS_NUMBER), vTable->memPair);
+		tmp_err_code = createValueLocalCrossTable(&(lnRow->vCrossTable), &strm->memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		vTable->arrayDimension = vTable->arrayDimension + DEFAULT_VALUE_ROWS_NUMBER;
+	}
+	else if(lnRow->vCrossTable->rowCount == lnRow->vCrossTable->arrayDimension)   // The dynamic array must be extended first
+	{
+		tmp_err_code = memManagedReAllocate((void *) &lnRow->vCrossTable->valueRowIds, sizeof(size_t)*(lnRow->vCrossTable->rowCount + DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER), lnRow->vCrossTable->memPair);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		lnRow->vCrossTable->arrayDimension += DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER;
 	}
 
-	vTable->rows[vTable->rowCount].string_val.length = global_value.length;
-	vTable->rows[vTable->rowCount].string_val.str = global_value.str;
+	vLocalCrossTablePtr = &(lnRow->vCrossTable->valueRowIds[lnRow->vCrossTable->rowCount]);
+	lnRow->vCrossTable->rowCount += 1;
 
-	*rowID = vTable->rowCount;
-	vTable->rowCount += 1;
+	// Add entry to the global value table
+	if(strm->vTable->arrayDimension == strm->vTable->globalID)   // The dynamic array must be extended first
+	{
+		tmp_err_code = memManagedReAllocate((void *) &strm->vTable->rows, sizeof(struct ValueRow)*(strm->vTable->rowCount + DEFAULT_VALUE_ROWS_NUMBER), strm->vTable->memPair);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		strm->vTable->arrayDimension += DEFAULT_VALUE_ROWS_NUMBER;
+	}
+
+	if(strm->vTable->globalID < strm->vTable->rowCount)
+	{
+		if(strm->vTable->rows[strm->vTable->globalID].valueLocalCrossTableRowPointer != NULL)
+			*(strm->vTable->rows[strm->vTable->globalID].valueLocalCrossTableRowPointer) = SIZE_MAX;
+	}
+	else
+		strm->vTable->rowCount += 1;
+
+	strm->vTable->rows[strm->vTable->globalID].string_val.length = value->length;
+	strm->vTable->rows[strm->vTable->globalID].string_val.str = value->str;
+	strm->vTable->rows[strm->vTable->globalID].valueLocalCrossTableRowPointer = vLocalCrossTablePtr;
+	*vLocalCrossTablePtr = strm->vTable->globalID;
+
+	strm->vTable->globalID += 1;
+
+	if(strm->vTable->globalID == strm->header.opts->valuePartitionCapacity)
+		strm->vTable->globalID = 0;
+
 	return ERR_OK;
 }
 
@@ -371,28 +407,6 @@ errorCode addPrefixRow(PrefixTable* pTable, StringType px_value)
 	pTable->rows[pTable->rowCount].string_val.str = px_value.str;
 
 	pTable->rowCount += 1;
-	return ERR_OK;
-}
-
-errorCode addLVRow(struct LocalNamesRow* lnRow, size_t globalValueRowID, AllocList* memList)
-{
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	if(lnRow->vCrossTable == NULL)
-	{
-		tmp_err_code = createValueLocalCrossTable(&(lnRow->vCrossTable), memList);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-	else if(lnRow->vCrossTable->rowCount == lnRow->vCrossTable->arrayDimension)   // The dynamic array must be extended first
-	{
-		tmp_err_code = memManagedReAllocate((void *) &lnRow->vCrossTable->valueRowIds, sizeof(size_t)*(lnRow->vCrossTable->rowCount + DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER), lnRow->vCrossTable->memPair);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		lnRow->vCrossTable->arrayDimension += DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER;
-	}
-
-	lnRow->vCrossTable->valueRowIds[lnRow->vCrossTable->rowCount] = globalValueRowID;
-	lnRow->vCrossTable->rowCount += 1;
 	return ERR_OK;
 }
 

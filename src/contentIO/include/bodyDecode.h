@@ -69,9 +69,10 @@ errorCode decodeQName(EXIStream* strm, QName* qname);
  * @brief Decodes a string value from the EXI stream
  * @param[in, out] strm EXI stream representation
  * @param[out] value the string decoded
+ * @param[out] freeable if TRUE the value can be freed immediately afterwards using freeLastManagedAlloc()
  * @return Error handling code
  */
-errorCode decodeStringValue(EXIStream* strm, StringType** value);
+errorCode decodeStringValue(EXIStream* strm, StringType* value, unsigned char* freeable);
 
 /**
  * @brief Decodes the content of EXI event
