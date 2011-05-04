@@ -56,8 +56,8 @@ errorCode encodeStringData(EXIStream* strm, StringType strng)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char flag_StringLiteralsPartition = 0;
-	uint16_t p_uriID = strm->sContext.curr_uriID;
-	size_t p_lnID = strm->sContext.curr_lnID;
+	uint16_t p_uriID = strm->context.curr_uriID;
+	size_t p_lnID = strm->context.curr_lnID;
 	uint16_t lvRowID = 0;
 	flag_StringLiteralsPartition = lookupLV(strm->vTable, strm->uriTable->rows[p_uriID].lTable->rows[p_lnID].vCrossTable, strng, &lvRowID);
 	if(flag_StringLiteralsPartition) //  "local" value partition table hit
@@ -122,10 +122,10 @@ errorCode encodeSimpleEXIEvent(EXIStream* strm, EXIEvent event)
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Ser EXI simple event: %d\n", event.eventType));
 
-	if(strm->nonTermID >=  strm->gStack->grammar->rulesDimension)
+	if(strm->context.nonTermID >=  strm->gStack->grammar->rulesDimension)
 		return INCONSISTENT_PROC_STATE;
 
-	currentRule = &strm->gStack->grammar->ruleArray[strm->nonTermID];
+	currentRule = &strm->gStack->grammar->ruleArray[strm->context.nonTermID];
 
 #if DEBUG_CONTENT_IO == ON
 	{
@@ -164,7 +164,7 @@ errorCode encodeSimpleEXIEvent(EXIStream* strm, EXIEvent event)
 			return tmp_err_code;
 	}
 
-	strm->nonTermID = prodHit->nonTermID;
+	strm->context.nonTermID = prodHit->nonTermID;
 	return ERR_OK;
 }
 
@@ -179,10 +179,10 @@ errorCode encodeComplexEXIEvent(EXIStream* strm, QName qname, unsigned char even
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Ser SE event\n"));
 
-	if(strm->nonTermID >=  strm->gStack->grammar->rulesDimension)
+	if(strm->context.nonTermID >=  strm->gStack->grammar->rulesDimension)
 		return INCONSISTENT_PROC_STATE;
 
-	currentRule = &strm->gStack->grammar->ruleArray[strm->nonTermID];
+	currentRule = &strm->gStack->grammar->ruleArray[strm->context.nonTermID];
 
 #if DEBUG_CONTENT_IO == ON
 	{
@@ -226,7 +226,7 @@ errorCode encodeComplexEXIEvent(EXIStream* strm, QName qname, unsigned char even
 
 		if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)  // If the current grammar is build-in Element grammar ...
 		{
-			tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, getEventDefType(EVENT_SE_QNAME), prodHit->nonTermID, strm->sContext.curr_lnID, strm->sContext.curr_uriID);
+			tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, getEventDefType(EVENT_SE_QNAME), prodHit->nonTermID, strm->context.curr_lnID, strm->context.curr_uriID);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -237,11 +237,11 @@ errorCode encodeComplexEXIEvent(EXIStream* strm, QName qname, unsigned char even
 	}
 	else if(prodHit->event.eventType == event_qname)
 	{
-		strm->sContext.curr_uriID = prodHit->uriRowID;
-		strm->sContext.curr_lnID = prodHit->lnRowID;
+		strm->context.curr_uriID = prodHit->uriRowID;
+		strm->context.curr_lnID = prodHit->lnRowID;
 	}
 
-	strm->nonTermID = prodHit->nonTermID;
+	strm->context.nonTermID = prodHit->nonTermID;
 	return ERR_OK;
 }
 
@@ -275,7 +275,7 @@ errorCode encodeQName(EXIStream* strm, QName qname)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
-	strm->sContext.curr_uriID = uriID;
+	strm->context.curr_uriID = uriID;
 /******* End: URI **********/
 
 /******* Start: Local name **********/
@@ -310,7 +310,7 @@ errorCode encodeQName(EXIStream* strm, QName qname)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
-	strm->sContext.curr_lnID = lnID;
+	strm->context.curr_lnID = lnID;
 
 /******* End: Local name **********/
 	return ERR_OK;

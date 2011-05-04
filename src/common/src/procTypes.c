@@ -47,16 +47,17 @@
 errorCode makeDefaultOpts(struct EXIOptions* opts)
 {
 	opts->alignment = BIT_PACKED;
-	opts->compression = 0;
-	opts->strict = 0;
-	opts->fragment = 0;
+	opts->compression = FALSE;
+	opts->strict = FALSE;
+	opts->fragment = FALSE;
 	opts->preserve = 0; // all preserve flags are false by default
-	opts->selfContained = 0;
+	opts->selfContained = FALSE;
 	opts->blockSize = 1000000;
-	opts->valueMaxLength = 0;
-	opts->valuePartitionCapacity = 0;
+	opts->valueMaxLength = SIZE_MAX;
+	opts->valuePartitionCapacity = SIZE_MAX;
 	opts->user_defined_data = NULL;
-	opts->schemaID = NULL;
+	opts->schemaID.str = NULL;
+	opts->schemaID.length = 0;
 	opts->drMap = NULL;
 
 	return ERR_OK;

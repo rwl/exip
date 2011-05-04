@@ -57,14 +57,14 @@ void parseEXI(char* binaryBuf, size_t bufLen, size_t bufContent, IOStream* ioStr
 
 	initAllocList(&strm.memList);
 	strm.buffer = binaryBuf;
-	strm.bitPointer = 0;
-	strm.bufferIndx = 0;
+	strm.context.bitPointer = 0;
+	strm.context.bufferIndx = 0;
 	strm.bufLen = bufLen;
 	strm.header.opts = &options;
-	strm.nonTermID = GR_DOCUMENT;
-	strm.sContext.curr_lnID = 0;
-	strm.sContext.curr_uriID = 0;
-	strm.sContext.expectATData = 0;
+	strm.context.nonTermID = GR_DOCUMENT;
+	strm.context.curr_lnID = 0;
+	strm.context.curr_uriID = 0;
+	strm.context.expectATData = 0;
 	strm.bufContent = bufContent;
 	strm.ioStrm = ioStrm;
 

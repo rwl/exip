@@ -46,19 +46,19 @@
 
 errorCode moveBitPointer(EXIStream* strm, unsigned int bitPositions)
 {
-	size_t tmpLen = strm->bufferIndx + bitPositions/8;
+	size_t tmpLen = strm->context.bufferIndx + bitPositions/8;
 	int nbits;
 
-	strm->bufferIndx = tmpLen;
+	strm->context.bufferIndx = tmpLen;
 	nbits = bitPositions % 8;
-	if(nbits < 8 - strm->bitPointer) // The remaining (0-7) bit positions can be moved within the current byte
+	if(nbits < 8 - strm->context.bitPointer) // The remaining (0-7) bit positions can be moved within the current byte
 	{
-		strm->bitPointer += nbits;
+		strm->context.bitPointer += nbits;
 	}
 	else
 	{
-		strm->bufferIndx += 1;
-		strm->bitPointer = nbits - (8 - strm->bitPointer);
+		strm->context.bufferIndx += 1;
+		strm->context.bitPointer = nbits - (8 - strm->context.bitPointer);
 	}
 	return ERR_OK;
 }

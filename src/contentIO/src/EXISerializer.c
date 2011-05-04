@@ -84,14 +84,14 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 	initAllocList(&(strm->memList));
 	strm->buffer = buf;
 	strm->header.opts = opts;
-	strm->bitPointer = 0;
+	strm->context.bitPointer = 0;
 	strm->bufLen = bufSize;
 	strm->bufContent = 0;
-	strm->bufferIndx = 0;
-	strm->nonTermID = GR_DOCUMENT;
-	strm->sContext.curr_uriID = 0;
-	strm->sContext.curr_lnID = 0;
-	strm->sContext.expectATData = 0;
+	strm->context.bufferIndx = 0;
+	strm->context.nonTermID = GR_DOCUMENT;
+	strm->context.curr_uriID = 0;
+	strm->context.curr_lnID = 0;
+	strm->context.expectATData = 0;
 	strm->ioStrm = ioStrm;
 	strm->gStack = NULL;
 
@@ -142,7 +142,7 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 
 errorCode startDocumentSer(EXIStream* strm)
 {
-	if(strm->nonTermID != GR_DOCUMENT)
+	if(strm->context.nonTermID != GR_DOCUMENT)
 		return INCONSISTENT_PROC_STATE;
 
 	return encodeSimpleEXIEvent(strm, getEventDefType(EVENT_SD));
@@ -150,7 +150,7 @@ errorCode startDocumentSer(EXIStream* strm)
 
 errorCode endDocumentSer(EXIStream* strm)
 {
-	if(strm->nonTermID != GR_DOC_END)
+	if(strm->context.nonTermID != GR_DOC_END)
 		return INCONSISTENT_PROC_STATE;
 
 	return encodeSimpleEXIEvent(strm, getEventDefType(EVENT_ED));
@@ -166,11 +166,11 @@ errorCode startElementSer(EXIStream* strm, QName qname)
 		return tmp_err_code;
 
 	// New element grammar is pushed on the stack
-	elemGrammar = strm->uriTable->rows[strm->sContext.curr_uriID].lTable->rows[strm->sContext.curr_lnID].globalGrammar;
-	strm->gStack->lastNonTermID = strm->nonTermID;
+	elemGrammar = strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].globalGrammar;
+	strm->gStack->lastNonTermID = strm->context.nonTermID;
 	if(elemGrammar != NULL) // The grammar is found
 	{
-		strm->nonTermID = GR_START_TAG_CONTENT;
+		strm->context.nonTermID = GR_START_TAG_CONTENT;
 		tmp_err_code = pushGrammar(&(strm->gStack), elemGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -184,9 +184,9 @@ errorCode startElementSer(EXIStream* strm, QName qname)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		strm->uriTable->rows[strm->sContext.curr_uriID].lTable->rows[strm->sContext.curr_lnID].globalGrammar = newElementGrammar;
+		strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].globalGrammar = newElementGrammar;
 
-		strm->nonTermID = GR_START_TAG_CONTENT;
+		strm->context.nonTermID = GR_START_TAG_CONTENT;
 		tmp_err_code = pushGrammar(&(strm->gStack), newElementGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -200,21 +200,21 @@ errorCode endElementSer(EXIStream* strm)
 	tmp_err_code = encodeSimpleEXIEvent(strm, getEventDefType(EVENT_EE));
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	if(strm->nonTermID == GR_VOID_NON_TERMINAL)
+	if(strm->context.nonTermID == GR_VOID_NON_TERMINAL)
 	{
 		EXIGrammar* grammar;
 		tmp_err_code = popGrammar(&(strm->gStack), &grammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		if(strm->gStack != NULL) // There is more grammars in the stack
-			strm->nonTermID = strm->gStack->lastNonTermID;
+			strm->context.nonTermID = strm->gStack->lastNonTermID;
 	}
 	return ERR_OK;
 }
 
 errorCode attributeSer(EXIStream* strm, QName qname)
 {
-	strm->sContext.expectATData = TRUE;
+	strm->context.expectATData = TRUE;
 	return encodeComplexEXIEvent(strm, qname, EVENT_AT_ALL, EVENT_AT_URI, EVENT_AT_QNAME);
 }
 
@@ -235,9 +235,9 @@ errorCode booleanDataSer(EXIStream* strm, unsigned char bool_val)
 
 errorCode stringDataSer(EXIStream* strm, const StringType str_val)
 {
-	if(strm->sContext.expectATData) // Value for an attribute
+	if(strm->context.expectATData) // Value for an attribute
 	{
-		strm->sContext.expectATData = FALSE;
+		strm->context.expectATData = FALSE;
 		return encodeStringData(strm, str_val);
 	}
 	else
@@ -295,7 +295,7 @@ errorCode closeEXIStream(EXIStream* strm)
 	// Flush the buffer first if there is output Stream
 	if(strm->ioStrm != NULL && strm->ioStrm->readWriteToStream != NULL)
 	{
-		if(strm->ioStrm->readWriteToStream(strm->buffer, strm->bufferIndx + 1, strm->ioStrm->stream) < strm->bufferIndx + 1)
+		if(strm->ioStrm->readWriteToStream(strm->buffer, strm->context.bufferIndx + 1, strm->ioStrm->stream) < strm->context.bufferIndx + 1)
 			return BUFFER_END_REACHED;
 	}
 	freeAllMem(strm);
