@@ -49,7 +49,7 @@ extern const unsigned char BIT_MASK[];
 
 errorCode writeNextBit(EXIStream* strm, unsigned char bit_val)
 {
-	if(strm->bufLen <= strm->bufferIndx) // the whole buffer is filled! flush it!
+	if(strm->bufLen <= strm->context.bufferIndx) // the whole buffer is filled! flush it!
 	{
 		size_t numBytesWritten = 0;
 		if(strm->ioStrm == NULL || strm->ioStrm->readWriteToStream == NULL)
@@ -57,14 +57,14 @@ errorCode writeNextBit(EXIStream* strm, unsigned char bit_val)
 		numBytesWritten = strm->ioStrm->readWriteToStream(strm->buffer, strm->bufLen, strm->ioStrm->stream);
 		if(numBytesWritten < strm->bufLen)
 			return BUFFER_END_REACHED;
-		strm->bitPointer = 0;
-		strm->bufferIndx = 0;
+		strm->context.bitPointer = 0;
+		strm->context.bufferIndx = 0;
 	}
 
 	if(bit_val == 0)
-		strm->buffer[strm->bufferIndx] = strm->buffer[strm->bufferIndx] & (~(1<<REVERSE_BIT_POSITION(strm->bitPointer)));
+		strm->buffer[strm->context.bufferIndx] = strm->buffer[strm->context.bufferIndx] & (~(1<<REVERSE_BIT_POSITION(strm->context.bitPointer)));
 	else
-		strm->buffer[strm->bufferIndx] = strm->buffer[strm->bufferIndx] | (1<<REVERSE_BIT_POSITION(strm->bitPointer));
+		strm->buffer[strm->context.bufferIndx] = strm->buffer[strm->context.bufferIndx] | (1<<REVERSE_BIT_POSITION(strm->context.bitPointer));
 
 	return moveBitPointer(strm, 1);
 }
@@ -81,9 +81,9 @@ errorCode writeNBits(EXIStream* strm, unsigned char nbits, uint32_t bits_val)
 	unsigned int numBitsWrite = 0; // Number of the bits written so far
 	unsigned char tmp = 0;
 	int bits_in_byte = 0; // Number of bits written in one iteration
-	unsigned int numBytesToBeWritten = ((unsigned int) nbits) / 8 + (8 - strm->bitPointer < nbits % 8 );
+	unsigned int numBytesToBeWritten = ((unsigned int) nbits) / 8 + (8 - strm->context.bitPointer < nbits % 8 );
 
-	if(strm->bufLen <= strm->bufferIndx + numBytesToBeWritten)
+	if(strm->bufLen <= strm->context.bufferIndx + numBytesToBeWritten)
 	{
 		// The buffer end is reached: there are fewer than nbits bits left in the buffer
 		char leftOverBits;
@@ -91,27 +91,27 @@ errorCode writeNBits(EXIStream* strm, unsigned char nbits, uint32_t bits_val)
 		if(strm->ioStrm == NULL || strm->ioStrm->readWriteToStream == NULL)
 			return BUFFER_END_REACHED;
 
-		leftOverBits = strm->buffer[strm->bufferIndx];
+		leftOverBits = strm->buffer[strm->context.bufferIndx];
 
-		numBytesWritten = strm->ioStrm->readWriteToStream(strm->buffer, strm->bufferIndx, strm->ioStrm->stream);
-		if(numBytesWritten < strm->bufferIndx)
+		numBytesWritten = strm->ioStrm->readWriteToStream(strm->buffer, strm->context.bufferIndx, strm->ioStrm->stream);
+		if(numBytesWritten < strm->context.bufferIndx)
 			return BUFFER_END_REACHED;
 
 		strm->buffer[0] = leftOverBits;
-		strm->bufferIndx = 0;
+		strm->context.bufferIndx = 0;
 	}
 
 	while(numBitsWrite < nbits)
 	{
-		if((unsigned int)(nbits - numBitsWrite) <= (unsigned int)(8 - strm->bitPointer)) // The rest of the unwritten bits can be put in the current byte from the stream
+		if((unsigned int)(nbits - numBitsWrite) <= (unsigned int)(8 - strm->context.bitPointer)) // The rest of the unwritten bits can be put in the current byte from the stream
 			bits_in_byte = nbits - numBitsWrite;
 		else // The rest of the unwritten bits are more than the bits in the current byte from the stream
-			bits_in_byte = 8 - strm->bitPointer;
+			bits_in_byte = 8 - strm->context.bitPointer;
 
 		tmp = (bits_val >> (nbits - numBitsWrite - bits_in_byte)) & BIT_MASK[bits_in_byte];
-		tmp = tmp << (8 - strm->bitPointer - bits_in_byte);
-		strm->buffer[strm->bufferIndx] = strm->buffer[strm->bufferIndx] & (~BIT_MASK[8 - strm->bitPointer]); // Initialize the unused bits with 0s
-		strm->buffer[strm->bufferIndx] = strm->buffer[strm->bufferIndx] | tmp;
+		tmp = tmp << (8 - strm->context.bitPointer - bits_in_byte);
+		strm->buffer[strm->context.bufferIndx] = strm->buffer[strm->context.bufferIndx] & (~BIT_MASK[8 - strm->context.bitPointer]); // Initialize the unused bits with 0s
+		strm->buffer[strm->context.bufferIndx] = strm->buffer[strm->context.bufferIndx] | tmp;
 
 		numBitsWrite += bits_in_byte;
 		tmp_err_code = moveBitPointer(strm, bits_in_byte);

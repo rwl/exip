@@ -507,12 +507,12 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 	unsigned char b = 0;
 	GrammarRule* currentRule;
 
-	DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Next production non-term-id: %u\n", (unsigned int) strm->nonTermID));
+	DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Next production non-term-id: %u\n", (unsigned int) strm->context.nonTermID));
 
-	if(strm->nonTermID >=  strm->gStack->grammar->rulesDimension)
+	if(strm->context.nonTermID >=  strm->gStack->grammar->rulesDimension)
 		return INCONSISTENT_PROC_STATE;
 
-	currentRule = &strm->gStack->grammar->ruleArray[strm->nonTermID];
+	currentRule = &strm->gStack->grammar->ruleArray[strm->context.nonTermID];
 
 #if DEBUG_GRAMMAR == ON
 	{
@@ -593,10 +593,10 @@ static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Pro
 
 		if(codeLength > 1 && strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)   // #1# COMMENT
 		{
-			strm->sContext.curr_uriID = prodHit->uriRowID;
-			strm->sContext.curr_lnID = prodHit->lnRowID;
+			strm->context.curr_uriID = prodHit->uriRowID;
+			strm->context.curr_lnID = prodHit->lnRowID;
 			tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL,
-												strm->sContext.curr_lnID, strm->sContext.curr_uriID);
+												strm->context.curr_lnID, strm->context.curr_uriID);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -616,15 +616,15 @@ static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Pro
 			if(codeLength > 1 && strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)   // #2# COMMENT
 			{
 				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, getEventDefType(EVENT_CH), *nonTermID_out,
-													strm->sContext.curr_lnID, strm->sContext.curr_uriID);
+													strm->context.curr_lnID, strm->context.curr_uriID);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			}
 		}
 		else // event->eventType != EVENT_CH; CH events do not have QName in their content
 		{
-			strm->sContext.curr_uriID = prodHit->uriRowID;
-			strm->sContext.curr_lnID = prodHit->lnRowID;
+			strm->context.curr_uriID = prodHit->uriRowID;
+			strm->context.curr_lnID = prodHit->lnRowID;
 		}
 		tmp_err_code = decodeEventContent(strm, *event, handler, nonTermID_out, currentRule, app_data);
 		if(tmp_err_code != ERR_OK)

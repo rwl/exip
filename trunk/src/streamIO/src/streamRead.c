@@ -58,18 +58,18 @@ const unsigned char BIT_MASK[] = {	(char) 0x00,	// 0b00000000
 
 errorCode readNextBit(EXIStream* strm, unsigned char* bit_val)
 {
-	if(strm->bufContent <= strm->bufferIndx) // the whole buffer is parsed! read another portion
+	if(strm->bufContent <= strm->context.bufferIndx) // the whole buffer is parsed! read another portion
 	{
 		if(strm->ioStrm == NULL || strm->ioStrm->readWriteToStream == NULL)
 			return BUFFER_END_REACHED;
 		strm->bufContent = strm->ioStrm->readWriteToStream(strm->buffer, strm->bufLen, strm->ioStrm->stream);
 		if(strm->bufContent == 0)
 			return BUFFER_END_REACHED;
-		strm->bitPointer = 0;
-		strm->bufferIndx = 0;
+		strm->context.bitPointer = 0;
+		strm->context.bufferIndx = 0;
 	}
 	*bit_val = 0;
-	*bit_val = (strm->buffer[strm->bufferIndx] & (1<<REVERSE_BIT_POSITION(strm->bitPointer))) != 0;
+	*bit_val = (strm->buffer[strm->context.bufferIndx] & (1<<REVERSE_BIT_POSITION(strm->context.bitPointer))) != 0;
 
 	return moveBitPointer(strm, 1);
 }
@@ -81,19 +81,19 @@ errorCode readBits(EXIStream* strm, unsigned char n, uint32_t* bits_val)
 	int tmp = 0;
 	int shift = 0;
 	int bits_in_byte = 0; // Number of bits read in one iteration
-	unsigned int numBytesToBeRead = ((unsigned int) n) / 8 + (8 - strm->bitPointer < n % 8 );
+	unsigned int numBytesToBeRead = ((unsigned int) n) / 8 + (8 - strm->context.bitPointer < n % 8 );
 	*bits_val = 0;
 
-	if(strm->bufContent <= strm->bufferIndx + numBytesToBeRead)
+	if(strm->bufContent <= strm->context.bufferIndx + numBytesToBeRead)
 	{
 		// The buffer end is reached: there are fewer than n bits left unparsed
 		char leftOverBits[8];
-		size_t bytesCopied = strm->bufContent - strm->bufferIndx;
+		size_t bytesCopied = strm->bufContent - strm->context.bufferIndx;
 		size_t bytesRead = 0;
 		if(strm->ioStrm == NULL || strm->ioStrm->readWriteToStream == NULL)
 			return BUFFER_END_REACHED;
 
-		memcpy(leftOverBits, strm->buffer + strm->bufferIndx, bytesCopied);
+		memcpy(leftOverBits, strm->buffer + strm->context.bufferIndx, bytesCopied);
 
 		bytesRead = strm->ioStrm->readWriteToStream(strm->buffer + bytesCopied, strm->bufLen - bytesCopied, strm->ioStrm->stream);
 		strm->bufContent = bytesRead + bytesCopied;
@@ -101,23 +101,23 @@ errorCode readBits(EXIStream* strm, unsigned char n, uint32_t* bits_val)
 			return BUFFER_END_REACHED;
 
 		memcpy(strm->buffer, leftOverBits, bytesCopied);
-		strm->bufferIndx = 0;
+		strm->context.bufferIndx = 0;
 	}
 
 	while(numBitsRead < n)
 	{
 		tmp = 0;
-		if((unsigned int)(n - numBitsRead) <= (unsigned int)(8 - strm->bitPointer)) // The rest of the unread bits are located in the current byte from the stream
+		if((unsigned int)(n - numBitsRead) <= (unsigned int)(8 - strm->context.bitPointer)) // The rest of the unread bits are located in the current byte from the stream
 		{
 			int tmp_shift;
 			bits_in_byte = n - numBitsRead;
-			tmp_shift = 8 - strm->bitPointer - bits_in_byte;
-			tmp = (strm->buffer[strm->bufferIndx] & BIT_MASK[bits_in_byte]<<tmp_shift) >> tmp_shift;
+			tmp_shift = 8 - strm->context.bitPointer - bits_in_byte;
+			tmp = (strm->buffer[strm->context.bufferIndx] & BIT_MASK[bits_in_byte]<<tmp_shift) >> tmp_shift;
 		}
 		else // The rest of the unread bits are located in multiple bytes from the stream
 		{
-			bits_in_byte = 8 - strm->bitPointer;
-			tmp = strm->buffer[strm->bufferIndx] & BIT_MASK[bits_in_byte];
+			bits_in_byte = 8 - strm->context.bitPointer;
+			tmp = strm->buffer[strm->context.bufferIndx] & BIT_MASK[bits_in_byte];
 		}
 		numBitsRead += bits_in_byte;
 		shift = n - (numBitsRead);

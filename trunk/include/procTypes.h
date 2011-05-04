@@ -477,12 +477,30 @@ struct QName {
 
 typedef struct QName QName;
 
-struct StringTablesContext
+struct StreamContext
 {
+	/**
+	 * Current position in the buffer - bytewise
+	 */
+	size_t bufferIndx;
+
+	/**
+	 * Value between 0 and 7; shows the current position within the current byte
+	 * 7 is the least significant bit position in the byte
+	 */
+	unsigned char bitPointer;
+
+	/**
+	 * Current (Left-hand side) Non terminal ID (Define the context/processor state)
+	 */
+	size_t nonTermID;
+
 	uint16_t curr_uriID;
 	size_t curr_lnID;
 	unsigned char expectATData; // 1- Expecting value for an attribute, 0 - otherwise
 };
+
+typedef struct StreamContext StreamContext;
 
 /**
  * Representation of an Input/Output Stream
@@ -557,21 +575,13 @@ struct EXIStream
 	IOStream* ioStrm;
 
 	/**
-	 * Current position in the buffer - bytewise
-	 */
-	size_t bufferIndx;
-
-	/**
-	 * Value between 0 and 7; shows the current position within the current byte
-	 * 7 is the least significant bit position in the byte
-	 */
-	unsigned char bitPointer;
-
-	/**
 	 * EXI Header - the most important field is the EXI Options. They control the
 	 * parsing and serialization of the stream.
 	 */
 	EXIheader header;
+
+	/** Holds the current state of the stream*/
+	StreamContext context;
 
 	/**
 	 * The value string table
@@ -587,16 +597,6 @@ struct EXIStream
 	 * The grammar stack used during processing
 	 */
 	EXIGrammarStack* gStack;
-
-	/**
-	 * Current (Left-hand side) Non terminal ID (Define the context/processor state)
-	 */
-	size_t nonTermID;
-
-	/**
-	 * Current position in the string tables
-	 */
-	struct StringTablesContext sContext;
 
 	/**
 	 * Stores the information of all the allocated memory for that stream
@@ -650,7 +650,7 @@ struct EXIOptions
 	/**
 	 * Identify the schema information, if any, used to encode the body
 	 */
-	char* schemaID;
+	StringType schemaID;
 
 	/**
 	 * Specify alternate datatype representations for typed values in the EXI body
@@ -664,15 +664,15 @@ struct EXIOptions
 
 	/**
 	 * Specifies the maximum string length of value content items to be considered for addition to the string table.
-	 * 0 - unbounded
+	 * SIZE_MAX - unbounded
 	 */
-	uint32_t valueMaxLength;
+	size_t valueMaxLength;
 
 	/**
 	 * Specifies the total capacity of value partitions in a string table
-	 * 0 - unbounded
+	 * SIZE_MAX - unbounded
 	 */
-	uint32_t valuePartitionCapacity;
+	size_t valuePartitionCapacity;
 
 	/**
 	 * User defined meta-data may be added

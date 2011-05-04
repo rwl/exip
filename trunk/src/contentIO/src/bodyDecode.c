@@ -137,7 +137,7 @@ void decodeBody(EXIStream* strm, ContentHandler* handler, ExipSchema* schema, vo
 		}
 	}
 
-	while(strm->nonTermID != GR_VOID_NON_TERMINAL)  // Process grammar productions until gets to the end of the stream
+	while(strm->context.nonTermID != GR_VOID_NON_TERMINAL)  // Process grammar productions until gets to the end of the stream
 	{
 		tmp_err_code = processNextProduction(strm, &event, &tmpNonTermID, handler, app_data);
 		if(tmp_err_code != ERR_OK)
@@ -164,16 +164,16 @@ void decodeBody(EXIStream* strm, ContentHandler* handler, ExipSchema* schema, vo
 			}
 			if(strm->gStack == NULL) // There is no more grammars in the stack
 			{
-				strm->nonTermID = GR_VOID_NON_TERMINAL; // The stream is parsed
+				strm->context.nonTermID = GR_VOID_NON_TERMINAL; // The stream is parsed
 			}
 			else
 			{
-				strm->nonTermID = strm->gStack->lastNonTermID;
+				strm->context.nonTermID = strm->gStack->lastNonTermID;
 			}
 		}
 		else
 		{
-			strm->nonTermID = tmpNonTermID;
+			strm->context.nonTermID = tmpNonTermID;
 		}
 		tmpNonTermID = GR_VOID_NON_TERMINAL;
 	}
@@ -247,16 +247,16 @@ errorCode decodeQName(EXIStream* strm, QName* qname)
 			return tmp_err_code;
 		qname->localName = &(strm->uriTable->rows[uriID].lTable->rows[lnID].string_val);
 	}
-	strm->sContext.curr_uriID = uriID;
-	strm->sContext.curr_lnID = lnID;
+	strm->context.curr_uriID = uriID;
+	strm->context.curr_lnID = lnID;
 	return ERR_OK;
 }
 
 errorCode decodeStringValue(EXIStream* strm, StringType** value)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	uint16_t uriID = strm->sContext.curr_uriID;
-	size_t lnID = strm->sContext.curr_lnID;
+	uint16_t uriID = strm->context.curr_uriID;
+	size_t lnID = strm->context.curr_lnID;
 	uint32_t tmpVar = 0;
 	tmp_err_code = decodeUnsignedInteger(strm, &tmpVar);
 	if(tmp_err_code != ERR_OK)
@@ -331,13 +331,13 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 
 		if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)  // If the current grammar is build-in Element grammar ...
 		{
-			tmp_err_code = insertZeroProduction((DynGrammarRule*) currRule, getEventDefType(EVENT_SE_QNAME), *nonTermID_out, strm->sContext.curr_lnID, strm->sContext.curr_uriID);
+			tmp_err_code = insertZeroProduction((DynGrammarRule*) currRule, getEventDefType(EVENT_SE_QNAME), *nonTermID_out, strm->context.curr_lnID, strm->context.curr_uriID);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 
 		// New element grammar is pushed on the stack
-		elemGrammar = strm->uriTable->rows[strm->sContext.curr_uriID].lTable->rows[strm->sContext.curr_lnID].globalGrammar;
+		elemGrammar = strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].globalGrammar;
 
 		strm->gStack->lastNonTermID = *nonTermID_out;
 		if(elemGrammar != NULL) // The grammar is found
@@ -356,7 +356,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			strm->uriTable->rows[strm->sContext.curr_uriID].lTable->rows[strm->sContext.curr_lnID].globalGrammar = newElementGrammar;
+			strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].globalGrammar = newElementGrammar;
 			*nonTermID_out = GR_START_TAG_CONTENT;
 			tmp_err_code = pushGrammar(&(strm->gStack), newElementGrammar);
 			if(tmp_err_code != ERR_OK)
@@ -387,7 +387,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 					return HANDLER_STOP_RECEIVED;
 			}
 		}
-		tmp_err_code = insertZeroProduction((DynGrammarRule*) currRule, getEventDefType(EVENT_AT_QNAME), *nonTermID_out, strm->sContext.curr_lnID, strm->sContext.curr_uriID);
+		tmp_err_code = insertZeroProduction((DynGrammarRule*) currRule, getEventDefType(EVENT_AT_QNAME), *nonTermID_out, strm->context.curr_lnID, strm->context.curr_uriID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -396,8 +396,8 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		EXIGrammar* elemGrammar = NULL;
 
 		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">SE(qname) event\n"));
-		qname.uri = &(strm->uriTable->rows[strm->sContext.curr_uriID].string_val);
-		qname.localName = &(strm->uriTable->rows[strm->sContext.curr_uriID].lTable->rows[strm->sContext.curr_lnID].string_val);
+		qname.uri = &(strm->uriTable->rows[strm->context.curr_uriID].string_val);
+		qname.localName = &(strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].string_val);
 		if(handler->startElement != NULL)  // Invoke handler method passing the element qname
 		{
 			if(handler->startElement(qname, app_data) == EXIP_HANDLER_STOP)
@@ -405,7 +405,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		}
 
 		// New element grammar is pushed on the stack
-		elemGrammar = strm->uriTable->rows[strm->sContext.curr_uriID].lTable->rows[strm->sContext.curr_lnID].globalGrammar;
+		elemGrammar = strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].globalGrammar;
 		strm->gStack->lastNonTermID = *nonTermID_out;
 		if(elemGrammar != NULL) // The grammar is found
 		{
@@ -424,8 +424,8 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		if(event.eventType == EVENT_AT_QNAME)
 		{
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">AT(qname) event\n"));
-			qname.uri = &(strm->uriTable->rows[strm->sContext.curr_uriID].string_val);
-			qname.localName = &(strm->uriTable->rows[strm->sContext.curr_uriID].lTable->rows[strm->sContext.curr_lnID].string_val);
+			qname.uri = &(strm->uriTable->rows[strm->context.curr_uriID].string_val);
+			qname.localName = &(strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].string_val);
 			if(handler->attribute != NULL)  // Invoke handler method
 			{
 				if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
