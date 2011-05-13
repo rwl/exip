@@ -44,7 +44,7 @@
 
 #include "procTypes.h"
 
-errorCode makeDefaultOpts(struct EXIOptions* opts)
+errorCode makeDefaultOpts(EXIOptions* opts)
 {
 	opts->alignment = BIT_PACKED;
 	opts->compression = FALSE;

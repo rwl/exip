@@ -234,7 +234,7 @@ START_TEST (test_createInitialStringTables)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	EXIStream testStream;
-	struct EXIOptions options;
+	EXIOptions options;
 	char buf[2];
 
 	testStream.bufferIndx = 0;

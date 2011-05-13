@@ -53,7 +53,7 @@ START_TEST (test_createDocGrammar)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	EXIStream testStream;
-	struct EXIOptions options;
+	EXIOptions options;
 	EXIGrammar testGrammar;
 	char buf[2];
 	buf[0] = (char) 0xD4; /* 0b11010100 */
@@ -88,7 +88,7 @@ START_TEST (test_pushGrammar)
 	errorCode err = UNEXPECTED_ERROR;
 	EXIGrammarStack* testGrStack = NULL;
 	EXIGrammar docGr;
-	struct EXIOptions options;
+	EXIOptions options;
 	EXIStream strm;
 	EXIGrammar testElementGrammar;
 
@@ -117,7 +117,7 @@ START_TEST (test_popGrammar)
 	errorCode err = UNEXPECTED_ERROR;
 	EXIGrammarStack* testGrStack = NULL;
 	EXIGrammar docGr;
-	struct EXIOptions options;
+	EXIOptions options;
 	EXIStream strm;
 	EXIGrammar testElementGrammar;
 	EXIGrammar* testGR;
@@ -151,7 +151,7 @@ START_TEST (test_createBuildInElementGrammar)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	EXIGrammar testElementGrammar;
-	struct EXIOptions options;
+	EXIOptions options;
 	EXIStream strm;
 
 	makeDefaultOpts(&options);

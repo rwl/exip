@@ -49,192 +49,318 @@
 #include "grammars.h"
 #include "ioUtil.h"
 
-static errorCode recursiveGrammarConcat(AllocList* memList, EXIGrammarStack* pGrammars, EXIGrammar** result);
+#define MAX_COLLISIONS_NUMBER 50
+
+struct collisionInfo
+{
+	size_t leftNonTerminal;
+	size_t rightNonTerminal;
+	size_t createdNonTerminal;
+};
+
+errorCode pushOnStack(GenericStack** stack, void* element)
+{
+	struct stackNode* node = EXIP_MALLOC(sizeof(struct stackNode));
+	if(node == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	node->element = element;
+	node->nextInStack = *stack;
+	*stack = node;
+	return ERR_OK;
+}
+
+errorCode popFromStack(GenericStack** stack, void** element)
+{
+	struct stackNode* node = *stack;
+	*stack = (*stack)->nextInStack;
+
+	(*element) = node->element;
+	EXIP_MFREE(node);
+	return ERR_OK;
+}
+
+
+/** Collision aware addition */
+static errorCode addProductionsToARule(AllocList* memList, ProtoGrammar* left, unsigned int ruleIndex, Production* rightRule,
+		unsigned int rightProdCount, struct collisionInfo* collisions, unsigned int* collisionCount, unsigned int* currRuleIndex, unsigned int initialLeftRulesCount);
+
+static errorCode recursiveGrammarConcat(AllocList* memList, GenericStack* protoGrammars, ProtoGrammar** result);
 
 static int compareProductions(const void* prod1, const void* prod2);
 
-errorCode concatenateGrammars(AllocList* memList, EXIGrammar* left, EXIGrammar* right, EXIGrammar** result)
+errorCode concatenateGrammars(AllocList* memList, ProtoGrammar* left, ProtoGrammar* right)
 {
-	uint16_t i = 0;
-	uint16_t j = 0;
-	*result = (EXIGrammar*) memManagedAllocate(memList, sizeof(EXIGrammar));
-	if(*result == NULL)
-		return MEMORY_ALLOCATION_ERROR;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	unsigned int ruleIterL = 0;
+	unsigned int ruleIterR = 0;
+	unsigned int prodIterL = 0;
+	unsigned int prodIterR = 0;
+	struct collisionInfo collisions[MAX_COLLISIONS_NUMBER];
+	unsigned int collisionCount = 0;
+	unsigned int collisIter = 0;
+	Production* tmpProduction;
+	unsigned int currRuleIndex;
+	unsigned int initialLeftRulesCount = left->rulesCount;
 
-	(*result)->rulesDimension = left->rulesDimension + right->rulesDimension;
-	(*result)->grammarType = left->grammarType;
-	(*result)->contentIndex = left->rulesDimension; // The content index of grammar ComplexType is the index of the first non-terminal symbol of Content within the context of Type i .
-	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
-	if((*result)->ruleArray == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	/* The Non-terminal IDs must be unique within the particular grammar.
-	 * To ensure this is true after the concatenating, the right Non-terminal IDs
-	 * are re-numerated starting from the biggest left Non-terminal ID value + 1*/
-
-	for(i = 0; i < left->rulesDimension; i++)
+	for(ruleIterR = 1; ruleIterR < right->rulesCount; ruleIterR++)
 	{
-		copyGrammarRule(memList, &(left->ruleArray[i]), &((*result)->ruleArray[i]), 0);
+		tmp_err_code = addProtoRule(memList, left);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 
-		for(j = 0; j < (*result)->ruleArray[i].prodCount; j++)
+		for(prodIterR = 0; prodIterR < right->prodCount[ruleIterR]; prodIterR++)
 		{
-			if((*result)->ruleArray[i].prodArray[j].event.eventType == EVENT_EE)
+			tmp_err_code = addProductionToAProtoRule(memList, left, left->rulesCount - 1, right->prods[ruleIterR][prodIterR].event, right->prods[ruleIterR][prodIterR].uriRowID, right->prods[ruleIterR][prodIterR].lnRowID, right->prods[ruleIterR][prodIterR].nonTermID + initialLeftRulesCount);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+	}
+
+	currRuleIndex = left->rulesCount;
+
+	for(ruleIterL = 0; ruleIterL < initialLeftRulesCount; ruleIterL++)
+	{
+		for(prodIterL = 0; prodIterL < left->prodCount[ruleIterL]; prodIterL++)
+		{
+			if(left->prods[ruleIterL][prodIterL].event.eventType == EVENT_EE)
 			{
-				(*result)->ruleArray[i].prodArray[j].event.eventType = EVENT_VOID;
-				(*result)->ruleArray[i].prodArray[j].nonTermID = left->rulesDimension;
+				// Remove this production
+				if(prodIterL == left->prodCount[ruleIterL] - 1)
+					left->prodCount[ruleIterL] -= 1;
+				else
+				{
+					memcpy(left->prods[ruleIterL] + prodIterL, left->prods[ruleIterL] + prodIterL + 1, left->prodCount[ruleIterL] - prodIterL - 1);
+					left->prodCount[ruleIterL] -= 1;
+				}
+				tmp_err_code = addProductionsToARule(memList, left, ruleIterL, right->prods[0], right->prodCount[0], collisions, &collisionCount, &currRuleIndex, initialLeftRulesCount);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+				break;
 			}
 		}
 	}
 
-	for(i = 0; i < right->rulesDimension; i++)
+	// Create the new grammar rules based on the collision information
+	for(collisIter = 0; collisIter < collisionCount; collisIter++)
 	{
-		copyGrammarRule(memList, &(right->ruleArray[i]), &((*result)->ruleArray[left->rulesDimension + i]), (unsigned int)(left->rulesDimension));
+		tmp_err_code = addProtoRule(memList, left);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		for(prodIterL = 0; prodIterL < left->prodCount[collisions[collisIter].leftNonTerminal]; prodIterL++)
+		{
+			tmpProduction = &(left->prods[collisions[collisIter].leftNonTerminal][prodIterL]);
+			tmp_err_code = addProductionToAProtoRule(memList, left, left->rulesCount - 1, tmpProduction->event, tmpProduction->uriRowID, tmpProduction->lnRowID, tmpProduction->nonTermID);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+
+		tmp_err_code = addProductionsToARule(memList, left, left->rulesCount-1, left->prods[collisions[collisIter].rightNonTerminal], left->prodCount[collisions[collisIter].rightNonTerminal], collisions, &collisionCount, &currRuleIndex, 0);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 	}
 
 	return ERR_OK;
 }
 
-errorCode createElementProtoGrammar(AllocList* memList, StringType name, StringType target_ns,
-									EXIGrammar* typeDef, QName scope, unsigned char nillable,
-									EXIGrammar** result)
+static errorCode addProductionsToARule(AllocList* memList, ProtoGrammar* left, unsigned int ruleIndex, Production* rightRule,
+		unsigned int rightProdCount, struct collisionInfo* collisions, unsigned int* collisionCount, unsigned int* currRuleIndex, unsigned int initialLeftRulesCount)
 {
-	// TODO: Element-i,0 : Type-j,0 - this basically means that the Element Grammar equals to the type grammar
-	// Here only needs to add already normalized type grammar in a element grammar pool
-	// So remove the code below as it is not needed
-	// Also name and target_ns should be added to metaStrTable if not already there
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	unsigned int prodIterL = 0;
+	unsigned int prodIterR = 0;
+	unsigned char terminalCollision = FALSE;
+	unsigned char collisionFound = FALSE;
+	unsigned int collisIter = 0;
 
-	int i = 0;
-
-	*result = (EXIGrammar*) memManagedAllocate(memList, sizeof(EXIGrammar));
-	if(*result == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	(*result)->rulesDimension = typeDef->rulesDimension;
-	(*result)->grammarType = GR_TYPE_SCHEMA_ELEM;
-	(*result)->contentIndex = 0;
-	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
-	if((*result)->ruleArray == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	for(i = 0; i < (int)typeDef->rulesDimension; i++)
+	for(prodIterR = 0; prodIterR < rightProdCount; prodIterR++)
 	{
-		copyGrammarRule(memList, &(typeDef->ruleArray[i]), &((*result)->ruleArray[i]), 0);
-	}
+		terminalCollision = FALSE;
+		for(prodIterL = 0; prodIterL < left->prodCount[ruleIndex]; prodIterL++)
+		{
+			// If the terminal symbol is identical
+			if(eventsEqual(left->prods[ruleIndex][prodIterL].event, rightRule[prodIterR].event) &&
+					left->prods[ruleIndex][prodIterL].uriRowID == rightRule[prodIterR].uriRowID &&
+					left->prods[ruleIndex][prodIterL].lnRowID == rightRule[prodIterR].lnRowID)
+			{
+				// Collision
+				collisionFound = FALSE;
+				if(left->prods[ruleIndex][prodIterL].nonTermID == rightRule[prodIterR].nonTermID + initialLeftRulesCount)
+				{
+					// If the NonTerminals are the same
+					// discard the addition of this production as they are identical
+					collisionFound = TRUE;
+					terminalCollision = TRUE;
+					break;
+				}
 
+				for(collisIter = 0; collisIter < *collisionCount; collisIter++)
+				{
+					if(collisions[collisIter].leftNonTerminal == left->prods[ruleIndex][prodIterL].nonTermID
+							&& collisions[collisIter].rightNonTerminal == rightRule[prodIterR].nonTermID + initialLeftRulesCount)
+					{
+						// Already collided nonTerminals
+						collisionFound = TRUE;
+						left->prods[ruleIndex][prodIterL].nonTermID = collisions[collisIter].createdNonTerminal;
+						break;
+					}
+
+				}
+				if(collisionFound == FALSE)
+				{
+					if(*collisionCount == MAX_COLLISIONS_NUMBER - 1)
+						return OUT_OF_BOUND_BUFFER;
+					collisions[*collisionCount].leftNonTerminal = left->prods[ruleIndex][prodIterL].nonTermID;
+					collisions[*collisionCount].rightNonTerminal = rightRule[prodIterR].nonTermID + initialLeftRulesCount;
+					collisions[*collisionCount].createdNonTerminal = *currRuleIndex;
+					left->prods[ruleIndex][prodIterL].nonTermID = *currRuleIndex;
+
+					*collisionCount += 1;
+					*currRuleIndex += 1;
+				}
+
+				terminalCollision = TRUE;
+				break;
+			}
+		}
+		if(terminalCollision == FALSE)
+		{
+			// just add the production
+			tmp_err_code = addProductionToAProtoRule(memList, left, ruleIndex, rightRule[prodIterR].event, rightRule[prodIterR].uriRowID, rightRule[prodIterR].lnRowID, rightRule[prodIterR].nonTermID + initialLeftRulesCount);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+	}
 	return ERR_OK;
 }
 
-errorCode createSimpleTypeGrammar(AllocList* memList, QName simpleType, EXIGrammar** result)
+errorCode createSimpleTypeGrammar(AllocList* memList, QName simpleType, ProtoGrammar** result)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIEvent event;
 
-	*result = (EXIGrammar*) memManagedAllocate(memList, sizeof(EXIGrammar));
-	if(*result == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	(*result)->rulesDimension = 2;
-	(*result)->grammarType = GR_TYPE_SCHEMA_TYPE;
-	(*result)->contentIndex = 0;
-	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
-	if((*result)->ruleArray == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	tmp_err_code = initGrammarRule(&((*result)->ruleArray[0]), memList);
+	tmp_err_code = createProtoGrammar(memList, 2, 3, result);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
+
+	(*result)->contentIndex = 0;
+
 	event.eventType = EVENT_CH;
 	tmp_err_code = getEXIDataType(simpleType, &(event.valueType));
-	tmp_err_code = addProduction(&((*result)->ruleArray[0]), getEventCode1(0), event, 1);
-
-	tmp_err_code = initGrammarRule(&((*result)->ruleArray[1]), memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	tmp_err_code = addProduction(&((*result)->ruleArray[1]), getEventCode1(0), getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL);
+
+	(*result)->prods[0][0].event = event;
+	(*result)->prods[0][0].nonTermID = 1;
+	(*result)->prods[0][0].uriRowID = UINT16_MAX;
+	(*result)->prods[0][0].lnRowID = SIZE_MAX;
+	(*result)->prodCount[0] = 1;
+
+	(*result)->prods[1][0].event = getEventDefType(EVENT_EE);
+	(*result)->prods[1][0].nonTermID = GR_VOID_NON_TERMINAL;
+	(*result)->prods[1][0].uriRowID = UINT16_MAX;
+	(*result)->prods[1][0].lnRowID = SIZE_MAX;
+	(*result)->prodCount[1] = 1;
+
+	(*result)->rulesCount = 2;
 
 	return ERR_OK;
 }
 
-errorCode createSimpleEmptyTypeGrammar(AllocList* memList, EXIGrammar** result)
+errorCode createSimpleEmptyTypeGrammar(AllocList* memList, ProtoGrammar** result)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	*result = (EXIGrammar*) memManagedAllocate(memList, sizeof(EXIGrammar));
-	if(*result == NULL)
-		return MEMORY_ALLOCATION_ERROR;
 
-	(*result)->rulesDimension = 1;
-	(*result)->grammarType = GR_TYPE_SCHEMA_EMPTY_TYPE;
+	tmp_err_code = createProtoGrammar(memList, 1, 3, result);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
 	(*result)->contentIndex = 0;
-	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
-	if((*result)->ruleArray == NULL)
-		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_err_code = initGrammarRule(&((*result)->ruleArray[0]), memList);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-	tmp_err_code = addProduction(&((*result)->ruleArray[0]), getEventCode1(0), getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	(*result)->prods[0][0].event = getEventDefType(EVENT_EE);
+	(*result)->prods[0][0].nonTermID = GR_VOID_NON_TERMINAL;
+	(*result)->prods[0][0].uriRowID = UINT16_MAX;
+	(*result)->prods[0][0].lnRowID = SIZE_MAX;
+	(*result)->prodCount[0] = 1;
+
+	(*result)->rulesCount = 1;
+
 	return ERR_OK;
 }
 
 errorCode createComplexTypeGrammar(AllocList* memList, StringType* name, StringType* target_ns,
-		                           EXIGrammar* attrUsesArray, unsigned int attrUsesArraySize,
+								   ProtoGrammar* attrUsesArray, unsigned int attrUsesArraySize,
 		                           StringType* wildcardArray, unsigned int wildcardArraySize,
-		                           EXIGrammar* contentTypeGrammar,
-								   EXIGrammar** result)
+		                           ProtoGrammar* contentTypeGrammar,
+		                           ProtoGrammar** result)
 {
 	//TODO: Implement the case when there are wildcards i.e. wildcardArray is not empty
-	//TODO: Consider freeing the intermediate grammars which are not longer needed resulting from the use of concatenateGrammars()
 
-	EXIGrammar* tmpGrammar;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int i;
 
 	if(attrUsesArraySize > 0)
 	{
-		tmpGrammar = &(attrUsesArray[0]);
-		for(i = 1; i < attrUsesArraySize; i++)
+		tmp_err_code = createProtoGrammar(memList, 10, 10, result);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		(*result)->prods[0][0].event = getEventDefType(EVENT_EE);
+		(*result)->prods[0][0].nonTermID = GR_VOID_NON_TERMINAL;
+		(*result)->prods[0][0].uriRowID = UINT16_MAX;
+		(*result)->prods[0][0].lnRowID = SIZE_MAX;
+		(*result)->prodCount[0] = 1;
+
+		(*result)->rulesCount = 1;
+
+		for(i = 0; i < attrUsesArraySize; i++)
 		{
-			tmp_err_code = concatenateGrammars(memList, tmpGrammar, &(attrUsesArray[i]), &tmpGrammar);
+			tmp_err_code = concatenateGrammars(memList, *result, &(attrUsesArray[i]));
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 
-		tmp_err_code = concatenateGrammars(memList, tmpGrammar, contentTypeGrammar, result);
+		(*result)->contentIndex = (*result)->rulesCount - 1;
+
+		tmp_err_code = concatenateGrammars(memList, *result, contentTypeGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 	else
 	{
-		tmp_err_code = copyGrammar(memList, contentTypeGrammar, result);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		(*result) = contentTypeGrammar;
+		(*result)->contentIndex = 0;
 	}
-
-	(*result)->grammarType = GR_TYPE_SCHEMA_TYPE;
 
 	return ERR_OK;
 }
 
 errorCode createComplexEmptyTypeGrammar(AllocList* memList, StringType name, StringType target_ns,
-		                           EXIGrammar* attrUsesArray, unsigned int attrUsesArraySize,
-		                           StringType* wildcardArray, unsigned int wildcardArraySize,
-								   EXIGrammar** result)
+									ProtoGrammar* attrUsesArray, unsigned int attrUsesArraySize,
+		                            StringType* wildcardArray, unsigned int wildcardArraySize,
+		                            ProtoGrammar** result)
 {
 	//TODO: Implement the case when there are wildcards i.e. wildcardArray is not empty
-	//TODO: Consider freeing the intermediate grammars which are not longer needed resulting from the use of concatenateGrammars()
-
-	EXIGrammar* tmpGrammar;
-
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int i;
-	EXIGrammar* emptyContent;
+	ProtoGrammar* emptyContent;
 
-	tmpGrammar = &(attrUsesArray[0]);
-	for(i = 1; i < attrUsesArraySize; i++)
+	tmp_err_code = createProtoGrammar(memList, 10, 10, result);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	(*result)->prods[0][0].event = getEventDefType(EVENT_EE);
+	(*result)->prods[0][0].nonTermID = GR_VOID_NON_TERMINAL;
+	(*result)->prods[0][0].uriRowID = UINT16_MAX;
+	(*result)->prods[0][0].lnRowID = SIZE_MAX;
+	(*result)->prodCount[0] = 1;
+
+	(*result)->rulesCount = 1;
+
+	for(i = 0; i < attrUsesArraySize; i++)
 	{
-		tmp_err_code = concatenateGrammars(memList, tmpGrammar, &(attrUsesArray[i]), &tmpGrammar);
+		tmp_err_code = concatenateGrammars(memList, *result, &(attrUsesArray[i]));
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -243,205 +369,219 @@ errorCode createComplexEmptyTypeGrammar(AllocList* memList, StringType name, Str
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = concatenateGrammars(memList, tmpGrammar, emptyContent, result);
+	tmp_err_code = concatenateGrammars(memList, *result, emptyContent);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	(*result)->grammarType = GR_TYPE_SCHEMA_EMPTY_TYPE;
-	(*result)->contentIndex = (*result)->rulesDimension - 1; // The content index of grammar TypeEmpty i  is the index of its last non-terminal symbol.
+	(*result)->contentIndex = (*result)->rulesCount - 1; // The content index of grammar TypeEmpty i  is the index of its last non-terminal symbol.
 
 	return ERR_OK;
 }
 
-errorCode createComplexUrTypeGrammar(AllocList* memList, EXIGrammar** result)
+errorCode createComplexUrTypeGrammar(AllocList* memList, ProtoGrammar** result)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, EXIGrammar** result)
+errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, ProtoGrammar** result)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
 errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, StringType* name, StringType* target_ns,
-										  QName simpleType, QName scope, EXIGrammar** result,  uint16_t uriRowID, size_t lnRowID)
+										  QName simpleType, QName scope, ProtoGrammar** result,  uint16_t uriRowID, size_t lnRowID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIEvent event1;
 
-	*result = (EXIGrammar*) memManagedAllocate(memList, sizeof(EXIGrammar));
-	if(*result == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	(*result)->rulesDimension = 2;
-	(*result)->grammarType = GR_TYPE_SCHEMA_TYPE;
-	(*result)->contentIndex = 0;
-	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
-	if((*result)->ruleArray == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	tmp_err_code = initGrammarRule(&((*result)->ruleArray[0]), memList);
+	tmp_err_code = createProtoGrammar(memList, 2, 4, result);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
+	(*result)->contentIndex = 0;
+
 	event1.eventType = EVENT_AT_QNAME;
 	tmp_err_code = getEXIDataType(simpleType, &event1.valueType);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = addProduction(&((*result)->ruleArray[0]), getEventCode1(0), event1, 1);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	(*result)->ruleArray[0].prodArray[0].uriRowID = uriRowID;
-	(*result)->ruleArray[0].prodArray[0].lnRowID = lnRowID;
+	(*result)->prods[0][0].event = event1;
+	(*result)->prods[0][0].nonTermID = 1;
+	(*result)->prods[0][0].uriRowID = uriRowID;
+	(*result)->prods[0][0].lnRowID = lnRowID;
+	(*result)->prodCount[0] = 1;
 
 	if(!required)
 	{
-		tmp_err_code = addProduction(&((*result)->ruleArray[0]), getEventCode1(0), getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		(*result)->prods[0][1].event = getEventDefType(EVENT_EE);
+		(*result)->prods[0][1].nonTermID = GR_VOID_NON_TERMINAL;
+		(*result)->prods[0][1].uriRowID = UINT16_MAX;
+		(*result)->prods[0][1].lnRowID = SIZE_MAX;
+		(*result)->prodCount[0] = 2;
 	}
 
-	tmp_err_code = initGrammarRule(&((*result)->ruleArray[1]), memList);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	(*result)->prods[1][0].event = getEventDefType(EVENT_EE);
+	(*result)->prods[1][0].nonTermID = GR_VOID_NON_TERMINAL;
+	(*result)->prods[1][0].uriRowID = UINT16_MAX;
+	(*result)->prods[1][0].lnRowID = SIZE_MAX;
+	(*result)->prodCount[1] = 1;
 
-	tmp_err_code = addProduction(&((*result)->ruleArray[1]), getEventCode1(0), getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	(*result)->rulesCount = 2;
 
 	return ERR_OK;
 }
 
 errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int32_t maxOccurs,
-								EXIGrammar* termGrammar, EXIGrammar** result)
+								ProtoGrammar* termGrammar, ProtoGrammar** result)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	EXIGrammar* tmpGrammar;
-	uint16_t i = 0;
+	unsigned int i = 0;
 
-	tmp_err_code = copyGrammar(memList, termGrammar, &tmpGrammar);
+	tmp_err_code = createProtoGrammar(memList, minOccurs + 10, 5, result);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
+	(*result)->contentIndex = 0;
 
-	for(i = 0; i + 1 < (int)minOccurs; i++)
+	(*result)->prods[0][0].event = getEventDefType(EVENT_EE);
+	(*result)->prods[0][0].nonTermID = GR_VOID_NON_TERMINAL;
+	(*result)->prods[0][0].uriRowID = UINT16_MAX;
+	(*result)->prods[0][0].lnRowID = SIZE_MAX;
+	(*result)->prodCount[0] = 1;
+
+	(*result)->rulesCount = 1;
+
+	for(i = 0; i < minOccurs; i++)
 	{
-		tmp_err_code = concatenateGrammars(memList, tmpGrammar, termGrammar, &tmpGrammar);
+		tmp_err_code = concatenateGrammars(memList, *result, termGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 
 	if(maxOccurs - minOccurs > 0 || maxOccurs < 0) // Only if maxOccurs is unbounded or maxOccurs > minOccurs
 	{
-		unsigned char prodEEFound = 0;
-		for(i = 0; i < termGrammar->ruleArray[0].prodCount; i++)
+		unsigned char prodEEFound = FALSE;
+		for(i = 0; i < termGrammar->prodCount[0]; i++)
 		{
-			if(termGrammar->ruleArray[0].prodArray[i].nonTermID == GR_VOID_NON_TERMINAL && termGrammar->ruleArray[0].prodArray[i].event.eventType == EVENT_EE)
+			if(termGrammar->prods[0][i].nonTermID == GR_VOID_NON_TERMINAL && termGrammar->prods[0][i].event.eventType == EVENT_EE)
 			{
-				prodEEFound = 1;
+				prodEEFound = TRUE;
 				break;
 			}
 		}
-		if(!prodEEFound) //	There is no production Gi,0 : EE so add one
+		if(prodEEFound == FALSE) //	There is no production Gi,0 : EE so add one
 		{
-			tmp_err_code = addProduction(&(termGrammar->ruleArray[0]), getEventCode1(0), getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL);
+			tmp_err_code = addProductionToAProtoRule(memList, termGrammar, 0, getEventDefType(EVENT_EE), UINT16_MAX, SIZE_MAX, GR_VOID_NON_TERMINAL);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 
-		if(minOccurs == 0)
-			tmpGrammar = termGrammar;
-
 		if(maxOccurs >= 0) // {max occurs} is not unbounded
 		{
-			for(i = 0; i + 1 < maxOccurs - (int)minOccurs; i++)
+			for(i = 0; i < maxOccurs - (int)minOccurs; i++)
 			{
-				tmp_err_code = concatenateGrammars(memList, tmpGrammar, termGrammar, &tmpGrammar);
+				tmp_err_code = concatenateGrammars(memList, *result, termGrammar);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			}
-			*result = tmpGrammar;
 		}
 		else // {max occurs} is unbounded
 		{
 			uint16_t j = 0;
+			struct collisionInfo collisions[MAX_COLLISIONS_NUMBER];
+			unsigned int collisionCount = 0;
+			unsigned int collisIter = 0;
+			unsigned int currRuleIndex = termGrammar->rulesCount;
+			Production* tmpProduction;
+
 			// Excluding the first rule
-			for(i = 1; i < termGrammar->rulesDimension; i++)
+			for(i = 1; i < termGrammar->rulesCount; i++)
 			{
-				for(j = 0; j < termGrammar->ruleArray[i].prodCount; j++)
+				for(j = 0; j < termGrammar->prodCount[i]; j++)
 				{
-					if(termGrammar->ruleArray[i].prodArray[j].nonTermID == GR_VOID_NON_TERMINAL && termGrammar->ruleArray[i].prodArray[j].event.eventType == EVENT_EE)
+					if(termGrammar->prods[i][j].nonTermID == GR_VOID_NON_TERMINAL && termGrammar->prods[i][j].event.eventType == EVENT_EE)
 					{
-						termGrammar->ruleArray[i].prodArray[j].nonTermID = 0;
-						termGrammar->ruleArray[i].prodArray[j].event.eventType = EVENT_VOID;
+						// Remove this production
+						if(j == termGrammar->prodCount[i] - 1)
+							termGrammar->prodCount[i] -= 1;
+						else
+						{
+							memcpy(termGrammar->prods[i] + j, termGrammar->prods[i] + j + 1, termGrammar->prodCount[i] - j - 1);
+							termGrammar->prodCount[i] -= 1;
+						}
+						tmp_err_code = addProductionsToARule(memList, termGrammar, i, termGrammar->prods[0], termGrammar->prodCount[0], collisions, &collisionCount, &currRuleIndex, 0);
+						if(tmp_err_code != ERR_OK)
+							return tmp_err_code;
+						break;
 					}
 				}
 			}
 
-			if(minOccurs > 0)
+			// Create the new grammar rules based on the collision information
+			for(collisIter = 0; collisIter < collisionCount; collisIter++)
 			{
-				tmp_err_code = concatenateGrammars(memList, tmpGrammar, termGrammar, result);
+				tmp_err_code = addProtoRule(memList, termGrammar);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				for(j = 0; j < termGrammar->prodCount[collisions[collisIter].leftNonTerminal]; j++)
+				{
+					tmpProduction = &(termGrammar->prods[collisions[collisIter].leftNonTerminal][j]);
+					tmp_err_code = addProductionToAProtoRule(memList, termGrammar, termGrammar->rulesCount - 1, tmpProduction->event, tmpProduction->uriRowID, tmpProduction->lnRowID, tmpProduction->nonTermID);
+					if(tmp_err_code != ERR_OK)
+						return tmp_err_code;
+				}
+
+				tmp_err_code = addProductionsToARule(memList, termGrammar, termGrammar->rulesCount-1, termGrammar->prods[collisions[collisIter].rightNonTerminal], termGrammar->prodCount[collisions[collisIter].rightNonTerminal], collisions, &collisionCount, &currRuleIndex, 0);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			}
+
+			tmp_err_code = concatenateGrammars(memList, *result, termGrammar);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
 		}
-	}
-	else // maxOccurs == minOccurs
-	{
-		*result = tmpGrammar;
 	}
 
 	return ERR_OK;
 }
 
 errorCode createElementTermGrammar(AllocList* memList, StringType* name, StringType* target_ns,
-								   EXIGrammar** result, uint16_t uriRowID, size_t lnRowID)
+								   ProtoGrammar** result, uint16_t uriRowID, size_t lnRowID)
 {
 	//TODO: enable support for {substitution group affiliation} property of the elements
 
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
-	*result = (EXIGrammar*) memManagedAllocate(memList, sizeof(EXIGrammar));
-	if(*result == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	(*result)->rulesDimension = 2;
-	(*result)->grammarType = GR_TYPE_SCHEMA_TYPE;
+	tmp_err_code = createProtoGrammar(memList, 2, 3, result);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 	(*result)->contentIndex = 0;
-	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
-	if((*result)->ruleArray == NULL)
-		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_err_code = initGrammarRule(&((*result)->ruleArray[0]), memList);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-	tmp_err_code = addProduction(&((*result)->ruleArray[0]), getEventCode1(0), getEventDefType(EVENT_SE_QNAME), 1);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	(*result)->prods[0][0].event =  getEventDefType(EVENT_SE_QNAME);
+	(*result)->prods[0][0].nonTermID = 1;
+	(*result)->prods[0][0].uriRowID = uriRowID;
+	(*result)->prods[0][0].lnRowID = lnRowID;
+	(*result)->prodCount[0] = 1;
 
-	(*result)->ruleArray[0].prodArray[0].uriRowID = uriRowID;
-	(*result)->ruleArray[0].prodArray[0].lnRowID = lnRowID;
+	(*result)->prods[1][0].event = getEventDefType(EVENT_EE);
+	(*result)->prods[1][0].nonTermID = GR_VOID_NON_TERMINAL;
+	(*result)->prods[1][0].uriRowID = UINT16_MAX;
+	(*result)->prods[1][0].lnRowID = SIZE_MAX;
+	(*result)->prodCount[1] = 1;
 
-	tmp_err_code = initGrammarRule(&((*result)->ruleArray[1]), memList);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-	tmp_err_code = addProduction(&((*result)->ruleArray[1]), getEventCode1(0), getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	(*result)->rulesCount = 2;
 
 	return ERR_OK;
 }
 
-errorCode createWildcardTermGrammar(AllocList* memList, StringType* wildcardArray, unsigned int wildcardArraySize,
-								   EXIGrammar** result)
+errorCode createWildcardTermGrammar(AllocList* memList, StringType* wildcardArray, unsigned int wildcardArraySize, ProtoGrammar** result)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode createSequenceModelGroupsGrammar(AllocList* memList, EXIGrammarStack* pGrammars, EXIGrammar** result)
+errorCode createSequenceModelGroupsGrammar(AllocList* memList, GenericStack* protoGrammars, ProtoGrammar** result)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	if(pGrammars == NULL)
+	if(protoGrammars == NULL)
 	{
 		tmp_err_code = createSimpleEmptyTypeGrammar(memList, result);
 		if(tmp_err_code != ERR_OK)
@@ -449,76 +589,88 @@ errorCode createSequenceModelGroupsGrammar(AllocList* memList, EXIGrammarStack* 
 	}
 	else
 	{
-		tmp_err_code = recursiveGrammarConcat(memList, pGrammars, result);
+		tmp_err_code = createProtoGrammar(memList, 10, 5, result);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		(*result)->contentIndex = 0;
+
+		(*result)->prods[0][0].event = getEventDefType(EVENT_EE);
+		(*result)->prods[0][0].nonTermID = GR_VOID_NON_TERMINAL;
+		(*result)->prods[0][0].uriRowID = UINT16_MAX;
+		(*result)->prods[0][0].lnRowID = SIZE_MAX;
+		(*result)->prodCount[0] = 1;
+		(*result)->rulesCount = 1;
+
+		tmp_err_code = recursiveGrammarConcat(memList, protoGrammars, result);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 	return ERR_OK;
 }
 
-static errorCode recursiveGrammarConcat(AllocList* memList, EXIGrammarStack* pGrammars, EXIGrammar** result)
+static errorCode recursiveGrammarConcat(AllocList* memList, GenericStack* protoGrammars, ProtoGrammar** result)
 {
-	EXIGrammar* tmpGrammar;
+	ProtoGrammar* tmpGrammar;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
-	tmp_err_code = popGrammar(&pGrammars, &tmpGrammar);
+	tmp_err_code = popFromStack(&protoGrammars, (void**) &tmpGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	if(pGrammars == NULL)
+	if(protoGrammars == NULL)
 	{
-		*result = tmpGrammar;
+		tmp_err_code = concatenateGrammars(memList, *result, tmpGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 		return ERR_OK;
 	}
 	else
 	{
-		EXIGrammar* metaResult;
-		tmp_err_code = recursiveGrammarConcat(memList, pGrammars, &metaResult);
+		tmp_err_code = recursiveGrammarConcat(memList, protoGrammars, result);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = concatenateGrammars(memList, metaResult, tmpGrammar, result);
+		tmp_err_code = concatenateGrammars(memList, *result, tmpGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 	return ERR_OK;
 }
 
-errorCode createChoiceModelGroupsGrammar(AllocList* memList, EXIGrammar* pTermArray, unsigned int pTermArraySize,
-											EXIGrammar** result)
+errorCode createChoiceModelGroupsGrammar(AllocList* memList, ProtoGrammar* pTermArray, unsigned int pTermArraySize,
+											ProtoGrammar** result)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	*result = (EXIGrammar*) memManagedAllocate(memList, sizeof(EXIGrammar));
-	if(*result == NULL)
-		return MEMORY_ALLOCATION_ERROR;
+//	errorCode tmp_err_code = UNEXPECTED_ERROR;
+//	*result = (EXIGrammar*) memManagedAllocate(memList, sizeof(EXIGrammar));
+//	if(*result == NULL)
+//		return MEMORY_ALLOCATION_ERROR;
+//
+//	(*result)->rulesDimension = 1;
+//	(*result)->grammarType = GR_TYPE_SCHEMA_TYPE;
+//	(*result)->contentIndex = 0;
+//	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
+//	if((*result)->ruleArray == NULL)
+//		return MEMORY_ALLOCATION_ERROR;
+//
+//	tmp_err_code = initGrammarRule(&((*result)->ruleArray[0]), memList);
+//	if(tmp_err_code != ERR_OK)
+//		return tmp_err_code;
+//	if(pTermArraySize == 0)
+//	{
+//		tmp_err_code = addProduction(&((*result)->ruleArray[0]), getEventCode1(0), getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL);
+//		if(tmp_err_code != ERR_OK)
+//			return tmp_err_code;
+//	}
+//	else
+//	{
+//		// TODO: check this case. Probably something is missing here. As maybe the
+//		//       particle term grammars should be added as a rules here. Link: http://www.w3.org/TR/2009/CR-exi-20091208/#choiceGroupTerms
+//	}
 
-	(*result)->rulesDimension = 1;
-	(*result)->grammarType = GR_TYPE_SCHEMA_TYPE;
-	(*result)->contentIndex = 0;
-	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
-	if((*result)->ruleArray == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	tmp_err_code = initGrammarRule(&((*result)->ruleArray[0]), memList);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-	if(pTermArraySize == 0)
-	{
-		tmp_err_code = addProduction(&((*result)->ruleArray[0]), getEventCode1(0), getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-	else
-	{
-		// TODO: check this case. Probably something is missing here. As maybe the
-		//       particle term grammars should be added as a rules here. Link: http://www.w3.org/TR/2009/CR-exi-20091208/#choiceGroupTerms
-	}
-
-	return ERR_OK;
+	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode createAllModelGroupsGrammar(AllocList* memList, EXIGrammar* pTermArray, unsigned int pTermArraySize,
-											EXIGrammar** result)
+errorCode createAllModelGroupsGrammar(AllocList* memList, ProtoGrammar* pTermArray, unsigned int pTermArraySize, ProtoGrammar** result)
 {
 	return NOT_IMPLEMENTED_YET;
 }
@@ -619,16 +771,11 @@ int qnamesCompare(const StringType* uri1, const StringType* ln1, const StringTyp
 errorCode assignCodes(EXIGrammar* grammar)
 {
 	uint16_t i = 0;
-	uint16_t j = 0;
 
 	for (i = 0; i < grammar->rulesDimension; i++)
 	{
-		qsort(grammar->ruleArray[i].prodArray, grammar->ruleArray[i].prodCount, sizeof(Production), compareProductions);
-		grammar->ruleArray[i].bits[0] = getBitsNumber(grammar->ruleArray[i].prodCount - 1);
-		for (j = 0; j < grammar->ruleArray[i].prodCount; j++)
-		{
-			grammar->ruleArray[i].prodArray[j].code = getEventCode1(j);
-		}
+		qsort(grammar->ruleArray[i].prodArrays[0], grammar->ruleArray[i].prodCounts[0], sizeof(Production), compareProductions);
+		grammar->ruleArray[i].bits[0] = getBitsNumber(grammar->ruleArray[i].prodCounts[0] - 1);
 	}
 	return ERR_OK;
 }

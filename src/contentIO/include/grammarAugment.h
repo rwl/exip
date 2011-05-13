@@ -59,5 +59,15 @@
  */
 errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, unsigned char selfContained, unsigned char preserve, EXIGrammar* grammar);
 
+/**
+ * @brief Adds Undeclared Productions in all global grammars accessible through the stringTables
+ *
+ * @param[in, out] memList A list storing the memory allocations
+ * @param[in] stringTables the string table containing links to the global grammars
+ * @param[in] opts options from the EXI header
+ * @return Error handling code
+ */
+errorCode addUndeclaredProductionsToAll(AllocList* memList, URITable* stringTables, EXIOptions* opts);
+
 
 #endif /* GRAMMARAUGMENT_H_ */

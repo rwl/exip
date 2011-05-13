@@ -49,42 +49,36 @@
 #include "dynamicArray.h"
 #include "sTables.h"
 #include "schema.h"
+#include "protoGrammars.h"
+
+struct stackNode
+{
+	void* element;
+	struct stackNode* nextInStack;
+};
+
+typedef struct stackNode GenericStack;
+
+errorCode pushOnStack(GenericStack** stack, void* element);
+
+errorCode popFromStack(GenericStack** stack, void** element);
 
 /**
- * @brief Grammar Concatenation Operator
+ * @brief Grammar Concatenation Operator - extends the rules and productions in the left ProtoGrammar
  * The grammar concatenation operator ⊕ is a binary, associative
  * operator that creates a new grammar from its left and right
  * grammar operands. The new grammar accepts any set of symbols
  * accepted by its left operand followed by any set of symbols
  * accepted by its right operand.
- * The left and right grammars are not garbage collected!
+ * As opposed to the operator in the specification, the implementation here automatically
+ * normalize the resulting grammar
  *
  * @param[in, out] memList A list storing the memory allocations
- * @param[in] left left operand - grammar
+ * @param[in, out] left left operand - grammar
  * @param[in] right right operand - grammar
- * @param[out] result the result grammar of Concatenation Operator
  * @return Error handling code
  */
-errorCode concatenateGrammars(AllocList* memList, EXIGrammar* left, EXIGrammar* right, EXIGrammar** result);
-
-/**
- * @brief Creates new Element Proto-Grammar from XML Schema element declaration
- * Let T-j be the {type definition} of E-i  and Type-j  be the type grammar created from T-j.
- * The grammar Element-i  describing the content model of E-i  is created as follows:
- * Element-i,0 : Type-j,0
- *
- * @param[in, out] memList A list storing the memory allocations
- * @param[in] name element local name
- * @param[in] target_ns element target namespace
- * @param[in] typeDef EXIGrammar of the element type definition
- * @param[in] scope element scope - if NULL then the scope is global otherwise the QName of the complex type which is the scope
- * @param[in] nillable 0 - false, otherwise true
- * @param[out] result the resulted proto-grammar
- * @return Error handling code
- */
-errorCode createElementProtoGrammar(AllocList* memList, StringType name, StringType target_ns,
-									EXIGrammar* typeDef, QName scope, unsigned char nillable,
-									EXIGrammar** result);
+errorCode concatenateGrammars(AllocList* memList, ProtoGrammar* left, ProtoGrammar* right);
 
 /**
  * @brief Creates Simple Type Grammar from XML Schema simple type definition
@@ -94,7 +88,7 @@ errorCode createElementProtoGrammar(AllocList* memList, StringType name, StringT
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createSimpleTypeGrammar(AllocList* memList, QName simpleType, EXIGrammar** result);
+errorCode createSimpleTypeGrammar(AllocList* memList, QName simpleType, ProtoGrammar** result);
 
 /**
  * @brief Creates Simple EmptyType Grammar from XML Schema simple type definition
@@ -104,7 +98,7 @@ errorCode createSimpleTypeGrammar(AllocList* memList, QName simpleType, EXIGramm
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createSimpleEmptyTypeGrammar(AllocList* memList, EXIGrammar** result);
+errorCode createSimpleEmptyTypeGrammar(AllocList* memList, ProtoGrammar** result);
 
 /**
  * @brief Creates Complex Type Proto-Grammar from XML Schema complex type definition
@@ -128,10 +122,10 @@ errorCode createSimpleEmptyTypeGrammar(AllocList* memList, EXIGrammar** result);
  * @return Error handling code
  */
 errorCode createComplexTypeGrammar(AllocList* memList, StringType* name, StringType* target_ns,
-		                           EXIGrammar* attrUsesArray, unsigned int attrUsesArraySize,
+								   ProtoGrammar* attrUsesArray, unsigned int attrUsesArraySize,
 		                           StringType* wildcardArray, unsigned int wildcardArraySize,
-		                           EXIGrammar* contentTypeGrammar,
-								   EXIGrammar** result);
+		                           ProtoGrammar* contentTypeGrammar,
+		                           ProtoGrammar** result);
 
 /**
  * @brief Creates Complex EmptyType Proto-Grammar from XML Schema complex type definition
@@ -152,9 +146,9 @@ errorCode createComplexTypeGrammar(AllocList* memList, StringType* name, StringT
  * @return Error handling code
  */
 errorCode createComplexEmptyTypeGrammar(AllocList* memList, StringType name, StringType target_ns,
-		                           EXIGrammar* attrUsesArray, unsigned int attrUsesArraySize,
-		                           StringType* wildcardArray, unsigned int wildcardArraySize,
-								   EXIGrammar** result);
+									ProtoGrammar* attrUsesArray, unsigned int attrUsesArraySize,
+		                            StringType* wildcardArray, unsigned int wildcardArraySize,
+		                            ProtoGrammar** result);
 
 /**
  * @brief Creates Complex Ur-Type Grammar from XML Schema complex ur-type
@@ -163,7 +157,7 @@ errorCode createComplexEmptyTypeGrammar(AllocList* memList, StringType name, Str
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createComplexUrTypeGrammar(AllocList* memList, EXIGrammar** result);
+errorCode createComplexUrTypeGrammar(AllocList* memList, ProtoGrammar** result);
 
 /**
  * @brief Creates Complex Ur-EmptyType Grammar from XML Schema complex ur-type
@@ -172,7 +166,7 @@ errorCode createComplexUrTypeGrammar(AllocList* memList, EXIGrammar** result);
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, EXIGrammar** result);
+errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, ProtoGrammar** result);
 
 /**
  * @brief Creates Attribute Use Grammar from XML Schema Attribute Use
@@ -189,7 +183,7 @@ errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, EXIGrammar** resul
  * @return Error handling code
  */
 errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, StringType* name, StringType* target_ns,
-										  QName simpleType, QName scope, EXIGrammar** result, uint16_t uriRowID, size_t lnRowID);
+										  QName simpleType, QName scope, ProtoGrammar** result, uint16_t uriRowID, size_t lnRowID);
 
 /**
  * @brief Creates Particle Proto-Grammar from XML Schema particle
@@ -202,7 +196,7 @@ errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, 
  * @return Error handling code
  */
 errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int32_t maxOccurs,
-								EXIGrammar* termGrammar, EXIGrammar** result);
+								ProtoGrammar* termGrammar, ProtoGrammar** result);
 
 /**
  * @brief Creates Element Term Proto-Grammar from Particle term that is XML Schema element declaration
@@ -216,7 +210,7 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
  * @return Error handling code
  */
 errorCode createElementTermGrammar(AllocList* memList, StringType* name, StringType* target_ns,
-								   EXIGrammar** result, uint16_t uriRowID, size_t lnRowID);
+								ProtoGrammar** result, uint16_t uriRowID, size_t lnRowID);
 
 /**
  * @brief Creates Wildcard Term Proto-Grammar from Particle term that is XML Schema wildcard
@@ -228,8 +222,7 @@ errorCode createElementTermGrammar(AllocList* memList, StringType* name, StringT
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createWildcardTermGrammar(AllocList* memList, StringType* wildcardArray, unsigned int wildcardArraySize,
-								   EXIGrammar** result);
+errorCode createWildcardTermGrammar(AllocList* memList, StringType* wildcardArray, unsigned int wildcardArraySize, ProtoGrammar** result);
 
 /**
  * @brief Creates Sequence Model Group Proto-Grammar from Particle term that is XML Schema Model Group with {compositor} equal to "sequence"
@@ -239,8 +232,7 @@ errorCode createWildcardTermGrammar(AllocList* memList, StringType* wildcardArra
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createSequenceModelGroupsGrammar(AllocList* memList, EXIGrammarStack* pGrammars,
-											EXIGrammar** result);
+errorCode createSequenceModelGroupsGrammar(AllocList* memList, GenericStack* pGrammars, ProtoGrammar** result);
 
 /**
  * @brief Creates Choice Model Group Proto-Grammar from Particle term that is XML Schema Model Group with {compositor} equal to "choice"
@@ -251,8 +243,7 @@ errorCode createSequenceModelGroupsGrammar(AllocList* memList, EXIGrammarStack* 
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createChoiceModelGroupsGrammar(AllocList* memList, EXIGrammar* pTermArray, unsigned int pTermArraySize,
-											EXIGrammar** result);
+errorCode createChoiceModelGroupsGrammar(AllocList* memList, ProtoGrammar* pTermArray, unsigned int pTermArraySize, ProtoGrammar** result);
 
 /**
  * @brief Creates All Model Group Proto-Grammar from Particle term that is XML Schema Model Group with {compositor} equal to "all"
@@ -263,8 +254,7 @@ errorCode createChoiceModelGroupsGrammar(AllocList* memList, EXIGrammar* pTermAr
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createAllModelGroupsGrammar(AllocList* memList, EXIGrammar* pTermArray, unsigned int pTermArraySize,
-											EXIGrammar** result);
+errorCode createAllModelGroupsGrammar(AllocList* memList, ProtoGrammar* pTermArray, unsigned int pTermArraySize, ProtoGrammar** result);
 
 /**
  * @brief Maps a simple XSD type to its EXI datatype representation

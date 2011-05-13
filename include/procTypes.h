@@ -315,8 +315,8 @@ struct Production
 	 * For SE(qname), SE(uri:*), AT(qname) and AT(uri:*). Points to the qname or its local name
 	 * of the element/attribute
 	 */
-	uint16_t uriRowID;
-	size_t lnRowID;
+	uint16_t uriRowID; // VOID == UINT16_MAX
+	size_t lnRowID; // VOID == SIZE_MAX
 
 	size_t nonTermID; // unique identifier of right-hand side Non-terminal
 };
@@ -531,92 +531,6 @@ struct ioStream
 
 typedef struct ioStream IOStream;
 
-/**
- * Represents an EXI header
- */
-struct EXIheader
-{
-	/**
-	 * Boolean value - 0 for lack of EXI cookie, otherwise 1
-	 */
-	unsigned char has_cookie;
-
-	/**
-	 * Boolean value - 0 for lack of EXI Options, otherwise 1
-	 */
-	unsigned char has_options;
-
-	/** Boolean value - 1 preview version, 0 final version */
-	unsigned char is_preview_version;
-
-	/**
-	 * EXI stream version
-	 */
-	int16_t version_number;
-
-	struct EXIOptions* opts;
-};
-
-typedef struct EXIheader EXIheader;
-
-/**
- * Represents an EXI stream
- */
-struct EXIStream
-{
-	/**
-	 * Read/write buffer
-	 */
-	char* buffer;
-
-	/**
-	 * The size of the buffer
-	 */
-	size_t bufLen;
-
-	/**
-	 * The size of the data stored in the buffer - number of bytes
-	 */
-	size_t bufContent;
-
-	/**
-	 * Input/Output Stream used to fill/flush the buffer when parsed
-	 */
-	IOStream* ioStrm;
-
-	/**
-	 * EXI Header - the most important field is the EXI Options. They control the
-	 * parsing and serialization of the stream.
-	 */
-	EXIheader header;
-
-	/** Holds the current state of the stream*/
-	StreamContext context;
-
-	/**
-	 * The value string table
-	 */
-	ValueTable* vTable;
-
-	/**
-	 * The URI string table
-	 */
-	URITable* uriTable;
-
-	/**
-	 * The grammar stack used during processing
-	 */
-	EXIGrammarStack* gStack;
-
-	/**
-	 * Stores the information of all the allocated memory for that stream
-	 */
-	AllocList memList;
-};
-
-typedef struct EXIStream EXIStream;
-
-
 struct DatatypeRepresentationMap
 {
 	void* TODO; //TODO: fill in the information for this structure
@@ -690,6 +604,94 @@ struct EXIOptions
 	void* user_defined_data;
 };
 
+typedef struct EXIOptions EXIOptions;
+
+/**
+ * Represents an EXI header
+ */
+struct EXIheader
+{
+	/**
+	 * Boolean value - 0 for lack of EXI cookie, otherwise 1
+	 */
+	unsigned char has_cookie;
+
+	/**
+	 * Boolean value - 0 for lack of EXI Options, otherwise 1
+	 */
+	unsigned char has_options;
+
+	/** Boolean value - 1 preview version, 0 final version */
+	unsigned char is_preview_version;
+
+	/**
+	 * EXI stream version
+	 */
+	int16_t version_number;
+
+	EXIOptions* opts;
+};
+
+typedef struct EXIheader EXIheader;
+
+/**
+ * Represents an EXI stream
+ */
+struct EXIStream
+{
+	/**
+	 * Read/write buffer
+	 */
+	char* buffer;
+
+	/**
+	 * The size of the buffer
+	 */
+	size_t bufLen;
+
+	/**
+	 * The size of the data stored in the buffer - number of bytes
+	 */
+	size_t bufContent;
+
+	/**
+	 * Input/Output Stream used to fill/flush the buffer when parsed
+	 */
+	IOStream* ioStrm;
+
+	/**
+	 * EXI Header - the most important field is the EXI Options. They control the
+	 * parsing and serialization of the stream.
+	 */
+	EXIheader header;
+
+	/** Holds the current state of the stream*/
+	StreamContext context;
+
+	/**
+	 * The value string table
+	 */
+	ValueTable* vTable;
+
+	/**
+	 * The URI string table
+	 */
+	URITable* uriTable;
+
+	/**
+	 * The grammar stack used during processing
+	 */
+	EXIGrammarStack* gStack;
+
+	/**
+	 * Stores the information of all the allocated memory for that stream
+	 */
+	AllocList memList;
+};
+
+typedef struct EXIStream EXIStream;
+
+
 /**********************Function definitions************************/
 
 /**
@@ -698,6 +700,6 @@ struct EXIOptions
  * @param[in] strm EXI stream of bits
  * @return Error handling code
  */
-errorCode makeDefaultOpts(struct EXIOptions* opts);
+errorCode makeDefaultOpts(EXIOptions* opts);
 
 #endif /* PROCTYPES_H_ */

@@ -108,14 +108,14 @@ errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, ExipSchema* 
 		unsigned int e = 0;
 
 		docGrammar->grammarType = GR_TYPE_SCHEMA_DOC;
-		tmp_code1 = schema->globalElemGrammars.count + 1;
+		tmp_code1 = schema->globalElemGrammarsCount + 1;
 
 		tmp_rule->prodArrays[0] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code1);
 		if(tmp_rule->prodArrays[0] == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
 		tmp_rule->prodCounts[0] = tmp_code1;
-		tmp_rule->bits[0] = getBitsNumber(schema->globalElemGrammars.count + ((tmp_code2 + tmp_code3) > 0));
+		tmp_rule->bits[0] = getBitsNumber(schema->globalElemGrammarsCount + ((tmp_code2 + tmp_code3) > 0));
 
 		/*
 		   DocContent :
@@ -129,12 +129,12 @@ errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, ExipSchema* 
 					//	PI DocContent		n+1.1.1	//  This is created as part of the Build-In grammar down
 		 */
 
-		for(e = 0; e < schema->globalElemGrammars.count; e++)
+		for(e = 0; e < schema->globalElemGrammarsCount; e++)
 		{
-			tmp_rule->prodArrays[0][schema->globalElemGrammars.count - e].event = getEventDefType(EVENT_SE_QNAME);
-			tmp_rule->prodArrays[0][schema->globalElemGrammars.count - e].nonTermID = GR_DOC_END;
-			tmp_rule->prodArrays[0][schema->globalElemGrammars.count - e].lnRowID = schema->globalElemGrammars.elems[e].lnRowId;
-			tmp_rule->prodArrays[0][schema->globalElemGrammars.count - e].uriRowID = schema->globalElemGrammars.elems[e].uriRowId;
+			tmp_rule->prodArrays[0][schema->globalElemGrammarsCount - e].event = getEventDefType(EVENT_SE_QNAME);
+			tmp_rule->prodArrays[0][schema->globalElemGrammarsCount - e].nonTermID = GR_DOC_END;
+			tmp_rule->prodArrays[0][schema->globalElemGrammarsCount - e].lnRowID = schema->globalElemGrammars[e].lnRowId;
+			tmp_rule->prodArrays[0][schema->globalElemGrammarsCount - e].uriRowID = schema->globalElemGrammars[e].uriRowId;
 		}
 	}
 	else

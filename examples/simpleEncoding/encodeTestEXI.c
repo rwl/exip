@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
 		{
 			EXIStream testStrm;
 			EXIheader header;
-			struct EXIOptions opts;
+			EXIOptions opts;
 			StringType uri;
 			StringType ln;
 			QName qname= {&uri, &ln};
