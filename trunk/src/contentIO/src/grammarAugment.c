@@ -374,3 +374,27 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 	}
 	return ERR_OK;
 }
+
+errorCode addUndeclaredProductionsToAll(AllocList* memList, URITable* stringTables, EXIOptions* opts)
+{
+	unsigned int i = 0;
+	size_t j = 0;
+	EXIGrammar* tmpGrammar = NULL;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+
+	for (i = 0; i < stringTables->rowCount; i++)
+	{
+		for (j = 0; j < stringTables->rows[i].lTable->rowCount; j++)
+		{
+			tmpGrammar = stringTables->rows[i].lTable->rows[j].globalGrammar;
+			if(tmpGrammar != NULL)
+			{
+				tmp_err_code = addUndeclaredProductions(memList, opts->strict, opts->selfContained, opts->preserve, tmpGrammar);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
+		}
+	}
+
+	return ERR_OK;
+}

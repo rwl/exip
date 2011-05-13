@@ -81,7 +81,6 @@ void decodeBody(EXIStream* strm, ContentHandler* handler, ExipSchema* schema, vo
 
 	if(schema != NULL)
 	{
-		unsigned int i = 0;
 		strm->uriTable = schema->initialStringTables;
 		tmp_err_code = createValueTable(&(strm->vTable), &(strm->memList));
 		if(tmp_err_code != ERR_OK)
@@ -94,34 +93,16 @@ void decodeBody(EXIStream* strm, ContentHandler* handler, ExipSchema* schema, vo
 			return;
 		}
 
-		for (i = 0; i < schema->globalElemGrammars.count; i++)
+		tmp_err_code = addUndeclaredProductionsToAll(&strm->memList, strm->uriTable, strm->header.opts);
+		if(tmp_err_code != ERR_OK)
 		{
-			tmp_err_code = addUndeclaredProductions(&strm->memList, strm->header.opts->strict, strm->header.opts->selfContained, strm->header.opts->preserve, schema->globalElemGrammars.elems[i].grammar);
-			if(tmp_err_code != ERR_OK)
+			if(handler->fatalError != NULL)
 			{
-				if(handler->fatalError != NULL)
-				{
-					handler->fatalError(tmp_err_code, "Cannot add Undeclared Productions", app_data);
-				}
-				freeAllMem(strm);
-				return;
+				handler->fatalError(tmp_err_code, "Cannot add Undeclared Productions", app_data);
 			}
+			freeAllMem(strm);
+			return;
 		}
-		for (i = 0; i < schema->subElementGrammars.count; i++)
-		{
-			tmp_err_code = addUndeclaredProductions(&strm->memList, strm->header.opts->strict, strm->header.opts->selfContained, strm->header.opts->preserve, schema->subElementGrammars.elems[i].grammar);
-			if(tmp_err_code != ERR_OK)
-			{
-				if(handler->fatalError != NULL)
-				{
-					handler->fatalError(tmp_err_code, "Cannot add Undeclared Productions", app_data);
-				}
-				freeAllMem(strm);
-				return;
-			}
-		}
-
-		// TODO: the same for the type grammars
 	}
 	else
 	{

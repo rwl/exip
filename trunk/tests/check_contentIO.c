@@ -53,11 +53,11 @@
 START_TEST (test_decodeHeader)
 {
 	EXIStream testStream;  // Default options, no EXI cookie
-	struct EXIOptions options;
+	EXIOptions options;
 	char buf[3];
 	errorCode err = UNEXPECTED_ERROR;
 	EXIStream testStream2;  // Default options, with EXI cookie
-	struct EXIOptions options2;
+	EXIOptions options2;
 	char buf2[7];
 
 	testStream.header.opts = &options;

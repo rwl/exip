@@ -33,56 +33,65 @@
 \===================================================================================*/
 
 /**
- * @file EXISerializer.h
- * @brief Interface for serializing an EXI stream
- * Application will use this interface to work with the EXIP serializer
- *
- * @date Sep 30, 2010
+ * @file protoGrammars.h
+ * @brief Definitions and utility functions for EXI Proto-Grammars
+ * @date May 11, 2011
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#ifndef EXISERIALIZER_H_
-#define EXISERIALIZER_H_
+#ifndef PROTOGRAMMARS_H_
+#define PROTOGRAMMARS_H_
 
-#include "errorHandle.h"
 #include "procTypes.h"
-#include "schema.h"
 
-struct EXISerializer
+struct protoGrammar
 {
-	// For handling the meta-data (document structure)
-	errorCode (*startDocumentSer)(EXIStream* strm);
-	errorCode (*endDocumentSer)(EXIStream* strm);
-	errorCode (*startElementSer)(EXIStream* strm, QName qname);
-	errorCode (*endElementSer)(EXIStream* strm);
-	errorCode (*attributeSer)(EXIStream* strm, QName qname);
-
-	// For handling the data
-	errorCode (*intDataSer)(EXIStream* strm, int32_t int_val);
-	errorCode (*bigIntDataSer)(EXIStream* strm, const BigSignedInt int_val);
-	errorCode (*booleanDataSer)(EXIStream* strm, unsigned char bool_val);
-	errorCode (*stringDataSer)(EXIStream* strm, const StringType str_val);
-	errorCode (*floatDataSer)(EXIStream* strm, double float_val);
-	errorCode (*bigFloatDataSer)(EXIStream* strm, BigFloat float_val);
-	errorCode (*binaryDataSer)(EXIStream* strm, const char* binary_val, size_t nbytes);
-	errorCode (*dateTimeDataSer)(EXIStream* strm, struct tm dt_val, uint16_t presenceMask);
-	errorCode (*decimalDataSer)(EXIStream* strm, decimal dec_val);
-	errorCode (*bigDecimalDataSer)(EXIStream* strm, bigDecimal dec_val);
-
-	// Miscellaneous
-	errorCode (*processingInstructionSer)(EXIStream* strm); // TODO: define the parameters!
-
-	// EXI specific
-	errorCode (*exiHeaderSer)(EXIStream* strm, EXIheader* header);
-	errorCode (*selfContainedSer)(EXIStream* strm);  // Used for indexing independent elements for random access
-
-	// EXIP specific
-	errorCode (*initStream)(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStrm, EXIOptions* opts, ExipSchema* schema);
-	errorCode (*closeEXIStream)(EXIStream* strm);
+	Production** prods;
+	unsigned int rulesCount;
+	unsigned int rulesDim;
+	unsigned int* prodCount;
+	unsigned int* prodDim;
+	unsigned int contentIndex;
+	struct reAllocPair rulesMemPair; // Used by the memoryManager when there is a reallocation for prods
+	struct reAllocPair* prodMemPair; // Used by the memoryManager when there is a reallocation for prods[k]
 };
 
-typedef struct EXISerializer EXISerializer;
+typedef struct protoGrammar ProtoGrammar;
 
-#endif /* EXISERIALIZER_H_ */
+/**
+ * @brief Creates and allocates memory for new proto grammar
+ *
+ * @param[in, out] memList A list storing the memory allocations
+ * @param[in] rulesDim initial dimension of the rule
+ * @param[in] prodDim initial dimension of the productions in the rules
+ * @param[out] result an empty proto-grammar
+ * @return Error handling code
+ */
+errorCode createProtoGrammar(AllocList* memlist, unsigned int rulesDim, unsigned int prodDim, ProtoGrammar** result);
+
+/**
+ * @brief Add an empty rule to a ProtoGrammar
+ *
+ * @param[in, out] memList A list storing the memory allocations
+ * @param[in, out] grammar the proto-grammar
+ * @return Error handling code
+ */
+errorCode addProtoRule(AllocList* memlist, ProtoGrammar* pg);
+
+/**
+ * @brief Add a production to a particular proto rule
+ *
+ * @param[in, out] memList A list storing the memory allocations
+ * @param[in, out] grammar the proto-grammar
+ * @param[in] ruleIndex the index of the rule in which the production is inserted
+ * @param[in] event of the production
+ * @param[in] uriRowID of the production
+ * @param[in] lnRowID of the production
+ * @param[in] nonTermID of the production
+ * @return Error handling code
+ */
+errorCode addProductionToAProtoRule(AllocList* memlist, ProtoGrammar* pg, unsigned int ruleIndex, EXIEvent event, uint16_t uriRowID, size_t lnRowID, size_t nonTermID);
+
+#endif /* PROTOGRAMMARS_H_ */

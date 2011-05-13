@@ -289,7 +289,7 @@ END_TEST
 START_TEST (test_decodeNBitUnsignedInteger)
 {
   EXIStream testStream;
-  struct EXIOptions options;
+  EXIOptions options;
 
   char buf[2];
   unsigned int bit_val = 0;
@@ -325,7 +325,7 @@ END_TEST
 START_TEST (test_decodeBoolean)
 {
   EXIStream testStream;
-  struct EXIOptions options;
+  EXIOptions options;
   char buf[2];
   unsigned char bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
@@ -357,7 +357,7 @@ END_TEST
 START_TEST (test_decodeUnsignedInteger)
 {
   EXIStream testStream;
-  struct EXIOptions options;
+  EXIOptions options;
   char buf[3];
   unsigned int bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
@@ -396,7 +396,7 @@ END_TEST
 START_TEST (test_decodeString)
 {
   EXIStream testStream;
-  struct EXIOptions options;
+  EXIOptions options;
   char buf[4];
   StringType bit_val;
   CharType cht[100];
@@ -440,7 +440,7 @@ END_TEST
 START_TEST (test_decodeBinary)
 {
   EXIStream testStream;
-  struct EXIOptions options;
+  EXIOptions options;
   char buf[20];
   char testbuf[20];
   int i;
@@ -536,7 +536,7 @@ END_TEST
 START_TEST (test_decodeFloat)
 {
   EXIStream testStream;
-  struct EXIOptions options;
+  EXIOptions options;
   char buf[3];
   double dbl_val = 0;
   double res = 500;		// 5 x 10^2
@@ -575,7 +575,7 @@ END_TEST
 START_TEST (test_decodeIntegerValue)
 {
   EXIStream testStream;
-  struct EXIOptions options;
+  EXIOptions options;
   char buf[3];
   int bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
@@ -623,7 +623,7 @@ END_TEST
 START_TEST (test_encodeNBitUnsignedInteger)
 {
   EXIStream testStream;
-  struct EXIOptions options;
+  EXIOptions options;
   char buf[2];
   errorCode err = UNEXPECTED_ERROR;
   unsigned char test, test2;
@@ -661,7 +661,7 @@ END_TEST
 START_TEST (test_encodeBoolean)
 {
   EXIStream testStream;
-  struct EXIOptions options;
+  EXIOptions options;
   char buf[2];
   errorCode err = UNEXPECTED_ERROR;
   unsigned char bit_val = 0;
@@ -706,7 +706,7 @@ END_TEST
 START_TEST (test_encodeUnsignedInteger)
 {
   EXIStream testStream;
-  struct EXIOptions options;
+  EXIOptions options;
   char buf[3];
   errorCode err = UNEXPECTED_ERROR;
   unsigned char test1, test2;
@@ -767,7 +767,7 @@ END_TEST
 START_TEST (test_encodeString)
 {
   EXIStream testStream;
-  struct EXIOptions options;
+  EXIOptions options;
   char buf[50];
   StringType testStr;
   errorCode err = UNEXPECTED_ERROR;

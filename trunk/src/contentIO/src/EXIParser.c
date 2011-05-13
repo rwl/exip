@@ -53,7 +53,7 @@ void parseEXI(char* binaryBuf, size_t bufLen, size_t bufContent, IOStream* ioStr
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIStream strm;
-	struct EXIOptions options;
+	EXIOptions options;
 
 	initAllocList(&strm.memList);
 	strm.buffer = binaryBuf;

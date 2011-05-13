@@ -47,28 +47,19 @@
 
 #include "procTypes.h"
 
-
-struct grammarDescr {
+struct QNameID {
 	uint16_t uriRowId;
 	size_t lnRowId;
-	EXIGrammar* grammar;
 };
 
-typedef struct grammarDescr GrammarDescr;
-
-struct grammarDescrArray {
-	GrammarDescr* elems;
-	unsigned int count;
-};
-
-typedef struct grammarDescrArray GrammarDescrArray;
+typedef struct QNameID QNameID;
 
 struct ExipSchema
 {
 	URITable* initialStringTables;
-	GrammarDescrArray globalElemGrammars;  // Sorted
-	GrammarDescrArray subElementGrammars;
-	GrammarDescrArray typeGrammars;
+	QNameID* globalElemGrammars;  // Sorted
+	unsigned int globalElemGrammarsCount;
+
 	AllocList memList; // Stores the information for all memory allocations for that schema
 };
 

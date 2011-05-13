@@ -77,7 +77,7 @@ const EXISerializer serEXI  =  {startDocumentSer,
 								initStream,
 								closeEXIStream};
 
-errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStrm, struct EXIOptions* opts, ExipSchema* schema)
+errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStrm, EXIOptions* opts, ExipSchema* schema)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIGrammar* docGr;
@@ -104,26 +104,14 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 
 	if(schema != NULL)
 	{
-		unsigned int i = 0;
 		strm->uriTable = schema->initialStringTables;
 		tmp_err_code = createValueTable(&(strm->vTable), &(strm->memList));
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		for (i = 0; i < schema->globalElemGrammars.count; i++)
-		{
-			tmp_err_code = addUndeclaredProductions(&strm->memList, strm->header.opts->strict, strm->header.opts->selfContained, strm->header.opts->preserve, schema->globalElemGrammars.elems[i].grammar);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-		}
-		for (i = 0; i < schema->subElementGrammars.count; i++)
-		{
-			tmp_err_code = addUndeclaredProductions(&strm->memList, strm->header.opts->strict, strm->header.opts->selfContained, strm->header.opts->preserve, schema->subElementGrammars.elems[i].grammar);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-		}
-
-		// TODO: the same for the type grammars
+		tmp_err_code = addUndeclaredProductionsToAll(&strm->memList, strm->uriTable, strm->header.opts);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 	}
 	else
 	{
