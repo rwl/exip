@@ -123,6 +123,8 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 
 			prod3number += att;
 
+			grammar->ruleArray[i].bits[0] = getBitsNumber(grammar->ruleArray[i].prodCounts[0]);
+
 			grammar->ruleArray[i].bits[1] = getBitsNumber(prod2number);
 			grammar->ruleArray[i].prodCounts[1] = prod2number;
 			grammar->ruleArray[i].prodArrays[1] = (Production*) memManagedAllocate(memList, sizeof(Production)*prod2number);
@@ -289,6 +291,8 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 					break;
 				}
 			}
+
+			grammar->ruleArray[i].bits[0] = getBitsNumber(grammar->ruleArray[i].prodCounts[0]);
 
 			grammar->ruleArray[i].bits[1] = getBitsNumber(prod2number);
 			grammar->ruleArray[i].prodCounts[1] = prod2number;
