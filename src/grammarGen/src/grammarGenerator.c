@@ -346,10 +346,18 @@ static char xsd_endDocument(void* app_data)
 						tmpProd = &tmpGrammar->ruleArray[t].prodArrays[0][p];
 						if(tmpProd->uriRowID != UINT16_MAX)
 						{
-							lookupURI(appD->schema->initialStringTables, appD->metaStringTables->rows[tmpProd->uriRowID].string_val, &uriRowID);
-							tmpProd->uriRowID = t;
+							if(!lookupURI(appD->schema->initialStringTables, appD->metaStringTables->rows[tmpProd->uriRowID].string_val, &uriRowID))
+							{
+								DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Error in the schema generation\n"));
+								return EXIP_HANDLER_STOP;
+							}
+							tmpProd->uriRowID = uriRowID;
 
-							lookupLN(appD->schema->initialStringTables->rows[t].lTable, appD->metaStringTables->rows[t].lTable->rows[tmpProd->lnRowID].string_val, &lnRowID);
+							if(!lookupLN(appD->schema->initialStringTables->rows[uriRowID].lTable, appD->metaStringTables->rows[uriRowID].lTable->rows[tmpProd->lnRowID].string_val, &lnRowID))
+							{
+								DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Error in the schema generation\n"));
+								return EXIP_HANDLER_STOP;
+							}
 							tmpProd->lnRowID = lnRowID;
 						}
 					}

@@ -111,7 +111,7 @@ errorCode concatenateGrammars(AllocList* memList, ProtoGrammar* left, ProtoGramm
 
 		for(prodIterR = 0; prodIterR < right->prodCount[ruleIterR]; prodIterR++)
 		{
-			tmp_err_code = addProductionToAProtoRule(memList, left, left->rulesCount - 1, right->prods[ruleIterR][prodIterR].event, right->prods[ruleIterR][prodIterR].uriRowID, right->prods[ruleIterR][prodIterR].lnRowID, right->prods[ruleIterR][prodIterR].nonTermID + initialLeftRulesCount);
+			tmp_err_code = addProductionToAProtoRule(memList, left, left->rulesCount - 1, right->prods[ruleIterR][prodIterR].event, right->prods[ruleIterR][prodIterR].uriRowID, right->prods[ruleIterR][prodIterR].lnRowID, right->prods[ruleIterR][prodIterR].nonTermID + ((right->prods[ruleIterR][prodIterR].event.eventType == EVENT_EE)?0:(initialLeftRulesCount-1)));
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -186,7 +186,8 @@ static errorCode addProductionsToARule(AllocList* memList, ProtoGrammar* left, u
 			{
 				// Collision
 				collisionFound = FALSE;
-				if(left->prods[ruleIndex][prodIterL].nonTermID == rightRule[prodIterR].nonTermID + initialLeftRulesCount)
+				if(left->prods[ruleIndex][prodIterL].event.eventType == EVENT_EE ||
+						(left->prods[ruleIndex][prodIterL].nonTermID == rightRule[prodIterR].nonTermID + initialLeftRulesCount))
 				{
 					// If the NonTerminals are the same
 					// discard the addition of this production as they are identical
@@ -227,7 +228,7 @@ static errorCode addProductionsToARule(AllocList* memList, ProtoGrammar* left, u
 		if(terminalCollision == FALSE)
 		{
 			// just add the production
-			tmp_err_code = addProductionToAProtoRule(memList, left, ruleIndex, rightRule[prodIterR].event, rightRule[prodIterR].uriRowID, rightRule[prodIterR].lnRowID, rightRule[prodIterR].nonTermID + initialLeftRulesCount);
+			tmp_err_code = addProductionToAProtoRule(memList, left, ruleIndex, rightRule[prodIterR].event, rightRule[prodIterR].uriRowID, rightRule[prodIterR].lnRowID, rightRule[prodIterR].nonTermID + ((rightRule[prodIterR].event.eventType == EVENT_EE)?0:initialLeftRulesCount));
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -461,7 +462,7 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
 		unsigned char prodEEFound = FALSE;
 		for(i = 0; i < termGrammar->prodCount[0]; i++)
 		{
-			if(termGrammar->prods[0][i].nonTermID == GR_VOID_NON_TERMINAL && termGrammar->prods[0][i].event.eventType == EVENT_EE)
+			if(termGrammar->prods[0][i].event.eventType == EVENT_EE)
 			{
 				prodEEFound = TRUE;
 				break;
@@ -497,7 +498,7 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
 			{
 				for(j = 0; j < termGrammar->prodCount[i]; j++)
 				{
-					if(termGrammar->prods[i][j].nonTermID == GR_VOID_NON_TERMINAL && termGrammar->prods[i][j].event.eventType == EVENT_EE)
+					if(termGrammar->prods[i][j].event.eventType == EVENT_EE)
 					{
 						// Remove this production
 						if(j == termGrammar->prodCount[i] - 1)
@@ -786,23 +787,23 @@ static int compareProductions(const void* prod1, const void* prod2)
 	Production* p2 = (Production*) prod2;
 
 	if(p1->event.eventType < p2->event.eventType)
-		return -1;
-	else if(p1->event.eventType > p2->event.eventType)
 		return 1;
+	else if(p1->event.eventType > p2->event.eventType)
+		return -1;
 	else // the same event Type
 	{
 		if(p1->event.eventType == EVENT_AT_QNAME)
 		{
 			if(p1->lnRowID < p2->lnRowID)
-				return -1;
-			else if(p1->lnRowID > p2->lnRowID)
 				return 1;
+			else if(p1->lnRowID > p2->lnRowID)
+				return -1;
 			else
 			{
 				if(p1->uriRowID < p2->uriRowID)
-					return -1;
-				else if(p1->uriRowID > p2->uriRowID)
 					return 1;
+				else if(p1->uriRowID > p2->uriRowID)
+					return -1;
 				else
 					return 0;
 			}
@@ -810,9 +811,9 @@ static int compareProductions(const void* prod1, const void* prod2)
 		else if(p1->event.eventType == EVENT_AT_URI)
 		{
 			if(p1->uriRowID < p2->uriRowID)
-				return -1;
-			else if(p1->uriRowID > p2->uriRowID)
 				return 1;
+			else if(p1->uriRowID > p2->uriRowID)
+				return -1;
 			else
 				return 0;
 		}

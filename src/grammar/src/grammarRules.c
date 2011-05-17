@@ -177,7 +177,15 @@ errorCode printGrammarRule(size_t nonTermID, GrammarRule* rule)
 			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("NT-%u", (unsigned int) rule->prodArrays[b][tmp_prod_indx].nonTermID));
 			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\t"));
 			if(b > 0)
+			{
+				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("%d", rule->prodCounts[0]));
 				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("."));
+				if(b > 1)
+				{
+					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("%d", rule->prodCounts[1]));
+					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("."));
+				}
+			}
 			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("%d", j));
 			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\n"));
 		}
