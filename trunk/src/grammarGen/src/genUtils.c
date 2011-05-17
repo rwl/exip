@@ -133,7 +133,7 @@ errorCode concatenateGrammars(AllocList* memList, ProtoGrammar* left, ProtoGramm
 					memcpy(left->prods[ruleIterL] + prodIterL, left->prods[ruleIterL] + prodIterL + 1, left->prodCount[ruleIterL] - prodIterL - 1);
 					left->prodCount[ruleIterL] -= 1;
 				}
-				tmp_err_code = addProductionsToARule(memList, left, ruleIterL, right->prods[0], right->prodCount[0], collisions, &collisionCount, &currRuleIndex, initialLeftRulesCount);
+				tmp_err_code = addProductionsToARule(memList, left, ruleIterL, right->prods[0], right->prodCount[0], collisions, &collisionCount, &currRuleIndex, initialLeftRulesCount - 1);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 				break;

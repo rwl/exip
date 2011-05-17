@@ -45,6 +45,7 @@
 #define PRODUTION_EXTENSION_FACTOR 20
 
 #include "protoGrammars.h"
+#include "memManagement.h"
 
 errorCode createProtoGrammar(AllocList* memlist, unsigned int rulesDim, unsigned int prodDim, ProtoGrammar** result)
 {
@@ -144,6 +145,47 @@ errorCode addProductionToAProtoRule(AllocList* memlist, ProtoGrammar* pg, unsign
 	pg->prods[ruleIndex][pg->prodCount[ruleIndex]].nonTermID = nonTermID;
 
 	pg->prodCount[ruleIndex] += 1;
+
+	return ERR_OK;
+}
+
+errorCode convertProtoGrammar(AllocList* memlist, ProtoGrammar* pg, EXIGrammar** result)
+{
+	size_t ruleIter;
+	size_t prodIter;
+
+	(*result) = (EXIGrammar*) memManagedAllocate(memlist, sizeof(EXIGrammar));
+	if(*result == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	(*result)->grammarType = GR_TYPE_SCHEMA_TYPE;  // TODO: the proto-grammar might have different type
+	(*result)->contentIndex = pg->contentIndex;
+	(*result)->rulesDimension = pg->rulesCount;
+
+	// #DOCUMENT# one more rule slot is created as it can be needed for addUndeclaredProductions
+	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memlist, sizeof(GrammarRule)*(pg->rulesCount + 1));
+	if((*result)->ruleArray == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	for(ruleIter = 0; ruleIter < pg->rulesCount; ruleIter++)
+	{
+		(*result)->ruleArray[ruleIter].prodArrays[1] = NULL;
+		(*result)->ruleArray[ruleIter].prodArrays[2] = NULL;
+
+		(*result)->ruleArray[ruleIter].prodCounts[1] = 0;
+		(*result)->ruleArray[ruleIter].prodCounts[2] = 0;
+
+		(*result)->ruleArray[ruleIter].prodArrays[0] = memManagedAllocate(memlist, sizeof(Production)*pg->prodCount[ruleIter]);
+		if((*result)->ruleArray[ruleIter].prodArrays[0] == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+
+		(*result)->ruleArray[ruleIter].prodCounts[0] = pg->prodCount[ruleIter];
+
+		for(prodIter = 0; prodIter < pg->prodCount[ruleIter]; prodIter++)
+		{
+			(*result)->ruleArray[ruleIter].prodArrays[0][prodIter] = pg->prods[ruleIter][prodIter];
+		}
+	}
 
 	return ERR_OK;
 }

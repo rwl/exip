@@ -68,7 +68,7 @@ errorCode insertZeroProduction(DynGrammarRule* rule, EXIEvent event, size_t nonT
 	return ERR_OK;
 }
 
-errorCode copyGrammarRule(AllocList* memList, GrammarRule* src, GrammarRule* dest, unsigned int nonTermIdShift)
+errorCode copyGrammarRule(AllocList* memList, GrammarRule* src, GrammarRule* dest)
 {
 	unsigned char b;
 	size_t j = 0;
@@ -81,14 +81,14 @@ errorCode copyGrammarRule(AllocList* memList, GrammarRule* src, GrammarRule* des
 		if(src->prodCounts[b] != 0)
 		{
 			dest->prodArrays[b] = (Production*) memManagedAllocate(memList, sizeof(Production)*dest->prodCounts[b]);
-			if(dest->prodArrays[b])
+			if(dest->prodArrays[b] == NULL)
 				return MEMORY_ALLOCATION_ERROR;
 
 			for(j = 0;j < dest->prodCounts[b]; j++)
 			{
 				dest->prodArrays[b][j] = src->prodArrays[b][j];
 				if(src->prodArrays[b][j].nonTermID != GR_VOID_NON_TERMINAL)
-					dest->prodArrays[b][j].nonTermID = src->prodArrays[b][j].nonTermID + nonTermIdShift;
+					dest->prodArrays[b][j].nonTermID = src->prodArrays[b][j].nonTermID;
 			}
 		}
 		else
@@ -138,7 +138,7 @@ errorCode printGrammarRule(size_t nonTermID, GrammarRule* rule)
 					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("EE "));
 					break;
 				case EVENT_AT_QNAME:
-					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("AT (qname) "));
+					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("AT (qname %d:%d) ", rule->prodArrays[b][tmp_prod_indx].uriRowID, rule->prodArrays[b][tmp_prod_indx].lnRowID));
 					break;
 				case EVENT_AT_URI:
 					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("AT (uri) "));
@@ -175,6 +175,7 @@ errorCode printGrammarRule(size_t nonTermID, GrammarRule* rule)
 			}
 			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\t"));
 			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("NT-%u", (unsigned int) rule->prodArrays[b][tmp_prod_indx].nonTermID));
+			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\t"));
 			if(b > 0)
 				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("."));
 			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("%d", j));

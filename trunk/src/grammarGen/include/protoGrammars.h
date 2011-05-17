@@ -75,7 +75,7 @@ errorCode createProtoGrammar(AllocList* memlist, unsigned int rulesDim, unsigned
  * @brief Add an empty rule to a ProtoGrammar
  *
  * @param[in, out] memList A list storing the memory allocations
- * @param[in, out] grammar the proto-grammar
+ * @param[in, out] pg the proto-grammar
  * @return Error handling code
  */
 errorCode addProtoRule(AllocList* memlist, ProtoGrammar* pg);
@@ -84,7 +84,7 @@ errorCode addProtoRule(AllocList* memlist, ProtoGrammar* pg);
  * @brief Add a production to a particular proto rule
  *
  * @param[in, out] memList A list storing the memory allocations
- * @param[in, out] grammar the proto-grammar
+ * @param[in, out] pg the proto-grammar
  * @param[in] ruleIndex the index of the rule in which the production is inserted
  * @param[in] event of the production
  * @param[in] uriRowID of the production
@@ -93,5 +93,15 @@ errorCode addProtoRule(AllocList* memlist, ProtoGrammar* pg);
  * @return Error handling code
  */
 errorCode addProductionToAProtoRule(AllocList* memlist, ProtoGrammar* pg, unsigned int ruleIndex, EXIEvent event, uint16_t uriRowID, size_t lnRowID, size_t nonTermID);
+
+/**
+ * @brief Create a new EXI grammar from existing proto grammar
+ *
+ * @param[in, out] memList A list storing the memory allocations for the new EXI grammar
+ * @param[in] pg the source proto-grammar
+ * @param[out] result a pointer to the newly created EXI grammar
+ * @return Error handling code
+ */
+errorCode convertProtoGrammar(AllocList* memlist, ProtoGrammar* pg, EXIGrammar** result);
 
 #endif /* PROTOGRAMMARS_H_ */

@@ -66,8 +66,9 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 		size_t tmp_prod2_indx;
 		size_t tmp_prod3_indx;
 
-		// IMPORTANT! It must be assured that the schema informed grammars have one empty slot for the rule:  Element i, content2
-		tmp_err_code = copyGrammarRule(memList, &grammar->ruleArray[grammar->contentIndex], &grammar->ruleArray[grammar->rulesDimension-1], 0);
+		// #DOCUMENT# IMPORTANT! It must be assured that the schema informed grammars have one empty slot for the rule:  Element i, content2
+		grammar->rulesDimension += 1;
+		tmp_err_code = copyGrammarRule(memList, &grammar->ruleArray[grammar->contentIndex], &grammar->ruleArray[grammar->rulesDimension-1]);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
