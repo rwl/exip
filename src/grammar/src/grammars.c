@@ -516,7 +516,7 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 
 #if DEBUG_GRAMMAR == ON
 	{
-		tmp_err_code = printGrammarRule(strm->nonTermID, currentRule);
+		tmp_err_code = printGrammarRule(strm->context.nonTermID, currentRule);
 		if(tmp_err_code != ERR_OK)
 		{
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Error printing grammar rule\n"));

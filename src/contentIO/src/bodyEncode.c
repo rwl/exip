@@ -133,7 +133,7 @@ errorCode encodeSimpleEXIEvent(EXIStream* strm, EXIEvent event)
 
 #if DEBUG_CONTENT_IO == ON
 	{
-		tmp_err_code = printGrammarRule(strm->nonTermID, currentRule);
+		tmp_err_code = printGrammarRule(strm->context.nonTermID, currentRule);
 		if(tmp_err_code != ERR_OK)
 		{
 			DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Error printing grammar rule\n"));
@@ -190,7 +190,7 @@ errorCode encodeComplexEXIEvent(EXIStream* strm, QName qname, unsigned char even
 
 #if DEBUG_CONTENT_IO == ON
 	{
-		tmp_err_code = printGrammarRule(strm->nonTermID, currentRule);
+		tmp_err_code = printGrammarRule(strm->context.nonTermID, currentRule);
 		if(tmp_err_code != ERR_OK)
 		{
 			DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Error printing grammar rule\n"));

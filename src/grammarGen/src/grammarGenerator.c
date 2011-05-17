@@ -48,7 +48,6 @@
 #include "stringManipulate.h"
 #include "memManagement.h"
 #include "grammars.h"
-#include "normGrammar.h"
 #include "grammarAugment.h"
 
 #define XML_SCHEMA_NAMESPACE "http://www.w3.org/2001/XMLSchema"
@@ -191,8 +190,6 @@ static int parseOccuranceAttribute(const StringType occurance);
 
 static errorCode getTypeQName(AllocList* memList, const StringType typeLiteral, QName* qname);
 
-static errorCode copyGrammarQnameFix(struct xsdAppData* app_data, EXIGrammar* src, EXIGrammar** dest);
-
 ////////////
 
 errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t bufContent, IOStream* ioStrm,
@@ -277,114 +274,88 @@ static char xsd_startDocument(void* app_data)
 static char xsd_endDocument(void* app_data)
 {
 	struct xsdAppData* appD = (struct xsdAppData*) app_data;
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int i = 0;
-	struct metaGrammarNode* tmpGNode;
+	size_t j = 0;
 	uint16_t uriRowID;
 	size_t lnRowID;
+	QNameID* tmpQnameID;
+	EXIGrammar* tmpGrammar = NULL;
+	Production* tmpProd;
+	size_t t = 0;
+	size_t p = 0;
 
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End XML Schema parsing\n"));
 
 // Only for debugging purposes
 #if DEBUG_GRAMMAR_GEN == ON
 	{
-		uint16_t t = 0;
-		struct metaGrammarNode* tmp = appD->globalElemGrammars.first;
-
 		DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\nList of global element grammars:"));
 
-		while(tmp)
+		for(i = 0; i < appD->globalElemGrammars->elementCount; i++)
 		{
+			tmpQnameID = ((QNameID*) appD->globalElemGrammars->elements) + i;
+			tmpGrammar = appD->schema->initialStringTables->rows[tmpQnameID->uriRowId].lTable->rows[tmpQnameID->lnRowId].globalGrammar;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\nURI: "));
-			printString(&tmp->uri);
+			printString(&appD->schema->initialStringTables->rows[tmpQnameID->uriRowId].string_val);
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\nLN: "));
-			printString(&tmp->ln);
-
-			for(t = 0; t < tmp->grammar->rulesDimension; t++)
+			printString(&appD->schema->initialStringTables->rows[tmpQnameID->uriRowId].lTable->rows[tmpQnameID->lnRowId].string_val);
+			for(t = 0; t < tmpGrammar->rulesDimension; t++)
 			{
-				tmp_err_code = printGrammarRule(t, &(tmp->grammar->ruleArray[t]));
-				if(tmp_err_code != ERR_OK)
+				if(printGrammarRule(t, &(tmpGrammar->ruleArray[t])) != ERR_OK)
 				{
 					DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">printGrammarRule() fail\n"));
 					return EXIP_HANDLER_STOP;
 				}
 			}
-			tmp = tmp->nextNode;
-		}
-
-		DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\nList of sub element grammars:"));
-
-		tmp = appD->subElementGrammars.first;
-
-		while(tmp)
-		{
-			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\nURI: "));
-			printString(&tmp->uri);
-			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\nLN: "));
-			printString(&tmp->ln);
-
-			for(t = 0; t < tmp->grammar->rulesDimension; t++)
-			{
-				tmp_err_code = printGrammarRule(t, &(tmp->grammar->ruleArray[t]));
-				if(tmp_err_code != ERR_OK)
-				{
-					DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">printGrammarRule() fail\n"));
-					return EXIP_HANDLER_STOP;
-				}
-			}
-			tmp = tmp->nextNode;
 		}
 	}
 #endif
 
 	sortInitialStringTables(appD->schema->initialStringTables);
 
-	appD->schema->globalElemGrammars.count = appD->globalElemGrammars.size;
-	appD->schema->globalElemGrammars.elems = (GrammarDescr*) memManagedAllocate(&appD->schema->memList, sizeof(GrammarDescr)*appD->globalElemGrammars.size);
-	if(appD->schema->globalElemGrammars.elems == NULL)
+	appD->schema->globalElemGrammarsCount = appD->globalElemGrammars->elementCount;
+	appD->schema->globalElemGrammars = (QNameID*) memManagedAllocate(&appD->schema->memList, sizeof(QNameID)*appD->schema->globalElemGrammarsCount);
+	if(appD->schema->globalElemGrammars == NULL)
 	{
 		DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Memory allocation error\n"));
 		return EXIP_HANDLER_STOP;
 	}
-	tmpGNode = appD->globalElemGrammars.first;
-	for(i = 0; i < appD->globalElemGrammars.size; i++)
-	{
-		tmp_err_code = copyGrammarQnameFix(appD, tmpGNode->grammar, &appD->schema->globalElemGrammars.elems[i].grammar);
-		if(tmp_err_code != ERR_OK)
-		{
-			DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Schema parsing error: %d\n", tmp_err_code));
-			return EXIP_HANDLER_STOP;
-		}
 
-		lookupURI(appD->schema->initialStringTables, tmpGNode->uri, &uriRowID);
-		appD->schema->globalElemGrammars.elems[i].uriRowId = uriRowID;
-		lookupLN(appD->schema->initialStringTables->rows[uriRowID].lTable, tmpGNode->ln, &lnRowID);
-		appD->schema->globalElemGrammars.elems[i].lnRowId = lnRowID;
-		tmpGNode = tmpGNode->nextNode;
+	for(i = 0; i < appD->schema->globalElemGrammarsCount; i++)
+	{
+		tmpQnameID = ((QNameID*) appD->globalElemGrammars->elements) + i;
+
+		lookupURI(appD->schema->initialStringTables, appD->metaStringTables->rows[tmpQnameID->uriRowId].string_val, &uriRowID);
+		appD->schema->globalElemGrammars[i].uriRowId = uriRowID;
+
+		lookupLN(appD->schema->initialStringTables->rows[uriRowID].lTable, appD->metaStringTables->rows[uriRowID].lTable->rows[tmpQnameID->lnRowId].string_val, &lnRowID);
+		appD->schema->globalElemGrammars[i].lnRowId = lnRowID;
 	}
 
-	appD->schema->subElementGrammars.count = appD->subElementGrammars.size;
-	appD->schema->subElementGrammars.elems = (GrammarDescr*) memManagedAllocate(&appD->schema->memList, sizeof(GrammarDescr)*appD->subElementGrammars.size);
-	if(appD->schema->subElementGrammars.elems == NULL)
+	for (i = 0; i < appD->schema->initialStringTables->rowCount; i++)
 	{
-		DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Memory allocation error\n"));
-		return EXIP_HANDLER_STOP;
-	}
-	tmpGNode = appD->subElementGrammars.first;
-	for(i = 0; i < appD->subElementGrammars.size; i++)
-	{
-		tmp_err_code = copyGrammarQnameFix(appD, tmpGNode->grammar, &appD->schema->subElementGrammars.elems[i].grammar);
-		if(tmp_err_code != ERR_OK)
+		for (j = 0; j < appD->schema->initialStringTables->rows[i].lTable->rowCount; j++)
 		{
-			DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Schema parsing error: %d\n", tmp_err_code));
-			return EXIP_HANDLER_STOP;
-		}
+			tmpGrammar = appD->schema->initialStringTables->rows[i].lTable->rows[j].globalGrammar;
+			if(tmpGrammar != NULL)
+			{
+				for (t = 0; t < tmpGrammar->rulesDimension; t++)
+				{
+					for (p = 0; p < tmpGrammar->ruleArray[t].prodCounts[0]; p++)
+					{
+						tmpProd = &tmpGrammar->ruleArray[t].prodArrays[0][p];
+						if(tmpProd->uriRowID != UINT16_MAX)
+						{
+							lookupURI(appD->schema->initialStringTables, appD->metaStringTables->rows[tmpProd->uriRowID].string_val, &uriRowID);
+							tmpProd->uriRowID = t;
 
-		lookupURI(appD->schema->initialStringTables, tmpGNode->uri, &uriRowID);
-		appD->schema->subElementGrammars.elems[i].uriRowId = uriRowID;
-		lookupLN(appD->schema->initialStringTables->rows[uriRowID].lTable, tmpGNode->ln, &lnRowID);
-		appD->schema->subElementGrammars.elems[i].lnRowId = lnRowID;
-		tmpGNode = tmpGNode->nextNode;
+							lookupLN(appD->schema->initialStringTables->rows[t].lTable, appD->metaStringTables->rows[t].lTable->rows[tmpProd->lnRowID].string_val, &lnRowID);
+							tmpProd->lnRowID = lnRowID;
+						}
+					}
+				}
+			}
+		}
 	}
 
 	freeAllocList(&appD->tmpMemList);
@@ -832,9 +803,12 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 #if DEBUG_GRAMMAR_GEN == ON
 	{
 		uint16_t t = 0;
-		for(t = 0; t < attrUseGrammar->rulesDimension; t++)
+		EXIGrammar* tmpGrammar;
+		DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute proto-grammar:\n"));
+		convertProtoGrammar(&app_data->tmpMemList, attrUseGrammar, &tmpGrammar);
+		for(t = 0; t < tmpGrammar->rulesDimension; t++)
 		{
-			tmp_err_code = printGrammarRule(t, &(attrUseGrammar->ruleArray[t]));
+			tmp_err_code = printGrammarRule(t, &(tmpGrammar->ruleArray[t]));
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -878,6 +852,21 @@ static errorCode handleExtentionEl(struct xsdAppData* app_data)
 									   NULL, 0, simpleTypeGrammar, &resultComplexGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
+
+#if DEBUG_GRAMMAR_GEN == ON
+	{
+		uint16_t t = 0;
+		EXIGrammar* tmpGrammar;
+		DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Extension proto-grammar:\n"));
+		convertProtoGrammar(&app_data->tmpMemList, resultComplexGrammar, &tmpGrammar);
+		for(t = 0; t < tmpGrammar->rulesDimension; t++)
+		{
+			tmp_err_code = printGrammarRule(t, &(tmpGrammar->ruleArray[t]));
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+	}
+#endif
 
 	tmp_err_code = pushOnStack(&(((ElementDescription*) app_data->contextStack->element)->pGrammarStack), (void*) resultComplexGrammar);
 	if(tmp_err_code != ERR_OK)
@@ -958,23 +947,22 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = assignCodes(resultComplexGrammar);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	//TODO: the attributeUses array must be emptied here
 
 #if DEBUG_GRAMMAR_GEN == ON
 	{
 		uint16_t t = 0;
-		for(t = 0; t < resultComplexGrammar->rulesDimension; t++)
+		EXIGrammar* tmpGrammar;
+		DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Complex type proto-grammar:\n"));
+		convertProtoGrammar(&app_data->tmpMemList, resultComplexGrammar, &tmpGrammar);
+		for(t = 0; t < tmpGrammar->rulesDimension; t++)
 		{
-			tmp_err_code = printGrammarRule(t, &(resultComplexGrammar->ruleArray[t]));
+			tmp_err_code = printGrammarRule(t, &(tmpGrammar->ruleArray[t]));
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 	}
 #endif
-
-	//TODO: the attributeUses array must be emptied here
 
 	if(isStrEmpty(typeName))  // The name is empty i.e. anonymous complex type
 	{
@@ -986,7 +974,29 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 	}
 	else // Named complex type - put it directly in the typeGrammars list
 	{
-		app_data->schema->initialStringTables->rows[uriRowID].lTable->rows[lnRowID].globalGrammar = resultComplexGrammar;
+		EXIGrammar* complexEXIGrammar;
+		tmp_err_code = convertProtoGrammar(&app_data->schema->memList, resultComplexGrammar, &complexEXIGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = assignCodes(complexEXIGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+#if DEBUG_GRAMMAR_GEN == ON
+	{
+		uint16_t t = 0;
+		DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Complex type grammar:\n"));
+		for(t = 0; t < complexEXIGrammar->rulesDimension; t++)
+		{
+			tmp_err_code = printGrammarRule(t, &(complexEXIGrammar->ruleArray[t]));
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+	}
+#endif
+
+		app_data->schema->initialStringTables->rows[uriRowID].lTable->rows[lnRowID].globalGrammar = complexEXIGrammar;
 	}
 
 	return ERR_OK;
@@ -995,16 +1005,20 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 static errorCode handleElementEl(struct xsdAppData* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	struct elementDescr* elemDesc;
+	ElementDescription* elemDesc;
 	StringType type;
-	EXIGrammar* typeGrammar;
+	ProtoGrammar* typeGrammar;
 	StringType* elName;
 	StringType* target_ns;
 	unsigned char isGlobal = 0;
 	uint16_t uriRowId;
 	size_t lnRowId;
+	EXIGrammar* exiTypeGrammar;
 
-	popElemContext(&(app_data->contextStack), &elemDesc);
+	tmp_err_code = popFromStack(&(app_data->contextStack), (void**) &elemDesc);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
 	type = elemDesc->attributePointers[ATTRIBUTE_TYPE];
 
 	if(app_data->contextStack == NULL) // Global element
@@ -1033,9 +1047,10 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 	{
 		QNameID globalQnameID;
 		size_t dynElID;
+
 		if(isStrEmpty(&type))  // There is no type attribute i.e. there must be some complex type in the pGrammarStack
 		{
-			tmp_err_code = popGrammar(&(elemDesc->pGrammarStack), &typeGrammar);
+			tmp_err_code = popFromStack(&(elemDesc->pGrammarStack), (void**) &typeGrammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -1044,7 +1059,28 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 			return NOT_IMPLEMENTED_YET;
 		}
 
-		app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].globalGrammar = typeGrammar;
+		tmp_err_code = convertProtoGrammar(&app_data->schema->memList, typeGrammar, &exiTypeGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = assignCodes(exiTypeGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+#if DEBUG_GRAMMAR_GEN == ON
+	{
+		uint16_t t = 0;
+		DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Element grammar:\n"));
+		for(t = 0; t < exiTypeGrammar->rulesDimension; t++)
+		{
+			tmp_err_code = printGrammarRule(t, &(exiTypeGrammar->ruleArray[t]));
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+	}
+#endif
+
+		app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].globalGrammar = exiTypeGrammar;
 		globalQnameID.uriRowId = uriRowId;
 		globalQnameID.lnRowId = lnRowId;
 		tmp_err_code = addDynElement(app_data->globalElemGrammars, &globalQnameID, &dynElID, &app_data->schema->memList);
@@ -1053,19 +1089,40 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 	}
 	else  // Local element definition i.e within complex type
 	{
-		EXIGrammar* elTermGrammar;
-		EXIGrammar* elParticleGrammar;
+		ProtoGrammar* elTermGrammar;
+		ProtoGrammar* elParticleGrammar;
 		unsigned int minOccurs = 1;
 		int32_t maxOccurs = 1;
 		QName typeQname;
 
 		if(isStrEmpty(&type))  // There is no type attribute i.e. there must be some complex type in the pGrammarStack
 		{
-			tmp_err_code = popGrammar(&(elemDesc->pGrammarStack), &typeGrammar);
+			tmp_err_code = popFromStack(&(elemDesc->pGrammarStack), (void**) &typeGrammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].globalGrammar = typeGrammar;
+			tmp_err_code = convertProtoGrammar(&app_data->schema->memList, typeGrammar, &exiTypeGrammar);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			tmp_err_code = assignCodes(exiTypeGrammar);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+#if DEBUG_GRAMMAR_GEN == ON
+	{
+		uint16_t t = 0;
+		DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Element grammar:\n"));
+		for(t = 0; t < exiTypeGrammar->rulesDimension; t++)
+		{
+			tmp_err_code = printGrammarRule(t, &(exiTypeGrammar->ruleArray[t]));
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+	}
+#endif
+
+			app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].globalGrammar = exiTypeGrammar;
 		}
 		else // The element has a particular named type
 		{
@@ -1079,7 +1136,15 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 
-				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].globalGrammar = typeGrammar;
+				tmp_err_code = convertProtoGrammar(&app_data->schema->memList, typeGrammar, &exiTypeGrammar);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				tmp_err_code = assignCodes(exiTypeGrammar);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].globalGrammar = exiTypeGrammar;
 			}
 			else // A complex type name
 			{
@@ -1097,20 +1162,7 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 		tmp_err_code = createParticleGrammar(&app_data->tmpMemList, minOccurs, maxOccurs,
 											elTermGrammar, &elParticleGrammar);
 
-#if DEBUG_GRAMMAR_GEN == ON
-	{
-		uint16_t t = 0;
-		DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, (">Particle for element term:\n"));
-		for(t = 0; t < elParticleGrammar->rulesDimension; t++)
-		{
-			tmp_err_code = printGrammarRule(t, &(elParticleGrammar->ruleArray[t]));
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-		}
-	}
-#endif
-
-		tmp_err_code = pushGrammar(&(app_data->contextStack->pGrammarStack), elParticleGrammar);
+		tmp_err_code = pushOnStack(&((ElementDescription*) app_data->contextStack->element)->pGrammarStack, (void*) elParticleGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -1120,13 +1172,15 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 static errorCode handleElementSequence(struct xsdAppData* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	struct elementDescr* elemDesc;
-	EXIGrammar* seqGrammar;
-	EXIGrammar* seqPartGrammar;
+	ElementDescription* elemDesc;
+	ProtoGrammar* seqGrammar;
+	ProtoGrammar* seqPartGrammar;
 	unsigned int minOccurs = 1;
 	int32_t maxOccurs = 1;
 
-	popElemContext(&(app_data->contextStack), &elemDesc);
+	tmp_err_code = popFromStack(&(app_data->contextStack), (void**) &elemDesc);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	minOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MIN_OCCURS]);
 	maxOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MAX_OCCURS]);
@@ -1142,17 +1196,19 @@ static errorCode handleElementSequence(struct xsdAppData* app_data)
 #if DEBUG_GRAMMAR_GEN == ON
 	{
 		uint16_t t = 0;
-		DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, (">Sequence Particle Grammar:\n"));
-		for(t = 0; t < seqPartGrammar->rulesDimension; t++)
+		EXIGrammar* tmpGrammar;
+		DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Sequence proto-grammar:\n"));
+		convertProtoGrammar(&app_data->tmpMemList, seqPartGrammar, &tmpGrammar);
+		for(t = 0; t < tmpGrammar->rulesDimension; t++)
 		{
-			tmp_err_code = printGrammarRule(t, &(seqPartGrammar->ruleArray[t]));
+			tmp_err_code = printGrammarRule(t, &(tmpGrammar->ruleArray[t]));
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 	}
 #endif
 
-	tmp_err_code = pushGrammar(&(app_data->contextStack->pGrammarStack), seqPartGrammar);
+	tmp_err_code = pushOnStack(&((ElementDescription*) app_data->contextStack->element)->pGrammarStack, (void*) seqPartGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1316,68 +1372,5 @@ static errorCode getTypeQName(AllocList* memList, const StringType typeLiteral, 
 	qname->localName = ln;
 	qname->uri = uri;
 
-	return ERR_OK;
-}
-
-static errorCode copyGrammarQnameFix(struct xsdAppData* app_data, EXIGrammar* src, EXIGrammar** dest)
-{
-	GrammarRule* srcRule;
-	GrammarRule* destRule;
-	uint16_t uriRowID;
-	size_t lnRowID;
-
-	uint16_t i = 0;
-	uint16_t j = 0;
-
-	*dest = memManagedAllocate(&app_data->schema->memList, sizeof(EXIGrammar));
-	if(*dest == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	(*dest)->rulesDimension = src->rulesDimension;
-	(*dest)->grammarType = src->grammarType;
-	(*dest)->contentIndex = src->contentIndex;
-
-	(*dest)->ruleArray = memManagedAllocate(&app_data->schema->memList, sizeof(GrammarRule) * (*dest)->rulesDimension);
-	if((*dest)->ruleArray == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	for(i = 0; i < (*dest)->rulesDimension; i++)
-	{
-		srcRule = &src->ruleArray[i];
-		destRule = &(*dest)->ruleArray[i];
-
-		destRule->bits[0] = srcRule->bits[0];
-		destRule->bits[1] = srcRule->bits[1];
-		destRule->bits[2] = srcRule->bits[2];
-
-		destRule->memPair.memBlock = NULL;
-		destRule->memPair.allocIndx = 0;
-		destRule->prodCount = srcRule->prodCount;
-		destRule->prodDimension = srcRule->prodDimension;
-
-		destRule->prodArray = (Production*) memManagedAllocate(&app_data->schema->memList, sizeof(Production)*(destRule->prodDimension));
-		if(destRule->prodArray == NULL)
-			return MEMORY_ALLOCATION_ERROR;
-
-		for(j = 0; j < destRule->prodCount; j++)
-		{
-			destRule->prodArray[j] = srcRule->prodArray[j];
-			if(srcRule->prodArray[j].event.eventType == EVENT_AT_QNAME || srcRule->prodArray[j].event.eventType == EVENT_SE_QNAME)
-			{
-				if(!lookupURI(app_data->schema->initialStringTables, app_data->metaStringTables->rows[srcRule->prodArray[j].uriRowID].string_val, &uriRowID))
-				{
-					DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">String tables problem\n"));
-					return UNEXPECTED_ERROR;
-				}
-				if(!lookupLN(app_data->schema->initialStringTables->rows[uriRowID].lTable, app_data->metaStringTables->rows[srcRule->prodArray[j].uriRowID].lTable->rows[srcRule->prodArray[j].lnRowID].string_val, &lnRowID))
-				{
-					DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">String tables problem\n"));
-					return UNEXPECTED_ERROR;
-				}
-				destRule->prodArray[j].uriRowID = uriRowID;
-				destRule->prodArray[j].lnRowID = lnRowID;
-			}
-		}
-	}
 	return ERR_OK;
 }
