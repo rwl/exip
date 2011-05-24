@@ -59,14 +59,14 @@ START_TEST (test_createDocGrammar)
 	buf[0] = (char) 0xD4; /* 0b11010100 */
 	buf[1] = (char) 0x60; /* 0b01100000 */
 
-	testStream.bitPointer = 0;
+	testStream.context.bitPointer = 0;
 	makeDefaultOpts(&options);
 	testStream.header.opts = &options;
 	testStream.buffer = buf;
 	testStream.bufLen = 2;
 	testStream.bufContent = 2;
 	testStream.ioStrm = NULL;
-	testStream.bufferIndx = 0;
+	testStream.context.bufferIndx = 0;
 	initAllocList(&testStream.memList);
 
 	err = createDocGrammar(&testGrammar, &testStream, NULL);
@@ -177,48 +177,7 @@ END_TEST
 
 START_TEST (test_insertZeroProduction)
 {
-	errorCode err = UNEXPECTED_ERROR;
-	GrammarRule rule;
-	AllocList memList;
-	EventCode eCode = getEventCode2(0,0);
-	EXIEvent event;
-	unsigned int nonTermID = GR_DOC_CONTENT;
-
-	event.eventType = EVENT_SE_ALL;
-	event.valueType = VALUE_TYPE_NONE;
-
-	initAllocList(&memList);
-	err = initGrammarRule(&rule, &memList);
-	fail_unless (err == ERR_OK, "initGrammarRule returns error code %d", err);
-
-	rule.bits[0] = 0;
-	rule.bits[1] = 0;
-
-	err = addProduction(&rule, eCode, event, nonTermID);
-	fail_unless (err == ERR_OK, "addProduction returns error code %d", err);
-	fail_unless(rule.prodCount == 1 && rule.prodDimension == DEFAULT_PROD_ARRAY_DIM,
-				"addProduction does not initialize prodCount and/or prodDimension correctly");
-	fail_unless(rule.prodArray[0].code.size == 2 && rule.prodArray[0].code.code[0] == 0 &&
-				rule.prodArray[0].code.code[1] == 0,
-				"addProduction does not set the EventCode correctly");
-	fail_unless(rule.prodArray[0].event.eventType == EVENT_SE_ALL, "addProduction does not set the EXI EventType correctly");
-	fail_unless(rule.prodArray[0].nonTermID == GR_DOC_CONTENT, "addProduction does not set the nonTermID correctly");
-
-	err = insertZeroProduction(&rule, event, nonTermID, 0, 0);
-	fail_unless (err == ERR_OK, "insertZeroProduction returns error code %d", err);
-	fail_unless (rule.prodCount == 2, "insertZeroProduction does not set prodCount properly");
-	fail_unless (rule.bits[0] == 1 && rule.bits[1] == 0, "insertZeroProduction does not set rule.bits properly");
-	fail_unless (rule.prodArray[1].lnRowID == 0 && rule.prodArray[1].uriRowID == 0,
-				"insertZeroProduction does not set lnRowID and uriRowID properly" );
-	fail_unless(rule.prodArray[1].code.size == 1 && rule.prodArray[1].code.code[0] == 0,
-					"insertZeroProduction does not set the EventCode correctly");
-	fail_unless(rule.prodArray[1].event.eventType == EVENT_SE_ALL, "insertZeroProduction does not set the EXI EventType correctly");
-	fail_unless(rule.prodArray[1].nonTermID == GR_DOC_CONTENT, "insertZeroProduction does not set the nonTermID correctly");
-
-	fail_unless(rule.prodArray[0].code.size == 2 && rule.prodArray[0].code.code[0] == 1 &&
-					rule.prodArray[0].code.code[1] == 0,
-					"insertZeroProduction does not set the EventCode of other productions correctly");
-
+	fail("Not implemented yet");
 }
 END_TEST
 

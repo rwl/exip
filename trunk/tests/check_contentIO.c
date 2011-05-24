@@ -61,12 +61,12 @@ START_TEST (test_decodeHeader)
 	char buf2[7];
 
 	testStream.header.opts = &options;
-	testStream.bitPointer = 0;
+	testStream.context.bitPointer = 0;
 	buf[0] = (char) 0x80;
 	buf[1] = (char) 0x60;
 	buf[2] = (char) 0x7C;
 	testStream.buffer = buf;
-	testStream.bufferIndx = 0;
+	testStream.context.bufferIndx = 0;
 	testStream.bufLen = 3;
 	testStream.bufContent = 3;
 	testStream.ioStrm = NULL;
@@ -85,7 +85,7 @@ START_TEST (test_decodeHeader)
 					"decodeHeader does not recognize version 1 of the stream");
 
 	testStream2.header.opts = &options2;
-	testStream2.bitPointer = 0;
+	testStream2.context.bitPointer = 0;
 
 	buf2[0] = (char) 36;
 	buf2[1] = (char) 69;
@@ -96,7 +96,7 @@ START_TEST (test_decodeHeader)
 	buf2[6] = (char) 0x7C;
 
 	testStream2.buffer = buf2;
-	testStream2.bufferIndx = 0;
+	testStream2.context.bufferIndx = 0;
 	testStream2.bufLen = 7;
 	testStream2.bufContent = 7;
 	testStream2.ioStrm = NULL;

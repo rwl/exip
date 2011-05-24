@@ -25,6 +25,20 @@ static const uint32_t primes[] = {
 const unsigned int prime_table_length = sizeof(primes)/sizeof(primes[0]);
 const float max_load_factor = 0.65F;
 
+uint32_t djbHash(StringType* str)
+{
+	char* tmp = (char*) str->str;
+	uint32_t hash = 5381;
+	unsigned int i = 0;
+
+	for(i = 0; i < sizeof(CharType)*str->length; tmp++, i++)
+	{
+		hash = ((hash << 5) + hash) + (*tmp);
+	}
+
+	return hash;
+}
+
 /*****************************************************************************/
 
 struct hashtable * create_hashtable(unsigned int minsize,

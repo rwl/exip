@@ -46,7 +46,6 @@
 
 #include "grammars.h"
 #include "hashtable.h"
-#include "hashUtils.h"
 #include "sTables.h"
 #include "memManagement.h"
 #include "ioUtil.h"

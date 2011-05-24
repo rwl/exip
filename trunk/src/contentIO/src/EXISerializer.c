@@ -50,7 +50,6 @@
 #include "bodyEncode.h"
 #include "grammarAugment.h"
 #include "hashtable.h"
-#include "hashUtils.h"
 #include "stringManipulate.h"
 
 /**
