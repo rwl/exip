@@ -7,16 +7,53 @@
 
 	<complexType name="EXIPSchemaType">
 		<sequence minOccurs="1" maxOccurs="1">
+			<element name="Grammars" type="tns:GrammarsType" minOccurs="1"
+				maxOccurs="1"/>
 			<element name="URITable" type="tns:URITableType" minOccurs="1"
+				maxOccurs="1"/>
+			<element name="GlobalElemGrammars" type="tns:GrammarArrayType"
+				minOccurs="1" maxOccurs="1"/>
+		</sequence>
+	</complexType>
+
+	<complexType name="GrammarsType">
+		<sequence>
+			<element name="GrammarInstance" type="tns:GrammarInstanceType" minOccurs="0" maxOccurs="unbounded"></element>
+		</sequence>
+		<attribute name="Count" type="unsignedInt" use="required"></attribute>
+	</complexType>
+	
+	
+    <complexType name="GrammarInstanceType">
+   		<sequence minOccurs="1" maxOccurs="1">
+			<element name="GrammarRule" type="tns:GrammarRuleType"
+				minOccurs="1" maxOccurs="unbounded"></element>
+		</sequence>
+		<attribute name="Count" type="unsignedInt" use="required"></attribute>
+		<attribute name="ContentIndex" type="unsignedInt" use="required"></attribute>
+    </complexType>
+    
+   	<complexType name="GrammarRuleType">
+		<sequence maxOccurs="1" minOccurs="1">
+			<element name="Production" type="tns:ProductionType"
+				minOccurs="1" maxOccurs="unbounded"></element>
+		</sequence>
+		<attribute name="Count" type="unsignedInt" use="required"></attribute>
+	</complexType>
+	
+	
+	<complexType name="ProductionType">
+		<sequence>
+			<element name="EventType" type="unsignedInt" minOccurs="1"
 				maxOccurs="1">
 			</element>
-			<element name="GlobalElemGrammars" type="tns:GrammarArrayType"
-				minOccurs="1" maxOccurs="1"></element>
-			<element name="SubElementGrammars" type="tns:GrammarArrayType"
-				minOccurs="1" maxOccurs="1"></element>
-			<element name="TypeGrammars" type="tns:GrammarArrayType"
-				minOccurs="1" maxOccurs="1"></element>
+			<element name="ContentValueType" type="unsignedInt"
+				minOccurs="0" maxOccurs="1">
+			</element>
 		</sequence>
+		<attribute name="RightNonTerminal" type="unsignedInt" use="optional"></attribute>
+		<attribute name="uriRowId" type="unsignedInt" use="optional"></attribute>
+		<attribute name="lnRowId" type="unsignedInt" use="optional"></attribute>
 	</complexType>
 
 	<complexType name="URITableType">
@@ -24,85 +61,30 @@
 			<element name="URIRow" type="tns:URIRowType" minOccurs="0"
 				maxOccurs="unbounded"></element>
 		</sequence>
-		<attribute name="RowCount" type="unsignedInt" use="required"></attribute>
+		<attribute name="Count" type="unsignedInt" use="required"></attribute>
 	</complexType>
 
 	<complexType name="URIRowType">
 		<sequence minOccurs="1" maxOccurs="1">
 			<element name="uri" type="string"></element>
-			<element name="LocalNamesTable" type="tns:LocalNamesTableType"></element>
+			<element name="LocalNamesTable" type="tns:LocalNamesTableType" minOccurs="0" maxOccurs="1"></element>
 		</sequence>
 	</complexType>
 
 	<complexType name="LocalNamesTableType">
-		<sequence minOccurs="1" maxOccurs="1">
-			<element name="LocalNameRow" type="string" minOccurs="0"
-				maxOccurs="unbounded"></element>
+		<sequence minOccurs="0" maxOccurs="unbounded">
+			<element name="LocalNameRow" type="string" minOccurs="1"
+				maxOccurs="1"></element>
+			<element name="GrammarIndex" type="unsignedInt" minOccurs="0"
+				maxOccurs="1"></element>
 		</sequence>
-		<attribute name="RowCount" type="unsignedInt" use="required"></attribute>
+		<attribute name="Count" type="unsignedInt" use="required"></attribute>
 	</complexType>
-
-
 
 	<complexType name="GrammarArrayType">
-		<sequence minOccurs="0" maxOccurs="unbounded">
-			<element name="uriRowID" type="unsignedInt" minOccurs="1"
-				maxOccurs="1">
-			</element>
-			<element name="lnRowID" type="unsignedInt" minOccurs="1"
-				maxOccurs="1">
-			</element>
-			<element name="EXIPGrammar" type="tns:EXIPGrammarType"
-				minOccurs="1" maxOccurs="1"></element>
+		<sequence>
+			<element name="GrammarIndex" type="unsignedInt" minOccurs="0" maxOccurs="unbounded"></element>
 		</sequence>
-		<attribute name="RowCount" type="unsignedInt" use="required"></attribute>
-	</complexType>
-
-	<complexType name="EXIPGrammarType">
-		<sequence minOccurs="1" maxOccurs="1">
-			<element name="GrammarRule" type="tns:GrammarRuleType"
-				minOccurs="1" maxOccurs="unbounded"></element>
-		</sequence>
-		<attribute name="RuleCount" type="unsignedInt" use="required"></attribute>
-	</complexType>
-
-	<complexType name="GrammarRuleType">
-		<sequence maxOccurs="1" minOccurs="1">
-			<element name="BitsNum1" type="unsignedInt" minOccurs="1"
-				maxOccurs="1">
-			</element>
-			<element name="BitsNum2" type="unsignedInt" minOccurs="0"
-				maxOccurs="1">
-			</element>
-			<element name="BitsNum3" type="unsignedInt" minOccurs="0"
-				maxOccurs="1">
-			</element>
-			<element name="Production" type="tns:ProductionType"
-				minOccurs="1" maxOccurs="unbounded"></element>
-		</sequence>
-		<attribute name="LeftNonTerminal" type="unsignedInt" use="required"></attribute>
-		<attribute name="ProdCount" type="unsignedInt" use="required"></attribute>
-	</complexType>
-
-	<complexType name="ProductionType">
-		<sequence minOccurs="1" maxOccurs="1">
-			<element name="EventType" type="unsignedInt" minOccurs="1"
-				maxOccurs="1">
-			</element>
-			<element name="ContentValueType" type="unsignedInt"
-				minOccurs="0" maxOccurs="1">
-			</element>
-			<sequence minOccurs="1" maxOccurs="1">
-				<element name="Code1" type="unsignedInt" minOccurs="1"
-					maxOccurs="1"></element>
-				<element name="Code2" type="unsignedInt" minOccurs="0"
-					maxOccurs="1"></element>
-				<element name="Code3" type="unsignedInt" minOccurs="0"
-					maxOccurs="1"></element>
-			</sequence>
-		</sequence>
-		<attribute name="RightNonTerminal" type="unsignedInt" use="optional"></attribute>
-		<attribute name="uriRowId" type="unsignedInt" use="optional"></attribute>
-		<attribute name="lnRowId" type="unsignedInt" use="optional"></attribute>
+		<attribute name="Count" type="unsignedInt" use="required"></attribute>
 	</complexType>
 </schema>

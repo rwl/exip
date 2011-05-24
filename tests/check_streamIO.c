@@ -64,14 +64,14 @@ START_TEST (test_readNextBit)
   unsigned char bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
 
-  testStream.bitPointer = 0;
+  testStream.context.bitPointer = 0;
   buf[0] = (char) 0xD4; /* 0b11010100 */
   buf[1] = (char) 0x60; /* 0b01100000 */
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufContent = 2;
   testStream.ioStrm = NULL;
-  testStream.bufferIndx = 0;
+  testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
   err = readNextBit(&testStream, &bit_val);
@@ -80,11 +80,11 @@ START_TEST (test_readNextBit)
 	       "The bit 1 from the stream is read as 0");
   fail_unless (err == ERR_OK,
 	       "readNextBit returns error code %d", err);
-  fail_unless (testStream.bitPointer == 1,
+  fail_unless (testStream.context.bitPointer == 1,
     	       "The readNextBit function did not move the bit Pointer of the stream correctly");
 
   // Set the bit pointer to the first byte boundary
-  testStream.bitPointer = 7;
+  testStream.context.bitPointer = 7;
 
   err = readNextBit(&testStream, &bit_val);
 
@@ -92,7 +92,7 @@ START_TEST (test_readNextBit)
   	       "The bit 0 from the stream is read as 1");
   fail_unless (err == ERR_OK,
   	       "readNextBit returns error code %d", err);
-  fail_unless (testStream.bitPointer == 0 && testStream.bufferIndx == 1,
+  fail_unless (testStream.context.bitPointer == 0 && testStream.context.bufferIndx == 1,
    	       "The readNextBit function did not move the bit Pointer of the stream correctly");
 
 }
@@ -105,14 +105,14 @@ START_TEST (test_readBits)
   unsigned int bits_val = 0;
   errorCode err = UNEXPECTED_ERROR;
 
-  testStream.bitPointer = 0;
+  testStream.context.bitPointer = 0;
   buf[0] = (char) 0xD4; /* 0b11010100 */
   buf[1] = (char) 0x60; /* 0b01100000 */
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufContent = 2;
   testStream.ioStrm = NULL;
-  testStream.bufferIndx = 0;
+  testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
   err = readBits(&testStream, 4, &bits_val);
@@ -121,11 +121,11 @@ START_TEST (test_readBits)
 	       "The bits 1101 from the stream are read as %d", bits_val);
   fail_unless (err == ERR_OK,
 	       "readBits returns error code %d", err);
-  fail_unless (testStream.bitPointer == 4,
+  fail_unless (testStream.context.bitPointer == 4,
   	       "The readBits function did not move the bit Pointer of the stream correctly");
 
   // Set the bit pointer to the first byte boundary
-  testStream.bitPointer = 7;
+  testStream.context.bitPointer = 7;
 
   err = readBits(&testStream, 5, &bits_val);
 
@@ -133,7 +133,7 @@ START_TEST (test_readBits)
 		      "The bits 00110 from the stream are read as %d", bits_val);
   fail_unless (err == ERR_OK,
     	       "readNextBit returns error code %d", err);
-  fail_unless (testStream.bitPointer == 4 && testStream.bufferIndx == 1,
+  fail_unless (testStream.context.bitPointer == 4 && testStream.context.bufferIndx == 1,
      	       "The readBits function did not move the bit Pointer of the stream correctly");
 
 }
@@ -150,14 +150,14 @@ START_TEST (test_writeNextBit)
   errorCode err = UNEXPECTED_ERROR;
   int test;
 
-  testStream.bitPointer = 0;
+  testStream.context.bitPointer = 0;
   buf[0] = (char) 0x01; /* 0b00000001 */
   buf[1] = (char) 0x00; /* 0b00000000 */
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufContent = 2;
   testStream.ioStrm = NULL;
-  testStream.bufferIndx = 0;
+  testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
   err = writeNextBit(&testStream, 1);
@@ -168,11 +168,11 @@ START_TEST (test_writeNextBit)
 	       "The bit 1 was written as 0");
   fail_unless (err == ERR_OK,
 	       "writeNextBit returns error code %d", err);
-  fail_unless (testStream.bitPointer == 1,
+  fail_unless (testStream.context.bitPointer == 1,
     	       "The writeNextBit function did not move the bit Pointer of the stream correctly");
 
   // Set the bit pointer to the first byte boundary
-  testStream.bitPointer = 7;
+  testStream.context.bitPointer = 7;
 
   err = writeNextBit(&testStream, 0);
 
@@ -182,7 +182,7 @@ START_TEST (test_writeNextBit)
   	       "The bit 0 was written as 1");
   fail_unless (err == ERR_OK,
   	       "writeNextBit returns error code %d", err);
-  fail_unless (testStream.bitPointer == 0 && testStream.bufferIndx == 1,
+  fail_unless (testStream.context.bitPointer == 0 && testStream.context.bufferIndx == 1,
    	       "The writeNextBit function did not move the bit Pointer of the stream correctly");
 
 }
@@ -195,14 +195,14 @@ START_TEST (test_writeBits)
   errorCode err = UNEXPECTED_ERROR;
   int test, test1;
 
-  testStream.bitPointer = 0;
+  testStream.context.bitPointer = 0;
   buf[0] = (char) 0x00; /* 0b00000000 */
   buf[1] = (char) 0xE0;	/* 0b11100000 */
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufContent = 2;
   testStream.ioStrm = NULL;
-  testStream.bufferIndx = 0;
+  testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
   err = writeBits(&testStream, 19);
@@ -213,11 +213,11 @@ START_TEST (test_writeBits)
 	       "The number 19 was written as %d", test);
   fail_unless (err == ERR_OK,
 	       "writeBits returns error code %d", err);
-  fail_unless (testStream.bitPointer == 5,
+  fail_unless (testStream.context.bitPointer == 5,
   	       "The writeBits function did not move the bit Pointer of the stream correctly");
 
   // Set the bit pointer to the first byte boundary
-  testStream.bitPointer = 7;
+  testStream.context.bitPointer = 7;
 
   err = writeBits(&testStream, 9);
 
@@ -229,7 +229,7 @@ START_TEST (test_writeBits)
 		      "writeBits function doesn't write correctly");
   fail_unless (err == ERR_OK,
     	       "writeBits returns error code %d", err);
-  fail_unless (testStream.bitPointer == 3 && testStream.bufferIndx == 1,
+  fail_unless (testStream.context.bitPointer == 3 && testStream.context.bufferIndx == 1,
      	       "The writeBits function did not move the bit Pointer of the stream correctly");
 
 }
@@ -242,14 +242,14 @@ START_TEST (test_writeNBits)
   errorCode err = UNEXPECTED_ERROR;
   int test, test1;
 
-  testStream.bitPointer = 0;
+  testStream.context.bitPointer = 0;
   buf[0] = (char) 0xA0; /* 0b10100000 */
   buf[1] = (char) 0xE0; /* 0b11100000 */
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.ioStrm = NULL;
   testStream.bufContent = 2;
-  testStream.bufferIndx = 0;
+  testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
   err = writeNBits(&testStream, 7, 19);
@@ -260,11 +260,11 @@ START_TEST (test_writeNBits)
 	       "The number 19 was written as %d", test);
   fail_unless (err == ERR_OK,
 	       "writeNBits returns error code %d", err);
-  fail_unless (testStream.bitPointer == 7,
+  fail_unless (testStream.context.bitPointer == 7,
   	       "The writeNBits function did not move the bit Pointer of the stream correctly");
 
   // Set the bit pointer to the first byte boundary
-  testStream.bitPointer = 7;
+  testStream.context.bitPointer = 7;
 
   err = writeNBits(&testStream, 5, 9);
 
@@ -276,7 +276,7 @@ START_TEST (test_writeNBits)
 		      "writeNBits function doesn't write correctly");
   fail_unless (err == ERR_OK,
     	       "writeNBits returns error code %d", err);
-  fail_unless (testStream.bitPointer == 4 && testStream.bufferIndx == 1,
+  fail_unless (testStream.context.bitPointer == 4 && testStream.context.bufferIndx == 1,
      	       "The writeNBits function did not move the bit Pointer of the stream correctly");
 
 }
@@ -295,7 +295,7 @@ START_TEST (test_decodeNBitUnsignedInteger)
   unsigned int bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
 
-  testStream.bitPointer = 0;
+  testStream.context.bitPointer = 0;
   makeDefaultOpts(&options);
   testStream.header.opts = &options;
 
@@ -305,7 +305,7 @@ START_TEST (test_decodeNBitUnsignedInteger)
   testStream.bufLen = 2;
   testStream.bufContent = 2;
   testStream.ioStrm = NULL;
-  testStream.bufferIndx = 0;
+  testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
   err = decodeNBitUnsignedInteger(&testStream, 6, &bit_val);
@@ -314,7 +314,7 @@ START_TEST (test_decodeNBitUnsignedInteger)
 	       "The 110101 from the stream is read as %d", bit_val);
   fail_unless (err == ERR_OK,
 	       "decodeNBitUnsignedInteger returns error code %d", err);
-  fail_unless (testStream.bitPointer == 6,
+  fail_unless (testStream.context.bitPointer == 6,
     	       "The decodeNBitUnsignedInteger function did not move the bit Pointer of the stream correctly");
 
   // TODO: write more extensive tests: in particular handle the situation of non-bit-packed streams
@@ -330,7 +330,7 @@ START_TEST (test_decodeBoolean)
   unsigned char bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
 
-  testStream.bitPointer = 0;
+  testStream.context.bitPointer = 0;
   makeDefaultOpts(&options);
   testStream.header.opts = &options;
 
@@ -340,7 +340,7 @@ START_TEST (test_decodeBoolean)
   testStream.bufLen = 2;
   testStream.bufContent = 2;
   testStream.ioStrm = NULL;
-  testStream.bufferIndx = 0;
+  testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
   err = decodeBoolean(&testStream, &bit_val);
@@ -349,7 +349,7 @@ START_TEST (test_decodeBoolean)
 	       "The the bit 1 from the stream is read as %d", bit_val);
   fail_unless (err == ERR_OK,
 	       "decodeBoolean returns error code %d", err);
-  fail_unless (testStream.bitPointer == 1,
+  fail_unless (testStream.context.bitPointer == 1,
     	       "The decodeBoolean function did not move the bit Pointer of the stream correctly");
 }
 END_TEST
@@ -362,7 +362,7 @@ START_TEST (test_decodeUnsignedInteger)
   unsigned int bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
 
-  testStream.bitPointer = 0;
+  testStream.context.bitPointer = 0;
   makeDefaultOpts(&options);
   testStream.header.opts = &options;
 
@@ -373,7 +373,7 @@ START_TEST (test_decodeUnsignedInteger)
   testStream.bufLen = 3;
   testStream.bufContent = 3;
   testStream.ioStrm = NULL;
-  testStream.bufferIndx = 0;
+  testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
   err = decodeUnsignedInteger(&testStream, &bit_val);
@@ -382,9 +382,9 @@ START_TEST (test_decodeUnsignedInteger)
 	       "The UnsignedInteger 12372 from the stream is read as %d", bit_val);
   fail_unless (err == ERR_OK,
 	       "decodeUnsignedInteger returns error code %d", err);
-  fail_unless (testStream.bitPointer == 0,
+  fail_unless (testStream.context.bitPointer == 0,
     	       "The decodeUnsignedInteger function did not move the bit Pointer of the stream correctly");
-  fail_unless (testStream.bufferIndx == 2,
+  fail_unless (testStream.context.bufferIndx == 2,
       	       "The decodeUnsignedInteger function did not move the byte Pointer of the stream correctly");
 
   // TODO: write more extensive tests
@@ -402,7 +402,7 @@ START_TEST (test_decodeString)
   CharType cht[100];
   errorCode err = UNEXPECTED_ERROR;
 
-  testStream.bitPointer = 0;
+  testStream.context.bitPointer = 0;
   makeDefaultOpts(&options);
   testStream.header.opts = &options;
 
@@ -414,7 +414,7 @@ START_TEST (test_decodeString)
   testStream.bufLen = 4;
   testStream.bufContent = 4;
   testStream.ioStrm = NULL;
-  testStream.bufferIndx = 0;
+  testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
   bit_val.length = 0;
   bit_val.str = cht;
@@ -427,9 +427,9 @@ START_TEST (test_decodeString)
   	       "The String \"eT\" is decoded wrong by decodeString");
   fail_unless (err == ERR_OK,
 	       "decodeString returns error code %d", err);
-  fail_unless (testStream.bitPointer == 0,
+  fail_unless (testStream.context.bitPointer == 0,
     	       "The decodeString function did not move the bit Pointer of the stream correctly");
-  fail_unless (testStream.bufferIndx == 3,
+  fail_unless (testStream.context.bufferIndx == 3,
       	       "The decodeString function did not move the byte Pointer of the stream correctly");
 
   // TODO: write more extensive tests
@@ -449,7 +449,7 @@ START_TEST (test_decodeBinary)
   errorCode err = UNEXPECTED_ERROR;
   int same=1;
 
-  testStream.bitPointer = 0;
+  testStream.context.bitPointer = 0;
   makeDefaultOpts(&options);
   testStream.header.opts = &options;
 
@@ -476,7 +476,7 @@ START_TEST (test_decodeBinary)
   initAllocList(&testStream.memList);
   for(i=0;i<20;i++) testbuf[i]=buf[i];
 
-  testStream.bufferIndx = 0;
+  testStream.context.bufferIndx = 0;
 
   //Test1:
   err = decodeBinary(&testStream, &res, &bytes);
@@ -496,9 +496,9 @@ START_TEST (test_decodeBinary)
 	       "The length of the binary content is read as %d (actual : %d)", bytes,5);
   fail_unless (same == 1,
 	       "The binary content is read wrongly");
-  fail_unless (testStream.bitPointer == 0,
+  fail_unless (testStream.context.bitPointer == 0,
     	       "The decodeBinary function did not move the bit Pointer of the stream correctly");
-  fail_unless (testStream.bufferIndx == 6,
+  fail_unless (testStream.context.bufferIndx == 6,
       	       "The decodeBinary function did not move the byte Pointer of the stream correctly");
 
 //Test2:
@@ -523,9 +523,9 @@ START_TEST (test_decodeBinary)
 	       "The length of the binary content is read as %d (actual : %d)", bytes,8);
   fail_unless (same == 1,
 	       "The binary content is read wrongly");
-  fail_unless (testStream.bitPointer == 0,
+  fail_unless (testStream.context.bitPointer == 0,
     	       "The decodeBinary function did not move the bit Pointer of the stream correctly");
-  fail_unless (testStream.bufferIndx == 15,
+  fail_unless (testStream.context.bufferIndx == 15,
       	       "The decodeBinary function did not move the byte Pointer of the stream correctly");
 
   // TODO: write more extensive tests
@@ -542,7 +542,7 @@ START_TEST (test_decodeFloat)
   double res = 500;		// 5 x 10^2
   errorCode err = UNEXPECTED_ERROR;
 
-  testStream.bitPointer = 0;
+  testStream.context.bitPointer = 0;
   makeDefaultOpts(&options);
   testStream.header.opts = &options;
 
@@ -553,7 +553,7 @@ START_TEST (test_decodeFloat)
   testStream.bufLen = 3;
   testStream.bufContent = 3;
   testStream.ioStrm = NULL;
-  testStream.bufferIndx = 0;
+  testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
   err = decodeFloatValue(&testStream, &dbl_val);
@@ -562,9 +562,9 @@ START_TEST (test_decodeFloat)
 	       "decodeFloat returns error code %d", err);
   fail_unless (dbl_val == res,
 	       "The float value is read as %f (actual : %f)", dbl_val, res);
- fail_unless (testStream.bitPointer == 0,
+ fail_unless (testStream.context.bitPointer == 0,
     	       "The decodeBinary function did not move the bit Pointer of the stream correctly");
-  fail_unless (testStream.bufferIndx == 2,
+  fail_unless (testStream.context.bufferIndx == 2,
       	       "The decodeBinary function did not move the byte Pointer of the stream correctly");
 
   // TODO: write more extensive tests
@@ -580,7 +580,7 @@ START_TEST (test_decodeIntegerValue)
   int bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
 
-  testStream.bitPointer = 0;
+  testStream.context.bitPointer = 0;
   makeDefaultOpts(&options);
   testStream.header.opts = &options;
 
@@ -591,7 +591,7 @@ START_TEST (test_decodeIntegerValue)
   testStream.bufLen = 3;
   testStream.bufContent = 3;
   testStream.ioStrm = NULL;
-  testStream.bufferIndx = 0;
+  testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
   err = decodeIntegerValue(&testStream, &bit_val);
@@ -600,9 +600,9 @@ START_TEST (test_decodeIntegerValue)
 	       "The IntegerValue -40 from the stream is read as %d", bit_val);
   fail_unless (err == ERR_OK,
 	       "decodeIntegerValue returns error code %d", err);
-  fail_unless (testStream.bitPointer == 1,
+  fail_unless (testStream.context.bitPointer == 1,
     	       "The decodeIntegerValue function did not move the bit Pointer of the stream correctly");
-  fail_unless (testStream.bufferIndx == 1,
+  fail_unless (testStream.context.bufferIndx == 1,
       	       "The decodeIntegerValue function did not move the byte Pointer of the stream correctly");
 
   // TODO: write more extensive tests
@@ -628,7 +628,7 @@ START_TEST (test_encodeNBitUnsignedInteger)
   errorCode err = UNEXPECTED_ERROR;
   unsigned char test, test2;
 
-  testStream.bitPointer = 0;
+  testStream.context.bitPointer = 0;
   makeDefaultOpts(&options);
   testStream.header.opts = &options;
 
@@ -638,7 +638,7 @@ START_TEST (test_encodeNBitUnsignedInteger)
   testStream.bufLen = 2;
   testStream.bufContent = 2;
   testStream.ioStrm = NULL;
-  testStream.bufferIndx = 0;
+  testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
   err = encodeNBitUnsignedInteger(&testStream, 9, 412);
@@ -650,7 +650,7 @@ START_TEST (test_encodeNBitUnsignedInteger)
   	       "encodeNBitUnsignedInteger returns error code %d", err);
   fail_unless (test == 206 && test2 == 0,
 	       "encodeNBitUnsignedInteger does not encode correctly");
-  fail_unless (testStream.bitPointer == 1 && testStream.bufferIndx == 1,
+  fail_unless (testStream.context.bitPointer == 1 && testStream.context.bufferIndx == 1,
     	       "The encodeNBitUnsignedInteger function did not move the bit Pointer of the stream correctly");
 
   // TODO: write more extensive tests: in particular handle the situation of non-bit-packed streams
@@ -666,7 +666,7 @@ START_TEST (test_encodeBoolean)
   errorCode err = UNEXPECTED_ERROR;
   unsigned char bit_val = 0;
 
-  testStream.bitPointer = 0;
+  testStream.context.bitPointer = 0;
   makeDefaultOpts(&options);
   testStream.header.opts = &options;
 
@@ -676,7 +676,7 @@ START_TEST (test_encodeBoolean)
   testStream.bufLen = 2;
   testStream.bufContent = 2;
   testStream.ioStrm = NULL;
-  testStream.bufferIndx = 0;
+  testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
   err = encodeBoolean(&testStream, 1);
@@ -687,7 +687,7 @@ START_TEST (test_encodeBoolean)
 	       "encodeBoolean returns error code %d", err);
   fail_unless (bit_val == 1,
 	       "encodeBoolean does not write correctly");
-  fail_unless (testStream.bitPointer == 1,
+  fail_unless (testStream.context.bitPointer == 1,
     	       "The encodeBoolean function did not move the bit Pointer of the stream correctly");
 
   err = encodeBoolean(&testStream, 0);
@@ -698,7 +698,7 @@ START_TEST (test_encodeBoolean)
 	   "encodeBoolean returns error code %d", err);
   fail_unless (bit_val == 2,
 	   "encodeBoolean does not write correctly");
-  fail_unless (testStream.bitPointer == 2,
+  fail_unless (testStream.context.bitPointer == 2,
 		   "The encodeBoolean function did not move the bit Pointer of the stream correctly");
 }
 END_TEST
@@ -711,7 +711,7 @@ START_TEST (test_encodeUnsignedInteger)
   errorCode err = UNEXPECTED_ERROR;
   unsigned char test1, test2;
 
-  testStream.bitPointer = 0;
+  testStream.context.bitPointer = 0;
   makeDefaultOpts(&options);
   testStream.header.opts = &options;
 
@@ -722,7 +722,7 @@ START_TEST (test_encodeUnsignedInteger)
   testStream.bufLen = 3;
   testStream.bufContent = 3;
   testStream.ioStrm = NULL;
-  testStream.bufferIndx = 0;
+  testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
   err = encodeUnsignedInteger(&testStream, 421);
@@ -735,16 +735,16 @@ START_TEST (test_encodeUnsignedInteger)
   fail_unless (test1 == 165 && test2 == 3,
 	       "The encodeUnsignedInteger function doesn't work correctly");
 
-  fail_unless (testStream.bitPointer == 0,
+  fail_unless (testStream.context.bitPointer == 0,
     	       "The encodeUnsignedInteger function did not move the bit Pointer of the stream correctly");
-  fail_unless (testStream.bufferIndx == 2,
+  fail_unless (testStream.context.bufferIndx == 2,
       	       "The encodeUnsignedInteger function did not move the byte Pointer of the stream correctly");
 
   buf[0] = (char) 0x10;	/* 0b00010000 */
   buf[1] = (char) 0x00;	/* 0b00000000 */
   buf[2] = (char) 0x00;	/* 0b00000000 */ 
-  testStream.bufferIndx = 0;
-  testStream.bitPointer = 0;
+  testStream.context.bufferIndx = 0;
+  testStream.context.bitPointer = 0;
   err = UNEXPECTED_ERROR;
 
   err = encodeUnsignedInteger(&testStream, 0);
@@ -756,9 +756,9 @@ START_TEST (test_encodeUnsignedInteger)
      "encodeUnsignedInteger returns error code %d", err);
   fail_unless (test1 == 0 && test2 == 0,
      "The encodeUnsignedInteger function doesn't work correctly");
-  fail_unless (testStream.bitPointer == 0,
+  fail_unless (testStream.context.bitPointer == 0,
      "The encodeUnsignedInteger function did not move the bit Pointer of the stream correctly");
-  fail_unless (testStream.bufferIndx == 1,
+  fail_unless (testStream.context.bufferIndx == 1,
      "The encodeUnsignedInteger function did not move the byte Pointer of the stream correctly");
 }
 END_TEST
@@ -773,7 +773,7 @@ START_TEST (test_encodeString)
   errorCode err = UNEXPECTED_ERROR;
   unsigned char str_len;
 
-  testStream.bitPointer = 0;
+  testStream.context.bitPointer = 0;
   makeDefaultOpts(&options);
   testStream.header.opts = &options;
 
@@ -786,7 +786,7 @@ START_TEST (test_encodeString)
   testStream.bufLen = 50;
   testStream.bufContent = 50;
   testStream.ioStrm = NULL;
-  testStream.bufferIndx = 0;
+  testStream.context.bufferIndx = 0;
   asciiToString("TEST encodeString()", &testStr, &testStream.memList, FALSE);
 
   err = encodeString(&testStream, &testStr);
@@ -799,9 +799,9 @@ START_TEST (test_encodeString)
 	       "The String length is not encoded correctly");
   fail_unless (buf[1] == 'T' && buf[2] == 'E',
   	       "encodeString doesn't encode correctly");
-  fail_unless (testStream.bitPointer == 0,
+  fail_unless (testStream.context.bitPointer == 0,
     	       "The encodeString function did not move the bit Pointer of the stream correctly");
-  fail_unless (testStream.bufferIndx == 20,
+  fail_unless (testStream.context.bufferIndx == 20,
       	       "The encodeString function did not move the byte Pointer of the stream correctly");
 
   // TODO: write more extensive tests

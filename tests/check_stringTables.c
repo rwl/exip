@@ -237,8 +237,8 @@ START_TEST (test_createInitialStringTables)
 	EXIOptions options;
 	char buf[2];
 
-	testStream.bufferIndx = 0;
-	testStream.bitPointer = 0;
+	testStream.context.bufferIndx = 0;
+	testStream.context.bitPointer = 0;
 	makeDefaultOpts(&options);
 	testStream.header.opts = &options;
 
@@ -261,87 +261,9 @@ START_TEST (test_createInitialStringTables)
 }
 END_TEST
 
-START_TEST (test_addGVRow)
+START_TEST (test_addValueRows)
 {
-	errorCode err = UNEXPECTED_ERROR;
-	ValueTable* vTable;
-	size_t rowID = 55;
-	StringType test_val;
-
-	AllocList memList;
-	initAllocList(&memList);
-	err = createValueTable(&vTable, &memList);
-	fail_if(err != ERR_OK);
-
-	asciiToString("test_val_string", &test_val, &memList, FALSE);
-
-
-
-	err = addGVRow(vTable, test_val, &rowID);
-
-	fail_unless (err == ERR_OK, "addGVRow returns error code %d", err);
-	fail_unless (vTable->arrayDimension == DEFAULT_VALUE_ROWS_NUMBER,
-				"addGVRow changed the arrayDimension unnecessary");
-	fail_unless (vTable->rowCount == 1,
-					"addGVRow did not update rowCount properly");
-	fail_unless (str_equal(vTable->rows[0].string_val, test_val) == 1,
-						"addGVRow changed the val_string");
-	fail_unless (rowID == 0,
-				"addGVRow returned wrong rowID: %d", rowID);
-
-	vTable->rowCount = DEFAULT_VALUE_ROWS_NUMBER;
-
-	err = addGVRow(vTable, test_val, &rowID);
-
-	fail_unless (err == ERR_OK, "addGVRow returns error code %d", err);
-	fail_unless (vTable->arrayDimension == DEFAULT_VALUE_ROWS_NUMBER*2,
-				"addGVRow changed the arrayDimension unnecessary");
-	fail_unless (vTable->rowCount == DEFAULT_VALUE_ROWS_NUMBER + 1,
-					"addGVRow did not update rowCount properly");
-	fail_unless (str_equal(vTable->rows[DEFAULT_VALUE_ROWS_NUMBER].string_val, test_val) == 1,
-						"addGVRow changed the val_string");
-	fail_unless (rowID == DEFAULT_VALUE_ROWS_NUMBER,
-				"addGVRow returned wrong rowID: %d", rowID);
-}
-END_TEST
-
-START_TEST (test_addLVRow)
-{
-	errorCode err = UNEXPECTED_ERROR;
-	LocalNamesTable* lnTable;
-	size_t rowID = 55;
-	unsigned int globalValueRowID = 101;
-	AllocList memList;
-	StringType test_ln;
-
-	initAllocList(&memList);
-	err = createLocalNamesTable(&lnTable, &memList);
-	fail_if(err != ERR_OK);
-
-	asciiToString("test_ln_string", &test_ln, &memList, FALSE);
-	err = addLNRow(lnTable, test_ln, &rowID);
-	fail_unless (err == ERR_OK, "addLNRow returns error code %d", err);
-	fail_unless (lnTable->arrayDimension == DEFAULT_LOCALNAMES_ROWS_NUMBER,
-				"addLNRow changed the arrayDimension unnecessary");
-	fail_unless (lnTable->rowCount == 1,
-					"addLNRow did not update rowCount properly");
-
-	fail_unless (str_equal(lnTable->rows[0].string_val, test_ln) == 1,
-						"addLNRow changed the ln_string");
-	fail_unless (rowID == 0,
-				"addLNRow returned wrong rowID: %d", rowID);
-	fail_if(lnTable->rows[0].vCrossTable != NULL);
-
-	err = addLVRow(&(lnTable->rows[0]), globalValueRowID, &memList);
-	fail_unless (err == ERR_OK, "addLVRow returns error code %d", err);
-	fail_if(lnTable->rows[0].vCrossTable == NULL);
-	fail_if(lnTable->rows[0].vCrossTable->valueRowIds == NULL);
-	fail_unless (lnTable->rows[0].vCrossTable->rowCount == 1,
-				 "addLVRow did not update vCrossTable.rowCount properly");
-	fail_unless (lnTable->rows[0].vCrossTable->arrayDimension == DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER,
-					 "addLVRow did not update the arrayDimension");
-	fail_unless (lnTable->rows[0].vCrossTable->valueRowIds[0] == 101,
-						 "addLVRow did not set the valueRowIds properly");
+	fail("Not implemented yet");
 }
 END_TEST
 
@@ -362,8 +284,7 @@ Suite * tables_suite (void)
 	  tcase_add_test (tc_tables, test_createInitialStringTables);
 	  tcase_add_test (tc_tables, test_createValueLocalCrossTable);
 	  tcase_add_test (tc_tables, test_addLNRow);
-	  tcase_add_test (tc_tables, test_addGVRow);
-	  tcase_add_test (tc_tables, test_addLVRow);
+	  tcase_add_test (tc_tables, test_addValueRows);
 	  suite_add_tcase (s, tc_tables);
   }
 
