@@ -122,6 +122,8 @@ EXAMPLE_1 = exipd
 
 EXAMPLE_2 = exipe
 
+EXAMPLE_3 = exipg
+
 # Examples directories
 EXAMPLES_SRC_DIR = $(PROJECT_ROOT)/examples
 EXAMPLES_BIN_DIR = $(BIN_DIR)/examples
@@ -141,6 +143,8 @@ include contentIO.mk
 include grammarGen.mk
 
 include tests.mk
+
+include examples.mk
 
 OBJECT_ALL = $(COMMON_OBJ) $(STREAM_IO_OBJ) $(STRING_TABLES_OBJ) $(GRAMMAR_OBJ) $(CONTENT_IO_OBJ) $(GRAMMAR_GEN_OBJ)
 
@@ -169,14 +173,8 @@ check: mk_tests $(CHECK_TARGET)
 		for i in $(CHECK_TARGET); do \
                  $$i; \
              done
-		
-$(EXAMPLES_BIN_DIR)/$(EXAMPLE_1): $(EXAMPLES_SRC_DIR)/simpleDecoding/decodeTestEXI.c $(BIN_DIR)/libexip.a
-		$(CC) $(CFLAGS) $(EXAMPLES_SRC_DIR)/simpleDecoding/decodeTestEXI.c $(BIN_DIR)/libexip.a -o $(EXAMPLES_BIN_DIR)/$(EXAMPLE_1)
-		
-$(EXAMPLES_BIN_DIR)/$(EXAMPLE_2): $(EXAMPLES_SRC_DIR)/simpleEncoding/encodeTestEXI.c $(BIN_DIR)/libexip.a
-		$(CC) $(CFLAGS) $(EXAMPLES_SRC_DIR)/simpleEncoding/encodeTestEXI.c $(BIN_DIR)/libexip.a -o $(EXAMPLES_BIN_DIR)/$(EXAMPLE_2)		
 
-examples: mk_examples lib $(EXAMPLES_BIN_DIR)/$(EXAMPLE_1) $(EXAMPLES_BIN_DIR)/$(EXAMPLE_2) test_sets_copy
+examples: mk_examples lib $(EXAMPLES_BIN_DIR)/$(EXAMPLE_1) $(EXAMPLES_BIN_DIR)/$(EXAMPLE_2) $(EXAMPLES_BIN_DIR)/$(EXAMPLE_3) test_sets_copy
 
 mk_bin:
 		mkdir -p $(BIN_DIR)
