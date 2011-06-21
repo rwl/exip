@@ -70,20 +70,23 @@
 #define ELEMENT_EXTENSION        9
 #define ELEMENT_RESTRICTION     10
 #define ELEMENT_SIMPLE_CONTENT  11
+#define ELEMENT_ANY             12
 
 #define ELEMENT_VOID           255
 
 
 /** Codes for the attributes found in the schema */
-#define ATTRIBUTE_ABSENT     0
-#define ATTRIBUTE_NAME       1
-#define ATTRIBUTE_TYPE       2
-#define ATTRIBUTE_REF        3
-#define ATTRIBUTE_MIN_OCCURS 4
-#define ATTRIBUTE_MAX_OCCURS 5
-#define ATTRIBUTE_FORM       6
-#define ATTRIBUTE_BASE       7
-#define ATTRIBUTE_USE        8
+#define ATTRIBUTE_ABSENT         0
+#define ATTRIBUTE_NAME           1
+#define ATTRIBUTE_TYPE           2
+#define ATTRIBUTE_REF            3
+#define ATTRIBUTE_MIN_OCCURS     4
+#define ATTRIBUTE_MAX_OCCURS     5
+#define ATTRIBUTE_FORM           6
+#define ATTRIBUTE_BASE           7
+#define ATTRIBUTE_USE            8
+#define ATTRIBUTE_NAMESPACE      9
+#define ATTRIBUTE_PROC_CONTENTS 10
 
 #define ATTRIBUTE_VOID     255
 
@@ -173,10 +176,14 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data);
 
 static errorCode handleElementEl(struct xsdAppData* app_data);
 
+static errorCode handleAnyEl(struct xsdAppData* app_data);
+
 static errorCode handleElementSequence(struct xsdAppData* app_data);
 
 
 //////////// Helper functions
+
+static errorCode addURIString(struct xsdAppData* app_data, StringType* uri, uint16_t* uriRowId);
 
 static errorCode addLocalName(uint16_t uriId, struct xsdAppData* app_data, StringType* ln, size_t* lnRowId);
 
@@ -375,8 +382,8 @@ static char xsd_startElement(QName qname, void* app_data)
 	struct xsdAppData* appD = (struct xsdAppData*) app_data;
 	if(appD->props.propsStat == INITIAL_STATE) // This should be the first <schema> element
 	{
-		if(strEqualToAscii(*qname.uri, XML_SCHEMA_NAMESPACE) &&
-				strEqualToAscii(*qname.localName, "schema"))
+		if(stringEqualToAscii(*qname.uri, XML_SCHEMA_NAMESPACE) &&
+				stringEqualToAscii(*qname.localName, "schema"))
 		{
 			appD->props.propsStat = SCHEMA_ELEMENT_STATE;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <schema> element\n"));
@@ -400,7 +407,7 @@ static char xsd_startElement(QName qname, void* app_data)
 			if(appD->props.attributeFormDefault == FORM_DEF_INITIAL_STATE)
 				appD->props.attributeFormDefault = FORM_DEF_UNQUALIFIED; // The default value is unqualified
 
-			if(!isStrEmpty(&appD->props.targetNamespace)) // Add the declared target namespace in the String Tables
+			if(!isStringEmpty(&appD->props.targetNamespace)) // Add the declared target namespace in the String Tables
 			{
 				uint16_t uriID;
 
@@ -429,7 +436,7 @@ static char xsd_startElement(QName qname, void* app_data)
 			}
 		}
 
-		if(!strEqualToAscii(*qname.uri, XML_SCHEMA_NAMESPACE))
+		if(!stringEqualToAscii(*qname.uri, XML_SCHEMA_NAMESPACE))
 		{
 			DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Invalid namespace of XML Schema element\n"));
 			return EXIP_HANDLER_STOP;
@@ -444,22 +451,22 @@ static char xsd_startElement(QName qname, void* app_data)
 
 		initElemContext(element);
 
-		if(strEqualToAscii(*qname.localName, "element"))
+		if(stringEqualToAscii(*qname.localName, "element"))
 		{
 			element->element = ELEMENT_ELEMENT;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <element> element\n"));
 		}
-		else if(strEqualToAscii(*qname.localName, "attribute"))
+		else if(stringEqualToAscii(*qname.localName, "attribute"))
 		{
 			element->element = ELEMENT_ATTRIBUTE;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <attribute> element\n"));
 		}
-		else if(strEqualToAscii(*qname.localName, "choice"))
+		else if(stringEqualToAscii(*qname.localName, "choice"))
 		{
 			element->element = ELEMENT_CHOICE;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <choice> element\n"));
 		}
-		else if(strEqualToAscii(*qname.localName, "complexType"))
+		else if(stringEqualToAscii(*qname.localName, "complexType"))
 		{
 			element->element = ELEMENT_COMPLEX_TYPE;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <complexType> element\n"));
@@ -467,32 +474,32 @@ static char xsd_startElement(QName qname, void* app_data)
 			if(tmp_err_code != ERR_OK)
 				return EXIP_HANDLER_STOP;
 		}
-		else if(strEqualToAscii(*qname.localName, "complexContent"))
+		else if(stringEqualToAscii(*qname.localName, "complexContent"))
 		{
 			element->element = ELEMENT_COMPLEX_CONTENT;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <complexContent> element\n"));
 		}
-		else if(strEqualToAscii(*qname.localName, "group"))
+		else if(stringEqualToAscii(*qname.localName, "group"))
 		{
 			element->element = ELEMENT_GROUP;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <group> element\n"));
 		}
-		else if(strEqualToAscii(*qname.localName, "import"))
+		else if(stringEqualToAscii(*qname.localName, "import"))
 		{
 			element->element = ELEMENT_IMPORT;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <import> element\n"));
 		}
-		else if(strEqualToAscii(*qname.localName, "sequence"))
+		else if(stringEqualToAscii(*qname.localName, "sequence"))
 		{
 			element->element = ELEMENT_SEQUENCE;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <sequence> element\n"));
 		}
-		else if(strEqualToAscii(*qname.localName, "all"))
+		else if(stringEqualToAscii(*qname.localName, "all"))
 		{
 			element->element = ELEMENT_ALL;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <all> element\n"));
 		}
-		else if(strEqualToAscii(*qname.localName, "extension"))
+		else if(stringEqualToAscii(*qname.localName, "extension"))
 		{
 			element->element = ELEMENT_EXTENSION;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <extension> element\n"));
@@ -500,15 +507,20 @@ static char xsd_startElement(QName qname, void* app_data)
 			if(tmp_err_code != ERR_OK)
 				return EXIP_HANDLER_STOP;
 		}
-		else if(strEqualToAscii(*qname.localName, "restriction"))
+		else if(stringEqualToAscii(*qname.localName, "restriction"))
 		{
 			element->element = ELEMENT_RESTRICTION;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <restriction> element\n"));
 		}
-		else if(strEqualToAscii(*qname.localName, "simpleContent"))
+		else if(stringEqualToAscii(*qname.localName, "simpleContent"))
 		{
 			element->element = ELEMENT_SIMPLE_CONTENT;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <simpleContent> element\n"));
+		}
+		else if(stringEqualToAscii(*qname.localName, "any"))
+		{
+			element->element = ELEMENT_ANY;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <any> element\n"));
 		}
 		else
 		{
@@ -560,6 +572,11 @@ static char xsd_endElement(void* app_data)
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End </element> element\n"));
 			tmp_err_code = handleElementEl(appD);
 		}
+		else if(element->element == ELEMENT_ANY)
+		{
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End </any> element\n"));
+			tmp_err_code = handleAnyEl(appD);
+		}
 		else if(element->element == ELEMENT_SEQUENCE)
 		{
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End </sequence> element\n"));
@@ -584,17 +601,17 @@ static char xsd_attribute(QName qname, void* app_data)
 	struct xsdAppData* appD = (struct xsdAppData*) app_data;
 	if(appD->props.propsStat == SCHEMA_ELEMENT_STATE) // <schema> element attribute
 	{
-		if(strEqualToAscii(*qname.localName, "targetNamespace"))
+		if(stringEqualToAscii(*qname.localName, "targetNamespace"))
 		{
 			appD->props.charDataPointer = &(appD->props.targetNamespace);
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |targetNamespace| \n"));
 		}
-		else if(strEqualToAscii(*qname.localName, "elementFormDefault"))
+		else if(stringEqualToAscii(*qname.localName, "elementFormDefault"))
 		{
 			appD->props.elementFormDefault = FORM_DEF_EXPECTING;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |elementFormDefault| \n"));
 		}
-		else if(strEqualToAscii(*qname.localName, "attributeFormDefault"))
+		else if(stringEqualToAscii(*qname.localName, "attributeFormDefault"))
 		{
 			appD->props.attributeFormDefault = FORM_DEF_EXPECTING;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |attributeFormDefault| \n"));
@@ -608,45 +625,55 @@ static char xsd_attribute(QName qname, void* app_data)
 	{
 		ElementDescription* element = (ElementDescription*) appD->contextStack->element;
 
-		if(strEqualToAscii(*qname.localName, "name"))
+		if(stringEqualToAscii(*qname.localName, "name"))
 		{
 			appD->props.charDataPointer = &(element->attributePointers[ATTRIBUTE_NAME]);
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |name| \n"));
 		}
-		else if(strEqualToAscii(*qname.localName, "type"))
+		else if(stringEqualToAscii(*qname.localName, "type"))
 		{
 			appD->props.charDataPointer = &(element->attributePointers[ATTRIBUTE_TYPE]);
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |type| \n"));
 		}
-		else if(strEqualToAscii(*qname.localName, "ref"))
+		else if(stringEqualToAscii(*qname.localName, "ref"))
 		{
 			appD->props.charDataPointer = &(element->attributePointers[ATTRIBUTE_REF]);
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |ref| \n"));
 		}
-		else if(strEqualToAscii(*qname.localName, "minOccurs"))
+		else if(stringEqualToAscii(*qname.localName, "minOccurs"))
 		{
 			appD->props.charDataPointer = &(element->attributePointers[ATTRIBUTE_MIN_OCCURS]);
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |minOccurs| \n"));
 		}
-		else if(strEqualToAscii(*qname.localName, "maxOccurs"))
+		else if(stringEqualToAscii(*qname.localName, "maxOccurs"))
 		{
 			appD->props.charDataPointer = &(element->attributePointers[ATTRIBUTE_MAX_OCCURS]);
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |maxOccurs| \n"));
 		}
-		else if(strEqualToAscii(*qname.localName, "form"))
+		else if(stringEqualToAscii(*qname.localName, "form"))
 		{
 			appD->props.charDataPointer = &(element->attributePointers[ATTRIBUTE_FORM]);
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |form| \n"));
 		}
-		else if(strEqualToAscii(*qname.localName, "base"))
+		else if(stringEqualToAscii(*qname.localName, "base"))
 		{
 			appD->props.charDataPointer = &(element->attributePointers[ATTRIBUTE_BASE]);
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |base| \n"));
 		}
-		else if(strEqualToAscii(*qname.localName, "use"))
+		else if(stringEqualToAscii(*qname.localName, "use"))
 		{
 			appD->props.charDataPointer = &(element->attributePointers[ATTRIBUTE_USE]);
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |use| \n"));
+		}
+		else if(stringEqualToAscii(*qname.localName, "namespace"))
+		{
+			appD->props.charDataPointer = &(element->attributePointers[ATTRIBUTE_NAMESPACE]);
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |namespace| \n"));
+		}
+		else if(stringEqualToAscii(*qname.localName, "processContents"))
+		{
+			appD->props.charDataPointer = &(element->attributePointers[ATTRIBUTE_PROC_CONTENTS]);
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |processContents| \n"));
 		}
 		else
 		{
@@ -678,9 +705,9 @@ static char xsd_stringData(const StringType value, void* app_data)
 			}
 			else if(appD->props.elementFormDefault == FORM_DEF_EXPECTING) // expecting value for elementFormDefault
 			{
-				if(strEqualToAscii(value, "qualified"))
+				if(stringEqualToAscii(value, "qualified"))
 					appD->props.elementFormDefault = FORM_DEF_QUALIFIED;
-				else if(strEqualToAscii(value, "unqualified"))
+				else if(stringEqualToAscii(value, "unqualified"))
 					appD->props.elementFormDefault = FORM_DEF_UNQUALIFIED;
 				else
 				{
@@ -690,9 +717,9 @@ static char xsd_stringData(const StringType value, void* app_data)
 			}
 			else if(appD->props.attributeFormDefault == FORM_DEF_EXPECTING) // expecting value for attributeFormDefault
 			{
-				if(strEqualToAscii(value, "qualified"))
+				if(stringEqualToAscii(value, "qualified"))
 					appD->props.attributeFormDefault = FORM_DEF_QUALIFIED;
-				else if(strEqualToAscii(value, "unqualified"))
+				else if(stringEqualToAscii(value, "unqualified"))
 					appD->props.attributeFormDefault = FORM_DEF_UNQUALIFIED;
 				else
 				{
@@ -773,12 +800,12 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	if (!isStrEmpty(&(elemDesc->attributePointers[ATTRIBUTE_USE])) &&
-			strEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_USE], "required"))
+	if (!isStringEmpty(&(elemDesc->attributePointers[ATTRIBUTE_USE])) &&
+			stringEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_USE], "required"))
 	{
 		required = 1;
 	}
-	if(app_data->props.attributeFormDefault == FORM_DEF_QUALIFIED || strEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_FORM], "qualified"))
+	if(app_data->props.attributeFormDefault == FORM_DEF_QUALIFIED || stringEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_FORM], "qualified"))
 	{
 		//TODO: must take into account the parent element target namespace - might be different from the global target namespace
 
@@ -923,7 +950,7 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 
 	typeName = &(elemDesc->attributePointers[ATTRIBUTE_NAME]);
 
-	if(app_data->props.elementFormDefault == FORM_DEF_QUALIFIED || strEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_FORM], "qualified"))
+	if(app_data->props.elementFormDefault == FORM_DEF_QUALIFIED || stringEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_FORM], "qualified"))
 	{
 		//TODO: must take into account the parent element target namespace
 		target_ns = &(app_data->props.targetNamespace);
@@ -935,7 +962,7 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 		uriRowID = 0; // ""
 	}
 
-	if(!isStrEmpty(typeName))
+	if(!isStringEmpty(typeName))
 	{
 		tmp_err_code = addLocalName(uriRowID, app_data, typeName, &lnRowID);
 		if(tmp_err_code != ERR_OK)
@@ -972,7 +999,7 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 	}
 #endif
 
-	if(isStrEmpty(typeName))  // The name is empty i.e. anonymous complex type
+	if(isStringEmpty(typeName))  // The name is empty i.e. anonymous complex type
 	{
 		// Put the ComplexTypeGrammar on top of the pGrammarStack
 		// There should be a parent <element> declaration for this grammar
@@ -1032,7 +1059,7 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 	if(app_data->contextStack == NULL) // Global element
 		isGlobal = TRUE;
 
-	if(isGlobal || app_data->props.elementFormDefault == FORM_DEF_QUALIFIED || strEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_FORM], "qualified"))
+	if(isGlobal || app_data->props.elementFormDefault == FORM_DEF_QUALIFIED || stringEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_FORM], "qualified"))
 	{
 		//TODO: must take into account the parent element target namespace
 		target_ns = &(app_data->props.targetNamespace);
@@ -1056,7 +1083,7 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 		QNameID globalQnameID;
 		size_t dynElID;
 
-		if(isStrEmpty(&type))  // There is no type attribute i.e. there must be some complex type in the pGrammarStack
+		if(isStringEmpty(&type))  // There is no type attribute i.e. there must be some complex type in the pGrammarStack
 		{
 			tmp_err_code = popFromStack(&(elemDesc->pGrammarStack), (void**) &typeGrammar);
 			if(tmp_err_code != ERR_OK)
@@ -1103,7 +1130,7 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 		int32_t maxOccurs = 1;
 		QName typeQname;
 
-		if(isStrEmpty(&type))  // There is no type attribute i.e. there must be some complex type in the pGrammarStack
+		if(isStringEmpty(&type))  // There is no type attribute i.e. there must be some complex type in the pGrammarStack
 		{
 			tmp_err_code = popFromStack(&(elemDesc->pGrammarStack), (void**) &typeGrammar);
 			if(tmp_err_code != ERR_OK)
@@ -1138,7 +1165,7 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			if(isStrEmpty(typeQname.uri) || strEqualToAscii(*typeQname.uri, XML_SCHEMA_NAMESPACE)) // This is simple type definition
+			if(isStringEmpty(typeQname.uri) || stringEqualToAscii(*typeQname.uri, XML_SCHEMA_NAMESPACE)) // This is simple type definition
 			{
 				tmp_err_code = createSimpleTypeGrammar(&app_data->tmpMemList, typeQname, &typeGrammar);
 				if(tmp_err_code != ERR_OK)
@@ -1174,6 +1201,57 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
+	return ERR_OK;
+}
+
+static errorCode handleAnyEl(struct xsdAppData* app_data)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	ElementDescription* elemDesc;
+	StringType* namespaceArr;
+	unsigned int namespaceCount = 0;
+	uint16_t uriRowId;
+	unsigned int i = 0;
+	ProtoGrammar* wildTermGrammar;
+	ProtoGrammar* wildParticleGrammar;
+	unsigned int minOccurs = 1;
+	int32_t maxOccurs = 1;
+
+	tmp_err_code = popFromStack(&(app_data->contextStack), (void**) &elemDesc);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = splitStringByChar(&elemDesc->attributePointers[ATTRIBUTE_NAMESPACE], ' ', &namespaceArr, &namespaceCount, &app_data->tmpMemList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	for(i = 0; i < namespaceCount; i++)
+	{
+		if(!stringEqualToAscii(namespaceArr[i], "##any") &&
+				!stringEqualToAscii(namespaceArr[i], "##other") &&
+				!stringEqualToAscii(namespaceArr[i], "##targetNamespace") &&
+				!stringEqualToAscii(namespaceArr[i], "##local"))
+		{
+			tmp_err_code = addURIString(app_data, &namespaceArr[i], &uriRowId);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+	}
+
+	minOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MIN_OCCURS]);
+	maxOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MAX_OCCURS]);
+
+	tmp_err_code = createWildcardTermGrammar(&app_data->tmpMemList, namespaceArr, namespaceCount, &wildTermGrammar);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = createParticleGrammar(&app_data->tmpMemList, minOccurs, maxOccurs,
+			wildTermGrammar, &wildParticleGrammar);
+
+	tmp_err_code = pushOnStack(&((ElementDescription*) app_data->contextStack->element)->pGrammarStack, (void*) wildParticleGrammar);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
 	return ERR_OK;
 }
 
@@ -1224,6 +1302,28 @@ static errorCode handleElementSequence(struct xsdAppData* app_data)
 }
 
 // Only adds it if it is not there yet
+static errorCode addURIString(struct xsdAppData* app_data, StringType* uri, uint16_t* uriRowId)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	StringType uriClone;   // The uri name string is copied to the schema MemList
+
+	if(!lookupURI(app_data->schema->initialStringTables, *uri, uriRowId))
+	{
+		tmp_err_code = cloneString(uri, &uriClone, &app_data->schema->memList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		tmp_err_code = addURIRow(app_data->schema->initialStringTables, uriClone, uriRowId, &app_data->schema->memList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = addURIRow(app_data->metaStringTables, *uri, uriRowId, &app_data->tmpMemList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	return ERR_OK;
+}
+
+// Only adds it if it is not there yet
 static errorCode addLocalName(uint16_t uriId, struct xsdAppData* app_data, StringType* ln, size_t* lnRowId)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -1269,7 +1369,7 @@ static int compareLN(const void* lnRow1, const void* lnRow2)
 	struct LocalNamesRow* r1 = (struct LocalNamesRow*) lnRow1;
 	struct LocalNamesRow* r2 = (struct LocalNamesRow*) lnRow2;
 
-	return str_compare(r1->string_val, r2->string_val);
+	return stringCompare(r1->string_val, r2->string_val);
 }
 
 static int compareURI(const void* uriRow1, const void* uriRow2)
@@ -1277,7 +1377,7 @@ static int compareURI(const void* uriRow1, const void* uriRow2)
 	struct URIRow* r1 = (struct URIRow*) uriRow1;
 	struct URIRow* r2 = (struct URIRow*) uriRow2;
 
-	return str_compare(r1->string_val, r2->string_val);
+	return stringCompare(r1->string_val, r2->string_val);
 }
 
 static void sortInitialStringTables(URITable* stringTables)
@@ -1325,10 +1425,10 @@ static int parseOccuranceAttribute(const StringType occurance)
 	// TODO: Just a temporary implementation. Only works for the ASCII string representation. Fix that!
 	char buff[20];
 
-	if(isStrEmpty(&occurance))
+	if(isStringEmpty(&occurance))
 		return 1; // The default value
 
-	if(strEqualToAscii(occurance, "unbounded"))
+	if(stringEqualToAscii(occurance, "unbounded"))
 		return -1;
 
 	memcpy(buff, occurance.str, occurance.length);
