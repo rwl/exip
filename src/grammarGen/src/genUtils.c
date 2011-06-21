@@ -576,7 +576,33 @@ errorCode createElementTermGrammar(AllocList* memList, StringType* name, StringT
 
 errorCode createWildcardTermGrammar(AllocList* memList, StringType* wildcardArray, unsigned int wildcardArraySize, ProtoGrammar** result)
 {
-	return NOT_IMPLEMENTED_YET;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+
+	tmp_err_code = createProtoGrammar(memList, 2, wildcardArraySize + 1, result);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+	(*result)->contentIndex = 0;
+
+	if(wildcardArraySize == 0 || stringEqualToAscii(wildcardArray[0], "##any") || stringEqualToAscii(wildcardArray[0], "##other"))
+	{
+		(*result)->prods[0][0].event =  getEventDefType(EVENT_SE_ALL);
+		(*result)->prods[0][0].nonTermID = 1;
+		(*result)->prods[0][0].uriRowID = UINT16_MAX;
+		(*result)->prods[0][0].lnRowID = SIZE_MAX;
+		(*result)->prodCount[0] = 1;
+	}
+	else
+	{
+		return NOT_IMPLEMENTED_YET;
+	}
+
+	(*result)->prods[1][0].event = getEventDefType(EVENT_EE);
+	(*result)->prods[1][0].nonTermID = GR_VOID_NON_TERMINAL;
+	(*result)->prods[1][0].uriRowID = UINT16_MAX;
+	(*result)->prods[1][0].lnRowID = SIZE_MAX;
+	(*result)->prodCount[1] = 1;
+
+	return ERR_OK;
 }
 
 errorCode createSequenceModelGroupsGrammar(AllocList* memList, GenericStack* protoGrammars, ProtoGrammar** result)
@@ -678,79 +704,79 @@ errorCode createAllModelGroupsGrammar(AllocList* memList, ProtoGrammar* pTermArr
 
 errorCode getEXIDataType(QName simpleXSDType, ValueType* exiType)
 {
-	if(strEqualToAscii(*simpleXSDType.localName, "string") ||
-	   strEqualToAscii(*simpleXSDType.localName, "duration") ||
-	   strEqualToAscii(*simpleXSDType.localName, "anyURI") ||
-	   strEqualToAscii(*simpleXSDType.localName, "normalizedString") ||
-	   strEqualToAscii(*simpleXSDType.localName, "token") ||
-	   strEqualToAscii(*simpleXSDType.localName, "Name") ||
-	   strEqualToAscii(*simpleXSDType.localName, "NMTOKEN") ||
-	   strEqualToAscii(*simpleXSDType.localName, "NCName") ||
-	   strEqualToAscii(*simpleXSDType.localName, "ID") ||
-	   strEqualToAscii(*simpleXSDType.localName, "IDREF") ||
-	   strEqualToAscii(*simpleXSDType.localName, "ENTITY"))
+	if(stringEqualToAscii(*simpleXSDType.localName, "string") ||
+	   stringEqualToAscii(*simpleXSDType.localName, "duration") ||
+	   stringEqualToAscii(*simpleXSDType.localName, "anyURI") ||
+	   stringEqualToAscii(*simpleXSDType.localName, "normalizedString") ||
+	   stringEqualToAscii(*simpleXSDType.localName, "token") ||
+	   stringEqualToAscii(*simpleXSDType.localName, "Name") ||
+	   stringEqualToAscii(*simpleXSDType.localName, "NMTOKEN") ||
+	   stringEqualToAscii(*simpleXSDType.localName, "NCName") ||
+	   stringEqualToAscii(*simpleXSDType.localName, "ID") ||
+	   stringEqualToAscii(*simpleXSDType.localName, "IDREF") ||
+	   stringEqualToAscii(*simpleXSDType.localName, "ENTITY"))
 	{
 		*exiType = VALUE_TYPE_STRING;
 		return ERR_OK;
 	}
-	else if(strEqualToAscii(*simpleXSDType.localName, "boolean"))
+	else if(stringEqualToAscii(*simpleXSDType.localName, "boolean"))
 	{
 		*exiType = VALUE_TYPE_BOOLEAN;
 		return ERR_OK;
 	}
-	else if(strEqualToAscii(*simpleXSDType.localName, "integer") ||
-			strEqualToAscii(*simpleXSDType.localName, "nonPositiveInteger") ||
-			strEqualToAscii(*simpleXSDType.localName, "long") ||
-			strEqualToAscii(*simpleXSDType.localName, "int") ||
-			strEqualToAscii(*simpleXSDType.localName, "short") ||
-			strEqualToAscii(*simpleXSDType.localName, "byte") ||
-			strEqualToAscii(*simpleXSDType.localName, "negativeInteger"))
+	else if(stringEqualToAscii(*simpleXSDType.localName, "integer") ||
+			stringEqualToAscii(*simpleXSDType.localName, "nonPositiveInteger") ||
+			stringEqualToAscii(*simpleXSDType.localName, "long") ||
+			stringEqualToAscii(*simpleXSDType.localName, "int") ||
+			stringEqualToAscii(*simpleXSDType.localName, "short") ||
+			stringEqualToAscii(*simpleXSDType.localName, "byte") ||
+			stringEqualToAscii(*simpleXSDType.localName, "negativeInteger"))
 	{
 		*exiType = VALUE_TYPE_INTEGER;
 		return ERR_OK;
 	}
-	else if(strEqualToAscii(*simpleXSDType.localName, "nonNegativeInteger") ||
-			strEqualToAscii(*simpleXSDType.localName, "positiveInteger") ||
-			strEqualToAscii(*simpleXSDType.localName, "unsignedLong") ||
-			strEqualToAscii(*simpleXSDType.localName, "unsignedInt") ||
-			strEqualToAscii(*simpleXSDType.localName, "unsignedShort") ||
-			strEqualToAscii(*simpleXSDType.localName, "unsignedByte"))
+	else if(stringEqualToAscii(*simpleXSDType.localName, "nonNegativeInteger") ||
+			stringEqualToAscii(*simpleXSDType.localName, "positiveInteger") ||
+			stringEqualToAscii(*simpleXSDType.localName, "unsignedLong") ||
+			stringEqualToAscii(*simpleXSDType.localName, "unsignedInt") ||
+			stringEqualToAscii(*simpleXSDType.localName, "unsignedShort") ||
+			stringEqualToAscii(*simpleXSDType.localName, "unsignedByte"))
 	{
 		*exiType = VALUE_TYPE_NON_NEGATIVE_INT;
 		return ERR_OK;
 	}
-	else if(strEqualToAscii(*simpleXSDType.localName, "float") ||
-				strEqualToAscii(*simpleXSDType.localName, "double"))
+	else if(stringEqualToAscii(*simpleXSDType.localName, "float") ||
+				stringEqualToAscii(*simpleXSDType.localName, "double"))
 	{
 		*exiType = VALUE_TYPE_FLOAT;
 		return ERR_OK;
 	}
-	else if(strEqualToAscii(*simpleXSDType.localName, "decimal"))
+	else if(stringEqualToAscii(*simpleXSDType.localName, "decimal"))
 	{
 		*exiType = VALUE_TYPE_DECIMAL;
 		return ERR_OK;
 	}
-	else if(strEqualToAscii(*simpleXSDType.localName, "hexBinary") ||
-				strEqualToAscii(*simpleXSDType.localName, "base64Binary"))
+	else if(stringEqualToAscii(*simpleXSDType.localName, "hexBinary") ||
+				stringEqualToAscii(*simpleXSDType.localName, "base64Binary"))
 	{
 		*exiType = VALUE_TYPE_BINARY;
 		return ERR_OK;
 	}
-	else if(strEqualToAscii(*simpleXSDType.localName, "dateTime") ||
-			strEqualToAscii(*simpleXSDType.localName, "time") ||
-			strEqualToAscii(*simpleXSDType.localName, "date") ||
-			strEqualToAscii(*simpleXSDType.localName, "gYearMonth") ||
-			strEqualToAscii(*simpleXSDType.localName, "gYear") ||
-			strEqualToAscii(*simpleXSDType.localName, "gMonthDay") ||
-			strEqualToAscii(*simpleXSDType.localName, "gDay") ||
-			strEqualToAscii(*simpleXSDType.localName, "gMonth"))
+	else if(stringEqualToAscii(*simpleXSDType.localName, "dateTime") ||
+			stringEqualToAscii(*simpleXSDType.localName, "time") ||
+			stringEqualToAscii(*simpleXSDType.localName, "date") ||
+			stringEqualToAscii(*simpleXSDType.localName, "gYearMonth") ||
+			stringEqualToAscii(*simpleXSDType.localName, "gYear") ||
+			stringEqualToAscii(*simpleXSDType.localName, "gMonthDay") ||
+			stringEqualToAscii(*simpleXSDType.localName, "gDay") ||
+			stringEqualToAscii(*simpleXSDType.localName, "gMonth"))
 	{
 		*exiType = VALUE_TYPE_DATE_TIME;
 		return ERR_OK;
 	}
-	else if(strEqualToAscii(*simpleXSDType.localName, "NMTOKENS") ||
-			strEqualToAscii(*simpleXSDType.localName, "IDREFS") ||
-			strEqualToAscii(*simpleXSDType.localName, "ENTITIES"))
+	else if(stringEqualToAscii(*simpleXSDType.localName, "NMTOKENS") ||
+			stringEqualToAscii(*simpleXSDType.localName, "IDREFS") ||
+			stringEqualToAscii(*simpleXSDType.localName, "ENTITIES"))
 	{
 		*exiType = VALUE_TYPE_LIST;
 		return ERR_OK;
@@ -761,10 +787,10 @@ errorCode getEXIDataType(QName simpleXSDType, ValueType* exiType)
 
 int qnamesCompare(const StringType* uri1, const StringType* ln1, const StringType* uri2, const StringType* ln2)
 {
-	int uri_cmp_res = str_compare(*uri1, *uri2);
+	int uri_cmp_res = stringCompare(*uri1, *uri2);
 	if(uri_cmp_res == 0) // equal URIs
 	{
-		return str_compare(*ln1, *ln2);
+		return stringCompare(*ln1, *ln2);
 	}
 	return uri_cmp_res;
 }

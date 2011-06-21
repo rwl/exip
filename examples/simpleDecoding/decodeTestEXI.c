@@ -283,7 +283,7 @@ static char sample_startElement(QName qname, void* app_data)
 		if(appD->unclosedElement)
 			printf(">\n");
 		printf("<");
-		if(!isStrEmpty(qname.uri))
+		if(!isStringEmpty(qname.uri))
 		{
 			printString(qname.uri);
 			printf(":");
@@ -329,7 +329,7 @@ static char sample_attribute(QName qname, void* app_data)
 	else if(appD->outputFormat == OUT_XML)
 	{
 		printf(" ");
-		if(!isStrEmpty(qname.uri))
+		if(!isStringEmpty(qname.uri))
 		{
 			printString(qname.uri);
 			printf(":");

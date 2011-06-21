@@ -157,7 +157,7 @@ START_TEST (test_addURIRow)
 				"addURIRow changed the arrayDimension unnecessary");
 	fail_unless (uTable->rowCount == 1,
 					"addURIRow did not update rowCount properly");
-	fail_unless (str_equal(uTable->rows[0].string_val, test_uri) == 1,
+	fail_unless (stringEqual(uTable->rows[0].string_val, test_uri) == 1,
 						"addURIRow changed the uri_string");
 	fail_unless (rowID == 0,
 				"addURIRow returned wrong rowID: %d", rowID);
@@ -174,7 +174,7 @@ START_TEST (test_addURIRow)
 				"addURIRow changed the arrayDimension unnecessary");
 	fail_unless (uTable->rowCount == DEFAULT_URI_ROWS_NUMBER + 1,
 					"addURIRow did not update rowCount properly");
-	fail_unless (str_equal(uTable->rows[DEFAULT_URI_ROWS_NUMBER].string_val, test_uri) == 1,
+	fail_unless (stringEqual(uTable->rows[DEFAULT_URI_ROWS_NUMBER].string_val, test_uri) == 1,
 						"addURIRow changed the uri_string");
 	fail_unless (rowID == DEFAULT_URI_ROWS_NUMBER,
 				"addURIRow returned wrong rowID: %d", rowID);
@@ -205,7 +205,7 @@ START_TEST (test_addLNRow)
 				"addLNRow changed the arrayDimension unnecessary");
 	fail_unless (lnTable->rowCount == 1,
 					"addLNRow did not update rowCount properly");
-	fail_unless (str_equal(lnTable->rows[0].string_val, test_ln) == 1,
+	fail_unless (stringEqual(lnTable->rows[0].string_val, test_ln) == 1,
 						"addLNRow changed the ln_string");
 	fail_unless (rowID == 0,
 				"addLNRow returned wrong rowID: %d", rowID);
@@ -221,7 +221,7 @@ START_TEST (test_addLNRow)
 				"addLNRow changed the arrayDimension unnecessary");
 	fail_unless (lnTable->rowCount == DEFAULT_LOCALNAMES_ROWS_NUMBER + 1,
 					"addLNRow did not update rowCount properly");
-	fail_unless (str_equal(lnTable->rows[DEFAULT_LOCALNAMES_ROWS_NUMBER].string_val, test_ln) == 1,
+	fail_unless (stringEqual(lnTable->rows[DEFAULT_LOCALNAMES_ROWS_NUMBER].string_val, test_ln) == 1,
 						"addLNRow changed the ln_string");
 	fail_unless (rowID == DEFAULT_LOCALNAMES_ROWS_NUMBER,
 				"addLNRow returned wrong rowID: %d", rowID);

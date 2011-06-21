@@ -71,7 +71,7 @@ errorCode getEmptyString(StringType* emptyStr)
 	return ERR_OK;
 }
 
-char isStrEmpty(const StringType* str)
+char isStringEmpty(const StringType* str)
 {
 	if(str == NULL || str->length == 0)
 		return 1;
@@ -102,7 +102,7 @@ errorCode asciiToString(const char* inStr, StringType* outStr, AllocList* memLis
 	return ERR_OK;
 }
 
-char str_equal(const StringType str1, const StringType str2)
+char stringEqual(const StringType str1, const StringType str2)
 {
 	if(str1.length != str2.length)
 		return 0;
@@ -128,7 +128,7 @@ char str_equal(const StringType str1, const StringType str2)
 	}
 }
 
-char strEqualToAscii(const StringType str1, const char* str2)
+char stringEqualToAscii(const StringType str1, const char* str2)
 {
 	if(str1.length != strlen(str2))
 		return 0;
@@ -144,7 +144,7 @@ char strEqualToAscii(const StringType str1, const char* str2)
 	}
 }
 
-int str_compare(const StringType str1, const StringType str2)
+int stringCompare(const StringType str1, const StringType str2)
 {
 	if((char*) str1.str == NULL)
 	{
@@ -178,6 +178,34 @@ errorCode cloneString(const StringType* src, StringType* newStr, AllocList* memL
 	newStr->length = src->length;
 	memcpy(newStr->str, src->str, src->length);
 	return ERR_OK;
+}
+
+errorCode splitStringByChar(const StringType* src, CharType separator, StringType** tokensArray, unsigned int* tokensCount, AllocList* memList)
+{
+	size_t i;
+	size_t lastHitIndex = 0;
+
+	*tokensCount = 1;
+	*tokensArray = (StringType*) src;
+
+	for(i = 0; i < src->length; i++)
+	{
+		if(src->str[i] == separator)
+		{
+			if(lastHitIndex + 1 >= i)
+			{
+				lastHitIndex = i;
+				continue;
+			}
+			else
+			{
+				return NOT_IMPLEMENTED_YET;
+			}
+
+		}
+	}
+
+    return ERR_OK;
 }
 
 #if EXIP_DEBUG == ON

@@ -91,7 +91,7 @@ errorCode getEmptyString(StringType* emptyStr);
  * @param[in] str string to check
  * @return 0 if not empty, 1 if empty
  */
-char isStrEmpty(const StringType* str);
+char isStringEmpty(const StringType* str);
 
 /**
  * @brief Transform a NULL terminated string of ASCII chars to StringType allocating memory for the CharType*.
@@ -113,7 +113,7 @@ errorCode asciiToString(const char* inStr, StringType* outStr, AllocList* memLis
  * @param[in] str2 string to compare
  * @return 1 if the strings are equal, 0 - otherwise
  */
-char str_equal(const StringType str1, const StringType str2);
+char stringEqual(const StringType str1, const StringType str2);
 
 /**
  * @brief Compare two strings lexicographically
@@ -122,7 +122,7 @@ char str_equal(const StringType str1, const StringType str2);
  * @param[in] str2 string to compare
  * @return 0 when the strings are equal; negative int when str1<str2; positive when  str1>str2
  */
-int str_compare(const StringType str1, const StringType str2);
+int stringCompare(const StringType str1, const StringType str2);
 
 /**
  * @brief Checks if a StringType string and ASCII string are equal
@@ -131,7 +131,7 @@ int str_compare(const StringType str1, const StringType str2);
  * @param[in] str2 null terminated string to compare
  * @return 1 if the strings are equal, 0 - otherwise
  */
-char strEqualToAscii(const StringType str1, const char* str2);
+char stringEqualToAscii(const StringType str1, const char* str2);
 
 /**
  * @brief Returns the UCS [ISO/IEC 10646] code point at particular index from a String
@@ -152,6 +152,17 @@ errorCode getUCSCodePoint(const StringType* str, size_t charIndex, uint32_t* UCS
  * @return Error handling code
  */
 errorCode cloneString(const StringType* src, StringType* newStr, AllocList* memList);
+
+/**
+ * @brief Split a string into multiple tokens/strings based on a particular character
+ * @param[in] src the source string
+ * @param[in] separator a pattern used to split the src string
+ * @param[out] tokensArray an array of tokens
+ * @param[out] tokensCount the number of tokens
+ * @param[in, out] memList A list storing the memory allocations
+ * @return Error handling code
+ */
+errorCode splitStringByChar(const StringType* src, CharType separator, StringType** tokensArray, unsigned int* tokensCount, AllocList* memList);
 
 #if EXIP_DEBUG == ON
 

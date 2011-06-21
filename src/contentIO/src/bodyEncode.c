@@ -204,10 +204,10 @@ errorCode encodeComplexEXIEvent(EXIStream* strm, QName qname, unsigned char even
 			tmp_prod_indx = currentRule->prodCounts[b] - 1 - j;
 			if(currentRule->prodArrays[b][tmp_prod_indx].event.eventType == event_all ||   // (1)
 		       (currentRule->prodArrays[b][tmp_prod_indx].event.eventType == event_uri &&    // (2)
-			    str_equal(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].string_val, *(qname.uri))) ||
+		    		   stringEqual(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].string_val, *(qname.uri))) ||
 			    (currentRule->prodArrays[b][tmp_prod_indx].event.eventType == event_qname && // (3)
-				 str_equal(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].string_val, *(qname.uri)) &&
-				 str_equal(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].lTable->rows[currentRule->prodArrays[b][tmp_prod_indx].lnRowID].string_val, *(qname.localName)))
+			    		stringEqual(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].string_val, *(qname.uri)) &&
+			    		stringEqual(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].lTable->rows[currentRule->prodArrays[b][tmp_prod_indx].lnRowID].string_val, *(qname.localName)))
 		       )
 			{
 				prodHit = &currentRule->prodArrays[b][tmp_prod_indx];

@@ -135,7 +135,7 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 	// valueMaxLength > 0 // this is essentially equal to valuePartitionCapacity == 0
 	if(opts->valuePartitionCapacity > DEFAULT_VALUE_ROWS_NUMBER && opts->valueMaxLength > 0)
 	{
-		strm->vTable->hashTbl = create_hashtable(53, djbHash, str_equal);
+		strm->vTable->hashTbl = create_hashtable(53, djbHash, stringEqual);
 		if(strm->vTable->hashTbl == NULL)
 			return HASH_TABLE_ERROR;
 	}
