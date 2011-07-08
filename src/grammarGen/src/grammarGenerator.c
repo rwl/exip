@@ -180,6 +180,8 @@ static errorCode handleAnyEl(struct xsdAppData* app_data);
 
 static errorCode handleElementSequence(struct xsdAppData* app_data);
 
+static errorCode handleChoiceEl(struct xsdAppData* app_data);
+
 
 //////////// Helper functions
 
@@ -582,6 +584,11 @@ static char xsd_endElement(void* app_data)
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End </sequence> element\n"));
 			tmp_err_code = handleElementSequence(appD);
 		}
+		else if(element->element == ELEMENT_CHOICE)
+		{
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End </choice> element\n"));
+			tmp_err_code = handleChoiceEl(appD);
+		}
 		else
 		{
 			DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, (">Ignored closing element\n"));
@@ -974,30 +981,35 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	// TODO: the attributeUses array must be sorted first before calling createComplexTypeGrammar()
+	if(contentTypeGrammar == NULL) // An empty element: <xsd:complexType />
+		resultComplexGrammar = NULL;
+	else
+	{
+		// TODO: the attributeUses array must be sorted first before calling createComplexTypeGrammar()
 
-	tmp_err_code = createComplexTypeGrammar(&app_data->tmpMemList, typeName, target_ns,
-			(ProtoGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount),
-			                           NULL, 0, contentTypeGrammar, &resultComplexGrammar);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+		tmp_err_code = createComplexTypeGrammar(&app_data->tmpMemList, typeName, target_ns,
+				(ProtoGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount),
+										   NULL, 0, contentTypeGrammar, &resultComplexGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 
-	//TODO: the attributeUses array must be emptied here
+		//TODO: the attributeUses array must be emptied here
 
 #if DEBUG_GRAMMAR_GEN == ON
-	{
-		uint16_t t = 0;
-		EXIGrammar* tmpGrammar;
-		DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Complex type proto-grammar:\n"));
-		convertProtoGrammar(&app_data->tmpMemList, resultComplexGrammar, &tmpGrammar);
-		for(t = 0; t < tmpGrammar->rulesDimension; t++)
 		{
-			tmp_err_code = printGrammarRule(t, &(tmpGrammar->ruleArray[t]));
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			uint16_t t = 0;
+			EXIGrammar* tmpGrammar;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Complex type proto-grammar:\n"));
+			convertProtoGrammar(&app_data->tmpMemList, resultComplexGrammar, &tmpGrammar);
+			for(t = 0; t < tmpGrammar->rulesDimension; t++)
+			{
+				tmp_err_code = printGrammarRule(t, &(tmpGrammar->ruleArray[t]));
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
 		}
-	}
 #endif
+	}
 
 	if(isStringEmpty(typeName))  // The name is empty i.e. anonymous complex type
 	{
@@ -1136,28 +1148,31 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			tmp_err_code = convertProtoGrammar(&app_data->schema->memList, typeGrammar, &exiTypeGrammar);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			if(typeGrammar != NULL) // It is not an empty element: <xsd:complexType />
+			{
+				tmp_err_code = convertProtoGrammar(&app_data->schema->memList, typeGrammar, &exiTypeGrammar);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
 
-			tmp_err_code = assignCodes(exiTypeGrammar);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+				tmp_err_code = assignCodes(exiTypeGrammar);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
 
 #if DEBUG_GRAMMAR_GEN == ON
-	{
-		uint16_t t = 0;
-		DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Element grammar:\n"));
-		for(t = 0; t < exiTypeGrammar->rulesDimension; t++)
-		{
-			tmp_err_code = printGrammarRule(t, &(exiTypeGrammar->ruleArray[t]));
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-		}
-	}
+				{
+					uint16_t t = 0;
+					DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Element grammar:\n"));
+					for(t = 0; t < exiTypeGrammar->rulesDimension; t++)
+					{
+						tmp_err_code = printGrammarRule(t, &(exiTypeGrammar->ruleArray[t]));
+						if(tmp_err_code != ERR_OK)
+							return tmp_err_code;
+					}
+				}
 #endif
 
-			app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].globalGrammar = exiTypeGrammar;
+				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].globalGrammar = exiTypeGrammar;
+			}
 		}
 		else // The element has a particular named type
 		{
@@ -1299,6 +1314,11 @@ static errorCode handleElementSequence(struct xsdAppData* app_data)
 		return tmp_err_code;
 
 	return ERR_OK;
+}
+
+static errorCode handleChoiceEl(struct xsdAppData* app_data)
+{
+	return NOT_IMPLEMENTED_YET;
 }
 
 // Only adds it if it is not there yet
