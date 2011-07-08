@@ -72,12 +72,21 @@ errorCode pushOnStack(GenericStack** stack, void* element)
 
 errorCode popFromStack(GenericStack** stack, void** element)
 {
-	struct stackNode* node = *stack;
-	*stack = (*stack)->nextInStack;
+	struct stackNode* node;
+	if((*stack) == NULL)
+	{
+		(*element) = NULL;
+		return ERR_OK;
+	}
+	else
+	{
+		node = *stack;
+		*stack = (*stack)->nextInStack;
 
-	(*element) = node->element;
-	EXIP_MFREE(node);
-	return ERR_OK;
+		(*element) = node->element;
+		EXIP_MFREE(node);
+		return ERR_OK;
+	}
 }
 
 
