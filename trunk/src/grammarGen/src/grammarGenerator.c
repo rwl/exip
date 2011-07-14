@@ -71,6 +71,7 @@
 #define ELEMENT_RESTRICTION     10
 #define ELEMENT_SIMPLE_CONTENT  11
 #define ELEMENT_ANY             12
+#define ELEMENT_SIMPLE_TYPE     13
 
 #define ELEMENT_VOID           255
 
@@ -182,6 +183,9 @@ static errorCode handleElementSequence(struct xsdAppData* app_data);
 
 static errorCode handleChoiceEl(struct xsdAppData* app_data);
 
+static errorCode handleSimpleTypeEl(struct xsdAppData* app_data);
+
+static errorCode handleRestrictionEl(struct xsdAppData* app_data);
 
 //////////// Helper functions
 
@@ -524,6 +528,11 @@ static char xsd_startElement(QName qname, void* app_data)
 			element->element = ELEMENT_ANY;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <any> element\n"));
 		}
+		else if(stringEqualToAscii(*qname.localName, "simpleType"))
+		{
+			element->element = ELEMENT_SIMPLE_TYPE;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <simpleType> element\n"));
+		}
 		else
 		{
 			DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, (">Ignored schema element\n"));
@@ -588,6 +597,16 @@ static char xsd_endElement(void* app_data)
 		{
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End </choice> element\n"));
 			tmp_err_code = handleChoiceEl(appD);
+		}
+		else if(element->element == ELEMENT_SIMPLE_TYPE)
+		{
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End </choice> element\n"));
+			tmp_err_code = handleSimpleTypeEl(appD);
+		}
+		else if(element->element == ELEMENT_RESTRICTION)
+		{
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End </restriction> element\n"));
+			tmp_err_code = handleRestrictionEl(appD);
 		}
 		else
 		{
@@ -1317,6 +1336,58 @@ static errorCode handleElementSequence(struct xsdAppData* app_data)
 }
 
 static errorCode handleChoiceEl(struct xsdAppData* app_data)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	ElementDescription* elemDesc;
+	ProtoGrammar* choiceGrammar;
+	ProtoGrammar* choicePartGrammar;
+	unsigned int minOccurs = 1;
+	int32_t maxOccurs = 1;
+
+	tmp_err_code = popFromStack(&(app_data->contextStack), (void**) &elemDesc);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	minOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MIN_OCCURS]);
+	maxOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MAX_OCCURS]);
+
+	tmp_err_code = createChoiceModelGroupsGrammar(&app_data->tmpMemList, elemDesc->pGrammarStack, &choiceGrammar);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = createParticleGrammar(&app_data->tmpMemList, minOccurs, maxOccurs, choiceGrammar, &choicePartGrammar);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+#if DEBUG_GRAMMAR_GEN == ON
+	{
+		uint16_t t = 0;
+		EXIGrammar* tmpGrammar;
+		DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Choice proto-grammar:\n"));
+		convertProtoGrammar(&app_data->tmpMemList, choicePartGrammar, &tmpGrammar);
+		for(t = 0; t < tmpGrammar->rulesDimension; t++)
+		{
+			tmp_err_code = printGrammarRule(t, &(tmpGrammar->ruleArray[t]));
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+	}
+#endif
+
+	tmp_err_code = pushOnStack(&((ElementDescription*) app_data->contextStack->element)->pGrammarStack, (void*) choicePartGrammar);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	return ERR_OK;
+
+}
+
+static errorCode handleRestrictionEl(struct xsdAppData* app_data)
+{
+	return NOT_IMPLEMENTED_YET;
+}
+
+static errorCode handleSimpleTypeEl(struct xsdAppData* app_data)
 {
 	return NOT_IMPLEMENTED_YET;
 }

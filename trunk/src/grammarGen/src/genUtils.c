@@ -94,6 +94,10 @@ errorCode popFromStack(GenericStack** stack, void** element)
 static errorCode addProductionsToARule(AllocList* memList, ProtoGrammar* left, unsigned int ruleIndex, Production* rightRule,
 		unsigned int rightProdCount, struct collisionInfo* collisions, unsigned int* collisionCount, unsigned int* currRuleIndex, unsigned int initialLeftRulesCount);
 
+// Creates the new grammar rules based on the collision information
+static errorCode resolveCollisionsInGrammar(AllocList* memList, struct collisionInfo* collisions,
+											unsigned int* collisionCount, ProtoGrammar* left, unsigned int* currRuleIndex);
+
 static errorCode recursiveGrammarConcat(AllocList* memList, GenericStack* protoGrammars, ProtoGrammar** result);
 
 static int compareProductions(const void* prod1, const void* prod2);
@@ -107,8 +111,6 @@ errorCode concatenateGrammars(AllocList* memList, ProtoGrammar* left, ProtoGramm
 	unsigned int prodIterR = 0;
 	struct collisionInfo collisions[MAX_COLLISIONS_NUMBER];
 	unsigned int collisionCount = 0;
-	unsigned int collisIter = 0;
-	Production* tmpProduction;
 	unsigned int currRuleIndex;
 	unsigned int initialLeftRulesCount = left->rulesCount;
 
@@ -151,26 +153,7 @@ errorCode concatenateGrammars(AllocList* memList, ProtoGrammar* left, ProtoGramm
 	}
 
 	// Create the new grammar rules based on the collision information
-	for(collisIter = 0; collisIter < collisionCount; collisIter++)
-	{
-		tmp_err_code = addProtoRule(memList, left);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		for(prodIterL = 0; prodIterL < left->prodCount[collisions[collisIter].leftNonTerminal]; prodIterL++)
-		{
-			tmpProduction = &(left->prods[collisions[collisIter].leftNonTerminal][prodIterL]);
-			tmp_err_code = addProductionToAProtoRule(memList, left, left->rulesCount - 1, tmpProduction->event, tmpProduction->uriRowID, tmpProduction->lnRowID, tmpProduction->nonTermID);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-		}
-
-		tmp_err_code = addProductionsToARule(memList, left, left->rulesCount-1, left->prods[collisions[collisIter].rightNonTerminal], left->prodCount[collisions[collisIter].rightNonTerminal], collisions, &collisionCount, &currRuleIndex, 0);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-
-	return ERR_OK;
+	return resolveCollisionsInGrammar(memList, collisions, &collisionCount, left, &currRuleIndex);
 }
 
 static errorCode addProductionsToARule(AllocList* memList, ProtoGrammar* left, unsigned int ruleIndex, Production* rightRule,
@@ -242,6 +225,36 @@ static errorCode addProductionsToARule(AllocList* memList, ProtoGrammar* left, u
 				return tmp_err_code;
 		}
 	}
+	return ERR_OK;
+}
+
+static errorCode resolveCollisionsInGrammar(AllocList* memList, struct collisionInfo* collisions,
+											unsigned int* collisionCount, ProtoGrammar* left, unsigned int* currRuleIndex)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	unsigned int collisIter = 0;
+	unsigned int prodIterL = 0;
+	Production* tmpProduction;
+
+	for(collisIter = 0; collisIter < *collisionCount; collisIter++)
+	{
+		tmp_err_code = addProtoRule(memList, left);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		for(prodIterL = 0; prodIterL < left->prodCount[collisions[collisIter].leftNonTerminal]; prodIterL++)
+		{
+			tmpProduction = &(left->prods[collisions[collisIter].leftNonTerminal][prodIterL]);
+			tmp_err_code = addProductionToAProtoRule(memList, left, left->rulesCount - 1, tmpProduction->event, tmpProduction->uriRowID, tmpProduction->lnRowID, tmpProduction->nonTermID);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+
+		tmp_err_code = addProductionsToARule(memList, left, left->rulesCount-1, left->prods[collisions[collisIter].rightNonTerminal], left->prodCount[collisions[collisIter].rightNonTerminal], collisions, collisionCount, currRuleIndex, 0);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+
 	return ERR_OK;
 }
 
@@ -498,9 +511,7 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
 			uint16_t j = 0;
 			struct collisionInfo collisions[MAX_COLLISIONS_NUMBER];
 			unsigned int collisionCount = 0;
-			unsigned int collisIter = 0;
 			unsigned int currRuleIndex = termGrammar->rulesCount;
-			Production* tmpProduction;
 
 			// Excluding the first rule
 			for(i = 1; i < termGrammar->rulesCount; i++)
@@ -526,24 +537,9 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
 			}
 
 			// Create the new grammar rules based on the collision information
-			for(collisIter = 0; collisIter < collisionCount; collisIter++)
-			{
-				tmp_err_code = addProtoRule(memList, termGrammar);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
-
-				for(j = 0; j < termGrammar->prodCount[collisions[collisIter].leftNonTerminal]; j++)
-				{
-					tmpProduction = &(termGrammar->prods[collisions[collisIter].leftNonTerminal][j]);
-					tmp_err_code = addProductionToAProtoRule(memList, termGrammar, termGrammar->rulesCount - 1, tmpProduction->event, tmpProduction->uriRowID, tmpProduction->lnRowID, tmpProduction->nonTermID);
-					if(tmp_err_code != ERR_OK)
-						return tmp_err_code;
-				}
-
-				tmp_err_code = addProductionsToARule(memList, termGrammar, termGrammar->rulesCount-1, termGrammar->prods[collisions[collisIter].rightNonTerminal], termGrammar->prodCount[collisions[collisIter].rightNonTerminal], collisions, &collisionCount, &currRuleIndex, 0);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
-			}
+			tmp_err_code = resolveCollisionsInGrammar(memList, collisions, &collisionCount, termGrammar, &currRuleIndex);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
 
 			tmp_err_code = concatenateGrammars(memList, *result, termGrammar);
 			if(tmp_err_code != ERR_OK)
@@ -673,37 +669,83 @@ static errorCode recursiveGrammarConcat(AllocList* memList, GenericStack* protoG
 	return ERR_OK;
 }
 
-errorCode createChoiceModelGroupsGrammar(AllocList* memList, ProtoGrammar* pTermArray, unsigned int pTermArraySize,
-											ProtoGrammar** result)
+errorCode createChoiceModelGroupsGrammar(AllocList* memList, GenericStack* protoGrammars, ProtoGrammar** result)
 {
-//	errorCode tmp_err_code = UNEXPECTED_ERROR;
-//	*result = (EXIGrammar*) memManagedAllocate(memList, sizeof(EXIGrammar));
-//	if(*result == NULL)
-//		return MEMORY_ALLOCATION_ERROR;
-//
-//	(*result)->rulesDimension = 1;
-//	(*result)->grammarType = GR_TYPE_SCHEMA_TYPE;
-//	(*result)->contentIndex = 0;
-//	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memList, sizeof(GrammarRule)*((*result)->rulesDimension));
-//	if((*result)->ruleArray == NULL)
-//		return MEMORY_ALLOCATION_ERROR;
-//
-//	tmp_err_code = initGrammarRule(&((*result)->ruleArray[0]), memList);
-//	if(tmp_err_code != ERR_OK)
-//		return tmp_err_code;
-//	if(pTermArraySize == 0)
-//	{
-//		tmp_err_code = addProduction(&((*result)->ruleArray[0]), getEventCode1(0), getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL);
-//		if(tmp_err_code != ERR_OK)
-//			return tmp_err_code;
-//	}
-//	else
-//	{
-//		// TODO: check this case. Probably something is missing here. As maybe the
-//		//       particle term grammars should be added as a rules here. Link: http://www.w3.org/TR/2009/CR-exi-20091208/#choiceGroupTerms
-//	}
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
-	return NOT_IMPLEMENTED_YET;
+	tmp_err_code = createProtoGrammar(memList, 10, 5, result);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	(*result)->contentIndex = 0;
+
+	(*result)->prods[0][0].event = getEventDefType(EVENT_EE);
+	(*result)->prods[0][0].nonTermID = GR_VOID_NON_TERMINAL;
+	(*result)->prods[0][0].uriRowID = UINT16_MAX;
+	(*result)->prods[0][0].lnRowID = SIZE_MAX;
+	(*result)->prodCount[0] = 1;
+	(*result)->rulesCount = 1;
+
+	if(protoGrammars != NULL)
+	{
+		unsigned int ruleIterTerm = 0;
+		unsigned int prodIterTerm = 0;
+		struct collisionInfo collisions[MAX_COLLISIONS_NUMBER];
+		unsigned int collisionCount = 0;
+		unsigned int currRuleIndex;
+		unsigned int initialResultRulesCount;
+		ProtoGrammar* tmpGrammar;
+
+		tmp_err_code = popFromStack(&protoGrammars, (void**) &tmpGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		if(tmpGrammar == NULL)
+			return NULL_POINTER_REF;
+
+		tmp_err_code = concatenateGrammars(memList, (*result), tmpGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		while(protoGrammars != NULL)
+		{
+			tmp_err_code = popFromStack(&protoGrammars, (void**) &tmpGrammar);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			if(tmpGrammar == NULL)
+				return NULL_POINTER_REF;
+
+			initialResultRulesCount = (*result)->rulesCount;
+
+			for(ruleIterTerm = 1; ruleIterTerm < tmpGrammar->rulesCount; ruleIterTerm++)
+			{
+				tmp_err_code = addProtoRule(memList, (*result));
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				for(prodIterTerm = 0; prodIterTerm < tmpGrammar->prodCount[ruleIterTerm]; prodIterTerm++)
+				{
+					tmp_err_code = addProductionToAProtoRule(memList, (*result), (*result)->rulesCount - 1, tmpGrammar->prods[ruleIterTerm][prodIterTerm].event, tmpGrammar->prods[ruleIterTerm][prodIterTerm].uriRowID, tmpGrammar->prods[ruleIterTerm][prodIterTerm].lnRowID, tmpGrammar->prods[ruleIterTerm][prodIterTerm].nonTermID + ((tmpGrammar->prods[ruleIterTerm][prodIterTerm].event.eventType == EVENT_EE)?0:(initialResultRulesCount-1)));
+					if(tmp_err_code != ERR_OK)
+						return tmp_err_code;
+				}
+			}
+
+			currRuleIndex = (*result)->rulesCount;
+
+			tmp_err_code = addProductionsToARule(memList, (*result), 0, tmpGrammar->prods[0], tmpGrammar->prodCount[0], collisions, &collisionCount, &currRuleIndex, initialResultRulesCount - 1);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			// Create the new grammar rules based on the collision information
+			tmp_err_code = resolveCollisionsInGrammar(memList, collisions, &collisionCount, (*result), &currRuleIndex);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+	}
+
+	return ERR_OK;
 }
 
 errorCode createAllModelGroupsGrammar(AllocList* memList, ProtoGrammar* pTermArray, unsigned int pTermArraySize, ProtoGrammar** result)
