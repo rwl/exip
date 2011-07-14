@@ -228,22 +228,21 @@ errorCode createWildcardTermGrammar(AllocList* memList, StringType* wildcardArra
  * @brief Creates Sequence Model Group Proto-Grammar from Particle term that is XML Schema Model Group with {compositor} equal to "sequence"
  *
  * @param[in, out] memList A list storing the memory allocations
- * @param[in] pGrammars ParticleTerm grammars included in the sequence Model Group
+ * @param[in] protoGrammars ParticleTerm grammars included in the sequence Model Group
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createSequenceModelGroupsGrammar(AllocList* memList, GenericStack* pGrammars, ProtoGrammar** result);
+errorCode createSequenceModelGroupsGrammar(AllocList* memList, GenericStack* protoGrammars, ProtoGrammar** result);
 
 /**
  * @brief Creates Choice Model Group Proto-Grammar from Particle term that is XML Schema Model Group with {compositor} equal to "choice"
  *
  * @param[in, out] memList A list storing the memory allocations
- * @param[in] pTermArray an array of ParticleTerm grammars included in the Choice Model Group
- * @param[in] pTermArraySize the size of the ParticleTerm grammar array
+ * @param[in] protoGrammars ParticleTerm grammars included in the sequence Model Group
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createChoiceModelGroupsGrammar(AllocList* memList, ProtoGrammar* pTermArray, unsigned int pTermArraySize, ProtoGrammar** result);
+errorCode createChoiceModelGroupsGrammar(AllocList* memList, GenericStack* protoGrammars, ProtoGrammar** result);
 
 /**
  * @brief Creates All Model Group Proto-Grammar from Particle term that is XML Schema Model Group with {compositor} equal to "all"

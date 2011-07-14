@@ -61,7 +61,7 @@
 #  define DEBUG_COMMON      OFF	//TODO: document this macro #DOCUMENT#
 #  define DEBUG_CONTENT_IO  OFF	//TODO: document this macro #DOCUMENT#
 #  define DEBUG_GRAMMAR     OFF	//TODO: document this macro #DOCUMENT#
-#  define DEBUG_GRAMMAR_GEN OFF	//TODO: document this macro #DOCUMENT#
+#  define DEBUG_GRAMMAR_GEN  ON	//TODO: document this macro #DOCUMENT#
 #  define DEBUG_STRING_TBLS OFF	//TODO: document this macro #DOCUMENT#
 
 #  define DEBUG_ALL_MODULES (DEBUG_STREAM_IO || DEBUG_COMMON || DEBUG_CONTENT_IO || DEBUG_GRAMMAR || DEBUG_GRAMMAR_GEN || DEBUG_STRING_TBLS) //TODO: document this macro #DOCUMENT#
