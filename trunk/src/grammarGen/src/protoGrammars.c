@@ -110,7 +110,7 @@ errorCode addProtoRule(AllocList* memlist, ProtoGrammar* pg)
 		if(pg->prodMemPair == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		tmp_err_code = memManagedReAllocate((void *) pg->prods, sizeof(Production*)*(pg->rulesDim), pg->rulesMemPair);
+		tmp_err_code = memManagedReAllocate((void **) &pg->prods, sizeof(Production*)*(pg->rulesDim), pg->rulesMemPair);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -134,7 +134,7 @@ errorCode addProductionToAProtoRule(AllocList* memlist, ProtoGrammar* pg, unsign
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
 
 		pg->prodDim[ruleIndex] = pg->prodCount[ruleIndex] + PRODUTION_EXTENSION_FACTOR;
-		tmp_err_code = memManagedReAllocate((void *) pg->prods[ruleIndex], sizeof(Production)*(pg->prodDim[ruleIndex]), pg->prodMemPair[ruleIndex]);
+		tmp_err_code = memManagedReAllocate((void **) &pg->prods[ruleIndex], sizeof(Production)*(pg->prodDim[ruleIndex]), pg->prodMemPair[ruleIndex]);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}

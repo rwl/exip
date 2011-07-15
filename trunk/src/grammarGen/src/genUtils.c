@@ -588,7 +588,7 @@ errorCode createWildcardTermGrammar(AllocList* memList, StringType* wildcardArra
 		return tmp_err_code;
 	(*result)->contentIndex = 0;
 
-	if(wildcardArraySize == 0 || stringEqualToAscii(wildcardArray[0], "##any") || stringEqualToAscii(wildcardArray[0], "##other"))
+	if(stringEqualToAscii(wildcardArray[0], "##any") || stringEqualToAscii(wildcardArray[0], "##other"))
 	{
 		(*result)->prods[0][0].event =  getEventDefType(EVENT_SE_ALL);
 		(*result)->prods[0][0].nonTermID = 1;
