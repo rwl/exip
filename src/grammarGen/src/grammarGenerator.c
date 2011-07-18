@@ -220,8 +220,12 @@ errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t 
 	if(schemaFormat != SCHEMA_FORMAT_XSD_EXI)
 		return NOT_IMPLEMENTED_YET;
 
-	initAllocList(&parsing_data.tmpMemList);
-	initAllocList(&schema->memList);
+	tmp_err_code = initAllocList(&parsing_data.tmpMemList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+	tmp_err_code = initAllocList(&schema->memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	initContentHandler(&xsdHandler);
 	xsdHandler.fatalError = xsd_fatalError;

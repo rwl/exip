@@ -213,9 +213,7 @@ errorCode addURIRow(URITable* uTable, StringType uri, uint16_t* rowID, AllocList
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = createPrefixTable(&(uTable->rows[uTable->rowCount].pTable), memList);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	uTable->rows[uTable->rowCount].pTable = NULL;
 
 	*rowID = uTable->rowCount;
 
@@ -277,19 +275,39 @@ errorCode createInitialEntries(AllocList* memList, URITable* uTable, unsigned ch
 		return tmp_err_code;
 
 	/**** URI	0	"" [empty string] */
-	addURIRow(uTable, emptyStr, &uriID, memList);
-	addPrefixRow(uTable->rows[uriID].pTable, emptyStr);
+	tmp_err_code = addURIRow(uTable, emptyStr, &uriID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+	if(uTable->rows[uriID].pTable == NULL)
+	{
+		tmp_err_code = createPrefixTable(&uTable->rows[uriID].pTable, memList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	tmp_err_code = addPrefixRow(uTable->rows[uriID].pTable, emptyStr);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	/**** URI	1	"http://www.w3.org/XML/1998/namespace" */
 	tmp_err_code = asciiToString(URI_1, &tmp_str, memList, FALSE);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	addURIRow(uTable, tmp_str, &uriID, memList);
+	tmp_err_code = addURIRow(uTable, tmp_str, &uriID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	tmp_err_code = asciiToString(URI_1_PREFIX, &tmp_str, memList, FALSE);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	addPrefixRow(uTable->rows[uriID].pTable, tmp_str);
+	if(uTable->rows[uriID].pTable == NULL)
+	{
+		tmp_err_code = createPrefixTable(&uTable->rows[uriID].pTable, memList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	tmp_err_code = addPrefixRow(uTable->rows[uriID].pTable, tmp_str);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	for(i = 0; i < URI_1_LOCALNAME_SIZE; i++)
 	{
@@ -297,19 +315,31 @@ errorCode createInitialEntries(AllocList* memList, URITable* uTable, unsigned ch
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		addLNRow(uTable->rows[uriID].lTable, tmp_str, &lnID);
+		tmp_err_code = addLNRow(uTable->rows[uriID].lTable, tmp_str, &lnID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 	}
 
 	/**** URI	2	"http://www.w3.org/2001/XMLSchema-instance" */
 	tmp_err_code = asciiToString(URI_2, &tmp_str, memList, FALSE);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	addURIRow(uTable, tmp_str, &uriID, memList);
+	tmp_err_code = addURIRow(uTable, tmp_str, &uriID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	tmp_err_code = asciiToString(URI_2_PREFIX, &tmp_str, memList, FALSE);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	addPrefixRow(uTable->rows[uriID].pTable, tmp_str);
+	if(uTable->rows[uriID].pTable == NULL)
+	{
+		tmp_err_code = createPrefixTable(&uTable->rows[uriID].pTable, memList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	tmp_err_code = addPrefixRow(uTable->rows[uriID].pTable, tmp_str);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	for(i = 0; i < URI_2_LOCALNAME_SIZE; i++)
 	{

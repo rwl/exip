@@ -48,8 +48,8 @@
 #include "errorHandle.h"
 
 #define DEFAULT_VALUE_ROWS_NUMBER             50
-#define DEFAULT_URI_ROWS_NUMBER               10
-#define DEFAULT_PREFIX_ROWS_NUMBER            10
+#define DEFAULT_URI_ROWS_NUMBER                5
+#define DEFAULT_PREFIX_ROWS_NUMBER             2
 #define DEFAULT_LOCALNAMES_ROWS_NUMBER        10
 #define DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER 10
 

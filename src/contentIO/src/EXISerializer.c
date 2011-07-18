@@ -83,7 +83,10 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">EXI stream initialization \n"));
 
-	initAllocList(&(strm->memList));
+	tmp_err_code = initAllocList(&(strm->memList));
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
 	strm->buffer = buf;
 	strm->header.opts = opts;
 	strm->context.bitPointer = 0;

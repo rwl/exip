@@ -58,8 +58,9 @@
  * @brief Initial setup of an AllocList
  *
  * @param[in, out] list a memory list to be setup
+ * @return Error handling code
  */
-void initAllocList(AllocList* list);
+errorCode initAllocList(AllocList* list);
 
 /**
  * @brief Allocate a memory block with size <size> and store a copy of
