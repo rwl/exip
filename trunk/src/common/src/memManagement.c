@@ -44,11 +44,16 @@
 #include "memManagement.h"
 #include "hashtable.h"
 
-void initAllocList(AllocList* list)
+errorCode initAllocList(AllocList* list)
 {
-	list->lastBlock = &(list->firstBlock);
-	list->firstBlock.currentAlloc = 0;
-	list->firstBlock.nextBlock = NULL;
+	list->firstBlock = EXIP_MALLOC(sizeof(struct allocBlock));
+	if(list->firstBlock == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+	list->lastBlock = list->firstBlock;
+	list->firstBlock->currentAlloc = 0;
+	list->firstBlock->nextBlock = NULL;
+
+	return ERR_OK;
 }
 
 void* memManagedAllocate(AllocList* list, size_t size)
@@ -119,14 +124,18 @@ void freeAllMem(EXIStream* strm)
 
 void freeAllocList(AllocList* list)
 {
-	struct allocBlock* tmpBlock = &(list->firstBlock);
+	struct allocBlock* tmpBlock = list->firstBlock;
 	struct allocBlock* rmBl;
 	unsigned int i = 0;
+
+	if(tmpBlock == NULL) // Empty AllocList
+		return;
 
 	for(i = 0; i < tmpBlock->currentAlloc; i++)
 		EXIP_MFREE(tmpBlock->allocation[i]);
 
 	tmpBlock = tmpBlock->nextBlock;
+	EXIP_MFREE(list->firstBlock);
 
 	while(tmpBlock != NULL)
 	{

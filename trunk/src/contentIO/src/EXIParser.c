@@ -55,7 +55,15 @@ void parseEXI(char* binaryBuf, size_t bufLen, size_t bufContent, IOStream* ioStr
 	EXIStream strm;
 	EXIOptions options;
 
-	initAllocList(&strm.memList);
+	tmp_err_code = initAllocList(&strm.memList);
+	if(tmp_err_code != ERR_OK)
+	{
+		if(handler->fatalError != NULL)
+			handler->fatalError(tmp_err_code, "Error parsing EXI header", app_data);
+		freeAllMem(&strm);
+		return;
+	}
+
 	strm.buffer = binaryBuf;
 	strm.context.bitPointer = 0;
 	strm.context.bufferIndx = 0;

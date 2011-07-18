@@ -187,7 +187,7 @@ typedef BIG_DECIMAL bigDecimal;
  * It is dependent on the implementation of the stringManipulate.h functions
  */
 #ifndef CHAR_TYPE  // #DOCUMENT#
-# define CHAR_TYPE unsigned char
+# define CHAR_TYPE char
 #endif
 // TODO: document this macro - it must be set during source build to overwrite the default behavior
 
@@ -213,7 +213,7 @@ struct allocBlock {
 };
 
 struct allocList {
-	struct allocBlock firstBlock;
+	struct allocBlock* firstBlock;
 	struct allocBlock* lastBlock;
 };
 
