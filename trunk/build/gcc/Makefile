@@ -122,11 +122,16 @@ EXAMPLE_1 = exipd
 
 EXAMPLE_2 = exipe
 
-EXAMPLE_3 = exipg
-
 # Examples directories
 EXAMPLES_SRC_DIR = $(PROJECT_ROOT)/examples
 EXAMPLES_BIN_DIR = $(BIN_DIR)/examples
+
+# List of all utils binary names
+UTILS_1 = exipg
+
+# Utils directories
+UTILS_SRC_DIR = $(PROJECT_ROOT)/utils
+UTILS_BIN_DIR = $(BIN_DIR)/utils
 
 all: lib
 
@@ -146,11 +151,13 @@ include tests.mk
 
 include examples.mk
 
+include utils.mk
+
 OBJECT_ALL = $(COMMON_OBJ) $(STREAM_IO_OBJ) $(STRING_TABLES_OBJ) $(GRAMMAR_OBJ) $(CONTENT_IO_OBJ) $(GRAMMAR_GEN_OBJ)
 
 .PHONY : clean all lib check common streamIO stringTables grammar contentIO grammarGen examples exipd \
          mk_bin mk_common mk_streamIO mk_stringTables mk_grammar mk_contentIO mk_grammarGen mk_examples mk_tests mk_all \
-         test_sets_copy
+         mk_utils test_sets_copy_examples utils test_sets_copy_utils
          
 lib: mk_bin $(BIN_DIR)/libexip.a
 
@@ -174,7 +181,9 @@ check: mk_tests $(CHECK_TARGET)
                  $$i; \
              done
 
-examples: mk_examples lib $(EXAMPLES_BIN_DIR)/$(EXAMPLE_1) $(EXAMPLES_BIN_DIR)/$(EXAMPLE_2) $(EXAMPLES_BIN_DIR)/$(EXAMPLE_3) test_sets_copy
+examples: mk_examples lib $(EXAMPLES_BIN_DIR)/$(EXAMPLE_1) $(EXAMPLES_BIN_DIR)/$(EXAMPLE_2) test_sets_copy_examples
+
+utils: mk_utils lib $(UTILS_BIN_DIR)/$(UTILS_1) test_sets_copy_utils
 
 mk_bin:
 		mkdir -p $(BIN_DIR)
@@ -200,15 +209,20 @@ mk_grammarGen:
 mk_examples:
 		mkdir -p $(EXAMPLES_BIN_DIR)
 		
+mk_utils:
+		mkdir -p $(UTILS_BIN_DIR)
+		
 mk_tests:
 		mkdir -p $(TESTS_BIN_DIR)
 		
-test_sets_copy:
+test_sets_copy_examples:
 		cp $(EXAMPLES_SRC_DIR)/simpleEncoding/exip-test-xsd.exi $(EXAMPLES_BIN_DIR)/exipe-test-xsd.exi
 		cp $(EXAMPLES_SRC_DIR)/simpleDecoding/exip-test-xsd.exi $(EXAMPLES_BIN_DIR)/exipd-test-xsd.exi
 		cp $(EXAMPLES_SRC_DIR)/simpleDecoding/exip-test.exi $(EXAMPLES_BIN_DIR)/exipd-test.exi
 		cp $(EXAMPLES_SRC_DIR)/simpleDecoding/exip-test-schema.exi $(EXAMPLES_BIN_DIR)/exipd-test-schema.exi
-		cp $(EXAMPLES_SRC_DIR)/schemaHandling/EXIOptions-xsd.exi $(EXAMPLES_BIN_DIR)/EXIOptions-xsd.exi
+		
+test_sets_copy_utils:		
+		cp $(UTILS_SRC_DIR)/schemaHandling/EXIOptions-xsd.exi $(UTILS_BIN_DIR)/EXIOptions-xsd.exi
 		
 mk_all: mk_common mk_streamIO mk_stringTables mk_grammar mk_contentIO mk_grammarGen
 	
