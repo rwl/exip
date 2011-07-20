@@ -267,8 +267,9 @@ int qnamesCompare(const StringType* uri1, const StringType* ln1, const StringTyp
  * @brief Event Code Assignment to normalized grammar
  *
  * @param[in, out] grammar the normalized grammar for assigning the event codes
+ * @param[in] metaSTable the current version of the metaStringTables
  * @return Error handling code
  */
-errorCode assignCodes(ProtoGrammar* grammar);
+errorCode assignCodes(ProtoGrammar* grammar, URITable* metaSTable);
 
 #endif /* GENUTILS_H_ */
