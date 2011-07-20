@@ -100,6 +100,7 @@ errorCode encodeHeader(EXIStream* strm, EXIheader* header)
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Encode EXI options\n"));
 	if(header->has_options)
 	{
+
 		return NOT_IMPLEMENTED_YET; // TODO: Handle EXI streams with options. This includes Padding Bits in some cases
 	}
 

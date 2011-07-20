@@ -62,3 +62,34 @@ errorCode makeDefaultOpts(EXIOptions* opts)
 
 	return ERR_OK;
 }
+
+errorCode pushOnStack(GenericStack** stack, void* element)
+{
+	struct stackNode* node = EXIP_MALLOC(sizeof(struct stackNode));
+	if(node == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	node->element = element;
+	node->nextInStack = *stack;
+	*stack = node;
+	return ERR_OK;
+}
+
+errorCode popFromStack(GenericStack** stack, void** element)
+{
+	struct stackNode* node;
+	if((*stack) == NULL)
+	{
+		(*element) = NULL;
+		return ERR_OK;
+	}
+	else
+	{
+		node = *stack;
+		*stack = (*stack)->nextInStack;
+
+		(*element) = node->element;
+		EXIP_MFREE(node);
+		return ERR_OK;
+	}
+}

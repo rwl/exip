@@ -375,7 +375,37 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 	}
 	else // strict == TRUE
 	{
-		return NOT_IMPLEMENTED_YET;
+		// TODO: The first condition (If Tk either has named sub-types or is a simple type definition of which {variety} is union,
+		//       add the following production to Element_i) is not clear so it is skipped here. Must be implemented in the future
+
+		struct stackNode* tmpNode = grammar->pTypeFacets;
+		TypeFacet* tf;
+
+		while(tmpNode != NULL)
+		{
+			tf = (TypeFacet*) tmpNode->element;
+
+			if(tf->facetID == TYPE_FACET_NILLABLE)
+			{
+				grammar->ruleArray[0].prodArrays[1] = (Production*) memManagedAllocate(memList, sizeof(Production));
+				if(grammar->ruleArray[0].prodArrays[1] == NULL)
+					return MEMORY_ALLOCATION_ERROR;
+
+				grammar->ruleArray[0].prodCounts[1] = 1;
+				grammar->ruleArray[0].bits[1] = 0;
+				grammar->ruleArray[0].bits[0] = getBitsNumber(grammar->ruleArray[0].prodCounts[0]);
+
+				grammar->ruleArray[0].prodArrays[1][0].event.eventType = EVENT_AT_QNAME;
+				grammar->ruleArray[0].prodArrays[1][0].event.valueType = VALUE_TYPE_NONE;
+				grammar->ruleArray[0].prodArrays[1][0].nonTermID = 0;
+
+				// "http://www.w3.org/2001/XMLSchema-instance" = 2
+				grammar->ruleArray[0].prodArrays[1][0].uriRowID = 2;
+				// nil = 0
+				grammar->ruleArray[0].prodArrays[1][0].lnRowID = 0;
+			}
+			tmpNode = tmpNode->nextInStack;
+		}
 	}
 	return ERR_OK;
 }
