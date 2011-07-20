@@ -78,6 +78,7 @@ int main(int argc, char *argv[])
 	unsigned char outputFormat = OUT_EXIP;
 	unsigned int currArgNumber = 1;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	char prefix[20];
 
 	inputStrm.readWriteToStream = readFileInputStream;
 	outputStrm.readWriteToStream = writeFileOutputStream;
@@ -116,6 +117,26 @@ int main(int argc, char *argv[])
 			else
 				outputFormat = OUT_SRC_DYN;
 			currArgNumber++;
+
+			if(argc <= currArgNumber)
+			{
+				printfHelp();
+				return 0;
+			}
+
+			if(argv[currArgNumber][0] == '-' &&
+			   argv[currArgNumber][1] == 'p' &&
+			   argv[currArgNumber][2] == 'f' &&
+			   argv[currArgNumber][3] == 'x' &&
+			   argv[currArgNumber][4] == '=')
+			{
+				strcpy(prefix, argv[currArgNumber] + 5);
+				currArgNumber++;
+			}
+			else
+			{
+				strcpy(prefix, "prfx_"); // The default prefix
+			}
 		}
 
 		if(argc <= currArgNumber)
@@ -143,19 +164,19 @@ int main(int argc, char *argv[])
 				mask_sc = FALSE;
 
 			if(argv[currArgNumber][7] == '1')
-				mask_preserve = mask_preserve & PRESERVE_DTD;
+				SET_PRESERVED(mask_preserve, PRESERVE_DTD);
 
 			if(argv[currArgNumber][8] == '1')
-				mask_preserve = mask_preserve & PRESERVE_PREFIXES;
+				SET_PRESERVED(mask_preserve, PRESERVE_PREFIXES);
 
 			if(argv[currArgNumber][9] == '1')
-				mask_preserve = mask_preserve & PRESERVE_LEXVALUES;
+				SET_PRESERVED(mask_preserve, PRESERVE_LEXVALUES);
 
 			if(argv[currArgNumber][10] == '1')
-				mask_preserve = mask_preserve & PRESERVE_COMMENTS;
+				SET_PRESERVED(mask_preserve, PRESERVE_COMMENTS);
 
 			if(argv[currArgNumber][11] == '1')
-				mask_preserve = mask_preserve & PRESERVE_PIS;
+				SET_PRESERVED(mask_preserve, PRESERVE_PIS);
 
 			currArgNumber++;
 		}
@@ -202,12 +223,10 @@ int main(int argc, char *argv[])
 			char printfBuf[SPRINTF_BUFFER_SIZE];
 			EXIGrammar* tmpGrammar;
 			size_t tmp_prod_indx = 0;
-			char prefix[20];
 			char conv_buff[SPRINTF_BUFFER_SIZE];
 			AllocList memList;
 			time_t now;
 
-			strcpy(prefix, "prfx_"); // The default prefix
 			if(ERR_OK != initAllocList(&memList))
 			{
 				printf("unexpected error!");
@@ -215,7 +234,7 @@ int main(int argc, char *argv[])
 			}
 
 			time(&now);
-			sprintf(printfBuf, "/** AUTO-GENERATED: %.24s\n  * Copyright (c) 2010 - 2011, EISLAB, LTU, Rumen Kyusakov */\n\n",  ctime(&now));
+			sprintf(printfBuf, "/** AUTO-GENERATED: %.24s\n  * Copyright (c) 2010 - 2011, Rumen Kyusakov, EISLAB, LTU\n  * $Id$ */\n\n",  ctime(&now));
 			fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 
 			if(outputFormat == OUT_EXIP)
@@ -390,8 +409,8 @@ int main(int argc, char *argv[])
 									exit(1);
 								}
 							}
-
-							fwrite("Grammar ", 1, strlen("Grammar "), outfile);
+							sprintf(printfBuf, "Grammar [%d:%d]", i, j);
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 							fwrite(schema.initialStringTables->rows[i].string_val.str, 1, schema.initialStringTables->rows[i].string_val.length, outfile);
 							fwrite(":", 1, 1, outfile);
 							fwrite(schema.initialStringTables->rows[i].lTable->rows[j].string_val.str, 1, schema.initialStringTables->rows[i].lTable->rows[j].string_val.length, outfile);
@@ -401,77 +420,92 @@ int main(int argc, char *argv[])
 							{
 								sprintf(printfBuf, "NT-%d: \n", r);
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-								for(p = 0; p < tmpGrammar->ruleArray[r].prodCounts[0]; p++)
+								for(k = 0; k < 3; k++)
 								{
-									tmp_prod_indx = tmpGrammar->ruleArray[r].prodCounts[0] - 1 - p;
-									switch(tmpGrammar->ruleArray[r].prodArrays[0][tmp_prod_indx].event.eventType)
+									for(p = 0; p < tmpGrammar->ruleArray[r].prodCounts[k]; p++)
 									{
-										case EVENT_SD:
-											fwrite("\tSD ", 1, strlen("\tSD "), outfile);
-											break;
-										case EVENT_ED:
-											fwrite("\tED ", 1, strlen("\tED "), outfile);
-											break;
-										case EVENT_SE_QNAME:
-											fwrite("\tSE (", 1, strlen("\tSE ("), outfile);
-											fwrite(schema.initialStringTables->rows[tmpGrammar->ruleArray[r].prodArrays[0][tmp_prod_indx].uriRowID].string_val.str, 1, schema.initialStringTables->rows[tmpGrammar->ruleArray[r].prodArrays[0][tmp_prod_indx].uriRowID].string_val.length, outfile);
-											fwrite(":", 1, 1, outfile);
-											fwrite(schema.initialStringTables->rows[tmpGrammar->ruleArray[r].prodArrays[0][tmp_prod_indx].uriRowID].lTable->rows[tmpGrammar->ruleArray[r].prodArrays[0][tmp_prod_indx].lnRowID].string_val.str, 1, schema.initialStringTables->rows[tmpGrammar->ruleArray[r].prodArrays[0][tmp_prod_indx].uriRowID].lTable->rows[tmpGrammar->ruleArray[r].prodArrays[0][tmp_prod_indx].lnRowID].string_val.length, outfile);
-											fwrite(") ", 1, 2, outfile);
-											break;
-										case EVENT_SE_URI:
-											fwrite("\tSE (uri) ", 1, strlen("\tSE (uri) "), outfile);
-											break;
-										case EVENT_SE_ALL:
-											fwrite("\tSE (*) ", 1, strlen("\tSE (*) "), outfile);
-											break;
-										case EVENT_EE:
-											fwrite("\tEE ", 1, strlen("\tEE "), outfile);
-											break;
-										case EVENT_AT_QNAME:
-											fwrite("\tAT (", 1, strlen("\tAT ("), outfile);
-											fwrite(schema.initialStringTables->rows[tmpGrammar->ruleArray[r].prodArrays[0][tmp_prod_indx].uriRowID].string_val.str, 1, schema.initialStringTables->rows[tmpGrammar->ruleArray[r].prodArrays[0][tmp_prod_indx].uriRowID].string_val.length, outfile);
-											fwrite(":", 1, 1, outfile);
-											fwrite(schema.initialStringTables->rows[tmpGrammar->ruleArray[r].prodArrays[0][tmp_prod_indx].uriRowID].lTable->rows[tmpGrammar->ruleArray[r].prodArrays[0][tmp_prod_indx].lnRowID].string_val.str, 1, schema.initialStringTables->rows[tmpGrammar->ruleArray[r].prodArrays[0][tmp_prod_indx].uriRowID].lTable->rows[tmpGrammar->ruleArray[r].prodArrays[0][tmp_prod_indx].lnRowID].string_val.length, outfile);
-											fwrite(") ", 1, 2, outfile);
-											break;
-										case EVENT_AT_URI:
-											fwrite("\tAT (uri) ", 1, strlen("\tAT (uri) "), outfile);
-											break;
-										case EVENT_AT_ALL:
-											fwrite("\tAT (*) ", 1, strlen("\tAT (*) "), outfile);
-											break;
-										case EVENT_CH:
-											fwrite("\tCH ", 1, strlen("\tCH "), outfile);
-											break;
-										case EVENT_NS:
-											fwrite("\tNS ", 1, strlen("\tNS "), outfile);
-											break;
-										case EVENT_CM:
-											fwrite("\tCM ", 1, strlen("\tCM "), outfile);
-											break;
-										case EVENT_PI:
-											fwrite("\tPI ", 1, strlen("\tPI "), outfile);
-											break;
-										case EVENT_DT:
-											fwrite("\tDT ", 1, strlen("\tDT "), outfile);
-											break;
-										case EVENT_ER:
-											fwrite("\tER ", 1, strlen("\tER "), outfile);
-											break;
-										case EVENT_SC:
-											fwrite("\tSC ", 1, strlen("\tSC "), outfile);
-											break;
-										case EVENT_VOID:
-											fwrite(" ", 1, 1, outfile);
-											break;
-										default:
-											return UNEXPECTED_ERROR;
+										tmp_prod_indx = tmpGrammar->ruleArray[r].prodCounts[k] - 1 - p;
+										switch(tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].event.eventType)
+										{
+											case EVENT_SD:
+												fwrite("\tSD ", 1, strlen("\tSD "), outfile);
+												break;
+											case EVENT_ED:
+												fwrite("\tED ", 1, strlen("\tED "), outfile);
+												break;
+											case EVENT_SE_QNAME:
+												sprintf(printfBuf, "\tSE ([%d:%d]", tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].uriRowID, tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].lnRowID);
+												fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+												fwrite(schema.initialStringTables->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].uriRowID].string_val.str, 1, schema.initialStringTables->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].uriRowID].string_val.length, outfile);
+												fwrite(":", 1, 1, outfile);
+												fwrite(schema.initialStringTables->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].uriRowID].lTable->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].lnRowID].string_val.str, 1, schema.initialStringTables->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].uriRowID].lTable->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].lnRowID].string_val.length, outfile);
+												fwrite(") ", 1, 2, outfile);
+												break;
+											case EVENT_SE_URI:
+												fwrite("\tSE (uri) ", 1, strlen("\tSE (uri) "), outfile);
+												break;
+											case EVENT_SE_ALL:
+												fwrite("\tSE (*) ", 1, strlen("\tSE (*) "), outfile);
+												break;
+											case EVENT_EE:
+												fwrite("\tEE ", 1, strlen("\tEE "), outfile);
+												break;
+											case EVENT_AT_QNAME:
+												sprintf(printfBuf, "\tAT ([%d:%d]", tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].uriRowID, tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].lnRowID);
+												fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+												fwrite(schema.initialStringTables->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].uriRowID].string_val.str, 1, schema.initialStringTables->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].uriRowID].string_val.length, outfile);
+												fwrite(":", 1, 1, outfile);
+												fwrite(schema.initialStringTables->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].uriRowID].lTable->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].lnRowID].string_val.str, 1, schema.initialStringTables->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].uriRowID].lTable->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].lnRowID].string_val.length, outfile);
+												fwrite(") ", 1, 2, outfile);
+												break;
+											case EVENT_AT_URI:
+												fwrite("\tAT (uri) ", 1, strlen("\tAT (uri) "), outfile);
+												break;
+											case EVENT_AT_ALL:
+												fwrite("\tAT (*) ", 1, strlen("\tAT (*) "), outfile);
+												break;
+											case EVENT_CH:
+												fwrite("\tCH ", 1, strlen("\tCH "), outfile);
+												break;
+											case EVENT_NS:
+												fwrite("\tNS ", 1, strlen("\tNS "), outfile);
+												break;
+											case EVENT_CM:
+												fwrite("\tCM ", 1, strlen("\tCM "), outfile);
+												break;
+											case EVENT_PI:
+												fwrite("\tPI ", 1, strlen("\tPI "), outfile);
+												break;
+											case EVENT_DT:
+												fwrite("\tDT ", 1, strlen("\tDT "), outfile);
+												break;
+											case EVENT_ER:
+												fwrite("\tER ", 1, strlen("\tER "), outfile);
+												break;
+											case EVENT_SC:
+												fwrite("\tSC ", 1, strlen("\tSC "), outfile);
+												break;
+											case EVENT_VOID:
+												fwrite(" ", 1, 1, outfile);
+												break;
+											default:
+												return UNEXPECTED_ERROR;
+										}
+										sprintf(printfBuf, "\tNT-%u\t", (unsigned int) tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].nonTermID);
+										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+										if(k > 0)
+										{
+											sprintf(printfBuf, "%d.", tmpGrammar->ruleArray[r].prodCounts[0]);
+											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+											if(k > 1)
+											{
+												sprintf(printfBuf, "%d.", tmpGrammar->ruleArray[r].prodCounts[1]);
+												fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+											}
+										}
+										sprintf(printfBuf, "%d\n", p);
+										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 									}
-									sprintf(printfBuf, "\tNT-%u\t", (unsigned int) tmpGrammar->ruleArray[r].prodArrays[0][tmp_prod_indx].nonTermID);
-									fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-									sprintf(printfBuf, "%d\n", p);
-									fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 								}
 								fwrite("\n", 1, 1, outfile);
 							}
@@ -497,7 +531,7 @@ static void printfHelp()
     printf("  EXIP     Efficient XML Interchange Processor, Rumen Kyusakov, 2011 \n");
     printf("           Copyright (c) 2010 - 2011, EISLAB - Luleå University of Technology Version 0.2 \n");
     printf("  Usage:   exipSchema [options] <schema_in> [<schema_out>] \n\n");
-    printf("           Options: [[-help | [-exip | -text | -src[= dynamic | static]] [-mask=<OPTIONS_MASK>]] ] \n");
+    printf("           Options: [[-help | [-exip | -text | -src[= dynamic | static] [-pfx=<prefix>]] [-mask=<OPTIONS_MASK>]] ] \n");
     printf("           -help   :   Prints this help message\n\n");
     printf("           -exip   :   Format the output schema definitions in EXIP-specific format (Default) \n\n");
     printf("           -text   :   Format the output schema definitions in human readable text format \n\n");
@@ -508,6 +542,8 @@ static void printfHelp()
     printf("                       processed correctly by the EXIP instance.\n\n");
     printf("                       -src=dynamic creates a function that dynamically creates the grammar (Default)\n\n");
     printf("                       -src=static the grammar definitions are defined statically as global variables\n\n");
+    printf("           -pfx    :   When in -src mode, this options allows you to specify a unique prefix for the\n\n");
+    printf("                       generated global types. The default is \"prfx_\"\n\n");
     printf("           <OPTIONS_MASK>:   <STRICT><SELF_CONTAINED><dtd><prefixes><lexicalValues><comments><pis> := <0|1><0|1><0|1><0|1><0|1><0|1><0|1> \n\n");
     printf("           <schema_in>   :   Source XML schema file \n\n");
     printf("           <schema_out>  :   Destination schema file in the particular format (Default is the standard output) \n\n");

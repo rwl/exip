@@ -51,18 +51,6 @@
 #include "schema.h"
 #include "protoGrammars.h"
 
-struct stackNode
-{
-	void* element;
-	struct stackNode* nextInStack;
-};
-
-typedef struct stackNode GenericStack;
-
-errorCode pushOnStack(GenericStack** stack, void* element);
-
-errorCode popFromStack(GenericStack** stack, void** element);
-
 /**
  * @brief Grammar Concatenation Operator - extends the rules and productions in the left ProtoGrammar
  * The grammar concatenation operator ⊕ is a binary, associative
@@ -281,6 +269,6 @@ int qnamesCompare(const StringType* uri1, const StringType* ln1, const StringTyp
  * @param[in, out] grammar the normalized grammar for assigning the event codes
  * @return Error handling code
  */
-errorCode assignCodes(EXIGrammar* grammar);
+errorCode assignCodes(ProtoGrammar* grammar);
 
 #endif /* GENUTILS_H_ */

@@ -90,6 +90,7 @@
 #define ATTRIBUTE_NAMESPACE      9
 #define ATTRIBUTE_PROC_CONTENTS 10
 #define ATTRIBUTE_VALUE         11
+#define ATTRIBUTE_NILLABLE      12
 
 #define ATTRIBUTE_VOID     255
 
@@ -129,7 +130,7 @@ struct elementDescr {
 	StringType attributePointers[ATTRIBUTE_CONTEXT_ARRAY_SIZE]; // the index is the code of the attribute
 	GenericStack* pGrammarStack; // The proto-grammars created so far and connected to this elemDescr
 	DynArray* attributeUses; // For complex types/content this array stores the attribute uses
-	GenericStack* pConstrFacets; // The Constraining Facets attached to this element if any
+	GenericStack* pTypeFacets; // The Constraining Facets attached to this element if any
 };
 
 typedef struct elementDescr ElementDescription;
@@ -725,6 +726,11 @@ static char xsd_attribute(QName qname, void* app_data)
 			appD->props.charDataPointer = &(element->attributePointers[ATTRIBUTE_VALUE]);
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |value| \n"));
 		}
+		else if(stringEqualToAscii(*qname.localName, "nillable"))
+		{
+			appD->props.charDataPointer = &(element->attributePointers[ATTRIBUTE_NILLABLE]);
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Attribute |value| \n"));
+		}
 		else
 		{
 			DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, (">Ignored element attribute\n"));
@@ -825,7 +831,7 @@ static void initElemContext(ElementDescription* elem)
 	elem->element = ELEMENT_VOID;
 	elem->pGrammarStack = NULL;
 	elem->attributeUses = NULL;
-	elem->pConstrFacets = NULL;
+	elem->pTypeFacets = NULL;
 	for(i = 0; i < ATTRIBUTE_CONTEXT_ARRAY_SIZE; i++)
 	{
 		elem->attributePointers[i].length = 0;
@@ -1066,11 +1072,12 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 	else // Named complex type - put it directly in the typeGrammars list
 	{
 		EXIGrammar* complexEXIGrammar;
-		tmp_err_code = convertProtoGrammar(&app_data->schema->memList, resultComplexGrammar, &complexEXIGrammar);
+
+		tmp_err_code = assignCodes(resultComplexGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = assignCodes(complexEXIGrammar);
+		tmp_err_code = convertProtoGrammar(&app_data->schema->memList, resultComplexGrammar, &complexEXIGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -1134,6 +1141,23 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
+	if(!isStringEmpty(&elemDesc->attributePointers[ATTRIBUTE_NILLABLE]) &&
+		stringEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_NILLABLE], "true"))
+	{
+		TypeFacet* nillable = memManagedAllocate(&app_data->schema->memList, sizeof(TypeFacet));
+		if(nillable == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+
+		nillable->facetID = TYPE_FACET_NILLABLE;
+		nillable->intValue = 0;
+		nillable->strValue.length = 0;
+		nillable->strValue.str = NULL;
+
+		tmp_err_code = pushOnStack(&elemDesc->pTypeFacets, nillable);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+
 	if(isGlobal)
 	{
 		QNameID globalQnameID;
@@ -1150,13 +1174,15 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 			return NOT_IMPLEMENTED_YET;
 		}
 
+		tmp_err_code = assignCodes(typeGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
 		tmp_err_code = convertProtoGrammar(&app_data->schema->memList, typeGrammar, &exiTypeGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = assignCodes(exiTypeGrammar);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		exiTypeGrammar->pTypeFacets = elemDesc->pTypeFacets;
 
 #if DEBUG_GRAMMAR_GEN == ON
 	{
@@ -1194,13 +1220,15 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 
 			if(typeGrammar != NULL) // It is not an empty element: <xsd:complexType />
 			{
+				tmp_err_code = assignCodes(typeGrammar);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
 				tmp_err_code = convertProtoGrammar(&app_data->schema->memList, typeGrammar, &exiTypeGrammar);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 
-				tmp_err_code = assignCodes(exiTypeGrammar);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
+				exiTypeGrammar->pTypeFacets = elemDesc->pTypeFacets;
 
 #if DEBUG_GRAMMAR_GEN == ON
 				{
@@ -1230,13 +1258,15 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 
+				tmp_err_code = assignCodes(typeGrammar);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
 				tmp_err_code = convertProtoGrammar(&app_data->schema->memList, typeGrammar, &exiTypeGrammar);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 
-				tmp_err_code = assignCodes(exiTypeGrammar);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
+				exiTypeGrammar->pTypeFacets = elemDesc->pTypeFacets;
 
 				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].globalGrammar = exiTypeGrammar;
 			}
@@ -1437,7 +1467,7 @@ static errorCode handleRestrictionEl(struct xsdAppData* app_data)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	if(elemDesc->pConstrFacets != NULL)
+	if(elemDesc->pTypeFacets != NULL)
 	{
 		// TODO: the constraining facets should be attached to the EXI grammars so that
 		//       the values of the types can be validated when processing+
@@ -1477,11 +1507,11 @@ static errorCode handleSimpleTypeEl(struct xsdAppData* app_data)
 	{
 		size_t lnRowID = 0;
 
-		tmp_err_code = convertProtoGrammar(&app_data->schema->memList, simpleTypeGr, &exiTypeGrammar);
+		tmp_err_code = assignCodes(simpleTypeGr);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = assignCodes(exiTypeGrammar);
+		tmp_err_code = convertProtoGrammar(&app_data->schema->memList, simpleTypeGr, &exiTypeGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -1501,21 +1531,21 @@ static errorCode handleMinInclusiveEl(struct xsdAppData* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	ElementDescription* elemDesc;
-	ConstrFacet* minIncl;
+	TypeFacet* minIncl;
 
 	tmp_err_code = popFromStack(&(app_data->contextStack), (void**) &elemDesc);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	minIncl = memManagedAllocate(&app_data->tmpMemList, sizeof(ConstrFacet));
+	minIncl = memManagedAllocate(&app_data->tmpMemList, sizeof(TypeFacet));
 	if(minIncl == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	minIncl->facetID = C_FACET_MIN_INCLUSIVE;
+	minIncl->facetID = TYPE_FACET_MIN_INCLUSIVE;
 	minIncl->intValue = 0;
 	minIncl->strValue = elemDesc->attributePointers[ATTRIBUTE_VALUE];
 
-	tmp_err_code = pushOnStack(&(((ElementDescription*) app_data->contextStack->element)->pConstrFacets), minIncl);
+	tmp_err_code = pushOnStack(&(((ElementDescription*) app_data->contextStack->element)->pTypeFacets), minIncl);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 

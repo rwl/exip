@@ -59,6 +59,14 @@
 #define NULL ((void *)0)
 #endif
 
+struct stackNode
+{
+	void* element;
+	struct stackNode* nextInStack;
+};
+
+typedef struct stackNode GenericStack;
+
 #define REVERSE_BIT_POSITION(p) (7 - p)
 
 /**
@@ -86,6 +94,7 @@
 #define PRESERVE_LEXVALUES 0b00010000
 
 #define IS_PRESERVED(p, mask) ((p & mask) != 0)
+#define SET_PRESERVED(p, preserve_const) p = p & preserve_const
 
 /**
  * For handling the DATE-TIME type (structure tm from time.h)
@@ -375,6 +384,30 @@ typedef struct DynGrammarRule DynGrammarRule;
 #define GR_TYPE_SCHEMA_EMPTY_TYPE 15
 
 
+// Constraining Facets IDs. Used for fine-grained schema validation
+#define TYPE_FACET_LENGTH           1
+#define TYPE_FACET_MIN_LENGTH       2
+#define TYPE_FACET_MAX_LENGTH       3
+#define TYPE_FACET_PATTERN          4
+#define TYPE_FACET_ENUMERATION      5
+#define TYPE_FACET_WHITE_SPACE      6
+#define TYPE_FACET_MAX_INCLUSIVE    7
+#define TYPE_FACET_MAX_EXCLUSIVE    8
+#define TYPE_FACET_MIN_EXCLUSIVE    9
+#define TYPE_FACET_MIN_INCLUSIVE   10
+#define TYPE_FACET_TOTAL_DIGITS    11
+#define TYPE_FACET_FRACTION_DIGITS 12
+#define TYPE_FACET_NILLABLE        13
+
+struct TypeFacet
+{
+	unsigned char facetID;
+	uint32_t intValue;
+	StringType strValue;
+};
+
+typedef struct TypeFacet TypeFacet;
+
 /**
  * The rule index in the ruleArray is the left hand side nonTermID of the particular grammar Rule
  */
@@ -384,6 +417,7 @@ struct EXIGrammar
 	size_t rulesDimension; // The size of the array
 	unsigned char grammarType;
 	size_t contentIndex;
+	GenericStack* pTypeFacets; // The Constraining Facets attached to this grammar if any
 };
 
 typedef struct EXIGrammar EXIGrammar;
@@ -701,5 +735,10 @@ typedef struct EXIStream EXIStream;
  * @return Error handling code
  */
 errorCode makeDefaultOpts(EXIOptions* opts);
+
+
+errorCode pushOnStack(GenericStack** stack, void* element);
+
+errorCode popFromStack(GenericStack** stack, void** element);
 
 #endif /* PROCTYPES_H_ */

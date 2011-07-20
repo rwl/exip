@@ -58,38 +58,6 @@ struct collisionInfo
 	size_t createdNonTerminal;
 };
 
-errorCode pushOnStack(GenericStack** stack, void* element)
-{
-	struct stackNode* node = EXIP_MALLOC(sizeof(struct stackNode));
-	if(node == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	node->element = element;
-	node->nextInStack = *stack;
-	*stack = node;
-	return ERR_OK;
-}
-
-errorCode popFromStack(GenericStack** stack, void** element)
-{
-	struct stackNode* node;
-	if((*stack) == NULL)
-	{
-		(*element) = NULL;
-		return ERR_OK;
-	}
-	else
-	{
-		node = *stack;
-		*stack = (*stack)->nextInStack;
-
-		(*element) = node->element;
-		EXIP_MFREE(node);
-		return ERR_OK;
-	}
-}
-
-
 /** Collision aware addition */
 static errorCode addProductionsToARule(AllocList* memList, ProtoGrammar* left, unsigned int ruleIndex, Production* rightRule,
 		unsigned int rightProdCount, struct collisionInfo* collisions, unsigned int* collisionCount, unsigned int* currRuleIndex, unsigned int initialLeftRulesCount);
@@ -846,14 +814,13 @@ int qnamesCompare(const StringType* uri1, const StringType* ln1, const StringTyp
 	return uri_cmp_res;
 }
 
-errorCode assignCodes(EXIGrammar* grammar)
+errorCode assignCodes(ProtoGrammar* grammar)
 {
 	uint16_t i = 0;
 
-	for (i = 0; i < grammar->rulesDimension; i++)
+	for (i = 0; i < grammar->rulesCount; i++)
 	{
-		qsort(grammar->ruleArray[i].prodArrays[0], grammar->ruleArray[i].prodCounts[0], sizeof(Production), compareProductions);
-		grammar->ruleArray[i].bits[0] = getBitsNumber(grammar->ruleArray[i].prodCounts[0] - 1);
+		qsort(grammar->prods[i], grammar->prodCount[i], sizeof(Production), compareProductions);
 	}
 	return ERR_OK;
 }

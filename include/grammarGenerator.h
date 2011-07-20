@@ -48,29 +48,6 @@
 #include "procTypes.h"
 #include "schema.h"
 
-// Constraining Facets IDs
-#define C_FACET_LENGTH           1
-#define C_FACET_MIN_LENGTH       2
-#define C_FACET_MAX_LENGTH       3
-#define C_FACET_PATTERN          4
-#define C_FACET_ENUMERATION      5
-#define C_FACET_WHITE_SPACE      6
-#define C_FACET_MAX_INCLUSIVE    7
-#define C_FACET_MAX_EXCLUSIVE    8
-#define C_FACET_MIN_EXCLUSIVE    9
-#define C_FACET_MIN_INCLUSIVE   10
-#define C_FACET_TOTAL_DIGITS    11
-#define C_FACET_FRACTION_DIGITS 12
-
-struct ConstrFacet
-{
-	unsigned char facetID;
-	uint32_t intValue;
-	StringType strValue;
-};
-
-typedef struct ConstrFacet ConstrFacet;
-
 /** Supported schema formats like XML-XSD, EXI-XSD, DTD or any other schema representation supported */
 #define SCHEMA_FORMAT_XSD_EXI           0
 #define SCHEMA_FORMAT_XSD_XML           1
