@@ -51,6 +51,8 @@
 
 #define MAX_COLLISIONS_NUMBER 50
 
+static URITable* comparison_ptr = NULL;
+
 struct collisionInfo
 {
 	size_t leftNonTerminal;
@@ -814,10 +816,11 @@ int qnamesCompare(const StringType* uri1, const StringType* ln1, const StringTyp
 	return uri_cmp_res;
 }
 
-errorCode assignCodes(ProtoGrammar* grammar)
+errorCode assignCodes(ProtoGrammar* grammar, URITable* metaSTable)
 {
 	uint16_t i = 0;
 
+	comparison_ptr = metaSTable;
 	for (i = 0; i < grammar->rulesCount; i++)
 	{
 		qsort(grammar->prods[i], grammar->prodCount[i], sizeof(Production), compareProductions);
@@ -838,32 +841,31 @@ static int compareProductions(const void* prod1, const void* prod2)
 	{
 		if(p1->event.eventType == EVENT_AT_QNAME)
 		{
-			if(p1->lnRowID < p2->lnRowID)
-				return 1;
-			else if(p1->lnRowID > p2->lnRowID)
-				return -1;
-			else
+			int i = 0;
+			i = stringCompare(comparison_ptr->rows[p1->uriRowID].lTable->rows[p1->lnRowID].string_val, comparison_ptr->rows[p2->uriRowID].lTable->rows[p2->lnRowID].string_val);
+			if(i == 0)
 			{
-				if(p1->uriRowID < p2->uriRowID)
-					return 1;
-				else if(p1->uriRowID > p2->uriRowID)
-					return -1;
-				else
-					return 0;
+				return -stringCompare(comparison_ptr->rows[p1->uriRowID].string_val, comparison_ptr->rows[p2->uriRowID].string_val);
 			}
+			else
+				return -i;
 		}
 		else if(p1->event.eventType == EVENT_AT_URI)
 		{
-			if(p1->uriRowID < p2->uriRowID)
-				return 1;
-			else if(p1->uriRowID > p2->uriRowID)
-				return -1;
-			else
-				return 0;
+			return -stringCompare(comparison_ptr->rows[p1->uriRowID].string_val, comparison_ptr->rows[p2->uriRowID].string_val);
 		}
 		else if(p1->event.eventType == EVENT_SE_QNAME)
 		{
-			// TODO: figure out how it should be done
+			// Using the fact that the uri tables are not sorted yet.
+			// when lnID_1 < lnID_2 then lnID_1 came first in the schema
+			// NOTE however that this only works for single namespace (uriID) i.e. the target namespace
+			// TODO: figure out how it should be done so it works between elements from
+			//       different namespace
+
+			if(p1->lnRowID < p2->lnRowID)
+				return 1;
+			else
+				return -1;
 		}
 		else if(p1->event.eventType == EVENT_SE_URI)
 		{

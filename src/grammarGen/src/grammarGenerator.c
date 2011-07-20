@@ -1073,7 +1073,7 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 	{
 		EXIGrammar* complexEXIGrammar;
 
-		tmp_err_code = assignCodes(resultComplexGrammar);
+		tmp_err_code = assignCodes(resultComplexGrammar, app_data->metaStringTables);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -1174,7 +1174,7 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 			return NOT_IMPLEMENTED_YET;
 		}
 
-		tmp_err_code = assignCodes(typeGrammar);
+		tmp_err_code = assignCodes(typeGrammar, app_data->metaStringTables);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -1220,7 +1220,7 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 
 			if(typeGrammar != NULL) // It is not an empty element: <xsd:complexType />
 			{
-				tmp_err_code = assignCodes(typeGrammar);
+				tmp_err_code = assignCodes(typeGrammar, app_data->metaStringTables);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 
@@ -1258,7 +1258,7 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 
-				tmp_err_code = assignCodes(typeGrammar);
+				tmp_err_code = assignCodes(typeGrammar, app_data->metaStringTables);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 
@@ -1507,7 +1507,7 @@ static errorCode handleSimpleTypeEl(struct xsdAppData* app_data)
 	{
 		size_t lnRowID = 0;
 
-		tmp_err_code = assignCodes(simpleTypeGr);
+		tmp_err_code = assignCodes(simpleTypeGr, app_data->metaStringTables);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
