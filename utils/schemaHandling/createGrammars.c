@@ -67,6 +67,8 @@ size_t writeFileOutputStream(void* buf, size_t readSize, void* stream);
 // Converts to NULL terminated ASCII representation
 static errorCode stringToASCII(char* outBuf, unsigned int bufSize, StringType inStr);
 
+static void getValueTypeString(char* buf, ValueType vt);
+
 int main(int argc, char *argv[])
 {
 	FILE *infile;
@@ -457,15 +459,21 @@ int main(int argc, char *argv[])
 												fwrite(":", 1, 1, outfile);
 												fwrite(schema.initialStringTables->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].uriRowID].lTable->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].lnRowID].string_val.str, 1, schema.initialStringTables->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].uriRowID].lTable->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].lnRowID].string_val.length, outfile);
 												fwrite(") ", 1, 2, outfile);
+												getValueTypeString(printfBuf, tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].event.valueType);
+												fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 												break;
 											case EVENT_AT_URI:
 												fwrite("\tAT (uri) ", 1, strlen("\tAT (uri) "), outfile);
 												break;
 											case EVENT_AT_ALL:
 												fwrite("\tAT (*) ", 1, strlen("\tAT (*) "), outfile);
+												getValueTypeString(printfBuf, tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].event.valueType);
+												fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 												break;
 											case EVENT_CH:
 												fwrite("\tCH ", 1, strlen("\tCH "), outfile);
+												getValueTypeString(printfBuf, tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].event.valueType);
+												fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 												break;
 											case EVENT_NS:
 												fwrite("\tNS ", 1, strlen("\tNS "), outfile);
@@ -572,4 +580,47 @@ static errorCode stringToASCII(char* outBuf, unsigned int bufSize, StringType in
 	outBuf[inStr.length] = '\0';
 
 	return ERR_OK;
+}
+
+static void getValueTypeString(char* buf, ValueType vt)
+{
+	switch(vt)
+	{
+		case 0:
+			strcpy(buf, "[N/A] ");
+			break;
+		case 1:
+			strcpy(buf, "[str] ");
+			break;
+		case 2:
+			strcpy(buf, "[int] ");
+			break;
+		case 3:
+			strcpy(buf, "[float] ");
+			break;
+		case 4:
+			strcpy(buf, "[dec] ");
+			break;
+		case 5:
+			strcpy(buf, "[date] ");
+			break;
+		case 6:
+			strcpy(buf, "[bool] ");
+			break;
+		case 7:
+			strcpy(buf, "[bin] ");
+			break;
+		case 8:
+			strcpy(buf, "[list] ");
+			break;
+		case 9:
+			strcpy(buf, "[qname] ");
+			break;
+		case 10:
+			strcpy(buf, "[uint] ");
+			break;
+		case 11:
+			strcpy(buf, "[untyped] ");
+			break;
+	}
 }

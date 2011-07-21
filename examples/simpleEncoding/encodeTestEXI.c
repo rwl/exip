@@ -168,23 +168,24 @@ int main(int argc, char *argv[])
 			header.version_number = 1;
 			tmp_err_code += serEXI.exiHeaderSer(&testStrm, &header);
 
-			tmp_err_code += serEXI.startDocumentSer(&testStrm);
+			tmp_err_code += serEXI.startDocumentSer(&testStrm, FALSE, 0);
+
+			tmp_err_code += asciiToString("http://www.ltu.se/EISLAB/schema-test", &uri, &testStrm.memList, FALSE);
+			tmp_err_code += asciiToString("EXIPEncoder", &ln, &testStrm.memList, FALSE);
+			tmp_err_code += serEXI.startElementSer(&testStrm, &qname, FALSE, 0);
 
 			tmp_err_code += asciiToString("", &uri, &testStrm.memList, FALSE);
-			tmp_err_code += asciiToString("EXIPEncoder", &ln, &testStrm.memList, FALSE);
-			tmp_err_code += serEXI.startElementSer(&testStrm, qname);
-
 			tmp_err_code += asciiToString("version", &ln, &testStrm.memList, FALSE);
-			tmp_err_code += serEXI.attributeSer(&testStrm, qname);
+			tmp_err_code += serEXI.attributeSer(&testStrm, &qname, VALUE_TYPE_STRING, FALSE, 0);
 
 			tmp_err_code += asciiToString("0.2", &chVal, &testStrm.memList, FALSE);
-			tmp_err_code += serEXI.stringDataSer(&testStrm, chVal);
+			tmp_err_code += serEXI.stringDataSer(&testStrm, chVal, FALSE, 0);
 
 			tmp_err_code += asciiToString("This is an example of serializing EXI streams using EXIP low level API", &chVal, &testStrm.memList, FALSE);
-			tmp_err_code += serEXI.stringDataSer(&testStrm, chVal);
+			tmp_err_code += serEXI.stringDataSer(&testStrm, chVal, FALSE, 0);
 
-			tmp_err_code += serEXI.endElementSer(&testStrm);
-			tmp_err_code += serEXI.endDocumentSer(&testStrm);
+			tmp_err_code += serEXI.endElementSer(&testStrm, FALSE, 0);
+			tmp_err_code += serEXI.endDocumentSer(&testStrm, FALSE, 0);
 
 			if(tmp_err_code != ERR_OK)
 				printError(tmp_err_code, &testStrm, outfile);
