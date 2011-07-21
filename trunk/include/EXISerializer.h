@@ -53,23 +53,23 @@
 struct EXISerializer
 {
 	// For handling the meta-data (document structure)
-	errorCode (*startDocumentSer)(EXIStream* strm);
-	errorCode (*endDocumentSer)(EXIStream* strm);
-	errorCode (*startElementSer)(EXIStream* strm, QName qname);
-	errorCode (*endElementSer)(EXIStream* strm);
-	errorCode (*attributeSer)(EXIStream* strm, QName qname);
+	errorCode (*startDocumentSer)(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
+	errorCode (*endDocumentSer)(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
+	errorCode (*startElementSer)(EXIStream* strm, QName* qname, unsigned char fastSchemaMode, size_t schemaProduction);
+	errorCode (*endElementSer)(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
+	errorCode (*attributeSer)(EXIStream* strm, QName* qname, ValueType valueType, unsigned char fastSchemaMode, size_t schemaProduction);
 
 	// For handling the data
-	errorCode (*intDataSer)(EXIStream* strm, int32_t int_val);
-	errorCode (*bigIntDataSer)(EXIStream* strm, const BigSignedInt int_val);
-	errorCode (*booleanDataSer)(EXIStream* strm, unsigned char bool_val);
-	errorCode (*stringDataSer)(EXIStream* strm, const StringType str_val);
-	errorCode (*floatDataSer)(EXIStream* strm, double float_val);
-	errorCode (*bigFloatDataSer)(EXIStream* strm, BigFloat float_val);
-	errorCode (*binaryDataSer)(EXIStream* strm, const char* binary_val, size_t nbytes);
-	errorCode (*dateTimeDataSer)(EXIStream* strm, struct tm dt_val, uint16_t presenceMask);
-	errorCode (*decimalDataSer)(EXIStream* strm, decimal dec_val);
-	errorCode (*bigDecimalDataSer)(EXIStream* strm, bigDecimal dec_val);
+	errorCode (*intDataSer)(EXIStream* strm, int32_t int_val, unsigned char fastSchemaMode, size_t schemaProduction);
+	errorCode (*bigIntDataSer)(EXIStream* strm, const BigSignedInt int_val, unsigned char fastSchemaMode, size_t schemaProduction);
+	errorCode (*booleanDataSer)(EXIStream* strm, unsigned char bool_val, unsigned char fastSchemaMode, size_t schemaProduction);
+	errorCode (*stringDataSer)(EXIStream* strm, const StringType str_val, unsigned char fastSchemaMode, size_t schemaProduction);
+	errorCode (*floatDataSer)(EXIStream* strm, double float_val, unsigned char fastSchemaMode, size_t schemaProduction);
+	errorCode (*bigFloatDataSer)(EXIStream* strm, BigFloat float_val, unsigned char fastSchemaMode, size_t schemaProduction);
+	errorCode (*binaryDataSer)(EXIStream* strm, const char* binary_val, size_t nbytes, unsigned char fastSchemaMode, size_t schemaProduction);
+	errorCode (*dateTimeDataSer)(EXIStream* strm, struct tm dt_val, uint16_t presenceMask, unsigned char fastSchemaMode, size_t schemaProduction);
+	errorCode (*decimalDataSer)(EXIStream* strm, decimal dec_val, unsigned char fastSchemaMode, size_t schemaProduction);
+	errorCode (*bigDecimalDataSer)(EXIStream* strm, bigDecimal dec_val, unsigned char fastSchemaMode, size_t schemaProduction);
 
 	// Miscellaneous
 	errorCode (*processingInstructionSer)(EXIStream* strm); // TODO: define the parameters!

@@ -293,6 +293,10 @@ typedef unsigned char EventType;
  * 5 - Date-Time
  * 6 - Boolean
  * 7 - Binary
+ * 8 - List
+ * 9 - QName
+ * 10 - Unsigned int
+ * 11 - Untyped
  * */
 typedef unsigned char ValueType;
 

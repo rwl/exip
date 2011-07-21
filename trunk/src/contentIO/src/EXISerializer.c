@@ -146,28 +146,34 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 	return ERR_OK;
 }
 
-errorCode startDocumentSer(EXIStream* strm)
+errorCode startDocumentSer(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	if(strm->context.nonTermID != GR_DOCUMENT)
 		return INCONSISTENT_PROC_STATE;
 
-	return encodeSimpleEXIEvent(strm, getEventDefType(EVENT_SD));
+	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start doc serialization\n"));
+
+	return encodeSimpleEXIEvent(strm, getEventDefType(EVENT_SD), fastSchemaMode, schemaProduction);
 }
 
-errorCode endDocumentSer(EXIStream* strm)
+errorCode endDocumentSer(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	if(strm->context.nonTermID != GR_DOC_END)
 		return INCONSISTENT_PROC_STATE;
 
-	return encodeSimpleEXIEvent(strm, getEventDefType(EVENT_ED));
+	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">End doc serialization\n"));
+
+	return encodeSimpleEXIEvent(strm, getEventDefType(EVENT_ED), fastSchemaMode, schemaProduction);
 }
 
-errorCode startElementSer(EXIStream* strm, QName qname)
+errorCode startElementSer(EXIStream* strm, QName* qname, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIGrammar* elemGrammar = NULL;
 
-	tmp_err_code = encodeComplexEXIEvent(strm, qname, EVENT_SE_ALL, EVENT_SE_URI, EVENT_SE_QNAME);
+	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start element serialization\n"));
+
+	tmp_err_code = encodeComplexEXIEvent(strm, *qname, EVENT_SE_ALL, EVENT_SE_URI, EVENT_SE_QNAME, VALUE_TYPE_NONE, fastSchemaMode, schemaProduction);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -200,10 +206,13 @@ errorCode startElementSer(EXIStream* strm, QName qname)
 	return ERR_OK;
 }
 
-errorCode endElementSer(EXIStream* strm)
+errorCode endElementSer(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	tmp_err_code = encodeSimpleEXIEvent(strm, getEventDefType(EVENT_EE));
+
+	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">End element serialization\n"));
+
+	tmp_err_code = encodeSimpleEXIEvent(strm, getEventDefType(EVENT_EE), fastSchemaMode, schemaProduction);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	if(strm->context.nonTermID == GR_VOID_NON_TERMINAL)
@@ -218,29 +227,32 @@ errorCode endElementSer(EXIStream* strm)
 	return ERR_OK;
 }
 
-errorCode attributeSer(EXIStream* strm, QName qname)
+errorCode attributeSer(EXIStream* strm, QName* qname, ValueType valueType, unsigned char fastSchemaMode, size_t schemaProduction)
 {
+	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start attr serialization\n"));
 	strm->context.expectATData = TRUE;
-	return encodeComplexEXIEvent(strm, qname, EVENT_AT_ALL, EVENT_AT_URI, EVENT_AT_QNAME);
+	return encodeComplexEXIEvent(strm, *qname, EVENT_AT_ALL, EVENT_AT_URI, EVENT_AT_QNAME, valueType, fastSchemaMode, schemaProduction);
 }
 
-errorCode intDataSer(EXIStream* strm, int32_t int_val)
+errorCode intDataSer(EXIStream* strm, int32_t int_val, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode bigIntDataSer(EXIStream* strm, const BigSignedInt int_val)
+errorCode bigIntDataSer(EXIStream* strm, const BigSignedInt int_val, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode booleanDataSer(EXIStream* strm, unsigned char bool_val)
+errorCode booleanDataSer(EXIStream* strm, unsigned char bool_val, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode stringDataSer(EXIStream* strm, const StringType str_val)
+errorCode stringDataSer(EXIStream* strm, const StringType str_val, unsigned char fastSchemaMode, size_t schemaProduction)
 {
+	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start string data serialization\n"));
+
 	if(strm->context.expectATData) // Value for an attribute
 	{
 		strm->context.expectATData = FALSE;
@@ -249,39 +261,41 @@ errorCode stringDataSer(EXIStream* strm, const StringType str_val)
 	else
 	{
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		tmp_err_code = encodeSimpleEXIEvent(strm, getEventDefType(EVENT_CH));
+		EXIEvent event = {EVENT_CH, VALUE_TYPE_STRING};
+
+		tmp_err_code = encodeSimpleEXIEvent(strm, event, fastSchemaMode, schemaProduction);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		return encodeStringData(strm, str_val);
 	}
 }
 
-errorCode floatDataSer(EXIStream* strm, double float_val)
+errorCode floatDataSer(EXIStream* strm, double float_val, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode bigFloatDataSer(EXIStream* strm, BigFloat float_val)
+errorCode bigFloatDataSer(EXIStream* strm, BigFloat float_val, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode binaryDataSer(EXIStream* strm, const char* binary_val, size_t nbytes)
+errorCode binaryDataSer(EXIStream* strm, const char* binary_val, size_t nbytes, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode dateTimeDataSer(EXIStream* strm, struct tm dt_val, uint16_t presenceMask)
+errorCode dateTimeDataSer(EXIStream* strm, struct tm dt_val, uint16_t presenceMask, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode decimalDataSer(EXIStream* strm, decimal dec_val)
+errorCode decimalDataSer(EXIStream* strm, decimal dec_val, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode bigDecimalDataSer(EXIStream* strm, bigDecimal dec_val)
+errorCode bigDecimalDataSer(EXIStream* strm, bigDecimal dec_val, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	return NOT_IMPLEMENTED_YET;
 }

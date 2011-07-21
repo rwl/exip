@@ -51,23 +51,23 @@
 /**** START: Serializer API implementation  ****/
 
 // For handling the meta-data (document structure)
-errorCode startDocumentSer(EXIStream* strm);
-errorCode endDocumentSer(EXIStream* strm);
-errorCode startElementSer(EXIStream* strm, QName qname);
-errorCode endElementSer(EXIStream* strm);
-errorCode attributeSer(EXIStream* strm, QName qname);
+errorCode startDocumentSer(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode endDocumentSer(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode startElementSer(EXIStream* strm, QName* qname, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode endElementSer(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode attributeSer(EXIStream* strm, QName* qname, ValueType valueType, unsigned char fastSchemaMode, size_t schemaProduction);
 
 // For handling the data
-errorCode intDataSer(EXIStream* strm, int32_t int_val);
-errorCode bigIntDataSer(EXIStream* strm, const BigSignedInt int_val);
-errorCode booleanDataSer(EXIStream* strm, unsigned char bool_val);
-errorCode stringDataSer(EXIStream* strm, const StringType str_val);
-errorCode floatDataSer(EXIStream* strm, double float_val);
-errorCode bigFloatDataSer(EXIStream* strm, BigFloat float_val);
-errorCode binaryDataSer(EXIStream* strm, const char* binary_val, size_t nbytes);
-errorCode dateTimeDataSer(EXIStream* strm, struct tm dt_val, uint16_t presenceMask);
-errorCode decimalDataSer(EXIStream* strm, decimal dec_val);
-errorCode bigDecimalDataSer(EXIStream* strm, bigDecimal dec_val);
+errorCode intDataSer(EXIStream* strm, int32_t int_val, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode bigIntDataSer(EXIStream* strm, const BigSignedInt int_val, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode booleanDataSer(EXIStream* strm, unsigned char bool_val, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode stringDataSer(EXIStream* strm, const StringType str_val, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode floatDataSer(EXIStream* strm, double float_val, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode bigFloatDataSer(EXIStream* strm, BigFloat float_val, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode binaryDataSer(EXIStream* strm, const char* binary_val, size_t nbytes, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode dateTimeDataSer(EXIStream* strm, struct tm dt_val, uint16_t presenceMask, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode decimalDataSer(EXIStream* strm, decimal dec_val, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode bigDecimalDataSer(EXIStream* strm, bigDecimal dec_val, unsigned char fastSchemaMode, size_t schemaProduction);
 
 // Miscellaneous
 errorCode processingInstructionSer(EXIStream* strm); // TODO: define the parameters!
@@ -94,20 +94,26 @@ errorCode encodeStringData(EXIStream* strm, StringType strng);
  * @brief Encodes SD, ED, EE, CH events
  * @param[in, out] strm EXI stream
  * @param[in] event event to be encoded
+ * @param[in] fastSchemaMode - TRUE/FALSE, require valid schemaProduction order number
+ * @param[in] schemaProduction the order number of the schema production (starting from 0)
  * @return Error handling code
  */
-errorCode encodeSimpleEXIEvent(EXIStream* strm, EXIEvent event);
+errorCode encodeSimpleEXIEvent(EXIStream* strm, EXIEvent event, unsigned char fastSchemaMode, size_t schemaProduction);
 
 /**
  * @brief Encodes SE, AT events
  * @param[in, out] strm EXI stream
  * @param[in] qname element or attribute QName
+ * @param[in] valueType used for AT events
  * @param[in] event_all EVENT_SE_ALL or EVENT_AT_ALL
  * @param[in] event_uri EVENT_SE_URI or EVENT_AT_URI
  * @param[in] event_qname EVENT_SE_QNAME or EVENT_AT_QNAME
+ * @param[in] fastSchemaMode - TRUE/FALSE, require valid schemaProduction order number
+ * @param[in] schemaProduction the order number of the schema production (starting from 0)
  * @return Error handling code
  */
-errorCode encodeComplexEXIEvent(EXIStream* strm, QName qname, unsigned char event_all, unsigned char event_uri, unsigned char event_qname);
+errorCode encodeComplexEXIEvent(EXIStream* strm, QName qname, EventType event_all, EventType event_uri,
+						EventType event_qname, ValueType valueType, unsigned char fastSchemaMode, size_t schemaProduction);
 
 /**
  * @brief Encodes QName into EXI stream
