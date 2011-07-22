@@ -1,4 +1,4 @@
-/** AUTO-GENERATED: Wed Jul 20 17:29:09 2011
+/** AUTO-GENERATED: Fri Jul 22 15:11:42 2011
   * Copyright (c) 2010 - 2011, Rumen Kyusakov, EISLAB, LTU
   * $Id$ */
 
@@ -71,6 +71,14 @@ Production ops_prodArray_4_3_1_2[0] = {};
 GrammarRule ops_ruleArray_4_3[2] = {{{ops_prodArray_4_3_0_0, ops_prodArray_4_3_0_1, ops_prodArray_4_3_0_2}, {1, 0, 0}, {0, 0, 0}},{{ops_prodArray_4_3_1_0, ops_prodArray_4_3_1_1, ops_prodArray_4_3_1_2}, {1, 0, 0}, {0, 0, 0}}};
 
 EXIGrammar ops_grammar_4_3 = {ops_ruleArray_4_3, 2, 14, 0};
+
+Production ops_prodArray_4_4_0_0[1] = {{{8,0}, 65535, -1, -1}};
+Production ops_prodArray_4_4_0_1[0] = {};
+Production ops_prodArray_4_4_0_2[0] = {};
+
+GrammarRule ops_ruleArray_4_4[1] = {{{ops_prodArray_4_4_0_0, ops_prodArray_4_4_0_1, ops_prodArray_4_4_0_2}, {1, 0, 0}, {0, 0, 0}}};
+
+EXIGrammar ops_empty_grammar = {ops_ruleArray_4_4, 1, 13, 0};
 
 Production ops_prodArray_4_6_0_0[4] = {{{8,0}, 65535, -1, -1},{{5,0}, 4, 31, 3},{{5,0}, 4, 14, 2},{{5,0}, 4, 7, 1}};
 Production ops_prodArray_4_6_0_1[0] = {};
@@ -375,7 +383,7 @@ GrammarRule ops_ruleArray_4_38[2] = {{{ops_prodArray_4_38_0_0, ops_prodArray_4_3
 
 EXIGrammar ops_grammar_4_38 = {ops_ruleArray_4_38, 2, 14, 0};
 
-struct LocalNamesRow ops_LNrows_4[39] = {{NULL, {"alignment", 9}, &ops_grammar_4_0},{NULL, {"base64Binary", 12}, &ops_grammar_4_1},{NULL, {"blockSize", 9}, &ops_grammar_4_2},{NULL, {"boolean", 7}, &ops_grammar_4_3},{NULL, {"byte", 4}, NULL},{NULL, {"comments", 8}, NULL},{NULL, {"common", 6}, &ops_grammar_4_6},{NULL, {"compression", 11}, NULL},{NULL, {"datatypeRepresentationMap", 25}, &ops_grammar_4_8},{NULL, {"dateTime", 8}, &ops_grammar_4_9},{NULL, {"date", 4}, &ops_grammar_4_10},{NULL, {"decimal", 7}, &ops_grammar_4_11},{NULL, {"double", 6}, &ops_grammar_4_12},{NULL, {"dtd", 3}, NULL},{NULL, {"fragment", 8}, NULL},{NULL, {"gDay", 4}, &ops_grammar_4_15},{NULL, {"gMonthDay", 9}, &ops_grammar_4_16},{NULL, {"gMonth", 6}, &ops_grammar_4_17},{NULL, {"gYearMonth", 10}, &ops_grammar_4_18},{NULL, {"gYear", 5}, &ops_grammar_4_19},{NULL, {"header", 6}, &ops_grammar_4_20},{NULL, {"hexBinary", 9}, &ops_grammar_4_21},{NULL, {"ieeeBinary32", 12}, &ops_grammar_4_22},{NULL, {"ieeeBinary64", 12}, &ops_grammar_4_23},{NULL, {"integer", 7}, &ops_grammar_4_24},{NULL, {"lesscommon", 10}, &ops_grammar_4_25},{NULL, {"lexicalValues", 13}, NULL},{NULL, {"pis", 3}, NULL},{NULL, {"pre-compress", 12}, NULL},{NULL, {"prefixes", 8}, NULL},{NULL, {"preserve", 8}, &ops_grammar_4_30},{NULL, {"schemaId", 8}, &ops_grammar_4_31},{NULL, {"selfContained", 13}, NULL},{NULL, {"strict", 6}, NULL},{NULL, {"string", 6}, &ops_grammar_4_34},{NULL, {"time", 4}, &ops_grammar_4_35},{NULL, {"uncommon", 8}, &ops_grammar_4_36},{NULL, {"valueMaxLength", 14}, &ops_grammar_4_37},{NULL, {"valuePartitionCapacity", 22}, &ops_grammar_4_38}};
+struct LocalNamesRow ops_LNrows_4[39] = {{NULL, {"alignment", 9}, &ops_grammar_4_0},{NULL, {"base64Binary", 12}, &ops_grammar_4_1},{NULL, {"blockSize", 9}, &ops_grammar_4_2},{NULL, {"boolean", 7}, &ops_grammar_4_3},{NULL, {"byte", 4}, &ops_empty_grammar},{NULL, {"comments", 8}, &ops_empty_grammar},{NULL, {"common", 6}, &ops_grammar_4_6},{NULL, {"compression", 11}, &ops_empty_grammar},{NULL, {"datatypeRepresentationMap", 25}, &ops_grammar_4_8},{NULL, {"dateTime", 8}, &ops_grammar_4_9},{NULL, {"date", 4}, &ops_grammar_4_10},{NULL, {"decimal", 7}, &ops_grammar_4_11},{NULL, {"double", 6}, &ops_grammar_4_12},{NULL, {"dtd", 3}, &ops_empty_grammar},{NULL, {"fragment", 8}, &ops_empty_grammar},{NULL, {"gDay", 4}, &ops_grammar_4_15},{NULL, {"gMonthDay", 9}, &ops_grammar_4_16},{NULL, {"gMonth", 6}, &ops_grammar_4_17},{NULL, {"gYearMonth", 10}, &ops_grammar_4_18},{NULL, {"gYear", 5}, &ops_grammar_4_19},{NULL, {"header", 6}, &ops_grammar_4_20},{NULL, {"hexBinary", 9}, &ops_grammar_4_21},{NULL, {"ieeeBinary32", 12}, &ops_grammar_4_22},{NULL, {"ieeeBinary64", 12}, &ops_grammar_4_23},{NULL, {"integer", 7}, &ops_grammar_4_24},{NULL, {"lesscommon", 10}, &ops_grammar_4_25},{NULL, {"lexicalValues", 13}, &ops_empty_grammar},{NULL, {"pis", 3}, &ops_empty_grammar},{NULL, {"pre-compress", 12}, &ops_empty_grammar},{NULL, {"prefixes", 8}, &ops_empty_grammar},{NULL, {"preserve", 8}, &ops_grammar_4_30},{NULL, {"schemaId", 8}, &ops_grammar_4_31},{NULL, {"selfContained", 13}, &ops_empty_grammar},{NULL, {"strict", 6}, &ops_empty_grammar},{NULL, {"string", 6}, &ops_grammar_4_34},{NULL, {"time", 4}, &ops_grammar_4_35},{NULL, {"uncommon", 8}, &ops_grammar_4_36},{NULL, {"valueMaxLength", 14}, &ops_grammar_4_37},{NULL, {"valuePartitionCapacity", 22}, &ops_grammar_4_38}};
 LocalNamesTable ops_lTable_4 = { ops_LNrows_4, 39, 39, {NULL, 0}};
 
 struct URIRow ops_uriRows[5] = {{&ops_pTable_0, &ops_lTable_0, {"", 0}},{&ops_pTable_1, &ops_lTable_1, {"http://www.w3.org/XML/1998/namespace", 36}},{&ops_pTable_2, &ops_lTable_2, {"http://www.w3.org/2001/XMLSchema-instance", 41}},{NULL, &ops_lTable_3, {"http://www.w3.org/2001/XMLSchema", 32}},{NULL, &ops_lTable_4, {"http://www.w3.org/2009/exi", 26}}};
@@ -383,4 +391,4 @@ URITable ops_uriTbl = {ops_uriRows, 5, 5, {NULL, 0}};
 
 QNameID ops_qnames[1] = {{4, 20}};
 
-ExipSchema ops_schema = {&ops_uriTbl, ops_qnames, 1, {NULL, NULL}};
+const ExipSchema ops_schema = {&ops_uriTbl, ops_qnames, 1, {NULL, NULL}};
