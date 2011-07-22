@@ -58,7 +58,7 @@
 static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Production* prodHit,
 				EXIEvent* event, size_t* nonTermID_out, ContentHandler* handler, void* app_data, unsigned int codeLength);
 
-errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, ExipSchema* schema)
+errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const ExipSchema* schema)
 {
 	GrammarRule* tmp_rule;
 	unsigned int tmp_code1 = 0; // the number of productions with event codes with length 1

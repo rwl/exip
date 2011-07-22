@@ -173,7 +173,7 @@ errorCode startElementSer(EXIStream* strm, QName* qname, unsigned char fastSchem
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start element serialization\n"));
 
-	tmp_err_code = encodeComplexEXIEvent(strm, *qname, EVENT_SE_ALL, EVENT_SE_URI, EVENT_SE_QNAME, VALUE_TYPE_NONE, fastSchemaMode, schemaProduction);
+	tmp_err_code = encodeComplexEXIEvent(strm, qname, EVENT_SE_ALL, EVENT_SE_URI, EVENT_SE_QNAME, VALUE_TYPE_NONE, fastSchemaMode, schemaProduction);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -231,7 +231,7 @@ errorCode attributeSer(EXIStream* strm, QName* qname, ValueType valueType, unsig
 {
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start attr serialization\n"));
 	strm->context.expectATData = TRUE;
-	return encodeComplexEXIEvent(strm, *qname, EVENT_AT_ALL, EVENT_AT_URI, EVENT_AT_QNAME, valueType, fastSchemaMode, schemaProduction);
+	return encodeComplexEXIEvent(strm, qname, EVENT_AT_ALL, EVENT_AT_URI, EVENT_AT_QNAME, valueType, fastSchemaMode, schemaProduction);
 }
 
 errorCode intDataSer(EXIStream* strm, int32_t int_val, unsigned char fastSchemaMode, size_t schemaProduction)

@@ -49,7 +49,7 @@
 #include "streamDecode.h"
 #include "grammarAugment.h"
 
-void decodeBody(EXIStream* strm, ContentHandler* handler, ExipSchema* schema, void* app_data)
+void decodeBody(EXIStream* strm, ContentHandler* handler, const ExipSchema* schema, void* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIGrammar docGr;

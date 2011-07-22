@@ -55,7 +55,7 @@
  * @param[in] schema schema information when in schema-decoding mode. NULL when in schema-less mode
  * @param[in] app_data Application data to be passed to the content handler callbacks
  */
-void decodeBody(EXIStream* strm, ContentHandler* handler, ExipSchema* schema, void* app_data);
+void decodeBody(EXIStream* strm, ContentHandler* handler, const ExipSchema* schema, void* app_data);
 
 /**
  * @brief Decodes a QName from the EXI stream

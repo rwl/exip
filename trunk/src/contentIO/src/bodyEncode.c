@@ -211,7 +211,7 @@ errorCode encodeSimpleEXIEvent(EXIStream* strm, EXIEvent event, unsigned char fa
 	return ERR_OK;
 }
 
-errorCode encodeComplexEXIEvent(EXIStream* strm, QName qname, EventType event_all, EventType event_uri, EventType event_qname, ValueType valueType, unsigned char fastSchemaMode, size_t schemaProduction)
+errorCode encodeComplexEXIEvent(EXIStream* strm, QName* qname, EventType event_all, EventType event_uri, EventType event_qname, ValueType valueType, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char b = 0;
@@ -246,10 +246,10 @@ errorCode encodeComplexEXIEvent(EXIStream* strm, QName qname, EventType event_al
 				{
 					if(currentRule->prodArrays[b][tmp_prod_indx].event.eventType == event_all ||   // (1)
 					   (currentRule->prodArrays[b][tmp_prod_indx].event.eventType == event_uri &&    // (2)
-							   stringEqual(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].string_val, *(qname.uri))) ||
+							   stringEqual(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].string_val, *(qname->uri))) ||
 						(currentRule->prodArrays[b][tmp_prod_indx].event.eventType == event_qname && // (3)
-								stringEqual(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].string_val, *(qname.uri)) &&
-								stringEqual(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].lTable->rows[currentRule->prodArrays[b][tmp_prod_indx].lnRowID].string_val, *(qname.localName)))
+								stringEqual(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].string_val, *(qname->uri)) &&
+								stringEqual(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].lTable->rows[currentRule->prodArrays[b][tmp_prod_indx].lnRowID].string_val, *(qname->localName)))
 					   )
 					{
 						prodHit = &currentRule->prodArrays[b][tmp_prod_indx];
@@ -298,7 +298,7 @@ errorCode encodeComplexEXIEvent(EXIStream* strm, QName qname, EventType event_al
 
 	if(prodHit->event.eventType == event_all)
 	{
-		tmp_err_code = encodeQName(strm, qname);
+		tmp_err_code = encodeQName(strm, *qname);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
