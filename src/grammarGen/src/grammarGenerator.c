@@ -155,6 +155,11 @@ struct xsdAppData
 	URITable* metaStringTables;
 	DynArray* globalElemGrammars; // QNameID* of globalElemGrammars
 	ExipSchema* schema;
+
+	/** Used only for empty elements such as <xsd:complexType /> in EXI options document.
+	 *  The purpose is to reuse it and not create a multiple empty grammars each time
+	 *  there is an empty element declared - the case for EXI options document*/
+	EXIGrammar* emptyGrammar;
 };
 
 // Content Handler API
@@ -253,6 +258,7 @@ errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t 
 			return tmp_err_code;
 
 	parsing_data.contextStack = NULL;
+	parsing_data.emptyGrammar = NULL;
 
 	tmp_err_code = createDynArray(&parsing_data.elNotResolvedArray, sizeof(struct elementNotResolved), 10, &parsing_data.tmpMemList);
 	if(tmp_err_code != ERR_OK)
@@ -1244,6 +1250,46 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 #endif
 
 				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].globalGrammar = exiTypeGrammar;
+			}
+			else
+			{
+				if(app_data->emptyGrammar == NULL)
+				{
+					app_data->emptyGrammar = memManagedAllocate(&app_data->schema->memList, sizeof(EXIGrammar));
+					if(app_data->emptyGrammar == NULL)
+						return MEMORY_ALLOCATION_ERROR;
+
+					app_data->emptyGrammar->contentIndex = 0;
+					app_data->emptyGrammar->grammarType = GR_TYPE_SCHEMA_ELEM;
+					app_data->emptyGrammar->pTypeFacets = NULL;
+					app_data->emptyGrammar->rulesDimension = 1;
+
+					// One more rule slot for grammar augmentation when strict == FASLE
+					app_data->emptyGrammar->ruleArray = memManagedAllocate(&app_data->schema->memList, sizeof(GrammarRule)*2);
+					if(app_data->emptyGrammar->ruleArray == NULL)
+						return MEMORY_ALLOCATION_ERROR;
+
+					app_data->emptyGrammar->ruleArray->bits[0] = 0;
+					app_data->emptyGrammar->ruleArray->bits[1] = 0;
+					app_data->emptyGrammar->ruleArray->bits[2] = 0;
+
+					app_data->emptyGrammar->ruleArray->prodCounts[0] = 1;
+					app_data->emptyGrammar->ruleArray->prodCounts[1] = 0;
+					app_data->emptyGrammar->ruleArray->prodCounts[2] = 0;
+
+					app_data->emptyGrammar->ruleArray->prodArrays[0] = memManagedAllocate(&app_data->schema->memList, sizeof(Production));
+					if(app_data->emptyGrammar->ruleArray->prodArrays[0] == NULL)
+						return MEMORY_ALLOCATION_ERROR;
+
+					app_data->emptyGrammar->ruleArray->prodArrays[1] = NULL;
+					app_data->emptyGrammar->ruleArray->prodArrays[2] = NULL;
+
+					app_data->emptyGrammar->ruleArray->prodArrays[0][0].event = getEventDefType(EVENT_EE);
+					app_data->emptyGrammar->ruleArray->prodArrays[0][0].uriRowID = UINT16_MAX;
+					app_data->emptyGrammar->ruleArray->prodArrays[0][0].lnRowID = SIZE_MAX;
+					app_data->emptyGrammar->ruleArray->prodArrays[0][0].nonTermID = GR_VOID_NON_TERMINAL;
+				}
+				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].globalGrammar = app_data->emptyGrammar;
 			}
 		}
 		else // The element has a particular named type

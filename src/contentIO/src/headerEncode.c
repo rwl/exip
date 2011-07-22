@@ -44,6 +44,17 @@
 
 #include "headerEncode.h"
 #include "streamWrite.h"
+#include "schema.h"
+#include "memManagement.h"
+#include "grammars.h"
+#include "sTables.h"
+#include "EXISerializer.h"
+#include "stringManipulate.h"
+
+/** This is the statically generated EXIP schema definition for the EXI Options document*/
+extern const ExipSchema ops_schema;
+
+extern const EXISerializer serEXI;
 
 errorCode encodeHeader(EXIStream* strm, EXIheader* header)
 {
@@ -100,8 +111,198 @@ errorCode encodeHeader(EXIStream* strm, EXIheader* header)
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Encode EXI options\n"));
 	if(header->has_options)
 	{
+		EXIStream options_strm;
+		EXIOptions o_ops;
+		EXIGrammar docGr;
+		unsigned char hasUncommon = FALSE;
+		unsigned char hasLesscommon = FALSE;
+		unsigned char hasCommon = FALSE;
 
-		return NOT_IMPLEMENTED_YET; // TODO: Handle EXI streams with options. This includes Padding Bits in some cases
+		makeDefaultOpts(&o_ops);
+		o_ops.strict = TRUE;
+		tmp_err_code = initAllocList(&options_strm.memList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		options_strm.buffer = strm->buffer;
+		options_strm.context.bitPointer = strm->context.bitPointer;
+		options_strm.context.bufferIndx = strm->context.bufferIndx;
+		options_strm.bufLen = strm->bufLen;
+		options_strm.header.opts = &o_ops;
+		options_strm.context.nonTermID = GR_DOCUMENT;
+		options_strm.context.curr_lnID = 0;
+		options_strm.context.curr_uriID = 0;
+		options_strm.context.expectATData = 0;
+		options_strm.bufContent = strm->bufContent;
+		options_strm.ioStrm = strm->ioStrm;
+
+		options_strm.uriTable = ops_schema.initialStringTables;
+		tmp_err_code = createValueTable(&(options_strm.vTable), &(options_strm.memList));
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = createDocGrammar(&docGr, &options_strm, &ops_schema);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = pushGrammar(&options_strm.gStack, &docGr);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code += serEXI.startDocumentSer(&options_strm, TRUE, 0);
+		tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 0);
+
+		// uncommon options
+		if(header->opts->alignment != BIT_PACKED ||
+				header->opts->selfContained != FALSE ||
+				header->opts->valueMaxLength != SIZE_MAX ||
+				header->opts->valuePartitionCapacity != SIZE_MAX ||
+				header->opts->drMap != NULL)
+		{
+			hasUncommon = TRUE;
+			hasLesscommon = TRUE;
+		}
+		else if(header->opts->preserve != 0 || header->opts->blockSize != 1000000)
+		{
+			// lesscommon options
+			hasLesscommon = TRUE;
+		}
+
+		if(hasLesscommon)
+		{
+			tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 0);
+			if(hasUncommon)
+			{
+				tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 0);
+				if(header->opts->alignment != BIT_PACKED)
+				{
+					tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 0);
+					if(header->opts->alignment == BYTE_ALIGNMENT)
+						tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 0);
+					else
+						tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 1);
+					tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 0);
+				}
+				if(header->opts->selfContained != FALSE)
+				{
+					tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 1 - options_strm.context.nonTermID);
+					tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 0);
+				}
+				if(header->opts->valueMaxLength != SIZE_MAX)
+				{
+					tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 2 - options_strm.context.nonTermID);
+					tmp_err_code += serEXI.intDataSer(&options_strm, header->opts->valueMaxLength, TRUE, 0);
+					tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 0);
+				}
+				if(header->opts->valuePartitionCapacity != SIZE_MAX)
+				{
+					tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 3 - options_strm.context.nonTermID);
+					tmp_err_code += serEXI.intDataSer(&options_strm, header->opts->valuePartitionCapacity, TRUE, 0);
+					tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 0);
+				}
+				if(header->opts->drMap != NULL)
+				{
+					tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 4 - options_strm.context.nonTermID);
+					// TODO: not ready yet!
+					return NOT_IMPLEMENTED_YET;
+				}
+				tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 5 - options_strm.context.nonTermID);
+			}
+			if(header->opts->preserve != 0)
+			{
+				tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 1 - options_strm.context.nonTermID);
+				if(IS_PRESERVED(header->opts->preserve, PRESERVE_DTD))
+				{
+					tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 0);
+					tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 0);
+				}
+				if(IS_PRESERVED(header->opts->preserve, PRESERVE_PREFIXES))
+				{
+					tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 1 - options_strm.context.nonTermID);
+					tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 0);
+				}
+				if(IS_PRESERVED(header->opts->preserve, PRESERVE_LEXVALUES))
+				{
+					tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 2 - options_strm.context.nonTermID);
+					tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 0);
+				}
+				if(IS_PRESERVED(header->opts->preserve, PRESERVE_COMMENTS))
+				{
+					tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 3 - options_strm.context.nonTermID);
+					tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 0);
+				}
+				if(IS_PRESERVED(header->opts->preserve, PRESERVE_PIS))
+				{
+					tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 4 - options_strm.context.nonTermID);
+					tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 0);
+				}
+				tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 5 - options_strm.context.nonTermID);
+			}
+			if(header->opts->blockSize != 1000000)
+			{
+				tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 2 - options_strm.context.nonTermID);
+				tmp_err_code += serEXI.intDataSer(&options_strm, header->opts->blockSize, TRUE, 0);
+				tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 0);
+			}
+			tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 3 - options_strm.context.nonTermID);
+		}
+
+		// common options if any...
+		if(header->opts->compression == TRUE || header->opts->fragment == TRUE || !isStringEmpty(&header->opts->schemaID))
+		{
+			hasCommon = TRUE;
+		}
+
+		if(hasCommon)
+		{
+			tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 1 - options_strm.context.nonTermID);
+			if(header->opts->compression == TRUE)
+			{
+				tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 0);
+				tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 0);
+			}
+			if(header->opts->fragment == TRUE)
+			{
+				tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 1 - options_strm.context.nonTermID);
+				tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 0);
+			}
+			if(!isStringEmpty(&header->opts->schemaID))
+			{
+				tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 2 - options_strm.context.nonTermID);
+				// TODO: not implemented yet
+				return NOT_IMPLEMENTED_YET;
+			}
+			tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 3 - options_strm.context.nonTermID);
+		}
+
+		if(header->opts->strict == TRUE)
+		{
+			tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 2 - options_strm.context.nonTermID);
+			tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 0);
+		}
+
+		tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 3 - options_strm.context.nonTermID);
+
+		tmp_err_code += serEXI.endDocumentSer(&options_strm, TRUE, 0);
+
+		strm->bufContent = options_strm.bufContent;
+		strm->context.bitPointer = options_strm.context.bitPointer;
+		strm->context.bufferIndx = options_strm.context.bufferIndx;
+
+		if(strm->header.opts->compression == TRUE ||
+					strm->header.opts->alignment != BIT_PACKED)
+		{
+			// Padding bits
+			if(strm->context.bitPointer != 0)
+			{
+				strm->context.bitPointer = 0;
+				strm->context.bufferIndx += 1;
+			}
+		}
+
+		tmp_err_code += serEXI.closeEXIStream(&options_strm);
+
+		return tmp_err_code;
 	}
 
 	return ERR_OK;

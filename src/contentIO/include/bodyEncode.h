@@ -112,7 +112,7 @@ errorCode encodeSimpleEXIEvent(EXIStream* strm, EXIEvent event, unsigned char fa
  * @param[in] schemaProduction the order number of the schema production (starting from 0)
  * @return Error handling code
  */
-errorCode encodeComplexEXIEvent(EXIStream* strm, QName qname, EventType event_all, EventType event_uri,
+errorCode encodeComplexEXIEvent(EXIStream* strm, QName* qname, EventType event_all, EventType event_uri,
 						EventType event_qname, ValueType valueType, unsigned char fastSchemaMode, size_t schemaProduction);
 
 /**

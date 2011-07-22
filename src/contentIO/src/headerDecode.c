@@ -51,7 +51,7 @@
 #include "bodyDecode.h"
 
 /** This is the statically generated EXIP schema definition for the EXI Options document*/
-extern ExipSchema ops_schema;
+extern const ExipSchema ops_schema;
 
 // Content Handler API
 static char ops_fatalError(const char code, const char* msg, void* app_data);
@@ -62,6 +62,12 @@ static char ops_endElement(void* app_data);
 static char ops_attribute(QName qname, void* app_data);
 static char ops_stringData(const StringType value, void* app_data);
 static char ops_intData(int32_t int_val, void* app_data);
+
+struct ops_AppData
+{
+	EXIOptions* parsed_ops;
+	EXIStream* o_strm;
+};
 
 errorCode decodeHeader(EXIStream* strm)
 {
@@ -102,6 +108,7 @@ errorCode decodeHeader(EXIStream* strm)
 			return INVALID_EXI_HEADER;
 
 		strm->header.has_cookie = 1;
+		DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">EXI cookie detected\n"));
 		tmp_err_code = readBits(strm, 2, &bits_val);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -157,6 +164,7 @@ errorCode decodeHeader(EXIStream* strm)
 		EXIStream options_strm;
 		EXIOptions o_ops;
 		ContentHandler opsHandler;
+		struct ops_AppData appD;
 
 		makeDefaultOpts(&o_ops);
 		o_ops.strict = TRUE;
@@ -187,7 +195,13 @@ errorCode decodeHeader(EXIStream* strm)
 		opsHandler.endElement = ops_endElement;
 		opsHandler.intData = ops_intData;
 
-		decodeBody(&options_strm, &opsHandler, &ops_schema, strm);
+		appD.o_strm = &options_strm;
+		appD.parsed_ops = strm->header.opts;
+		decodeBody(&options_strm, &opsHandler, &ops_schema, &appD);
+
+		strm->bufContent = options_strm.bufContent;
+		strm->context.bitPointer = options_strm.context.bitPointer;
+		strm->context.bufferIndx = options_strm.context.bufferIndx;
 
 		if(strm->header.opts->compression == TRUE ||
 			strm->header.opts->alignment != BIT_PACKED)
@@ -224,51 +238,51 @@ static char ops_endDocument(void* app_data)
 
 static char ops_startElement(QName qname, void* app_data)
 {
-	EXIStream* o_strm = (EXIStream*) app_data;
+	struct ops_AppData* o_appD = (struct ops_AppData*) app_data;
 
-	if(o_strm->context.curr_uriID != 4) // URI != http://www.w3.org/2009/exi
+	if(o_appD->o_strm->context.curr_uriID != 4) // URI != http://www.w3.org/2009/exi
 	{
 		DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Wrong namespace in the EXI Options\n"));
 		return EXIP_HANDLER_STOP;
 	}
 
-	switch(o_strm->context.curr_lnID)
+	switch(o_appD->o_strm->context.curr_lnID)
 	{
 		case 33:	// strict
-			o_strm->header.opts->strict = TRUE;
+			o_appD->parsed_ops->strict = TRUE;
 		break;
 		case 31:	// schemaId
 			// TODO: implement this!
 		break;
 		case 7:		// compression
-			o_strm->header.opts->compression = TRUE;
+			o_appD->parsed_ops->compression = TRUE;
 		break;
 		case 14:	// fragment
-			o_strm->header.opts->fragment = TRUE;
+			o_appD->parsed_ops->fragment = TRUE;
 		break;
 		case 13:	// dtd
-			SET_PRESERVED(o_strm->header.opts->preserve, PRESERVE_DTD);
+			SET_PRESERVED(o_appD->parsed_ops->preserve, PRESERVE_DTD);
 		break;
 		case 29:	// prefixes
-			SET_PRESERVED(o_strm->header.opts->preserve, PRESERVE_PREFIXES);
+			SET_PRESERVED(o_appD->parsed_ops->preserve, PRESERVE_PREFIXES);
 		break;
 		case 26:	// lexicalValues
-			SET_PRESERVED(o_strm->header.opts->preserve, PRESERVE_LEXVALUES);
+			SET_PRESERVED(o_appD->parsed_ops->preserve, PRESERVE_LEXVALUES);
 		break;
 		case 5:	// comments
-			SET_PRESERVED(o_strm->header.opts->preserve, PRESERVE_COMMENTS);
+			SET_PRESERVED(o_appD->parsed_ops->preserve, PRESERVE_COMMENTS);
 		break;
 		case 27:	// pis
-			SET_PRESERVED(o_strm->header.opts->preserve, PRESERVE_PIS);
+			SET_PRESERVED(o_appD->parsed_ops->preserve, PRESERVE_PIS);
 		break;
 		case 4:	// alignment->byte
-			o_strm->header.opts->alignment = BYTE_ALIGNMENT;
+			o_appD->parsed_ops->alignment = BYTE_ALIGNMENT;
 		break;
 		case 28:	// alignment->pre-compress
-			o_strm->header.opts->alignment = PRE_COMPRESSION;
+			o_appD->parsed_ops->alignment = PRE_COMPRESSION;
 		break;
 		case 32:	// selfContained
-			o_strm->header.opts->selfContained = TRUE;
+			o_appD->parsed_ops->selfContained = TRUE;
 		break;
 		case 37:	// valueMaxLength
 			// TODO: implement this!
@@ -301,18 +315,18 @@ static char ops_stringData(const StringType value, void* app_data)
 
 static char ops_intData(int32_t int_val, void* app_data)
 {
-	EXIStream* o_strm = (EXIStream*) app_data;
+	struct ops_AppData* o_appD = (struct ops_AppData*) app_data;
 
-	switch(o_strm->context.curr_lnID)
+	switch(o_appD->o_strm->context.curr_lnID)
 	{
 		case 37:	// valueMaxLength
-			o_strm->header.opts->valueMaxLength = (unsigned int) int_val;
+			o_appD->parsed_ops->valueMaxLength = (unsigned int) int_val;
 		break;
 		case 38:	// valuePartitionCapacity
-			o_strm->header.opts->valuePartitionCapacity = (unsigned int) int_val;
+			o_appD->parsed_ops->valuePartitionCapacity = (unsigned int) int_val;
 		break;
 		case 2:	// blockSize
-			o_strm->header.opts->blockSize = (unsigned int) int_val;
+			o_appD->parsed_ops->blockSize = (unsigned int) int_val;
 		break;
 	}
 	return EXIP_HANDLER_OK;

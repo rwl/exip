@@ -53,6 +53,8 @@ extern const EXISerializer serEXI;
 
 #define OUTPUT_BUFFER_SIZE 200
 
+#define TEST_HEADER_WITH_OPTIONS TRUE
+
 static void printfHelp();
 static void printError(errorCode err_code, EXIStream* strm, FILE *outfile);
 
@@ -150,6 +152,22 @@ int main(int argc, char *argv[])
 			outStrm.readWriteToStream = writeFileOutputStream;
 			outStrm.stream = outfile;
 
+			if(TEST_HEADER_WITH_OPTIONS == TRUE)
+			{
+				header.has_cookie = TRUE; // Let's try that as well...
+				header.has_options = TRUE;
+				opts.strict = TRUE;
+			}
+			else
+			{
+				header.has_cookie = FALSE;
+				header.has_options = FALSE;
+			}
+
+			header.opts = &opts;
+			header.is_preview_version = FALSE;
+			header.version_number = 1;
+
 			if(hasSchema == TRUE)
 			{
 				tmp_err_code = serEXI.initStream(&testStrm, buf, OUTPUT_BUFFER_SIZE, &outStrm, &opts, &schema);
@@ -162,11 +180,11 @@ int main(int argc, char *argv[])
 				if(tmp_err_code != ERR_OK)
 					printError(tmp_err_code, &testStrm, outfile);
 			}
-			header.has_cookie = FALSE;
-			header.has_options = FALSE;
-			header.is_preview_version = FALSE;
-			header.version_number = 1;
+
 			tmp_err_code += serEXI.exiHeaderSer(&testStrm, &header);
+
+			printf("bitPointer: %d\n", testStrm.context.bitPointer);
+			printf("bufferIndx: %d\n\n", testStrm.context.bufferIndx);
 
 			tmp_err_code += serEXI.startDocumentSer(&testStrm, FALSE, 0);
 

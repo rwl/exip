@@ -246,7 +246,6 @@ int main(int argc, char *argv[])
 			}
 			else if(outputFormat == OUT_SRC_STAT)
 			{
-
 				// When there is no mask specified this is not correct!
 				// TODO: there should be extra rule slot for each grammar to be use if
 				// strict == FALSE by addUndeclaredProductions()!
@@ -390,7 +389,7 @@ int main(int argc, char *argv[])
 				}
 				fwrite("};\n\n", 1, strlen("};\n\n"), outfile);
 
-				sprintf(printfBuf, "ExipSchema %sschema = {&%suriTbl, %sqnames, %d, {NULL, NULL}};\n", prefix, prefix, prefix, schema.globalElemGrammarsCount);
+				sprintf(printfBuf, "const ExipSchema %sschema = {&%suriTbl, %sqnames, %d, {NULL, NULL}};\n", prefix, prefix, prefix, schema.globalElemGrammarsCount);
 				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 
 			}

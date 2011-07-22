@@ -90,7 +90,7 @@ errorCode popGrammar(EXIGrammarStack** gStack, EXIGrammar** grammar);
  * @param[in] schema the schema describing the document if any; if Built-in Document Grammar is created then the schema is NULL
  * @return Error handling code
  */
-errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, ExipSchema* schema);
+errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const ExipSchema* schema);
 
 /**
  * @brief Creates an instance of EXI Built-in Element Grammar
