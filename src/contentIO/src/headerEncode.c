@@ -300,7 +300,7 @@ errorCode encodeHeader(EXIStream* strm, EXIheader* header)
 			}
 		}
 
-		tmp_err_code += serEXI.closeEXIStream(&options_strm);
+		freeAllMem(&options_strm);
 
 		return tmp_err_code;
 	}

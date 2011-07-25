@@ -142,7 +142,7 @@ static errorCode addProductionsToARule(AllocList* memList, ProtoGrammar* left, u
 		for(prodIterL = 0; prodIterL < left->prodCount[ruleIndex]; prodIterL++)
 		{
 			// If the terminal symbol is identical
-			if(eventsEqual(left->prods[ruleIndex][prodIterL].event, rightRule[prodIterR].event) &&
+			if(eventsIdentical(left->prods[ruleIndex][prodIterL].event, rightRule[prodIterR].event) &&
 					left->prods[ruleIndex][prodIterL].uriRowID == rightRule[prodIterR].uriRowID &&
 					left->prods[ruleIndex][prodIterL].lnRowID == rightRule[prodIterR].lnRowID)
 			{

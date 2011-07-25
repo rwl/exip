@@ -116,7 +116,7 @@ errorCode encodeStringData(EXIStream* strm, StringType strng)
 	return ERR_OK;
 }
 
-errorCode encodeSimpleEXIEvent(EXIStream* strm, EXIEvent event, unsigned char fastSchemaMode, size_t schemaProduction)
+errorCode encodeSimpleEXIEvent(EXIStream* strm, EXIEvent event, unsigned char fastSchemaMode, size_t schemaProduction, ValueType* prodType)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char b = 0;
@@ -145,7 +145,7 @@ errorCode encodeSimpleEXIEvent(EXIStream* strm, EXIEvent event, unsigned char fa
 		{
 			for(j = 0; j < currentRule->prodCounts[b]; j++)
 			{
-				if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM || currentRule->prodArrays[b][currentRule->prodCounts[b] - 1 - j].event.valueType == event.valueType)
+				if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM || valueTypeClassesEqual(currentRule->prodArrays[b][currentRule->prodCounts[b] - 1 - j].event.valueType, event.valueType))
 				{
 					if(currentRule->prodArrays[b][currentRule->prodCounts[b] - 1 - j].event.eventType == event.eventType)
 					{
@@ -208,6 +208,8 @@ errorCode encodeSimpleEXIEvent(EXIStream* strm, EXIEvent event, unsigned char fa
 	}
 
 	strm->context.nonTermID = prodHit->nonTermID;
+	*prodType = prodHit->event.valueType;
+
 	return ERR_OK;
 }
 
@@ -242,7 +244,7 @@ errorCode encodeComplexEXIEvent(EXIStream* strm, QName* qname, EventType event_a
 			for(j = 0; j < currentRule->prodCounts[b]; j++)
 			{
 				tmp_prod_indx = currentRule->prodCounts[b] - 1 - j;
-				if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM || currentRule->prodArrays[b][tmp_prod_indx].event.valueType == valueType)
+				if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM || valueTypeClassesEqual(currentRule->prodArrays[b][tmp_prod_indx].event.valueType, valueType))
 				{
 					if(currentRule->prodArrays[b][tmp_prod_indx].event.eventType == event_all ||   // (1)
 					   (currentRule->prodArrays[b][tmp_prod_indx].event.eventType == event_uri &&    // (2)
@@ -403,4 +405,24 @@ errorCode encodeQName(EXIStream* strm, QName qname)
 
 /******* End: Local name **********/
 	return ERR_OK;
+}
+
+errorCode encodeIntData(EXIStream* strm, int32_t int_val, ValueType intType)
+{
+	if(intType == VALUE_TYPE_SMALL_INTEGER)
+	{
+		return NOT_IMPLEMENTED_YET;
+	}
+	else if(intType == VALUE_TYPE_NON_NEGATIVE_INT)
+	{
+		return encodeUnsignedInteger(strm, int_val);
+	}
+	else if(intType == VALUE_TYPE_INTEGER)
+	{
+		return encodeIntegerValue(strm, int_val);
+	}
+	else
+	{
+		return INCONSISTENT_PROC_STATE;
+	}
 }

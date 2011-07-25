@@ -72,6 +72,15 @@ EXIEvent getEventDefType(EventType eType);
  * @param[in] e2 second EXIEvent
  * @return 0 if not equal, 1 otherwise
  */
-unsigned char eventsEqual(EXIEvent e1, EXIEvent e2);
+unsigned char eventsIdentical(EXIEvent e1, EXIEvent e2);
+
+/**
+ * @brief Checks if two value type classes are equal
+ *
+ * @param[in] t1 first ValueType
+ * @param[in] t2 second ValueType
+ * @return 0 if not equal, 1 otherwise
+ */
+unsigned char valueTypeClassesEqual(ValueType t1, ValueType t2);
 
 #endif /* EVENTTYPESEXI_H_ */

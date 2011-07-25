@@ -585,14 +585,11 @@ static void getValueTypeString(char* buf, ValueType vt)
 {
 	switch(vt)
 	{
-		case 0:
+		case 1:
 			strcpy(buf, "[N/A] ");
 			break;
-		case 1:
-			strcpy(buf, "[str] ");
-			break;
 		case 2:
-			strcpy(buf, "[int] ");
+			strcpy(buf, "[str] ");
 			break;
 		case 3:
 			strcpy(buf, "[float] ");
@@ -616,10 +613,16 @@ static void getValueTypeString(char* buf, ValueType vt)
 			strcpy(buf, "[qname] ");
 			break;
 		case 10:
-			strcpy(buf, "[uint] ");
-			break;
-		case 11:
 			strcpy(buf, "[untyped] ");
+			break;
+		case 20:
+			strcpy(buf, "[int] ");
+			break;
+		case 21:
+			strcpy(buf, "[short] ");
+			break;
+		case 22:
+			strcpy(buf, "[uint] ");
 			break;
 	}
 }
