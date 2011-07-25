@@ -90,8 +90,5 @@ void parseEXI(char* binaryBuf, size_t bufLen, size_t bufContent, IOStream* ioStr
 			return;
 	}
 
-	printf("bitPointer: %d\n", strm.context.bitPointer);
-	printf("bufferIndx: %d\n\n", strm.context.bufferIndx);
-
 	decodeBody(&strm, handler, schema, app_data);
 }

@@ -72,7 +72,12 @@ EXIEvent getEventDefType(EventType eType)
 	return event;
 }
 
-unsigned char eventsEqual(EXIEvent e1, EXIEvent e2)
+unsigned char eventsIdentical(EXIEvent e1, EXIEvent e2)
 {
 	return e1.eventType == e2.eventType && e1.valueType == e2.valueType;
+}
+
+unsigned char valueTypeClassesEqual(ValueType t1, ValueType t2)
+{
+	return t1 == t2 || (t1 >= VALUE_TYPE_INTEGER && t1 >= VALUE_TYPE_INTEGER);
 }

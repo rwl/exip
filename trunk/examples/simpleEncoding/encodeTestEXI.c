@@ -157,6 +157,8 @@ int main(int argc, char *argv[])
 				header.has_cookie = TRUE; // Let's try that as well...
 				header.has_options = TRUE;
 				opts.strict = TRUE;
+				opts.valueMaxLength = 300;
+				opts.valuePartitionCapacity = 50;
 			}
 			else
 			{
@@ -182,9 +184,6 @@ int main(int argc, char *argv[])
 			}
 
 			tmp_err_code += serEXI.exiHeaderSer(&testStrm, &header);
-
-			printf("bitPointer: %d\n", testStrm.context.bitPointer);
-			printf("bufferIndx: %d\n\n", testStrm.context.bufferIndx);
 
 			tmp_err_code += serEXI.startDocumentSer(&testStrm, FALSE, 0);
 

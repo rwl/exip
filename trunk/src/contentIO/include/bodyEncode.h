@@ -96,9 +96,10 @@ errorCode encodeStringData(EXIStream* strm, StringType strng);
  * @param[in] event event to be encoded
  * @param[in] fastSchemaMode - TRUE/FALSE, require valid schemaProduction order number
  * @param[in] schemaProduction the order number of the schema production (starting from 0)
+ * @param[out] prodType the valueType of the production hit in the grammar
  * @return Error handling code
  */
-errorCode encodeSimpleEXIEvent(EXIStream* strm, EXIEvent event, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode encodeSimpleEXIEvent(EXIStream* strm, EXIEvent event, unsigned char fastSchemaMode, size_t schemaProduction, ValueType* prodType);
 
 /**
  * @brief Encodes SE, AT events
@@ -122,5 +123,14 @@ errorCode encodeComplexEXIEvent(EXIStream* strm, QName* qname, EventType event_a
  * @return Error handling code
  */
 errorCode encodeQName(EXIStream* strm, QName qname);
+
+/**
+ * @brief Encodes Integer value into EXI stream
+ * @param[in, out] strm EXI stream
+ * @param[in] int_val integer to be written
+ * @param[in] intType how the integer is represented: unsigned int, small int or regular int
+ * @return Error handling code
+ */
+errorCode encodeIntData(EXIStream* strm, int32_t int_val, ValueType intType);
 
 #endif /* BODYENCODE_H_ */

@@ -285,9 +285,8 @@ typedef unsigned char EventType;
 
 /** This is the type of the "value" content of EXI events.
  *  It is used when schema is available.
- * 0 - there is no value content for the event
- * 1 - the type is String
- * 2 - Integer
+ * 1 - there is no value content for the event
+ * 2 - the type is String
  * 3 - Float
  * 4 - Decimal
  * 5 - Date-Time
@@ -295,14 +294,15 @@ typedef unsigned char EventType;
  * 7 - Binary
  * 8 - List
  * 9 - QName
- * 10 - Unsigned int
- * 11 - Untyped
+ * 10 - Untyped
+ * 20 - Integer
+ * 21 - Small int
+ * 22 - Unsigned int
  * */
 typedef unsigned char ValueType;
 
-#define VALUE_TYPE_NONE              0
-#define VALUE_TYPE_STRING            1
-#define VALUE_TYPE_INTEGER           2
+#define VALUE_TYPE_NONE              1
+#define VALUE_TYPE_STRING            2
 #define VALUE_TYPE_FLOAT             3
 #define VALUE_TYPE_DECIMAL           4
 #define VALUE_TYPE_DATE_TIME         5
@@ -310,8 +310,11 @@ typedef unsigned char ValueType;
 #define VALUE_TYPE_BINARY            7
 #define VALUE_TYPE_LIST              8
 #define VALUE_TYPE_QNAME             9
-#define VALUE_TYPE_NON_NEGATIVE_INT 10
-#define VALUE_TYPE_UNTYPED          11
+#define VALUE_TYPE_UNTYPED          10
+
+#define VALUE_TYPE_INTEGER          20
+#define VALUE_TYPE_SMALL_INTEGER    21
+#define VALUE_TYPE_NON_NEGATIVE_INT 22
 
 struct EXIEvent
 {
@@ -545,7 +548,7 @@ struct StreamContext
 
 	uint16_t curr_uriID;
 	size_t curr_lnID;
-	unsigned char expectATData; // 1- Expecting value for an attribute, 0 - otherwise
+	unsigned char expectATData; // 0 - FALSE, otherwise the ValueType of the expected data
 };
 
 typedef struct StreamContext StreamContext;

@@ -149,7 +149,23 @@ errorCode encodeBinary(EXIStream* strm, char* binary_val, size_t nbytes)
 
 errorCode encodeIntegerValue(EXIStream* strm, int32_t sint_val)
 {
-	return NOT_IMPLEMENTED_YET;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	uint32_t uval;
+	unsigned char sign;
+	if(sint_val >= 0)
+	{
+		sign = 0;
+		uval = (uint32_t) sint_val;
+	}
+	else
+	{
+		uval = (uint32_t) -sint_val;
+		sign = 1;
+	}
+	tmp_err_code = writeNextBit(strm, sign);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+	return encodeUnsignedInteger(strm, uval);
 }
 
 errorCode encodeBigIntegerValue(EXIStream* strm, BigSignedInt sint_val)
