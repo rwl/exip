@@ -3,9 +3,6 @@
 STREAM_IO_OBJ = $(STREAM_IO_BIN)/streamDecode.o $(STREAM_IO_BIN)/streamRead.o \
 				$(STREAM_IO_BIN)/streamWrite.o $(STREAM_IO_BIN)/ioUtil.o $(STREAM_IO_BIN)/streamEncode.o
 
-$(STREAM_IO_BIN)/lib$(STREAM_IO).a : $(STREAM_IO_OBJ)
-		ar rcs $(STREAM_IO_BIN)/lib$(STREAM_IO).a $(STREAM_IO_OBJ)
-
 $(STREAM_IO_BIN)/streamDecode.o : $(STREAM_IO_SRC)/include/streamDecode.h $(STREAM_IO_SRC)/include/streamRead.h $(STREAM_IO_SRC)/src/streamDecode.c
 		$(CC) -c $(CFLAGS) $(STREAM_IO_SRC)/src/streamDecode.c -o $(STREAM_IO_BIN)/streamDecode.o
 

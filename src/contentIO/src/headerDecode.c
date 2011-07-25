@@ -284,12 +284,6 @@ static char ops_startElement(QName qname, void* app_data)
 		case 32:	// selfContained
 			o_appD->parsed_ops->selfContained = TRUE;
 		break;
-		case 37:	// valueMaxLength
-			// TODO: implement this!
-		break;
-		case 38:	// valuePartitionCapacity
-			// TODO: implement this!
-		break;
 		case 8:	// datatypeRepresentationMap
 			// TODO: implement this!
 		break;
