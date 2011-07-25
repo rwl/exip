@@ -107,6 +107,8 @@ CFLAGS += -I$(STREAM_IO_SRC)/include
 CFLAGS += -I$(GRAMMAR_GEN_SRC)/include
 CFLAGS += -I$(PUBLIC_INCLUDE_DIR)
 
+LDFLAGS += -L$(BIN_DIR) 
+
 # Gets the first goal set on the command line - it is used if the next goal is check. Defines which module to test
 TARGET = $(word 1,$(MAKECMDGOALS))
 
@@ -164,17 +166,17 @@ lib: mk_bin $(BIN_DIR)/libexip.a
 $(BIN_DIR)/libexip.a: mk_all $(OBJECT_ALL)
 		ar rcs $(BIN_DIR)/libexip.a $(OBJECT_ALL)
 		
-common: mk_common $(COMMON_BIN)/lib$(COMMON).a
+common: mk_common $(COMMON_OBJ)
 		
-streamIO: mk_streamIO common $(STREAM_IO_BIN)/lib$(STREAM_IO).a		
+streamIO: mk_streamIO common $(STREAM_IO_OBJ)
 		
-stringTables: mk_stringTables common $(STRING_TABLES_BIN)/lib$(STRING_TABLES).a		
+stringTables: mk_stringTables common $(STRING_TABLES_OBJ)
 
-grammar: mk_grammar common streamIO stringTables $(GRAMMAR_BIN)/lib$(GRAMMAR).a
+grammar: mk_grammar common streamIO stringTables $(GRAMMAR_OBJ)
 
-contentIO: mk_contentIO common streamIO $(CONTENT_IO_BIN)/lib$(CONTENT_IO).a
+contentIO: mk_contentIO common streamIO $(CONTENT_IO_OBJ)
 
-grammarGen: mk_grammarGen common stringTables $(GRAMMAR_GEN_BIN)/lib$(GRAMMAR_GEN).a
+grammarGen: mk_grammarGen common stringTables $(GRAMMAR_GEN_OBJ)
 		
 check: mk_tests $(CHECK_TARGET)
 		for i in $(CHECK_TARGET); do \

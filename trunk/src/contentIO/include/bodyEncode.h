@@ -95,7 +95,7 @@ errorCode encodeStringData(EXIStream* strm, StringType strng);
  * @param[in, out] strm EXI stream
  * @param[in] event event to be encoded
  * @param[in] fastSchemaMode - TRUE/FALSE, require valid schemaProduction order number
- * @param[in] schemaProduction the order number of the schema production (starting from 0)
+ * @param[in] schemaProduction the order number of the schema production (starting from 0), only needed if fastSchemaMode == TRUE
  * @param[out] prodType the valueType of the production hit in the grammar
  * @return Error handling code
  */
@@ -110,7 +110,7 @@ errorCode encodeSimpleEXIEvent(EXIStream* strm, EXIEvent event, unsigned char fa
  * @param[in] event_uri EVENT_SE_URI or EVENT_AT_URI
  * @param[in] event_qname EVENT_SE_QNAME or EVENT_AT_QNAME
  * @param[in] fastSchemaMode - TRUE/FALSE, require valid schemaProduction order number
- * @param[in] schemaProduction the order number of the schema production (starting from 0)
+ * @param[in] schemaProduction the order number of the schema production (starting from 0), only needed if fastSchemaMode == TRUE
  * @return Error handling code
  */
 errorCode encodeComplexEXIEvent(EXIStream* strm, QName* qname, EventType event_all, EventType event_uri,

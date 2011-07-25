@@ -2,9 +2,6 @@
 
 GRAMMAR_GEN_OBJ = $(GRAMMAR_GEN_BIN)/genUtils.o $(GRAMMAR_GEN_BIN)/grammarGenerator.o $(GRAMMAR_GEN_BIN)/protoGrammars.o
 
-$(GRAMMAR_GEN_BIN)/lib$(GRAMMAR_GEN).a : $(GRAMMAR_GEN_OBJ)
-		ar rcs $(GRAMMAR_GEN_BIN)/lib$(GRAMMAR_GEN).a $(GRAMMAR_GEN_OBJ)
-
 $(GRAMMAR_GEN_BIN)/genUtils.o : $(GRAMMAR_GEN_SRC)/include/genUtils.h $(GRAMMAR_GEN_SRC)/src/genUtils.c
 		$(CC) -c $(CFLAGS) $(GRAMMAR_GEN_SRC)/src/genUtils.c -o $(GRAMMAR_GEN_BIN)/genUtils.o
 
