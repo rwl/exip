@@ -44,7 +44,7 @@
 
 #include "ioUtil.h"
 
-errorCode moveBitPointer(EXIStream* strm, unsigned int bitPositions)
+void moveBitPointer(EXIStream* strm, unsigned int bitPositions)
 {
 	size_t tmpLen = strm->context.bufferIndx + bitPositions/8;
 	int nbits;
@@ -60,7 +60,6 @@ errorCode moveBitPointer(EXIStream* strm, unsigned int bitPositions)
 		strm->context.bufferIndx += 1;
 		strm->context.bitPointer = nbits - (8 - strm->context.bitPointer);
 	}
-	return ERR_OK;
 }
 
 unsigned char getBitsNumber(unsigned int val)

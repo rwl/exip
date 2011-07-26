@@ -53,6 +53,7 @@
 #include "errorHandle.h"
 #include "stringManipulate.h"
 #include "memManagement.h"
+#include "ioUtil.h"
 
 /* BEGIN: streamRead tests */
 
@@ -95,6 +96,19 @@ START_TEST (test_readNextBit)
   fail_unless (testStream.context.bitPointer == 0 && testStream.context.bufferIndx == 1,
    	       "The readNextBit function did not move the bit Pointer of the stream correctly");
 
+  // Set the bit pointer to the second byte boundary
+  testStream.context.bitPointer = 7;
+
+  err = readNextBit(&testStream, &bit_val);
+
+  fail_unless (err == ERR_OK,
+  	       "readNextBit returns error code %d", err);
+  fail_unless (testStream.context.bitPointer == 0 && testStream.context.bufferIndx == 2,
+   	       "The readNextBit function did not move the bit Pointer of the stream correctly");
+
+  err = readNextBit(&testStream, &bit_val);
+  fail_unless (err == BUFFER_END_REACHED, "Incorrect error code");
+
 }
 END_TEST
 
@@ -136,6 +150,8 @@ START_TEST (test_readBits)
   fail_unless (testStream.context.bitPointer == 4 && testStream.context.bufferIndx == 1,
      	       "The readBits function did not move the bit Pointer of the stream correctly");
 
+  err = readBits(&testStream, 5, &bits_val);
+  fail_unless (err == BUFFER_END_REACHED, "Incorrect error code");
 }
 END_TEST
 
@@ -185,6 +201,12 @@ START_TEST (test_writeNextBit)
   fail_unless (testStream.context.bitPointer == 0 && testStream.context.bufferIndx == 1,
    	       "The writeNextBit function did not move the bit Pointer of the stream correctly");
 
+  testStream.context.bufferIndx = 2;
+  testStream.context.bitPointer = 0;
+
+  err = writeNextBit(&testStream, 0);
+  fail_unless (err == BUFFER_END_REACHED, "Incorrect error code");
+
 }
 END_TEST
 
@@ -232,6 +254,8 @@ START_TEST (test_writeBits)
   fail_unless (testStream.context.bitPointer == 3 && testStream.context.bufferIndx == 1,
      	       "The writeBits function did not move the bit Pointer of the stream correctly");
 
+  err = writeBits(&testStream, 32);
+  fail_unless (err == BUFFER_END_REACHED, "Incorrect error code");
 }
 END_TEST
 
@@ -279,6 +303,8 @@ START_TEST (test_writeNBits)
   fail_unless (testStream.context.bitPointer == 4 && testStream.context.bufferIndx == 1,
      	       "The writeNBits function did not move the bit Pointer of the stream correctly");
 
+  err = writeNBits(&testStream, 5, 16);
+  fail_unless (err == BUFFER_END_REACHED, "Incorrect error code");
 }
 END_TEST
 
@@ -535,37 +561,37 @@ END_TEST
 
 START_TEST (test_decodeFloat)
 {
-  EXIStream testStream;
-  EXIOptions options;
-  char buf[3];
-  double dbl_val = 0;
-  double res = 500;		// 5 x 10^2
-  errorCode err = UNEXPECTED_ERROR;
+	EXIStream testStream;
+	EXIOptions options;
+	char buf[3];
+	double dbl_val = 0;
+	double res = 500;		// 5 x 10^2
+	errorCode err = UNEXPECTED_ERROR;
 
-  testStream.context.bitPointer = 0;
-  makeDefaultOpts(&options);
-  testStream.header.opts = &options;
+	makeDefaultOpts(&options);
+	testStream.header.opts = &options;
 
-  buf[0] = (char) 0x05; /* 0b00000101 */	//5
-  buf[1] = (char) 0x02; /* 0b00000010 */	//2
-  buf[2] = (char) 0x52; /* 0b01010010 */
-  testStream.buffer = buf;
-  testStream.bufLen = 3;
-  testStream.bufContent = 3;
-  testStream.ioStrm = NULL;
-  testStream.context.bufferIndx = 0;
-  initAllocList(&testStream.memList);
+	buf[0] = (char) 0x02; /* 0b00000010 */
+	buf[1] = (char) 0x80; /* 0b10000000 */
+	buf[2] = (char) 0x92; /* 0b10010010 */
+	testStream.buffer = buf;
+	testStream.bufLen = 3;
+	testStream.bufContent = 3;
+	testStream.ioStrm = NULL;
+	testStream.context.bufferIndx = 0;
+	testStream.context.bitPointer = 0;
+	initAllocList(&testStream.memList);
 
-  err = decodeFloatValue(&testStream, &dbl_val);
+	err = decodeFloatValue(&testStream, &dbl_val);
 
-  fail_unless (err == ERR_OK,
-	       "decodeFloat returns error code %d", err);
-  fail_unless (dbl_val == res,
-	       "The float value is read as %f (actual : %f)", dbl_val, res);
- fail_unless (testStream.context.bitPointer == 0,
-    	       "The decodeBinary function did not move the bit Pointer of the stream correctly");
-  fail_unless (testStream.context.bufferIndx == 2,
-      	       "The decodeBinary function did not move the byte Pointer of the stream correctly");
+	fail_unless (err == ERR_OK,
+		   "decodeFloat returns error code %d", err);
+	fail_unless (dbl_val == res,
+		   "The float value is read as %f (actual : %f)", dbl_val, res);
+	fail_unless (testStream.context.bitPointer == 2,
+			   "The decodeBinary function did not move the bit Pointer of the stream correctly");
+	fail_unless (testStream.context.bufferIndx == 2,
+			   "The decodeBinary function did not move the byte Pointer of the stream correctly");
 
   // TODO: write more extensive tests
 
@@ -612,7 +638,37 @@ END_TEST
 
 START_TEST (test_decodeDecimalValue)
 {
-	fail("Not implemented yet");
+	EXIStream testStream;
+	EXIOptions options;
+	char buf[3];
+	errorCode err = UNEXPECTED_ERROR;
+	decimal dec_val = 0;
+	decimal res	= 5.001dd;
+
+	makeDefaultOpts(&options);
+	testStream.header.opts = &options;
+
+	buf[0] = (char) 0x02; /* 0b00000010 */
+	buf[1] = (char) 0xB2; /* 0b10110010 */
+	buf[2] = (char) 0x12; /* 0b00010010 */
+	testStream.buffer = buf;
+	testStream.bufLen = 3;
+	testStream.bufContent = 3;
+	testStream.ioStrm = NULL;
+	testStream.context.bufferIndx = 0;
+	testStream.context.bitPointer = 0;
+	initAllocList(&testStream.memList);
+
+	err = decodeDecimalValue(&testStream, &dec_val);
+
+	fail_unless (res == dec_val, "The value 5.001 is decoded as %.3f", (double) dec_val);
+	fail_unless (err == ERR_OK,
+		   "decodeDecimalValue returns error code %d", err);
+	fail_unless (testStream.context.bitPointer == 1,
+			   "The decodeIntegerValue function did not move the bit Pointer of the stream correctly");
+	fail_unless (testStream.context.bufferIndx == 2,
+			   "The decodeIntegerValue function did not move the byte Pointer of the stream correctly");
+
 }
 END_TEST
 
@@ -835,6 +891,58 @@ END_TEST
 
 /* END: streamEncode tests */
 
+
+/* START: ioUtil tests */
+
+START_TEST (test_moveBitPointer)
+{
+	EXIStream strm;
+
+	strm.context.bitPointer = 3;
+	strm.context.bufferIndx = 0;
+	moveBitPointer(&strm, 13);
+	fail_unless(strm.context.bitPointer == 0 && strm.context.bufferIndx == 2, "incorrect moving of the BitPointer");
+
+	strm.context.bitPointer = 7;
+	strm.context.bufferIndx = 0;
+	moveBitPointer(&strm, 1);
+	fail_unless(strm.context.bitPointer == 0 && strm.context.bufferIndx == 1, "incorrect moving of the BitPointer");
+
+	strm.context.bitPointer = 3;
+	strm.context.bufferIndx = 0;
+	moveBitPointer(&strm, 12);
+	fail_unless(strm.context.bitPointer == 7 && strm.context.bufferIndx == 1, "incorrect moving of the BitPointer");
+}
+END_TEST
+
+START_TEST (test_getBitsNumber)
+{
+	fail_unless(getBitsNumber(99) == 7);
+	fail_unless(getBitsNumber(63) == 6);
+	fail_unless(getBitsNumber(64) == 7);
+	fail_unless(getBitsNumber(4095) == 12);
+	fail_unless(getBitsNumber(824) == 10);
+	fail_unless(getBitsNumber(16383) == 14);
+	fail_unless(getBitsNumber(7234) == 13);
+}
+END_TEST
+
+START_TEST (test_log2INT)
+{
+	fail_unless(log2INT(99) == 6);
+	fail_unless(log2INT(63) == 5);
+	fail_unless(log2INT(64) == 6);
+	fail_unless(log2INT(4095) == 11);
+	fail_unless(log2INT(824) == 9);
+	fail_unless(log2INT(16383) == 13);
+	fail_unless(log2INT(7234) == 12);
+}
+END_TEST
+
+/* END: ioUtil tests */
+
+
+
 Suite * streamIO_suite (void)
 {
   Suite *s = suite_create ("StreamIO");
@@ -882,6 +990,15 @@ Suite * streamIO_suite (void)
 	  tcase_add_test (tc_sEncode, test_encodeIntegerValue);
 	  tcase_add_test (tc_sEncode, test_encodeDecimalValue);
 	  suite_add_tcase (s, tc_sEncode);
+  }
+
+  {
+	  /* ioUtil test case */
+	  TCase *tc_ioUtil = tcase_create ("ioUtil");
+	  tcase_add_test (tc_ioUtil, test_moveBitPointer);
+	  tcase_add_test (tc_ioUtil, test_getBitsNumber);
+	  tcase_add_test (tc_ioUtil, test_log2INT);
+	  suite_add_tcase (s, tc_ioUtil);
   }
 
   return s;

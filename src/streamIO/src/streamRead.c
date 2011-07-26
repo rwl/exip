@@ -71,12 +71,12 @@ errorCode readNextBit(EXIStream* strm, unsigned char* bit_val)
 	*bit_val = 0;
 	*bit_val = (strm->buffer[strm->context.bufferIndx] & (1<<REVERSE_BIT_POSITION(strm->context.bitPointer))) != 0;
 
-	return moveBitPointer(strm, 1);
+	moveBitPointer(strm, 1);
+	return ERR_OK;
 }
 
 errorCode readBits(EXIStream* strm, unsigned char n, uint32_t* bits_val)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int numBitsRead = 0; // Number of the bits read so far
 	int tmp = 0;
 	int shift = 0;
@@ -124,9 +124,7 @@ errorCode readBits(EXIStream* strm, unsigned char n, uint32_t* bits_val)
 		tmp = tmp << shift;
 		*bits_val = *bits_val | tmp;
 
-		tmp_err_code = moveBitPointer(strm, bits_in_byte);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		moveBitPointer(strm, bits_in_byte);
 	}
 	return ERR_OK;
 }
