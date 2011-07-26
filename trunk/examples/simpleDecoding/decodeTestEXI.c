@@ -384,37 +384,23 @@ static char sample_stringData(const StringType value, void* app_data)
 static char sample_decimalData(decimal value, void* app_data)
 {
 	struct appData* appD = (struct appData*) app_data;
-	char tmp_buf[30];
 	if(appD->outputFormat == OUT_EXI)
 	{
 		if(appD->expectAttributeData)
 		{
-			if(value.sign == TRUE)
-				printf("-");
-			sprintf(tmp_buf, "%d.%d", value.integral, value.fraction);
-			printf("%s", tmp_buf);
-			printf("\"\n");
+			printf("%.1f\"\n", (double) value);
 			appD->expectAttributeData = 0;
 		}
 		else
 		{
-			printf("CH ");
-			if(value.sign == TRUE)
-				printf("-");
-			sprintf(tmp_buf, "%d.%d", value.integral, value.fraction);
-			printf("%s", tmp_buf);
-			printf("\n");
+			printf("CH %.1f \n", (double) value);
 		}
 	}
 	else if(appD->outputFormat == OUT_XML)
 	{
 		if(appD->expectAttributeData)
 		{
-			if(value.sign == TRUE)
-				printf("-");
-			sprintf(tmp_buf, "%d.%d", value.integral, value.fraction);
-			printf("%s", tmp_buf);
-			printf("\"");
+			printf("%.1f \"", (double) value);
 			appD->expectAttributeData = 0;
 		}
 		else
@@ -422,11 +408,7 @@ static char sample_decimalData(decimal value, void* app_data)
 			if(appD->unclosedElement)
 				printf(">\n");
 			appD->unclosedElement = 0;
-			if(value.sign == TRUE)
-				printf("-");
-			sprintf(tmp_buf, "%d.%d", value.integral, value.fraction);
-			printf("%s", tmp_buf);
-			printf("\n");
+			printf("%.1f \n", (double) value);
 		}
 	}
 

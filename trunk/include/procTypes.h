@@ -158,24 +158,15 @@ struct decimalEXIP {
 	uint32_t fraction;
 };
 
-/**
- * Represents big decimal values. Consists of an integral part, a fractional part and a sign
- * A sign value of zero (0) is used to represent positive Decimal values and a sign value
- * of one (1) is used to represent negative Decimal values
- */
-struct bigDecimalEXIP {
-	unsigned char sign;
-	BIG_UNSIGNED_INT integral;
-	BIG_UNSIGNED_INT fraction;
-};
-
 /*
  * Used for the content handler interface for decimal values
  * Application which require support for different type of decimal values can
- * override this macro
+ * override this macro.
+ * Refs: http://gcc.gnu.org/onlinedocs/gcc/Decimal-Float.html#Decimal-Float
+ * http://speleotrove.com/decimal/
  */
 #ifndef DECIMAL
-# define DECIMAL struct decimalEXIP
+# define DECIMAL _Decimal64
 #endif
 
 typedef DECIMAL decimal;
@@ -186,7 +177,7 @@ typedef DECIMAL decimal;
  * override this macro
  */
 #ifndef BIG_DECIMAL
-# define BIG_DECIMAL struct bigDecimalEXIP
+# define BIG_DECIMAL _Decimal128
 #endif
 
 typedef BIG_DECIMAL bigDecimal;

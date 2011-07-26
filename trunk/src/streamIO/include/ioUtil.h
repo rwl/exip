@@ -53,9 +53,8 @@
  *        the movement cross a byte boundary
  * @param[in] strm EXI stream of bits
  * @param[in] bitPositions the number of bit positions to move the pointer
- * @return Error handling code
  */
-errorCode moveBitPointer(EXIStream* strm, unsigned int bitPositions);
+void moveBitPointer(EXIStream* strm, unsigned int bitPositions);
 
 /**
  * @brief Determine the number of bits needed to encode a unsigned integer value

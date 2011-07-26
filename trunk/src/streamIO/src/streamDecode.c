@@ -46,6 +46,7 @@
 #include "streamDecode.h"
 #include "streamRead.h"
 #include "stringManipulate.h"
+#include <math.h>
 
 errorCode decodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, uint32_t* int_val)
 {
@@ -188,20 +189,15 @@ errorCode decodeIntegerValue(EXIStream* strm, int32_t* sint_val)
 	tmp_err_code = decodeBoolean(strm, &bool_val);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
+
+	tmp_err_code = decodeUnsignedInteger(strm, &val);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
 	if(bool_val == 0) // A sign value of zero (0) is used to represent positive integers
-	{
-		tmp_err_code = decodeUnsignedInteger(strm, &val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
 		*sint_val = (int32_t) val;
-	}
 	else if(bool_val == 1) // A sign value of one (1) is used to represent negative integers
-	{
-		tmp_err_code = decodeUnsignedInteger(strm, &val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
 		*sint_val = -((int32_t) val);
-	}
 	else
 		return UNEXPECTED_ERROR;
 	return ERR_OK;
@@ -214,19 +210,41 @@ errorCode decodeBigIntegerValue(EXIStream* strm, BigSignedInt* sint_val)
 
 errorCode decodeDecimalValue(EXIStream* strm, decimal* dec_val)
 {
-	// TODO: the digits in the fraction part are not reversed as required by the spec!!!
+	// Ref: http://gcc.gnu.org/onlinedocs/gccint/Decimal-float-library-routines.html
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	tmp_err_code = decodeBoolean(strm, &dec_val->sign);
+	unsigned char sign;
+	uint32_t integr_part = 0;
+	uint32_t fract_part = 0;
+	uint32_t fraction_digits = 1;
+	uint32_t fract_part_rev = 0;
+
+	tmp_err_code = decodeBoolean(strm, &sign);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = decodeUnsignedInteger(strm, &dec_val->integral);
+	tmp_err_code = decodeUnsignedInteger(strm, &integr_part);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = decodeUnsignedInteger(strm, &dec_val->fraction);
+	tmp_err_code = decodeUnsignedInteger(strm, &fract_part);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
+
+	fract_part_rev = 0;
+	while(fract_part > 0)
+	{
+		fract_part_rev = fract_part_rev*10 + fract_part%10;
+		fract_part = fract_part/10;
+		fraction_digits = fraction_digits*10;
+	}
+	*dec_val = fract_part_rev;
+
+	if(sign == 1) // negative number
+		*dec_val = -*dec_val;
+
+	*dec_val = *dec_val / fraction_digits;
+
+	*dec_val = *dec_val + integr_part;
 
 	return ERR_OK;
 }
@@ -238,7 +256,8 @@ errorCode decodeBigDecimalValue(EXIStream* strm, bigDecimal* dec_val)
 
 errorCode decodeFloatValue(EXIStream* strm, double* double_val)
 {
-//refer : http://www.linuxquestions.org/questions/programming-9/c-language-inf-and-nan-437323/
+	//refer : http://www.linuxquestions.org/questions/programming-9/c-language-inf-and-nan-437323/
+	//also: http://www.gnu.org/s/hello/manual/libc/Infinity-and-NaN.html
 	errorCode err;
 
 	double val;	// val = man * 10^exp
@@ -255,17 +274,17 @@ errorCode decodeFloatValue(EXIStream* strm, double* double_val)
 		if(man==1)
 		{
 			//val =  +INF
-			val=0x7f800000;
+			val=INFINITY;
 		}
 		else if(man==-1)
 		{
 			//val =  -INF
-			val=0xff800000;
+			val=-INFINITY;
 		}
 		else
 		{
 			//val = NaN
-			val=0x7fc00000;
+			val=NAN;
 		}
 	}
 	else

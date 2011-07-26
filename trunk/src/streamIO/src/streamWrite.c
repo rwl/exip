@@ -66,7 +66,8 @@ errorCode writeNextBit(EXIStream* strm, unsigned char bit_val)
 	else
 		strm->buffer[strm->context.bufferIndx] = strm->buffer[strm->context.bufferIndx] | (1<<REVERSE_BIT_POSITION(strm->context.bitPointer));
 
-	return moveBitPointer(strm, 1);
+	moveBitPointer(strm, 1);
+	return ERR_OK;
 }
 
 errorCode writeBits(EXIStream* strm, uint32_t bits_val)
@@ -77,7 +78,6 @@ errorCode writeBits(EXIStream* strm, uint32_t bits_val)
 
 errorCode writeNBits(EXIStream* strm, unsigned char nbits, uint32_t bits_val)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int numBitsWrite = 0; // Number of the bits written so far
 	unsigned char tmp = 0;
 	int bits_in_byte = 0; // Number of bits written in one iteration
@@ -114,9 +114,7 @@ errorCode writeNBits(EXIStream* strm, unsigned char nbits, uint32_t bits_val)
 		strm->buffer[strm->context.bufferIndx] = strm->buffer[strm->context.bufferIndx] | tmp;
 
 		numBitsWrite += bits_in_byte;
-		tmp_err_code = moveBitPointer(strm, bits_in_byte);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		moveBitPointer(strm, bits_in_byte);
 	}
 
 	return ERR_OK;
