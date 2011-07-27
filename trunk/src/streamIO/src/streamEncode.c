@@ -46,6 +46,7 @@
 #include "streamWrite.h"
 #include "stringManipulate.h"
 #include "ioUtil.h"
+#include <math.h>
 
 
 errorCode encodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, uint32_t int_val)
@@ -144,7 +145,20 @@ errorCode encodeStringOnly(EXIStream* strm, const StringType* string_val)
 
 errorCode encodeBinary(EXIStream* strm, char* binary_val, size_t nbytes)
 {
-	return NOT_IMPLEMENTED_YET;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	size_t i = 0;
+
+	tmp_err_code = encodeUnsignedInteger(strm, (uint32_t) nbytes);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	for(i = 0; i < nbytes; i++)
+	{
+		tmp_err_code = writeNBits(strm, 8, (uint32_t) binary_val[i]);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	return ERR_OK;
 }
 
 errorCode encodeIntegerValue(EXIStream* strm, int32_t sint_val)
@@ -185,7 +199,41 @@ errorCode encodeBigDecimalValue(EXIStream* strm, bigDecimal dec_val)
 
 errorCode encodeFloatValue(EXIStream* strm, double double_val)
 {
-	return NOT_IMPLEMENTED_YET;
+	// TODO: There should be a function from a library that can be reused for the conversion from base 2 to base 10
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	int32_t mant = 0;	//mantissa
+	int32_t expt = 0;	//exponent
+	char tmp_buf[1000];
+
+	if(double_val == INFINITY)
+	{
+		expt = -(0x1<<14); // expt == -2^14
+		mant = 1;
+	}
+	else if(double_val == -INFINITY)
+	{
+		expt = -(0x1<<14); // expt == -2^14
+		mant = -1;
+	}
+	else if(double_val == NAN)
+	{
+		expt = -(0x1<<14); // expt == -2^14
+		mant = 5;
+	}
+	else
+	{
+		return NOT_IMPLEMENTED_YET;
+	}
+
+	tmp_err_code = encodeIntegerValue(strm, mant);	//encode mantissa
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = encodeIntegerValue(strm, expt);	//encode exponent
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	return ERR_OK;
 }
 
 errorCode encodeBigFloatValue(EXIStream* strm, BigFloat double_val)
