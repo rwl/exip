@@ -867,13 +867,76 @@ END_TEST
 
 START_TEST (test_encodeBinary)
 {
-	fail("Not implemented yet");
+	EXIStream testStream;
+	EXIOptions options;
+	char buf[50];
+	char bin_data[50];
+	errorCode err = UNEXPECTED_ERROR;
+
+	makeDefaultOpts(&options);
+	testStream.header.opts = &options;
+
+	bin_data[0] = (char) 0x22; /* 0b00100010 */
+	bin_data[1] = (char) 0x65; /* 0b01100101 */
+	bin_data[2] = (char) 0xD4; /* 0b11010100 */
+	bin_data[3] = (char) 0x5A; /* 0b01011010 */
+	bin_data[4] = (char) 0xD7; /* 0b11010111 */
+	initAllocList(&testStream.memList);
+	testStream.buffer = buf;
+	testStream.bufLen = 50;
+	testStream.bufContent = 50;
+	testStream.ioStrm = NULL;
+	testStream.context.bufferIndx = 0;
+	testStream.context.bitPointer = 0;
+
+	err = encodeBinary(&testStream, bin_data, 5);
+
+	fail_unless (err == ERR_OK,
+		   "encodeBinary returns error code %d", err);
+	fail_unless (testStream.context.bitPointer == 0,
+			   "The encodeBinary function did not move the bit Pointer of the stream correctly");
+	fail_unless (testStream.context.bufferIndx == 6,
+			   "The encodeBinary function did not move the byte Pointer of the stream correctly");
+
+	fail_unless(testStream.buffer[0] == 5, "Incorrect encoding during encodeBinary 1");
+	fail_unless(testStream.buffer[1] == (signed char) 0x22, "Incorrect encoding during encodeBinary 2");
+	fail_unless(testStream.buffer[2] == (signed char) 0x65, "Incorrect encoding during encodeBinary 3");
+	fail_unless(testStream.buffer[3] == (signed char) 0xD4, "Incorrect encoding during encodeBinary 4");
+	fail_unless(testStream.buffer[4] == (signed char) 0x5A, "Incorrect encoding during encodeBinary 5");
+	fail_unless(testStream.buffer[5] == (signed char) 0xD7, "Incorrect encoding during encodeBinary 6");
 }
 END_TEST
 
 START_TEST (test_encodeFloatValue)
 {
-	fail("Not implemented yet");
+	EXIStream testStream;
+	EXIOptions options;
+	char buf[3] = {0, 0, 0};
+	double test_val = 500;		// 5 x 10^2
+	errorCode err = UNEXPECTED_ERROR;
+
+	makeDefaultOpts(&options);
+	testStream.header.opts = &options;
+
+	testStream.buffer = buf;
+	testStream.bufLen = 3;
+	testStream.bufContent = 3;
+	testStream.ioStrm = NULL;
+	testStream.context.bufferIndx = 0;
+	testStream.context.bitPointer = 0;
+	initAllocList(&testStream.memList);
+
+	err = encodeFloatValue(&testStream, test_val);
+
+	fail_unless (err == ERR_OK,
+		   "encodeFloatValue returns error code %d", err);
+
+	fail_unless(testStream.buffer[0] == (char) 0x02 && 	testStream.buffer[1] == (char) 0x80, "Incorect encoding of float value");
+
+	fail_unless (testStream.context.bitPointer == 2,
+			   "The decodeBinary function did not move the bit Pointer of the stream correctly");
+	fail_unless (testStream.context.bufferIndx == 2,
+			   "The decodeBinary function did not move the byte Pointer of the stream correctly");
 }
 END_TEST
 
