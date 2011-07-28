@@ -911,16 +911,17 @@ START_TEST (test_encodeFloatValue)
 {
 	EXIStream testStream;
 	EXIOptions options;
-	char buf[3] = {0, 0, 0};
+	char buf[10];
 	double test_val = 500;		// 5 x 10^2
+	double test_dec = 0;		// 5 x 10^2
 	errorCode err = UNEXPECTED_ERROR;
 
 	makeDefaultOpts(&options);
 	testStream.header.opts = &options;
 
 	testStream.buffer = buf;
-	testStream.bufLen = 3;
-	testStream.bufContent = 3;
+	testStream.bufLen = 10;
+	testStream.bufContent = 10;
 	testStream.ioStrm = NULL;
 	testStream.context.bufferIndx = 0;
 	testStream.context.bitPointer = 0;
@@ -931,24 +932,95 @@ START_TEST (test_encodeFloatValue)
 	fail_unless (err == ERR_OK,
 		   "encodeFloatValue returns error code %d", err);
 
-	fail_unless(testStream.buffer[0] == (char) 0x02 && 	testStream.buffer[1] == (char) 0x80, "Incorect encoding of float value");
-
 	fail_unless (testStream.context.bitPointer == 2,
-			   "The decodeBinary function did not move the bit Pointer of the stream correctly");
-	fail_unless (testStream.context.bufferIndx == 2,
-			   "The decodeBinary function did not move the byte Pointer of the stream correctly");
+			   "The encodeFloatValue function did not move the bit Pointer of the stream correctly");
+	fail_unless (testStream.context.bufferIndx == 3,
+			   "The encodeFloatValue function did not move the byte Pointer of the stream correctly");
+
+	testStream.context.bitPointer = 0;
+	testStream.context.bufferIndx = 0;
+	err = decodeFloatValue(&testStream, &test_dec);
+
+	fail_unless(test_val == test_dec, "Incorrect encoding of float value");
+
 }
 END_TEST
 
 START_TEST (test_encodeIntegerValue)
 {
-	fail("Not implemented yet");
+	EXIStream testStream;
+	EXIOptions options;
+	char buf[5];
+	errorCode err = UNEXPECTED_ERROR;
+	int32_t test_dec = 0;
+
+	makeDefaultOpts(&options);
+	testStream.header.opts = &options;
+
+	testStream.buffer = buf;
+	testStream.bufLen = 5;
+	testStream.bufContent = 5;
+	testStream.ioStrm = NULL;
+	testStream.context.bufferIndx = 0;
+	testStream.context.bitPointer = 0;
+	initAllocList(&testStream.memList);
+
+	err = encodeIntegerValue(&testStream, -913);
+
+	fail_unless (err == ERR_OK,
+		   "encodeIntegerValue returns error code %d", err);
+	fail_unless (testStream.context.bitPointer == 1,
+			   "The encodeIntegerValue function did not move the bit Pointer of the stream correctly");
+	fail_unless (testStream.context.bufferIndx == 2,
+			   "The encodeIntegerValue function did not move the byte Pointer of the stream correctly");
+
+	testStream.context.bitPointer = 0;
+	testStream.context.bufferIndx = 0;
+
+	err = decodeIntegerValue(&testStream, &test_dec);
+
+	fail_unless (test_dec == -913,
+			   "The encodeIntegerValue encodes correctly");
 }
 END_TEST
 
 START_TEST (test_encodeDecimalValue)
 {
-	fail("Not implemented yet");
+	EXIStream testStream;
+	EXIOptions options;
+	char buf[30];
+	errorCode err = UNEXPECTED_ERROR;
+	decimal dec_val = 0;
+	decimal res	= 5.001dd;
+
+	makeDefaultOpts(&options);
+	testStream.header.opts = &options;
+
+	testStream.buffer = buf;
+	testStream.bufLen = 30;
+	testStream.bufContent = 30;
+	testStream.ioStrm = NULL;
+	testStream.context.bufferIndx = 0;
+	testStream.context.bitPointer = 0;
+	initAllocList(&testStream.memList);
+
+	err = encodeDecimalValue(&testStream, res);
+
+	fail_unless (err == ERR_OK,
+		   "encodeDecimalValue returns error code %d", err);
+
+	fail_unless (testStream.context.bitPointer == 1,
+			   "The encodeDecimalValue function did not move the bit Pointer of the stream correctly");
+	fail_unless (testStream.context.bufferIndx == 2,
+			   "The encodeDecimalValue function did not move the byte Pointer of the stream correctly");
+
+	testStream.context.bitPointer = 0;
+	testStream.context.bufferIndx = 0;
+
+	err = decodeDecimalValue(&testStream, &dec_val);
+
+	fail_unless (res == dec_val, "The value 5.001 is encoded as %.3f", (double) dec_val);
+
 }
 END_TEST
 

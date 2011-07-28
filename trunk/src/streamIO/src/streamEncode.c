@@ -189,7 +189,48 @@ errorCode encodeBigIntegerValue(EXIStream* strm, BigSignedInt sint_val)
 
 errorCode encodeDecimalValue(EXIStream* strm, decimal dec_val)
 {
-	return NOT_IMPLEMENTED_YET;
+	// TODO: Review this. Probably incorrect in some cases and not efficient. Depends on decimal floating point support!
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	unsigned char sign = 0;
+	uint32_t integr_part = 0;
+	uint32_t fract_part_rev = 0;
+	unsigned int i = 1;
+	unsigned int d = 0;
+
+	if(dec_val >= 0)
+		sign = 0;
+	else
+	{
+		dec_val = -dec_val;
+		sign = 1;
+	}
+
+	tmp_err_code = encodeBoolean(strm, sign);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	integr_part = (uint32_t) dec_val;
+
+	tmp_err_code = encodeUnsignedInteger(strm, integr_part);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	dec_val = dec_val - integr_part;
+
+	while(dec_val - ((uint32_t) dec_val) != 0)
+	{
+		dec_val = dec_val * 10;
+		d = (unsigned int) dec_val;
+		fract_part_rev = fract_part_rev + d*i;
+		i = i*10;
+		dec_val = dec_val - (uint32_t) dec_val;
+	}
+
+	tmp_err_code = encodeUnsignedInteger(strm, fract_part_rev);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	return ERR_OK;
 }
 
 errorCode encodeBigDecimalValue(EXIStream* strm, bigDecimal dec_val)
@@ -199,11 +240,11 @@ errorCode encodeBigDecimalValue(EXIStream* strm, bigDecimal dec_val)
 
 errorCode encodeFloatValue(EXIStream* strm, double double_val)
 {
-	// TODO: There should be a function from a library that can be reused for the conversion from base 2 to base 10
+	// TODO: Review this. Probably incorrect in some cases and not efficient. Depends on decimal floating point support!
+	// There should be a function from a library that can be reused for the conversion from base 2 to base 10 floating points
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	int32_t mant = 0;	//mantissa
 	int32_t expt = 0;	//exponent
-	char tmp_buf[1000];
 
 	if(double_val == INFINITY)
 	{
@@ -222,7 +263,17 @@ errorCode encodeFloatValue(EXIStream* strm, double double_val)
 	}
 	else
 	{
-		return NOT_IMPLEMENTED_YET;
+		decimal tmp_dec = double_val;
+		int tmp_expt = 0;
+
+		while(tmp_dec - ((int32_t) tmp_dec) != 0)
+		{
+			tmp_dec = tmp_dec*10;
+			tmp_expt++;
+		}
+
+		mant = (int32_t) tmp_dec;
+		expt = tmp_expt;
 	}
 
 	tmp_err_code = encodeIntegerValue(strm, mant);	//encode mantissa

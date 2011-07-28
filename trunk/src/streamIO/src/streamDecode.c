@@ -210,6 +210,7 @@ errorCode decodeBigIntegerValue(EXIStream* strm, BigSignedInt* sint_val)
 
 errorCode decodeDecimalValue(EXIStream* strm, decimal* dec_val)
 {
+	// TODO: Review this. Probably can be more efficient. Depends on decimal floating point support!
 	// Ref: http://gcc.gnu.org/onlinedocs/gccint/Decimal-float-library-routines.html
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char sign;
@@ -256,6 +257,7 @@ errorCode decodeBigDecimalValue(EXIStream* strm, bigDecimal* dec_val)
 
 errorCode decodeFloatValue(EXIStream* strm, double* double_val)
 {
+	// TODO: Review this. Probably can be more efficient using the binary representation of double directly
 	//refer : http://www.linuxquestions.org/questions/programming-9/c-language-inf-and-nan-437323/
 	//also: http://www.gnu.org/s/hello/manual/libc/Infinity-and-NaN.html
 	errorCode err;
