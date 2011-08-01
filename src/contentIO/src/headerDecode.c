@@ -49,6 +49,9 @@
 #include "schema.h"
 #include "memManagement.h"
 #include "bodyDecode.h"
+#include "grammars.h"
+#include "EXIParser.h"
+#include "sTables.h"
 
 /** This is the statically generated EXIP schema definition for the EXI Options document*/
 extern const ExipSchema ops_schema;
@@ -60,8 +63,8 @@ static char ops_endDocument(void* app_data);
 static char ops_startElement(QName qname, void* app_data);
 static char ops_endElement(void* app_data);
 static char ops_attribute(QName qname, void* app_data);
-static char ops_stringData(const StringType value, void* app_data);
-static char ops_intData(int32_t int_val, void* app_data);
+static char ops_stringData(const String value, void* app_data);
+static char ops_intData(Integer int_val, void* app_data);
 
 struct ops_AppData
 {
@@ -125,11 +128,7 @@ errorCode decodeHeader(EXIStream* strm)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-
-	if(strm->header.opts == NULL)
-		return NULL_POINTER_REF;
-
-    makeDefaultOpts(strm->header.opts);
+    makeDefaultOpts(&strm->header.opts);
 
 	if(smallVal == 1) // There are EXI options
 		strm->header.has_options = 1;
@@ -161,50 +160,62 @@ errorCode decodeHeader(EXIStream* strm)
 
 	if(strm->header.has_options == 1)
 	{
-		EXIStream options_strm;
-		EXIOptions o_ops;
-		ContentHandler opsHandler;
+		Parser optionsParser;
 		struct ops_AppData appD;
 
-		makeDefaultOpts(&o_ops);
-		o_ops.strict = TRUE;
-		tmp_err_code = initAllocList(&options_strm.memList);
+		tmp_err_code = initParser(&optionsParser, strm->buffer, strm->bufLen, strm->bufContent, &strm->ioStrm, (ExipSchema*) &ops_schema, &appD);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		options_strm.buffer = strm->buffer;
-		options_strm.context.bitPointer = strm->context.bitPointer;
-		options_strm.context.bufferIndx = strm->context.bufferIndx;
-		options_strm.bufLen = strm->bufLen;
-		options_strm.header.opts = &o_ops;
-		options_strm.context.nonTermID = GR_DOCUMENT;
-		options_strm.context.curr_lnID = 0;
-		options_strm.context.curr_uriID = 0;
-		options_strm.context.expectATData = 0;
-		options_strm.bufContent = strm->bufContent;
-		options_strm.ioStrm = strm->ioStrm;
+		optionsParser.strm.context.bitPointer = strm->context.bitPointer;
+		optionsParser.strm.context.bufferIndx = strm->context.bufferIndx;
 
-		initContentHandler(&opsHandler);
-		opsHandler.fatalError = ops_fatalError;
-		opsHandler.error = ops_fatalError;
-		opsHandler.startDocument = ops_startDocument;
-		opsHandler.endDocument = ops_endDocument;
-		opsHandler.startElement = ops_startElement;
-		opsHandler.attribute = ops_attribute;
-		opsHandler.stringData = ops_stringData;
-		opsHandler.endElement = ops_endElement;
-		opsHandler.intData = ops_intData;
+		makeDefaultOpts(&optionsParser.strm.header.opts);
+		SET_STRICT(optionsParser.strm.header.opts.enumOpt);
 
-		appD.o_strm = &options_strm;
-		appD.parsed_ops = strm->header.opts;
-		decodeBody(&options_strm, &opsHandler, &ops_schema, &appD);
+		optionsParser.handler.fatalError = ops_fatalError;
+		optionsParser.handler.error = ops_fatalError;
+		optionsParser.handler.startDocument = ops_startDocument;
+		optionsParser.handler.endDocument = ops_endDocument;
+		optionsParser.handler.startElement = ops_startElement;
+		optionsParser.handler.attribute = ops_attribute;
+		optionsParser.handler.stringData = ops_stringData;
+		optionsParser.handler.endElement = ops_endElement;
+		optionsParser.handler.intData = ops_intData;
 
-		strm->bufContent = options_strm.bufContent;
-		strm->context.bitPointer = options_strm.context.bitPointer;
-		strm->context.bufferIndx = options_strm.context.bufferIndx;
+		appD.o_strm = &optionsParser.strm;
+		appD.parsed_ops = &strm->header.opts;
 
-		if(strm->header.opts->compression == TRUE ||
-			strm->header.opts->alignment != BIT_PACKED)
+		optionsParser.strm.gStack = NULL;
+		tmp_err_code = createDocGrammar(&optionsParser.documentGrammar, &optionsParser.strm, optionsParser.schema);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = pushGrammar(&optionsParser.strm.gStack, &optionsParser.documentGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		optionsParser.strm.uriTable = optionsParser.schema->initialStringTables;
+		tmp_err_code = createValueTable(&(optionsParser.strm.vTable), &(optionsParser.strm.memList));
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		while(tmp_err_code == ERR_OK)
+		{
+			tmp_err_code = parseNext(&optionsParser);
+		}
+
+		destroyParser(&optionsParser);
+
+		if(tmp_err_code != PARSING_COMPLETE)
+			return tmp_err_code;
+
+		strm->bufContent = optionsParser.strm.bufContent;
+		strm->context.bitPointer = optionsParser.strm.context.bitPointer;
+		strm->context.bufferIndx = optionsParser.strm.context.bufferIndx;
+
+		if(WITH_COMPRESSION(strm->header.opts.enumOpt) ||
+			GET_ALIGNMENT(strm->header.opts.enumOpt) != BIT_PACKED)
 		{
 			// Padding bits
 			if(strm->context.bitPointer != 0)
@@ -213,6 +224,7 @@ errorCode decodeHeader(EXIStream* strm)
 				strm->context.bufferIndx += 1;
 			}
 		}
+
 	}
 
 	return ERR_OK;
@@ -249,16 +261,16 @@ static char ops_startElement(QName qname, void* app_data)
 	switch(o_appD->o_strm->context.curr_lnID)
 	{
 		case 33:	// strict
-			o_appD->parsed_ops->strict = TRUE;
+			SET_STRICT(o_appD->parsed_ops->enumOpt);
 		break;
 		case 31:	// schemaId
 			// TODO: implement this!
 		break;
 		case 7:		// compression
-			o_appD->parsed_ops->compression = TRUE;
+			SET_COMPRESSION(o_appD->parsed_ops->enumOpt);
 		break;
 		case 14:	// fragment
-			o_appD->parsed_ops->fragment = TRUE;
+			SET_FRAGMENT(o_appD->parsed_ops->enumOpt);
 		break;
 		case 13:	// dtd
 			SET_PRESERVED(o_appD->parsed_ops->preserve, PRESERVE_DTD);
@@ -276,13 +288,13 @@ static char ops_startElement(QName qname, void* app_data)
 			SET_PRESERVED(o_appD->parsed_ops->preserve, PRESERVE_PIS);
 		break;
 		case 4:	// alignment->byte
-			o_appD->parsed_ops->alignment = BYTE_ALIGNMENT;
+			SET_ALIGNMENT(o_appD->parsed_ops->enumOpt, BYTE_ALIGNMENT);
 		break;
 		case 28:	// alignment->pre-compress
-			o_appD->parsed_ops->alignment = PRE_COMPRESSION;
+			SET_ALIGNMENT(o_appD->parsed_ops->enumOpt, PRE_COMPRESSION);
 		break;
 		case 32:	// selfContained
-			o_appD->parsed_ops->selfContained = TRUE;
+			SET_SELF_CONTAINED(o_appD->parsed_ops->enumOpt);
 		break;
 		case 8:	// datatypeRepresentationMap
 			// TODO: implement this!
@@ -302,12 +314,12 @@ static char ops_attribute(QName qname, void* app_data)
 	return EXIP_HANDLER_OK;
 }
 
-static char ops_stringData(const StringType value, void* app_data)
+static char ops_stringData(const String value, void* app_data)
 {
 	return EXIP_HANDLER_OK;
 }
 
-static char ops_intData(int32_t int_val, void* app_data)
+static char ops_intData(Integer int_val, void* app_data)
 {
 	struct ops_AppData* o_appD = (struct ops_AppData*) app_data;
 

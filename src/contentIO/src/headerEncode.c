@@ -54,14 +54,14 @@
 /** This is the statically generated EXIP schema definition for the EXI Options document*/
 extern const ExipSchema ops_schema;
 
-extern const EXISerializer serEXI;
+extern const EXISerializer serialize;
 
-errorCode encodeHeader(EXIStream* strm, EXIheader* header)
+errorCode encodeHeader(EXIStream* strm)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start EXI header encoding\n"));
-	if(header->has_cookie)
+	if(strm->header.has_cookie)
 	{
 		tmp_err_code = writeNBits(strm, 8, 36); // ASCII code for $ = 00100100  (36)
 		if(tmp_err_code != ERR_OK)
@@ -83,43 +83,42 @@ errorCode encodeHeader(EXIStream* strm, EXIheader* header)
 		return tmp_err_code;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Write the Presence Bit for EXI Options\n"));
-	tmp_err_code = writeNextBit(strm, header->has_options);
+	tmp_err_code = writeNextBit(strm, strm->header.has_options);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Encode EXI version\n"));
-	tmp_err_code = writeNextBit(strm, header->is_preview_version);
+	tmp_err_code = writeNextBit(strm, strm->header.is_preview_version);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	if(header->version_number > 15)
+	if(strm->header.version_number > 15)
 	{
 		tmp_err_code = writeNBits(strm, 4, 15);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		tmp_err_code = writeNBits(strm, 4, header->version_number - 15 - 1);
+		tmp_err_code = writeNBits(strm, 4, strm->header.version_number - 15 - 1);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 	else
 	{
-		tmp_err_code = writeNBits(strm, 4, header->version_number - 1);
+		tmp_err_code = writeNBits(strm, 4, strm->header.version_number - 1);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Encode EXI options\n"));
-	if(header->has_options)
+	if(strm->header.has_options)
 	{
 		EXIStream options_strm;
-		EXIOptions o_ops;
 		EXIGrammar docGr;
 		unsigned char hasUncommon = FALSE;
 		unsigned char hasLesscommon = FALSE;
 		unsigned char hasCommon = FALSE;
 
-		makeDefaultOpts(&o_ops);
-		o_ops.strict = TRUE;
+		makeDefaultOpts(&options_strm.header.opts);
+		SET_STRICT(options_strm.header.opts.enumOpt);
 		tmp_err_code = initAllocList(&options_strm.memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -128,7 +127,6 @@ errorCode encodeHeader(EXIStream* strm, EXIheader* header)
 		options_strm.context.bitPointer = strm->context.bitPointer;
 		options_strm.context.bufferIndx = strm->context.bufferIndx;
 		options_strm.bufLen = strm->bufLen;
-		options_strm.header.opts = &o_ops;
 		options_strm.context.nonTermID = GR_DOCUMENT;
 		options_strm.context.curr_lnID = 0;
 		options_strm.context.curr_uriID = 0;
@@ -149,20 +147,20 @@ errorCode encodeHeader(EXIStream* strm, EXIheader* header)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code += serEXI.startDocumentSer(&options_strm, TRUE, 0);
-		tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 0);
+		tmp_err_code += serialize.startDocument(&options_strm, TRUE, 0);
+		tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 0);
 
 		// uncommon options
-		if(header->opts->alignment != BIT_PACKED ||
-				header->opts->selfContained != FALSE ||
-				header->opts->valueMaxLength != SIZE_MAX ||
-				header->opts->valuePartitionCapacity != SIZE_MAX ||
-				header->opts->drMap != NULL)
+		if(GET_ALIGNMENT(strm->header.opts.enumOpt) != BIT_PACKED ||
+				WITH_SELF_CONTAINED(strm->header.opts.enumOpt) ||
+				strm->header.opts.valueMaxLength != SIZE_MAX ||
+				strm->header.opts.valuePartitionCapacity != SIZE_MAX ||
+				strm->header.opts.drMap != NULL)
 		{
 			hasUncommon = TRUE;
 			hasLesscommon = TRUE;
 		}
-		else if(header->opts->preserve != 0 || header->opts->blockSize != 1000000)
+		else if(strm->header.opts.preserve != 0 || strm->header.opts.blockSize != 1000000)
 		{
 			// lesscommon options
 			hasLesscommon = TRUE;
@@ -170,127 +168,127 @@ errorCode encodeHeader(EXIStream* strm, EXIheader* header)
 
 		if(hasLesscommon)
 		{
-			tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 0);
+			tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 0);
 			if(hasUncommon)
 			{
-				tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 0);
-				if(header->opts->alignment != BIT_PACKED)
+				tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 0);
+				if(GET_ALIGNMENT(strm->header.opts.enumOpt) != BIT_PACKED)
 				{
-					tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 0);
-					if(header->opts->alignment == BYTE_ALIGNMENT)
-						tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 0);
+					tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 0);
+					if(GET_ALIGNMENT(strm->header.opts.enumOpt) == BYTE_ALIGNMENT)
+						tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 0);
 					else
-						tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 1);
-					tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 0);
+						tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 1);
+					tmp_err_code += serialize.endElement(&options_strm, TRUE, 0);
 				}
-				if(header->opts->selfContained != FALSE)
+				if(WITH_SELF_CONTAINED(strm->header.opts.enumOpt))
 				{
-					tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 1 - options_strm.context.nonTermID);
-					tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 0);
+					tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 1 - options_strm.context.nonTermID);
+					tmp_err_code += serialize.endElement(&options_strm, TRUE, 0);
 				}
-				if(header->opts->valueMaxLength != SIZE_MAX)
+				if(strm->header.opts.valueMaxLength != SIZE_MAX)
 				{
-					tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 2 - options_strm.context.nonTermID);
-					tmp_err_code += serEXI.intDataSer(&options_strm, header->opts->valueMaxLength, TRUE, 0);
-					tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 0);
+					tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 2 - options_strm.context.nonTermID);
+					tmp_err_code += serialize.intData(&options_strm, strm->header.opts.valueMaxLength, TRUE, 0);
+					tmp_err_code += serialize.endElement(&options_strm, TRUE, 0);
 				}
-				if(header->opts->valuePartitionCapacity != SIZE_MAX)
+				if(strm->header.opts.valuePartitionCapacity != SIZE_MAX)
 				{
-					tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 3 - options_strm.context.nonTermID);
-					tmp_err_code += serEXI.intDataSer(&options_strm, header->opts->valuePartitionCapacity, TRUE, 0);
-					tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 0);
+					tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 3 - options_strm.context.nonTermID);
+					tmp_err_code += serialize.intData(&options_strm, strm->header.opts.valuePartitionCapacity, TRUE, 0);
+					tmp_err_code += serialize.endElement(&options_strm, TRUE, 0);
 				}
-				if(header->opts->drMap != NULL)
+				if(strm->header.opts.drMap != NULL)
 				{
-					tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 4 - options_strm.context.nonTermID);
+					tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 4 - options_strm.context.nonTermID);
 					// TODO: not ready yet!
 					return NOT_IMPLEMENTED_YET;
 				}
-				tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 5 - options_strm.context.nonTermID);
+				tmp_err_code += serialize.endElement(&options_strm, TRUE, 5 - options_strm.context.nonTermID);
 			}
-			if(header->opts->preserve != 0)
+			if(strm->header.opts.preserve != 0)
 			{
-				tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 1 - options_strm.context.nonTermID);
-				if(IS_PRESERVED(header->opts->preserve, PRESERVE_DTD))
+				tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 1 - options_strm.context.nonTermID);
+				if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
 				{
-					tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 0);
-					tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 0);
+					tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 0);
+					tmp_err_code += serialize.endElement(&options_strm, TRUE, 0);
 				}
-				if(IS_PRESERVED(header->opts->preserve, PRESERVE_PREFIXES))
+				if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES))
 				{
-					tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 1 - options_strm.context.nonTermID);
-					tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 0);
+					tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 1 - options_strm.context.nonTermID);
+					tmp_err_code += serialize.endElement(&options_strm, TRUE, 0);
 				}
-				if(IS_PRESERVED(header->opts->preserve, PRESERVE_LEXVALUES))
+				if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_LEXVALUES))
 				{
-					tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 2 - options_strm.context.nonTermID);
-					tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 0);
+					tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 2 - options_strm.context.nonTermID);
+					tmp_err_code += serialize.endElement(&options_strm, TRUE, 0);
 				}
-				if(IS_PRESERVED(header->opts->preserve, PRESERVE_COMMENTS))
+				if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
 				{
-					tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 3 - options_strm.context.nonTermID);
-					tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 0);
+					tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 3 - options_strm.context.nonTermID);
+					tmp_err_code += serialize.endElement(&options_strm, TRUE, 0);
 				}
-				if(IS_PRESERVED(header->opts->preserve, PRESERVE_PIS))
+				if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 				{
-					tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 4 - options_strm.context.nonTermID);
-					tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 0);
+					tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 4 - options_strm.context.nonTermID);
+					tmp_err_code += serialize.endElement(&options_strm, TRUE, 0);
 				}
-				tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 5 - options_strm.context.nonTermID);
+				tmp_err_code += serialize.endElement(&options_strm, TRUE, 5 - options_strm.context.nonTermID);
 			}
-			if(header->opts->blockSize != 1000000)
+			if(strm->header.opts.blockSize != 1000000)
 			{
-				tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 2 - options_strm.context.nonTermID);
-				tmp_err_code += serEXI.intDataSer(&options_strm, header->opts->blockSize, TRUE, 0);
-				tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 0);
+				tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 2 - options_strm.context.nonTermID);
+				tmp_err_code += serialize.intData(&options_strm, strm->header.opts.blockSize, TRUE, 0);
+				tmp_err_code += serialize.endElement(&options_strm, TRUE, 0);
 			}
-			tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 3 - options_strm.context.nonTermID);
+			tmp_err_code += serialize.endElement(&options_strm, TRUE, 3 - options_strm.context.nonTermID);
 		}
 
 		// common options if any...
-		if(header->opts->compression == TRUE || header->opts->fragment == TRUE || !isStringEmpty(&header->opts->schemaID))
+		if(WITH_COMPRESSION(strm->header.opts.enumOpt) || WITH_FRAGMENT(strm->header.opts.enumOpt) || !isStringEmpty(&strm->header.opts.schemaID))
 		{
 			hasCommon = TRUE;
 		}
 
 		if(hasCommon)
 		{
-			tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 1 - options_strm.context.nonTermID);
-			if(header->opts->compression == TRUE)
+			tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 1 - options_strm.context.nonTermID);
+			if(WITH_COMPRESSION(strm->header.opts.enumOpt))
 			{
-				tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 0);
-				tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 0);
+				tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 0);
+				tmp_err_code += serialize.endElement(&options_strm, TRUE, 0);
 			}
-			if(header->opts->fragment == TRUE)
+			if(WITH_FRAGMENT(strm->header.opts.enumOpt))
 			{
-				tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 1 - options_strm.context.nonTermID);
-				tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 0);
+				tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 1 - options_strm.context.nonTermID);
+				tmp_err_code += serialize.endElement(&options_strm, TRUE, 0);
 			}
-			if(!isStringEmpty(&header->opts->schemaID))
+			if(!isStringEmpty(&strm->header.opts.schemaID))
 			{
-				tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 2 - options_strm.context.nonTermID);
+				tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 2 - options_strm.context.nonTermID);
 				// TODO: not implemented yet
 				return NOT_IMPLEMENTED_YET;
 			}
-			tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 3 - options_strm.context.nonTermID);
+			tmp_err_code += serialize.endElement(&options_strm, TRUE, 3 - options_strm.context.nonTermID);
 		}
 
-		if(header->opts->strict == TRUE)
+		if(WITH_STRICT(strm->header.opts.enumOpt))
 		{
-			tmp_err_code += serEXI.startElementSer(&options_strm, NULL, TRUE, 2 - options_strm.context.nonTermID);
-			tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 0);
+			tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 2 - options_strm.context.nonTermID);
+			tmp_err_code += serialize.endElement(&options_strm, TRUE, 0);
 		}
 
-		tmp_err_code += serEXI.endElementSer(&options_strm, TRUE, 3 - options_strm.context.nonTermID);
+		tmp_err_code += serialize.endElement(&options_strm, TRUE, 3 - options_strm.context.nonTermID);
 
-		tmp_err_code += serEXI.endDocumentSer(&options_strm, TRUE, 0);
+		tmp_err_code += serialize.endDocument(&options_strm, TRUE, 0);
 
 		strm->bufContent = options_strm.bufContent;
 		strm->context.bitPointer = options_strm.context.bitPointer;
 		strm->context.bufferIndx = options_strm.context.bufferIndx;
 
-		if(strm->header.opts->compression == TRUE ||
-					strm->header.opts->alignment != BIT_PACKED)
+		if(WITH_COMPRESSION(strm->header.opts.enumOpt) ||
+				GET_ALIGNMENT(strm->header.opts.enumOpt) != BIT_PACKED)
 		{
 			// Padding bits
 			if(strm->context.bitPointer != 0)

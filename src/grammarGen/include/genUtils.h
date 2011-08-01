@@ -109,9 +109,9 @@ errorCode createSimpleEmptyTypeGrammar(AllocList* memList, ProtoGrammar** result
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createComplexTypeGrammar(AllocList* memList, StringType* name, StringType* target_ns,
+errorCode createComplexTypeGrammar(AllocList* memList, String* name, String* target_ns,
 								   ProtoGrammar* attrUsesArray, unsigned int attrUsesArraySize,
-		                           StringType* wildcardArray, unsigned int wildcardArraySize,
+		                           String* wildcardArray, unsigned int wildcardArraySize,
 		                           ProtoGrammar* contentTypeGrammar,
 		                           ProtoGrammar** result);
 
@@ -133,9 +133,9 @@ errorCode createComplexTypeGrammar(AllocList* memList, StringType* name, StringT
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createComplexEmptyTypeGrammar(AllocList* memList, StringType name, StringType target_ns,
+errorCode createComplexEmptyTypeGrammar(AllocList* memList, String name, String target_ns,
 									ProtoGrammar* attrUsesArray, unsigned int attrUsesArraySize,
-		                            StringType* wildcardArray, unsigned int wildcardArraySize,
+		                            String* wildcardArray, unsigned int wildcardArraySize,
 		                            ProtoGrammar** result);
 
 /**
@@ -170,7 +170,7 @@ errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, ProtoGrammar** res
  * @param[in] lnRowID row index of the local name in the unsorted string tables
  * @return Error handling code
  */
-errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, StringType* name, StringType* target_ns,
+errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, String* name, String* target_ns,
 										  QName simpleType, QName scope, ProtoGrammar** result, uint16_t uriRowID, size_t lnRowID);
 
 /**
@@ -197,7 +197,7 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
  * @param[in] lnRowID row index of the local name in the unsorted string tables
  * @return Error handling code
  */
-errorCode createElementTermGrammar(AllocList* memList, StringType* name, StringType* target_ns,
+errorCode createElementTermGrammar(AllocList* memList, String* name, String* target_ns,
 								ProtoGrammar** result, uint16_t uriRowID, size_t lnRowID);
 
 /**
@@ -210,7 +210,7 @@ errorCode createElementTermGrammar(AllocList* memList, StringType* name, StringT
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createWildcardTermGrammar(AllocList* memList, StringType* wildcardArray, unsigned int wildcardArraySize, ProtoGrammar** result);
+errorCode createWildcardTermGrammar(AllocList* memList, String* wildcardArray, unsigned int wildcardArraySize, ProtoGrammar** result);
 
 /**
  * @brief Creates Sequence Model Group Proto-Grammar from Particle term that is XML Schema Model Group with {compositor} equal to "sequence"
@@ -261,7 +261,7 @@ errorCode getEXIDataType(QName simpleXSDType, ValueType* exiType);
  * @param[in] ln2 local name of the second qname
  * @return 0 when the qnames are equal; negative int when qname1<qname2; positive when qname1>qname2
  */
-int qnamesCompare(const StringType* uri1, const StringType* ln1, const StringType* uri2, const StringType* ln2);
+int qnamesCompare(const String* uri1, const String* ln1, const String* uri2, const String* ln2);
 
 /**
  * @brief Event Code Assignment to normalized grammar

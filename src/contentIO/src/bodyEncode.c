@@ -52,7 +52,7 @@
 #include "grammars.h"
 #include "memManagement.h"
 
-errorCode encodeStringData(EXIStream* strm, StringType strng)
+errorCode encodeStringData(EXIStream* strm, String strng)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char flag_StringLiteralsPartition = 0;
@@ -99,9 +99,9 @@ errorCode encodeStringData(EXIStream* strm, StringType strng)
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			if(strng.length > 0 && strng.length <= strm->header.opts->valueMaxLength && strm->header.opts->valuePartitionCapacity > 0)
+			if(strng.length > 0 && strng.length <= strm->header.opts.valueMaxLength && strm->header.opts.valuePartitionCapacity > 0)
 			{
-				StringType copiedValue;
+				String copiedValue;
 				tmp_err_code = cloneString(&strng, &copiedValue, &strm->memList);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
@@ -344,7 +344,7 @@ errorCode encodeQName(EXIStream* strm, QName qname)
 	}
 	else  // uri miss
 	{
-		StringType copiedURI;
+		String copiedURI;
 		tmp_err_code = encodeNBitUnsignedInteger(strm, uriBits, 0);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -377,7 +377,7 @@ errorCode encodeQName(EXIStream* strm, QName qname)
 	}
 	else // local-name table miss
 	{
-		StringType copiedLN;
+		String copiedLN;
 		tmp_err_code = encodeUnsignedInteger(strm, (uint32_t)(qname.localName->length + 1) );
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -407,7 +407,7 @@ errorCode encodeQName(EXIStream* strm, QName qname)
 	return ERR_OK;
 }
 
-errorCode encodeIntData(EXIStream* strm, int32_t int_val, ValueType intType)
+errorCode encodeIntData(EXIStream* strm, Integer int_val, ValueType intType)
 {
 	if(intType == VALUE_TYPE_SMALL_INTEGER)
 	{

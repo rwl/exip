@@ -56,14 +56,14 @@ errorCode allocateStringMemory(CharType** str, size_t UCSchars, AllocList* memLi
 /**
  * Simple translation working only for ASCII characters. No error checking implemented!
  */
-errorCode writeCharToString(StringType* str, uint32_t code_point, size_t* UCSposition)
+errorCode writeCharToString(String* str, uint32_t code_point, size_t* UCSposition)
 {
 	str->str[*UCSposition] = (CharType) code_point;
 	*UCSposition += 1;
 	return ERR_OK;
 }
 
-errorCode getEmptyString(StringType* emptyStr)
+errorCode getEmptyString(String* emptyStr)
 {
 	emptyStr->length = 0;
 	emptyStr->str = NULL;
@@ -71,14 +71,14 @@ errorCode getEmptyString(StringType* emptyStr)
 	return ERR_OK;
 }
 
-char isStringEmpty(const StringType* str)
+char isStringEmpty(const String* str)
 {
 	if(str == NULL || str->length == 0)
 		return 1;
 	return 0;
 }
 
-errorCode asciiToString(const char* inStr, StringType* outStr, AllocList* memList, unsigned char clone)
+errorCode asciiToString(const char* inStr, String* outStr, AllocList* memList, unsigned char clone)
 {
 	outStr->length = strlen(inStr);
 	if(outStr->length > 0)  // If == 0 -> empty string
@@ -102,7 +102,7 @@ errorCode asciiToString(const char* inStr, StringType* outStr, AllocList* memLis
 	return ERR_OK;
 }
 
-char stringEqual(const StringType str1, const StringType str2)
+char stringEqual(const String str1, const String str2)
 {
 	if(str1.length != str2.length)
 		return 0;
@@ -128,7 +128,7 @@ char stringEqual(const StringType str1, const StringType str2)
 	}
 }
 
-char stringEqualToAscii(const StringType str1, const char* str2)
+char stringEqualToAscii(const String str1, const char* str2)
 {
 	if(str1.length != strlen(str2))
 		return 0;
@@ -144,7 +144,7 @@ char stringEqualToAscii(const StringType str1, const char* str2)
 	}
 }
 
-int stringCompare(const StringType str1, const StringType str2)
+int stringCompare(const String str1, const String str2)
 {
 	if((char*) str1.str == NULL)
 	{
@@ -160,7 +160,7 @@ int stringCompare(const StringType str1, const StringType str2)
 
 }
 
-errorCode getUCSCodePoint(const StringType* str, size_t charIndex, uint32_t* UCScp)
+errorCode getUCSCodePoint(const String* str, size_t charIndex, uint32_t* UCScp)
 {
 	if(str->length <= charIndex)
 		return OUT_OF_BOUND_BUFFER;
@@ -168,7 +168,7 @@ errorCode getUCSCodePoint(const StringType* str, size_t charIndex, uint32_t* UCS
 	return ERR_OK;
 }
 
-errorCode cloneString(const StringType* src, StringType* newStr, AllocList* memList)
+errorCode cloneString(const String* src, String* newStr, AllocList* memList)
 {
 	if(newStr == NULL)
 		return NULL_POINTER_REF;
@@ -180,13 +180,13 @@ errorCode cloneString(const StringType* src, StringType* newStr, AllocList* memL
 	return ERR_OK;
 }
 
-errorCode splitStringByChar(const StringType* src, CharType separator, StringType** tokensArray, unsigned int* tokensCount, AllocList* memList)
+errorCode splitStringByChar(const String* src, CharType separator, String** tokensArray, unsigned int* tokensCount, AllocList* memList)
 {
 	size_t i;
 	size_t lastHitIndex = 0;
 
 	*tokensCount = 1;
-	*tokensArray = (StringType*) src;
+	*tokensArray = (String*) src;
 
 	for(i = 0; i < src->length; i++)
 	{
@@ -210,7 +210,7 @@ errorCode splitStringByChar(const StringType* src, CharType separator, StringTyp
 
 #if EXIP_DEBUG == ON
 
-void printString(const StringType* inStr)
+void printString(const String* inStr)
 {
 	size_t i = 0;
 	if(inStr->length == 0)

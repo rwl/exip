@@ -85,15 +85,6 @@ errorCode decodeBoolean(EXIStream* strm, unsigned char* bool_val);
 errorCode decodeUnsignedInteger(EXIStream* strm, uint32_t* int_val);
 
 /**
- * @brief Decode EXI Unsigned Integer type when the value is bigger than 32 bits
- *
- * @param[in] strm EXI stream of bits
- * @param[out] int_val resulting big unsigned integer value
- * @return Error handling code
- */
-errorCode decodeBigUnsignedInteger(EXIStream* strm, BigUnsignedInt* int_val);
-
-/**
  * @brief Decode EXI String type
  * Decode a string as a length-prefixed sequence of UCS codepoints, each of
  * which is encoded as an integer.
@@ -102,7 +93,7 @@ errorCode decodeBigUnsignedInteger(EXIStream* strm, BigUnsignedInt* int_val);
  * @param[out] string_val decoded string
  * @return Error handling code
  */
-errorCode decodeString(EXIStream* strm, StringType* string_val);
+errorCode decodeString(EXIStream* strm, String* string_val);
 
 /**
  * @brief Decode String with the length of the String specified
@@ -115,7 +106,7 @@ errorCode decodeString(EXIStream* strm, StringType* string_val);
  * @param[out] string_val decoded string
  * @return Error handling code
  */
-errorCode decodeStringOnly(EXIStream* strm, size_t str_length, StringType* string_val);
+errorCode decodeStringOnly(EXIStream* strm, size_t str_length, String* string_val);
 
 /**
  * @brief Decode EXI Binary type
@@ -145,19 +136,6 @@ errorCode decodeBinary(EXIStream* strm, char** binary_val, size_t* nbytes);
 errorCode decodeIntegerValue(EXIStream* strm, int32_t* sint_val);
 
 /**
- * @brief Decode EXI (signed) Integer type bigger than 32 bits
- * Decode an arbitrary precision integer using a sign bit followed by a
- * sequence of octets. The most significant bit of the last octet is set to
- * zero to indicate sequence termination. Only seven bits per octet are used
- * to store the integer's value.
- *
- * @param[in] strm EXI stream of bits
- * @param[out] sint_val decoded signed integer value
- * @return Error handling code.
- */
-errorCode decodeBigIntegerValue(EXIStream* strm, BigSignedInt* sint_val);
-
-/**
  * @brief Decode EXI Decimal type
  * Decode a decimal represented as a Boolean sign followed by two Unsigned
  * Integers. A sign value of zero (0) is used to represent positive Decimal
@@ -172,23 +150,7 @@ errorCode decodeBigIntegerValue(EXIStream* strm, BigSignedInt* sint_val);
  * the decimal is bigger than the parameter type provided. The processor MUST
  * invoke the function that handles larger decimals
  */
-errorCode decodeDecimalValue(EXIStream* strm, decimal* dec_val);
-
-/**
- * @brief Decode big Decimal value
- * Decode a decimal represented as a Boolean sign followed by two Unsigned
- * Integers. A sign value of zero (0) is used to represent positive Decimal
- * values and a sign value of one (1) is used to represent negative Decimal
- * values The first Integer represents the integral portion of the Decimal
- * value. The second positive integer represents the fractional portion of
- * the decimal with the digits in reverse order to preserve leading zeros.
- *
- * @param[in] strm EXI stream of bits
- * @param[out] dec_val decoded decimal value
- * @return Error handling code.
- */
-errorCode decodeBigDecimalValue(EXIStream* strm, bigDecimal* dec_val);
-
+errorCode decodeDecimalValue(EXIStream* strm, Decimal* dec_val);
 
 /**
  * @brief Decode EXI Float type
@@ -203,17 +165,5 @@ errorCode decodeBigDecimalValue(EXIStream* strm, bigDecimal* dec_val);
  * that handles larger floats
  */
 errorCode decodeFloatValue(EXIStream* strm, double* double_val);
-
-/**
- * @brief Decode EXI Float type, bigger than double
- * Decode a Float represented as two consecutive Integers. The first Integer
- * represents the mantissa of the floating point number and the second
- * Integer represents the 10-based exponent of the floating point number
- *
- * @param[in] strm EXI stream of bits
- * @param[out] double_val decoded float value as long double
- * @return Error handling code
- */
-errorCode decodeBigFloatValue(EXIStream* strm, BigFloat* double_val);
 
 #endif /* STREAMDECODE_H_ */

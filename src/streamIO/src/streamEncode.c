@@ -51,7 +51,7 @@
 
 errorCode encodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, uint32_t int_val)
 {
-	if(strm->header.opts->compression == 0 && strm->header.opts->alignment == BIT_PACKED)
+	if(WITH_COMPRESSION(strm->header.opts.enumOpt) == FALSE && GET_ALIGNMENT(strm->header.opts.enumOpt) == BIT_PACKED)
 	{
 		return writeNBits(strm, n, int_val);
 	}
@@ -103,12 +103,7 @@ errorCode encodeUnsignedInteger(EXIStream* strm, uint32_t int_val)
 	return ERR_OK;
 }
 
-errorCode encodeBigUnsignedInteger(EXIStream* strm, BigUnsignedInt int_val)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
-errorCode encodeString(EXIStream* strm, const StringType* string_val)
+errorCode encodeString(EXIStream* strm, const String* string_val)
 {
 	// Assume no Restricted Character Set is defined
 	//TODO: Handle the case when Restricted Character Set is defined
@@ -122,7 +117,7 @@ errorCode encodeString(EXIStream* strm, const StringType* string_val)
 	return encodeStringOnly(strm, string_val);
 }
 
-errorCode encodeStringOnly(EXIStream* strm, const StringType* string_val)
+errorCode encodeStringOnly(EXIStream* strm, const String* string_val)
 {
 	// Assume no Restricted Character Set is defined
 	//TODO: Handle the case when Restricted Character Set is defined
@@ -182,12 +177,7 @@ errorCode encodeIntegerValue(EXIStream* strm, int32_t sint_val)
 	return encodeUnsignedInteger(strm, uval);
 }
 
-errorCode encodeBigIntegerValue(EXIStream* strm, BigSignedInt sint_val)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
-errorCode encodeDecimalValue(EXIStream* strm, decimal dec_val)
+errorCode encodeDecimalValue(EXIStream* strm, Decimal dec_val)
 {
 	// TODO: Review this. Probably incorrect in some cases and not efficient. Depends on decimal floating point support!
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -233,11 +223,6 @@ errorCode encodeDecimalValue(EXIStream* strm, decimal dec_val)
 	return ERR_OK;
 }
 
-errorCode encodeBigDecimalValue(EXIStream* strm, bigDecimal dec_val)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
 errorCode encodeFloatValue(EXIStream* strm, double double_val)
 {
 	// TODO: Review this. Probably incorrect in some cases and not efficient. Depends on decimal floating point support!
@@ -263,7 +248,7 @@ errorCode encodeFloatValue(EXIStream* strm, double double_val)
 	}
 	else
 	{
-		decimal tmp_dec = double_val;
+		Decimal tmp_dec = double_val;
 		int tmp_expt = 0;
 
 		while(tmp_dec - ((int32_t) tmp_dec) != 0)
@@ -285,9 +270,4 @@ errorCode encodeFloatValue(EXIStream* strm, double double_val)
 		return tmp_err_code;
 
 	return ERR_OK;
-}
-
-errorCode encodeBigFloatValue(EXIStream* strm, BigFloat double_val)
-{
-	return NOT_IMPLEMENTED_YET;
 }

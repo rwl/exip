@@ -19,7 +19,7 @@
  * the magic of number 33 (why it works better than many other constants, prime or not) has never
  * been adequately explained.
  **/
-uint32_t djbHash(StringType* str);
+uint32_t djbHash(String* str);
 
 struct hashtable;
 
@@ -91,8 +91,8 @@ struct hashtable;
 
 struct hashtable *
 create_hashtable(unsigned int minsize,
-				 uint32_t (*hashfn) (StringType* key),
-				 char (*eqfn) (const StringType str1, const StringType str2));
+				 uint32_t (*hashfn) (String* key),
+				 char (*eqfn) (const String str1, const String str2));
 
 /*****************************************************************************
  * hashtable_insert
@@ -113,7 +113,7 @@ create_hashtable(unsigned int minsize,
  * If in doubt, remove before insert.
  */
 
-errorCode hashtable_insert(struct hashtable *h, StringType* key, size_t value);
+errorCode hashtable_insert(struct hashtable *h, String* key, size_t value);
 
 /*
 //#define DEFINE_HASHTABLE_INSERT(fnname, keytype, valuetype) \
@@ -132,7 +132,7 @@ errorCode hashtable_insert(struct hashtable *h, StringType* key, size_t value);
  * @return      the value associated with the key, or SIZE_MAX if none found
  */
 
-size_t hashtable_search(struct hashtable *h, StringType* key);
+size_t hashtable_search(struct hashtable *h, String* key);
 
 /*
 //#define DEFINE_HASHTABLE_SEARCH(fnname, keytype, valuetype) \
@@ -151,7 +151,7 @@ size_t hashtable_search(struct hashtable *h, StringType* key);
  * @return      the value associated with the key, or SIZE_MAX if none found
  */
 
-size_t hashtable_remove(struct hashtable *h, StringType* key);
+size_t hashtable_remove(struct hashtable *h, String* key);
 
 /*
 //#define DEFINE_HASHTABLE_REMOVE(fnname, keytype, valuetype) \

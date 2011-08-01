@@ -52,9 +52,9 @@ errorCode writeNextBit(EXIStream* strm, unsigned char bit_val)
 	if(strm->bufLen <= strm->context.bufferIndx) // the whole buffer is filled! flush it!
 	{
 		size_t numBytesWritten = 0;
-		if(strm->ioStrm == NULL || strm->ioStrm->readWriteToStream == NULL)
+		if(strm->ioStrm.readWriteToStream == NULL)
 			return BUFFER_END_REACHED;
-		numBytesWritten = strm->ioStrm->readWriteToStream(strm->buffer, strm->bufLen, strm->ioStrm->stream);
+		numBytesWritten = strm->ioStrm.readWriteToStream(strm->buffer, strm->bufLen, strm->ioStrm.stream);
 		if(numBytesWritten < strm->bufLen)
 			return BUFFER_END_REACHED;
 		strm->context.bitPointer = 0;
@@ -88,12 +88,12 @@ errorCode writeNBits(EXIStream* strm, unsigned char nbits, uint32_t bits_val)
 		// The buffer end is reached: there are fewer than nbits bits left in the buffer
 		char leftOverBits;
 		size_t numBytesWritten = 0;
-		if(strm->ioStrm == NULL || strm->ioStrm->readWriteToStream == NULL)
+		if(strm->ioStrm.readWriteToStream == NULL)
 			return BUFFER_END_REACHED;
 
 		leftOverBits = strm->buffer[strm->context.bufferIndx];
 
-		numBytesWritten = strm->ioStrm->readWriteToStream(strm->buffer, strm->context.bufferIndx, strm->ioStrm->stream);
+		numBytesWritten = strm->ioStrm.readWriteToStream(strm->buffer, strm->context.bufferIndx, strm->ioStrm.stream);
 		if(numBytesWritten < strm->context.bufferIndx)
 			return BUFFER_END_REACHED;
 

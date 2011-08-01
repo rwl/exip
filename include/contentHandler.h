@@ -63,16 +63,13 @@ struct ContentHandler
 	char (*attribute)(QName qname, void* app_data);
 
 	// For handling the data
-	char (*intData)(int32_t int_val, void* app_data);
-	char (*bigIntData)(const BigSignedInt int_val, void* app_data);
+	char (*intData)(Integer int_val, void* app_data);
 	char (*booleanData)(unsigned char bool_val, void* app_data);
-	char (*stringData)(const StringType str_val, void* app_data);
-	char (*floatData)(double float_val, void* app_data);
-	char (*bigFloatData)(BigFloat float_val, void* app_data);
+	char (*stringData)(const String str_val, void* app_data);
+	char (*floatData)(Float float_val, void* app_data);
 	char (*binaryData)(const char* binary_val, size_t nbytes, void* app_data);
 	char (*dateTimeData)(struct tm dt_val, uint16_t presenceMask, void* app_data);
-	char (*decimalData)(decimal dec_val, void* app_data);
-	char (*bigDecimalData)(bigDecimal dec_val, void* app_data);
+	char (*decimalData)(Decimal dec_val, void* app_data);
 
 	// Miscellaneous
 	char (*processingInstruction)(void* app_data); // TODO: define the parameters!
@@ -83,7 +80,6 @@ struct ContentHandler
 	char (*fatalError)(const char code, const char* msg, void* app_data);
 
 	// EXI specific
-	char (*exiHeader)(const EXIheader* header, void* app_data);
 	char (*selfContained)(void* app_data);  // Used for indexing independent elements for random access
 };
 

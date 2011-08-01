@@ -82,6 +82,8 @@ typedef char errorCode;
 /** No error, everything OK. */
 #define ERR_OK    0
 
+#define PARSING_COMPLETE 15
+
 #define EMPTY_COLLECTION 14
 
 /** Function invokation is invalid for the given arguments */

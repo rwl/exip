@@ -193,7 +193,7 @@ errorCode createValueLocalCrossTable(ValueLocalCrossTable** vlTable, AllocList* 
 	return ERR_OK;
 }
 
-errorCode addURIRow(URITable* uTable, StringType uri, uint16_t* rowID, AllocList* memList)
+errorCode addURIRow(URITable* uTable, String uri, uint16_t* rowID, AllocList* memList)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	if(uTable == NULL)
@@ -221,7 +221,7 @@ errorCode addURIRow(URITable* uTable, StringType uri, uint16_t* rowID, AllocList
 	return ERR_OK;
 }
 
-errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, size_t* rowID)
+errorCode addLNRow(LocalNamesTable* lTable, String local_name, size_t* rowID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	if(lTable->arrayDimension == lTable->rowCount)   // The dynamic array must be extended first
@@ -266,8 +266,8 @@ errorCode createInitialEntries(AllocList* memList, URITable* uTable, unsigned ch
 	uint16_t uriID = 0;
 	size_t lnID = 0;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	StringType emptyStr;
-	StringType tmp_str;
+	String emptyStr;
+	String tmp_str;
 
 	// Insert initial entries in the URI partition
 	tmp_err_code = getEmptyString(&emptyStr);
@@ -371,7 +371,7 @@ errorCode createInitialEntries(AllocList* memList, URITable* uTable, unsigned ch
 	return ERR_OK;
 }
 
-errorCode addValueRows(EXIStream* strm, StringType* value)
+errorCode addValueRows(EXIStream* strm, String* value)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	size_t* vLocalCrossTablePtr = NULL;
@@ -429,13 +429,13 @@ errorCode addValueRows(EXIStream* strm, StringType* value)
 
 	strm->vTable->globalID += 1;
 
-	if(strm->vTable->globalID == strm->header.opts->valuePartitionCapacity)
+	if(strm->vTable->globalID == strm->header.opts.valuePartitionCapacity)
 		strm->vTable->globalID = 0;
 
 	return ERR_OK;
 }
 
-errorCode addPrefixRow(PrefixTable* pTable, StringType px_value)
+errorCode addPrefixRow(PrefixTable* pTable, String px_value)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	if(pTable->arrayDimension == pTable->rowCount)   // The dynamic array must be extended first
@@ -453,7 +453,7 @@ errorCode addPrefixRow(PrefixTable* pTable, StringType px_value)
 	return ERR_OK;
 }
 
-char lookupURI(URITable* uTable, StringType value, uint16_t* rowID)
+char lookupURI(URITable* uTable, String value, uint16_t* rowID)
 {
 	uint16_t i = 0;
 	if(uTable == NULL)
@@ -469,7 +469,7 @@ char lookupURI(URITable* uTable, StringType value, uint16_t* rowID)
 	return 0;
 }
 
-char lookupLN(LocalNamesTable* lTable, StringType value, size_t* rowID)
+char lookupLN(LocalNamesTable* lTable, String value, size_t* rowID)
 {
 	size_t i = 0;
 	if(lTable == NULL)
@@ -485,7 +485,7 @@ char lookupLN(LocalNamesTable* lTable, StringType value, size_t* rowID)
 	return 0;
 }
 
-char lookupLV(ValueTable* vTable, ValueLocalCrossTable* lvTable, StringType value, uint16_t* rowID)
+char lookupLV(ValueTable* vTable, ValueLocalCrossTable* lvTable, String value, uint16_t* rowID)
 {
 	uint16_t i = 0;
 	if(lvTable == NULL)
@@ -501,7 +501,7 @@ char lookupLV(ValueTable* vTable, ValueLocalCrossTable* lvTable, StringType valu
 	return 0;
 }
 
-char lookupVal(ValueTable* vTable, StringType value, size_t* rowID)
+char lookupVal(ValueTable* vTable, String value, size_t* rowID)
 {
 	size_t i = 0;
 	if(vTable == NULL)

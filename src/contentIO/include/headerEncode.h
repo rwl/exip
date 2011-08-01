@@ -52,10 +52,9 @@
 /**
  * @brief Encode the header of an EXI stream. The current position in the stream is set to
  * the first bit after the header. The EXIStream.EXIOptions* are set accordingly
- * @param[out] strm an empty EXI stream
- * @param[in] header the header values
+ * @param[in, out] strm an empty EXI stream
  * @return Error handling code
  */
-errorCode encodeHeader(EXIStream* strm, EXIheader* header);
+errorCode encodeHeader(EXIStream* strm);
 
 #endif /* HEADERENCODE_H_ */

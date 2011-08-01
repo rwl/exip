@@ -75,7 +75,7 @@ errorCode allocateStringMemory(CharType** str, size_t UCSchars, AllocList* memLi
  * 			       takes in the encoding. For example 1 UCS character may require 2 or 3  CharTypes to be encoded.
  * @return Error handling code
  */
-errorCode writeCharToString(StringType* str, uint32_t code_point, size_t* UCSposition);
+errorCode writeCharToString(String* str, uint32_t code_point, size_t* UCSposition);
 
 /**
  * @brief Creates an empty string
@@ -83,7 +83,7 @@ errorCode writeCharToString(StringType* str, uint32_t code_point, size_t* UCSpos
  * @param[in, out] emptyStr empty string
  * @return Error handling code
  */
-errorCode getEmptyString(StringType* emptyStr);
+errorCode getEmptyString(String* emptyStr);
 
 /**
  * @brief Checks if an string is empty
@@ -91,20 +91,20 @@ errorCode getEmptyString(StringType* emptyStr);
  * @param[in] str string to check
  * @return 0 if not empty, 1 if empty
  */
-char isStringEmpty(const StringType* str);
+char isStringEmpty(const String* str);
 
 /**
- * @brief Transform a NULL terminated string of ASCII chars to StringType allocating memory for the CharType*.
+ * @brief Transform a NULL terminated string of ASCII chars to String allocating memory for the CharType*.
  * Note! The implementation of this function is platform-specific.
  * @param[in] inStr ASCII stream
  * @param[in, out] outStr resulted string
  * @param[in, out] memList A list storing the memory allocations
  * @param[in] clone Boolean indicating if outStr should reuse the memory allocated for inStr if possible.
- * 					0 - if StringType implementation allows it - do not allocate new memory for the string
+ * 					0 - if String implementation allows it - do not allocate new memory for the string
  * 					1 - always allocate fresh memory for outStr and copy inStr there
  * @return Error handling code
  */
-errorCode asciiToString(const char* inStr, StringType* outStr, AllocList* memList, unsigned char clone);
+errorCode asciiToString(const char* inStr, String* outStr, AllocList* memList, unsigned char clone);
 
 /**
  * @brief Tests if two strings are equal
@@ -113,7 +113,7 @@ errorCode asciiToString(const char* inStr, StringType* outStr, AllocList* memLis
  * @param[in] str2 string to compare
  * @return 1 if the strings are equal, 0 - otherwise
  */
-char stringEqual(const StringType str1, const StringType str2);
+char stringEqual(const String str1, const String str2);
 
 /**
  * @brief Compare two strings lexicographically
@@ -122,16 +122,16 @@ char stringEqual(const StringType str1, const StringType str2);
  * @param[in] str2 string to compare
  * @return 0 when the strings are equal; negative int when str1<str2; positive when  str1>str2
  */
-int stringCompare(const StringType str1, const StringType str2);
+int stringCompare(const String str1, const String str2);
 
 /**
- * @brief Checks if a StringType string and ASCII string are equal
+ * @brief Checks if a String string and ASCII string are equal
  * Note! The implementation of this function is platform-specific.
  * @param[in] str1 string to compare
  * @param[in] str2 null terminated string to compare
  * @return 1 if the strings are equal, 0 - otherwise
  */
-char stringEqualToAscii(const StringType str1, const char* str2);
+char stringEqualToAscii(const String str1, const char* str2);
 
 /**
  * @brief Returns the UCS [ISO/IEC 10646] code point at particular index from a String
@@ -141,7 +141,7 @@ char stringEqualToAscii(const StringType str1, const char* str2);
  * @param[out] UCScp the returned UCS code point
  * @return 1 if the strings are equal, 0 - otherwise
  */
-errorCode getUCSCodePoint(const StringType* str, size_t charIndex, uint32_t* UCScp);
+errorCode getUCSCodePoint(const String* str, size_t charIndex, uint32_t* UCScp);
 
 /**
  * @brief Makes a copy of the string in a new location
@@ -151,7 +151,7 @@ errorCode getUCSCodePoint(const StringType* str, size_t charIndex, uint32_t* UCS
  * @param[in, out] memList A list storing the memory allocations
  * @return Error handling code
  */
-errorCode cloneString(const StringType* src, StringType* newStr, AllocList* memList);
+errorCode cloneString(const String* src, String* newStr, AllocList* memList);
 
 /**
  * @brief Split a string into multiple tokens/strings based on a particular character
@@ -162,17 +162,17 @@ errorCode cloneString(const StringType* src, StringType* newStr, AllocList* memL
  * @param[in, out] memList A list storing the memory allocations
  * @return Error handling code
  */
-errorCode splitStringByChar(const StringType* src, CharType separator, StringType** tokensArray, unsigned int* tokensCount, AllocList* memList);
+errorCode splitStringByChar(const String* src, CharType separator, String** tokensArray, unsigned int* tokensCount, AllocList* memList);
 
 #if EXIP_DEBUG == ON
 
 /**
- * @brief Prints out a StringType
+ * @brief Prints out a String
  * Note! The implementation of this function is platform-specific.
  * Used for debugging purposes.
  * @param[in] inStr Input string to be printed
  */
-void printString(const StringType* inStr);
+void printString(const String* inStr);
 
 #endif /* EXIP_DEBUG */
 

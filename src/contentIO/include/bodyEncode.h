@@ -51,32 +51,30 @@
 /**** START: Serializer API implementation  ****/
 
 // For handling the meta-data (document structure)
-errorCode startDocumentSer(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
-errorCode endDocumentSer(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
-errorCode startElementSer(EXIStream* strm, QName* qname, unsigned char fastSchemaMode, size_t schemaProduction);
-errorCode endElementSer(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
-errorCode attributeSer(EXIStream* strm, QName* qname, ValueType valueType, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode startDocument(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode endDocument(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode startElement(EXIStream* strm, QName* qname, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode endElement(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode attribute(EXIStream* strm, QName* qname, ValueType valueType, unsigned char fastSchemaMode, size_t schemaProduction);
 
 // For handling the data
-errorCode intDataSer(EXIStream* strm, int32_t int_val, unsigned char fastSchemaMode, size_t schemaProduction);
-errorCode bigIntDataSer(EXIStream* strm, const BigSignedInt int_val, unsigned char fastSchemaMode, size_t schemaProduction);
-errorCode booleanDataSer(EXIStream* strm, unsigned char bool_val, unsigned char fastSchemaMode, size_t schemaProduction);
-errorCode stringDataSer(EXIStream* strm, const StringType str_val, unsigned char fastSchemaMode, size_t schemaProduction);
-errorCode floatDataSer(EXIStream* strm, double float_val, unsigned char fastSchemaMode, size_t schemaProduction);
-errorCode bigFloatDataSer(EXIStream* strm, BigFloat float_val, unsigned char fastSchemaMode, size_t schemaProduction);
-errorCode binaryDataSer(EXIStream* strm, const char* binary_val, size_t nbytes, unsigned char fastSchemaMode, size_t schemaProduction);
-errorCode dateTimeDataSer(EXIStream* strm, struct tm dt_val, uint16_t presenceMask, unsigned char fastSchemaMode, size_t schemaProduction);
-errorCode decimalDataSer(EXIStream* strm, decimal dec_val, unsigned char fastSchemaMode, size_t schemaProduction);
-errorCode bigDecimalDataSer(EXIStream* strm, bigDecimal dec_val, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode intData(EXIStream* strm, Integer int_val, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode booleanData(EXIStream* strm, unsigned char bool_val, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode stringData(EXIStream* strm, const String str_val, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode floatData(EXIStream* strm, Float float_val, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode binaryData(EXIStream* strm, const char* binary_val, size_t nbytes, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode dateTimeData(EXIStream* strm, struct tm dt_val, uint16_t presenceMask, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode decimalData(EXIStream* strm, Decimal dec_val, unsigned char fastSchemaMode, size_t schemaProduction);
 
 // Miscellaneous
-errorCode processingInstructionSer(EXIStream* strm); // TODO: define the parameters!
+errorCode processingInstruction(EXIStream* strm); // TODO: define the parameters!
 
 // EXI specific
-errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStrm, EXIOptions* opts, ExipSchema *schema);
-errorCode selfContainedSer(EXIStream* strm);  // Used for indexing independent elements for random access
+errorCode selfContained(EXIStream* strm);  // Used for indexing independent elements for random access
 
 // EXIP specific
+void initHeader(EXIStream* strm);
+errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStrm, ExipSchema *schema);
 errorCode closeEXIStream(EXIStream* strm);
 
 /****  END: Serializer API implementation  ****/
@@ -88,7 +86,7 @@ errorCode closeEXIStream(EXIStream* strm);
  * @param[in] strng string to be written
  * @return Error handling code
  */
-errorCode encodeStringData(EXIStream* strm, StringType strng);
+errorCode encodeStringData(EXIStream* strm, String strng);
 
 /**
  * @brief Encodes SD, ED, EE, CH events
@@ -131,6 +129,6 @@ errorCode encodeQName(EXIStream* strm, QName qname);
  * @param[in] intType how the integer is represented: unsigned int, small int or regular int
  * @return Error handling code
  */
-errorCode encodeIntData(EXIStream* strm, int32_t int_val, ValueType intType);
+errorCode encodeIntData(EXIStream* strm, Integer int_val, ValueType intType);
 
 #endif /* BODYENCODE_H_ */

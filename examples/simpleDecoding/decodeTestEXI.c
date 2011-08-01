@@ -87,41 +87,20 @@ static char sample_endDocument(void* app_data);
 static char sample_startElement(QName qname, void* app_data);
 static char sample_endElement(void* app_data);
 static char sample_attribute(QName qname, void* app_data);
-static char sample_stringData(const StringType value, void* app_data);
-static char sample_decimalData(decimal value, void* app_data);
-static char sample_intData(int32_t int_val, void* app_data);
+static char sample_stringData(const String value, void* app_data);
+static char sample_decimalData(Decimal value, void* app_data);
+static char sample_intData(Integer int_val, void* app_data);
 
 size_t readFileInputStream(void* buf, size_t readSize, void* stream);
 
 int main(int argc, char *argv[])
 {
-	ContentHandler sampleHandler;
 	FILE *infile;
-	char buffer[INPUT_BUFFER_SIZE];
 	char sourceFileName[100];
+	ExipSchema* schema = NULL;
 	struct appData parsingData;
-	IOStream ioStrm;
-	ExipSchema schema;
-	unsigned char hasSchema = FALSE;
 
-	parsingData.expectAttributeData = 0;
 	parsingData.outputFormat = OUT_EXI; // Default output option
-	parsingData.stack = NULL;
-	parsingData.unclosedElement = 0;
-
-	initContentHandler(&sampleHandler); // NOTE: It is mandatory to initialize the callbacks you don't explicitly implement as NULL
-	sampleHandler.fatalError = sample_fatalError;
-	sampleHandler.error = sample_fatalError;
-	sampleHandler.startDocument = sample_startDocument;
-	sampleHandler.endDocument = sample_endDocument;
-	sampleHandler.startElement = sample_startElement;
-	sampleHandler.attribute = sample_attribute;
-	sampleHandler.stringData = sample_stringData;
-	sampleHandler.endElement = sample_endElement;
-	sampleHandler.decimalData = sample_decimalData;
-	sampleHandler.intData = sample_intData;
-
-	ioStrm.readWriteToStream = readFileInputStream;
 
 	if(argc > 1)
 	{
@@ -145,8 +124,14 @@ int main(int argc, char *argv[])
 					printfHelp();
 					return 0;
 				}
-				hasSchema = TRUE;
-				parseSchema(argv[3], &schema);
+				schema = malloc(sizeof(ExipSchema));
+				if(schema == NULL)
+				{
+					printf("\nMemory allocation error!");
+					return 1;
+				}
+
+				parseSchema(argv[3], schema);
 				strcpy(sourceFileName, argv[4]);
 			}
 			else
@@ -167,8 +152,14 @@ int main(int argc, char *argv[])
 					printfHelp();
 					return 0;
 				}
-				hasSchema = TRUE;
-				parseSchema(argv[3], &schema);
+				schema = malloc(sizeof(ExipSchema));
+				if(schema == NULL)
+				{
+					printf("\nMemory allocation error!");
+					return 1;
+				}
+
+				parseSchema(argv[3], schema);
 				strcpy(sourceFileName, argv[4]);
 			}
 			else
@@ -183,8 +174,14 @@ int main(int argc, char *argv[])
 			}
 			else
 			{
-				hasSchema = TRUE;
-				parseSchema(argv[2], &schema);
+				schema = malloc(sizeof(ExipSchema));
+				if(schema == NULL)
+				{
+					printf("\nMemory allocation error!");
+					return 1;
+				}
+
+				parseSchema(argv[2], schema);
 				strcpy(sourceFileName, argv[3]);
 			}
 		}
@@ -201,15 +198,67 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
+			Parser testParser;
+			char buffer[INPUT_BUFFER_SIZE];
+			IOStream ioStrm;
+			errorCode tmp_err_code = UNEXPECTED_ERROR;
+
+			// Parsing steps:
+
+			// I: First, define an external stream for the input to the parser if any
+			ioStrm.readWriteToStream = readFileInputStream;
 			ioStrm.stream = infile;
 
-			// Parse the EXI stream
-			if(hasSchema)
-				parseEXI(buffer, INPUT_BUFFER_SIZE, 0, &ioStrm, &sampleHandler, &schema, &parsingData);
-			else
-				parseEXI(buffer, INPUT_BUFFER_SIZE, 0, &ioStrm, &sampleHandler, NULL, &parsingData);
+			// II: Second, initialize the parser object
+			tmp_err_code = initParser(&testParser, buffer, INPUT_BUFFER_SIZE, 0, &ioStrm, schema, &parsingData);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
 
+			// III: Initialize the parsing data and hook the callback handlers to the parser object
+
+			parsingData.expectAttributeData = 0;
+			parsingData.stack = NULL;
+			parsingData.unclosedElement = 0;
+
+			testParser.handler.fatalError = sample_fatalError;
+			testParser.handler.error = sample_fatalError;
+			testParser.handler.startDocument = sample_startDocument;
+			testParser.handler.endDocument = sample_endDocument;
+			testParser.handler.startElement = sample_startElement;
+			testParser.handler.attribute = sample_attribute;
+			testParser.handler.stringData = sample_stringData;
+			testParser.handler.endElement = sample_endElement;
+			testParser.handler.decimalData = sample_decimalData;
+			testParser.handler.intData = sample_intData;
+
+			// IV: Parse the header of the stream
+
+			tmp_err_code = parseHeader(&testParser);
+			if(tmp_err_code != ERR_OK)
+			{
+				printf("\nError during parsing of the EXI header: %d", tmp_err_code);
+				return 1;
+			}
+
+			// V: Parse the body of the EXI stream
+
+			while(tmp_err_code == ERR_OK)
+			{
+				tmp_err_code = parseNext(&testParser);
+			}
+
+			// VI: Free the memory allocated by the parser object
+
+			destroyParser(&testParser);
 			fclose(infile);
+
+			if(tmp_err_code == PARSING_COMPLETE)
+				return ERR_OK;
+			else
+			{
+				printf("\nError during parsing of the EXI body: %d", tmp_err_code);
+				return 1;
+			}
 		}
 	}
 	else
@@ -342,7 +391,7 @@ static char sample_attribute(QName qname, void* app_data)
 	return EXIP_HANDLER_OK;
 }
 
-static char sample_stringData(const StringType value, void* app_data)
+static char sample_stringData(const String value, void* app_data)
 {
 	struct appData* appD = (struct appData*) app_data;
 	if(appD->outputFormat == OUT_EXI)
@@ -381,7 +430,7 @@ static char sample_stringData(const StringType value, void* app_data)
 	return EXIP_HANDLER_OK;
 }
 
-static char sample_decimalData(decimal value, void* app_data)
+static char sample_decimalData(Decimal value, void* app_data)
 {
 	struct appData* appD = (struct appData*) app_data;
 	if(appD->outputFormat == OUT_EXI)
@@ -415,7 +464,7 @@ static char sample_decimalData(decimal value, void* app_data)
 	return EXIP_HANDLER_OK;
 }
 
-static char sample_intData(int32_t int_val, void* app_data)
+static char sample_intData(Integer int_val, void* app_data)
 {
 	struct appData* appD = (struct appData*) app_data;
 	char tmp_buf[30];
@@ -423,7 +472,7 @@ static char sample_intData(int32_t int_val, void* app_data)
 	{
 		if(appD->expectAttributeData)
 		{
-			sprintf(tmp_buf, "%d", int_val);
+			sprintf(tmp_buf, "%d", (int) int_val);
 			printf("%s", tmp_buf);
 			printf("\"\n");
 			appD->expectAttributeData = 0;
@@ -431,7 +480,7 @@ static char sample_intData(int32_t int_val, void* app_data)
 		else
 		{
 			printf("CH ");
-			sprintf(tmp_buf, "%d", int_val);
+			sprintf(tmp_buf, "%d", (int) int_val);
 			printf("%s", tmp_buf);
 			printf("\n");
 		}
@@ -440,7 +489,7 @@ static char sample_intData(int32_t int_val, void* app_data)
 	{
 		if(appD->expectAttributeData)
 		{
-			sprintf(tmp_buf, "%d", int_val);
+			sprintf(tmp_buf, "%d", (int) int_val);
 			printf("%s", tmp_buf);
 			printf("\"");
 			appD->expectAttributeData = 0;
@@ -450,7 +499,7 @@ static char sample_intData(int32_t int_val, void* app_data)
 			if(appD->unclosedElement)
 				printf(">\n");
 			appD->unclosedElement = 0;
-			sprintf(tmp_buf, "%d", int_val);
+			sprintf(tmp_buf, "%d", (int) int_val);
 			printf("%s", tmp_buf);
 			printf("\n");
 		}

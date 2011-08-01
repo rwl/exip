@@ -46,9 +46,6 @@
 void initContentHandler(ContentHandler* handler)
 {
 	handler->attribute = NULL;
-	handler->bigDecimalData = NULL;
-	handler->bigFloatData = NULL;
-	handler->bigIntData = NULL;
 	handler->binaryData = NULL;
 	handler->booleanData = NULL;
 	handler->dateTimeData = NULL;
@@ -65,5 +62,4 @@ void initContentHandler(ContentHandler* handler)
 	handler->startElement = NULL;
 	handler->stringData = NULL;
 	handler->warning = NULL;
-	handler->exiHeader = NULL;
 }

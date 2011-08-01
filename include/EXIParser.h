@@ -49,16 +49,49 @@
 #include "contentHandler.h"
 #include "schema.h"
 
+struct Parser
+{
+	EXIStream strm;
+	EXIGrammar documentGrammar;
+	ContentHandler handler;
+	ExipSchema* schema;
+	void* app_data;
+};
+
+typedef struct Parser Parser;
+
 /**
- * @brief The EXIP parser API
+ * @brief Initialize a parser object
+ * @param[out] parser the parser object
  * @param[in] binaryBuf an input buffer holding (part of) the representation of EXI stream
  * @param[in] bufLen size of binaryBuf - number of bytes
  * @param[in] bufContent the size of the data stored in binaryBuf - number of bytes
  * @param[in] ioStrm input stream used to fill the binaryBuf when parsed. If NULL the whole EXI stream is stored in binaryBuf
- * @param[in] handler collection of callback functions for parsing events
  * @param[in] schema schema information when in schema-decoding mode. NULL when in schema-less mode
  * @param[in] app_data Application data to be passed to the content handler callbacks
+ * @return Error handling code
  */
-void parseEXI(char* binaryBuf, size_t bufLen, size_t bufContent, IOStream* ioStrm, ContentHandler* handler, ExipSchema* schema, void* app_data);
+errorCode initParser(Parser* parser, char* binaryBuf, size_t bufLen, size_t bufContent, IOStream* ioStrm, ExipSchema* schema, void* app_data);
+
+
+/**
+ * @brief Parse the header on the EXI stream contained in the parser object
+ * @param[in] parser the parser object
+ * @return Error handling code
+ */
+errorCode parseHeader(Parser* parser);
+
+/**
+ * @brief Parse the next content item from the EXI stream contained in the parser object
+ * @param[in] parser the parser object
+ * @return Error handling code
+ */
+errorCode parseNext(Parser* parser);
+
+/**
+ * @brief Free any memroy allocated by parser object
+ * @param[in] parser the parser object
+ */
+void destroyParser(Parser* parser);
 
 #endif /* EXIPARSER_H_ */

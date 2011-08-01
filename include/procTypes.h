@@ -70,12 +70,29 @@ typedef struct stackNode GenericStack;
 #define REVERSE_BIT_POSITION(p) (7 - p)
 
 /**
- * EXI header related macros
+ * EXI options related macros
  */
-#define BIT_PACKED 0
-#define BYTE_ALIGNMENT 1
-#define PRE_COMPRESSION 2
+#define BIT_PACKED      0b00000000
+#define BYTE_ALIGNMENT  0b01000000
+#define PRE_COMPRESSION 0b10000000
+#define ALIGNMENT       0b11000000
 
+#define COMPRESSION     0b00000001
+#define STRICT          0b00000010
+#define FRAGMENT        0b00000100
+#define SELF_CONTAINED  0b00001000
+
+#define GET_ALIGNMENT(p)       (p & ALIGNMENT)
+#define WITH_COMPRESSION(p)    ((p & COMPRESSION) != 0)
+#define WITH_STRICT(p)         ((p & STRICT) != 0)
+#define WITH_FRAGMENT(p)       ((p & FRAGMENT) != 0)
+#define WITH_SELF_CONTAINED(p) ((p & SELF_CONTAINED) != 0)
+
+#define SET_ALIGNMENT(p, align_const) (p = p | align_const)
+#define SET_COMPRESSION(p)            (p = p | COMPRESSION)
+#define SET_STRICT(p)                 (p = p | STRICT)
+#define SET_FRAGMENT(p)               (p = p | FRAGMENT)
+#define SET_SELF_CONTAINED(p)         (p = p | SELF_CONTAINED)
 
 /**
  *	Fidelity option	Effect
@@ -94,7 +111,7 @@ typedef struct stackNode GenericStack;
 #define PRESERVE_LEXVALUES 0b00010000
 
 #define IS_PRESERVED(p, mask) ((p & mask) != 0)
-#define SET_PRESERVED(p, preserve_const) p = p & preserve_const
+#define SET_PRESERVED(p, preserve_const) (p = p | preserve_const)
 
 /**
  * For handling the DATE-TIME type (structure tm from time.h)
@@ -112,51 +129,25 @@ typedef struct stackNode GenericStack;
 
 #define IS_PRESENT(p, mask) ((p & mask) != 0)
 
-/**
- * EXI processors SHOULD support arbitrarily large Unsigned Integer values.
- * EXI processors MUST support Unsigned Integer values less than 2147483648.
- * This macro is used to support unsigned integers bigger than 32 bits.
- * Applications which require support for larger than 64 bits unsigned integers must
- * override this macro
- */
-#ifndef BIG_UNSIGNED_INT
-# define BIG_UNSIGNED_INT uint64_t
+#ifndef EXIP_INTEGER
+# define EXIP_INTEGER int64_t
 #endif
 
-typedef BIG_UNSIGNED_INT BigUnsignedInt;
+typedef EXIP_INTEGER Integer;
 
-/*
- * Used for the content handler interface for signed integers bigger than 32 bits
- * Application which require support for larger than 64 bits signed integers must
- * override this macro
- */
-#ifndef BIG_SIGNED_INT
-# define BIG_SIGNED_INT int64_t
-#endif
-
-typedef BIG_SIGNED_INT BigSignedInt;
-
-/*
- * Used for the content handler interface for bigger than double floats
- * Application which require support for larger than long double must
- * override this macro
- */
-#ifndef BIG_FLOAT
-# define BIG_FLOAT long double
-#endif
-
-typedef BIG_FLOAT BigFloat;
-
-/**
- * Represents decimal values. Consists of an integral part, a fractional part and a sign
- * A sign value of zero (0) is used to represent positive Decimal values and a sign value
- * of one (1) is used to represent negative Decimal values
- */
-struct decimalEXIP {
-	unsigned char sign;
-	uint32_t integral;
-	uint32_t fraction;
+struct EXIPFloat
+{
+	int64_t mantissa;
+	int16_t exponent;
 };
+
+typedef struct EXIPFloat EXIPFloat;
+
+#ifndef EXIP_FLOAT
+# define EXIP_FLOAT EXIPFloat
+#endif
+
+typedef EXIP_FLOAT Float;
 
 /*
  * Used for the content handler interface for decimal values
@@ -165,22 +156,11 @@ struct decimalEXIP {
  * Refs: http://gcc.gnu.org/onlinedocs/gcc/Decimal-Float.html#Decimal-Float
  * http://speleotrove.com/decimal/
  */
-#ifndef DECIMAL
-# define DECIMAL _Decimal64
+#ifndef EXIP_DECIMAL
+# define EXIP_DECIMAL _Decimal64
 #endif
 
-typedef DECIMAL decimal;
-
-/*
- * Used for the content handler interface for big decimal values
- * Application which require support for different type of decimal values can
- * override this macro
- */
-#ifndef BIG_DECIMAL
-# define BIG_DECIMAL _Decimal128
-#endif
-
-typedef BIG_DECIMAL bigDecimal;
+typedef EXIP_DECIMAL Decimal;
 
 /**
  * Defines the encoding used for characters.
@@ -191,7 +171,6 @@ typedef BIG_DECIMAL bigDecimal;
 #endif
 // TODO: document this macro - it must be set during source build to overwrite the default behavior
 
-
 typedef CHAR_TYPE CharType;
 
 struct StringType
@@ -200,7 +179,7 @@ struct StringType
 	size_t length;
 };
 
-typedef struct StringType StringType;
+typedef struct StringType String;
 
 /********* START: Memory management definitions ***************/
 
@@ -401,7 +380,7 @@ struct TypeFacet
 {
 	unsigned char facetID;
 	uint32_t intValue;
-	StringType strValue;
+	String strValue;
 };
 
 typedef struct TypeFacet TypeFacet;
@@ -435,7 +414,7 @@ typedef struct GrammarStackNode EXIGrammarStack;
 /********* BEGIN: String Table Types ***************/
 
 struct ValueRow {
-	StringType string_val;
+	String string_val;
 	size_t* valueLocalCrossTableRowPointer;
 };
 
@@ -467,7 +446,7 @@ struct ValueLocalCrossTable {
 typedef struct ValueLocalCrossTable ValueLocalCrossTable;
 
 struct PrefixRow {
-	StringType string_val;
+	String string_val;
 };
 
 struct PrefixTable {
@@ -481,7 +460,7 @@ typedef struct PrefixTable PrefixTable;
 
 struct LocalNamesRow {
 	ValueLocalCrossTable* vCrossTable;
-	StringType string_val;
+	String string_val;
 	EXIGrammar* globalGrammar;
 };
 
@@ -497,7 +476,7 @@ typedef struct LocalNamesTable LocalNamesTable;
 struct URIRow {
 	PrefixTable* pTable;
 	LocalNamesTable* lTable;
-	StringType string_val;
+	String string_val;
 };
 
 struct URITable {
@@ -513,8 +492,8 @@ typedef struct URITable URITable;
 
 
 struct QName {
-	const StringType* uri;       // Pointer to a String value in the string table. It is not allowed to modify the string table content from this pointer.
-	const StringType* localName; // Pointer to a String value in the string table. It is not allowed to modify the string table content from this pointer.
+	const String* uri;       // Pointer to a String value in the string table. It is not allowed to modify the string table content from this pointer.
+	const String* localName; // Pointer to a String value in the string table. It is not allowed to modify the string table content from this pointer.
 };
 
 typedef struct QName QName;
@@ -573,24 +552,11 @@ typedef struct DatatypeRepresentationMap DatatypeRepresentationMap;
 struct EXIOptions
 {
 	/**
-	 * The alignment option - BIT-PACKED, BYTE-ALIGNMENT or PRE-COMPRESSION
+	 * Use the macros GET_ALIGNMENT(p), WITH_COMPRESSION(p), WITH_STRICT,
+	 * WITH_FRAGMENT(p), WITH_SELF_CONTAINED(p) to extract the options:
+	 * alignment, compression, strict, fragment and selfContained
 	 */
-	unsigned char alignment;
-
-	/**
-	 * 0 - false; 1 - true
-	 */
-	unsigned char compression;
-
-	/**
-	 * Strict interpretation of schemas: 0 - false; 1 - true
-	 */
-	unsigned char strict;
-
-	/**
-	 * EXI fragment instead of an EXI document: 0 - false; 1 - true
-	 */
-	unsigned char fragment;
+	unsigned char enumOpt;
 
 	/**
 	 * Specifies whether comments, pis, etc. are preserved - bit mask of booleans
@@ -599,14 +565,9 @@ struct EXIOptions
 	unsigned char preserve;
 
 	/**
-	 * Enables self-contained elements: 0 - false; 1 - true
-	 */
-	unsigned char selfContained;
-
-	/**
 	 * Identify the schema information, if any, used to encode the body
 	 */
-	StringType schemaID;
+	String schemaID;
 
 	/**
 	 * Specify alternate datatype representations for typed values in the EXI body
@@ -661,7 +622,7 @@ struct EXIheader
 	 */
 	int16_t version_number;
 
-	EXIOptions* opts;
+	EXIOptions opts;
 };
 
 typedef struct EXIheader EXIheader;
@@ -689,7 +650,7 @@ struct EXIStream
 	/**
 	 * Input/Output Stream used to fill/flush the buffer when parsed
 	 */
-	IOStream* ioStrm;
+	IOStream ioStrm;
 
 	/**
 	 * EXI Header - the most important field is the EXI Options. They control the
@@ -730,13 +691,12 @@ typedef struct EXIStream EXIStream;
  * @brief Set the EXI options to their default values
  *
  * @param[in] strm EXI stream of bits
- * @return Error handling code
  */
-errorCode makeDefaultOpts(EXIOptions* opts);
+void makeDefaultOpts(EXIOptions* opts);
 
 
 errorCode pushOnStack(GenericStack** stack, void* element);
 
-errorCode popFromStack(GenericStack** stack, void** element);
+void popFromStack(GenericStack** stack, void** element);
 
 #endif /* PROCTYPES_H_ */
