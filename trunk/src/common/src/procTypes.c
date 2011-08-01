@@ -44,14 +44,10 @@
 
 #include "procTypes.h"
 
-errorCode makeDefaultOpts(EXIOptions* opts)
+void makeDefaultOpts(EXIOptions* opts)
 {
-	opts->alignment = BIT_PACKED;
-	opts->compression = FALSE;
-	opts->strict = FALSE;
-	opts->fragment = FALSE;
+	opts->enumOpt = 0;
 	opts->preserve = 0; // all preserve flags are false by default
-	opts->selfContained = FALSE;
 	opts->blockSize = 1000000;
 	opts->valueMaxLength = SIZE_MAX;
 	opts->valuePartitionCapacity = SIZE_MAX;
@@ -59,8 +55,6 @@ errorCode makeDefaultOpts(EXIOptions* opts)
 	opts->schemaID.str = NULL;
 	opts->schemaID.length = 0;
 	opts->drMap = NULL;
-
-	return ERR_OK;
 }
 
 errorCode pushOnStack(GenericStack** stack, void* element)
@@ -75,13 +69,12 @@ errorCode pushOnStack(GenericStack** stack, void* element)
 	return ERR_OK;
 }
 
-errorCode popFromStack(GenericStack** stack, void** element)
+void popFromStack(GenericStack** stack, void** element)
 {
 	struct stackNode* node;
 	if((*stack) == NULL)
 	{
 		(*element) = NULL;
-		return ERR_OK;
 	}
 	else
 	{
@@ -90,6 +83,5 @@ errorCode popFromStack(GenericStack** stack, void** element)
 
 		(*element) = node->element;
 		EXIP_MFREE(node);
-		return ERR_OK;
 	}
 }

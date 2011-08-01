@@ -65,7 +65,7 @@ size_t readFileInputStream(void* buf, size_t readSize, void* stream);
 size_t writeFileOutputStream(void* buf, size_t readSize, void* stream);
 
 // Converts to NULL terminated ASCII representation
-static errorCode stringToASCII(char* outBuf, unsigned int bufSize, StringType inStr);
+static errorCode stringToASCII(char* outBuf, unsigned int bufSize, String inStr);
 
 static void getValueTypeString(char* buf, ValueType vt);
 
@@ -570,7 +570,7 @@ size_t writeFileOutputStream(void* buf, size_t readSize, void* stream)
 	return fwrite(buf, 1, readSize, outfile);
 }
 
-static errorCode stringToASCII(char* outBuf, unsigned int bufSize, StringType inStr)
+static errorCode stringToASCII(char* outBuf, unsigned int bufSize, String inStr)
 {
 	if(inStr.length >= bufSize)
 		return OUT_OF_BOUND_BUFFER;

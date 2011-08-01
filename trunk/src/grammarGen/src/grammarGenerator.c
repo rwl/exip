@@ -113,12 +113,12 @@
 struct globalSchemaProps {
 	unsigned char propsStat; // 0 - initial state, 1 - <schema> element is parsed expect attributes, 2 - the properties are all set (<schema> attr. parsed)
 	unsigned char expectAttributeData;
-	StringType* charDataPointer; // Pointer to the expected character data
-	StringType targetNamespace;
+	String* charDataPointer; // Pointer to the expected character data
+	String targetNamespace;
 	uint16_t targetNSMetaID;  // the uri row ID in the metaURI table of the targetNamespace
 	unsigned char attributeFormDefault; // 0 unqualified, 1 qualified, 2 expecting value, 3 initial state
 	unsigned char elementFormDefault;  // 0 unqualified, 1 qualified, 2 expecting value, 3 initial state
-	StringType emptyString; // A holder for the empty string constant used throughout the generation
+	String emptyString; // A holder for the empty string constant used throughout the generation
 };
 
 /**
@@ -127,7 +127,7 @@ struct globalSchemaProps {
  */
 struct elementDescr {
 	unsigned char element;  // represented with codes defined above
-	StringType attributePointers[ATTRIBUTE_CONTEXT_ARRAY_SIZE]; // the index is the code of the attribute
+	String attributePointers[ATTRIBUTE_CONTEXT_ARRAY_SIZE]; // the index is the code of the attribute
 	GenericStack* pGrammarStack; // The proto-grammars created so far and connected to this elemDescr
 	DynArray* attributeUses; // For complex types/content this array stores the attribute uses
 	GenericStack* pTypeFacets; // The Constraining Facets attached to this element if any
@@ -169,8 +169,7 @@ static char xsd_endDocument(void* app_data);
 static char xsd_startElement(QName qname, void* app_data);
 static char xsd_endElement(void* app_data);
 static char xsd_attribute(QName qname, void* app_data);
-static char xsd_stringData(const StringType value, void* app_data);
-static char xsd_exiHeader(const EXIheader* header, void* app_data);
+static char xsd_stringData(const String value, void* app_data);
 
 static void initElemContext(ElementDescription* elem);
 
@@ -200,9 +199,9 @@ static errorCode handleMinInclusiveEl(struct xsdAppData* app_data);
 
 //////////// Helper functions
 
-static errorCode addURIString(struct xsdAppData* app_data, StringType* uri, uint16_t* uriRowId);
+static errorCode addURIString(struct xsdAppData* app_data, String* uri, uint16_t* uriRowId);
 
-static errorCode addLocalName(uint16_t uriId, struct xsdAppData* app_data, StringType* ln, size_t* lnRowId);
+static errorCode addLocalName(uint16_t uriId, struct xsdAppData* app_data, String* ln, size_t* lnRowId);
 
 static void sortInitialStringTables(URITable* stringTables);
 
@@ -210,9 +209,9 @@ static int compareLN(const void* lnRow1, const void* lnRow2);
 
 static int compareURI(const void* uriRow1, const void* uriRow2);
 
-static int parseOccuranceAttribute(const StringType occurance);
+static int parseOccuranceAttribute(const String occurance);
 
-static errorCode getTypeQName(AllocList* memList, const StringType typeLiteral, QName* qname);
+static errorCode getTypeQName(AllocList* memList, const String typeLiteral, QName* qname);
 
 ////////////
 
@@ -220,7 +219,7 @@ errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t 
 										unsigned char schemaFormat, ExipSchema* schema)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	ContentHandler xsdHandler;
+	Parser xsdParser;
 	struct xsdAppData parsing_data;
 
 	if(schemaFormat != SCHEMA_FORMAT_XSD_EXI)
@@ -233,16 +232,18 @@ errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t 
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	initContentHandler(&xsdHandler);
-	xsdHandler.fatalError = xsd_fatalError;
-	xsdHandler.error = xsd_fatalError;
-	xsdHandler.startDocument = xsd_startDocument;
-	xsdHandler.endDocument = xsd_endDocument;
-	xsdHandler.startElement = xsd_startElement;
-	xsdHandler.attribute = xsd_attribute;
-	xsdHandler.stringData = xsd_stringData;
-	xsdHandler.endElement = xsd_endElement;
-	xsdHandler.exiHeader = xsd_exiHeader;
+	tmp_err_code = initParser(&xsdParser, binaryBuf, bufLen, bufContent, ioStrm, NULL, &parsing_data);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	xsdParser.handler.fatalError = xsd_fatalError;
+	xsdParser.handler.error = xsd_fatalError;
+	xsdParser.handler.startDocument = xsd_startDocument;
+	xsdParser.handler.endDocument = xsd_endDocument;
+	xsdParser.handler.startElement = xsd_startElement;
+	xsdParser.handler.attribute = xsd_attribute;
+	xsdParser.handler.stringData = xsd_stringData;
+	xsdParser.handler.endElement = xsd_endElement;
 
 	parsing_data.props.propsStat = INITIAL_STATE;
 	parsing_data.props.expectAttributeData = FALSE;
@@ -272,20 +273,39 @@ errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t 
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	createInitialEntries(&schema->memList, schema->initialStringTables, TRUE);
+	tmp_err_code = createInitialEntries(&schema->memList, schema->initialStringTables, TRUE);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	tmp_err_code = createURITable(&parsing_data.metaStringTables, &parsing_data.tmpMemList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	createInitialEntries(&parsing_data.tmpMemList, parsing_data.metaStringTables, TRUE);
+	tmp_err_code = createInitialEntries(&parsing_data.tmpMemList, parsing_data.metaStringTables, TRUE);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	parsing_data.schema = schema;
 
 	// Parse the EXI stream
-	parseEXI(binaryBuf, bufLen, bufContent, ioStrm, &xsdHandler, NULL, &parsing_data);
 
-	return ERR_OK;
+	tmp_err_code = parseHeader(&xsdParser);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">XML Schema header parsed\n"));
+
+	while(tmp_err_code == ERR_OK)
+	{
+		tmp_err_code = parseNext(&xsdParser);
+	}
+
+	destroyParser(&xsdParser);
+
+	if(tmp_err_code == PARSING_COMPLETE)
+		return ERR_OK;
+
+	return tmp_err_code;
 }
 
 static char xsd_fatalError(const char code, const char* msg, void* app_data)
@@ -436,7 +456,7 @@ static char xsd_startElement(QName qname, void* app_data)
 				// If the target namespace is not in the initial uri entries add it
 				if(!lookupURI(appD->schema->initialStringTables, appD->props.targetNamespace, &uriID))
 				{
-					StringType tnsClone;
+					String tnsClone;
 					tmp_err_code = cloneString(&appD->props.targetNamespace, &tnsClone, &appD->schema->memList);
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
@@ -746,7 +766,7 @@ static char xsd_attribute(QName qname, void* app_data)
 	return EXIP_HANDLER_OK;
 }
 
-static char xsd_stringData(const StringType value, void* app_data)
+static char xsd_stringData(const String value, void* app_data)
 {
 	struct xsdAppData* appD = (struct xsdAppData*) app_data;
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">String data:\n"));
@@ -825,12 +845,6 @@ static char xsd_stringData(const StringType value, void* app_data)
 	return EXIP_HANDLER_OK;
 }
 
-static char xsd_exiHeader(const EXIheader* header, void* app_data)
-{
-	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">XML Schema header parsed\n"));
-	return EXIP_HANDLER_OK;
-}
-
 static void initElemContext(ElementDescription* elem)
 {
 	unsigned int i = 0;
@@ -849,7 +863,7 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char required = 0;
-	StringType* target_ns;
+	String* target_ns;
 	QName simpleType;
 	QName scope;
 	ProtoGrammar* attrUseGrammar;
@@ -857,11 +871,9 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 	ElementDescription* elemDesc;
 	size_t lnRowID;
 	uint16_t uriRowID;
-	StringType* attrName;
+	String* attrName;
 
-	tmp_err_code = popFromStack(&(app_data->contextStack), (void**) &elemDesc);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
 
 	if (!isStringEmpty(&(elemDesc->attributePointers[ATTRIBUTE_USE])) &&
 			stringEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_USE], "required"))
@@ -924,15 +936,13 @@ static errorCode handleExtentionEl(struct xsdAppData* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	QName simpleType;
-	StringType* typeName;
-	StringType* target_ns;
+	String* typeName;
+	String* target_ns;
 	ProtoGrammar* simpleTypeGrammar;
 	ElementDescription* elemDesc;
 	ProtoGrammar* resultComplexGrammar;
 
-	tmp_err_code = popFromStack(&(app_data->contextStack), (void**) &elemDesc);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
 
 	typeName = &app_data->props.emptyString;
 	target_ns = &app_data->props.emptyString;
@@ -979,14 +989,9 @@ static errorCode handleSimpleContentEl(struct xsdAppData* app_data)
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	ProtoGrammar* contentGr;
 
-	tmp_err_code = popFromStack(&(app_data->contextStack), (void**) &elemDesc);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
 
-
-	tmp_err_code = popFromStack(&elemDesc->pGrammarStack, (void**) &contentGr);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	popFromStack(&elemDesc->pGrammarStack, (void**) &contentGr);
 
 	tmp_err_code = pushOnStack(&(((ElementDescription*) app_data->contextStack->element)->pGrammarStack), contentGr);
 	if(tmp_err_code != ERR_OK)
@@ -999,17 +1004,15 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 	// TODO: The attribute uses must be sorted first
 
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	StringType* typeName;
-	StringType* target_ns;
+	String* typeName;
+	String* target_ns;
 	ProtoGrammar* contentTypeGrammar;
 	ProtoGrammar* resultComplexGrammar;
 	ElementDescription* elemDesc;
 	size_t lnRowID;
 	uint16_t uriRowID;
 
-	tmp_err_code = popFromStack(&(app_data->contextStack), (void**) &elemDesc);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
 
 	typeName = &(elemDesc->attributePointers[ATTRIBUTE_NAME]);
 
@@ -1033,9 +1036,7 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 	}
 
 
-	tmp_err_code = popFromStack(&(elemDesc->pGrammarStack), (void**) &contentTypeGrammar);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	popFromStack(&(elemDesc->pGrammarStack), (void**) &contentTypeGrammar);
 
 	if(contentTypeGrammar == NULL) // An empty element: <xsd:complexType />
 		resultComplexGrammar = NULL;
@@ -1110,18 +1111,16 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	ElementDescription* elemDesc;
-	StringType type;
+	String type;
 	ProtoGrammar* typeGrammar;
-	StringType* elName;
-	StringType* target_ns;
+	String* elName;
+	String* target_ns;
 	unsigned char isGlobal = 0;
 	uint16_t uriRowId;
 	size_t lnRowId;
 	EXIGrammar* exiTypeGrammar;
 
-	tmp_err_code = popFromStack(&(app_data->contextStack), (void**) &elemDesc);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
 
 	type = elemDesc->attributePointers[ATTRIBUTE_TYPE];
 
@@ -1171,9 +1170,7 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 
 		if(isStringEmpty(&type))  // There is no type attribute i.e. there must be some complex type in the pGrammarStack
 		{
-			tmp_err_code = popFromStack(&(elemDesc->pGrammarStack), (void**) &typeGrammar);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			popFromStack(&(elemDesc->pGrammarStack), (void**) &typeGrammar);
 		}
 		else // The element has a particular named type
 		{
@@ -1220,9 +1217,7 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 
 		if(isStringEmpty(&type))  // There is no type attribute i.e. there must be some complex type in the pGrammarStack
 		{
-			tmp_err_code = popFromStack(&(elemDesc->pGrammarStack), (void**) &typeGrammar);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			popFromStack(&(elemDesc->pGrammarStack), (void**) &typeGrammar);
 
 			if(typeGrammar != NULL) // It is not an empty element: <xsd:complexType />
 			{
@@ -1343,7 +1338,7 @@ static errorCode handleAnyEl(struct xsdAppData* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	ElementDescription* elemDesc;
-	StringType* namespaceArr;
+	String* namespaceArr;
 	unsigned int namespaceCount = 0;
 	uint16_t uriRowId;
 	unsigned int i = 0;
@@ -1352,9 +1347,7 @@ static errorCode handleAnyEl(struct xsdAppData* app_data)
 	unsigned int minOccurs = 1;
 	int32_t maxOccurs = 1;
 
-	tmp_err_code = popFromStack(&(app_data->contextStack), (void**) &elemDesc);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
 
 	if(isStringEmpty(&elemDesc->attributePointers[ATTRIBUTE_NAMESPACE]))
 	{
@@ -1410,9 +1403,7 @@ static errorCode handleElementSequence(struct xsdAppData* app_data)
 	unsigned int minOccurs = 1;
 	int32_t maxOccurs = 1;
 
-	tmp_err_code = popFromStack(&(app_data->contextStack), (void**) &elemDesc);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
 
 	minOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MIN_OCCURS]);
 	maxOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MAX_OCCURS]);
@@ -1456,9 +1447,7 @@ static errorCode handleChoiceEl(struct xsdAppData* app_data)
 	unsigned int minOccurs = 1;
 	int32_t maxOccurs = 1;
 
-	tmp_err_code = popFromStack(&(app_data->contextStack), (void**) &elemDesc);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
 
 	minOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MIN_OCCURS]);
 	maxOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MAX_OCCURS]);
@@ -1501,9 +1490,7 @@ static errorCode handleRestrictionEl(struct xsdAppData* app_data)
 	ProtoGrammar* simpleRestrictedGrammar;
 	QName baseType;
 
-	tmp_err_code = popFromStack(&(app_data->contextStack), (void**) &elemDesc);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
 
 	tmp_err_code = getTypeQName(&app_data->tmpMemList, elemDesc->attributePointers[ATTRIBUTE_BASE], &baseType);
 	if(tmp_err_code != ERR_OK)
@@ -1534,13 +1521,9 @@ static errorCode handleSimpleTypeEl(struct xsdAppData* app_data)
 	ProtoGrammar* simpleTypeGr;
 	EXIGrammar* exiTypeGrammar;
 
-	tmp_err_code = popFromStack(&(app_data->contextStack), (void**) &elemDesc);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
 
-	tmp_err_code = popFromStack(&elemDesc->pGrammarStack, (void**) &simpleTypeGr);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	popFromStack(&elemDesc->pGrammarStack, (void**) &simpleTypeGr);
 
 	if(isStringEmpty(&elemDesc->attributePointers[ATTRIBUTE_NAME]))
 	{
@@ -1579,9 +1562,7 @@ static errorCode handleMinInclusiveEl(struct xsdAppData* app_data)
 	ElementDescription* elemDesc;
 	TypeFacet* minIncl;
 
-	tmp_err_code = popFromStack(&(app_data->contextStack), (void**) &elemDesc);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
 
 	minIncl = memManagedAllocate(&app_data->tmpMemList, sizeof(TypeFacet));
 	if(minIncl == NULL)
@@ -1599,10 +1580,10 @@ static errorCode handleMinInclusiveEl(struct xsdAppData* app_data)
 }
 
 // Only adds it if it is not there yet
-static errorCode addURIString(struct xsdAppData* app_data, StringType* uri, uint16_t* uriRowId)
+static errorCode addURIString(struct xsdAppData* app_data, String* uri, uint16_t* uriRowId)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	StringType uriClone;   // The uri name string is copied to the schema MemList
+	String uriClone;   // The uri name string is copied to the schema MemList
 
 	if(!lookupURI(app_data->schema->initialStringTables, *uri, uriRowId))
 	{
@@ -1621,10 +1602,10 @@ static errorCode addURIString(struct xsdAppData* app_data, StringType* uri, uint
 }
 
 // Only adds it if it is not there yet
-static errorCode addLocalName(uint16_t uriId, struct xsdAppData* app_data, StringType* ln, size_t* lnRowId)
+static errorCode addLocalName(uint16_t uriId, struct xsdAppData* app_data, String* ln, size_t* lnRowId)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	StringType lnClone;   // The local name string is copied to the schema MemList
+	String lnClone;   // The local name string is copied to the schema MemList
 
 	if(app_data->schema->initialStringTables->rows[uriId].lTable == NULL)
 	{
@@ -1717,7 +1698,7 @@ static void sortInitialStringTables(URITable* stringTables)
 	qsort(stringTables->rows + 4, stringTables->rowCount - 4, sizeof(struct URIRow), compareURI);
 }
 
-static int parseOccuranceAttribute(const StringType occurance)
+static int parseOccuranceAttribute(const String occurance)
 {
 	// TODO: Just a temporary implementation. Only works for the ASCII string representation. Fix that!
 	char buff[20];
@@ -1734,18 +1715,18 @@ static int parseOccuranceAttribute(const StringType occurance)
 	return atoi(buff);
 }
 
-static errorCode getTypeQName(AllocList* memList, const StringType typeLiteral, QName* qname)
+static errorCode getTypeQName(AllocList* memList, const String typeLiteral, QName* qname)
 {
 	// TODO: Just a temporary implementation. Only works for the ASCII string representation. Fix that!
 	int i;
-	StringType* ln;
-	StringType* uri;
+	String* ln;
+	String* uri;
 
-	ln = memManagedAllocate(memList, sizeof(StringType));
+	ln = memManagedAllocate(memList, sizeof(String));
 	if(ln == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	uri = memManagedAllocate(memList, sizeof(StringType));
+	uri = memManagedAllocate(memList, sizeof(String));
 	if(uri == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 

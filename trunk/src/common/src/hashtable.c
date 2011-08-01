@@ -25,7 +25,7 @@ static const uint32_t primes[] = {
 const unsigned int prime_table_length = sizeof(primes)/sizeof(primes[0]);
 const float max_load_factor = 0.65F;
 
-uint32_t djbHash(StringType* str)
+uint32_t djbHash(String* str)
 {
 	char* tmp = (char*) str->str;
 	uint32_t hash = 5381;
@@ -42,8 +42,8 @@ uint32_t djbHash(StringType* str)
 /*****************************************************************************/
 
 struct hashtable * create_hashtable(unsigned int minsize,
-						uint32_t (*hashfn) (StringType* key),
-						char (*eqfn) (const StringType str1, const StringType str2))
+						uint32_t (*hashfn) (String* key),
+						char (*eqfn) (const String str1, const String str2))
 {
     struct hashtable *h;
     unsigned int pindex, size = primes[0];
@@ -147,7 +147,7 @@ unsigned int hashtable_count(struct hashtable *h)
 }
 
 /*****************************************************************************/
-errorCode hashtable_insert(struct hashtable *h, StringType* key, size_t value)
+errorCode hashtable_insert(struct hashtable *h, String* key, size_t value)
 {
     /* This method allows duplicate keys - but they shouldn't be used */
     unsigned int index;
@@ -172,7 +172,7 @@ errorCode hashtable_insert(struct hashtable *h, StringType* key, size_t value)
 }
 
 /*****************************************************************************/
-size_t hashtable_search(struct hashtable *h, StringType* key)
+size_t hashtable_search(struct hashtable *h, String* key)
 {
     struct entry *e;
     uint32_t hashvalue;
@@ -190,7 +190,7 @@ size_t hashtable_search(struct hashtable *h, StringType* key)
 }
 
 /*****************************************************************************/
-size_t hashtable_remove(struct hashtable *h, StringType* key)
+size_t hashtable_remove(struct hashtable *h, String* key)
 {
     /* TODO: consider compacting the table when the load factor drops enough,
      *       or provide a 'compact' method. */

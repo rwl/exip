@@ -48,16 +48,6 @@
 #include "schema.h"
 
 /**
- * @brief After the header is decoded, this functions is called to process the stream body by one production each step
- *
- * @param[in] strm EXI stream representation
- * @param[in] handler application content handler; stores the callback functions
- * @param[in] schema schema information when in schema-decoding mode. NULL when in schema-less mode
- * @param[in] app_data Application data to be passed to the content handler callbacks
- */
-void decodeBody(EXIStream* strm, ContentHandler* handler, const ExipSchema* schema, void* app_data);
-
-/**
  * @brief Decodes a QName from the EXI stream
  * @param[in, out] strm EXI stream representation
  * @param[out] qname the QName decoded
@@ -72,7 +62,7 @@ errorCode decodeQName(EXIStream* strm, QName* qname);
  * @param[out] freeable if TRUE the value can be freed immediately afterwards using freeLastManagedAlloc()
  * @return Error handling code
  */
-errorCode decodeStringValue(EXIStream* strm, StringType* value, unsigned char* freeable);
+errorCode decodeStringValue(EXIStream* strm, String* value, unsigned char* freeable);
 
 /**
  * @brief Decodes the content of EXI event

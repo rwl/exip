@@ -50,7 +50,7 @@
 
 errorCode decodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, uint32_t* int_val)
 {
-	if(strm->header.opts->compression == 0 && strm->header.opts->alignment == BIT_PACKED)
+	if(WITH_COMPRESSION(strm->header.opts.enumOpt) == FALSE && GET_ALIGNMENT(strm->header.opts.enumOpt) == BIT_PACKED)
 	{
 		return readBits(strm, n, int_val);
 	}
@@ -109,12 +109,7 @@ errorCode decodeUnsignedInteger(EXIStream* strm, uint32_t* int_val)
 	return ERR_OK;
 }
 
-errorCode decodeBigUnsignedInteger(EXIStream* strm, BigUnsignedInt* int_val)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
-errorCode decodeString(EXIStream* strm, StringType* string_val)
+errorCode decodeString(EXIStream* strm, String* string_val)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	uint32_t string_length = 0;
@@ -130,7 +125,7 @@ errorCode decodeString(EXIStream* strm, StringType* string_val)
 	return ERR_OK;
 }
 
-errorCode decodeStringOnly(EXIStream* strm, size_t str_length, StringType* string_val)
+errorCode decodeStringOnly(EXIStream* strm, size_t str_length, String* string_val)
 {
 	// Assume no Restricted Character Set is defined
 	//TODO: Handle the case when Restricted Character Set is defined
@@ -203,12 +198,7 @@ errorCode decodeIntegerValue(EXIStream* strm, int32_t* sint_val)
 	return ERR_OK;
 }
 
-errorCode decodeBigIntegerValue(EXIStream* strm, BigSignedInt* sint_val)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
-errorCode decodeDecimalValue(EXIStream* strm, decimal* dec_val)
+errorCode decodeDecimalValue(EXIStream* strm, Decimal* dec_val)
 {
 	// TODO: Review this. Probably can be more efficient. Depends on decimal floating point support!
 	// Ref: http://gcc.gnu.org/onlinedocs/gccint/Decimal-float-library-routines.html
@@ -248,11 +238,6 @@ errorCode decodeDecimalValue(EXIStream* strm, decimal* dec_val)
 	*dec_val = *dec_val + integr_part;
 
 	return ERR_OK;
-}
-
-errorCode decodeBigDecimalValue(EXIStream* strm, bigDecimal* dec_val)
-{
-	return NOT_IMPLEMENTED_YET;
 }
 
 errorCode decodeFloatValue(EXIStream* strm, double* double_val)
@@ -312,9 +297,4 @@ errorCode decodeFloatValue(EXIStream* strm, double* double_val)
 	}
 	*double_val=val;
 	return ERR_OK;
-}
-
-errorCode decodeBigFloatValue(EXIStream* strm, BigFloat* double_val)
-{
-	return NOT_IMPLEMENTED_YET;
 }

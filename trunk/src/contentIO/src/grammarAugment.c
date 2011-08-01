@@ -424,7 +424,7 @@ errorCode addUndeclaredProductionsToAll(AllocList* memList, URITable* stringTabl
 			tmpGrammar = stringTables->rows[i].lTable->rows[j].globalGrammar;
 			if(tmpGrammar != NULL)
 			{
-				tmp_err_code = addUndeclaredProductions(memList, opts->strict, opts->selfContained, opts->preserve, tmpGrammar);
+				tmp_err_code = addUndeclaredProductions(memList, WITH_STRICT(opts->enumOpt), WITH_SELF_CONTAINED(opts->enumOpt), opts->preserve, tmpGrammar);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			}

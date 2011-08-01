@@ -55,28 +55,35 @@
 /**
  * The handler to be used by the applications to serialize EXI streams
  */
-const EXISerializer serEXI  =  {startDocumentSer,
-								endDocumentSer,
-								startElementSer,
-								endElementSer,
-								attributeSer,
-								intDataSer,
-								bigIntDataSer,
-								booleanDataSer,
-								stringDataSer,
-								floatDataSer,
-								bigFloatDataSer,
-								binaryDataSer,
-								dateTimeDataSer,
-								decimalDataSer,
-								bigDecimalDataSer,
-								processingInstructionSer,
+const EXISerializer serialize ={startDocument,
+								endDocument,
+								startElement,
+								endElement,
+								attribute,
+								intData,
+								booleanData,
+								stringData,
+								floatData,
+								binaryData,
+								dateTimeData,
+								decimalData,
+								processingInstruction,
 								encodeHeader,
-								selfContainedSer,
+								selfContained,
+								initHeader,
 								initStream,
 								closeEXIStream};
 
-errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStrm, EXIOptions* opts, ExipSchema* schema)
+void initHeader(EXIStream* strm)
+{
+	strm->header.has_cookie = FALSE;
+	strm->header.has_options = FALSE;
+	strm->header.is_preview_version = FALSE;
+	strm->header.version_number = 1;
+	makeDefaultOpts(&strm->header.opts);
+}
+
+errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStrm, ExipSchema* schema)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIGrammar* docGr;
@@ -88,7 +95,6 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 		return tmp_err_code;
 
 	strm->buffer = buf;
-	strm->header.opts = opts;
 	strm->context.bitPointer = 0;
 	strm->bufLen = bufSize;
 	strm->bufContent = 0;
@@ -97,8 +103,17 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 	strm->context.curr_uriID = 0;
 	strm->context.curr_lnID = 0;
 	strm->context.expectATData = 0;
-	strm->ioStrm = ioStrm;
 	strm->gStack = NULL;
+	if(ioStrm == NULL)
+	{
+		strm->ioStrm.readWriteToStream = NULL;
+		strm->ioStrm.stream = NULL;
+	}
+	else
+	{
+		strm->ioStrm.readWriteToStream = ioStrm->readWriteToStream;
+		strm->ioStrm.stream = ioStrm->stream;
+	}
 
 	docGr = (EXIGrammar*) memManagedAllocate(&(strm->memList), sizeof(EXIGrammar));
 	if(docGr == NULL)
@@ -111,7 +126,7 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = addUndeclaredProductionsToAll(&strm->memList, strm->uriTable, strm->header.opts);
+		tmp_err_code = addUndeclaredProductionsToAll(&strm->memList, strm->uriTable, &strm->header.opts);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -136,7 +151,7 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 	// serializing &&
 	// valuePartitionCapacity > 50  &&   //for small table full-scan will work better
 	// valueMaxLength > 0 // this is essentially equal to valuePartitionCapacity == 0
-	if(opts->valuePartitionCapacity > DEFAULT_VALUE_ROWS_NUMBER && opts->valueMaxLength > 0)
+	if(strm->header.opts.valuePartitionCapacity > DEFAULT_VALUE_ROWS_NUMBER && strm->header.opts.valueMaxLength > 0)
 	{
 		strm->vTable->hashTbl = create_hashtable(53, djbHash, stringEqual);
 		if(strm->vTable->hashTbl == NULL)
@@ -146,7 +161,7 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 	return ERR_OK;
 }
 
-errorCode startDocumentSer(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction)
+errorCode startDocument(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	ValueType dummmyType;
 	if(strm->context.nonTermID != GR_DOCUMENT)
@@ -157,7 +172,7 @@ errorCode startDocumentSer(EXIStream* strm, unsigned char fastSchemaMode, size_t
 	return encodeSimpleEXIEvent(strm, getEventDefType(EVENT_SD), fastSchemaMode, schemaProduction, &dummmyType);
 }
 
-errorCode endDocumentSer(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction)
+errorCode endDocument(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	ValueType dummmyType;
 	if(strm->context.nonTermID != GR_DOC_END)
@@ -168,7 +183,7 @@ errorCode endDocumentSer(EXIStream* strm, unsigned char fastSchemaMode, size_t s
 	return encodeSimpleEXIEvent(strm, getEventDefType(EVENT_ED), fastSchemaMode, schemaProduction, &dummmyType);
 }
 
-errorCode startElementSer(EXIStream* strm, QName* qname, unsigned char fastSchemaMode, size_t schemaProduction)
+errorCode startElement(EXIStream* strm, QName* qname, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIGrammar* elemGrammar = NULL;
@@ -208,7 +223,7 @@ errorCode startElementSer(EXIStream* strm, QName* qname, unsigned char fastSchem
 	return ERR_OK;
 }
 
-errorCode endElementSer(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction)
+errorCode endElement(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	ValueType dummmyType;
@@ -230,14 +245,14 @@ errorCode endElementSer(EXIStream* strm, unsigned char fastSchemaMode, size_t sc
 	return ERR_OK;
 }
 
-errorCode attributeSer(EXIStream* strm, QName* qname, ValueType valueType, unsigned char fastSchemaMode, size_t schemaProduction)
+errorCode attribute(EXIStream* strm, QName* qname, ValueType valueType, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start attr serialization\n"));
 	strm->context.expectATData = TRUE;
 	return encodeComplexEXIEvent(strm, qname, EVENT_AT_ALL, EVENT_AT_URI, EVENT_AT_QNAME, valueType, fastSchemaMode, schemaProduction);
 }
 
-errorCode intDataSer(EXIStream* strm, int32_t int_val, unsigned char fastSchemaMode, size_t schemaProduction)
+errorCode intData(EXIStream* strm, Integer int_val, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	ValueType intType = VALUE_TYPE_INTEGER;
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start int data serialization\n"));
@@ -260,17 +275,12 @@ errorCode intDataSer(EXIStream* strm, int32_t int_val, unsigned char fastSchemaM
 	return encodeIntData(strm, int_val, intType);
 }
 
-errorCode bigIntDataSer(EXIStream* strm, const BigSignedInt int_val, unsigned char fastSchemaMode, size_t schemaProduction)
+errorCode booleanData(EXIStream* strm, unsigned char bool_val, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode booleanDataSer(EXIStream* strm, unsigned char bool_val, unsigned char fastSchemaMode, size_t schemaProduction)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
-errorCode stringDataSer(EXIStream* strm, const StringType str_val, unsigned char fastSchemaMode, size_t schemaProduction)
+errorCode stringData(EXIStream* strm, const String str_val, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	ValueType dummmyType;
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start string data serialization\n"));
@@ -292,42 +302,32 @@ errorCode stringDataSer(EXIStream* strm, const StringType str_val, unsigned char
 	return encodeStringData(strm, str_val);
 }
 
-errorCode floatDataSer(EXIStream* strm, double float_val, unsigned char fastSchemaMode, size_t schemaProduction)
+errorCode floatData(EXIStream* strm, Float float_val, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode bigFloatDataSer(EXIStream* strm, BigFloat float_val, unsigned char fastSchemaMode, size_t schemaProduction)
+errorCode binaryData(EXIStream* strm, const char* binary_val, size_t nbytes, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode binaryDataSer(EXIStream* strm, const char* binary_val, size_t nbytes, unsigned char fastSchemaMode, size_t schemaProduction)
+errorCode dateTimeData(EXIStream* strm, struct tm dt_val, uint16_t presenceMask, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode dateTimeDataSer(EXIStream* strm, struct tm dt_val, uint16_t presenceMask, unsigned char fastSchemaMode, size_t schemaProduction)
+errorCode decimalData(EXIStream* strm, Decimal dec_val, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode decimalDataSer(EXIStream* strm, decimal dec_val, unsigned char fastSchemaMode, size_t schemaProduction)
+errorCode processingInstruction(EXIStream* strm)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode bigDecimalDataSer(EXIStream* strm, bigDecimal dec_val, unsigned char fastSchemaMode, size_t schemaProduction)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
-errorCode processingInstructionSer(EXIStream* strm)
-{
-	return NOT_IMPLEMENTED_YET;
-}
-
-errorCode selfContainedSer(EXIStream* strm)
+errorCode selfContained(EXIStream* strm)
 {
 	return NOT_IMPLEMENTED_YET;
 }
@@ -335,9 +335,9 @@ errorCode selfContainedSer(EXIStream* strm)
 errorCode closeEXIStream(EXIStream* strm)
 {
 	// Flush the buffer first if there is output Stream
-	if(strm->ioStrm != NULL && strm->ioStrm->readWriteToStream != NULL)
+	if(strm->ioStrm.readWriteToStream != NULL)
 	{
-		if(strm->ioStrm->readWriteToStream(strm->buffer, strm->context.bufferIndx + 1, strm->ioStrm->stream) < strm->context.bufferIndx + 1)
+		if(strm->ioStrm.readWriteToStream(strm->buffer, strm->context.bufferIndx + 1, strm->ioStrm.stream) < strm->context.bufferIndx + 1)
 			return BUFFER_END_REACHED;
 	}
 	freeAllMem(strm);

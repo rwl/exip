@@ -49,7 +49,7 @@
 #include <stdio.h>
 #include <string.h>
 
-extern const EXISerializer serEXI;
+extern const EXISerializer serialize;
 
 #define OUTPUT_BUFFER_SIZE 200
 
@@ -65,8 +65,7 @@ int main(int argc, char *argv[])
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	FILE *outfile;
 	char sourceFile[50];
-	ExipSchema schema;
-	unsigned char hasSchema = FALSE;
+	ExipSchema* schema = NULL;
 
 	if(argc > 1)
 	{
@@ -110,7 +109,14 @@ int main(int argc, char *argv[])
 				fread(schemaBuffer, schemaLen, 1, schemaFile);
 				fclose(schemaFile);
 
-				tmp_err_code = generateSchemaInformedGrammars(schemaBuffer, schemaLen, schemaLen, NULL, SCHEMA_FORMAT_XSD_EXI, &schema);
+				schema = malloc(sizeof(ExipSchema));
+				if(schema == NULL)
+				{
+					printf("\n Memory allocation error!");
+					return 1;
+				}
+
+				tmp_err_code = generateSchemaInformedGrammars(schemaBuffer, schemaLen, schemaLen, NULL, SCHEMA_FORMAT_XSD_EXI, schema);
 
 				if(tmp_err_code != ERR_OK)
 				{
@@ -119,7 +125,6 @@ int main(int argc, char *argv[])
 				}
 
 				free(schemaBuffer);
-				hasSchema = TRUE;
 			}
 			strcpy(sourceFile, argv[3]);
 		}
@@ -136,78 +141,62 @@ int main(int argc, char *argv[])
 		else
 		{
 			EXIStream testStrm;
-			EXIheader header;
-			EXIOptions opts;
-			StringType uri;
-			StringType ln;
+			String uri;
+			String ln;
 			QName qname= {&uri, &ln};
-			StringType chVal;
+			String chVal;
 			char buf[OUTPUT_BUFFER_SIZE];
 			IOStream outStrm;
 
-			tmp_err_code = makeDefaultOpts(&opts);
-			if(tmp_err_code != ERR_OK)
-				printError(tmp_err_code, &testStrm, outfile);
+			// Serialization steps:
 
+			// I: First initialize the header of the stream
+			serialize.initHeader(&testStrm);
+
+			// II: Set any options in the header, if different from the defaults
+			testStrm.header.has_cookie = TRUE;
+			testStrm.header.has_options = TRUE;
+			testStrm.header.opts.valueMaxLength = 300;
+			testStrm.header.opts.valuePartitionCapacity = 50;
+			SET_STRICT(testStrm.header.opts.enumOpt);
+
+			// III: Define an external stream for the output if any
 			outStrm.readWriteToStream = writeFileOutputStream;
 			outStrm.stream = outfile;
 
-			if(TEST_HEADER_WITH_OPTIONS == TRUE)
-			{
-				header.has_cookie = TRUE; // Let's try that as well...
-				header.has_options = TRUE;
-				opts.strict = TRUE;
-				opts.valueMaxLength = 300;
-				opts.valuePartitionCapacity = 50;
-			}
-			else
-			{
-				header.has_cookie = FALSE;
-				header.has_options = FALSE;
-			}
+			// IV: Initialize the stream
+			tmp_err_code = serialize.initStream(&testStrm, buf, OUTPUT_BUFFER_SIZE, &outStrm, schema);
+			if(tmp_err_code != ERR_OK)
+				printError(tmp_err_code, &testStrm, outfile);
 
-			header.opts = &opts;
-			header.is_preview_version = FALSE;
-			header.version_number = 1;
+			// V: Start building the stream step by step: header, document, element etc...
+			tmp_err_code += serialize.exiHeader(&testStrm);
 
-			if(hasSchema == TRUE)
-			{
-				tmp_err_code = serEXI.initStream(&testStrm, buf, OUTPUT_BUFFER_SIZE, &outStrm, &opts, &schema);
-				if(tmp_err_code != ERR_OK)
-					printError(tmp_err_code, &testStrm, outfile);
-			}
-			else
-			{
-				tmp_err_code = serEXI.initStream(&testStrm, buf, OUTPUT_BUFFER_SIZE, &outStrm, &opts, NULL);
-				if(tmp_err_code != ERR_OK)
-					printError(tmp_err_code, &testStrm, outfile);
-			}
-
-			tmp_err_code += serEXI.exiHeaderSer(&testStrm, &header);
-
-			tmp_err_code += serEXI.startDocumentSer(&testStrm, FALSE, 0);
+			tmp_err_code += serialize.startDocument(&testStrm, FALSE, 0);
 
 			tmp_err_code += asciiToString("http://www.ltu.se/EISLAB/schema-test", &uri, &testStrm.memList, FALSE);
 			tmp_err_code += asciiToString("EXIPEncoder", &ln, &testStrm.memList, FALSE);
-			tmp_err_code += serEXI.startElementSer(&testStrm, &qname, FALSE, 0);
+			tmp_err_code += serialize.startElement(&testStrm, &qname, FALSE, 0);
 
 			tmp_err_code += asciiToString("", &uri, &testStrm.memList, FALSE);
 			tmp_err_code += asciiToString("version", &ln, &testStrm.memList, FALSE);
-			tmp_err_code += serEXI.attributeSer(&testStrm, &qname, VALUE_TYPE_STRING, FALSE, 0);
+			tmp_err_code += serialize.attribute(&testStrm, &qname, VALUE_TYPE_STRING, FALSE, 0);
 
 			tmp_err_code += asciiToString("0.2", &chVal, &testStrm.memList, FALSE);
-			tmp_err_code += serEXI.stringDataSer(&testStrm, chVal, FALSE, 0);
+			tmp_err_code += serialize.stringData(&testStrm, chVal, FALSE, 0);
 
 			tmp_err_code += asciiToString("This is an example of serializing EXI streams using EXIP low level API", &chVal, &testStrm.memList, FALSE);
-			tmp_err_code += serEXI.stringDataSer(&testStrm, chVal, FALSE, 0);
+			tmp_err_code += serialize.stringData(&testStrm, chVal, FALSE, 0);
 
-			tmp_err_code += serEXI.endElementSer(&testStrm, FALSE, 0);
-			tmp_err_code += serEXI.endDocumentSer(&testStrm, FALSE, 0);
+			tmp_err_code += serialize.endElement(&testStrm, FALSE, 0);
+			tmp_err_code += serialize.endDocument(&testStrm, FALSE, 0);
 
 			if(tmp_err_code != ERR_OK)
 				printError(tmp_err_code, &testStrm, outfile);
 
-			tmp_err_code = serEXI.closeEXIStream(&testStrm);
+			// V: Free the memory allocated by the EXI stream object
+			tmp_err_code = serialize.closeEXIStream(&testStrm);
+
 			fclose(outfile);
 		}
 	}
@@ -241,7 +230,7 @@ static void printfHelp()
 static void printError(errorCode err_code, EXIStream* strm, FILE *outfile)
 {
 	printf("\n Error occured: %d", err_code);
-	serEXI.closeEXIStream(strm);
+	serialize.closeEXIStream(strm);
 	fclose(outfile);
 	exit(1);
 }

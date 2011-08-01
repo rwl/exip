@@ -42,124 +42,11 @@
  */
 
 #include "bodyDecode.h"
-#include "grammars.h"
 #include "sTables.h"
 #include "memManagement.h"
 #include "ioUtil.h"
 #include "streamDecode.h"
-#include "grammarAugment.h"
-
-void decodeBody(EXIStream* strm, ContentHandler* handler, const ExipSchema* schema, void* app_data)
-{
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	EXIGrammar docGr;
-	size_t tmpNonTermID = GR_VOID_NON_TERMINAL;
-	EXIEvent event;
-
-	strm->gStack = NULL;
-	tmp_err_code = createDocGrammar(&docGr, strm, schema);
-	if(tmp_err_code != ERR_OK)
-	{
-		if(handler->fatalError != NULL)
-		{
-			handler->fatalError(tmp_err_code, "Cannot create BuildInDocGrammar", app_data);
-		}
-		freeAllMem(strm);
-		return;
-	}
-
-	tmp_err_code = pushGrammar(&strm->gStack, &docGr);
-	if(tmp_err_code != ERR_OK)
-	{
-		if(handler->fatalError != NULL)
-		{
-			handler->fatalError(tmp_err_code, "Cannot create grammar stack", app_data);
-		}
-		freeAllMem(strm);
-		return;
-	}
-
-	if(schema != NULL)
-	{
-		strm->uriTable = schema->initialStringTables;
-		tmp_err_code = createValueTable(&(strm->vTable), &(strm->memList));
-		if(tmp_err_code != ERR_OK)
-		{
-			if(handler->fatalError != NULL)
-			{
-				handler->fatalError(tmp_err_code, "Cannot create InitialStringTables", app_data);
-			}
-			freeAllMem(strm);
-			return;
-		}
-
-		tmp_err_code = addUndeclaredProductionsToAll(&strm->memList, strm->uriTable, strm->header.opts);
-		if(tmp_err_code != ERR_OK)
-		{
-			if(handler->fatalError != NULL)
-			{
-				handler->fatalError(tmp_err_code, "Cannot add Undeclared Productions", app_data);
-			}
-			freeAllMem(strm);
-			return;
-		}
-	}
-	else
-	{
-		tmp_err_code = createInitialStringTables(strm);
-		if(tmp_err_code != ERR_OK)
-		{
-			if(handler->fatalError != NULL)
-			{
-				handler->fatalError(tmp_err_code, "Cannot create InitialStringTables", app_data);
-			}
-			freeAllMem(strm);
-			return;
-		}
-	}
-
-	while(strm->context.nonTermID != GR_VOID_NON_TERMINAL)  // Process grammar productions until gets to the end of the stream
-	{
-		tmp_err_code = processNextProduction(strm, &event, &tmpNonTermID, handler, app_data);
-		if(tmp_err_code != ERR_OK)
-		{
-			if(handler->fatalError != NULL)
-			{
-				handler->fatalError(tmp_err_code, "Error processing next production", app_data);
-			}
-			freeAllMem(strm);
-			return;
-		}
-		if(tmpNonTermID == GR_VOID_NON_TERMINAL)
-		{
-			EXIGrammar* grammar;
-			tmp_err_code = popGrammar(&(strm->gStack), &grammar);
-			if(tmp_err_code != ERR_OK)
-			{
-				if(handler->fatalError != NULL)
-				{
-					handler->fatalError(tmp_err_code, "popGrammar failed", app_data);
-				}
-				freeAllMem(strm);
-				return;
-			}
-			if(strm->gStack == NULL) // There is no more grammars in the stack
-			{
-				strm->context.nonTermID = GR_VOID_NON_TERMINAL; // The stream is parsed
-			}
-			else
-			{
-				strm->context.nonTermID = strm->gStack->lastNonTermID;
-			}
-		}
-		else
-		{
-			strm->context.nonTermID = tmpNonTermID;
-		}
-		tmpNonTermID = GR_VOID_NON_TERMINAL;
-	}
-	freeAllMem(strm);
-}
+#include "grammars.h"
 
 errorCode decodeQName(EXIStream* strm, QName* qname)
 {
@@ -178,7 +65,7 @@ errorCode decodeQName(EXIStream* strm, QName* qname)
 		return tmp_err_code;
 	if(tmp_val_buf == 0) // uri miss
 	{
-		StringType str;
+		String str;
 		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">URI miss\n"));
 		tmp_err_code = decodeString(strm, &str);
 		if(tmp_err_code != ERR_OK)
@@ -212,7 +99,7 @@ errorCode decodeQName(EXIStream* strm, QName* qname)
 	}
 	else // local-name table miss
 	{
-		StringType lnStr;
+		String lnStr;
 		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">local-name table miss\n"));
 		tmp_err_code = decodeStringOnly(strm, tmpVar - 1, &lnStr);
 		if(tmp_err_code != ERR_OK)
@@ -233,7 +120,7 @@ errorCode decodeQName(EXIStream* strm, QName* qname)
 	return ERR_OK;
 }
 
-errorCode decodeStringValue(EXIStream* strm, StringType* value, unsigned char* freeable)
+errorCode decodeStringValue(EXIStream* strm, String* value, unsigned char* freeable)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	uint16_t uriID = strm->context.curr_uriID;
@@ -274,7 +161,7 @@ errorCode decodeStringValue(EXIStream* strm, StringType* value, unsigned char* f
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		if(value->length > 0 && value->length <= strm->header.opts->valueMaxLength && strm->header.opts->valuePartitionCapacity > 0)
+		if(value->length > 0 && value->length <= strm->header.opts.valueMaxLength && strm->header.opts.valuePartitionCapacity > 0)
 		{
 			tmp_err_code = addValueRows(strm, value);
 			if(tmp_err_code != ERR_OK)
@@ -355,7 +242,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		}
 		if(event.valueType == VALUE_TYPE_STRING || event.valueType == VALUE_TYPE_NONE)
 		{
-			StringType value;
+			String value;
 			unsigned char freeable = FALSE;
 			tmp_err_code = decodeStringValue(strm, &value, &freeable);
 			if(tmp_err_code != ERR_OK)
@@ -420,7 +307,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 
 		if(event.valueType == VALUE_TYPE_STRING || event.valueType == VALUE_TYPE_NONE || event.valueType == VALUE_TYPE_UNTYPED)
 		{
-			StringType value;
+			String value;
 			unsigned char freeable = FALSE;
 			tmp_err_code = decodeStringValue(strm, &value, &freeable);
 			if(tmp_err_code != ERR_OK)
@@ -447,7 +334,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		}
 		else if(event.valueType == VALUE_TYPE_DECIMAL)
 		{
-			decimal decVal;
+			Decimal decVal;
 			tmp_err_code = decodeDecimalValue(strm, &decVal);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;

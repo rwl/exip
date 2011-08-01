@@ -102,22 +102,22 @@ errorCode createValueLocalCrossTable(ValueLocalCrossTable** vlTable, AllocList* 
  * @brief Add new row into the URI string table
  *
  * @param[in, out] uTable URI string table
- * @param[in] uri the string representing this uri. The StringType can be allocated on the stack.
+ * @param[in] uri the string representing this uri. The String can be allocated on the stack.
  * @param[out] rowID the ID of the row inserted
  * @param[in, out] memList A list storing the memory allocations
  * @return Error handling code
  */
-errorCode addURIRow(URITable* uTable, StringType uri, uint16_t* rowID, AllocList* memList);
+errorCode addURIRow(URITable* uTable, String uri, uint16_t* rowID, AllocList* memList);
 
 /**
  * @brief Add new row into the Local-Names string table
  *
  * @param[out] lTable Local-Names string table
- * @param[in] local_name the string representing this Local-Names. The StringType can be allocated on the stack.
+ * @param[in] local_name the string representing this Local-Names. The String can be allocated on the stack.
  * @param[out] rowID the ID of the row inserted
  * @return Error handling code
  */
-errorCode addLNRow(LocalNamesTable* lTable, StringType local_name, size_t* rowID);
+errorCode addLNRow(LocalNamesTable* lTable, String local_name, size_t* rowID);
 
 /**
  * @brief Create string tables for an EXI stream.
@@ -151,19 +151,19 @@ errorCode createInitialEntries(AllocList* memList, URITable* uTable, unsigned ch
  * @brief Add a new row into the Global ValueTable string table and Local value cross string table
  *
  * @param[in, out] strm EXI stream of bits
- * @param[in] global_value the string representing this global value. The StringType can be allocated on the stack.
+ * @param[in] global_value the string representing this global value. The String can be allocated on the stack.
  * @return Error handling code
  */
-errorCode addValueRows(EXIStream* strm, StringType* value);
+errorCode addValueRows(EXIStream* strm, String* value);
 
 /**
  * @brief Add a new row into the Prefix string table
  *
  * @param[in, out] pTable Prefix string table
- * @param[in] px_value the string representing this Local-Names. The StringType can be allocated on the stack.
+ * @param[in] px_value the string representing this Local-Names. The String can be allocated on the stack.
  * @return Error handling code
  */
-errorCode addPrefixRow(PrefixTable* pTable, StringType px_value);
+errorCode addPrefixRow(PrefixTable* pTable, String px_value);
 
 /**
  * @brief Search the URI table for a particular string value
@@ -174,7 +174,7 @@ errorCode addPrefixRow(PrefixTable* pTable, StringType px_value);
  * @param[out] rowID if found, ID of the URI row with that string
  * @return 0-not found, 1 found
  */
-char lookupURI(URITable* uTable, StringType value, uint16_t* rowID); //TODO: try to optimize
+char lookupURI(URITable* uTable, String value, uint16_t* rowID); //TODO: try to optimize
 
 /**
  * @brief Search the Local names table for a particular string value
@@ -185,7 +185,7 @@ char lookupURI(URITable* uTable, StringType value, uint16_t* rowID); //TODO: try
  * @param[out] rowID if found, ID of the Local names row with that string
  * @return 0-not found, 1 found
  */
-char lookupLN(LocalNamesTable* lTable, StringType value, size_t* rowID); //TODO: try to optimize
+char lookupLN(LocalNamesTable* lTable, String value, size_t* rowID); //TODO: try to optimize
 
 /**
  * @brief Search the Local partition of the Value table for a particular string value
@@ -197,7 +197,7 @@ char lookupLN(LocalNamesTable* lTable, StringType value, size_t* rowID); //TODO:
  * @param[out] rowID if found, ID of the ValueLocalCrossTable row with that string
  * @return 0-not found, 1 found
  */
-char lookupLV(ValueTable* vTable, ValueLocalCrossTable* lvTable, StringType value, uint16_t* rowID); //TODO: try to optimize
+char lookupLV(ValueTable* vTable, ValueLocalCrossTable* lvTable, String value, uint16_t* rowID); //TODO: try to optimize
 
 /**
  * @brief Search the global Value table for a particular string value
@@ -209,6 +209,6 @@ char lookupLV(ValueTable* vTable, ValueLocalCrossTable* lvTable, StringType valu
  * @param[out] rowID if found, ID of the global Value table row with that string
  * @return 0-not found, 1 found
  */
-char lookupVal(ValueTable* vTable, StringType value, size_t* rowID);
+char lookupVal(ValueTable* vTable, String value, size_t* rowID);
 
 #endif /* STABLES_H_ */

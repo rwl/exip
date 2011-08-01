@@ -282,9 +282,9 @@ errorCode createSimpleEmptyTypeGrammar(AllocList* memList, ProtoGrammar** result
 	return ERR_OK;
 }
 
-errorCode createComplexTypeGrammar(AllocList* memList, StringType* name, StringType* target_ns,
+errorCode createComplexTypeGrammar(AllocList* memList, String* name, String* target_ns,
 								   ProtoGrammar* attrUsesArray, unsigned int attrUsesArraySize,
-		                           StringType* wildcardArray, unsigned int wildcardArraySize,
+		                           String* wildcardArray, unsigned int wildcardArraySize,
 		                           ProtoGrammar* contentTypeGrammar,
 		                           ProtoGrammar** result)
 {
@@ -329,9 +329,9 @@ errorCode createComplexTypeGrammar(AllocList* memList, StringType* name, StringT
 	return ERR_OK;
 }
 
-errorCode createComplexEmptyTypeGrammar(AllocList* memList, StringType name, StringType target_ns,
+errorCode createComplexEmptyTypeGrammar(AllocList* memList, String name, String target_ns,
 									ProtoGrammar* attrUsesArray, unsigned int attrUsesArraySize,
-		                            StringType* wildcardArray, unsigned int wildcardArraySize,
+		                            String* wildcardArray, unsigned int wildcardArraySize,
 		                            ProtoGrammar** result)
 {
 	//TODO: Implement the case when there are wildcards i.e. wildcardArray is not empty
@@ -381,7 +381,7 @@ errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, ProtoGrammar** res
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, StringType* name, StringType* target_ns,
+errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, String* name, String* target_ns,
 										  QName simpleType, QName scope, ProtoGrammar** result,  uint16_t uriRowID, size_t lnRowID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -520,7 +520,7 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
 	return ERR_OK;
 }
 
-errorCode createElementTermGrammar(AllocList* memList, StringType* name, StringType* target_ns,
+errorCode createElementTermGrammar(AllocList* memList, String* name, String* target_ns,
 								   ProtoGrammar** result, uint16_t uriRowID, size_t lnRowID)
 {
 	//TODO: enable support for {substitution group affiliation} property of the elements
@@ -549,7 +549,7 @@ errorCode createElementTermGrammar(AllocList* memList, StringType* name, StringT
 	return ERR_OK;
 }
 
-errorCode createWildcardTermGrammar(AllocList* memList, StringType* wildcardArray, unsigned int wildcardArraySize, ProtoGrammar** result)
+errorCode createWildcardTermGrammar(AllocList* memList, String* wildcardArray, unsigned int wildcardArraySize, ProtoGrammar** result)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
@@ -615,9 +615,7 @@ static errorCode recursiveGrammarConcat(AllocList* memList, GenericStack* protoG
 	ProtoGrammar* tmpGrammar;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
-	tmp_err_code = popFromStack(&protoGrammars, (void**) &tmpGrammar);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	popFromStack(&protoGrammars, (void**) &tmpGrammar);
 
 	if(protoGrammars == NULL)
 	{
@@ -666,9 +664,7 @@ errorCode createChoiceModelGroupsGrammar(AllocList* memList, GenericStack* proto
 		unsigned int initialResultRulesCount;
 		ProtoGrammar* tmpGrammar;
 
-		tmp_err_code = popFromStack(&protoGrammars, (void**) &tmpGrammar);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		popFromStack(&protoGrammars, (void**) &tmpGrammar);
 
 		if(tmpGrammar == NULL)
 			return NULL_POINTER_REF;
@@ -679,9 +675,7 @@ errorCode createChoiceModelGroupsGrammar(AllocList* memList, GenericStack* proto
 
 		while(protoGrammars != NULL)
 		{
-			tmp_err_code = popFromStack(&protoGrammars, (void**) &tmpGrammar);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			popFromStack(&protoGrammars, (void**) &tmpGrammar);
 
 			if(tmpGrammar == NULL)
 				return NULL_POINTER_REF;
@@ -806,7 +800,7 @@ errorCode getEXIDataType(QName simpleXSDType, ValueType* exiType)
 	return INCONSISTENT_PROC_STATE;
 }
 
-int qnamesCompare(const StringType* uri1, const StringType* ln1, const StringType* uri2, const StringType* ln2)
+int qnamesCompare(const String* uri1, const String* ln1, const String* uri2, const String* ln2)
 {
 	int uri_cmp_res = stringCompare(*uri1, *uri2);
 	if(uri_cmp_res == 0) // equal URIs

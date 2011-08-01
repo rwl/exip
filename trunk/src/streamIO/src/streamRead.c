@@ -60,9 +60,9 @@ errorCode readNextBit(EXIStream* strm, unsigned char* bit_val)
 {
 	if(strm->bufContent <= strm->context.bufferIndx) // the whole buffer is parsed! read another portion
 	{
-		if(strm->ioStrm == NULL || strm->ioStrm->readWriteToStream == NULL)
+		if(strm->ioStrm.readWriteToStream == NULL)
 			return BUFFER_END_REACHED;
-		strm->bufContent = strm->ioStrm->readWriteToStream(strm->buffer, strm->bufLen, strm->ioStrm->stream);
+		strm->bufContent = strm->ioStrm.readWriteToStream(strm->buffer, strm->bufLen, strm->ioStrm.stream);
 		if(strm->bufContent == 0)
 			return BUFFER_END_REACHED;
 		strm->context.bitPointer = 0;
@@ -90,12 +90,12 @@ errorCode readBits(EXIStream* strm, unsigned char n, uint32_t* bits_val)
 		char leftOverBits[8];
 		size_t bytesCopied = strm->bufContent - strm->context.bufferIndx;
 		size_t bytesRead = 0;
-		if(strm->ioStrm == NULL || strm->ioStrm->readWriteToStream == NULL)
+		if(strm->ioStrm.readWriteToStream == NULL)
 			return BUFFER_END_REACHED;
 
 		memcpy(leftOverBits, strm->buffer + strm->context.bufferIndx, bytesCopied);
 
-		bytesRead = strm->ioStrm->readWriteToStream(strm->buffer + bytesCopied, strm->bufLen - bytesCopied, strm->ioStrm->stream);
+		bytesRead = strm->ioStrm.readWriteToStream(strm->buffer + bytesCopied, strm->bufLen - bytesCopied, strm->ioStrm.stream);
 		strm->bufContent = bytesRead + bytesCopied;
 		if(strm->bufContent < numBytesToBeRead)
 			return BUFFER_END_REACHED;

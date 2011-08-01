@@ -45,50 +45,121 @@
 #include "EXIParser.h"
 #include "procTypes.h"
 #include "errorHandle.h"
-#include "bodyDecode.h"
 #include "headerDecode.h"
 #include "memManagement.h"
+#include "grammars.h"
+#include "sTables.h"
+#include "grammarAugment.h"
 
-void parseEXI(char* binaryBuf, size_t bufLen, size_t bufContent, IOStream* ioStrm, ContentHandler* handler, ExipSchema* schema, void* app_data)
+errorCode initParser(Parser* parser, char* binaryBuf, size_t bufLen, size_t bufContent, IOStream* ioStrm, ExipSchema* schema, void* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	EXIStream strm;
-	EXIOptions options;
-
-	tmp_err_code = initAllocList(&strm.memList);
+	tmp_err_code = initAllocList(&parser->strm.memList);
 	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	parser->strm.buffer = binaryBuf;
+	parser->strm.context.bitPointer = 0;
+	parser->strm.context.bufferIndx = 0;
+	parser->strm.bufLen = bufLen;
+	parser->strm.context.nonTermID = GR_DOCUMENT;
+	parser->strm.context.curr_lnID = 0;
+	parser->strm.context.curr_uriID = 0;
+	parser->strm.context.expectATData = 0;
+	parser->strm.bufContent = bufContent;
+	if(ioStrm == NULL)
 	{
-		if(handler->fatalError != NULL)
-			handler->fatalError(tmp_err_code, "Error parsing EXI header", app_data);
-		freeAllMem(&strm);
-		return;
+		parser->strm.ioStrm.readWriteToStream = NULL;
+		parser->strm.ioStrm.stream = NULL;
+	}
+	else
+	{
+		parser->strm.ioStrm.readWriteToStream = ioStrm->readWriteToStream;
+		parser->strm.ioStrm.stream = ioStrm->stream;
 	}
 
-	strm.buffer = binaryBuf;
-	strm.context.bitPointer = 0;
-	strm.context.bufferIndx = 0;
-	strm.bufLen = bufLen;
-	strm.header.opts = &options;
-	strm.context.nonTermID = GR_DOCUMENT;
-	strm.context.curr_lnID = 0;
-	strm.context.curr_uriID = 0;
-	strm.context.expectATData = 0;
-	strm.bufContent = bufContent;
-	strm.ioStrm = ioStrm;
+	parser->app_data = app_data;
+	parser->schema = schema;
+	initContentHandler(&parser->handler);
 
-	tmp_err_code = decodeHeader(&strm);
+	return ERR_OK;
+}
+
+errorCode parseHeader(Parser* parser)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+
+	tmp_err_code = decodeHeader(&parser->strm);
 	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	parser->strm.gStack = NULL;
+	tmp_err_code = createDocGrammar(&parser->documentGrammar, &parser->strm, parser->schema);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = pushGrammar(&parser->strm.gStack, &parser->documentGrammar);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	if(parser->schema != NULL)
 	{
-		if(handler->fatalError != NULL)
-			handler->fatalError(tmp_err_code, "Error parsing EXI header", app_data);
-		freeAllMem(&strm);
-		return;
+		parser->strm.uriTable = parser->schema->initialStringTables;
+		tmp_err_code = createValueTable(&(parser->strm.vTable), &(parser->strm.memList));
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = addUndeclaredProductionsToAll(&parser->strm.memList, parser->strm.uriTable, &parser->strm.header.opts);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 	}
-	if(handler->exiHeader != NULL)
+	else
 	{
-		if(handler->exiHeader(&(strm.header), app_data) == EXIP_HANDLER_STOP)
-			return;
+		tmp_err_code = createInitialStringTables(&parser->strm);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 	}
 
-	decodeBody(&strm, handler, schema, app_data);
+	return ERR_OK;
+}
+
+errorCode parseNext(Parser* parser)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	size_t tmpNonTermID = GR_VOID_NON_TERMINAL;
+	EXIEvent event;
+
+	tmp_err_code = processNextProduction(&parser->strm, &event, &tmpNonTermID, &parser->handler, parser->app_data);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	if(tmpNonTermID == GR_VOID_NON_TERMINAL)
+	{
+		EXIGrammar* grammar;
+		tmp_err_code = popGrammar(&(parser->strm.gStack), &grammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		if(parser->strm.gStack == NULL) // There is no more grammars in the stack
+		{
+			parser->strm.context.nonTermID = GR_VOID_NON_TERMINAL; // The stream is parsed
+		}
+		else
+		{
+			parser->strm.context.nonTermID = parser->strm.gStack->lastNonTermID;
+		}
+	}
+	else
+	{
+		parser->strm.context.nonTermID = tmpNonTermID;
+	}
+
+	if(parser->strm.context.nonTermID == GR_VOID_NON_TERMINAL)
+		return PARSING_COMPLETE;
+
+	return ERR_OK;
+}
+
+void destroyParser(Parser* parser)
+{
+	freeAllMem(&parser->strm);
 }

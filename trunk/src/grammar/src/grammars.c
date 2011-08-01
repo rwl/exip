@@ -96,11 +96,11 @@ errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const ExipSc
 	tmp_rule->prodCounts[1] = 0;
 	tmp_rule->prodArrays[2] = NULL;
 	tmp_rule->prodCounts[2] = 0;
-	if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_DTD))
+	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
 		tmp_code2 += 1;
-	if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_COMMENTS))
+	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
 		tmp_code3 += 1;
-	if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_PIS))
+	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 		tmp_code3 += 1;
 
 	if(schema != NULL)   // Creates Schema Informed Grammar
@@ -163,7 +163,7 @@ errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const ExipSc
 	tmp_rule->prodArrays[0][0].event = getEventDefType(EVENT_SE_ALL);
 	tmp_rule->prodArrays[0][0].nonTermID = GR_DOC_END;
 
-	if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_DTD))
+	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
 	{
 		tmp_rule->prodArrays[1] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production));
 		if(tmp_rule->prodArrays[1] == NULL)
@@ -181,13 +181,13 @@ errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const ExipSc
 
 		tmp_rule->prodCounts[2] = tmp_code3;
 
-		if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_COMMENTS))
+		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
 		{
 			tmp_rule->prodArrays[2][tmp_code3 - 1].event = getEventDefType(EVENT_CM);
 			tmp_rule->prodArrays[2][tmp_code3 - 1].nonTermID = GR_DOC_CONTENT;
 		}
 
-		if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_PIS))
+		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 		{
 			tmp_rule->prodArrays[2][0].event = getEventDefType(EVENT_PI);
 			tmp_rule->prodArrays[2][0].nonTermID = GR_DOC_CONTENT;
@@ -209,9 +209,9 @@ errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const ExipSc
 	tmp_rule->prodArrays[2] = NULL;
 	tmp_rule->prodCounts[2] = 0;
 
-	if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_COMMENTS))
+	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
 		tmp_code2 += 1;
-	if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_PIS))
+	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 		tmp_code2 += 1;
 
 	tmp_rule->bits[0] = tmp_code2 > 0;
@@ -234,13 +234,13 @@ errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const ExipSc
 
 		tmp_rule->prodCounts[1] = tmp_code2;
 
-		if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_COMMENTS))
+		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
 		{
 			tmp_rule->prodArrays[1][tmp_code2 - 1].event = getEventDefType(EVENT_CM);
 			tmp_rule->prodArrays[1][tmp_code2 - 1].nonTermID = GR_DOC_END;
 		}
 
-		if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_PIS))
+		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 		{
 			tmp_rule->prodArrays[1][0].event = getEventDefType(EVENT_PI);
 			tmp_rule->prodArrays[1][0].nonTermID = GR_DOC_END;
@@ -293,15 +293,15 @@ errorCode createBuildInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 	tmp_code2 = 4;
 	tmp_code3 = 0;
 
-	if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_PREFIXES))
+	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES))
 		tmp_code2 += 1;
-	if(strm->header.opts->selfContained == TRUE)
+	if(WITH_SELF_CONTAINED(strm->header.opts.enumOpt))
 		tmp_code2 += 1;
-	if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_DTD))
+	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
 		tmp_code2 += 1;
-	if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_COMMENTS))
+	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
 		tmp_code3 += 1;
-	if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_PIS))
+	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 		tmp_code3 += 1;
 
 	tmp_rule->bits[0] = 0;
@@ -325,7 +325,7 @@ errorCode createBuildInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 	tmp_rule->prodArrays[1][tmp_code2-p].nonTermID = GR_START_TAG_CONTENT;
 	p += 1;
 
-	if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_PREFIXES))
+	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES))
 	{
 		/* NS StartTagContent	    0.2 */
 		tmp_rule->prodArrays[1][tmp_code2-p].event = getEventDefType(EVENT_NS);
@@ -333,7 +333,7 @@ errorCode createBuildInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 		p += 1;
 	}
 
-	if(strm->header.opts->selfContained == TRUE)
+	if(WITH_SELF_CONTAINED(strm->header.opts.enumOpt))
 	{
 		/* SC Fragment	            0.3 */
 		tmp_rule->prodArrays[1][tmp_code2-p].event = getEventDefType(EVENT_SC);
@@ -351,7 +351,7 @@ errorCode createBuildInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 	tmp_rule->prodArrays[1][tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
 	p += 1;
 
-	if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_DTD))
+	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
 	{
 		/* ER ElementContent	    0.6 */
 		tmp_rule->prodArrays[1][tmp_code2-p].event = getEventDefType(EVENT_ER);
@@ -369,14 +369,14 @@ errorCode createBuildInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 
 		tmp_rule->prodCounts[2] = tmp_code3;
 
-		if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_COMMENTS))
+		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
 		{
 			/* CM ElementContent	    0.7.0 */
 			tmp_rule->prodArrays[2][tmp_code3-p].event = getEventDefType(EVENT_CM);
 			tmp_rule->prodArrays[2][tmp_code3-p].nonTermID = GR_ELEMENT_CONTENT;
 			p += 1;
 		}
-		if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_PIS))
+		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 		{
 			/* PI ElementContent	    0.7.1 */
 			tmp_rule->prodArrays[2][tmp_code3-p].event = getEventDefType(EVENT_PI);
@@ -414,11 +414,11 @@ errorCode createBuildInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 	tmp_code3 = 0;
 
 
-	if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_DTD))
+	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
 		tmp_code2 += 1;
-	if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_COMMENTS))
+	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
 		tmp_code3 += 1;
-	if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_PIS))
+	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 		tmp_code3 += 1;
 
 	tmp_rule->bits[0] = 1;
@@ -442,7 +442,7 @@ errorCode createBuildInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 	tmp_rule->prodArrays[1][tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
 	p += 1;
 
-	if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_DTD))
+	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
 	{
 		/* ER ElementContent	    1.2 */
 		tmp_rule->prodArrays[1][tmp_code2-p].event = getEventDefType(EVENT_ER);
@@ -459,14 +459,14 @@ errorCode createBuildInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 
 		tmp_rule->prodCounts[2] = tmp_code3;
 
-		if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_COMMENTS))
+		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
 		{
 			/* CM ElementContent	    1.3.0 */
 			tmp_rule->prodArrays[2][tmp_code3-p].event = getEventDefType(EVENT_CM);
 			tmp_rule->prodArrays[2][tmp_code3-p].nonTermID = GR_ELEMENT_CONTENT;
 			p += 1;
 		}
-		if(IS_PRESERVED(strm->header.opts->preserve, PRESERVE_PIS))
+		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 		{
 			/* PI ElementContent	    1.3.1 */
 			tmp_rule->prodArrays[2][tmp_code3-p].event = getEventDefType(EVENT_PI);
