@@ -498,6 +498,24 @@ struct QName {
 
 typedef struct QName QName;
 
+struct QNameID {
+	uint16_t uriRowId;
+	size_t lnRowId;
+};
+
+typedef struct QNameID QNameID;
+
+struct EXIPSchema
+{
+	URITable* initialStringTables;
+	QNameID* globalElemGrammars;  // Sorted
+	unsigned int globalElemGrammarsCount;
+
+	AllocList memList; // Stores the information for all memory allocations for that schema
+};
+
+typedef struct EXIPSchema EXIPSchema;
+
 struct StreamContext
 {
 	/**
@@ -680,6 +698,11 @@ struct EXIStream
 	 * Stores the information of all the allocated memory for that stream
 	 */
 	AllocList memList;
+
+	/**
+	 * Schema information for that stream if any; NULL otherwise
+	 */
+	EXIPSchema* schema;
 };
 
 typedef struct EXIStream EXIStream;
@@ -698,5 +721,9 @@ void makeDefaultOpts(EXIOptions* opts);
 errorCode pushOnStack(GenericStack** stack, void* element);
 
 void popFromStack(GenericStack** stack, void** element);
+
+errorCode pushOnStackPersistent(GenericStack** stack, void* element, AllocList* memList);
+
+void popFromStackPersistent(GenericStack** stack, void** element);
 
 #endif /* PROCTYPES_H_ */

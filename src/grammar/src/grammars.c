@@ -58,7 +58,7 @@
 static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Production* prodHit,
 				EXIEvent* event, size_t* nonTermID_out, ContentHandler* handler, void* app_data, unsigned int codeLength);
 
-errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const ExipSchema* schema)
+errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const EXIPSchema* schema)
 {
 	GrammarRule* tmp_rule;
 	unsigned int tmp_code1 = 0; // the number of productions with event codes with length 1
@@ -490,14 +490,13 @@ errorCode pushGrammar(EXIGrammarStack** gStack, EXIGrammar* grammar)
 	return ERR_OK;
 }
 
-errorCode popGrammar(EXIGrammarStack** gStack, EXIGrammar** grammar)
+void popGrammar(EXIGrammarStack** gStack, EXIGrammar** grammar)
 {
 	struct GrammarStackNode* node = *gStack;
 	*gStack = (*gStack)->nextInStack;
 
 	(*grammar) = node->grammar;
 	EXIP_MFREE(node);
-	return ERR_OK;
 }
 
 errorCode processNextProduction(EXIStream* strm, EXIEvent* event,

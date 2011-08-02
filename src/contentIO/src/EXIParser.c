@@ -51,7 +51,7 @@
 #include "sTables.h"
 #include "grammarAugment.h"
 
-errorCode initParser(Parser* parser, char* binaryBuf, size_t bufLen, size_t bufContent, IOStream* ioStrm, ExipSchema* schema, void* app_data)
+errorCode initParser(Parser* parser, char* binaryBuf, size_t bufLen, size_t bufContent, IOStream* ioStrm, EXIPSchema* schema, void* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	tmp_err_code = initAllocList(&parser->strm.memList);
@@ -67,6 +67,7 @@ errorCode initParser(Parser* parser, char* binaryBuf, size_t bufLen, size_t bufC
 	parser->strm.context.curr_uriID = 0;
 	parser->strm.context.expectATData = 0;
 	parser->strm.bufContent = bufContent;
+	parser->strm.schema = schema;
 	if(ioStrm == NULL)
 	{
 		parser->strm.ioStrm.readWriteToStream = NULL;
@@ -79,7 +80,6 @@ errorCode initParser(Parser* parser, char* binaryBuf, size_t bufLen, size_t bufC
 	}
 
 	parser->app_data = app_data;
-	parser->schema = schema;
 	initContentHandler(&parser->handler);
 
 	return ERR_OK;
@@ -94,7 +94,7 @@ errorCode parseHeader(Parser* parser)
 		return tmp_err_code;
 
 	parser->strm.gStack = NULL;
-	tmp_err_code = createDocGrammar(&parser->documentGrammar, &parser->strm, parser->schema);
+	tmp_err_code = createDocGrammar(&parser->documentGrammar, &parser->strm, parser->strm.schema);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -102,9 +102,9 @@ errorCode parseHeader(Parser* parser)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	if(parser->schema != NULL)
+	if(parser->strm.schema != NULL)
 	{
-		parser->strm.uriTable = parser->schema->initialStringTables;
+		parser->strm.uriTable = parser->strm.schema->initialStringTables;
 		tmp_err_code = createValueTable(&(parser->strm.vTable), &(parser->strm.memList));
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -136,9 +136,7 @@ errorCode parseNext(Parser* parser)
 	if(tmpNonTermID == GR_VOID_NON_TERMINAL)
 	{
 		EXIGrammar* grammar;
-		tmp_err_code = popGrammar(&(parser->strm.gStack), &grammar);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		popGrammar(&(parser->strm.gStack), &grammar);
 		if(parser->strm.gStack == NULL) // There is no more grammars in the stack
 		{
 			parser->strm.context.nonTermID = GR_VOID_NON_TERMINAL; // The stream is parsed
@@ -161,5 +159,7 @@ errorCode parseNext(Parser* parser)
 
 void destroyParser(Parser* parser)
 {
+	if(parser->strm.schema != NULL)
+		freeAllocList(&parser->strm.schema->memList);
 	freeAllMem(&parser->strm);
 }

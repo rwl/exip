@@ -154,7 +154,7 @@ struct xsdAppData
 	DynArray* elNotResolvedArray;
 	URITable* metaStringTables;
 	DynArray* globalElemGrammars; // QNameID* of globalElemGrammars
-	ExipSchema* schema;
+	EXIPSchema* schema;
 
 	/** Used only for empty elements such as <xsd:complexType /> in EXI options document.
 	 *  The purpose is to reuse it and not create a multiple empty grammars each time
@@ -216,7 +216,7 @@ static errorCode getTypeQName(AllocList* memList, const String typeLiteral, QNam
 ////////////
 
 errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t bufContent, IOStream* ioStrm,
-										unsigned char schemaFormat, ExipSchema* schema)
+										unsigned char schemaFormat, EXIPSchema* schema)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	Parser xsdParser;
@@ -1158,7 +1158,7 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 		nillable->strValue.length = 0;
 		nillable->strValue.str = NULL;
 
-		tmp_err_code = pushOnStack(&elemDesc->pTypeFacets, nillable);
+		tmp_err_code = pushOnStackPersistent(&elemDesc->pTypeFacets, nillable, &app_data->schema->memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -1502,9 +1502,7 @@ static errorCode handleRestrictionEl(struct xsdAppData* app_data)
 
 	if(elemDesc->pTypeFacets != NULL)
 	{
-		// TODO: the constraining facets should be attached to the EXI grammars so that
-		//       the values of the types can be validated when processing+
-		//       Currently there is no field in the EXIGrammar structure for that - > create one!
+		((ElementDescription*) app_data->contextStack->element)->pTypeFacets = elemDesc->pTypeFacets;
 	}
 
 	tmp_err_code = pushOnStack(&((ElementDescription*) app_data->contextStack->element)->pGrammarStack, (void*) simpleRestrictedGrammar);
@@ -1531,6 +1529,11 @@ static errorCode handleSimpleTypeEl(struct xsdAppData* app_data)
 		tmp_err_code = pushOnStack(&(((ElementDescription*) app_data->contextStack->element)->pGrammarStack), simpleTypeGr);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
+
+		if(elemDesc->pTypeFacets != NULL)
+		{
+			((ElementDescription*) app_data->contextStack->element)->pTypeFacets = elemDesc->pTypeFacets;
+		}
 	}
 	else
 	{
@@ -1548,6 +1551,8 @@ static errorCode handleSimpleTypeEl(struct xsdAppData* app_data)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
+		exiTypeGrammar->pTypeFacets = elemDesc->pTypeFacets;
+
 		app_data->schema->initialStringTables->rows[app_data->props.targetNSMetaID].lTable->rows[lnRowID].globalGrammar = exiTypeGrammar;
 
 		return ERR_OK;
@@ -1564,7 +1569,7 @@ static errorCode handleMinInclusiveEl(struct xsdAppData* app_data)
 
 	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
 
-	minIncl = memManagedAllocate(&app_data->tmpMemList, sizeof(TypeFacet));
+	minIncl = memManagedAllocate(&app_data->schema->memList, sizeof(TypeFacet));
 	if(minIncl == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -1572,7 +1577,7 @@ static errorCode handleMinInclusiveEl(struct xsdAppData* app_data)
 	minIncl->intValue = 0;
 	minIncl->strValue = elemDesc->attributePointers[ATTRIBUTE_VALUE];
 
-	tmp_err_code = pushOnStack(&(((ElementDescription*) app_data->contextStack->element)->pTypeFacets), minIncl);
+	tmp_err_code = pushOnStackPersistent(&(((ElementDescription*) app_data->contextStack->element)->pTypeFacets), minIncl, &app_data->schema->memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 

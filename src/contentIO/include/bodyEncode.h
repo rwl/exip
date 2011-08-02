@@ -46,7 +46,6 @@
 
 #include "errorHandle.h"
 #include "procTypes.h"
-#include "schema.h"
 
 /**** START: Serializer API implementation  ****/
 
@@ -74,7 +73,7 @@ errorCode selfContained(EXIStream* strm);  // Used for indexing independent elem
 
 // EXIP specific
 void initHeader(EXIStream* strm);
-errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStrm, ExipSchema *schema);
+errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStrm, EXIPSchema *schema);
 errorCode closeEXIStream(EXIStream* strm);
 
 /****  END: Serializer API implementation  ****/

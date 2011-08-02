@@ -49,7 +49,6 @@
 #include "eventsEXI.h"
 #include "procTypes.h"
 #include "contentHandler.h"
-#include "schema.h"
 
 /**
  * @brief Process the next grammar production in the Current Grammar
@@ -76,9 +75,8 @@ errorCode pushGrammar(EXIGrammarStack** gStack, EXIGrammar* grammar);
  * @brief Pop a grammar off the top of the Grammar Stack
  * @param[in, out] grStack the Grammar stack
  * @param[out] grammar the popped out grammar
- * @return Error handling code
  */
-errorCode popGrammar(EXIGrammarStack** gStack, EXIGrammar** grammar);
+void popGrammar(EXIGrammarStack** gStack, EXIGrammar** grammar);
 
 /**
  * @brief Creates an instance of the EXI Built-in Document Grammar or Schema-Informed Document Grammar
@@ -90,7 +88,7 @@ errorCode popGrammar(EXIGrammarStack** gStack, EXIGrammar** grammar);
  * @param[in] schema the schema describing the document if any; if Built-in Document Grammar is created then the schema is NULL
  * @return Error handling code
  */
-errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const ExipSchema* schema);
+errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const EXIPSchema* schema);
 
 /**
  * @brief Creates an instance of EXI Built-in Element Grammar

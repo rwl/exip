@@ -43,6 +43,7 @@
  */
 
 #include "procTypes.h"
+#include "memManagement.h"
 
 void makeDefaultOpts(EXIOptions* opts)
 {
@@ -83,5 +84,33 @@ void popFromStack(GenericStack** stack, void** element)
 
 		(*element) = node->element;
 		EXIP_MFREE(node);
+	}
+}
+
+errorCode pushOnStackPersistent(GenericStack** stack, void* element, AllocList* memList)
+{
+	struct stackNode* node = memManagedAllocate(memList, sizeof(struct stackNode));
+	if(node == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	node->element = element;
+	node->nextInStack = *stack;
+	*stack = node;
+	return ERR_OK;
+}
+
+void popFromStackPersistent(GenericStack** stack, void** element)
+{
+	struct stackNode* node;
+	if((*stack) == NULL)
+	{
+		(*element) = NULL;
+	}
+	else
+	{
+		node = *stack;
+		*stack = (*stack)->nextInStack;
+
+		(*element) = node->element;
 	}
 }

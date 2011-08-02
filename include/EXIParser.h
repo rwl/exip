@@ -47,14 +47,12 @@
 #define EXIPARSER_H_
 
 #include "contentHandler.h"
-#include "schema.h"
 
 struct Parser
 {
 	EXIStream strm;
 	EXIGrammar documentGrammar;
 	ContentHandler handler;
-	ExipSchema* schema;
 	void* app_data;
 };
 
@@ -71,7 +69,7 @@ typedef struct Parser Parser;
  * @param[in] app_data Application data to be passed to the content handler callbacks
  * @return Error handling code
  */
-errorCode initParser(Parser* parser, char* binaryBuf, size_t bufLen, size_t bufContent, IOStream* ioStrm, ExipSchema* schema, void* app_data);
+errorCode initParser(Parser* parser, char* binaryBuf, size_t bufLen, size_t bufContent, IOStream* ioStrm, EXIPSchema* schema, void* app_data);
 
 
 /**

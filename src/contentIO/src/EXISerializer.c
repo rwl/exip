@@ -83,7 +83,7 @@ void initHeader(EXIStream* strm)
 	makeDefaultOpts(&strm->header.opts);
 }
 
-errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStrm, ExipSchema* schema)
+errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStrm, EXIPSchema* schema)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIGrammar* docGr;
@@ -104,6 +104,7 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 	strm->context.curr_lnID = 0;
 	strm->context.expectATData = 0;
 	strm->gStack = NULL;
+	strm->schema = schema;
 	if(ioStrm == NULL)
 	{
 		strm->ioStrm.readWriteToStream = NULL;
@@ -174,13 +175,17 @@ errorCode startDocument(EXIStream* strm, unsigned char fastSchemaMode, size_t sc
 
 errorCode endDocument(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction)
 {
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	ValueType dummmyType;
+	EXIGrammar* dummmyGrammar;
 	if(strm->context.nonTermID != GR_DOC_END)
 		return INCONSISTENT_PROC_STATE;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">End doc serialization\n"));
 
-	return encodeSimpleEXIEvent(strm, getEventDefType(EVENT_ED), fastSchemaMode, schemaProduction, &dummmyType);
+	tmp_err_code = encodeSimpleEXIEvent(strm, getEventDefType(EVENT_ED), fastSchemaMode, schemaProduction, &dummmyType);
+	popGrammar(&strm->gStack, &dummmyGrammar);
+	return tmp_err_code;
 }
 
 errorCode startElement(EXIStream* strm, QName* qname, unsigned char fastSchemaMode, size_t schemaProduction)
@@ -236,9 +241,7 @@ errorCode endElement(EXIStream* strm, unsigned char fastSchemaMode, size_t schem
 	if(strm->context.nonTermID == GR_VOID_NON_TERMINAL)
 	{
 		EXIGrammar* grammar;
-		tmp_err_code = popGrammar(&(strm->gStack), &grammar);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		popGrammar(&(strm->gStack), &grammar);
 		if(strm->gStack != NULL) // There is more grammars in the stack
 			strm->context.nonTermID = strm->gStack->lastNonTermID;
 	}
@@ -340,6 +343,8 @@ errorCode closeEXIStream(EXIStream* strm)
 		if(strm->ioStrm.readWriteToStream(strm->buffer, strm->context.bufferIndx + 1, strm->ioStrm.stream) < strm->context.bufferIndx + 1)
 			return BUFFER_END_REACHED;
 	}
+	if(strm->schema != NULL)
+		freeAllocList(&strm->schema->memList);
 	freeAllMem(strm);
 	return ERR_OK;
 }
