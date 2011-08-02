@@ -146,18 +146,32 @@ char stringEqualToAscii(const String str1, const char* str2)
 
 int stringCompare(const String str1, const String str2)
 {
-	if((char*) str1.str == NULL)
+	if(str1.str == NULL)
 	{
-		if((char*) str2.str == NULL)
+		if(str2.str == NULL)
 			return 0;
 		else
 			return -1;
 	}
-	else if((char*) str2.str == NULL)
+	else if(str2.str == NULL)
 		return 1;
-
-	return strcmp((char*) str1.str, (char*) str2.str);
-
+	else
+	{
+		size_t diff;
+		size_t i = 0;
+		for(i = 0; i < str1.length; i++)
+		{
+			if(i < str2.length)
+			{
+				diff = str1.str[i] - str2.str[i];
+				if(!diff)
+					return diff;
+			}
+			else
+				return 1;
+		}
+		return 0;
+	}
 }
 
 errorCode getUCSCodePoint(const String* str, size_t charIndex, uint32_t* UCScp)

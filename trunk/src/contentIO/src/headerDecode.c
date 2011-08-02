@@ -46,7 +46,6 @@
 #include "streamDecode.h"
 #include "streamRead.h"
 #include "contentHandler.h"
-#include "schema.h"
 #include "memManagement.h"
 #include "bodyDecode.h"
 #include "grammars.h"
@@ -54,7 +53,7 @@
 #include "sTables.h"
 
 /** This is the statically generated EXIP schema definition for the EXI Options document*/
-extern const ExipSchema ops_schema;
+extern const EXIPSchema ops_schema;
 
 // Content Handler API
 static char ops_fatalError(const char code, const char* msg, void* app_data);
@@ -163,7 +162,7 @@ errorCode decodeHeader(EXIStream* strm)
 		Parser optionsParser;
 		struct ops_AppData appD;
 
-		tmp_err_code = initParser(&optionsParser, strm->buffer, strm->bufLen, strm->bufContent, &strm->ioStrm, (ExipSchema*) &ops_schema, &appD);
+		tmp_err_code = initParser(&optionsParser, strm->buffer, strm->bufLen, strm->bufContent, &strm->ioStrm, (EXIPSchema*) &ops_schema, &appD);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -187,7 +186,7 @@ errorCode decodeHeader(EXIStream* strm)
 		appD.parsed_ops = &strm->header.opts;
 
 		optionsParser.strm.gStack = NULL;
-		tmp_err_code = createDocGrammar(&optionsParser.documentGrammar, &optionsParser.strm, optionsParser.schema);
+		tmp_err_code = createDocGrammar(&optionsParser.documentGrammar, &optionsParser.strm, optionsParser.strm.schema);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -195,7 +194,7 @@ errorCode decodeHeader(EXIStream* strm)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		optionsParser.strm.uriTable = optionsParser.schema->initialStringTables;
+		optionsParser.strm.uriTable = optionsParser.strm.schema->initialStringTables;
 		tmp_err_code = createValueTable(&(optionsParser.strm.vTable), &(optionsParser.strm.memList));
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;

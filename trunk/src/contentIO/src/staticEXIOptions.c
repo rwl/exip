@@ -2,7 +2,7 @@
   * Copyright (c) 2010 - 2011, Rumen Kyusakov, EISLAB, LTU
   * $Id$ */
 
-#include "schema.h"
+#include "procTypes.h"
 
 struct PrefixRow ops_prows_0[1] = {{{"",0}}};
 PrefixTable ops_pTable_0 = {ops_prows_0, 1, 1, {NULL, 0}};
@@ -391,4 +391,4 @@ URITable ops_uriTbl = {ops_uriRows, 5, 5, {NULL, 0}};
 
 QNameID ops_qnames[1] = {{4, 20}};
 
-const ExipSchema ops_schema = {&ops_uriTbl, ops_qnames, 1, {NULL, NULL}};
+const EXIPSchema ops_schema = {&ops_uriTbl, ops_qnames, 1, {NULL, NULL}};

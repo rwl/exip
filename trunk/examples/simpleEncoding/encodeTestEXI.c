@@ -44,7 +44,6 @@
 #include "EXISerializer.h"
 #include "procTypes.h"
 #include "stringManipulate.h"
-#include "schema.h"
 #include "grammarGenerator.h"
 #include <stdio.h>
 #include <string.h>
@@ -65,7 +64,8 @@ int main(int argc, char *argv[])
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	FILE *outfile;
 	char sourceFile[50];
-	ExipSchema* schema = NULL;
+	EXIPSchema schema;
+	EXIPSchema* schemaPtr = NULL;
 
 	if(argc > 1)
 	{
@@ -109,20 +109,13 @@ int main(int argc, char *argv[])
 				fread(schemaBuffer, schemaLen, 1, schemaFile);
 				fclose(schemaFile);
 
-				schema = malloc(sizeof(ExipSchema));
-				if(schema == NULL)
-				{
-					printf("\n Memory allocation error!");
-					return 1;
-				}
-
-				tmp_err_code = generateSchemaInformedGrammars(schemaBuffer, schemaLen, schemaLen, NULL, SCHEMA_FORMAT_XSD_EXI, schema);
-
+				tmp_err_code = generateSchemaInformedGrammars(schemaBuffer, schemaLen, schemaLen, NULL, SCHEMA_FORMAT_XSD_EXI, &schema);
 				if(tmp_err_code != ERR_OK)
 				{
 					printf("\n Error occured: %d", tmp_err_code);
 					return 1;
 				}
+				schemaPtr = &schema;
 
 				free(schemaBuffer);
 			}
@@ -165,7 +158,7 @@ int main(int argc, char *argv[])
 			outStrm.stream = outfile;
 
 			// IV: Initialize the stream
-			tmp_err_code = serialize.initStream(&testStrm, buf, OUTPUT_BUFFER_SIZE, &outStrm, schema);
+			tmp_err_code = serialize.initStream(&testStrm, buf, OUTPUT_BUFFER_SIZE, &outStrm, schemaPtr);
 			if(tmp_err_code != ERR_OK)
 				printError(tmp_err_code, &testStrm, outfile);
 

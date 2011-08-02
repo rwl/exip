@@ -44,7 +44,6 @@
 
 #include "procTypes.h"
 #include "stringManipulate.h"
-#include "schema.h"
 #include "grammarGenerator.h"
 #include "memManagement.h"
 #include "grammarAugment.h"
@@ -76,7 +75,7 @@ int main(int argc, char *argv[])
 	char buffer[INPUT_BUFFER_SIZE];
 	IOStream inputStrm;
 	IOStream outputStrm;
-	ExipSchema schema;
+	EXIPSchema schema;
 	unsigned char outputFormat = OUT_EXIP;
 	unsigned int currArgNumber = 1;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -250,7 +249,7 @@ int main(int argc, char *argv[])
 				// TODO: there should be extra rule slot for each grammar to be use if
 				// strict == FALSE by addUndeclaredProductions()!
 
-				fwrite("#include \"schema.h\"\n\n", 1, strlen("#include \"schema.h\"\n\n"), outfile);
+				fwrite("#include \"procTypes.h\"\n\n", 1, strlen("#include \"schema.h\"\n\n"), outfile);
 
 				for(i = 0; i < schema.initialStringTables->rowCount; i++)
 				{
@@ -349,7 +348,7 @@ int main(int argc, char *argv[])
 
 					fwrite("};\n", 1, strlen("};\n"), outfile);
 
-					sprintf(printfBuf, "LocalNamesTable %slTable_%d = { %sLNrows_%d, %d, %d, {NULL, 0}};\n\n", prefix, i, prefix, i, schema.initialStringTables->rows[i].lTable->rowCount,  schema.initialStringTables->rows[i].lTable->rowCount);
+					sprintf(printfBuf, "LocalNamesmemListTable %slTable_%d = { %sLNrows_%d, %d, %d, {NULL, 0}};\n\n", prefix, i, prefix, i, schema.initialStringTables->rows[i].lTable->rowCount,  schema.initialStringTables->rows[i].lTable->rowCount);
 					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 				}
 
@@ -389,7 +388,7 @@ int main(int argc, char *argv[])
 				}
 				fwrite("};\n\n", 1, strlen("};\n\n"), outfile);
 
-				sprintf(printfBuf, "const ExipSchema %sschema = {&%suriTbl, %sqnames, %d, {NULL, NULL}};\n", prefix, prefix, prefix, schema.globalElemGrammarsCount);
+				sprintf(printfBuf, "const EXIPSchema %sschema = {&%suriTbl, %sqnames, %d, {NULL, NULL}};\n", prefix, prefix, prefix, schema.globalElemGrammarsCount);
 				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 
 			}
@@ -522,7 +521,7 @@ int main(int argc, char *argv[])
 			}
 			freeAllocList(&memList);
 		}
-
+		freeAllocList(&schema.memList);
 	}
 	else
 	{
@@ -537,7 +536,7 @@ static void printfHelp()
     printf("\n" );
     printf("  EXIP     Efficient XML Interchange Processor, Rumen Kyusakov, 2011 \n");
     printf("           Copyright (c) 2010 - 2011, EISLAB - Luleå University of Technology Version 0.2 \n");
-    printf("  Usage:   exipSchema [options] <schema_in> [<schema_out>] \n\n");
+    printf("  Usage:   exipg [options] <schema_in> [<schema_out>] \n\n");
     printf("           Options: [[-help | [-exip | -text | -src[= dynamic | static] [-pfx=<prefix>]] [-mask=<OPTIONS_MASK>]] ] \n");
     printf("           -help   :   Prints this help message\n\n");
     printf("           -exip   :   Format the output schema definitions in EXIP-specific format (Default) \n\n");

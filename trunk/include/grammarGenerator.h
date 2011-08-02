@@ -46,7 +46,6 @@
 
 #include "errorHandle.h"
 #include "procTypes.h"
-#include "schema.h"
 
 /** Supported schema formats like XML-XSD, EXI-XSD, DTD or any other schema representation supported */
 #define SCHEMA_FORMAT_XSD_EXI           0
@@ -64,10 +63,10 @@
  * @param[in] bufContent the size of the data stored in binaryBuf - number of bytes; if 0 - then readInput will be called to fill it in
  * @param[in] ioStrm input stream used to fill the binaryBuf when parsed. If NULL the whole schema is stored in binaryBuf
  * @param[in] schemaFormat EXI, XSD, DTD or any other schema representation supported
- * @param[out] exipSchema the resulted schema information used for processing EXI streams
+ * @param[out] schema the resulted schema information used for processing EXI streams
  * @return Error handling code
  */
 errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t bufContent, IOStream* ioStrm,
-										unsigned char schemaFormat, ExipSchema* schema);
+										unsigned char schemaFormat, EXIPSchema* schema);
 
 #endif /* GRAMMARGENERATOR_H_ */

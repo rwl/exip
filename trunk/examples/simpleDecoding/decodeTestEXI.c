@@ -44,13 +44,12 @@
 #include "EXIParser.h"
 #include "procTypes.h"
 #include "stringManipulate.h"
-#include "schema.h"
 #include "grammarGenerator.h"
 #include <stdio.h>
 #include <string.h>
 
 static void printfHelp();
-static void parseSchema(char* fileName, ExipSchema* schema);
+static void parseSchema(char* fileName, EXIPSchema* schema);
 
 #define OUT_EXI 0
 #define OUT_XML 1
@@ -97,7 +96,8 @@ int main(int argc, char *argv[])
 {
 	FILE *infile;
 	char sourceFileName[100];
-	ExipSchema* schema = NULL;
+	EXIPSchema schema;
+	EXIPSchema* schemaPtr = NULL;
 	struct appData parsingData;
 
 	parsingData.outputFormat = OUT_EXI; // Default output option
@@ -124,14 +124,9 @@ int main(int argc, char *argv[])
 					printfHelp();
 					return 0;
 				}
-				schema = malloc(sizeof(ExipSchema));
-				if(schema == NULL)
-				{
-					printf("\nMemory allocation error!");
-					return 1;
-				}
 
-				parseSchema(argv[3], schema);
+				parseSchema(argv[3], &schema);
+				schemaPtr = &schema;
 				strcpy(sourceFileName, argv[4]);
 			}
 			else
@@ -152,14 +147,9 @@ int main(int argc, char *argv[])
 					printfHelp();
 					return 0;
 				}
-				schema = malloc(sizeof(ExipSchema));
-				if(schema == NULL)
-				{
-					printf("\nMemory allocation error!");
-					return 1;
-				}
 
-				parseSchema(argv[3], schema);
+				parseSchema(argv[3], &schema);
+				schemaPtr = &schema;
 				strcpy(sourceFileName, argv[4]);
 			}
 			else
@@ -174,14 +164,8 @@ int main(int argc, char *argv[])
 			}
 			else
 			{
-				schema = malloc(sizeof(ExipSchema));
-				if(schema == NULL)
-				{
-					printf("\nMemory allocation error!");
-					return 1;
-				}
-
-				parseSchema(argv[2], schema);
+				parseSchema(argv[2], &schema);
+				schemaPtr = &schema;
 				strcpy(sourceFileName, argv[3]);
 			}
 		}
@@ -210,7 +194,7 @@ int main(int argc, char *argv[])
 			ioStrm.stream = infile;
 
 			// II: Second, initialize the parser object
-			tmp_err_code = initParser(&testParser, buffer, INPUT_BUFFER_SIZE, 0, &ioStrm, schema, &parsingData);
+			tmp_err_code = initParser(&testParser, buffer, INPUT_BUFFER_SIZE, 0, &ioStrm, schemaPtr, &parsingData);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
@@ -561,7 +545,7 @@ size_t readFileInputStream(void* buf, size_t readSize, void* stream)
 	return fread(buf, 1, readSize, infile);
 }
 
-static void parseSchema(char* fileName, ExipSchema* schema)
+static void parseSchema(char* fileName, EXIPSchema* schema)
 {
 	FILE *schemaFile;
 	unsigned long schemaLen;

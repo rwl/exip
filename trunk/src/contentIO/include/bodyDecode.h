@@ -45,7 +45,6 @@
 #define BODYDECODE_H_
 
 #include "contentHandler.h"
-#include "schema.h"
 
 /**
  * @brief Decodes a QName from the EXI stream

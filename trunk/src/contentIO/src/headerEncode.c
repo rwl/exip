@@ -44,7 +44,6 @@
 
 #include "headerEncode.h"
 #include "streamWrite.h"
-#include "schema.h"
 #include "memManagement.h"
 #include "grammars.h"
 #include "sTables.h"
@@ -52,7 +51,7 @@
 #include "stringManipulate.h"
 
 /** This is the statically generated EXIP schema definition for the EXI Options document*/
-extern const ExipSchema ops_schema;
+extern const EXIPSchema ops_schema;
 
 extern const EXISerializer serialize;
 

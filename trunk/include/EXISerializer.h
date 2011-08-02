@@ -48,7 +48,6 @@
 
 #include "errorHandle.h"
 #include "procTypes.h"
-#include "schema.h"
 
 struct EXISerializer
 {
@@ -77,7 +76,7 @@ struct EXISerializer
 
 	// EXIP specific
 	void (*initHeader)(EXIStream* strm);
-	errorCode (*initStream)(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStrm, ExipSchema* schema);
+	errorCode (*initStream)(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStrm, EXIPSchema* schema);
 	errorCode (*closeEXIStream)(EXIStream* strm);
 };
 

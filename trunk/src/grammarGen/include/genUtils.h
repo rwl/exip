@@ -48,7 +48,6 @@
 #include "procTypes.h"
 #include "dynamicArray.h"
 #include "sTables.h"
-#include "schema.h"
 #include "protoGrammars.h"
 
 /**
