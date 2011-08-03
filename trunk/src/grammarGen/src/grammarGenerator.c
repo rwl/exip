@@ -1387,6 +1387,21 @@ static errorCode handleAnyEl(struct xsdAppData* app_data)
 	tmp_err_code = createParticleGrammar(&app_data->tmpMemList, minOccurs, maxOccurs,
 			wildTermGrammar, &wildParticleGrammar);
 
+#if DEBUG_GRAMMAR_GEN == ON
+	{
+		uint16_t t = 0;
+		EXIGrammar* tmpGrammar;
+		DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Wildcard proto-grammar:\n"));
+		convertProtoGrammar(&app_data->tmpMemList, wildParticleGrammar, &tmpGrammar);
+		for(t = 0; t < tmpGrammar->rulesDimension; t++)
+		{
+			tmp_err_code = printGrammarRule(t, &(tmpGrammar->ruleArray[t]));
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+	}
+#endif
+
 	tmp_err_code = pushOnStack(&((ElementDescription*) app_data->contextStack->element)->pGrammarStack, (void*) wildParticleGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;

@@ -182,28 +182,28 @@ errorCode encodeHeader(EXIStream* strm)
 				}
 				if(WITH_SELF_CONTAINED(strm->header.opts.enumOpt))
 				{
-					tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 1 - options_strm.context.nonTermID);
+					tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 1 - abs(options_strm.context.nonTermID - 1));
 					tmp_err_code += serialize.endElement(&options_strm, TRUE, 0);
 				}
 				if(strm->header.opts.valueMaxLength != SIZE_MAX)
 				{
-					tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 2 - options_strm.context.nonTermID);
+					tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 2 - abs(options_strm.context.nonTermID - 1));
 					tmp_err_code += serialize.intData(&options_strm, strm->header.opts.valueMaxLength, TRUE, 0);
 					tmp_err_code += serialize.endElement(&options_strm, TRUE, 0);
 				}
 				if(strm->header.opts.valuePartitionCapacity != SIZE_MAX)
 				{
-					tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 3 - options_strm.context.nonTermID);
+					tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 3 - abs(options_strm.context.nonTermID - 1));
 					tmp_err_code += serialize.intData(&options_strm, strm->header.opts.valuePartitionCapacity, TRUE, 0);
 					tmp_err_code += serialize.endElement(&options_strm, TRUE, 0);
 				}
 				if(strm->header.opts.drMap != NULL)
 				{
-					tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 4 - options_strm.context.nonTermID);
+					tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 4 - abs(options_strm.context.nonTermID - 1));
 					// TODO: not ready yet!
 					return NOT_IMPLEMENTED_YET;
 				}
-				tmp_err_code += serialize.endElement(&options_strm, TRUE, 5 - options_strm.context.nonTermID);
+				tmp_err_code += serialize.endElement(&options_strm, TRUE, 6 - options_strm.context.nonTermID);
 			}
 			if(strm->header.opts.preserve != 0)
 			{

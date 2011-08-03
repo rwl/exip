@@ -577,6 +577,8 @@ errorCode createWildcardTermGrammar(AllocList* memList, String* wildcardArray, u
 	(*result)->prods[1][0].lnRowID = SIZE_MAX;
 	(*result)->prodCount[1] = 1;
 
+	(*result)->rulesCount = 2;
+
 	return ERR_OK;
 }
 
