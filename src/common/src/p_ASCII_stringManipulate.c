@@ -157,14 +157,14 @@ int stringCompare(const String str1, const String str2)
 		return 1;
 	else
 	{
-		size_t diff;
+		int diff;
 		size_t i = 0;
 		for(i = 0; i < str1.length; i++)
 		{
 			if(i < str2.length)
 			{
 				diff = str1.str[i] - str2.str[i];
-				if(!diff)
+				if(diff)
 					return diff;
 			}
 			else

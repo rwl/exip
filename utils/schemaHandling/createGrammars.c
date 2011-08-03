@@ -249,7 +249,8 @@ int main(int argc, char *argv[])
 				// TODO: there should be extra rule slot for each grammar to be use if
 				// strict == FALSE by addUndeclaredProductions()!
 
-				fwrite("#include \"procTypes.h\"\n\n", 1, strlen("#include \"schema.h\"\n\n"), outfile);
+				sprintf(printfBuf, "#include \"procTypes.h\"\n\n");
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 
 				for(i = 0; i < schema.initialStringTables->rowCount; i++)
 				{
@@ -348,7 +349,7 @@ int main(int argc, char *argv[])
 
 					fwrite("};\n", 1, strlen("};\n"), outfile);
 
-					sprintf(printfBuf, "LocalNamesmemListTable %slTable_%d = { %sLNrows_%d, %d, %d, {NULL, 0}};\n\n", prefix, i, prefix, i, schema.initialStringTables->rows[i].lTable->rowCount,  schema.initialStringTables->rows[i].lTable->rowCount);
+					sprintf(printfBuf, "LocalNamesTable %slTable_%d = { %sLNrows_%d, %d, %d, {NULL, 0}};\n\n", prefix, i, prefix, i, schema.initialStringTables->rows[i].lTable->rowCount,  schema.initialStringTables->rows[i].lTable->rowCount);
 					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 				}
 
