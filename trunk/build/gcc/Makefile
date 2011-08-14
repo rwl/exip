@@ -59,6 +59,9 @@ SOURCE_DIR = $(PROJECT_ROOT)/src
 # The bin folder of the project 
 BIN_DIR = bin
 
+# The documentation folder of the project
+DOC_DIR = $(PROJECT_ROOT)/doc
+
 # Common module
 COMMON = common
 COMMON_SRC = $(SOURCE_DIR)/$(COMMON)
@@ -159,7 +162,7 @@ OBJECT_ALL = $(COMMON_OBJ) $(STREAM_IO_OBJ) $(STRING_TABLES_OBJ) $(GRAMMAR_OBJ) 
 
 .PHONY : clean all lib check common streamIO stringTables grammar contentIO grammarGen examples exipd \
          mk_bin mk_common mk_streamIO mk_stringTables mk_grammar mk_contentIO mk_grammarGen mk_examples mk_tests mk_all \
-         mk_utils test_sets_copy_examples utils test_sets_copy_utils
+         mk_utils test_sets_copy_examples utils test_sets_copy_utils doc
          
 lib: mk_bin $(BIN_DIR)/libexip.a
 
@@ -186,6 +189,9 @@ check: mk_tests $(CHECK_TARGET)
 examples: mk_examples lib $(EXAMPLES_BIN_DIR)/$(EXAMPLE_1) $(EXAMPLES_BIN_DIR)/$(EXAMPLE_2) test_sets_copy_examples
 
 utils: mk_utils lib $(UTILS_BIN_DIR)/$(UTILS_1) test_sets_copy_utils
+
+doc:
+		cd $(DOC_DIR); doxygen Doxyfile
 
 mk_bin:
 		mkdir -p $(BIN_DIR)

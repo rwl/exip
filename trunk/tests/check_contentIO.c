@@ -33,7 +33,7 @@
 \===================================================================================*/
 
 /**
- * @file check_ContentIO.c
+ * @file check_contentIO.c
  * @brief Tests the Content IO module
  *
  * @date Sep 28, 2010

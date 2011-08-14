@@ -151,7 +151,7 @@ errorCode createInitialEntries(AllocList* memList, URITable* uTable, unsigned ch
  * @brief Add a new row into the Global ValueTable string table and Local value cross string table
  *
  * @param[in, out] strm EXI stream of bits
- * @param[in] global_value the string representing this global value. The String can be allocated on the stack.
+ * @param[in] value the string representing this global value. The String can be allocated on the stack.
  * @return Error handling code
  */
 errorCode addValueRows(EXIStream* strm, String* value);

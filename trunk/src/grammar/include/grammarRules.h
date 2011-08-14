@@ -55,7 +55,7 @@
  * Note! It increments the first part of the event code of each production
  * in the current grammar with the non-terminal LeftHandSide on the left-hand side
  * @param[in, out] rule a Grammar Rule
- * @param[in] eType event type
+ * @param[in] event event and value type
  * @param[in] nonTermID unique identifier of right-hand side Non-terminal
  * @param[in] lnRowID Local name part of the qname of the Event Type corresponding to the inserted production
  * @param[in] uriRowID URI part of the qname of the Event Type corresponding to the inserted production

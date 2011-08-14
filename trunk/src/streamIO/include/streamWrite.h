@@ -51,7 +51,7 @@
 /**
  * @brief Writes a single bit to an EXI stream and moves its current bit pointer
  * @param[out] strm EXI stream of bits
- * @param[in] value of the next bit: 0 or 1
+ * @param[in] bit_val the value of the next bit: 0 or 1
  * @return Error handling code
  */
 errorCode writeNextBit(EXIStream* strm, unsigned char bit_val);

@@ -167,6 +167,7 @@ errorCode encodeHeader(EXIStream* strm)
 
 		if(hasLesscommon)
 		{
+			int nonTermAdj;
 			tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 0);
 			if(hasUncommon)
 			{
@@ -182,24 +183,36 @@ errorCode encodeHeader(EXIStream* strm)
 				}
 				if(WITH_SELF_CONTAINED(strm->header.opts.enumOpt))
 				{
-					tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 1 - abs(options_strm.context.nonTermID - 1));
+					nonTermAdj = options_strm.context.nonTermID - 1;
+					if(nonTermAdj < 0)
+						nonTermAdj = 0;
+					tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 1 - nonTermAdj);
 					tmp_err_code += serialize.endElement(&options_strm, TRUE, 0);
 				}
 				if(strm->header.opts.valueMaxLength != SIZE_MAX)
 				{
-					tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 2 - abs(options_strm.context.nonTermID - 1));
+					nonTermAdj = options_strm.context.nonTermID - 1;
+					if(nonTermAdj < 0)
+						nonTermAdj = 0;
+					tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 2 - nonTermAdj);
 					tmp_err_code += serialize.intData(&options_strm, strm->header.opts.valueMaxLength, TRUE, 0);
 					tmp_err_code += serialize.endElement(&options_strm, TRUE, 0);
 				}
 				if(strm->header.opts.valuePartitionCapacity != SIZE_MAX)
 				{
-					tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 3 - abs(options_strm.context.nonTermID - 1));
+					nonTermAdj = options_strm.context.nonTermID - 1;
+					if(nonTermAdj < 0)
+						nonTermAdj = 0;
+					tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 3 - nonTermAdj);
 					tmp_err_code += serialize.intData(&options_strm, strm->header.opts.valuePartitionCapacity, TRUE, 0);
 					tmp_err_code += serialize.endElement(&options_strm, TRUE, 0);
 				}
 				if(strm->header.opts.drMap != NULL)
 				{
-					tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 4 - abs(options_strm.context.nonTermID - 1));
+					nonTermAdj = options_strm.context.nonTermID - 1;
+					if(nonTermAdj < 0)
+						nonTermAdj = 0;
+					tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 4 - nonTermAdj);
 					// TODO: not ready yet!
 					return NOT_IMPLEMENTED_YET;
 				}

@@ -51,7 +51,7 @@
 /**
  * @brief Reads the next single bit from a buffer and moves its current bit pointer
  * @param[in] strm EXI stream of bits
- * @param[out] value of the next bit: 0 or 1
+ * @param[out] bit_val the value of the next bit: 0 or 1
  * @return Error handling code
  */
 errorCode readNextBit(EXIStream* strm, unsigned char* bit_val);
