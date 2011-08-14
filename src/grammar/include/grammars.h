@@ -54,7 +54,7 @@
  * @brief Process the next grammar production in the Current Grammar
  * Returns the terminal symbol of the production i.e. the EXI Event Type;
  * @param[in] strm EXI stream of bits
- * @param[out] eType the terminal part of the production
+ * @param[out] event the terminal part of the production
  * @param[out] nonTermID_out unique identifier of right-hand side Non-terminal
  * @param[in] handler content handler callbacks
  * @param[in] app_data Application data to be passed to the content handler callbacks
@@ -73,7 +73,7 @@ errorCode pushGrammar(EXIGrammarStack** gStack, EXIGrammar* grammar);
 
 /**
  * @brief Pop a grammar off the top of the Grammar Stack
- * @param[in, out] grStack the Grammar stack
+ * @param[in, out] gStack the Grammar stack
  * @param[out] grammar the popped out grammar
  */
 void popGrammar(EXIGrammarStack** gStack, EXIGrammar** grammar);

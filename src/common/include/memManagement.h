@@ -63,7 +63,7 @@
 errorCode initAllocList(AllocList* list);
 
 /**
- * @brief Allocate a memory block with size <size> and store a copy of
+ * @brief Allocate a memory block with size size and store a copy of
  * the pointer in a linked list for freeing it at the end.
  *
  * @param[in, out] list A list storing the memory allocations
@@ -73,7 +73,7 @@ errorCode initAllocList(AllocList* list);
 void* memManagedAllocate(AllocList* list, size_t size);
 
 /**
- * @brief Allocate a memory block with size <size> and store a copy of
+ * @brief Allocate a memory block with size size and store a copy of
  * the pointer in a linked list for freeing it at the end.
  * It also return the location in the linked list used later
  * during reallocation. Use this function in case the allocated block
@@ -87,7 +87,7 @@ void* memManagedAllocate(AllocList* list, size_t size);
 void* memManagedAllocatePtr(AllocList* list, size_t size, struct reAllocPair* memPair);
 
 /**
- * @brief Reallocate a memory block with size <size>
+ * @brief Reallocate a memory block with size size
  *
  * @param[in, out] ptr pointer to be reallocated
  * @param[in] size the size of the memory block to be reallocated

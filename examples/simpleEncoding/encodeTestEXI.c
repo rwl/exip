@@ -52,8 +52,6 @@ extern const EXISerializer serialize;
 
 #define OUTPUT_BUFFER_SIZE 200
 
-#define TEST_HEADER_WITH_OPTIONS TRUE
-
 static void printfHelp();
 static void printError(errorCode err_code, EXIStream* strm, FILE *outfile);
 

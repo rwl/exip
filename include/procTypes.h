@@ -713,7 +713,7 @@ typedef struct EXIStream EXIStream;
 /**
  * @brief Set the EXI options to their default values
  *
- * @param[in] strm EXI stream of bits
+ * @param[in, out] opts EXI options structure
  */
 void makeDefaultOpts(EXIOptions* opts);
 

@@ -300,6 +300,7 @@
 <buildTargets>
 <target name="all" path="build/gcc" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>make</buildCommand>
+<buildArguments/>
 <buildTarget>all</buildTarget>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>true</useDefaultCommand>
@@ -307,6 +308,7 @@
 </target>
 <target name="examples" path="build/gcc" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>make</buildCommand>
+<buildArguments/>
 <buildTarget>examples</buildTarget>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>true</useDefaultCommand>
@@ -314,6 +316,7 @@
 </target>
 <target name="check" path="build/gcc" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>make</buildCommand>
+<buildArguments/>
 <buildTarget>check</buildTarget>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>true</useDefaultCommand>
@@ -321,6 +324,7 @@
 </target>
 <target name="clean" path="build/gcc" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>make</buildCommand>
+<buildArguments/>
 <buildTarget>clean</buildTarget>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>true</useDefaultCommand>
@@ -328,8 +332,15 @@
 </target>
 <target name="utils" path="build/gcc" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>make</buildCommand>
-<buildArguments/>
 <buildTarget>utils</buildTarget>
+<stopOnError>true</stopOnError>
+<useDefaultCommand>true</useDefaultCommand>
+<runAllBuilders>true</runAllBuilders>
+</target>
+<target name="doc" path="build/gcc" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+<buildCommand>make</buildCommand>
+<buildArguments/>
+<buildTarget>doc</buildTarget>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>true</useDefaultCommand>
 <runAllBuilders>true</runAllBuilders>
@@ -634,6 +645,7 @@
 <buildTargets>
 <target name="all" path="build/gcc" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>make</buildCommand>
+<buildArguments/>
 <buildTarget>all</buildTarget>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>true</useDefaultCommand>
@@ -641,6 +653,7 @@
 </target>
 <target name="examples" path="build/gcc" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>make</buildCommand>
+<buildArguments/>
 <buildTarget>examples</buildTarget>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>true</useDefaultCommand>
@@ -648,6 +661,7 @@
 </target>
 <target name="check" path="build/gcc" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>make</buildCommand>
+<buildArguments/>
 <buildTarget>check</buildTarget>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>true</useDefaultCommand>
@@ -655,6 +669,7 @@
 </target>
 <target name="clean" path="build/gcc" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>make</buildCommand>
+<buildArguments/>
 <buildTarget>clean</buildTarget>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>true</useDefaultCommand>
@@ -662,8 +677,15 @@
 </target>
 <target name="utils" path="build/gcc" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>make</buildCommand>
-<buildArguments/>
 <buildTarget>utils</buildTarget>
+<stopOnError>true</stopOnError>
+<useDefaultCommand>true</useDefaultCommand>
+<runAllBuilders>true</runAllBuilders>
+</target>
+<target name="doc" path="build/gcc" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+<buildCommand>make</buildCommand>
+<buildArguments/>
+<buildTarget>doc</buildTarget>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>true</useDefaultCommand>
 <runAllBuilders>true</runAllBuilders>
