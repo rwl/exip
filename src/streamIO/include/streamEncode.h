@@ -52,11 +52,11 @@
  * @brief Encode EXI n-bit Unsigned Integer
  *
  * @param[in, out] strm EXI stream of bits
- * @param[in] n The number of bits in the range [1,32].
+ * @param[in] n The number of bits in the range
  * @param[in] int_val n-bit unsigned integer value
  * @return Error handling code
  */
-errorCode encodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, uint32_t int_val);
+errorCode encodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, unsigned int int_val);
 
 /**
  * @brief Encode EXI Boolean
@@ -80,7 +80,7 @@ errorCode encodeBoolean(EXIStream* strm, unsigned char bool_val);
  * @param[in] int_val unsigned integer value
  * @return Error handling code.
  */
-errorCode encodeUnsignedInteger(EXIStream* strm, uint32_t int_val);
+errorCode encodeUnsignedInteger(EXIStream* strm, UnsignedInteger int_val);
 
 /**
  * @brief Encode EXI String type
@@ -127,7 +127,7 @@ errorCode encodeBinary(EXIStream* strm, char* binary_val, size_t nbytes);
  * @param[in] sint_val signed integer value to be encoded
  * @return Error handling code.
  */
-errorCode encodeIntegerValue(EXIStream* strm, int32_t sint_val);
+errorCode encodeIntegerValue(EXIStream* strm, Integer sint_val);
 
 /**
  * @brief Encode EXI Decimal type
@@ -140,9 +140,7 @@ errorCode encodeIntegerValue(EXIStream* strm, int32_t sint_val);
  *
  * @param[in, out] strm EXI stream of bits
  * @param[in] dec_val decimal value to be encoded
- * @return Error handling code. It returns BIGGER_TYPE_REQUIRED indicating that
- * the decimal is bigger than the parameter type provided. The processor MUST
- * invoke the function that handles larger decimals
+ * @return Error handling code.
  */
 errorCode encodeDecimalValue(EXIStream* strm, Decimal dec_val);
 
@@ -153,9 +151,9 @@ errorCode encodeDecimalValue(EXIStream* strm, Decimal dec_val);
  * Integer represents the 10-based exponent of the floating point number
  *
  * @param[in, out] strm EXI stream of bits
- * @param[in] double_val float value to be encoded
+ * @param[in] fl_val float value to be encoded
  * @return Error handling code.
  */
-errorCode encodeFloatValue(EXIStream* strm, double double_val);
+errorCode encodeFloatValue(EXIStream* strm, Float fl_val);
 
 #endif /* STREAMENCODE_H_ */

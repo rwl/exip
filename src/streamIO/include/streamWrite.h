@@ -62,7 +62,7 @@ errorCode writeNextBit(EXIStream* strm, unsigned char bit_val);
  * @param[out] strm EXI stream of bits
  * @param[in] bits_val resulting bits value
  */
-errorCode writeBits(EXIStream* strm, uint32_t bits_val);
+errorCode writeBits(EXIStream* strm, unsigned int bits_val);
 
 /**
  * @brief Writes an unsigned integer value to an EXI stream with nbits (possible 0 paddings)
@@ -71,6 +71,6 @@ errorCode writeBits(EXIStream* strm, uint32_t bits_val);
  * @param[in] nbits number of bits
  * @param[in] bits_val resulting bits value
  */
-errorCode writeNBits(EXIStream* strm, unsigned char nbits, uint32_t bits_val);
+errorCode writeNBits(EXIStream* strm, unsigned char nbits, unsigned int bits_val);
 
 #endif /* STREAMWRITE_H_ */

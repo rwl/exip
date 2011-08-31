@@ -49,7 +49,7 @@
 #include <math.h>
 
 
-errorCode encodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, uint32_t int_val)
+errorCode encodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, unsigned int int_val)
 {
 	if(WITH_COMPRESSION(strm->header.opts.enumOpt) == FALSE && GET_ALIGNMENT(strm->header.opts.enumOpt) == BIT_PACKED)
 	{
@@ -79,7 +79,7 @@ errorCode encodeBoolean(EXIStream* strm, unsigned char bool_val)
 	return writeNextBit(strm, bool_val);
 }
 
-errorCode encodeUnsignedInteger(EXIStream* strm, uint32_t int_val)
+errorCode encodeUnsignedInteger(EXIStream* strm, UnsignedInteger int_val)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int nbits = getBitsNumber(int_val);
@@ -110,7 +110,7 @@ errorCode encodeString(EXIStream* strm, const String* string_val)
 
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
-	tmp_err_code = encodeUnsignedInteger(strm, (uint32_t)(string_val->length) );
+	tmp_err_code = encodeUnsignedInteger(strm, (UnsignedInteger)(string_val->length) );
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -130,7 +130,7 @@ errorCode encodeStringOnly(EXIStream* strm, const String* string_val)
 		tmp_err_code = getUCSCodePoint(string_val, i, &tmp_val);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		tmp_err_code = encodeUnsignedInteger(strm, tmp_val);
+		tmp_err_code = encodeUnsignedInteger(strm, (UnsignedInteger) tmp_val);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -143,32 +143,32 @@ errorCode encodeBinary(EXIStream* strm, char* binary_val, size_t nbytes)
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	size_t i = 0;
 
-	tmp_err_code = encodeUnsignedInteger(strm, (uint32_t) nbytes);
+	tmp_err_code = encodeUnsignedInteger(strm, (UnsignedInteger) nbytes);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
 	for(i = 0; i < nbytes; i++)
 	{
-		tmp_err_code = writeNBits(strm, 8, (uint32_t) binary_val[i]);
+		tmp_err_code = writeNBits(strm, 8, (unsigned int) binary_val[i]);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 	return ERR_OK;
 }
 
-errorCode encodeIntegerValue(EXIStream* strm, int32_t sint_val)
+errorCode encodeIntegerValue(EXIStream* strm, Integer sint_val)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	uint32_t uval;
+	UnsignedInteger uval;
 	unsigned char sign;
 	if(sint_val >= 0)
 	{
 		sign = 0;
-		uval = (uint32_t) sint_val;
+		uval = (UnsignedInteger) sint_val;
 	}
 	else
 	{
-		uval = (uint32_t) -sint_val;
+		uval = (UnsignedInteger) -sint_val;
 		sign = 1;
 	}
 	tmp_err_code = writeNextBit(strm, sign);
@@ -182,8 +182,8 @@ errorCode encodeDecimalValue(EXIStream* strm, Decimal dec_val)
 	// TODO: Review this. Probably incorrect in some cases and not efficient. Depends on decimal floating point support!
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char sign = 0;
-	uint32_t integr_part = 0;
-	uint32_t fract_part_rev = 0;
+	UnsignedInteger integr_part = 0;
+	UnsignedInteger fract_part_rev = 0;
 	unsigned int i = 1;
 	unsigned int d = 0;
 
@@ -199,7 +199,7 @@ errorCode encodeDecimalValue(EXIStream* strm, Decimal dec_val)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	integr_part = (uint32_t) dec_val;
+	integr_part = (UnsignedInteger) dec_val;
 
 	tmp_err_code = encodeUnsignedInteger(strm, integr_part);
 	if(tmp_err_code != ERR_OK)
@@ -207,13 +207,13 @@ errorCode encodeDecimalValue(EXIStream* strm, Decimal dec_val)
 
 	dec_val = dec_val - integr_part;
 
-	while(dec_val - ((uint32_t) dec_val) != 0)
+	while(dec_val - ((UnsignedInteger) dec_val) != 0)
 	{
 		dec_val = dec_val * 10;
 		d = (unsigned int) dec_val;
 		fract_part_rev = fract_part_rev + d*i;
 		i = i*10;
-		dec_val = dec_val - (uint32_t) dec_val;
+		dec_val = dec_val - (UnsignedInteger) dec_val;
 	}
 
 	tmp_err_code = encodeUnsignedInteger(strm, fract_part_rev);
@@ -223,49 +223,15 @@ errorCode encodeDecimalValue(EXIStream* strm, Decimal dec_val)
 	return ERR_OK;
 }
 
-errorCode encodeFloatValue(EXIStream* strm, double double_val)
+errorCode encodeFloatValue(EXIStream* strm, Float fl_val)
 {
-	// TODO: Review this. Probably incorrect in some cases and not efficient. Depends on decimal floating point support!
-	// There should be a function from a library that can be reused for the conversion from base 2 to base 10 floating points
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	int32_t mant = 0;	//mantissa
-	int32_t expt = 0;	//exponent
 
-	if(double_val == INFINITY)
-	{
-		expt = -(0x1<<14); // expt == -2^14
-		mant = 1;
-	}
-	else if(double_val == -INFINITY)
-	{
-		expt = -(0x1<<14); // expt == -2^14
-		mant = -1;
-	}
-	else if(double_val == NAN)
-	{
-		expt = -(0x1<<14); // expt == -2^14
-		mant = 5;
-	}
-	else
-	{
-		Decimal tmp_dec = double_val;
-		int tmp_expt = 0;
-
-		while(tmp_dec - ((int32_t) tmp_dec) != 0)
-		{
-			tmp_dec = tmp_dec*10;
-			tmp_expt++;
-		}
-
-		mant = (int32_t) tmp_dec;
-		expt = tmp_expt;
-	}
-
-	tmp_err_code = encodeIntegerValue(strm, mant);	//encode mantissa
+	tmp_err_code = encodeIntegerValue(strm, (Integer) fl_val.mantissa);	//encode mantissa
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = encodeIntegerValue(strm, expt);	//encode exponent
+	tmp_err_code = encodeIntegerValue(strm, (Integer) fl_val.exponent);	//encode exponent
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 

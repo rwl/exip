@@ -53,19 +53,18 @@ START_TEST (test_createDocGrammar)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	EXIStream testStream;
-	EXIOptions options;
 	EXIGrammar testGrammar;
 	char buf[2];
 	buf[0] = (char) 0xD4; /* 0b11010100 */
 	buf[1] = (char) 0x60; /* 0b01100000 */
 
 	testStream.context.bitPointer = 0;
-	makeDefaultOpts(&options);
-	testStream.header.opts = &options;
+	makeDefaultOpts(&testStream.header.opts);
 	testStream.buffer = buf;
 	testStream.bufLen = 2;
 	testStream.bufContent = 2;
-	testStream.ioStrm = NULL;
+	testStream.ioStrm.readWriteToStream = NULL;
+	testStream.ioStrm.stream = NULL;
 	testStream.context.bufferIndx = 0;
 	initAllocList(&testStream.memList);
 
@@ -88,12 +87,10 @@ START_TEST (test_pushGrammar)
 	errorCode err = UNEXPECTED_ERROR;
 	EXIGrammarStack* testGrStack = NULL;
 	EXIGrammar docGr;
-	EXIOptions options;
 	EXIStream strm;
 	EXIGrammar testElementGrammar;
 
-	makeDefaultOpts(&options);
-	strm.header.opts = &options;
+	makeDefaultOpts(&strm.header.opts);
 	initAllocList(&strm.memList);
 
 	err = createDocGrammar(&docGr, &strm, NULL);
@@ -117,13 +114,11 @@ START_TEST (test_popGrammar)
 	errorCode err = UNEXPECTED_ERROR;
 	EXIGrammarStack* testGrStack = NULL;
 	EXIGrammar docGr;
-	EXIOptions options;
 	EXIStream strm;
 	EXIGrammar testElementGrammar;
 	EXIGrammar* testGR;
 
-	makeDefaultOpts(&options);
-	strm.header.opts = &options;
+	makeDefaultOpts(&strm.header.opts);
 	initAllocList(&strm.memList);
 
 	err = createDocGrammar(&docGr, &strm, NULL);
@@ -139,8 +134,7 @@ START_TEST (test_popGrammar)
 	fail_unless (err == ERR_OK, "pushGrammar returns error code %d", err);
 	fail_if(testGrStack->nextInStack == NULL);
 
-	err = popGrammar(&testGrStack, &testGR);
-	fail_unless (err == ERR_OK, "popGrammar returns error code %d", err);
+	popGrammar(&testGrStack, &testGR);
 	fail_if(testGrStack->nextInStack != NULL);
 	fail_if(testGR == NULL);
 	fail_if(testGR != &testElementGrammar);
@@ -151,11 +145,9 @@ START_TEST (test_createBuildInElementGrammar)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	EXIGrammar testElementGrammar;
-	EXIOptions options;
 	EXIStream strm;
 
-	makeDefaultOpts(&options);
-	strm.header.opts = &options;
+	makeDefaultOpts(&strm.header.opts);
 	initAllocList(&strm.memList);
 
 	err = createBuildInElementGrammar(&testElementGrammar, &strm);

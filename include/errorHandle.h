@@ -98,8 +98,8 @@ typedef char errorCode;
 /** Buffer end reached  */
 #define BUFFER_END_REACHED 10
 
-/** Stream value bigger than a processor type boundary */
-#define BIGGER_TYPE_REQUIRED 9
+/** Received EXI value type or event encoding that is invalid according to the specification */
+#define INVALID_EXI_INPUT 9
 
 /** Processor state is inconsistent with the stream events  */
 #define INCONSISTENT_PROC_STATE 8

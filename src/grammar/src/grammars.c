@@ -503,7 +503,7 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 							    size_t* nonTermID_out, ContentHandler* handler, void* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	uint32_t tmp_bits_val = 0;
+	unsigned int tmp_bits_val = 0;
 	unsigned char b = 0;
 	GrammarRule* currentRule;
 

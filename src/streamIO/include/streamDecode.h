@@ -56,7 +56,7 @@
  * @param[out] int_val resulting n-bit unsigned integer value
  * @return Error handling code
  */
-errorCode decodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, uint32_t* int_val);
+errorCode decodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, unsigned int* int_val);
 
 /**
  * @brief Decode EXI Boolean
@@ -78,11 +78,9 @@ errorCode decodeBoolean(EXIStream* strm, unsigned char* bool_val);
  *
  * @param[in] strm EXI stream of bits
  * @param[out] int_val resulting unsigned integer value
- * @return Error handling code. It returns BIGGER_TYPE_REQUIRED indicating that
- * the integer is bigger than 32 bits. The processor MUST invoke the function
- * that handles larger unsigned integers
+ * @return Error handling code.
  */
-errorCode decodeUnsignedInteger(EXIStream* strm, uint32_t* int_val);
+errorCode decodeUnsignedInteger(EXIStream* strm, UnsignedInteger* int_val);
 
 /**
  * @brief Decode EXI String type
@@ -129,11 +127,9 @@ errorCode decodeBinary(EXIStream* strm, char** binary_val, size_t* nbytes);
  *
  * @param[in] strm EXI stream of bits
  * @param[out] sint_val decoded signed integer value
- * @return Error handling code. It returns BIGGER_TYPE_REQUIRED indicating that
- * the integer is bigger than 32 bits. The processor MUST invoke the function
- * that handles larger integers
+ * @return Error handling code.
  */
-errorCode decodeIntegerValue(EXIStream* strm, int32_t* sint_val);
+errorCode decodeIntegerValue(EXIStream* strm, Integer* sint_val);
 
 /**
  * @brief Decode EXI Decimal type
@@ -146,9 +142,7 @@ errorCode decodeIntegerValue(EXIStream* strm, int32_t* sint_val);
  *
  * @param[in] strm EXI stream of bits
  * @param[out] dec_val decoded decimal value
- * @return Error handling code. It returns BIGGER_TYPE_REQUIRED indicating that
- * the decimal is bigger than the parameter type provided. The processor MUST
- * invoke the function that handles larger decimals
+ * @return Error handling code.
  */
 errorCode decodeDecimalValue(EXIStream* strm, Decimal* dec_val);
 
@@ -159,11 +153,9 @@ errorCode decodeDecimalValue(EXIStream* strm, Decimal* dec_val);
  * Integer represents the 10-based exponent of the floating point number
  *
  * @param[in] strm EXI stream of bits
- * @param[out] double_val decoded float value as double
- * @return Error handling code. It returns BIGGER_TYPE_REQUIRED indicating that
- * the float is bigger than double. The processor MUST invoke the function
- * that handles larger floats
+ * @param[out] fl_val decoded float value as double
+ * @return Error handling code.
  */
-errorCode decodeFloatValue(EXIStream* strm, double* double_val);
+errorCode decodeFloatValue(EXIStream* strm, Float* fl_val);
 
 #endif /* STREAMDECODE_H_ */
