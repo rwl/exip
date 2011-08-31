@@ -53,14 +53,11 @@
 START_TEST (test_decodeHeader)
 {
 	EXIStream testStream;  // Default options, no EXI cookie
-	EXIOptions options;
 	char buf[3];
 	errorCode err = UNEXPECTED_ERROR;
 	EXIStream testStream2;  // Default options, with EXI cookie
-	EXIOptions options2;
 	char buf2[7];
 
-	testStream.header.opts = &options;
 	testStream.context.bitPointer = 0;
 	buf[0] = (char) 0x80;
 	buf[1] = (char) 0x60;
@@ -69,12 +66,12 @@ START_TEST (test_decodeHeader)
 	testStream.context.bufferIndx = 0;
 	testStream.bufLen = 3;
 	testStream.bufContent = 3;
-	testStream.ioStrm = NULL;
+	testStream.ioStrm.readWriteToStream = NULL;
+	testStream.ioStrm.stream = NULL;
 	initAllocList(&testStream.memList);
 
 	err = decodeHeader(&testStream);
 	fail_unless (err == ERR_OK, "decodeHeader returns error code %d", err);
-	fail_if(testStream.header.opts == NULL);
 	fail_unless (testStream.header.has_cookie == 0,
 				"decodeHeader founds EXI cookie");
 	fail_unless (testStream.header.has_options == 0,
@@ -84,7 +81,6 @@ START_TEST (test_decodeHeader)
 	fail_unless (testStream.header.version_number == 1,
 					"decodeHeader does not recognize version 1 of the stream");
 
-	testStream2.header.opts = &options2;
 	testStream2.context.bitPointer = 0;
 
 	buf2[0] = (char) 36;
@@ -99,11 +95,11 @@ START_TEST (test_decodeHeader)
 	testStream2.context.bufferIndx = 0;
 	testStream2.bufLen = 7;
 	testStream2.bufContent = 7;
-	testStream2.ioStrm = NULL;
+	testStream2.ioStrm.readWriteToStream = NULL;
+	testStream2.ioStrm.stream = NULL;
 
 	err = decodeHeader(&testStream2);
 	fail_unless (err == ERR_OK, "decodeHeader returns error code %d", err);
-	fail_if(testStream2.header.opts == NULL);
 	fail_unless (testStream2.header.has_cookie == 1,
 				"decodeHeader does not found EXI cookie");
 	fail_unless (testStream2.header.has_options == 0,

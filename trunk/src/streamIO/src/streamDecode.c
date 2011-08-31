@@ -38,7 +38,6 @@
  *
  * @date Aug 18, 2010
  * @author Rumen Kyusakov
- * @author Ashok Gowtham
  * @version 0.1
  * @par[Revision] $Id$
  */
@@ -48,7 +47,7 @@
 #include "stringManipulate.h"
 #include <math.h>
 
-errorCode decodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, uint32_t* int_val)
+errorCode decodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, unsigned int* int_val)
 {
 	if(WITH_COMPRESSION(strm->header.opts.enumOpt) == FALSE && GET_ALIGNMENT(strm->header.opts.enumOpt) == BIT_PACKED)
 	{
@@ -80,16 +79,13 @@ errorCode decodeBoolean(EXIStream* strm, unsigned char* bool_val)
 	return readNextBit(strm, bool_val);
 }
 
-errorCode decodeUnsignedInteger(EXIStream* strm, uint32_t* int_val)
+errorCode decodeUnsignedInteger(EXIStream* strm, UnsignedInteger* int_val)
 {
-	// TODO: handle situations where the UnsignedInteger cannot fit into unsigned int type!
-	//       In this case it should return BIGGER_TYPE_REQUIRED error and position the
-	//       stream pointer at initial position
 	int mask_7bits = 127;
 	int mask_8th_bit = 128;
 	unsigned int initial_multiplier = 1;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	uint32_t tmp_byte_buf = 0;
+	unsigned int tmp_byte_buf = 0;
 	int more_bytes_to_read = 0;
 	*int_val = 0;
 
@@ -112,7 +108,7 @@ errorCode decodeUnsignedInteger(EXIStream* strm, uint32_t* int_val)
 errorCode decodeString(EXIStream* strm, String* string_val)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	uint32_t string_length = 0;
+	UnsignedInteger string_length = 0;
 	tmp_err_code = decodeUnsignedInteger(strm, &string_length);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -135,7 +131,7 @@ errorCode decodeStringOnly(EXIStream* strm, size_t str_length, String* string_va
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	size_t i = 0;
 	size_t UCSCharPosition = 0;
-	uint32_t tmp_code_point = 0;
+	UnsignedInteger tmp_code_point = 0;
 	tmp_err_code = allocateStringMemory(&(string_val->str), str_length, &strm->memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -146,41 +142,43 @@ errorCode decodeStringOnly(EXIStream* strm, size_t str_length, String* string_va
 		tmp_err_code = decodeUnsignedInteger(strm, &tmp_code_point);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		writeCharToString(string_val, tmp_code_point, &UCSCharPosition);
+		writeCharToString(string_val, (uint32_t) tmp_code_point, &UCSCharPosition);
 	}
 	return ERR_OK;
 }
 
 errorCode decodeBinary(EXIStream* strm, char** binary_val, size_t* nbytes)
 {
-	errorCode err;
-	uint32_t length=0;
-	uint32_t int_val=0;
-	uint32_t i = 0;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	UnsignedInteger length = 0;
+	unsigned int int_val = 0;
+	UnsignedInteger i = 0;
 
-	err = decodeUnsignedInteger(strm, &length);
-	if(err!=ERR_OK) return err;
-	*nbytes = length;
+	tmp_err_code = decodeUnsignedInteger(strm, &length);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+	*nbytes = (size_t) length;
 	(*binary_val) = (char*) EXIP_MALLOC(length); // This memory should be manually freed after the content handler is invoked
 	if((*binary_val) == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
 	for(i = 0; i < length; i++)
 	{
-		err = readBits(strm,8,&int_val);
-		if(err!=ERR_OK) return err;
-		(*binary_val)[i]=(char)int_val;
+		tmp_err_code = readBits(strm, 8, &int_val);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		(*binary_val)[i]=(char) int_val;
 	}
 	return ERR_OK;
 }
 
-errorCode decodeIntegerValue(EXIStream* strm, int32_t* sint_val)
+errorCode decodeIntegerValue(EXIStream* strm, Integer* sint_val)
 {
 	// TODO: If there is associated schema datatype handle differently!
 	// TODO: check if the result fit into int type
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char bool_val = 0;
-	uint32_t val;
+	UnsignedInteger val;
 	tmp_err_code = decodeBoolean(strm, &bool_val);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -190,9 +188,9 @@ errorCode decodeIntegerValue(EXIStream* strm, int32_t* sint_val)
 		return tmp_err_code;
 
 	if(bool_val == 0) // A sign value of zero (0) is used to represent positive integers
-		*sint_val = (int32_t) val;
+		*sint_val = (Integer) val;
 	else if(bool_val == 1) // A sign value of one (1) is used to represent negative integers
-		*sint_val = -((int32_t) val);
+		*sint_val = -((Integer) val);
 	else
 		return UNEXPECTED_ERROR;
 	return ERR_OK;
@@ -204,10 +202,10 @@ errorCode decodeDecimalValue(EXIStream* strm, Decimal* dec_val)
 	// Ref: http://gcc.gnu.org/onlinedocs/gccint/Decimal-float-library-routines.html
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char sign;
-	uint32_t integr_part = 0;
-	uint32_t fract_part = 0;
-	uint32_t fraction_digits = 1;
-	uint32_t fract_part_rev = 0;
+	UnsignedInteger integr_part = 0;
+	UnsignedInteger fract_part = 0;
+	unsigned int fraction_digits = 1;
+	UnsignedInteger fract_part_rev = 0;
 
 	tmp_err_code = decodeBoolean(strm, &sign);
 	if(tmp_err_code != ERR_OK)
@@ -240,61 +238,30 @@ errorCode decodeDecimalValue(EXIStream* strm, Decimal* dec_val)
 	return ERR_OK;
 }
 
-errorCode decodeFloatValue(EXIStream* strm, double* double_val)
+errorCode decodeFloatValue(EXIStream* strm, Float* fl_val)
 {
-	// TODO: Review this. Probably can be more efficient using the binary representation of double directly
-	//refer : http://www.linuxquestions.org/questions/programming-9/c-language-inf-and-nan-437323/
-	//also: http://www.gnu.org/s/hello/manual/libc/Infinity-and-NaN.html
-	errorCode err;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	Integer mantissa;
+	Integer exponent;
 
-	double val;	// val = man * 10^exp
-	int32_t man;	//mantissa
-	int32_t exp;	//exponent
+	tmp_err_code = decodeIntegerValue(strm, &mantissa);	//decode mantissa
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
-	err = decodeIntegerValue(strm,&man);	//decode mantissa
-	if(err!=ERR_OK) return err;
-	err = decodeIntegerValue(strm,&exp);	//decode exponent
-	if(err!=ERR_OK) return err;
+	tmp_err_code = decodeIntegerValue(strm, &exponent);	//decode exponent
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
-	if(exp == -(0x1<<14))	//if exp == -2^14
+	if(exponent >= (1 << 14) || exponent < -(1 << 14)
+			|| mantissa >= ((uint64_t) 1 << 63) ||
+			(mantissa < 0 && -mantissa > ((uint64_t) 1 << 63))
+			)
 	{
-		if(man==1)
-		{
-			//val =  +INF
-			val=INFINITY;
-		}
-		else if(man==-1)
-		{
-			//val =  -INF
-			val=-INFINITY;
-		}
-		else
-		{
-			//val = NaN
-			val=NAN;
-		}
+		return INVALID_EXI_INPUT;
 	}
-	else
-	{
-		val=man;
-		//apply the exponent  (man * 10^exp)
-		if(exp>0)
-		{
-			while(exp)
-			{
-				val*=10;
-				exp--;
-			}
-		}
-		else
-		{
-			while(exp)
-			{
-				val/=10;
-				exp++;
-			}
-		}
-	}
-	*double_val=val;
+
+	fl_val->mantissa = mantissa;
+	fl_val->exponent = exponent;
+
 	return ERR_OK;
 }

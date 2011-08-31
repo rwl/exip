@@ -86,13 +86,13 @@ errorCode encodeStringData(EXIStream* strm, String strng)
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 			gvBits = getBitsNumber((unsigned int)(strm->vTable->rowCount - 1));
-			tmp_err_code = encodeNBitUnsignedInteger(strm, gvBits, (uint32_t)(gvRowID) );
+			tmp_err_code = encodeNBitUnsignedInteger(strm, gvBits, (unsigned int)(gvRowID) );
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 		else // "local" value partition and global value partition table miss
 		{
-			tmp_err_code = encodeUnsignedInteger(strm, (uint32_t)(strng.length + 2));
+			tmp_err_code = encodeUnsignedInteger(strm, (UnsignedInteger)(strng.length + 2));
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 			tmp_err_code = encodeStringOnly(strm, &strng);
@@ -371,14 +371,14 @@ errorCode encodeQName(EXIStream* strm, QName qname)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = encodeNBitUnsignedInteger(strm, lnBits, (uint32_t)(lnID) );
+		tmp_err_code = encodeNBitUnsignedInteger(strm, lnBits, (unsigned int)(lnID) );
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 	else // local-name table miss
 	{
 		String copiedLN;
-		tmp_err_code = encodeUnsignedInteger(strm, (uint32_t)(qname.localName->length + 1) );
+		tmp_err_code = encodeUnsignedInteger(strm, (UnsignedInteger)(qname.localName->length + 1) );
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -415,7 +415,7 @@ errorCode encodeIntData(EXIStream* strm, Integer int_val, ValueType intType)
 	}
 	else if(intType == VALUE_TYPE_NON_NEGATIVE_INT)
 	{
-		return encodeUnsignedInteger(strm, int_val);
+		return encodeUnsignedInteger(strm, (UnsignedInteger) int_val);
 	}
 	else if(intType == VALUE_TYPE_INTEGER)
 	{

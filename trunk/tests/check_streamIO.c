@@ -71,7 +71,8 @@ START_TEST (test_readNextBit)
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufContent = 2;
-  testStream.ioStrm = NULL;
+  testStream.ioStrm.readWriteToStream = NULL;
+  testStream.ioStrm.stream = NULL;
   testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
@@ -125,7 +126,8 @@ START_TEST (test_readBits)
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufContent = 2;
-  testStream.ioStrm = NULL;
+  testStream.ioStrm.readWriteToStream = NULL;
+  testStream.ioStrm.stream = NULL;
   testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
@@ -172,7 +174,8 @@ START_TEST (test_writeNextBit)
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufContent = 2;
-  testStream.ioStrm = NULL;
+  testStream.ioStrm.readWriteToStream = NULL;
+  testStream.ioStrm.stream = NULL;
   testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
@@ -223,7 +226,8 @@ START_TEST (test_writeBits)
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufContent = 2;
-  testStream.ioStrm = NULL;
+  testStream.ioStrm.readWriteToStream = NULL;
+  testStream.ioStrm.stream = NULL;
   testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
@@ -271,7 +275,8 @@ START_TEST (test_writeNBits)
   buf[1] = (char) 0xE0; /* 0b11100000 */
   testStream.buffer = buf;
   testStream.bufLen = 2;
-  testStream.ioStrm = NULL;
+  testStream.ioStrm.readWriteToStream = NULL;
+  testStream.ioStrm.stream = NULL;
   testStream.bufContent = 2;
   testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
@@ -315,22 +320,21 @@ END_TEST
 START_TEST (test_decodeNBitUnsignedInteger)
 {
   EXIStream testStream;
-  EXIOptions options;
 
   char buf[2];
   unsigned int bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
 
   testStream.context.bitPointer = 0;
-  makeDefaultOpts(&options);
-  testStream.header.opts = &options;
+  makeDefaultOpts(&testStream.header.opts);
 
   buf[0] = (char) 0xD4; /* 0b11010100 */
   buf[1] = (char) 0x60; /* 0b01100000 */
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufContent = 2;
-  testStream.ioStrm = NULL;
+  testStream.ioStrm.readWriteToStream = NULL;
+  testStream.ioStrm.stream = NULL;
   testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
@@ -351,21 +355,20 @@ END_TEST
 START_TEST (test_decodeBoolean)
 {
   EXIStream testStream;
-  EXIOptions options;
   char buf[2];
   unsigned char bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
 
   testStream.context.bitPointer = 0;
-  makeDefaultOpts(&options);
-  testStream.header.opts = &options;
+  makeDefaultOpts(&testStream.header.opts);
 
   buf[0] = (char) 0xD4; /* 0b11010100 */
   buf[1] = (char) 0x60; /* 0b01100000 */
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufContent = 2;
-  testStream.ioStrm = NULL;
+  testStream.ioStrm.readWriteToStream = NULL;
+  testStream.ioStrm.stream = NULL;
   testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
@@ -383,14 +386,12 @@ END_TEST
 START_TEST (test_decodeUnsignedInteger)
 {
   EXIStream testStream;
-  EXIOptions options;
   char buf[3];
   unsigned int bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
 
   testStream.context.bitPointer = 0;
-  makeDefaultOpts(&options);
-  testStream.header.opts = &options;
+  makeDefaultOpts(&testStream.header.opts);
 
   buf[0] = (char) 0xD4; /* 0b11010100 */
   buf[1] = (char) 0x60; /* 0b01100000 */
@@ -398,7 +399,8 @@ START_TEST (test_decodeUnsignedInteger)
   testStream.buffer = buf;
   testStream.bufLen = 3;
   testStream.bufContent = 3;
-  testStream.ioStrm = NULL;
+  testStream.ioStrm.readWriteToStream = NULL;
+  testStream.ioStrm.stream = NULL;
   testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
@@ -422,15 +424,13 @@ END_TEST
 START_TEST (test_decodeString)
 {
   EXIStream testStream;
-  EXIOptions options;
   char buf[4];
-  StringType bit_val;
+  String bit_val;
   CharType cht[100];
   errorCode err = UNEXPECTED_ERROR;
 
   testStream.context.bitPointer = 0;
-  makeDefaultOpts(&options);
-  testStream.header.opts = &options;
+  makeDefaultOpts(&testStream.header.opts);
 
   buf[0] = (char) 0x02; /* 0b00000010 */
   buf[1] = (char) 0x65; /* 0b01100101 */ // e - ASCII
@@ -439,7 +439,8 @@ START_TEST (test_decodeString)
   testStream.buffer = buf;
   testStream.bufLen = 4;
   testStream.bufContent = 4;
-  testStream.ioStrm = NULL;
+  testStream.ioStrm.readWriteToStream = NULL;
+  testStream.ioStrm.stream = NULL;
   testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
   bit_val.length = 0;
@@ -466,7 +467,6 @@ END_TEST
 START_TEST (test_decodeBinary)
 {
   EXIStream testStream;
-  EXIOptions options;
   char buf[20];
   char testbuf[20];
   int i;
@@ -476,8 +476,7 @@ START_TEST (test_decodeBinary)
   int same=1;
 
   testStream.context.bitPointer = 0;
-  makeDefaultOpts(&options);
-  testStream.header.opts = &options;
+  makeDefaultOpts(&testStream.header.opts);
 
   buf[0] = (char)  0x05; /* 0b00000101 */		//5
   buf[1] = (char)  0xF0; /* 0b11110000 */
@@ -498,7 +497,8 @@ START_TEST (test_decodeBinary)
   testStream.buffer = buf;
   testStream.bufLen = 20;
   testStream.bufContent = 20;
-  testStream.ioStrm = NULL;
+  testStream.ioStrm.readWriteToStream = NULL;
+  testStream.ioStrm.stream = NULL;
   initAllocList(&testStream.memList);
   for(i=0;i<20;i++) testbuf[i]=buf[i];
 
@@ -562,32 +562,48 @@ END_TEST
 START_TEST (test_decodeFloat)
 {
 	EXIStream testStream;
-	EXIOptions options;
 	char buf[3];
-	double dbl_val = 0;
-	double res = 500;		// 5 x 10^2
+	Float fl_val;
+	double expected_res = 500;		// 5 x 10^2
 	errorCode err = UNEXPECTED_ERROR;
+	double actual_res = 0;
 
-	makeDefaultOpts(&options);
-	testStream.header.opts = &options;
+	makeDefaultOpts(&testStream.header.opts);
 
+	fl_val.exponent = 0;
+	fl_val.mantissa = 0;
 	buf[0] = (char) 0x02; /* 0b00000010 */
 	buf[1] = (char) 0x80; /* 0b10000000 */
 	buf[2] = (char) 0x92; /* 0b10010010 */
 	testStream.buffer = buf;
 	testStream.bufLen = 3;
 	testStream.bufContent = 3;
-	testStream.ioStrm = NULL;
+	testStream.ioStrm.readWriteToStream = NULL;
+	testStream.ioStrm.stream = NULL;
 	testStream.context.bufferIndx = 0;
 	testStream.context.bitPointer = 0;
 	initAllocList(&testStream.memList);
 
-	err = decodeFloatValue(&testStream, &dbl_val);
+	err = decodeFloatValue(&testStream, &fl_val);
+
+	actual_res = fl_val.mantissa;
+	while(fl_val.exponent)
+	{
+		if(fl_val.exponent > 0)
+		{
+			fl_val.exponent--;
+		}
+		else
+		{
+			fl_val.exponent++;
+		}
+		actual_res *= 10;
+	}
 
 	fail_unless (err == ERR_OK,
 		   "decodeFloat returns error code %d", err);
-	fail_unless (dbl_val == res,
-		   "The float value is read as %f (actual : %f)", dbl_val, res);
+	fail_unless (actual_res == expected_res,
+		   "The float value is read as %f (actual : %f)", actual_res, expected_res);
 	fail_unless (testStream.context.bitPointer == 2,
 			   "The decodeBinary function did not move the bit Pointer of the stream correctly");
 	fail_unless (testStream.context.bufferIndx == 2,
@@ -601,14 +617,12 @@ END_TEST
 START_TEST (test_decodeIntegerValue)
 {
   EXIStream testStream;
-  EXIOptions options;
   char buf[3];
-  int bit_val = 0;
+  Integer bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
 
   testStream.context.bitPointer = 0;
-  makeDefaultOpts(&options);
-  testStream.header.opts = &options;
+  makeDefaultOpts(&testStream.header.opts);
 
   buf[0] = (char) 0x94; /* 0b10010100 */
   buf[1] = (char) 0x60; /* 0b01100000 */
@@ -616,7 +630,8 @@ START_TEST (test_decodeIntegerValue)
   testStream.buffer = buf;
   testStream.bufLen = 3;
   testStream.bufContent = 3;
-  testStream.ioStrm = NULL;
+  testStream.ioStrm.readWriteToStream = NULL;
+  testStream.ioStrm.stream = NULL;
   testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
@@ -639,14 +654,12 @@ END_TEST
 START_TEST (test_decodeDecimalValue)
 {
 	EXIStream testStream;
-	EXIOptions options;
 	char buf[3];
 	errorCode err = UNEXPECTED_ERROR;
-	decimal dec_val = 0;
-	decimal res	= 5.001dd;
+	Decimal dec_val = 0;
+	Decimal res	= 5.001dd;
 
-	makeDefaultOpts(&options);
-	testStream.header.opts = &options;
+	makeDefaultOpts(&testStream.header.opts);
 
 	buf[0] = (char) 0x02; /* 0b00000010 */
 	buf[1] = (char) 0xB2; /* 0b10110010 */
@@ -654,7 +667,8 @@ START_TEST (test_decodeDecimalValue)
 	testStream.buffer = buf;
 	testStream.bufLen = 3;
 	testStream.bufContent = 3;
-	testStream.ioStrm = NULL;
+	testStream.ioStrm.readWriteToStream = NULL;
+	testStream.ioStrm.stream = NULL;
 	testStream.context.bufferIndx = 0;
 	testStream.context.bitPointer = 0;
 	initAllocList(&testStream.memList);
@@ -679,21 +693,20 @@ END_TEST
 START_TEST (test_encodeNBitUnsignedInteger)
 {
   EXIStream testStream;
-  EXIOptions options;
   char buf[2];
   errorCode err = UNEXPECTED_ERROR;
   unsigned char test, test2;
 
   testStream.context.bitPointer = 0;
-  makeDefaultOpts(&options);
-  testStream.header.opts = &options;
+  makeDefaultOpts(&testStream.header.opts);
 
   buf[0] = (char) 0xCE; /* 0b11001110 */
   buf[1] = (char) 0xE0; /* 0b11100000 */
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufContent = 2;
-  testStream.ioStrm = NULL;
+  testStream.ioStrm.readWriteToStream = NULL;
+  testStream.ioStrm.stream = NULL;
   testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
@@ -717,21 +730,20 @@ END_TEST
 START_TEST (test_encodeBoolean)
 {
   EXIStream testStream;
-  EXIOptions options;
   char buf[2];
   errorCode err = UNEXPECTED_ERROR;
   unsigned char bit_val = 0;
 
   testStream.context.bitPointer = 0;
-  makeDefaultOpts(&options);
-  testStream.header.opts = &options;
+  makeDefaultOpts(&testStream.header.opts);
 
   buf[0] = (char) 0x54; /* 0b01010100 */
   buf[1] = (char) 0x60; /* 0b01100000 */
   testStream.buffer = buf;
   testStream.bufLen = 2;
   testStream.bufContent = 2;
-  testStream.ioStrm = NULL;
+  testStream.ioStrm.readWriteToStream = NULL;
+  testStream.ioStrm.stream = NULL;
   testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
@@ -762,14 +774,12 @@ END_TEST
 START_TEST (test_encodeUnsignedInteger)
 {
   EXIStream testStream;
-  EXIOptions options;
   char buf[3];
   errorCode err = UNEXPECTED_ERROR;
   unsigned char test1, test2;
 
   testStream.context.bitPointer = 0;
-  makeDefaultOpts(&options);
-  testStream.header.opts = &options;
+  makeDefaultOpts(&testStream.header.opts);
 
   buf[0] = (char) 0xD4; /* 0b11010100 */
   buf[1] = (char) 0x00;	/* 0b00000000 */
@@ -777,7 +787,8 @@ START_TEST (test_encodeUnsignedInteger)
   testStream.buffer = buf;
   testStream.bufLen = 3;
   testStream.bufContent = 3;
-  testStream.ioStrm = NULL;
+  testStream.ioStrm.readWriteToStream = NULL;
+  testStream.ioStrm.stream = NULL;
   testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
@@ -823,15 +834,13 @@ END_TEST
 START_TEST (test_encodeString)
 {
   EXIStream testStream;
-  EXIOptions options;
   char buf[50];
-  StringType testStr;
+  String testStr;
   errorCode err = UNEXPECTED_ERROR;
   unsigned char str_len;
 
   testStream.context.bitPointer = 0;
-  makeDefaultOpts(&options);
-  testStream.header.opts = &options;
+  makeDefaultOpts(&testStream.header.opts);
 
   buf[0] = (char) 0x02; /* 0b00000010 */
   buf[1] = (char) 0x65; /* 0b01100101 */
@@ -841,7 +850,8 @@ START_TEST (test_encodeString)
   testStream.buffer = buf;
   testStream.bufLen = 50;
   testStream.bufContent = 50;
-  testStream.ioStrm = NULL;
+  testStream.ioStrm.readWriteToStream = NULL;
+  testStream.ioStrm.stream = NULL;
   testStream.context.bufferIndx = 0;
   asciiToString("TEST encodeString()", &testStr, &testStream.memList, FALSE);
 
@@ -868,13 +878,11 @@ END_TEST
 START_TEST (test_encodeBinary)
 {
 	EXIStream testStream;
-	EXIOptions options;
 	char buf[50];
 	char bin_data[50];
 	errorCode err = UNEXPECTED_ERROR;
 
-	makeDefaultOpts(&options);
-	testStream.header.opts = &options;
+	makeDefaultOpts(&testStream.header.opts);
 
 	bin_data[0] = (char) 0x22; /* 0b00100010 */
 	bin_data[1] = (char) 0x65; /* 0b01100101 */
@@ -885,7 +893,8 @@ START_TEST (test_encodeBinary)
 	testStream.buffer = buf;
 	testStream.bufLen = 50;
 	testStream.bufContent = 50;
-	testStream.ioStrm = NULL;
+	testStream.ioStrm.readWriteToStream = NULL;
+	testStream.ioStrm.stream = NULL;
 	testStream.context.bufferIndx = 0;
 	testStream.context.bitPointer = 0;
 
@@ -910,19 +919,22 @@ END_TEST
 START_TEST (test_encodeFloatValue)
 {
 	EXIStream testStream;
-	EXIOptions options;
 	char buf[10];
-	double test_val = 500;		// 5 x 10^2
-	double test_dec = 0;		// 5 x 10^2
+	Float test_val;
+	Float test_dec;
 	errorCode err = UNEXPECTED_ERROR;
 
-	makeDefaultOpts(&options);
-	testStream.header.opts = &options;
+	// 5 x 10^2
+	test_val.mantissa = 5;
+	test_val.exponent = 2;
+
+	makeDefaultOpts(&testStream.header.opts);
 
 	testStream.buffer = buf;
 	testStream.bufLen = 10;
 	testStream.bufContent = 10;
-	testStream.ioStrm = NULL;
+	testStream.ioStrm.readWriteToStream = NULL;
+	testStream.ioStrm.stream = NULL;
 	testStream.context.bufferIndx = 0;
 	testStream.context.bitPointer = 0;
 	initAllocList(&testStream.memList);
@@ -934,14 +946,18 @@ START_TEST (test_encodeFloatValue)
 
 	fail_unless (testStream.context.bitPointer == 2,
 			   "The encodeFloatValue function did not move the bit Pointer of the stream correctly");
-	fail_unless (testStream.context.bufferIndx == 3,
+	fail_unless (testStream.context.bufferIndx == 2,
 			   "The encodeFloatValue function did not move the byte Pointer of the stream correctly");
 
 	testStream.context.bitPointer = 0;
 	testStream.context.bufferIndx = 0;
+
+	test_dec.mantissa = 0;
+	test_dec.exponent = 0;
 	err = decodeFloatValue(&testStream, &test_dec);
 
-	fail_unless(test_val == test_dec, "Incorrect encoding of float value");
+	fail_unless(test_val.exponent == test_dec.exponent && test_val.mantissa == test_dec.mantissa
+			, "Incorrect encoding of float value");
 
 }
 END_TEST
@@ -949,18 +965,17 @@ END_TEST
 START_TEST (test_encodeIntegerValue)
 {
 	EXIStream testStream;
-	EXIOptions options;
 	char buf[5];
 	errorCode err = UNEXPECTED_ERROR;
-	int32_t test_dec = 0;
+	Integer test_dec = 0;
 
-	makeDefaultOpts(&options);
-	testStream.header.opts = &options;
+	makeDefaultOpts(&testStream.header.opts);
 
 	testStream.buffer = buf;
 	testStream.bufLen = 5;
 	testStream.bufContent = 5;
-	testStream.ioStrm = NULL;
+	testStream.ioStrm.readWriteToStream = NULL;
+	testStream.ioStrm.stream = NULL;
 	testStream.context.bufferIndx = 0;
 	testStream.context.bitPointer = 0;
 	initAllocList(&testStream.memList);
@@ -987,19 +1002,18 @@ END_TEST
 START_TEST (test_encodeDecimalValue)
 {
 	EXIStream testStream;
-	EXIOptions options;
 	char buf[30];
 	errorCode err = UNEXPECTED_ERROR;
-	decimal dec_val = 0;
-	decimal res	= 5.001dd;
+	Decimal dec_val = 0;
+	Decimal res	= 5.001dd;
 
-	makeDefaultOpts(&options);
-	testStream.header.opts = &options;
+	makeDefaultOpts(&testStream.header.opts);
 
 	testStream.buffer = buf;
 	testStream.bufLen = 30;
 	testStream.bufContent = 30;
-	testStream.ioStrm = NULL;
+	testStream.ioStrm.readWriteToStream = NULL;
+	testStream.ioStrm.stream = NULL;
 	testStream.context.bufferIndx = 0;
 	testStream.context.bitPointer = 0;
 	initAllocList(&testStream.memList);

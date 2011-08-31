@@ -60,10 +60,10 @@ errorCode readNextBit(EXIStream* strm, unsigned char* bit_val);
  * @brief Read the next n bits and return the result as an integer. Moves the stream current bit pointer
  * with the number of bits read
  * @param[in] strm EXI stream of bits
- * @param[in] n The number of bits in the range [1,32].
+ * @param[in] n The number of bits in the range
  * @param[out] bits_val resulting bits value
  * @return Error handling code
  */
-errorCode readBits(EXIStream* strm, unsigned char n, uint32_t* bits_val);
+errorCode readBits(EXIStream* strm, unsigned char n, unsigned int* bits_val);
 
 #endif /* STREAMREADER_H_ */

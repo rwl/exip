@@ -70,13 +70,13 @@ errorCode writeNextBit(EXIStream* strm, unsigned char bit_val)
 	return ERR_OK;
 }
 
-errorCode writeBits(EXIStream* strm, uint32_t bits_val)
+errorCode writeBits(EXIStream* strm, unsigned int bits_val)
 {
 	unsigned char nbits = getBitsNumber(bits_val);
 	return writeNBits(strm, nbits, bits_val);
 }
 
-errorCode writeNBits(EXIStream* strm, unsigned char nbits, uint32_t bits_val)
+errorCode writeNBits(EXIStream* strm, unsigned char nbits, unsigned int bits_val)
 {
 	unsigned int numBitsWrite = 0; // Number of the bits written so far
 	unsigned char tmp = 0;

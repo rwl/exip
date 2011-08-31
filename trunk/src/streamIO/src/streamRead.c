@@ -75,7 +75,7 @@ errorCode readNextBit(EXIStream* strm, unsigned char* bit_val)
 	return ERR_OK;
 }
 
-errorCode readBits(EXIStream* strm, unsigned char n, uint32_t* bits_val)
+errorCode readBits(EXIStream* strm, unsigned char n, unsigned int* bits_val)
 {
 	unsigned int numBitsRead = 0; // Number of the bits read so far
 	int tmp = 0;

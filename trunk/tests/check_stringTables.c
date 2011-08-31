@@ -142,7 +142,7 @@ START_TEST (test_addURIRow)
 	URITable* uTable;
 	uint16_t rowID = 55;
 	AllocList memList;
-	StringType test_uri;
+	String test_uri;
 
 	initAllocList(&memList);
 	err = createURITable(&uTable, &memList);
@@ -163,7 +163,6 @@ START_TEST (test_addURIRow)
 				"addURIRow returned wrong rowID: %d", rowID);
 
 	fail_if(uTable->rows[0].lTable == NULL);
-	fail_if(uTable->rows[0].pTable == NULL);
 
 	uTable->rowCount = DEFAULT_URI_ROWS_NUMBER;
 
@@ -180,7 +179,6 @@ START_TEST (test_addURIRow)
 				"addURIRow returned wrong rowID: %d", rowID);
 
 	fail_if(uTable->rows[DEFAULT_URI_ROWS_NUMBER].lTable == NULL);
-	fail_if(uTable->rows[DEFAULT_URI_ROWS_NUMBER].pTable == NULL);
 }
 END_TEST
 
@@ -190,7 +188,7 @@ START_TEST (test_addLNRow)
 	LocalNamesTable* lnTable;
 	size_t rowID = 55;
 	AllocList memList;
-	StringType test_ln;
+	String test_ln;
 
 	initAllocList(&memList);
 	err = createLocalNamesTable(&lnTable, &memList);
@@ -234,20 +232,19 @@ START_TEST (test_createInitialStringTables)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	EXIStream testStream;
-	EXIOptions options;
 	char buf[2];
 
 	testStream.context.bufferIndx = 0;
 	testStream.context.bitPointer = 0;
-	makeDefaultOpts(&options);
-	testStream.header.opts = &options;
+	makeDefaultOpts(&testStream.header.opts);
 
 	initAllocList(&testStream.memList);
 	buf[0] = (char) 0xD4; /* 0b11010100 */
 	buf[1] = (char) 0x60; /* 0b01100000 */
 	testStream.buffer = buf;
 	testStream.bufLen = 2;
-	testStream.ioStrm = NULL;
+	testStream.ioStrm.readWriteToStream = NULL;
+	testStream.ioStrm.stream = NULL;
 	testStream.bufContent = 2;
 
 

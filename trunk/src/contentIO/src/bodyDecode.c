@@ -52,10 +52,10 @@ errorCode decodeQName(EXIStream* strm, QName* qname)
 {
 	//TODO: add the case when Preserve.prefixes is true
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	uint32_t tmp_val_buf = 0;
+	unsigned int tmp_val_buf = 0;
 	unsigned char uriBits = getBitsNumber(strm->uriTable->rowCount);
 	uint16_t uriID = 0; // The URI id in the URI string table
-	uint32_t tmpVar = 0;
+	UnsignedInteger tmpVar = 0;
 	size_t lnID = 0;
 
 
@@ -125,7 +125,7 @@ errorCode decodeStringValue(EXIStream* strm, String* value, unsigned char* freea
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	uint16_t uriID = strm->context.curr_uriID;
 	size_t lnID = strm->context.curr_lnID;
-	uint32_t tmpVar = 0;
+	UnsignedInteger tmpVar = 0;
 	tmp_err_code = decodeUnsignedInteger(strm, &tmpVar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -350,7 +350,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		}
 		else if(event.valueType == VALUE_TYPE_INTEGER)
 		{
-			int32_t sintVal;
+			Integer sintVal;
 			tmp_err_code = decodeIntegerValue(strm, &sintVal);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
@@ -362,7 +362,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		}
 		else if(event.valueType == VALUE_TYPE_NON_NEGATIVE_INT)
 		{
-			uint32_t uintVal;
+			UnsignedInteger uintVal;
 			tmp_err_code = decodeUnsignedInteger(strm, &uintVal);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
@@ -370,7 +370,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 			if(handler->intData != NULL)  // Invoke handler method
 			{
 				// TODO: the cast to signed int can introduce errors. Check first!
-				if(handler->intData((int32_t) uintVal, app_data) == EXIP_HANDLER_STOP)
+				if(handler->intData((Integer) uintVal, app_data) == EXIP_HANDLER_STOP)
 					return HANDLER_STOP_RECEIVED;
 			}
 		}

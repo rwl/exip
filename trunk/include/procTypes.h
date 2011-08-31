@@ -129,22 +129,39 @@ typedef struct stackNode GenericStack;
 
 #define IS_PRESENT(p, mask) ((p & mask) != 0)
 
+/** Good practice is to keep the Integer type size equal UnsignedInteger size * 2
+ *  in order to avoid overflow or underflow errors */
+
+#ifndef EXIP_UNSIGNED_INTEGER
+# define EXIP_UNSIGNED_INTEGER uint32_t
+#endif
+
+typedef EXIP_UNSIGNED_INTEGER UnsignedInteger;
+
 #ifndef EXIP_INTEGER
 # define EXIP_INTEGER int64_t
 #endif
 
 typedef EXIP_INTEGER Integer;
 
-struct EXIPFloat
+/**
+ * The EXI Float datatype representation is two consecutive Integers (see 7.1.5 Integer).
+ * The first Integer represents the mantissa of the floating point number and the second
+ * Integer represents the base-10 exponent of the floating point number.
+ * The range of the mantissa is - (263) to 263-1 and the range of the exponent is - (214-1) to 214-1.
+ * The exponent value -(214) is used to indicate one of the special values: infinity,
+ * negative infinity and not-a-number (NaN). An exponent value -(214) with mantissa
+ * values 1 and -1 represents positive infinity (INF) and negative infinity (-INF) respectively.
+ * An exponent value -(214) with any other mantissa value represents NaN.
+ */
+struct EXIFloat
 {
 	int64_t mantissa;
 	int16_t exponent;
 };
 
-typedef struct EXIPFloat EXIPFloat;
-
 #ifndef EXIP_FLOAT
-# define EXIP_FLOAT EXIPFloat
+# define EXIP_FLOAT struct EXIFloat
 #endif
 
 typedef EXIP_FLOAT Float;
