@@ -40,18 +40,25 @@
 # * @par[Revision] $Id$
 # */
 
-# Specify compiler to be used
-CC = gcc
+params ?= build-params.mk
 
-CFLAGS += -Wpacked -Wall
+include $(params)
 
-CFLAGS += -O0 -g # Debugging 
+CC = $(COMPILER)
+
+CFLAGS += $(WARNING)
+CFLAGS += $(DEBUGGING)
+CFLAGS += $(ADDITIONAL_CFLAGS)
+
+ifeq ($(APP_CONFIG_HEADER), true)
+   CFLAGS += -DEXIP_APP_CONFIG
+endif
 
 # The project root directory
 PROJECT_ROOT = ../..
 
 # Check Unit Test installation directory
-CHECK_DIR = /usr/local/lib
+CHECK_DIR = $(CHECK_UNIT_TEST_DIR)
 
 # The src folder of the project 
 SOURCE_DIR = $(PROJECT_ROOT)/src
@@ -101,7 +108,7 @@ TESTS_BIN_DIR = $(BIN_DIR)/tests
 # Public include directory
 PUBLIC_INCLUDE_DIR = $(PROJECT_ROOT)/include
 
-# Common compiler flags
+# Compiler include flags
 CFLAGS += -I$(COMMON_SRC)/include
 CFLAGS += -I$(GRAMMAR_SRC)/include
 CFLAGS += -I$(STRING_TABLES_SRC)/include
@@ -158,7 +165,11 @@ include examples.mk
 
 include utils.mk
 
-OBJECT_ALL = $(COMMON_OBJ) $(STREAM_IO_OBJ) $(STRING_TABLES_OBJ) $(GRAMMAR_OBJ) $(CONTENT_IO_OBJ) $(GRAMMAR_GEN_OBJ)
+OBJECT_ALL = $(COMMON_OBJ) $(STREAM_IO_OBJ) $(STRING_TABLES_OBJ) $(GRAMMAR_OBJ) $(CONTENT_IO_OBJ)
+
+ifeq ($(INCLUDE_GRAMMAR_GENERATION), true)
+   OBJECT_ALL += $(GRAMMAR_GEN_OBJ)
+endif
 
 .PHONY : clean all lib check common streamIO stringTables grammar contentIO grammarGen examples exipd \
          mk_bin mk_common mk_streamIO mk_stringTables mk_grammar mk_contentIO mk_grammarGen mk_examples mk_tests mk_all \

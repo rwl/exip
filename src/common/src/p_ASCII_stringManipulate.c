@@ -109,12 +109,7 @@ char stringEqual(const String str1, const String str2)
 	else
 	{
 		if(str1.length == 0)
-		{
-			if(str1.str == NULL && str2.str == NULL)
-				return 1;
-			else
-				return 0;
-		}
+			return 1;
 		else
 		{
 			size_t i = 0;

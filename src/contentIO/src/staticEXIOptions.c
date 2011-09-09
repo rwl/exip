@@ -1,23 +1,20 @@
-/** AUTO-GENERATED: Sun Aug 14 19:46:52 2011
+/** AUTO-GENERATED: Fri Sep  9 14:50:24 2011
   * Copyright (c) 2010 - 2011, Rumen Kyusakov, EISLAB, LTU
   * $Id$ */
 
 #include "procTypes.h"
 
-struct PrefixRow ops_prows_0[1] = {{{"",0}}};
-PrefixTable ops_pTable_0 = {ops_prows_0, 1, 1, {NULL, 0}};
+PrefixTable ops_pTable_0 = {{{"",0},{NULL,0},{NULL,0},{NULL,0}}, 1};
 
 struct LocalNamesRow ops_LNrows_0[0] = {};
 LocalNamesTable ops_lTable_0 = { ops_LNrows_0, 0, 0, {NULL, 0}};
 
-struct PrefixRow ops_prows_1[1] = {{{"xml",3}}};
-PrefixTable ops_pTable_1 = {ops_prows_1, 1, 1, {NULL, 0}};
+PrefixTable ops_pTable_1 = {{{"xml",3},{NULL,0},{NULL,0},{NULL,0}}, 1};
 
 struct LocalNamesRow ops_LNrows_1[4] = {{NULL, {"base", 4}, NULL},{NULL, {"id", 2}, NULL},{NULL, {"lang", 4}, NULL},{NULL, {"space", 5}, NULL}};
 LocalNamesTable ops_lTable_1 = { ops_LNrows_1, 4, 4, {NULL, 0}};
 
-struct PrefixRow ops_prows_2[1] = {{{"xsi",3}}};
-PrefixTable ops_pTable_2 = {ops_prows_2, 1, 1, {NULL, 0}};
+PrefixTable ops_pTable_2 = {{{"xsi",3},{NULL,0},{NULL,0},{NULL,0}}, 1};
 
 struct LocalNamesRow ops_LNrows_2[2] = {{NULL, {"nil", 3}, NULL},{NULL, {"type", 4}, NULL}};
 LocalNamesTable ops_lTable_2 = { ops_LNrows_2, 2, 2, {NULL, 0}};
@@ -400,4 +397,4 @@ URITable ops_uriTbl = {ops_uriRows, 5, 5, {NULL, 0}};
 
 QNameID ops_qnames[1] = {{4, 20}};
 
-const EXIPSchema ops_schema = {&ops_uriTbl, ops_qnames, 1, {NULL, NULL}};
+const EXIPSchema ops_schema = {&ops_uriTbl, ops_qnames, 1, 1, {NULL, NULL}};

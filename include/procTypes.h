@@ -113,6 +113,12 @@ typedef struct stackNode GenericStack;
 #define IS_PRESERVED(p, mask) ((p & mask) != 0)
 #define SET_PRESERVED(p, preserve_const) (p = p | preserve_const)
 
+// #DOCUMENT# If there is a possibility that a document defines more than 4 prefixes per namespace i.e. something insane, this should be increased
+// Note that will require many changes - for example statically generated grammars from XML schemas needs to be rebuilt
+#ifndef MAXIMUM_NUMBER_OF_PREFIXES_PER_URI
+# define MAXIMUM_NUMBER_OF_PREFIXES_PER_URI 4
+#endif
+
 /**
  * For handling the DATE-TIME type (structure tm from time.h)
  */
@@ -462,15 +468,9 @@ struct ValueLocalCrossTable {
 
 typedef struct ValueLocalCrossTable ValueLocalCrossTable;
 
-struct PrefixRow {
-	String string_val;
-};
-
 struct PrefixTable {
-	struct PrefixRow* rows; // Dynamic array
-	uint16_t rowCount; // The number of rows
-	uint16_t arrayDimension; // The size of the Dynamic array
-	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
+	String string_val[MAXIMUM_NUMBER_OF_PREFIXES_PER_URI];
+	unsigned char rowCount; // The number of rows
 };
 
 typedef struct PrefixTable PrefixTable;
@@ -527,6 +527,7 @@ struct EXIPSchema
 	URITable* initialStringTables;
 	QNameID* globalElemGrammars;  // Sorted
 	unsigned int globalElemGrammarsCount;
+	char isAugmented;
 
 	AllocList memList; // Stores the information for all memory allocations for that schema
 };

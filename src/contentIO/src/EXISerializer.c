@@ -51,6 +51,7 @@
 #include "grammarAugment.h"
 #include "hashtable.h"
 #include "stringManipulate.h"
+#include "streamEncode.h"
 
 /**
  * The handler to be used by the applications to serialize EXI streams
@@ -127,9 +128,12 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = addUndeclaredProductionsToAll(&strm->memList, strm->uriTable, &strm->header.opts);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		if(schema->isAugmented == FALSE)
+		{
+			tmp_err_code = addUndeclaredProductionsToAll(&strm->memList, strm->uriTable, &strm->header.opts);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
 	}
 	else
 	{
@@ -151,8 +155,11 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 	// Only used when:
 	// serializing &&
 	// valuePartitionCapacity > 50  &&   //for small table full-scan will work better
-	// valueMaxLength > 0 // this is essentially equal to valuePartitionCapacity == 0
-	if(strm->header.opts.valuePartitionCapacity > DEFAULT_VALUE_ROWS_NUMBER && strm->header.opts.valueMaxLength > 0)
+	// valueMaxLength > 0 && // this is essentially equal to valuePartitionCapacity == 0
+	// HASH_TABLE_USE == ON // build configuration parameter
+	if(strm->header.opts.valuePartitionCapacity > DEFAULT_VALUE_ROWS_NUMBER &&
+			strm->header.opts.valueMaxLength > 0 &&
+			HASH_TABLE_USE == ON)
 	{
 		strm->vTable->hashTbl = create_hashtable(53, djbHash, stringEqual);
 		if(strm->vTable->hashTbl == NULL)
@@ -307,7 +314,24 @@ errorCode stringData(EXIStream* strm, const String str_val, unsigned char fastSc
 
 errorCode floatData(EXIStream* strm, Float float_val, unsigned char fastSchemaMode, size_t schemaProduction)
 {
-	return NOT_IMPLEMENTED_YET;
+	ValueType dummmyType;
+	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start float data serialization\n"));
+
+	if(strm->context.expectATData) // Value for an attribute
+	{
+		strm->context.expectATData = FALSE;
+	}
+	else
+	{
+		errorCode tmp_err_code = UNEXPECTED_ERROR;
+		EXIEvent event = {EVENT_CH, VALUE_TYPE_FLOAT};
+
+		tmp_err_code = encodeSimpleEXIEvent(strm, event, fastSchemaMode, schemaProduction, &dummmyType);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+
+	return encodeFloatValue(strm, float_val);
 }
 
 errorCode binaryData(EXIStream* strm, const char* binary_val, size_t nbytes, unsigned char fastSchemaMode, size_t schemaProduction)

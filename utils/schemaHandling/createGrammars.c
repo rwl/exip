@@ -256,22 +256,24 @@ int main(int argc, char *argv[])
 				{
 					if(schema.initialStringTables->rows[i].pTable != NULL)
 					{
-						sprintf(printfBuf, "struct PrefixRow %sprows_%d[%d] = {", prefix, i, schema.initialStringTables->rows[i].pTable->rowCount);
+						sprintf(printfBuf, "PrefixTable %spTable_%d = {{", prefix, i);
 						fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 						for(k = 0; k < schema.initialStringTables->rows[i].pTable->rowCount; k++)
 						{
-							if(ERR_OK != stringToASCII(conv_buff, SPRINTF_BUFFER_SIZE, schema.initialStringTables->rows[i].pTable->rows[k].string_val))
+							if(ERR_OK != stringToASCII(conv_buff, SPRINTF_BUFFER_SIZE, schema.initialStringTables->rows[i].pTable->string_val[k]))
 							{
 								printf("\n ERROR: OUT_SRC_STAT output format!");
 								exit(1);
 							}
-							sprintf(printfBuf, "%s{{\"%s\",%d}}", k==0?"":",", conv_buff, schema.initialStringTables->rows[i].pTable->rows[k].string_val.length);
+							sprintf(printfBuf, "%s{\"%s\",%d}", k==0?"":",", conv_buff, schema.initialStringTables->rows[i].pTable->string_val[k].length);
 							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 						}
-
-						fwrite("};\n", 1, strlen("};\n"), outfile);
-
-						sprintf(printfBuf, "PrefixTable %spTable_%d = {%sprows_%d, %d, %d, {NULL, 0}};\n\n", prefix, i, prefix, i, schema.initialStringTables->rows[i].pTable->rowCount, schema.initialStringTables->rows[i].pTable->rowCount);
+						for(; k < MAXIMUM_NUMBER_OF_PREFIXES_PER_URI; k++)
+						{
+							sprintf(printfBuf, "%s{NULL,0}", k==0?"":",");
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+						}
+						sprintf(printfBuf, "}, %d};\n\n", schema.initialStringTables->rows[i].pTable->rowCount);
 						fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 					}
 
@@ -303,8 +305,8 @@ int main(int argc, char *argv[])
 									fwrite("};\n", 1, strlen("};\n"), outfile);
 								}
 							}
-
-							sprintf(printfBuf, "\nGrammarRule %sruleArray_%d_%d[%d] = {", prefix, i, j, tmpGrammar->rulesDimension);
+							// #DOCUMENT# IMPORTANT! tmpGrammar->rulesDimension + (mask_specified == FALSE) because It must be assured that the schema informed grammars have one empty slot for the rule:  Element i, content2
+							sprintf(printfBuf, "\nGrammarRule %sruleArray_%d_%d[%d] = {", prefix, i, j, tmpGrammar->rulesDimension + (mask_specified == FALSE));
 							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 
 							for(r = 0; r < tmpGrammar->rulesDimension; r++)
@@ -389,7 +391,7 @@ int main(int argc, char *argv[])
 				}
 				fwrite("};\n\n", 1, strlen("};\n\n"), outfile);
 
-				sprintf(printfBuf, "const EXIPSchema %sschema = {&%suriTbl, %sqnames, %d, {NULL, NULL}};\n", prefix, prefix, prefix, schema.globalElemGrammarsCount);
+				sprintf(printfBuf, "const EXIPSchema %sschema = {&%suriTbl, %sqnames, %d, %d, {NULL, NULL}};\n", prefix, prefix, prefix, schema.globalElemGrammarsCount, mask_specified);
 				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 
 			}

@@ -154,11 +154,6 @@ errorCode createPrefixTable(PrefixTable** pTable, AllocList* memList)
 	if(*pTable == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*pTable)->rows = (struct PrefixRow*) memManagedAllocatePtr(memList, sizeof(struct PrefixRow)*DEFAULT_PREFIX_ROWS_NUMBER, &(*pTable)->memPair);
-	if((*pTable)->rows == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	(*pTable)->arrayDimension = DEFAULT_PREFIX_ROWS_NUMBER;
 	(*pTable)->rowCount = 0;
 	return ERR_OK;
 }
@@ -437,19 +432,13 @@ errorCode addValueRows(EXIStream* strm, String* value)
 
 errorCode addPrefixRow(PrefixTable* pTable, String px_value)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	if(pTable->arrayDimension == pTable->rowCount)   // The dynamic array must be extended first
-	{
-		tmp_err_code = memManagedReAllocate((void **) &pTable->rows, sizeof(struct PrefixRow)*(pTable->rowCount + DEFAULT_PREFIX_ROWS_NUMBER), pTable->memPair);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		pTable->arrayDimension = pTable->arrayDimension + DEFAULT_PREFIX_ROWS_NUMBER;
-	}
+	if(pTable->rowCount >= MAXIMUM_NUMBER_OF_PREFIXES_PER_URI)
+		return TOO_MUCH_PREFIXES_PER_URI;
 
-	pTable->rows[pTable->rowCount].string_val.length = px_value.length;
-	pTable->rows[pTable->rowCount].string_val.str = px_value.str;
-
+	pTable->string_val[pTable->rowCount].length = px_value.length;
+	pTable->string_val[pTable->rowCount].str = px_value.str;
 	pTable->rowCount += 1;
+
 	return ERR_OK;
 }
 

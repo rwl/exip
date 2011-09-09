@@ -74,7 +74,7 @@ struct ops_AppData
 errorCode decodeHeader(EXIStream* strm)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	uint32_t bits_val = 0;
+	unsigned int bits_val = 0;
 	unsigned char smallVal = 0;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start EXI header decoding\n"));

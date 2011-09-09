@@ -89,6 +89,7 @@ static char sample_attribute(QName qname, void* app_data);
 static char sample_stringData(const String value, void* app_data);
 static char sample_decimalData(Decimal value, void* app_data);
 static char sample_intData(Integer int_val, void* app_data);
+static char sample_floatData(Float fl_val, void* app_data);
 
 size_t readFileInputStream(void* buf, size_t readSize, void* stream);
 
@@ -214,6 +215,7 @@ int main(int argc, char *argv[])
 			testParser.handler.endElement = sample_endElement;
 			testParser.handler.decimalData = sample_decimalData;
 			testParser.handler.intData = sample_intData;
+			testParser.handler.floatData = sample_floatData;
 
 			// IV: Parse the header of the stream
 
@@ -484,6 +486,50 @@ static char sample_intData(Integer int_val, void* app_data)
 				printf(">\n");
 			appD->unclosedElement = 0;
 			sprintf(tmp_buf, "%d", (int) int_val);
+			printf("%s", tmp_buf);
+			printf("\n");
+		}
+	}
+
+	return EXIP_HANDLER_OK;
+}
+
+static char sample_floatData(Float fl_val, void* app_data)
+{
+	struct appData* appD = (struct appData*) app_data;
+	char tmp_buf[30];
+	if(appD->outputFormat == OUT_EXI)
+	{
+		if(appD->expectAttributeData)
+		{
+			sprintf(tmp_buf, "%lldE%d", fl_val.mantissa, fl_val.exponent);
+			printf("%s", tmp_buf);
+			printf("\"\n");
+			appD->expectAttributeData = 0;
+		}
+		else
+		{
+			printf("CH ");
+			sprintf(tmp_buf, "%lldE%d", fl_val.mantissa, fl_val.exponent);
+			printf("%s", tmp_buf);
+			printf("\n");
+		}
+	}
+	else if(appD->outputFormat == OUT_XML)
+	{
+		if(appD->expectAttributeData)
+		{
+			sprintf(tmp_buf, "%lldE%d", fl_val.mantissa, fl_val.exponent);
+			printf("%s", tmp_buf);
+			printf("\"");
+			appD->expectAttributeData = 0;
+		}
+		else
+		{
+			if(appD->unclosedElement)
+				printf(">\n");
+			appD->unclosedElement = 0;
+			sprintf(tmp_buf, "%lldE%d", fl_val.mantissa, fl_val.exponent);
 			printf("%s", tmp_buf);
 			printf("\n");
 		}
