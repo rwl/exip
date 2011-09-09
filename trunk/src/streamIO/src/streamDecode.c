@@ -56,7 +56,7 @@ errorCode decodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, unsigned i
 	else
 	{
 		unsigned int byte_number = ((unsigned int) n) / 8 + (n % 8 != 0);
-		uint32_t tmp_byte_buf = 0;
+		unsigned int tmp_byte_buf = 0;
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
 		unsigned int i = 0;
 
@@ -257,6 +257,7 @@ errorCode decodeFloatValue(EXIStream* strm, Float* fl_val)
 			(mantissa < 0 && -mantissa > ((uint64_t) 1 << 63))
 			)
 	{
+		DEBUG_MSG(ERROR, DEBUG_STREAM_IO, (">Invalid float value: %lldE%lld\n", mantissa, exponent));
 		return INVALID_EXI_INPUT;
 	}
 

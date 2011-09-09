@@ -78,6 +78,8 @@
  */
 #  define EXIP_MFREE free  //TODO: document this macro #DOCUMENT#
 
+// Whether to use hash table for value partition table when in encoding mode
+#  define HASH_TABLE_USE ON //TODO: document this macro #DOCUMENT#
 #  define MAX_HASH_TABLE_SIZE 16000 //TODO: document this macro #DOCUMENT#
 
 #endif /* EXIP_APP_CONFIG */

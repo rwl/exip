@@ -91,10 +91,9 @@ errorCode decodeQName(EXIStream* strm, QName* qname)
 	{
 		unsigned char lnBits = getBitsNumber((unsigned int)(strm->uriTable->rows[uriID].lTable->rowCount - 1));
 		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">local-name table hit\n"));
-		tmp_err_code = decodeNBitUnsignedInteger(strm, lnBits, &tmpVar);
+		tmp_err_code = decodeNBitUnsignedInteger(strm, lnBits, &lnID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		lnID = (size_t) tmpVar;
 		qname->localName = &(strm->uriTable->rows[uriID].lTable->rows[lnID].string_val);
 	}
 	else // local-name table miss
@@ -134,14 +133,13 @@ errorCode decodeStringValue(EXIStream* strm, String* value, unsigned char* freea
 
 	if(tmpVar == 0) // "local" value partition table hit
 	{
-		uint16_t lvID = 0;
+		unsigned int lvID = 0;
 		size_t value_table_rowID;
 
 		unsigned char lvBits = getBitsNumber(strm->uriTable->rows[uriID].lTable->rows[lnID].vCrossTable->rowCount - 1);
-		tmp_err_code = decodeNBitUnsignedInteger(strm, lvBits, &tmpVar);
+		tmp_err_code = decodeNBitUnsignedInteger(strm, lvBits, &lvID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		lvID = (uint16_t) tmpVar;
 		value_table_rowID = strm->uriTable->rows[uriID].lTable->rows[lnID].vCrossTable->valueRowIds[lvID];
 		*value = strm->vTable->rows[value_table_rowID].string_val;
 	}
@@ -149,10 +147,9 @@ errorCode decodeStringValue(EXIStream* strm, String* value, unsigned char* freea
 	{
 		size_t gvID = 0;
 		unsigned char gvBits = getBitsNumber((unsigned int)(strm->vTable->rowCount - 1));
-		tmp_err_code = decodeNBitUnsignedInteger(strm, gvBits, &tmpVar);
+		tmp_err_code = decodeNBitUnsignedInteger(strm, gvBits, &gvID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		gvID = (size_t) tmpVar;
 		*value = strm->vTable->rows[gvID].string_val;
 	}
 	else  // "local" value partition and global value partition table miss
@@ -346,7 +343,15 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		}
 		else if(event.valueType == VALUE_TYPE_FLOAT)
 		{
-			return NOT_IMPLEMENTED_YET;
+			Float flVal;
+			tmp_err_code = decodeFloatValue(strm, &flVal);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+			if(handler->floatData != NULL)  // Invoke handler method
+			{
+				if(handler->floatData(flVal, app_data) == EXIP_HANDLER_STOP)
+					return HANDLER_STOP_RECEIVED;
+			}
 		}
 		else if(event.valueType == VALUE_TYPE_INTEGER)
 		{

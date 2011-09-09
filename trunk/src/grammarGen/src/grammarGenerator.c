@@ -73,6 +73,9 @@
 #define ELEMENT_ANY             12
 #define ELEMENT_SIMPLE_TYPE     13
 #define ELEMENT_MIN_INCLUSIVE   14
+#define ELEMENT_ANNOTATION      15
+#define ELEMENT_DOCUMENTATION   16
+#define ELEMENT_MAX_LENGTH      17
 
 #define ELEMENT_VOID           255
 
@@ -197,6 +200,8 @@ static errorCode handleRestrictionEl(struct xsdAppData* app_data);
 
 static errorCode handleMinInclusiveEl(struct xsdAppData* app_data);
 
+static errorCode handleMaxLengthEl(struct xsdAppData* app_data);
+
 //////////// Helper functions
 
 static errorCode addURIString(struct xsdAppData* app_data, String* uri, uint16_t* uriRowId);
@@ -231,6 +236,7 @@ errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t 
 	tmp_err_code = initAllocList(&schema->memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
+	schema->isAugmented = FALSE;
 
 	tmp_err_code = initParser(&xsdParser, binaryBuf, bufLen, bufContent, ioStrm, NULL, &parsing_data);
 	if(tmp_err_code != ERR_OK)
@@ -574,9 +580,25 @@ static char xsd_startElement(QName qname, void* app_data)
 			element->element = ELEMENT_MIN_INCLUSIVE;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <minInclusive> element\n"));
 		}
+		else if(stringEqualToAscii(*qname.localName, "annotation"))
+		{
+			element->element = ELEMENT_ANNOTATION;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <annotation> element\n"));
+		}
+		else if(stringEqualToAscii(*qname.localName, "documentation"))
+		{
+			element->element = ELEMENT_DOCUMENTATION;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <documentation> element\n"));
+		}
+		else if(stringEqualToAscii(*qname.localName, "maxLength"))
+		{
+			element->element = ELEMENT_MAX_LENGTH;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <maxLength> element\n"));
+		}
 		else
 		{
 			DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, (">Ignored schema element\n"));
+			return EXIP_HANDLER_STOP;
 		}
 
 		tmp_err_code = pushOnStack(&(appD->contextStack), element);
@@ -654,9 +676,29 @@ static char xsd_endElement(void* app_data)
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End </minInclusive> element\n"));
 			tmp_err_code = handleMinInclusiveEl(appD);
 		}
+		else if(element->element == ELEMENT_ANNOTATION)
+		{
+			ElementDescription* elemDesc;
+			popFromStack(&(appD->contextStack), (void**) &elemDesc);
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End </annotation> element\n"));
+			tmp_err_code = ERR_OK;
+		}
+		else if(element->element == ELEMENT_DOCUMENTATION)
+		{
+			ElementDescription* elemDesc;
+			popFromStack(&(appD->contextStack), (void**) &elemDesc);
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End </documentation> element\n"));
+			tmp_err_code = ERR_OK;
+		}
+		else if(element->element == ELEMENT_MAX_LENGTH)
+		{
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End </maxLength> element\n"));
+			tmp_err_code = handleMaxLengthEl(appD);
+		}
 		else
 		{
 			DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, (">Ignored closing element\n"));
+			return EXIP_HANDLER_STOP;
 		}
 	}
 
@@ -1593,6 +1635,29 @@ static errorCode handleMinInclusiveEl(struct xsdAppData* app_data)
 	minIncl->strValue = elemDesc->attributePointers[ATTRIBUTE_VALUE];
 
 	tmp_err_code = pushOnStackPersistent(&(((ElementDescription*) app_data->contextStack->element)->pTypeFacets), minIncl, &app_data->schema->memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	return ERR_OK;
+}
+
+static errorCode handleMaxLengthEl(struct xsdAppData* app_data)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	ElementDescription* elemDesc;
+	TypeFacet* maxLength;
+
+	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
+
+	maxLength = memManagedAllocate(&app_data->schema->memList, sizeof(TypeFacet));
+	if(maxLength == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	maxLength->facetID = TYPE_FACET_MAX_LENGTH;
+	maxLength->intValue = 0;
+	maxLength->strValue = elemDesc->attributePointers[ATTRIBUTE_VALUE];
+
+	tmp_err_code = pushOnStackPersistent(&(((ElementDescription*) app_data->contextStack->element)->pTypeFacets), maxLength, &app_data->schema->memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
