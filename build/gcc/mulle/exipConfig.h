@@ -34,54 +34,59 @@
 
 /**
  * @file exipConfig.h
- * @brief Configuration parameters of the EXIP library
- * To be defined per application
+ * @brief Configuration parameters of the EXIP library for the Mulle platform
  *
- * @date Oct 13, 2010
+ * @date Sep 13, 2011
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
+
+#include "ip_malloc.h"
+
 #ifndef EXIPCONFIG_H_
 #define EXIPCONFIG_H_
 
 #define ON  1
 #define OFF 0
 
-#ifdef EXIP_APP_CONFIG
+#define EXIP_DEBUG  	  OFF
+#define EXIP_DEBUG_LEVEL INFO
 
-#  include "app_config.h"
+#define DEBUG_STREAM_IO   OFF
+#define DEBUG_COMMON      OFF
+#define DEBUG_CONTENT_IO  OFF
+#define DEBUG_GRAMMAR     OFF
+#define DEBUG_GRAMMAR_GEN OFF
+#define DEBUG_STRING_TBLS OFF
 
-#else  // The default EXIP parameters
+#define DEBUG_ALL_MODULES (DEBUG_STREAM_IO || DEBUG_COMMON || DEBUG_CONTENT_IO || DEBUG_GRAMMAR || DEBUG_GRAMMAR_GEN || DEBUG_STRING_TBLS)
 
-#  define EXIP_DEBUG  	     ON //TODO: document this macro #DOCUMENT#
-#  define EXIP_DEBUG_LEVEL INFO //TODO: document this macro #DOCUMENT#
-
-#  define DEBUG_STREAM_IO   OFF	//TODO: document this macro #DOCUMENT#
-#  define DEBUG_COMMON      OFF	//TODO: document this macro #DOCUMENT#
-#  define DEBUG_CONTENT_IO  OFF	//TODO: document this macro #DOCUMENT#
-#  define DEBUG_GRAMMAR     OFF	//TODO: document this macro #DOCUMENT#
-#  define DEBUG_GRAMMAR_GEN OFF	//TODO: document this macro #DOCUMENT#
-#  define DEBUG_STRING_TBLS OFF	//TODO: document this macro #DOCUMENT#
-
-#  define DEBUG_ALL_MODULES (DEBUG_STREAM_IO || DEBUG_COMMON || DEBUG_CONTENT_IO || DEBUG_GRAMMAR || DEBUG_GRAMMAR_GEN || DEBUG_STRING_TBLS) //TODO: document this macro #DOCUMENT#
+#define DEBUG_CHAR_OUTPUT(character)	do {tfp_printf ("%c", character);} while(0)
+#define DEBUG_OUTPUT(msg)	do {tfp_printf msg;} while(0)
 
 /**
- * Define the memory allocation functions
+ * Define the memory allocation and freeing functions
  */
-#  include <stdlib.h>
-#  define EXIP_MALLOC malloc   //TODO: document this macro #DOCUMENT#
-#  define EXIP_REALLOC realloc //TODO: document this macro #DOCUMENT#
+#define EXIP_MALLOC malloc
+#define EXIP_REALLOC realloc
+#define EXIP_MFREE free
 
-/**
- * Define the memory freeing function
- */
-#  define EXIP_MFREE free  //TODO: document this macro #DOCUMENT#
+#define HASH_TABLE_USE OFF
+#define MAX_HASH_TABLE_SIZE 3000
 
-// Whether to use hash table for value partition table when in encoding mode
-#  define HASH_TABLE_USE ON //TODO: document this macro #DOCUMENT#
-#  define MAX_HASH_TABLE_SIZE 16000 //TODO: document this macro #DOCUMENT#
 
-#endif /* EXIP_APP_CONFIG */
+// Some types in procTypes.h
+#define EXIP_DECIMAL float
+#define EXIP_UNSIGNED_INTEGER int32_t
+#define EXIP_INTEGER int32_t
+
+struct ThinFloat
+{
+	int32_t mantissa;
+	char exponent;
+};
+
+#define EXIP_FLOAT struct ThinFloat
 
 #endif /* EXIPCONFIG_H_ */

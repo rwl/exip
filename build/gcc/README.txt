@@ -23,4 +23,4 @@ examples - build samples' executables in /bin/examples
 
 <module_name> check - runs the unit test for module <module_name>
 
-clean - deletes the /bin directory
+clean - deletes the bin/ directory

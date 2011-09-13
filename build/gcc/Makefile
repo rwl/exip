@@ -40,7 +40,9 @@
 # * @par[Revision] $Id$
 # */
 
-params ?= build-params.mk
+target ?= pc
+
+params ?= $(target)/build-params.mk
 
 include $(params)
 
@@ -49,10 +51,6 @@ CC = $(COMPILER)
 CFLAGS += $(WARNING)
 CFLAGS += $(DEBUGGING)
 CFLAGS += $(ADDITIONAL_CFLAGS)
-
-ifeq ($(APP_CONFIG_HEADER), true)
-   CFLAGS += -DEXIP_APP_CONFIG
-endif
 
 # The project root directory
 PROJECT_ROOT = ../..
@@ -64,7 +62,7 @@ CHECK_DIR = $(CHECK_UNIT_TEST_DIR)
 SOURCE_DIR = $(PROJECT_ROOT)/src
 
 # The bin folder of the project 
-BIN_DIR = bin
+BIN_DIR = $(PROJECT_ROOT)/bin
 
 # The documentation folder of the project
 DOC_DIR = $(PROJECT_ROOT)/doc
@@ -72,32 +70,26 @@ DOC_DIR = $(PROJECT_ROOT)/doc
 # Common module
 COMMON = common
 COMMON_SRC = $(SOURCE_DIR)/$(COMMON)
-COMMON_BIN = $(BIN_DIR)/$(COMMON)
 
 # StreamIO module
 STREAM_IO = streamIO
 STREAM_IO_SRC = $(SOURCE_DIR)/$(STREAM_IO)
-STREAM_IO_BIN = $(BIN_DIR)/$(STREAM_IO)
 
 # String Tables module
 STRING_TABLES = stringTables
 STRING_TABLES_SRC = $(SOURCE_DIR)/$(STRING_TABLES)
-STRING_TABLES_BIN = $(BIN_DIR)/$(STRING_TABLES)
 
 # Grammar module
 GRAMMAR = grammar
 GRAMMAR_SRC = $(SOURCE_DIR)/$(GRAMMAR)
-GRAMMAR_BIN = $(BIN_DIR)/$(GRAMMAR)
 
 # ContentIO module
 CONTENT_IO = contentIO
 CONTENT_IO_SRC = $(SOURCE_DIR)/$(CONTENT_IO)
-CONTENT_IO_BIN = $(BIN_DIR)/$(CONTENT_IO)
 
 # GrammarGen module
 GRAMMAR_GEN = grammarGen
 GRAMMAR_GEN_SRC = $(SOURCE_DIR)/$(GRAMMAR_GEN)
-GRAMMAR_GEN_BIN = $(BIN_DIR)/$(GRAMMAR_GEN)
 
 # Unit tests src root directory
 TESTS_SRC_DIR = $(PROJECT_ROOT)/tests
@@ -116,17 +108,18 @@ CFLAGS += -I$(CONTENT_IO_SRC)/include
 CFLAGS += -I$(STREAM_IO_SRC)/include
 CFLAGS += -I$(GRAMMAR_GEN_SRC)/include
 CFLAGS += -I$(PUBLIC_INCLUDE_DIR)
+CFLAGS += -I$(target)
 
 LDFLAGS += -L$(BIN_DIR) 
 
 # Gets the first goal set on the command line - it is used if the next goal is check. Defines which module to test
-TARGET = $(word 1,$(MAKECMDGOALS))
+FIRST_GOAL = $(word 1,$(MAKECMDGOALS))
 
 # If the first goal is check then the target for checking is the whole project
-ifeq ($(TARGET), check)
+ifeq ($(FIRST_GOAL), check)
    CHECK_TARGET=$(TESTS_BIN_DIR)/test_streamIO $(TESTS_BIN_DIR)/test_stringTables $(TESTS_BIN_DIR)/test_grammar $(TESTS_BIN_DIR)/test_contentIO
 else
-   CHECK_TARGET=$(TESTS_BIN_DIR)/test_$(TARGET)
+   CHECK_TARGET=$(TESTS_BIN_DIR)/test_$(FIRST_GOAL)
 endif
 
 # List of all example binary names
@@ -144,8 +137,6 @@ UTILS_1 = exipg
 # Utils directories
 UTILS_SRC_DIR = $(PROJECT_ROOT)/utils
 UTILS_BIN_DIR = $(BIN_DIR)/utils
-
-all: lib
 
 include common.mk
 
@@ -171,27 +162,16 @@ ifeq ($(INCLUDE_GRAMMAR_GENERATION), true)
    OBJECT_ALL += $(GRAMMAR_GEN_OBJ)
 endif
 
-.PHONY : clean all lib check common streamIO stringTables grammar contentIO grammarGen examples exipd \
-         mk_bin mk_common mk_streamIO mk_stringTables mk_grammar mk_contentIO mk_grammarGen mk_examples mk_tests mk_all \
-         mk_utils test_sets_copy_examples utils test_sets_copy_utils doc
-         
+.PHONY : clean all lib check examples exipd mk_bin mk_examples \
+		 mk_tests mk_utils test_sets_copy_examples utils test_sets_copy_utils doc
+
+all: mk_bin $(OBJECT_ALL)
+
 lib: mk_bin $(BIN_DIR)/libexip.a
 
-$(BIN_DIR)/libexip.a: mk_all $(OBJECT_ALL)
+$(BIN_DIR)/libexip.a: $(OBJECT_ALL)
 		ar rcs $(BIN_DIR)/libexip.a $(OBJECT_ALL)
-		
-common: mk_common $(COMMON_OBJ)
-		
-streamIO: mk_streamIO common $(STREAM_IO_OBJ)
-		
-stringTables: mk_stringTables common $(STRING_TABLES_OBJ)
-
-grammar: mk_grammar common streamIO stringTables $(GRAMMAR_OBJ)
-
-contentIO: mk_contentIO common streamIO $(CONTENT_IO_OBJ)
-
-grammarGen: mk_grammarGen common stringTables $(GRAMMAR_GEN_OBJ)
-		
+			
 check: mk_tests $(CHECK_TARGET)
 		for i in $(CHECK_TARGET); do \
                  $$i; \
@@ -206,24 +186,6 @@ doc:
 
 mk_bin:
 		mkdir -p $(BIN_DIR)
-		
-mk_common:		
-		mkdir -p $(COMMON_BIN)
-		
-mk_streamIO:
-		mkdir -p $(STREAM_IO_BIN)
-		
-mk_stringTables:
-		mkdir -p $(STRING_TABLES_BIN)
-		
-mk_grammar:
-		mkdir -p $(GRAMMAR_BIN)
-		
-mk_contentIO:
-		mkdir -p $(CONTENT_IO_BIN)
-
-mk_grammarGen:
-		mkdir -p $(GRAMMAR_GEN_BIN)
 		
 mk_examples:
 		mkdir -p $(EXAMPLES_BIN_DIR)
@@ -243,7 +205,5 @@ test_sets_copy_examples:
 test_sets_copy_utils:		
 		cp $(UTILS_SRC_DIR)/schemaHandling/EXIOptions-xsd.exi $(UTILS_BIN_DIR)/EXIOptions-xsd.exi
 		
-mk_all: mk_common mk_streamIO mk_stringTables mk_grammar mk_contentIO mk_grammarGen
-	
 clean:
 		rm -f -r $(BIN_DIR)

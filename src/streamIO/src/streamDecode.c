@@ -255,7 +255,7 @@ errorCode decodeFloatValue(EXIStream* strm, Float* fl_val)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	DEBUG_MSG(ERROR, DEBUG_STREAM_IO, (">Float value: %d E %d\n", mantissa, exponent));
+	DEBUG_MSG(ERROR, DEBUG_STREAM_IO, (">Float value: %lld E %lld\n", mantissa, exponent));
 
 //  TODO: Improve the below validation: it should be independent of how the Float is defined
 //

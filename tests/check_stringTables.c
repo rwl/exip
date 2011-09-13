@@ -96,9 +96,7 @@ START_TEST (test_createPrefixTable)
 	fail_unless (err == ERR_OK, "createPrefixTable returns error code %d", err);
 	fail_unless (pTable->rowCount == 0,
 				"createPrefixTable populates the pTable with rows: %d", pTable->rowCount);
-	fail_unless (pTable->arrayDimension == DEFAULT_PREFIX_ROWS_NUMBER,
-					"createPrefixTable creates dynamic array with %d rows", pTable->arrayDimension);
-	fail_if(pTable->rows == NULL);
+	fail_if(pTable->string_val == NULL);
 }
 END_TEST
 

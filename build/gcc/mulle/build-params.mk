@@ -1,5 +1,5 @@
 # Specify compiler to be used
-COMPILER = gcc
+COMPILER = m32c-elf-gcc
 
 # Debug flags if any
 DEBUGGING = -O0 -g
@@ -8,13 +8,10 @@ DEBUGGING = -O0 -g
 WARNING = -Wpacked -Wall
 
 # Add aditional CFLAGS if any 
-ADDITIONAL_CFLAGS = 
+ADDITIONAL_CFLAGS = -mcpu=m16c -falign-functions=2 -nostartfiles -DROMSTART -Imulle -D__SIZE_MAX__=-1
 
 # Check Unit Test installation directory
 CHECK_UNIT_TEST_DIR = /usr/local/lib
 
 # Whether to include the grammar generation module in the build
-INCLUDE_GRAMMAR_GENERATION = true
-
-# Supply additional EXIP configuration through app_config.h -> true, or use the defaults -> false
-APP_CONFIG_HEADER = false
+INCLUDE_GRAMMAR_GENERATION = false
