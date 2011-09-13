@@ -332,6 +332,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		else if(event.valueType == VALUE_TYPE_DECIMAL)
 		{
 			Decimal decVal;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Decimal value\n"));
 			tmp_err_code = decodeDecimalValue(strm, &decVal);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
@@ -344,6 +345,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		else if(event.valueType == VALUE_TYPE_FLOAT)
 		{
 			Float flVal;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Float value\n"));
 			tmp_err_code = decodeFloatValue(strm, &flVal);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
@@ -356,6 +358,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		else if(event.valueType == VALUE_TYPE_INTEGER)
 		{
 			Integer sintVal;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Integer value\n"));
 			tmp_err_code = decodeIntegerValue(strm, &sintVal);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
@@ -368,6 +371,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		else if(event.valueType == VALUE_TYPE_NON_NEGATIVE_INT)
 		{
 			UnsignedInteger uintVal;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Unsigned integer value\n"));
 			tmp_err_code = decodeUnsignedInteger(strm, &uintVal);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;

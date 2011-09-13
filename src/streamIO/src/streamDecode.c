@@ -190,7 +190,10 @@ errorCode decodeIntegerValue(EXIStream* strm, Integer* sint_val)
 	if(bool_val == 0) // A sign value of zero (0) is used to represent positive integers
 		*sint_val = (Integer) val;
 	else if(bool_val == 1) // A sign value of one (1) is used to represent negative integers
+	{
+		val += 1;
 		*sint_val = -((Integer) val);
+	}
 	else
 		return UNEXPECTED_ERROR;
 	return ERR_OK;
@@ -252,14 +255,18 @@ errorCode decodeFloatValue(EXIStream* strm, Float* fl_val)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	if(exponent >= (1 << 14) || exponent < -(1 << 14)
-			|| mantissa >= ((uint64_t) 1 << 63) ||
-			(mantissa < 0 && -mantissa > ((uint64_t) 1 << 63))
-			)
-	{
-		DEBUG_MSG(ERROR, DEBUG_STREAM_IO, (">Invalid float value: %lldE%lld\n", mantissa, exponent));
-		return INVALID_EXI_INPUT;
-	}
+	DEBUG_MSG(ERROR, DEBUG_STREAM_IO, (">Float value: %d E %d\n", mantissa, exponent));
+
+//  TODO: Improve the below validation: it should be independent of how the Float is defined
+//
+//	if(exponent >= (1 << 14) || exponent < -(1 << 14)
+//			|| mantissa >= ((uint64_t) 1 << 63) ||
+//			(mantissa < 0 && -mantissa > ((uint64_t) 1 << 63))
+//			)
+//	{
+//		DEBUG_MSG(ERROR, DEBUG_STREAM_IO, (">Invalid float value: %lldE%lld\n", mantissa, exponent));
+//		return INVALID_EXI_INPUT;
+//	}
 
 	fl_val->mantissa = mantissa;
 	fl_val->exponent = exponent;

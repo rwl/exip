@@ -135,11 +135,8 @@ typedef struct stackNode GenericStack;
 
 #define IS_PRESENT(p, mask) ((p & mask) != 0)
 
-/** Good practice is to keep the Integer type size equal UnsignedInteger size * 2
- *  in order to avoid overflow or underflow errors */
-
 #ifndef EXIP_UNSIGNED_INTEGER
-# define EXIP_UNSIGNED_INTEGER uint32_t
+# define EXIP_UNSIGNED_INTEGER uint64_t
 #endif
 
 typedef EXIP_UNSIGNED_INTEGER UnsignedInteger;
