@@ -81,12 +81,12 @@ errorCode decodeBoolean(EXIStream* strm, unsigned char* bool_val)
 
 errorCode decodeUnsignedInteger(EXIStream* strm, UnsignedInteger* int_val)
 {
-	int mask_7bits = 127;
-	int mask_8th_bit = 128;
-	unsigned int initial_multiplier = 1;
+	unsigned int mask_7bits = 127;
+	unsigned int mask_8th_bit = 128;
+	UnsignedInteger initial_multiplier = 1;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int tmp_byte_buf = 0;
-	int more_bytes_to_read = 0;
+	unsigned int more_bytes_to_read = 0;
 	*int_val = 0;
 
 	do

@@ -83,9 +83,9 @@ errorCode encodeUnsignedInteger(EXIStream* strm, UnsignedInteger int_val)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int nbits = getBitsNumber(int_val);
-	int nbyte7 = nbits / 7 + (nbits % 7 != 0);
-	int tmp_byte_buf = 0;
-	int i = 0;
+	unsigned int nbyte7 = nbits / 7 + (nbits % 7 != 0);
+	unsigned int tmp_byte_buf = 0;
+	unsigned int i = 0;
 	if(nbyte7 == 0)
 		nbyte7 = 1;  // the 0 Unsigned Integer is encoded with one 7bit byte
 	for(i = 0; i < nbyte7; i++)
