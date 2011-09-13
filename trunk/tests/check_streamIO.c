@@ -387,7 +387,7 @@ START_TEST (test_decodeUnsignedInteger)
 {
   EXIStream testStream;
   char buf[3];
-  unsigned int bit_val = 0;
+  UnsignedInteger bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
 
   testStream.context.bitPointer = 0;
@@ -637,8 +637,8 @@ START_TEST (test_decodeIntegerValue)
 
   err = decodeIntegerValue(&testStream, &bit_val);
 
-  fail_unless (bit_val == -40,
-	       "The IntegerValue -40 from the stream is read as %d", bit_val);
+  fail_unless (bit_val == -41,
+	       "The IntegerValue -41 from the stream is read as %d", bit_val);
   fail_unless (err == ERR_OK,
 	       "decodeIntegerValue returns error code %d", err);
   fail_unless (testStream.context.bitPointer == 1,
@@ -646,7 +646,20 @@ START_TEST (test_decodeIntegerValue)
   fail_unless (testStream.context.bufferIndx == 1,
       	       "The decodeIntegerValue function did not move the byte Pointer of the stream correctly");
 
-  // TODO: write more extensive tests
+  buf[0] = (char) 0x14; /* 0b00010100 */
+  testStream.context.bitPointer = 0;
+  testStream.context.bufferIndx = 0;
+
+  err = decodeIntegerValue(&testStream, &bit_val);
+
+  fail_unless (bit_val == 40,
+	       "The IntegerValue 40 from the stream is read as %d", bit_val);
+  fail_unless (err == ERR_OK,
+	       "decodeIntegerValue returns error code %d", err);
+  fail_unless (testStream.context.bitPointer == 1,
+    	       "The decodeIntegerValue function did not move the bit Pointer of the stream correctly");
+  fail_unless (testStream.context.bufferIndx == 1,
+      	       "The decodeIntegerValue function did not move the byte Pointer of the stream correctly");
 
 }
 END_TEST

@@ -228,7 +228,7 @@ errorCode encodeFloatValue(EXIStream* strm, Float fl_val)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
-	DEBUG_MSG(ERROR, DEBUG_STREAM_IO, (">Float value: %d E %d\n", fl_val.mantissa, fl_val.exponent));
+	DEBUG_MSG(ERROR, DEBUG_STREAM_IO, (">Float value: %lldE%d\n", fl_val.mantissa, fl_val.exponent));
 
 	tmp_err_code = encodeIntegerValue(strm, (Integer) fl_val.mantissa);	//encode mantissa
 	if(tmp_err_code != ERR_OK)
