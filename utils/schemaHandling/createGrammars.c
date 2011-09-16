@@ -243,11 +243,261 @@ int main(int argc, char *argv[])
 				printf("\n ERROR: EXIP output format is not implemented yet!");
 				exit(1);
 			}
+			else if(outputFormat == OUT_SRC_DYN)
+			{
+				sprintf(printfBuf, "#include \"procTypes.h\"\n\n");
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+				sprintf(printfBuf, "errorCode get_%sSchema(EXIPSchema* schema);\n\n", prefix);
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+				sprintf(printfBuf, "errorCode get_%sSchema(EXIPSchema* schema)\n{\n\t errorCode tmp_err_code = UNEXPECTED_ERROR;\n\t\n\t", prefix);
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+				sprintf(printfBuf, "if(schema == NULL)\n\t return NULL_POINTER_REF;\n\t");
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+				sprintf(printfBuf, "tmp_err_code = initAllocList(&schema->memList);\n\t");
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+				sprintf(printfBuf, "if(tmp_err_code != ERR_OK)\n\t return tmp_err_code;\n\t");
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+				for(i = 0; i < schema.initialStringTables->rowCount; i++)
+				{
+					if(schema.initialStringTables->rows[i].pTable != NULL)
+					{
+						sprintf(printfBuf, "PrefixTable* pTable_%d = memManagedAllocate(&schema->memList, sizeof(PrefixTable));\n\t", i);
+						fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+						sprintf(printfBuf, "if(pTable_%d == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t", i);
+						fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+						sprintf(printfBuf, "pTable_%d->rowCount = %d;\n\t", i, schema.initialStringTables->rows[i].pTable->rowCount);
+						fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+						for(k = 0; k < schema.initialStringTables->rows[i].pTable->rowCount; k++)
+						{
+							if(ERR_OK != stringToASCII(conv_buff, SPRINTF_BUFFER_SIZE, schema.initialStringTables->rows[i].pTable->string_val[k]))
+							{
+								printf("\n ERROR: OUT_SRC_DYN output format!");
+								exit(1);
+							}
+							sprintf(printfBuf, "tmp_err_code += asciiToString(\"%s\", &pTable_%d->string_val[%d], &schema->memList, TRUE);\n\t", conv_buff, i, k);
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+						}
+						for(; k < MAXIMUM_NUMBER_OF_PREFIXES_PER_URI; k++)
+						{
+							sprintf(printfBuf, "tmp_err_code += getEmptyString(&pTable_%d->string_val[%d]);\n\t", i, k);
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+						}
+						sprintf(printfBuf, "if(tmp_err_code != ERR_OK)\n\t return UNEXPECTED_ERROR;\n\t");
+						fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+					}
+
+					for(j = 0; j < schema.initialStringTables->rows[i].lTable->rowCount; j++)
+					{
+						tmpGrammar = schema.initialStringTables->rows[i].lTable->rows[j].globalGrammar;
+						if(tmpGrammar != NULL)
+						{
+							if(mask_specified == TRUE)
+							{
+								if(ERR_OK != addUndeclaredProductions(&memList, mask_strict, mask_sc, mask_preserve, tmpGrammar))
+								{
+									printf("\n ERROR: OUT_SRC_DYN output format!");
+									exit(1);
+								}
+							}
+
+							for(r = 0; r < tmpGrammar->rulesDimension; r++)
+							{
+								for(k = 0; k < 3; k++)
+								{
+									sprintf(printfBuf, "Production* prodArray_%d_%d_%d_%d = memManagedAllocate(&schema->memList, %d * sizeof(Production));\n\t", i, j, r, k, tmpGrammar->ruleArray[r].prodCounts[k]);
+									fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+									sprintf(printfBuf, "if(prodArray_%d_%d_%d_%d == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t", i, j, r, k);
+									fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+									for(p = 0; p < tmpGrammar->ruleArray[r].prodCounts[k]; p++)
+									{
+										sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].event.eventType = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].event.eventType);
+										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+										sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].event.valueType = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].event.valueType);
+										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+										sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].nonTermID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].nonTermID);
+										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+										sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].uriRowID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].uriRowID);
+										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+										sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].lnRowID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].lnRowID);
+										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+									}
+								}
+							}
+							// #DOCUMENT# IMPORTANT! tmpGrammar->rulesDimension + (mask_specified == FALSE) because It must be assured that the schema informed grammars have one empty slot for the rule:  Element i, content2
+							sprintf(printfBuf, "GrammarRule* ruleArray_%d_%d = memManagedAllocate(&schema->memList, %d * sizeof(GrammarRule));\n\t", i, j, tmpGrammar->rulesDimension + (mask_specified == FALSE));
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+							sprintf(printfBuf, "if(ruleArray_%d_%d == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t", i, j);
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+							for(r = 0; r < tmpGrammar->rulesDimension; r++)
+							{
+								sprintf(printfBuf, "ruleArray_%d_%d[%d].bits[0] = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].bits[0]);
+								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+								sprintf(printfBuf, "ruleArray_%d_%d[%d].bits[1] = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].bits[1]);
+								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+								sprintf(printfBuf, "ruleArray_%d_%d[%d].bits[1] = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].bits[2]);
+								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+								sprintf(printfBuf, "ruleArray_%d_%d[%d].prodCounts[0] = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].prodCounts[0]);
+								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+								sprintf(printfBuf, "ruleArray_%d_%d[%d].prodCounts[1] = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].prodCounts[1]);
+								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+								sprintf(printfBuf, "ruleArray_%d_%d[%d].prodCounts[2] = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].prodCounts[2]);
+								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+								sprintf(printfBuf, "ruleArray_%d_%d[%d].prodArrays[0] = prodArray_%d_%d_%d_0;\n\t", i, j, r, i, j, r);
+								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+								sprintf(printfBuf, "ruleArray_%d_%d[%d].prodArrays[1] = prodArray_%d_%d_%d_1;\n\t", i, j, r, i, j, r);
+								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+								sprintf(printfBuf, "ruleArray_%d_%d[%d].prodArrays[2] = prodArray_%d_%d_%d_2;\n\t", i, j, r, i, j, r);
+								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+							}
+
+							sprintf(printfBuf, "EXIGrammar* grammar_%d_%d = memManagedAllocate(&schema->memList, sizeof(EXIGrammar));\n\t", i, j);
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+							sprintf(printfBuf, "if(grammar_%d_%d == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t", i, j);
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+							sprintf(printfBuf, "grammar_%d_%d.contentIndex = %d;\n\t", i, j, tmpGrammar->contentIndex);
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+							sprintf(printfBuf, "grammar_%d_%d.grammarType = %d;\n\t", i, j, tmpGrammar->grammarType);
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+							sprintf(printfBuf, "grammar_%d_%d.pTypeFacets = NULL;\n\t", i, j); // TODO: fix the pTypeFacets
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+							sprintf(printfBuf, "grammar_%d_%d.rulesDimension = %d;\n\t", i, j, tmpGrammar->rulesDimension);
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+							sprintf(printfBuf, "grammar_%d_%d.rulesDimension = ruleArray_%d_%d;\n\t", i, j, i, j);
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+						}
+					}
+
+					sprintf(printfBuf, "struct LocalNamesRow* LNrows_%d = memManagedAllocate(&schema->memList, %d * sizeof(struct LocalNamesRow));\n\t", i, schema.initialStringTables->rows[i].lTable->rowCount);
+					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+					sprintf(printfBuf, "if(LNrows_%d == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t", i);
+					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+					for(j = 0; j < schema.initialStringTables->rows[i].lTable->rowCount; j++)
+					{
+						if(ERR_OK != stringToASCII(conv_buff, SPRINTF_BUFFER_SIZE, schema.initialStringTables->rows[i].lTable->rows[j].string_val))
+						{
+							printf("\n ERROR: OUT_SRC_STAT output format!");
+							exit(1);
+						}
+						if(schema.initialStringTables->rows[i].lTable->rows[j].globalGrammar != NULL)
+						{
+							sprintf(printfBuf, "LNrows_%d[%d].globalGrammar == grammar_%d_%d;\n\t", i, j, i, j);
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+						}
+						else
+						{
+							sprintf(printfBuf, "LNrows_%d[%d].globalGrammar == NULL;\n\t", i, j);
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+						}
+
+						sprintf(printfBuf, "LNrows_%d[%d].string_val.str == \"%s\";\n\t", i, j, conv_buff);
+						fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+						sprintf(printfBuf, "LNrows_%d[%d].string_val.length == %d;\n\t", i, j, schema.initialStringTables->rows[i].lTable->rows[j].string_val.length);
+						fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+						sprintf(printfBuf, "LNrows_%d[%d].vCrossTable == NULL;\n\t", i, j);
+						fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+					}
+
+					sprintf(printfBuf, "LocalNamesTable* lTable_%d = memManagedAllocate(&schema->memList, sizeof(LocalNamesTable));\n\t", i);
+					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+					sprintf(printfBuf, "if(lTable_%d == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t", i);
+					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+					sprintf(printfBuf, "lTable_%d->arrayDimension = %d;\n\t", i, schema.initialStringTables->rows[i].lTable->rowCount);
+					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+					sprintf(printfBuf, "lTable_%d->rowCount = %d;\n\t", i, schema.initialStringTables->rows[i].lTable->rowCount);
+					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+					sprintf(printfBuf, "lTable_%d->rows = LNrows_%d;\n\t", i, i);
+					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+					sprintf(printfBuf, "lTable_%d->memPair = NULL;\n\t", i); // TO BE fixed!
+					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+				}
+
+				sprintf(printfBuf, "struct URIRow* uriRows = memManagedAllocate(&schema->memList, %d * sizeof(struct URIRow));\n\t", schema.initialStringTables->rowCount);
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+				sprintf(printfBuf, "if(uriRows == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t");
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+				for(i = 0; i < schema.initialStringTables->rowCount; i++)
+				{
+					if(ERR_OK != stringToASCII(conv_buff, SPRINTF_BUFFER_SIZE, schema.initialStringTables->rows[i].string_val))
+					{
+						printf("\n ERROR: OUT_SRC_STAT output format!");
+						exit(1);
+					}
+					if(schema.initialStringTables->rows[i].pTable != NULL)
+					{
+						sprintf(printfBuf, "uriRows[%d].pTable = pTable_%d;\n\t", i, i);
+						fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+					}
+					else
+					{
+						sprintf(printfBuf, "uriRows[%d].pTable = NULL;\n\t", i);
+						fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+					}
+					sprintf(printfBuf, "uriRows[%d].lTable = lTable_%d;\n\t", i, i);
+					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+					sprintf(printfBuf, "uriRows[%d].string_val.str = \"%s\";\n\t", i, conv_buff);
+					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+					sprintf(printfBuf, "uriRows[%d].string_val.length = %d;\n\t", i, schema.initialStringTables->rows[i].string_val.length);
+					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+				}
+
+				sprintf(printfBuf, "URITable* uriTbl = memManagedAllocate(&schema->memList, sizeof(URITable));\n\t");
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+				sprintf(printfBuf, "if(uriTbl == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t");
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+				sprintf(printfBuf, "uriTbl->arrayDimension = %d;\n\t", schema.initialStringTables->arrayDimension);
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+				sprintf(printfBuf, "uriTbl->rowCount = %d;\n\t", schema.initialStringTables->rowCount);
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+				sprintf(printfBuf, "uriTbl->rows = uriRows;\n\t");
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+				sprintf(printfBuf, "uriTbl->memPair = NULL;\n\t");  // Fix that!
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+				sprintf(printfBuf, "QNameID* qnames = memManagedAllocate(&schema->memList, %d * sizeof(QNameID));\n\t", schema.globalElemGrammarsCount);
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+				sprintf(printfBuf, "if(qnames == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t");
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+				for(i = 0; i < schema.globalElemGrammarsCount; i++)
+				{
+					sprintf(printfBuf, "qnames[%d].uriRowId = %d;\n\t", i, schema.globalElemGrammars[i].uriRowId);
+					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+					sprintf(printfBuf, "qnames[%d].lnRowId = %d;\n\t", i, schema.globalElemGrammars[i].lnRowId);
+					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+				}
+
+				sprintf(printfBuf, "schema->globalElemGrammars = qnames;\n\t");
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+				sprintf(printfBuf, "schema->globalElemGrammarsCount = %d;\n\t", schema.globalElemGrammarsCount);
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+				sprintf(printfBuf, "schema->initialStringTables = uriTbl;\n\t");
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+				sprintf(printfBuf, "schema->isAugmented = %d;\n\t", mask_specified);
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+				sprintf(printfBuf, "return ERR_OK;\n}");
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+			}
 			else if(outputFormat == OUT_SRC_STAT)
 			{
-				// When there is no mask specified this is not correct!
-				// TODO: there should be extra rule slot for each grammar to be use if
-				// strict == FALSE by addUndeclaredProductions()!
+				// NOTE: Do not use without option mask! Also when strict == FALSE the memPairs are NULL which will create errors
+				// When there is no mask specified this is not correct if the schema is used more than once
+				// There is extra rule slot for each grammar to be use if
+				// strict == FALSE by addUndeclaredProductions() when no mask is specified
 
 				sprintf(printfBuf, "#include \"procTypes.h\"\n\n");
 				fwrite(printfBuf, 1, strlen(printfBuf), outfile);

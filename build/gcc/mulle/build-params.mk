@@ -2,7 +2,7 @@
 COMPILER = m32c-elf-gcc
 
 # Debug flags if any
-DEBUGGING = -O0 -g
+DEBUGGING = #-O0 -g
 
 # Warning flags
 WARNING = -Wpacked -Wall
