@@ -81,9 +81,8 @@ errorCode writeCharToString(String* str, uint32_t code_point, size_t* UCSpositio
  * @brief Creates an empty string
  * Note! The implementation of this function is platform-specific.
  * @param[in, out] emptyStr empty string
- * @return Error handling code
  */
-errorCode getEmptyString(String* emptyStr);
+void getEmptyString(String* emptyStr);
 
 /**
  * @brief Checks if an string is empty

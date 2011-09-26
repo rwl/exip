@@ -228,23 +228,18 @@ static errorCode resolveCollisionsInGrammar(AllocList* memList, struct collision
 	return ERR_OK;
 }
 
-errorCode createSimpleTypeGrammar(AllocList* memList, QName simpleType, ProtoGrammar** result)
+errorCode createSimpleTypeGrammar(AllocList* tmpMemList, ValueType vType, ProtoGrammar** result)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	EXIEvent event;
 
-	tmp_err_code = createProtoGrammar(memList, 2, 3, result);
+	tmp_err_code = createProtoGrammar(tmpMemList, 2, 3, result);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
 	(*result)->contentIndex = 0;
 
-	event.eventType = EVENT_CH;
-	tmp_err_code = getEXIDataType(simpleType, &(event.valueType));
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	(*result)->prods[0][0].event = event;
+	(*result)->prods[0][0].event.eventType = EVENT_CH;
+	(*result)->prods[0][0].event.valueType = vType;
 	(*result)->prods[0][0].nonTermID = 1;
 	(*result)->prods[0][0].uriRowID = UINT16_MAX;
 	(*result)->prods[0][0].lnRowID = SIZE_MAX;
@@ -381,13 +376,13 @@ errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, ProtoGrammar** res
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, String* name, String* target_ns,
+errorCode createAttributeUseGrammar(AllocList* tmpMemList, unsigned char required, String* name, String* target_ns,
 										  QName simpleType, QName scope, ProtoGrammar** result,  uint16_t uriRowID, size_t lnRowID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIEvent event1;
 
-	tmp_err_code = createProtoGrammar(memList, 2, 4, result);
+	tmp_err_code = createProtoGrammar(tmpMemList, 2, 4, result);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	(*result)->contentIndex = 0;
@@ -719,64 +714,169 @@ errorCode createAllModelGroupsGrammar(AllocList* memList, ProtoGrammar* pTermArr
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode getEXIDataType(QName simpleXSDType, ValueType* exiType)
+errorCode getEXIDataType(QName simpleXSDType, ValueType* vType)
 {
-	if(stringEqualToAscii(*simpleXSDType.localName, "string") ||
-	   stringEqualToAscii(*simpleXSDType.localName, "duration") ||
-	   stringEqualToAscii(*simpleXSDType.localName, "anyURI") ||
-	   stringEqualToAscii(*simpleXSDType.localName, "normalizedString") ||
-	   stringEqualToAscii(*simpleXSDType.localName, "token") ||
-	   stringEqualToAscii(*simpleXSDType.localName, "Name") ||
-	   stringEqualToAscii(*simpleXSDType.localName, "NMTOKEN") ||
-	   stringEqualToAscii(*simpleXSDType.localName, "NCName") ||
-	   stringEqualToAscii(*simpleXSDType.localName, "ID") ||
-	   stringEqualToAscii(*simpleXSDType.localName, "IDREF") ||
-	   stringEqualToAscii(*simpleXSDType.localName, "ENTITY"))
+	if(stringEqualToAscii(*simpleXSDType.localName, "string"))
 	{
-		*exiType = VALUE_TYPE_STRING;
+		vType->simpleTypeID = SIMPLE_TYPE_STRING;
+		vType->exiType = VALUE_TYPE_STRING;
+		return ERR_OK;
+	}
+	else if(stringEqualToAscii(*simpleXSDType.localName, "normalizedString"))
+	{
+		vType->simpleTypeID = SIMPLE_TYPE_NORMALIZED_STRING;
+		vType->exiType = VALUE_TYPE_STRING;
+		return ERR_OK;
+	}
+	else if(stringEqualToAscii(*simpleXSDType.localName, "token"))
+	{
+		vType->simpleTypeID = SIMPLE_TYPE_TOKEN;
+		vType->exiType = VALUE_TYPE_STRING;
+		return ERR_OK;
+	}
+	else if(stringEqualToAscii(*simpleXSDType.localName, "Name"))
+	{
+		vType->simpleTypeID = SIMPLE_TYPE_NAME;
+		vType->exiType = VALUE_TYPE_STRING;
+		return ERR_OK;
+	}
+	else if(stringEqualToAscii(*simpleXSDType.localName, "NMTOKEN"))
+	{
+		vType->simpleTypeID = SIMPLE_TYPE_NMTOKEN;
+		vType->exiType = VALUE_TYPE_STRING;
+		return ERR_OK;
+	}
+	else if(stringEqualToAscii(*simpleXSDType.localName, "NCName"))
+	{
+		vType->simpleTypeID = SIMPLE_TYPE_NCNAME;
+		vType->exiType = VALUE_TYPE_STRING;
+		return ERR_OK;
+	}
+	else if(stringEqualToAscii(*simpleXSDType.localName, "IDREF"))
+	{
+		vType->simpleTypeID = SIMPLE_TYPE_IDREF;
+		vType->exiType = VALUE_TYPE_STRING;
+		return ERR_OK;
+	}
+	else if(stringEqualToAscii(*simpleXSDType.localName, "ENTITY"))
+	{
+		vType->simpleTypeID = SIMPLE_TYPE_ENTITY;
+		vType->exiType = VALUE_TYPE_STRING;
+		return ERR_OK;
+	}
+	else if(stringEqualToAscii(*simpleXSDType.localName, "duration") ||
+			stringEqualToAscii(*simpleXSDType.localName, "anyURI") ||
+			stringEqualToAscii(*simpleXSDType.localName, "ID") ||
+			stringEqualToAscii(*simpleXSDType.localName, "language") ||
+			stringEqualToAscii(*simpleXSDType.localName, "NOTATION"))
+
+	{
+		vType->exiType = VALUE_TYPE_STRING;
+		vType->simpleTypeID = UINT16_MAX;
 		return ERR_OK;
 	}
 	else if(stringEqualToAscii(*simpleXSDType.localName, "boolean"))
 	{
-		*exiType = VALUE_TYPE_BOOLEAN;
+		vType->exiType = VALUE_TYPE_BOOLEAN;
+		vType->simpleTypeID = UINT16_MAX;
 		return ERR_OK;
 	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "integer") ||
-			stringEqualToAscii(*simpleXSDType.localName, "nonPositiveInteger") ||
-			stringEqualToAscii(*simpleXSDType.localName, "long") ||
-			stringEqualToAscii(*simpleXSDType.localName, "int") ||
-			stringEqualToAscii(*simpleXSDType.localName, "short") ||
-			stringEqualToAscii(*simpleXSDType.localName, "byte") ||
-			stringEqualToAscii(*simpleXSDType.localName, "negativeInteger"))
+	else if(stringEqualToAscii(*simpleXSDType.localName, "integer"))
 	{
-		*exiType = VALUE_TYPE_INTEGER;
+		vType->simpleTypeID = SIMPLE_TYPE_INTEGER;
+		vType->exiType = VALUE_TYPE_INTEGER;
 		return ERR_OK;
 	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "nonNegativeInteger") ||
-			stringEqualToAscii(*simpleXSDType.localName, "positiveInteger") ||
-			stringEqualToAscii(*simpleXSDType.localName, "unsignedLong") ||
-			stringEqualToAscii(*simpleXSDType.localName, "unsignedInt") ||
-			stringEqualToAscii(*simpleXSDType.localName, "unsignedShort") ||
-			stringEqualToAscii(*simpleXSDType.localName, "unsignedByte"))
+	else if(stringEqualToAscii(*simpleXSDType.localName, "long"))
 	{
-		*exiType = VALUE_TYPE_NON_NEGATIVE_INT;
+		vType->simpleTypeID = SIMPLE_TYPE_LONG;
+		vType->exiType = VALUE_TYPE_INTEGER;
+		return ERR_OK;
+	}
+	else if(stringEqualToAscii(*simpleXSDType.localName, "int"))
+	{
+		vType->simpleTypeID = SIMPLE_TYPE_INT;
+		vType->exiType = VALUE_TYPE_INTEGER;
+		return ERR_OK;
+	}
+	else if(stringEqualToAscii(*simpleXSDType.localName, "nonPositiveInteger"))
+	{
+		vType->simpleTypeID = SIMPLE_TYPE_NON_POSITIVE_INTEGER;
+		vType->exiType = VALUE_TYPE_INTEGER;
+		return ERR_OK;
+	}
+	else if(stringEqualToAscii(*simpleXSDType.localName, "negativeInteger"))
+	{
+		vType->simpleTypeID = SIMPLE_TYPE_NEGATIVE_INTEGER;
+		vType->exiType = VALUE_TYPE_INTEGER;
+		return ERR_OK;
+	}
+	else if(stringEqualToAscii(*simpleXSDType.localName, "short"))
+	{
+		vType->simpleTypeID = SIMPLE_TYPE_SHORT;
+		vType->exiType = VALUE_TYPE_INTEGER;
+		return ERR_OK;
+	}
+	else if(stringEqualToAscii(*simpleXSDType.localName, "byte"))
+	{
+		vType->simpleTypeID = SIMPLE_TYPE_BYTE;
+		vType->exiType = VALUE_TYPE_SMALL_INTEGER;
+		return ERR_OK;
+	}
+	else if(stringEqualToAscii(*simpleXSDType.localName, "nonNegativeInteger"))
+	{
+		vType->simpleTypeID = SIMPLE_TYPE_NON_NEGATIVE_INTEGER;
+		vType->exiType = VALUE_TYPE_NON_NEGATIVE_INT;
+		return ERR_OK;
+	}
+	else if(stringEqualToAscii(*simpleXSDType.localName, "unsignedLong"))
+	{
+		vType->simpleTypeID = SIMPLE_TYPE_UNSIGNED_LONG;
+		vType->exiType = VALUE_TYPE_NON_NEGATIVE_INT;
+		return ERR_OK;
+	}
+	else if(stringEqualToAscii(*simpleXSDType.localName, "unsignedInt"))
+	{
+		vType->simpleTypeID = SIMPLE_TYPE_UNSIGNED_INT;
+		vType->exiType = VALUE_TYPE_NON_NEGATIVE_INT;
+		return ERR_OK;
+	}
+	else if(stringEqualToAscii(*simpleXSDType.localName, "positiveInteger"))
+	{
+		vType->simpleTypeID = SIMPLE_TYPE_POSITIVE_INTEGER;
+		vType->exiType = VALUE_TYPE_NON_NEGATIVE_INT;
+		return ERR_OK;
+	}
+	else if(stringEqualToAscii(*simpleXSDType.localName, "unsignedShort"))
+	{
+		vType->simpleTypeID = SIMPLE_TYPE_UNSIGNED_SHORT;
+		vType->exiType = VALUE_TYPE_NON_NEGATIVE_INT;
+		return ERR_OK;
+	}
+	else if(stringEqualToAscii(*simpleXSDType.localName, "unsignedByte"))
+	{
+		vType->simpleTypeID = SIMPLE_TYPE_UNSIGNED_BYTE;
+		vType->exiType = VALUE_TYPE_SMALL_INTEGER;
 		return ERR_OK;
 	}
 	else if(stringEqualToAscii(*simpleXSDType.localName, "float") ||
 				stringEqualToAscii(*simpleXSDType.localName, "double"))
 	{
-		*exiType = VALUE_TYPE_FLOAT;
+		vType->exiType = VALUE_TYPE_FLOAT;
+		vType->simpleTypeID = UINT16_MAX;
 		return ERR_OK;
 	}
 	else if(stringEqualToAscii(*simpleXSDType.localName, "decimal"))
 	{
-		*exiType = VALUE_TYPE_DECIMAL;
+		vType->simpleTypeID = SIMPLE_TYPE_DECIMAL;
+		vType->exiType = VALUE_TYPE_DECIMAL;
 		return ERR_OK;
 	}
 	else if(stringEqualToAscii(*simpleXSDType.localName, "hexBinary") ||
 				stringEqualToAscii(*simpleXSDType.localName, "base64Binary"))
 	{
-		*exiType = VALUE_TYPE_BINARY;
+		vType->exiType = VALUE_TYPE_BINARY;
+		vType->simpleTypeID = UINT16_MAX;
 		return ERR_OK;
 	}
 	else if(stringEqualToAscii(*simpleXSDType.localName, "dateTime") ||
@@ -788,14 +888,16 @@ errorCode getEXIDataType(QName simpleXSDType, ValueType* exiType)
 			stringEqualToAscii(*simpleXSDType.localName, "gDay") ||
 			stringEqualToAscii(*simpleXSDType.localName, "gMonth"))
 	{
-		*exiType = VALUE_TYPE_DATE_TIME;
+		vType->exiType = VALUE_TYPE_DATE_TIME;
+		vType->simpleTypeID = UINT16_MAX;
 		return ERR_OK;
 	}
 	else if(stringEqualToAscii(*simpleXSDType.localName, "NMTOKENS") ||
 			stringEqualToAscii(*simpleXSDType.localName, "IDREFS") ||
 			stringEqualToAscii(*simpleXSDType.localName, "ENTITIES"))
 	{
-		*exiType = VALUE_TYPE_LIST;
+		vType->exiType = VALUE_TYPE_LIST;
+		vType->simpleTypeID = UINT16_MAX;
 		return ERR_OK;
 	}
 
@@ -871,3 +973,219 @@ static int compareProductions(const void* prod1, const void* prod2)
 	}
 }
 
+errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	SimpleType sType;
+	size_t elID;
+
+	// String
+	sType.facetPresenceMask = 0;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// normalizedString
+	sType.facetPresenceMask = 0;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// token
+	sType.facetPresenceMask = 0;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// nmtoken
+	sType.facetPresenceMask = 0;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// name
+	sType.facetPresenceMask = 0;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// ncname
+	sType.facetPresenceMask = 0;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// idref
+	sType.facetPresenceMask = 0;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// entity
+	sType.facetPresenceMask = 0;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// decimal
+	sType.facetPresenceMask = 0;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// integer
+	sType.facetPresenceMask = 0;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// NonPositiveInteger
+	sType.facetPresenceMask = 0;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MAX_INCLUSIVE;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// negativeInteger
+	sType.facetPresenceMask = 0;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MAX_INCLUSIVE;
+	sType.maxInclusive = -1;
+	sType.minInclusive = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// long
+	sType.facetPresenceMask = 0;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// Int
+	sType.facetPresenceMask = 0;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// short
+	sType.facetPresenceMask = 0;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MAX_INCLUSIVE;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
+	sType.maxInclusive = 32767;
+	sType.minInclusive = -32768;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// byte
+	sType.facetPresenceMask = 0;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MAX_INCLUSIVE;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
+	sType.maxInclusive = 127;
+	sType.minInclusive = -128;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// NonNegativeInteger
+	sType.facetPresenceMask = 0;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// Unsigned Long
+	sType.facetPresenceMask = 0;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// Unsigned int
+	sType.facetPresenceMask = 0;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// Unsigned short
+	sType.facetPresenceMask = 0;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MAX_INCLUSIVE;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
+	sType.maxInclusive = 65535;
+	sType.minInclusive = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// Unsigned byte
+	sType.facetPresenceMask = 0;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MAX_INCLUSIVE;
+	sType.maxInclusive = 255;
+	sType.minInclusive = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// Positive Integer
+	sType.facetPresenceMask = 0;
+	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 1;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	return ERR_OK;
+}

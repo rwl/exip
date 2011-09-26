@@ -289,7 +289,7 @@ typedef unsigned char EventType;
  * 21 - Small int
  * 22 - Unsigned int
  * */
-typedef unsigned char ValueType;
+typedef unsigned char EXIType;
 
 #define VALUE_TYPE_NONE              1
 #define VALUE_TYPE_STRING            2
@@ -305,6 +305,14 @@ typedef unsigned char ValueType;
 #define VALUE_TYPE_INTEGER          20
 #define VALUE_TYPE_SMALL_INTEGER    21
 #define VALUE_TYPE_NON_NEGATIVE_INT 22
+
+struct ValueType
+{
+	EXIType exiType;
+	uint16_t simpleTypeID; // An index of the simple type in the schema SimpleTypeArray if any, UINT16_MAX otherwise
+};
+
+typedef struct ValueType ValueType;
 
 struct EXIEvent
 {
@@ -380,31 +388,6 @@ typedef struct DynGrammarRule DynGrammarRule;
 #define GR_TYPE_SCHEMA_TYPE       14
 #define GR_TYPE_SCHEMA_EMPTY_TYPE 15
 
-
-// Constraining Facets IDs. Used for fine-grained schema validation
-#define TYPE_FACET_LENGTH           1
-#define TYPE_FACET_MIN_LENGTH       2
-#define TYPE_FACET_MAX_LENGTH       3
-#define TYPE_FACET_PATTERN          4
-#define TYPE_FACET_ENUMERATION      5
-#define TYPE_FACET_WHITE_SPACE      6
-#define TYPE_FACET_MAX_INCLUSIVE    7
-#define TYPE_FACET_MAX_EXCLUSIVE    8
-#define TYPE_FACET_MIN_EXCLUSIVE    9
-#define TYPE_FACET_MIN_INCLUSIVE   10
-#define TYPE_FACET_TOTAL_DIGITS    11
-#define TYPE_FACET_FRACTION_DIGITS 12
-#define TYPE_FACET_NILLABLE        13
-
-struct TypeFacet
-{
-	unsigned char facetID;
-	uint32_t intValue;
-	String strValue;
-};
-
-typedef struct TypeFacet TypeFacet;
-
 /**
  * The rule index in the ruleArray is the left hand side nonTermID of the particular grammar Rule
  */
@@ -413,8 +396,8 @@ struct EXIGrammar
 	GrammarRule* ruleArray; // Array of grammar rules which constitute that grammar
 	size_t rulesDimension; // The size of the array
 	unsigned char grammarType;
+	unsigned char isNillable;
 	size_t contentIndex;
-	GenericStack* pTypeFacets; // The Constraining Facets attached to this grammar if any
 };
 
 typedef struct EXIGrammar EXIGrammar;
@@ -519,11 +502,61 @@ struct QNameID {
 
 typedef struct QNameID QNameID;
 
+// Constraining Facets IDs. Used for fine-grained schema validation
+#define TYPE_FACET_LENGTH             0b0000000000000001
+#define TYPE_FACET_MIN_LENGTH         0b0000000000000010
+#define TYPE_FACET_MAX_LENGTH         0b0000000000000100
+#define TYPE_FACET_PATTERN            0b0000000000001000
+#define TYPE_FACET_ENUMERATION        0b0000000000010000
+#define TYPE_FACET_WHITE_SPACE        0b0000000000100000
+#define TYPE_FACET_MAX_INCLUSIVE      0b0000000001000000
+#define TYPE_FACET_MAX_EXCLUSIVE      0b0000000010000000
+#define TYPE_FACET_MIN_EXCLUSIVE      0b0000000100000000
+#define TYPE_FACET_MIN_INCLUSIVE      0b0000001000000000
+#define TYPE_FACET_TOTAL_DIGITS       0b0000010000000000
+#define TYPE_FACET_FRACTION_DIGITS    0b0000100000000000
+#define TYPE_FACET_NAMED_SUBTYPE      0b0001000000000000
+#define TYPE_FACET_SIMPLE_UNION_TYPE  0b0010000000000000
+
+struct SimpleType {
+	uint16_t facetPresenceMask;
+	int maxInclusive;
+	int minInclusive;
+};
+
+typedef struct SimpleType SimpleType;
+
+// TODO: Currently only types that are needed for correct encoding/decoding
+#define SIMPLE_TYPE_STRING                0
+#define SIMPLE_TYPE_NORMALIZED_STRING     1
+#define SIMPLE_TYPE_TOKEN                 2
+#define SIMPLE_TYPE_NMTOKEN               3
+#define SIMPLE_TYPE_NAME                  4
+#define SIMPLE_TYPE_NCNAME                5
+#define SIMPLE_TYPE_IDREF                 6
+#define SIMPLE_TYPE_ENTITY                7
+#define SIMPLE_TYPE_DECIMAL               8
+#define SIMPLE_TYPE_INTEGER               9
+#define SIMPLE_TYPE_NON_POSITIVE_INTEGER 10
+#define SIMPLE_TYPE_NEGATIVE_INTEGER     11
+#define SIMPLE_TYPE_LONG                 12
+#define SIMPLE_TYPE_INT                  13
+#define SIMPLE_TYPE_SHORT                14
+#define SIMPLE_TYPE_BYTE                 15
+#define SIMPLE_TYPE_NON_NEGATIVE_INTEGER 16
+#define SIMPLE_TYPE_UNSIGNED_LONG        17
+#define SIMPLE_TYPE_UNSIGNED_INT         18
+#define SIMPLE_TYPE_UNSIGNED_SHORT       19
+#define SIMPLE_TYPE_UNSIGNED_BYTE        20
+#define SIMPLE_TYPE_POSITIVE_INTEGER     21
+
 struct EXIPSchema
 {
 	URITable* initialStringTables;
 	QNameID* globalElemGrammars;  // Sorted
 	unsigned int globalElemGrammarsCount;
+	SimpleType* simpleTypeArray;
+	uint16_t sTypeArraySize;
 	char isAugmented;
 
 	AllocList memList; // Stores the information for all memory allocations for that schema

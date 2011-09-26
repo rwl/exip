@@ -54,7 +54,7 @@ errorCode startDocument(EXIStream* strm, unsigned char fastSchemaMode, size_t sc
 errorCode endDocument(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
 errorCode startElement(EXIStream* strm, QName* qname, unsigned char fastSchemaMode, size_t schemaProduction);
 errorCode endElement(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
-errorCode attribute(EXIStream* strm, QName* qname, ValueType valueType, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode attribute(EXIStream* strm, QName* qname, EXIType exiType, unsigned char fastSchemaMode, size_t schemaProduction);
 
 // For handling the data
 errorCode intData(EXIStream* strm, Integer int_val, unsigned char fastSchemaMode, size_t schemaProduction);
@@ -102,16 +102,16 @@ errorCode encodeSimpleEXIEvent(EXIStream* strm, EXIEvent event, unsigned char fa
  * @brief Encodes SE, AT events
  * @param[in, out] strm EXI stream
  * @param[in] qname element or attribute QName
- * @param[in] valueType used for AT events
  * @param[in] event_all EVENT_SE_ALL or EVENT_AT_ALL
  * @param[in] event_uri EVENT_SE_URI or EVENT_AT_URI
  * @param[in] event_qname EVENT_SE_QNAME or EVENT_AT_QNAME
+ * @param[in] exiType used for AT events
  * @param[in] fastSchemaMode - TRUE/FALSE, require valid schemaProduction order number
  * @param[in] schemaProduction the order number of the schema production (starting from 0), only needed if fastSchemaMode == TRUE
  * @return Error handling code
  */
 errorCode encodeComplexEXIEvent(EXIStream* strm, QName* qname, EventType event_all, EventType event_uri,
-						EventType event_qname, ValueType valueType, unsigned char fastSchemaMode, size_t schemaProduction);
+						EventType event_qname, EXIType exiType, unsigned char fastSchemaMode, size_t schemaProduction);
 
 /**
  * @brief Encodes QName into EXI stream

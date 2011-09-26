@@ -70,12 +70,12 @@ errorCode concatenateGrammars(AllocList* memList, ProtoGrammar* left, ProtoGramm
 /**
  * @brief Creates Simple Type Grammar from XML Schema simple type definition
  *
- * @param[in, out] memList A list storing the memory allocations
- * @param[in] simpleType qname of the simple type
+ * @param[in, out] tmpMemList A list storing the memory allocations during schema parsing
+ * @param[in] vType value type of the simple type
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createSimpleTypeGrammar(AllocList* memList, QName simpleType, ProtoGrammar** result);
+errorCode createSimpleTypeGrammar(AllocList* tmpMemList, ValueType vType, ProtoGrammar** result);
 
 /**
  * @brief Creates Simple EmptyType Grammar from XML Schema simple type definition
@@ -158,7 +158,7 @@ errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, ProtoGrammar** res
 /**
  * @brief Creates Attribute Use Grammar from XML Schema Attribute Use
  *
- * @param[in, out] memList A list storing the memory allocations
+ * @param[in, out] tmpMemList A list storing the memory allocations during schema parsing
  * @param[in] required 0 - false; otherwise true
  * @param[in] name attribute local name
  * @param[in] target_ns attribute namespace
@@ -169,7 +169,7 @@ errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, ProtoGrammar** res
  * @param[in] lnRowID row index of the local name in the unsorted string tables
  * @return Error handling code
  */
-errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, String* name, String* target_ns,
+errorCode createAttributeUseGrammar(AllocList* tmpMemList, unsigned char required, String* name, String* target_ns,
 										  QName simpleType, QName scope, ProtoGrammar** result, uint16_t uriRowID, size_t lnRowID);
 
 /**
@@ -246,10 +246,10 @@ errorCode createAllModelGroupsGrammar(AllocList* memList, ProtoGrammar* pTermArr
  * @brief Maps a simple XSD type to its EXI datatype representation
  *
  * @param[in] simpleXSDType simple XSD type
- * @param[out] exiType corresponding EXI type
+ * @param[out] vType corresponding EXI type with constraining facets
  * @return Error handling code
  */
-errorCode getEXIDataType(QName simpleXSDType, ValueType* exiType);
+errorCode getEXIDataType(QName simpleXSDType, ValueType* vType);
 
 /**
  * @brief Compare lexicographically two qnames
@@ -270,5 +270,14 @@ int qnamesCompare(const String* uri1, const String* ln1, const String* uri2, con
  * @return Error handling code
  */
 errorCode assignCodes(ProtoGrammar* grammar, URITable* metaSTable);
+
+/**
+ * @brief Populate initial simple type array with the build-in simple types
+ *
+ * @param[in, out] sTypeArr Dynamic array storing the simple types definitions
+ * @param[in, out] memList memory allocations
+ * @return Error handling code
+ */
+errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList);
 
 #endif /* GENUTILS_H_ */

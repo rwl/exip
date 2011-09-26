@@ -162,7 +162,7 @@ errorCode convertProtoGrammar(AllocList* memlist, ProtoGrammar* pg, EXIGrammar**
 	(*result)->grammarType = GR_TYPE_SCHEMA_TYPE;  // TODO: the proto-grammar might have different type
 	(*result)->contentIndex = pg->contentIndex;
 	(*result)->rulesDimension = pg->rulesCount;
-	(*result)->pTypeFacets = NULL;
+	(*result)->isNillable = FALSE;
 
 	// #DOCUMENT# one more rule slot is created as it can be needed for addUndeclaredProductions
 	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memlist, sizeof(GrammarRule)*(pg->rulesCount + 1));

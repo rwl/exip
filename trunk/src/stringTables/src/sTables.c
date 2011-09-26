@@ -265,9 +265,7 @@ errorCode createInitialEntries(AllocList* memList, URITable* uTable, unsigned ch
 	String tmp_str;
 
 	// Insert initial entries in the URI partition
-	tmp_err_code = getEmptyString(&emptyStr);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	getEmptyString(&emptyStr);
 
 	/**** URI	0	"" [empty string] */
 	tmp_err_code = addURIRow(uTable, emptyStr, &uriID, memList);

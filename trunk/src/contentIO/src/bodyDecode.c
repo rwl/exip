@@ -237,7 +237,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 			if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
 				return HANDLER_STOP_RECEIVED;
 		}
-		if(event.valueType == VALUE_TYPE_STRING || event.valueType == VALUE_TYPE_NONE)
+		if(event.valueType.exiType == VALUE_TYPE_STRING || event.valueType.exiType == VALUE_TYPE_NONE)
 		{
 			String value;
 			unsigned char freeable = FALSE;
@@ -302,7 +302,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">CH event\n"));
 		}
 
-		if(event.valueType == VALUE_TYPE_STRING || event.valueType == VALUE_TYPE_NONE || event.valueType == VALUE_TYPE_UNTYPED)
+		if(event.valueType.exiType == VALUE_TYPE_STRING || event.valueType.exiType == VALUE_TYPE_NONE || event.valueType.exiType == VALUE_TYPE_UNTYPED)
 		{
 			String value;
 			unsigned char freeable = FALSE;
@@ -317,19 +317,19 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 			if(freeable)
 				freeLastManagedAlloc(&strm->memList);
 		}
-		else if(event.valueType == VALUE_TYPE_BOOLEAN)
+		else if(event.valueType.exiType == VALUE_TYPE_BOOLEAN)
 		{
 			return NOT_IMPLEMENTED_YET;
 		}
-		else if(event.valueType == VALUE_TYPE_BINARY)
+		else if(event.valueType.exiType == VALUE_TYPE_BINARY)
 		{
 			return NOT_IMPLEMENTED_YET;
 		}
-		else if(event.valueType == VALUE_TYPE_DATE_TIME)
+		else if(event.valueType.exiType == VALUE_TYPE_DATE_TIME)
 		{
 			return NOT_IMPLEMENTED_YET;
 		}
-		else if(event.valueType == VALUE_TYPE_DECIMAL)
+		else if(event.valueType.exiType == VALUE_TYPE_DECIMAL)
 		{
 			Decimal decVal;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Decimal value\n"));
@@ -342,7 +342,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 					return HANDLER_STOP_RECEIVED;
 			}
 		}
-		else if(event.valueType == VALUE_TYPE_FLOAT)
+		else if(event.valueType.exiType == VALUE_TYPE_FLOAT)
 		{
 			Float flVal;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Float value\n"));
@@ -355,7 +355,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 					return HANDLER_STOP_RECEIVED;
 			}
 		}
-		else if(event.valueType == VALUE_TYPE_INTEGER)
+		else if(event.valueType.exiType == VALUE_TYPE_INTEGER)
 		{
 			Integer sintVal;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Integer value\n"));
@@ -368,7 +368,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 					return HANDLER_STOP_RECEIVED;
 			}
 		}
-		else if(event.valueType == VALUE_TYPE_NON_NEGATIVE_INT)
+		else if(event.valueType.exiType == VALUE_TYPE_NON_NEGATIVE_INT)
 		{
 			UnsignedInteger uintVal;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Unsigned integer value\n"));
@@ -383,11 +383,49 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 					return HANDLER_STOP_RECEIVED;
 			}
 		}
-		else if(event.valueType == VALUE_TYPE_LIST)
+		else if(event.valueType.exiType == VALUE_TYPE_SMALL_INTEGER)
+		{
+			unsigned int uintVal;
+			int base;
+			int upLimit;
+
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Small integer value\n"));
+
+			if(event.valueType.simpleTypeID >= strm->schema->sTypeArraySize)
+				return INVALID_EXI_INPUT;
+
+			if((strm->schema->simpleTypeArray[event.valueType.simpleTypeID].facetPresenceMask & TYPE_FACET_MIN_INCLUSIVE) == 0
+					&& (strm->schema->simpleTypeArray[event.valueType.simpleTypeID].facetPresenceMask & TYPE_FACET_MIN_EXCLUSIVE) == 0)
+				return INVALID_EXI_INPUT;
+			if((strm->schema->simpleTypeArray[event.valueType.simpleTypeID].facetPresenceMask & TYPE_FACET_MAX_INCLUSIVE) == 0
+					&& (strm->schema->simpleTypeArray[event.valueType.simpleTypeID].facetPresenceMask & TYPE_FACET_MAX_EXCLUSIVE) == 0)
+				return INVALID_EXI_INPUT;
+
+			if((strm->schema->simpleTypeArray[event.valueType.simpleTypeID].facetPresenceMask & TYPE_FACET_MIN_INCLUSIVE) != 0)
+				base = strm->schema->simpleTypeArray[event.valueType.simpleTypeID].minInclusive;
+			else
+				return NOT_IMPLEMENTED_YET;
+
+			if((strm->schema->simpleTypeArray[event.valueType.simpleTypeID].facetPresenceMask & TYPE_FACET_MAX_INCLUSIVE) != 0)
+				upLimit = strm->schema->simpleTypeArray[event.valueType.simpleTypeID].maxInclusive;
+			else
+				return NOT_IMPLEMENTED_YET;
+
+			tmp_err_code = decodeNBitUnsignedInteger(strm, getBitsNumber(upLimit - base), &uintVal);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			if(handler->intData != NULL)  // Invoke handler method
+			{
+				if(handler->intData((Integer) (base + uintVal), app_data) == EXIP_HANDLER_STOP)
+					return HANDLER_STOP_RECEIVED;
+			}
+		}
+		else if(event.valueType.exiType == VALUE_TYPE_LIST)
 		{
 			return NOT_IMPLEMENTED_YET;
 		}
-		else if(event.valueType == VALUE_TYPE_QNAME)
+		else if(event.valueType.exiType == VALUE_TYPE_QNAME)
 		{
 			return NOT_IMPLEMENTED_YET;
 		}
