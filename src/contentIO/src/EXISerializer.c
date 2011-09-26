@@ -130,7 +130,7 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 
 		if(schema->isAugmented == FALSE)
 		{
-			tmp_err_code = addUndeclaredProductionsToAll(&strm->memList, strm->uriTable, &strm->header.opts);
+			tmp_err_code = addUndeclaredProductionsToAll(&strm->memList, strm->uriTable, &strm->header.opts, schema->simpleTypeArray, schema->sTypeArraySize);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -255,27 +255,30 @@ errorCode endElement(EXIStream* strm, unsigned char fastSchemaMode, size_t schem
 	return ERR_OK;
 }
 
-errorCode attribute(EXIStream* strm, QName* qname, ValueType valueType, unsigned char fastSchemaMode, size_t schemaProduction)
+errorCode attribute(EXIStream* strm, QName* qname, EXIType exiType, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start attr serialization\n"));
 	strm->context.expectATData = TRUE;
-	return encodeComplexEXIEvent(strm, qname, EVENT_AT_ALL, EVENT_AT_URI, EVENT_AT_QNAME, valueType, fastSchemaMode, schemaProduction);
+	return encodeComplexEXIEvent(strm, qname, EVENT_AT_ALL, EVENT_AT_URI, EVENT_AT_QNAME, exiType, fastSchemaMode, schemaProduction);
 }
 
 errorCode intData(EXIStream* strm, Integer int_val, unsigned char fastSchemaMode, size_t schemaProduction)
 {
-	ValueType intType = VALUE_TYPE_INTEGER;
+	ValueType intType;
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start int data serialization\n"));
+
+	intType.exiType = VALUE_TYPE_INTEGER;
+	intType.simpleTypeID = UINT16_MAX;
 
 	if(strm->context.expectATData) // Value for an attribute
 	{
-		intType = strm->context.expectATData;
+		intType.exiType = strm->context.expectATData;
 		strm->context.expectATData = FALSE;
 	}
 	else
 	{
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		EXIEvent event = {EVENT_CH, VALUE_TYPE_INTEGER};
+		EXIEvent event = {EVENT_CH, {VALUE_TYPE_INTEGER, UINT16_MAX}};
 
 		tmp_err_code = encodeSimpleEXIEvent(strm, event, fastSchemaMode, schemaProduction, &intType);
 		if(tmp_err_code != ERR_OK)
@@ -302,7 +305,7 @@ errorCode stringData(EXIStream* strm, const String str_val, unsigned char fastSc
 	else
 	{
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		EXIEvent event = {EVENT_CH, VALUE_TYPE_STRING};
+		EXIEvent event = {EVENT_CH, {VALUE_TYPE_STRING, UINT16_MAX}};
 
 		tmp_err_code = encodeSimpleEXIEvent(strm, event, fastSchemaMode, schemaProduction, &dummmyType);
 		if(tmp_err_code != ERR_OK)
@@ -324,7 +327,7 @@ errorCode floatData(EXIStream* strm, Float float_val, unsigned char fastSchemaMo
 	else
 	{
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		EXIEvent event = {EVENT_CH, VALUE_TYPE_FLOAT};
+		EXIEvent event = {EVENT_CH, {VALUE_TYPE_FLOAT, UINT16_MAX}};
 
 		tmp_err_code = encodeSimpleEXIEvent(strm, event, fastSchemaMode, schemaProduction, &dummmyType);
 		if(tmp_err_code != ERR_OK)

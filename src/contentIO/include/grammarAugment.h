@@ -55,9 +55,11 @@
  * @param[in] preserve Specifies whether comments, pis, etc. are preserved - bit mask of booleans
  * Use IS_PRESERVED macro to retrieve the values different preserve options
  * @param[in, out] grammar the normalized grammar for assigning the event codes
+ * @param[in] simpleTypeArray array of schema simple type definitions
+ * @param[in] sTypeArraySize the size of simpleTypeArray
  * @return Error handling code
  */
-errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, unsigned char selfContained, unsigned char preserve, EXIGrammar* grammar);
+errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, unsigned char selfContained, unsigned char preserve, EXIGrammar* grammar, SimpleType* simpleTypeArray, uint16_t sTypeArraySize);
 
 /**
  * @brief Adds Undeclared Productions in all global grammars accessible through the stringTables
@@ -65,9 +67,11 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
  * @param[in, out] memList A list storing the memory allocations
  * @param[in] stringTables the string table containing links to the global grammars
  * @param[in] opts options from the EXI header
+ * @param[in] simpleTypeArray array of schema simple type definitions
+ * @param[in] sTypeArraySize the size of simpleTypeArray
  * @return Error handling code
  */
-errorCode addUndeclaredProductionsToAll(AllocList* memList, URITable* stringTables, EXIOptions* opts);
+errorCode addUndeclaredProductionsToAll(AllocList* memList, URITable* stringTables, EXIOptions* opts, SimpleType* simpleTypeArray, uint16_t sTypeArraySize);
 
 
 #endif /* GRAMMARAUGMENT_H_ */

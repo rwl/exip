@@ -63,12 +63,10 @@ errorCode writeCharToString(String* str, uint32_t code_point, size_t* UCSpositio
 	return ERR_OK;
 }
 
-errorCode getEmptyString(String* emptyStr)
+void getEmptyString(String* emptyStr)
 {
 	emptyStr->length = 0;
 	emptyStr->str = NULL;
-
-	return ERR_OK;
 }
 
 char isStringEmpty(const String* str)

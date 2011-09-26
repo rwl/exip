@@ -68,7 +68,7 @@ errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const EXIPSc
 	docGrammar->rulesDimension = DEF_DOC_GRAMMAR_RULE_NUMBER;
 	docGrammar->grammarType = GR_TYPE_BUILD_IN_DOC;
 	docGrammar->contentIndex = 0;
-	docGrammar->pTypeFacets = NULL;
+	docGrammar->isNillable = FALSE;
 	docGrammar->ruleArray = (GrammarRule*) memManagedAllocate(&strm->memList, sizeof(GrammarRule)*DEF_DOC_GRAMMAR_RULE_NUMBER);
 	if(docGrammar->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -261,7 +261,7 @@ errorCode createBuildInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 	elementGrammar->rulesDimension = DEF_ELEMENT_GRAMMAR_RULE_NUMBER;
 	elementGrammar->grammarType = GR_TYPE_BUILD_IN_ELEM;
 	elementGrammar->contentIndex = 0;
-	elementGrammar->pTypeFacets = NULL;
+	elementGrammar->isNillable = FALSE;
 	elementGrammar->ruleArray = (GrammarRule*) memManagedAllocate(&strm->memList, sizeof(DynGrammarRule)*DEF_ELEMENT_GRAMMAR_RULE_NUMBER);
 	if(elementGrammar->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;

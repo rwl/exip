@@ -138,16 +138,16 @@ errorCode printGrammarRule(size_t nonTermID, GrammarRule* rule)
 					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("EE "));
 					break;
 				case EVENT_AT_QNAME:
-					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("AT (qname %d:%d) [%d]", rule->prodArrays[b][tmp_prod_indx].uriRowID, rule->prodArrays[b][tmp_prod_indx].lnRowID, rule->prodArrays[b][tmp_prod_indx].event.valueType));
+					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("AT (qname %d:%d) [%d]", rule->prodArrays[b][tmp_prod_indx].uriRowID, rule->prodArrays[b][tmp_prod_indx].lnRowID, rule->prodArrays[b][tmp_prod_indx].event.valueType.exiType));
 					break;
 				case EVENT_AT_URI:
 					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("AT (uri) "));
 					break;
 				case EVENT_AT_ALL:
-					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("AT (*) [%d]", rule->prodArrays[b][tmp_prod_indx].event.valueType));
+					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("AT (*) [%d]", rule->prodArrays[b][tmp_prod_indx].event.valueType.exiType));
 					break;
 				case EVENT_CH:
-					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("CH [%d]", rule->prodArrays[b][tmp_prod_indx].event.valueType));
+					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("CH [%d]", rule->prodArrays[b][tmp_prod_indx].event.valueType.exiType));
 					break;
 				case EVENT_NS:
 					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("NS "));

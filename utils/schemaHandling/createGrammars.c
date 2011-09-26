@@ -297,7 +297,7 @@ int main(int argc, char *argv[])
 						{
 							if(mask_specified == TRUE)
 							{
-								if(ERR_OK != addUndeclaredProductions(&memList, mask_strict, mask_sc, mask_preserve, tmpGrammar))
+								if(ERR_OK != addUndeclaredProductions(&memList, mask_strict, mask_sc, mask_preserve, tmpGrammar, schema.simpleTypeArray, schema.sTypeArraySize))
 								{
 									printf("\n ERROR: OUT_SRC_DYN output format!");
 									exit(1);
@@ -317,7 +317,9 @@ int main(int argc, char *argv[])
 									{
 										sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].event.eventType = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].event.eventType);
 										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-										sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].event.valueType = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].event.valueType);
+										sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].event.valueType.exiType = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].event.valueType.exiType);
+										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+										sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].event.valueType.simpleTypeID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].event.valueType.simpleTypeID);
 										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 										sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].nonTermID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].nonTermID);
 										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
@@ -479,11 +481,28 @@ int main(int argc, char *argv[])
 					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 				}
 
+				sprintf(printfBuf, "SimpleType* sTypes = memManagedAllocate(&schema->memList, %d * sizeof(SimpleType));\n\t", schema.sTypeArraySize);
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+				sprintf(printfBuf, "if(sTypes == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t");
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+				for(i = 0; i < schema.sTypeArraySize; i++)
+				{
+					sprintf(printfBuf, "sTypes[%d].facetPresenceMask = %d;\n\t", i, schema.simpleTypeArray[i].facetPresenceMask);
+					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+					sprintf(printfBuf, "sTypes[%d].maxInclusive = %d;\n\t", i, schema.simpleTypeArray[i].maxInclusive);
+					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+					sprintf(printfBuf, "sTypes[%d].minInclusive = %d;\n\t", i, schema.simpleTypeArray[i].minInclusive);
+					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+				}
+
 				sprintf(printfBuf, "schema->globalElemGrammars = qnames;\n\t");
 				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 				sprintf(printfBuf, "schema->globalElemGrammarsCount = %d;\n\t", schema.globalElemGrammarsCount);
 				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 				sprintf(printfBuf, "schema->initialStringTables = uriTbl;\n\t");
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+				sprintf(printfBuf, "schema->simpleTypeArray = sTypes;\n\t");
 				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 				sprintf(printfBuf, "schema->isAugmented = %d;\n\t", mask_specified);
 				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
@@ -534,7 +553,7 @@ int main(int argc, char *argv[])
 						{
 							if(mask_specified == TRUE)
 							{
-								if(ERR_OK != addUndeclaredProductions(&memList, mask_strict, mask_sc, mask_preserve, tmpGrammar))
+								if(ERR_OK != addUndeclaredProductions(&memList, mask_strict, mask_sc, mask_preserve, tmpGrammar, schema.simpleTypeArray, schema.sTypeArraySize))
 								{
 									printf("\n ERROR: OUT_SRC_STAT output format!");
 									exit(1);
@@ -549,7 +568,7 @@ int main(int argc, char *argv[])
 									fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 									for(p = 0; p < tmpGrammar->ruleArray[r].prodCounts[k]; p++)
 									{
-										sprintf(printfBuf, "%s{{%d,%d}, %d, %d, %d}", p==0?"":",", tmpGrammar->ruleArray[r].prodArrays[k][p].event.eventType, tmpGrammar->ruleArray[r].prodArrays[k][p].event.valueType, tmpGrammar->ruleArray[r].prodArrays[k][p].uriRowID, tmpGrammar->ruleArray[r].prodArrays[k][p].lnRowID, tmpGrammar->ruleArray[r].prodArrays[k][p].nonTermID);
+										sprintf(printfBuf, "%s{{%d,{%d, %d}}, %d, %d, %d}", p==0?"":",", tmpGrammar->ruleArray[r].prodArrays[k][p].event.eventType, tmpGrammar->ruleArray[r].prodArrays[k][p].event.valueType.exiType, tmpGrammar->ruleArray[r].prodArrays[k][p].event.valueType.simpleTypeID, tmpGrammar->ruleArray[r].prodArrays[k][p].uriRowID, tmpGrammar->ruleArray[r].prodArrays[k][p].lnRowID, tmpGrammar->ruleArray[r].prodArrays[k][p].nonTermID);
 										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 									}
 									fwrite("};\n", 1, strlen("};\n"), outfile);
@@ -641,7 +660,17 @@ int main(int argc, char *argv[])
 				}
 				fwrite("};\n\n", 1, strlen("};\n\n"), outfile);
 
-				sprintf(printfBuf, "const EXIPSchema %sschema = {&%suriTbl, %sqnames, %d, %d, {NULL, NULL}};\n", prefix, prefix, prefix, schema.globalElemGrammarsCount, mask_specified);
+				sprintf(printfBuf, "SimpleType %ssimpleTypes[%d] = {", prefix, schema.sTypeArraySize);
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+				for(i = 0; i < schema.sTypeArraySize; i++)
+				{
+					sprintf(printfBuf, "%s{%d, %d, %d}", i==0?"":",", schema.simpleTypeArray[i].facetPresenceMask, schema.simpleTypeArray[i].maxInclusive, schema.simpleTypeArray[i].minInclusive);
+					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+				}
+				fwrite("};\n\n", 1, strlen("};\n\n"), outfile);
+
+				sprintf(printfBuf, "const EXIPSchema %sschema = {&%suriTbl, %sqnames, %d, %ssimpleTypes, %d, %d, {NULL, NULL}};\n", prefix, prefix, prefix, schema.globalElemGrammarsCount, prefix, schema.sTypeArraySize, mask_specified);
 				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 
 			}
@@ -656,7 +685,7 @@ int main(int argc, char *argv[])
 						{
 							if(mask_specified == TRUE)
 							{
-								if(ERR_OK != addUndeclaredProductions(&memList, mask_strict, mask_sc, mask_preserve, tmpGrammar))
+								if(ERR_OK != addUndeclaredProductions(&memList, mask_strict, mask_sc, mask_preserve, tmpGrammar, schema.simpleTypeArray, schema.sTypeArraySize))
 								{
 									printf("\n ERROR: OUT_TEXT output format!");
 									exit(1);
@@ -835,7 +864,7 @@ static errorCode stringToASCII(char* outBuf, unsigned int bufSize, String inStr)
 
 static void getValueTypeString(char* buf, ValueType vt)
 {
-	switch(vt)
+	switch(vt.exiType)
 	{
 		case 1:
 			strcpy(buf, "[N/A] ");

@@ -56,7 +56,7 @@ struct EXISerializer
 	errorCode (*endDocument)(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
 	errorCode (*startElement)(EXIStream* strm, QName* qname, unsigned char fastSchemaMode, size_t schemaProduction);
 	errorCode (*endElement)(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
-	errorCode (*attribute)(EXIStream* strm, QName* qname, ValueType valueType, unsigned char fastSchemaMode, size_t schemaProduction);
+	errorCode (*attribute)(EXIStream* strm, QName* qname, EXIType valueType, unsigned char fastSchemaMode, size_t schemaProduction);
 
 	// For handling the data
 	errorCode (*intData)(EXIStream* strm, Integer int_val, unsigned char fastSchemaMode, size_t schemaProduction);

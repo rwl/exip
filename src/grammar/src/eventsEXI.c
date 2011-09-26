@@ -43,6 +43,7 @@
 
 #include "eventsEXI.h"
 #include "streamEncode.h"
+#include "stringManipulate.h"
 
 #define UNUSED_CODE_PART_VALUE UINT_MAX
 
@@ -68,16 +69,17 @@ EXIEvent getEventDefType(EventType eType)
 {
 	EXIEvent event;
 	event.eventType = eType;
-	event.valueType = VALUE_TYPE_NONE;
+	event.valueType.exiType = VALUE_TYPE_NONE;
+	event.valueType.simpleTypeID = UINT16_MAX;
 	return event;
 }
 
 unsigned char eventsIdentical(EXIEvent e1, EXIEvent e2)
 {
-	return e1.eventType == e2.eventType && e1.valueType == e2.valueType;
+	return e1.eventType == e2.eventType && e1.valueType.exiType == e2.valueType.exiType && e1.valueType.simpleTypeID == e2.valueType.simpleTypeID;
 }
 
-unsigned char valueTypeClassesEqual(ValueType t1, ValueType t2)
+unsigned char valueTypeClassesEqual(EXIType t1, EXIType t2)
 {
 	return t1 == t2 || (t1 >= VALUE_TYPE_INTEGER && t1 >= VALUE_TYPE_INTEGER);
 }

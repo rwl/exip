@@ -77,10 +77,10 @@ unsigned char eventsIdentical(EXIEvent e1, EXIEvent e2);
 /**
  * @brief Checks if two value type classes are equal
  *
- * @param[in] t1 first ValueType
- * @param[in] t2 second ValueType
+ * @param[in] t1 first EXIType
+ * @param[in] t2 second EXIType
  * @return 0 if not equal, 1 otherwise
  */
-unsigned char valueTypeClassesEqual(ValueType t1, ValueType t2);
+unsigned char valueTypeClassesEqual(EXIType t1, EXIType t2);
 
 #endif /* EVENTTYPESEXI_H_ */
