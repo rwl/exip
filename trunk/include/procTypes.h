@@ -522,6 +522,7 @@ struct SimpleType {
 	uint16_t facetPresenceMask;
 	int maxInclusive;
 	int minInclusive;
+	unsigned int maxLength;
 };
 
 typedef struct SimpleType SimpleType;
@@ -557,7 +558,8 @@ struct EXIPSchema
 	unsigned int globalElemGrammarsCount;
 	SimpleType* simpleTypeArray;
 	uint16_t sTypeArraySize;
-	char isAugmented;
+	unsigned char isAugmented;
+	unsigned char isStatic;
 
 	AllocList memList; // Stores the information for all memory allocations for that schema
 };

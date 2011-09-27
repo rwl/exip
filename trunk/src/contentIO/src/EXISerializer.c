@@ -371,7 +371,23 @@ errorCode closeEXIStream(EXIStream* strm)
 			return BUFFER_END_REACHED;
 	}
 	if(strm->schema != NULL)
-		freeAllocList(&strm->schema->memList);
+	{
+		if(strm->schema->isStatic == TRUE)
+		{
+			// Reseting the value cross table links to NULL
+			uint16_t i;
+			size_t j;
+			for(i = 0; i < strm->schema->initialStringTables->rowCount; i++)
+			{
+				for(j = 0; j < strm->schema->initialStringTables->rows[i].lTable->rowCount; j++)
+				{
+					strm->schema->initialStringTables->rows[i].lTable->rows[j].vCrossTable = NULL;
+				}
+			}
+		}
+		else
+			freeAllocList(&strm->schema->memList);
+	}
 	freeAllMem(strm);
 	return ERR_OK;
 }

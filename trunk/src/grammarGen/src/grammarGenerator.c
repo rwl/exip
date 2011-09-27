@@ -246,6 +246,7 @@ errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t 
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	schema->isAugmented = FALSE;
+	schema->isStatic = FALSE;
 
 	tmp_err_code = initParser(&xsdParser, binaryBuf, bufLen, bufContent, ioStrm, NULL, &parsing_data);
 	if(tmp_err_code != ERR_OK)
@@ -1616,6 +1617,11 @@ static errorCode handleRestrictionEl(struct xsdAppData* app_data)
 		{
 			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
 			newSimpleType.maxInclusive = tmpFacet->value;
+		}
+		else if(tmpFacet->facetID == TYPE_FACET_MAX_LENGTH)
+		{
+			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_MAX_LENGTH;
+			newSimpleType.maxLength = (unsigned int) tmpFacet->value;
 		}
 		else
 			return NOT_IMPLEMENTED_YET;

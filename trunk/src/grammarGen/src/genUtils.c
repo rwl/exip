@@ -984,6 +984,7 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
 	sType.maxInclusive = 0;
 	sType.minInclusive = 0;
+	sType.maxLength = 0;
 	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -993,6 +994,7 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
 	sType.maxInclusive = 0;
 	sType.minInclusive = 0;
+	sType.maxLength = 0;
 	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -1002,6 +1004,7 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
 	sType.maxInclusive = 0;
 	sType.minInclusive = 0;
+	sType.maxLength = 0;
 	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -1011,6 +1014,7 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
 	sType.maxInclusive = 0;
 	sType.minInclusive = 0;
+	sType.maxLength = 0;
 	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -1020,6 +1024,7 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
 	sType.maxInclusive = 0;
 	sType.minInclusive = 0;
+	sType.maxLength = 0;
 	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -1029,6 +1034,7 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
 	sType.maxInclusive = 0;
 	sType.minInclusive = 0;
+	sType.maxLength = 0;
 	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -1038,6 +1044,7 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
 	sType.maxInclusive = 0;
 	sType.minInclusive = 0;
+	sType.maxLength = 0;
 	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -1047,6 +1054,7 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
 	sType.maxInclusive = 0;
 	sType.minInclusive = 0;
+	sType.maxLength = 0;
 	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -1056,6 +1064,7 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
 	sType.maxInclusive = 0;
 	sType.minInclusive = 0;
+	sType.maxLength = 0;
 	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -1065,6 +1074,7 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
 	sType.maxInclusive = 0;
 	sType.minInclusive = 0;
+	sType.maxLength = 0;
 	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -1075,6 +1085,7 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MAX_INCLUSIVE;
 	sType.maxInclusive = 0;
 	sType.minInclusive = 0;
+	sType.maxLength = 0;
 	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -1084,6 +1095,7 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MAX_INCLUSIVE;
 	sType.maxInclusive = -1;
 	sType.minInclusive = 0;
+	sType.maxLength = 0;
 	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -1093,6 +1105,7 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
 	sType.maxInclusive = 0;
 	sType.minInclusive = 0;
+	sType.maxLength = 0;
 	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -1102,6 +1115,7 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
 	sType.maxInclusive = 0;
 	sType.minInclusive = 0;
+	sType.maxLength = 0;
 	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -1113,6 +1127,7 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
 	sType.maxInclusive = 32767;
 	sType.minInclusive = -32768;
+	sType.maxLength = 0;
 	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -1123,6 +1138,7 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
 	sType.maxInclusive = 127;
 	sType.minInclusive = -128;
+	sType.maxLength = 0;
 	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -1133,6 +1149,7 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
 	sType.maxInclusive = 0;
 	sType.minInclusive = 0;
+	sType.maxLength = 0;
 	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -1143,6 +1160,7 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
 	sType.maxInclusive = 0;
 	sType.minInclusive = 0;
+	sType.maxLength = 0;
 	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -1153,6 +1171,7 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
 	sType.maxInclusive = 0;
 	sType.minInclusive = 0;
+	sType.maxLength = 0;
 	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -1164,6 +1183,7 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
 	sType.maxInclusive = 65535;
 	sType.minInclusive = 0;
+	sType.maxLength = 0;
 	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -1174,6 +1194,7 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MAX_INCLUSIVE;
 	sType.maxInclusive = 255;
 	sType.minInclusive = 0;
+	sType.maxLength = 0;
 	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -1183,6 +1204,7 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
 	sType.maxInclusive = 0;
 	sType.minInclusive = 1;
+	sType.maxLength = 0;
 	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
