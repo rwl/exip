@@ -494,6 +494,8 @@ int main(int argc, char *argv[])
 					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 					sprintf(printfBuf, "sTypes[%d].minInclusive = %d;\n\t", i, schema.simpleTypeArray[i].minInclusive);
 					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+					sprintf(printfBuf, "sTypes[%d].maxLength = %d;\n\t", i, schema.simpleTypeArray[i].maxLength);
+					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 				}
 
 				sprintf(printfBuf, "schema->globalElemGrammars = qnames;\n\t");
@@ -505,6 +507,8 @@ int main(int argc, char *argv[])
 				sprintf(printfBuf, "schema->simpleTypeArray = sTypes;\n\t");
 				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 				sprintf(printfBuf, "schema->isAugmented = %d;\n\t", mask_specified);
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+				sprintf(printfBuf, "schema->isStatic = FALSE;\n\t");
 				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 
 				sprintf(printfBuf, "return ERR_OK;\n}");
@@ -665,12 +669,12 @@ int main(int argc, char *argv[])
 
 				for(i = 0; i < schema.sTypeArraySize; i++)
 				{
-					sprintf(printfBuf, "%s{%d, %d, %d}", i==0?"":",", schema.simpleTypeArray[i].facetPresenceMask, schema.simpleTypeArray[i].maxInclusive, schema.simpleTypeArray[i].minInclusive);
+					sprintf(printfBuf, "%s{%d, %d, %d, %d}", i==0?"":",", schema.simpleTypeArray[i].facetPresenceMask, schema.simpleTypeArray[i].maxInclusive, schema.simpleTypeArray[i].minInclusive, schema.simpleTypeArray[i].maxLength);
 					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 				}
 				fwrite("};\n\n", 1, strlen("};\n\n"), outfile);
 
-				sprintf(printfBuf, "const EXIPSchema %sschema = {&%suriTbl, %sqnames, %d, %ssimpleTypes, %d, %d, {NULL, NULL}};\n", prefix, prefix, prefix, schema.globalElemGrammarsCount, prefix, schema.sTypeArraySize, mask_specified);
+				sprintf(printfBuf, "const EXIPSchema %sschema = {&%suriTbl, %sqnames, %d, %ssimpleTypes, %d, %d, 1, {NULL, NULL}};\n", prefix, prefix, prefix, schema.globalElemGrammarsCount, prefix, schema.sTypeArraySize, mask_specified);
 				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 
 			}
