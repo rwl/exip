@@ -429,6 +429,7 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 		isNillable = grammar->isNillable;
 
 		// If Tk either has named sub-types
+		// TODO: This only works for simple types
 		for(i = 0; i < grammar->rulesDimension; i++)
 		{
 			for(j = 0; j < grammar->ruleArray[i].prodCounts[0]; j++)
