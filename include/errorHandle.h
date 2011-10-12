@@ -89,7 +89,7 @@ typedef char errorCode;
 
 #define EMPTY_COLLECTION 14
 
-/** Function invokation is invalid for the given arguments */
+/** Function invocation is invalid for the given arguments */
 #define INVALID_OPERATION 13
 
 /** A command to stop the EXI processing received from the application */

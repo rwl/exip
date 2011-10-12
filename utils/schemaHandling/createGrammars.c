@@ -245,8 +245,14 @@ int main(int argc, char *argv[])
 			}
 			else if(outputFormat == OUT_SRC_DYN)
 			{
-				sprintf(printfBuf, "#include \"procTypes.h\"\n\n");
+				sprintf(printfBuf, "#include \"procTypes.h\"\n");
 				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+				sprintf(printfBuf, "#include \"memManagement.h\"\n");
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+				sprintf(printfBuf, "#include \"stringManipulate.h\"\n\n");
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+
 				sprintf(printfBuf, "errorCode get_%sSchema(EXIPSchema* schema);\n\n", prefix);
 				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 				sprintf(printfBuf, "errorCode get_%sSchema(EXIPSchema* schema)\n{\n\t errorCode tmp_err_code = UNEXPECTED_ERROR;\n\t\n\t", prefix);
@@ -283,7 +289,7 @@ int main(int argc, char *argv[])
 						}
 						for(; k < MAXIMUM_NUMBER_OF_PREFIXES_PER_URI; k++)
 						{
-							sprintf(printfBuf, "tmp_err_code += getEmptyString(&pTable_%d->string_val[%d]);\n\t", i, k);
+							sprintf(printfBuf, "getEmptyString(&pTable_%d->string_val[%d]);\n\t", i, k);
 							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 						}
 						sprintf(printfBuf, "if(tmp_err_code != ERR_OK)\n\t return UNEXPECTED_ERROR;\n\t");
@@ -365,15 +371,15 @@ int main(int argc, char *argv[])
 							sprintf(printfBuf, "if(grammar_%d_%d == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t", i, j);
 							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 
-							sprintf(printfBuf, "grammar_%d_%d.contentIndex = %d;\n\t", i, j, tmpGrammar->contentIndex);
+							sprintf(printfBuf, "grammar_%d_%d->contentIndex = %d;\n\t", i, j, tmpGrammar->contentIndex);
 							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-							sprintf(printfBuf, "grammar_%d_%d.grammarType = %d;\n\t", i, j, tmpGrammar->grammarType);
+							sprintf(printfBuf, "grammar_%d_%d->grammarType = %d;\n\t", i, j, tmpGrammar->grammarType);
 							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-							sprintf(printfBuf, "grammar_%d_%d.pTypeFacets = NULL;\n\t", i, j); // TODO: fix the pTypeFacets
+							sprintf(printfBuf, "grammar_%d_%d->isNillable = %d;\n\t", i, j, tmpGrammar->isNillable);
 							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-							sprintf(printfBuf, "grammar_%d_%d.rulesDimension = %d;\n\t", i, j, tmpGrammar->rulesDimension);
+							sprintf(printfBuf, "grammar_%d_%d->rulesDimension = %d;\n\t", i, j, tmpGrammar->rulesDimension);
 							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-							sprintf(printfBuf, "grammar_%d_%d.rulesDimension = ruleArray_%d_%d;\n\t", i, j, i, j);
+							sprintf(printfBuf, "grammar_%d_%d->ruleArray = ruleArray_%d_%d;\n\t", i, j, i, j);
 							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 						}
 					}
@@ -392,20 +398,20 @@ int main(int argc, char *argv[])
 						}
 						if(schema.initialStringTables->rows[i].lTable->rows[j].globalGrammar != NULL)
 						{
-							sprintf(printfBuf, "LNrows_%d[%d].globalGrammar == grammar_%d_%d;\n\t", i, j, i, j);
+							sprintf(printfBuf, "LNrows_%d[%d].globalGrammar = grammar_%d_%d;\n\t", i, j, i, j);
 							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 						}
 						else
 						{
-							sprintf(printfBuf, "LNrows_%d[%d].globalGrammar == NULL;\n\t", i, j);
+							sprintf(printfBuf, "LNrows_%d[%d].globalGrammar = NULL;\n\t", i, j);
 							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 						}
 
-						sprintf(printfBuf, "LNrows_%d[%d].string_val.str == \"%s\";\n\t", i, j, conv_buff);
+						sprintf(printfBuf, "LNrows_%d[%d].string_val.str = \"%s\";\n\t", i, j, conv_buff);
 						fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-						sprintf(printfBuf, "LNrows_%d[%d].string_val.length == %d;\n\t", i, j, schema.initialStringTables->rows[i].lTable->rows[j].string_val.length);
+						sprintf(printfBuf, "LNrows_%d[%d].string_val.length = %d;\n\t", i, j, schema.initialStringTables->rows[i].lTable->rows[j].string_val.length);
 						fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-						sprintf(printfBuf, "LNrows_%d[%d].vCrossTable == NULL;\n\t", i, j);
+						sprintf(printfBuf, "LNrows_%d[%d].vCrossTable = NULL;\n\t", i, j);
 						fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 					}
 
@@ -420,8 +426,10 @@ int main(int argc, char *argv[])
 					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 					sprintf(printfBuf, "lTable_%d->rows = LNrows_%d;\n\t", i, i);
 					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-					sprintf(printfBuf, "lTable_%d->memPair = NULL;\n\t", i); // TO BE fixed!
-					fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+					sprintf(printfBuf, "lTable_%d->memPair.memBlock = NULL;\n\t", i); // TO BE fixed!
+					fwrite(printfBuf, 1, strlen(printfBuf), outfile);					// TO BE fixed!
+					sprintf(printfBuf, "lTable_%d->memPair.allocIndx = 0;\n\t", i); // TO BE fixed!
+					fwrite(printfBuf, 1, strlen(printfBuf), outfile);				// TO BE fixed!
 				}
 
 				sprintf(printfBuf, "struct URIRow* uriRows = memManagedAllocate(&schema->memList, %d * sizeof(struct URIRow));\n\t", schema.initialStringTables->rowCount);
@@ -465,8 +473,10 @@ int main(int argc, char *argv[])
 				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 				sprintf(printfBuf, "uriTbl->rows = uriRows;\n\t");
 				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-				sprintf(printfBuf, "uriTbl->memPair = NULL;\n\t");  // Fix that!
-				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+				sprintf(printfBuf, "uriTbl->memPair.memBlock = NULL;\n\t"); // TO BE fixed!
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);					// TO BE fixed!
+				sprintf(printfBuf, "uriTbl->memPair.allocIndx = 0;\n\t"); // TO BE fixed!
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);				// TO BE fixed!
 
 				sprintf(printfBuf, "QNameID* qnames = memManagedAllocate(&schema->memList, %d * sizeof(QNameID));\n\t", schema.globalElemGrammarsCount);
 				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
