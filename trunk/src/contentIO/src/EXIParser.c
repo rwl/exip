@@ -163,6 +163,22 @@ errorCode parseNext(Parser* parser)
 void destroyParser(Parser* parser)
 {
 	if(parser->strm.schema != NULL)
-		freeAllocList(&parser->strm.schema->memList);
+	{
+		if(parser->strm.schema->isStatic == TRUE)
+		{
+			// Reseting the value cross table links to NULL
+			uint16_t i;
+			size_t j;
+			for(i = 0; i < parser->strm.schema->initialStringTables->rowCount; i++)
+			{
+				for(j = 0; j < parser->strm.schema->initialStringTables->rows[i].lTable->rowCount; j++)
+				{
+					parser->strm.schema->initialStringTables->rows[i].lTable->rows[j].vCrossTable = NULL;
+				}
+			}
+		}
+		else
+			freeAllocList(&parser->strm.schema->memList);
+	}
 	freeAllMem(&parser->strm);
 }
