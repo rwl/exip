@@ -516,6 +516,8 @@ int main(int argc, char *argv[])
 				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 				sprintf(printfBuf, "schema->simpleTypeArray = sTypes;\n\t");
 				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+				sprintf(printfBuf, "schema->sTypeArraySize = %d;\n\t", schema.sTypeArraySize);
+				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 				sprintf(printfBuf, "schema->isAugmented = %d;\n\t", mask_specified);
 				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 				sprintf(printfBuf, "schema->isStatic = FALSE;\n\t");
