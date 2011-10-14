@@ -64,7 +64,7 @@ void moveBitPointer(EXIStream* strm, unsigned int bitPositions);
  *
  * @return The number of bits needed
  */
-unsigned char getBitsNumber(unsigned int val);
+unsigned char getBitsNumber(UnsignedInteger val);
 
 
 /**
@@ -74,6 +74,6 @@ unsigned char getBitsNumber(unsigned int val);
  *
  * @return The number of bits needed
  */
-unsigned int log2INT(unsigned int val);
+unsigned int log2INT(UnsignedInteger val);
 
 #endif /* IOUTIL_H_ */
