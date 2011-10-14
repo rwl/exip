@@ -90,7 +90,7 @@ errorCode encodeUnsignedInteger(EXIStream* strm, UnsignedInteger int_val)
 		nbyte7 = 1;  // the 0 Unsigned Integer is encoded with one 7bit byte
 	for(i = 0; i < nbyte7; i++)
 	{
-		tmp_byte_buf = (int_val & (127ul << (i * 7))) >> (i * 7);
+		tmp_byte_buf = (unsigned int) ((int_val & ((UnsignedInteger) (127 << (i * 7)))) >> (i * 7));
 		if(i == nbyte7 - 1)
 			writeNextBit(strm, 0);
 		else
