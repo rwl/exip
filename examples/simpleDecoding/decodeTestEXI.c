@@ -54,14 +54,17 @@ static void parseSchema(char* fileName, EXIPSchema* schema);
 #define OUT_EXI 0
 #define OUT_XML 1
 #define INPUT_BUFFER_SIZE 200
+#define MAX_PREFIXES 10
 
 struct appData
 {
 	unsigned char outputFormat;
 	unsigned char expectAttributeData;
-	char nameBuf[100];             // needed for the OUT_XML Output Format
+	char nameBuf[200];             // needed for the OUT_XML Output Format
 	struct element* stack;         // needed for the OUT_XML Output Format
-	unsigned char unclosedElement; // needed for the OUT_XML Output Format
+	unsigned char unclosedElement; 	 // needed for the OUT_XML Output Format
+	char prefixes[MAX_PREFIXES][200]; // needed for the OUT_XML Output Format
+	unsigned char prefixesCount; 	 // needed for the OUT_XML Output Format
 };
 
 
@@ -76,6 +79,9 @@ static void push(struct element** stack, struct element* el);
 static struct element* pop(struct element** stack);
 static struct element* createElement(char* name);
 static void destroyElement(struct element* el);
+
+// returns != 0 if error
+static char lookupPrefix(struct appData* aData, String namespace, unsigned char* prxHit, unsigned char* prefixIndex);
 
 // ******************************************
 
@@ -204,6 +210,7 @@ int main(int argc, char *argv[])
 			parsingData.expectAttributeData = 0;
 			parsingData.stack = NULL;
 			parsingData.unclosedElement = 0;
+			parsingData.prefixesCount = 0;
 
 			testParser.handler.fatalError = sample_fatalError;
 			testParser.handler.error = sample_fatalError;
@@ -311,19 +318,40 @@ static char sample_startElement(QName qname, void* app_data)
 	}
 	else if(appD->outputFormat == OUT_XML)
 	{
-		memcpy(appD->nameBuf, qname.uri->str, qname.uri->length);
-		memcpy(appD->nameBuf + qname.uri->length, qname.localName->str, qname.localName->length);
-		appD->nameBuf[qname.uri->length + qname.localName->length] = '\0';
+		char error = 0;
+		unsigned char prefixIndex = 0;
+		unsigned char prxHit = 1;
+		int t;
+
+		if(!isStringEmpty(qname.uri))
+		{
+			error = lookupPrefix(appD, *qname.uri, &prxHit, &prefixIndex);
+			if(error != 0)
+				return EXIP_HANDLER_STOP;
+
+			sprintf(appD->nameBuf, "p%d:", prefixIndex);
+			t = strlen(appD->nameBuf);
+			memcpy(appD->nameBuf + t, qname.localName->str, qname.localName->length);
+			appD->nameBuf[t + qname.localName->length] = '\0';
+		}
+		else
+		{
+			memcpy(appD->nameBuf, qname.localName->str, qname.localName->length);
+			appD->nameBuf[qname.localName->length] = '\0';
+		}
 		push(&(appD->stack), createElement(appD->nameBuf));
 		if(appD->unclosedElement)
 			printf(">\n");
-		printf("<");
-		if(!isStringEmpty(qname.uri))
+		printf("<%s", appD->nameBuf);
+
+		if(prxHit == 0)
 		{
+			sprintf(appD->nameBuf, " xmlns:p%d=\"", prefixIndex);
+			printf("%s", appD->nameBuf);
 			printString(qname.uri);
-			printf(":");
+			printf("\"");
 		}
-		printString(qname.localName);
+
 		appD->unclosedElement = 1;
 	}
 
@@ -634,4 +662,31 @@ static void parseSchema(char* fileName, EXIPSchema* schema)
 
 		free(schemaBuffer);
 	}
+}
+
+static char lookupPrefix(struct appData* aData, String namespace, unsigned char* prxHit, unsigned char* prefixIndex)
+{
+	int i;
+	for(i = 0; i < aData->prefixesCount; i++)
+	{
+		if(stringEqualToAscii(namespace, aData->prefixes[i]))
+		{
+			*prefixIndex = i;
+			*prxHit = 1;
+			return 0;
+		}
+	}
+
+	if(aData->prefixesCount == MAX_PREFIXES)
+		return 1;
+	else
+	{
+		memcpy(aData->prefixes[aData->prefixesCount], namespace.str, namespace.length);
+		aData->prefixes[aData->prefixesCount][namespace.length] = '\0';
+		*prefixIndex = aData->prefixesCount;
+		aData->prefixesCount += 1;
+		*prxHit = 0;
+		return 0;
+	}
+
 }
