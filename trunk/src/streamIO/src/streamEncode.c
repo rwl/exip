@@ -63,7 +63,7 @@ errorCode encodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, unsigned i
 		unsigned int i = 0;
 		for(i = 0; i < byte_number; i++)
 		{
-			tmp_byte_buf = (int_val & (255ul << (i * 8))) >> (i * 8);
+			tmp_byte_buf = (int_val >> (i * 8)) & 0xFF;
 
 			tmp_err_code = writeNBits(strm, 8, tmp_byte_buf);
 			if(tmp_err_code != ERR_OK)
@@ -90,7 +90,7 @@ errorCode encodeUnsignedInteger(EXIStream* strm, UnsignedInteger int_val)
 		nbyte7 = 1;  // the 0 Unsigned Integer is encoded with one 7bit byte
 	for(i = 0; i < nbyte7; i++)
 	{
-		tmp_byte_buf = (unsigned int) ((int_val & ((UnsignedInteger) (127 << (i * 7)))) >> (i * 7));
+		tmp_byte_buf = (unsigned int) ((int_val >> (i * 7)) & 0x7F);
 		if(i == nbyte7 - 1)
 			writeNextBit(strm, 0);
 		else
