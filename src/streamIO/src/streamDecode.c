@@ -81,9 +81,9 @@ errorCode decodeBoolean(EXIStream* strm, unsigned char* bool_val)
 
 errorCode decodeUnsignedInteger(EXIStream* strm, UnsignedInteger* int_val)
 {
-	unsigned int mask_7bits = 127;
-	unsigned int mask_8th_bit = 128;
-	UnsignedInteger initial_multiplier = 1;
+	unsigned int mask_7bits = 0x7F;
+	unsigned int mask_8th_bit = 0x80;
+	unsigned int i = 0;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int tmp_byte_buf = 0;
 	unsigned int more_bytes_to_read = 0;
@@ -97,8 +97,8 @@ errorCode decodeUnsignedInteger(EXIStream* strm, UnsignedInteger* int_val)
 
 		more_bytes_to_read = tmp_byte_buf & mask_8th_bit;
 		tmp_byte_buf = tmp_byte_buf & mask_7bits;
-		*int_val = *int_val + (initial_multiplier * tmp_byte_buf);
-		initial_multiplier = initial_multiplier * 128;
+		*int_val += ((UnsignedInteger) tmp_byte_buf) << (7*i);
+		i++;
 	}
 	while(more_bytes_to_read != 0);
 

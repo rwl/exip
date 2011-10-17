@@ -46,10 +46,9 @@
 
 void moveBitPointer(EXIStream* strm, unsigned int bitPositions)
 {
-	size_t tmpLen = strm->context.bufferIndx + bitPositions/8;
 	int nbits;
 
-	strm->context.bufferIndx = tmpLen;
+	strm->context.bufferIndx += bitPositions/8;
 	nbits = bitPositions % 8;
 	if(nbits < 8 - strm->context.bitPointer) // The remaining (0-7) bit positions can be moved within the current byte
 	{

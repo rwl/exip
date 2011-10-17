@@ -245,6 +245,9 @@ int main(int argc, char *argv[])
 			}
 			else if(outputFormat == OUT_SRC_DYN)
 			{
+				// TODO: All strings should be defined with the function asciiToString()
+				//		 also, some common strings should be defined just once in a common location
+
 				sprintf(printfBuf, "#include \"procTypes.h\"\n");
 				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 				sprintf(printfBuf, "#include \"memManagement.h\"\n");
