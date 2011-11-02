@@ -979,6 +979,8 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	SimpleType sType;
 	size_t elID;
 
+	// TODO: complete the description of the types with all the facets needed
+
 	// String
 	sType.facetPresenceMask = 0;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
@@ -1029,6 +1031,15 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
+	// language
+	sType.facetPresenceMask = 0;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	sType.maxLength = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
 	// ncname
 	sType.facetPresenceMask = 0;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
@@ -1049,9 +1060,36 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
+	// idrefs
+	sType.facetPresenceMask = 0;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	sType.maxLength = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
 	// entity
 	sType.facetPresenceMask = 0;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	sType.maxLength = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// entities
+	sType.facetPresenceMask = 0;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	sType.maxLength = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// id
+	sType.facetPresenceMask = 0;
 	sType.maxInclusive = 0;
 	sType.minInclusive = 0;
 	sType.maxLength = 0;
@@ -1204,6 +1242,177 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
 	sType.maxInclusive = 0;
 	sType.minInclusive = 1;
+	sType.maxLength = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// boolean
+	sType.facetPresenceMask = 0;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	sType.maxLength = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// base64 binary
+	sType.facetPresenceMask = 0;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	sType.maxLength = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// hex binary
+	sType.facetPresenceMask = 0;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	sType.maxLength = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// float
+	sType.facetPresenceMask = 0;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	sType.maxLength = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// double
+	sType.facetPresenceMask = 0;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	sType.maxLength = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// any uri
+	sType.facetPresenceMask = 0;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	sType.maxLength = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// qname
+	sType.facetPresenceMask = 0;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	sType.maxLength = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// notation
+	sType.facetPresenceMask = 0;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	sType.maxLength = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// duration
+	sType.facetPresenceMask = 0;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	sType.maxLength = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// date time
+	sType.facetPresenceMask = 0;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	sType.maxLength = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// time
+	sType.facetPresenceMask = 0;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	sType.maxLength = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// date
+	sType.facetPresenceMask = 0;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	sType.maxLength = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// gYearMonth
+	sType.facetPresenceMask = 0;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	sType.maxLength = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// gYear
+	sType.facetPresenceMask = 0;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	sType.maxLength = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// gMonthDay
+	sType.facetPresenceMask = 0;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	sType.maxLength = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// gDay
+	sType.facetPresenceMask = 0;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	sType.maxLength = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// gMonth
+	sType.facetPresenceMask = 0;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	sType.maxLength = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// any simple type
+	sType.facetPresenceMask = 0;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	sType.maxLength = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// any type
+	sType.facetPresenceMask = 0;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
 	sType.maxLength = 0;
 	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
