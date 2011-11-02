@@ -1,4 +1,4 @@
-/** AUTO-GENERATED: Tue Sep 27 11:34:41 2011
+/** AUTO-GENERATED: Wed Nov  2 16:18:29 2011
   * Copyright (c) 2010 - 2011, Rumen Kyusakov, EISLAB, LTU
   * $Id$ */
 
@@ -36,7 +36,7 @@ GrammarRule ops_ruleArray_4_0[3] = {{{ops_prodArray_4_0_0_0, ops_prodArray_4_0_0
 
 EXIGrammar ops_grammar_4_0 = {ops_ruleArray_4_0, 3, 14, 0};
 
-Production ops_prodArray_4_1_0_0[1] = {{{9,{7, 26}}, 65535, -1, 1}};
+Production ops_prodArray_4_1_0_0[1] = {{{9,{7, 49}}, 65535, -1, 1}};
 Production ops_prodArray_4_1_0_1[0] = {};
 Production ops_prodArray_4_1_0_2[0] = {};
 Production ops_prodArray_4_1_1_0[1] = {{{8,{1, 65535}}, 65535, -1, -1}};
@@ -47,7 +47,7 @@ GrammarRule ops_ruleArray_4_1[2] = {{{ops_prodArray_4_1_0_0, ops_prodArray_4_1_0
 
 EXIGrammar ops_grammar_4_1 = {ops_ruleArray_4_1, 2, 14, 0};
 
-Production ops_prodArray_4_2_0_0[1] = {{{9,{22, 24}}, 65535, -1, 1}};
+Production ops_prodArray_4_2_0_0[1] = {{{9,{22, 47}}, 65535, -1, 1}};
 Production ops_prodArray_4_2_0_1[0] = {};
 Production ops_prodArray_4_2_0_2[0] = {};
 Production ops_prodArray_4_2_1_0[1] = {{{8,{1, 65535}}, 65535, -1, -1}};
@@ -58,7 +58,7 @@ GrammarRule ops_ruleArray_4_2[2] = {{{ops_prodArray_4_2_0_0, ops_prodArray_4_2_0
 
 EXIGrammar ops_grammar_4_2 = {ops_ruleArray_4_2, 2, 14, 0};
 
-Production ops_prodArray_4_3_0_0[1] = {{{9,{6, 28}}, 65535, -1, 1}};
+Production ops_prodArray_4_3_0_0[1] = {{{9,{6, 51}}, 65535, -1, 1}};
 Production ops_prodArray_4_3_0_1[0] = {};
 Production ops_prodArray_4_3_0_2[0] = {};
 Production ops_prodArray_4_3_1_0[1] = {{{8,{1, 65535}}, 65535, -1, -1}};
@@ -108,7 +108,7 @@ GrammarRule ops_ruleArray_4_8[3] = {{{ops_prodArray_4_8_0_0, ops_prodArray_4_8_0
 
 EXIGrammar ops_grammar_4_8 = {ops_ruleArray_4_8, 3, 14, 0};
 
-Production ops_prodArray_4_9_0_0[1] = {{{9,{5, 34}}, 65535, -1, 1}};
+Production ops_prodArray_4_9_0_0[1] = {{{9,{5, 57}}, 65535, -1, 1}};
 Production ops_prodArray_4_9_0_1[0] = {};
 Production ops_prodArray_4_9_0_2[0] = {};
 Production ops_prodArray_4_9_1_0[1] = {{{8,{1, 65535}}, 65535, -1, -1}};
@@ -119,7 +119,7 @@ GrammarRule ops_ruleArray_4_9[2] = {{{ops_prodArray_4_9_0_0, ops_prodArray_4_9_0
 
 EXIGrammar ops_grammar_4_9 = {ops_ruleArray_4_9, 2, 14, 0};
 
-Production ops_prodArray_4_10_0_0[1] = {{{9,{5, 33}}, 65535, -1, 1}};
+Production ops_prodArray_4_10_0_0[1] = {{{9,{5, 56}}, 65535, -1, 1}};
 Production ops_prodArray_4_10_0_1[0] = {};
 Production ops_prodArray_4_10_0_2[0] = {};
 Production ops_prodArray_4_10_1_0[1] = {{{8,{1, 65535}}, 65535, -1, -1}};
@@ -130,7 +130,7 @@ GrammarRule ops_ruleArray_4_10[2] = {{{ops_prodArray_4_10_0_0, ops_prodArray_4_1
 
 EXIGrammar ops_grammar_4_10 = {ops_ruleArray_4_10, 2, 14, 0};
 
-Production ops_prodArray_4_11_0_0[1] = {{{9,{4, 29}}, 65535, -1, 1}};
+Production ops_prodArray_4_11_0_0[1] = {{{9,{4, 52}}, 65535, -1, 1}};
 Production ops_prodArray_4_11_0_1[0] = {};
 Production ops_prodArray_4_11_0_2[0] = {};
 Production ops_prodArray_4_11_1_0[1] = {{{8,{1, 65535}}, 65535, -1, -1}};
@@ -141,7 +141,7 @@ GrammarRule ops_ruleArray_4_11[2] = {{{ops_prodArray_4_11_0_0, ops_prodArray_4_1
 
 EXIGrammar ops_grammar_4_11 = {ops_ruleArray_4_11, 2, 14, 0};
 
-Production ops_prodArray_4_12_0_0[1] = {{{9,{3, 30}}, 65535, -1, 1}};
+Production ops_prodArray_4_12_0_0[1] = {{{9,{3, 53}}, 65535, -1, 1}};
 Production ops_prodArray_4_12_0_1[0] = {};
 Production ops_prodArray_4_12_0_2[0] = {};
 Production ops_prodArray_4_12_1_0[1] = {{{8,{1, 65535}}, 65535, -1, -1}};
@@ -152,7 +152,7 @@ GrammarRule ops_ruleArray_4_12[2] = {{{ops_prodArray_4_12_0_0, ops_prodArray_4_1
 
 EXIGrammar ops_grammar_4_12 = {ops_ruleArray_4_12, 2, 14, 0};
 
-Production ops_prodArray_4_15_0_0[1] = {{{9,{5, 40}}, 65535, -1, 1}};
+Production ops_prodArray_4_15_0_0[1] = {{{9,{5, 63}}, 65535, -1, 1}};
 Production ops_prodArray_4_15_0_1[0] = {};
 Production ops_prodArray_4_15_0_2[0] = {};
 Production ops_prodArray_4_15_1_0[1] = {{{8,{1, 65535}}, 65535, -1, -1}};
@@ -163,7 +163,7 @@ GrammarRule ops_ruleArray_4_15[2] = {{{ops_prodArray_4_15_0_0, ops_prodArray_4_1
 
 EXIGrammar ops_grammar_4_15 = {ops_ruleArray_4_15, 2, 14, 0};
 
-Production ops_prodArray_4_16_0_0[1] = {{{9,{5, 39}}, 65535, -1, 1}};
+Production ops_prodArray_4_16_0_0[1] = {{{9,{5, 62}}, 65535, -1, 1}};
 Production ops_prodArray_4_16_0_1[0] = {};
 Production ops_prodArray_4_16_0_2[0] = {};
 Production ops_prodArray_4_16_1_0[1] = {{{8,{1, 65535}}, 65535, -1, -1}};
@@ -174,7 +174,7 @@ GrammarRule ops_ruleArray_4_16[2] = {{{ops_prodArray_4_16_0_0, ops_prodArray_4_1
 
 EXIGrammar ops_grammar_4_16 = {ops_ruleArray_4_16, 2, 14, 0};
 
-Production ops_prodArray_4_17_0_0[1] = {{{9,{5, 37}}, 65535, -1, 1}};
+Production ops_prodArray_4_17_0_0[1] = {{{9,{5, 60}}, 65535, -1, 1}};
 Production ops_prodArray_4_17_0_1[0] = {};
 Production ops_prodArray_4_17_0_2[0] = {};
 Production ops_prodArray_4_17_1_0[1] = {{{8,{1, 65535}}, 65535, -1, -1}};
@@ -185,7 +185,7 @@ GrammarRule ops_ruleArray_4_17[2] = {{{ops_prodArray_4_17_0_0, ops_prodArray_4_1
 
 EXIGrammar ops_grammar_4_17 = {ops_ruleArray_4_17, 2, 14, 0};
 
-Production ops_prodArray_4_18_0_0[1] = {{{9,{5, 38}}, 65535, -1, 1}};
+Production ops_prodArray_4_18_0_0[1] = {{{9,{5, 61}}, 65535, -1, 1}};
 Production ops_prodArray_4_18_0_1[0] = {};
 Production ops_prodArray_4_18_0_2[0] = {};
 Production ops_prodArray_4_18_1_0[1] = {{{8,{1, 65535}}, 65535, -1, -1}};
@@ -196,7 +196,7 @@ GrammarRule ops_ruleArray_4_18[2] = {{{ops_prodArray_4_18_0_0, ops_prodArray_4_1
 
 EXIGrammar ops_grammar_4_18 = {ops_ruleArray_4_18, 2, 14, 0};
 
-Production ops_prodArray_4_19_0_0[1] = {{{9,{5, 36}}, 65535, -1, 1}};
+Production ops_prodArray_4_19_0_0[1] = {{{9,{5, 59}}, 65535, -1, 1}};
 Production ops_prodArray_4_19_0_1[0] = {};
 Production ops_prodArray_4_19_0_2[0] = {};
 Production ops_prodArray_4_19_1_0[1] = {{{8,{1, 65535}}, 65535, -1, -1}};
@@ -224,7 +224,7 @@ GrammarRule ops_ruleArray_4_20[4] = {{{ops_prodArray_4_20_0_0, ops_prodArray_4_2
 
 EXIGrammar ops_grammar_4_20 = {ops_ruleArray_4_20, 4, 14, 0};
 
-Production ops_prodArray_4_21_0_0[1] = {{{9,{7, 27}}, 65535, -1, 1}};
+Production ops_prodArray_4_21_0_0[1] = {{{9,{7, 50}}, 65535, -1, 1}};
 Production ops_prodArray_4_21_0_1[0] = {};
 Production ops_prodArray_4_21_0_2[0] = {};
 Production ops_prodArray_4_21_1_0[1] = {{{8,{1, 65535}}, 65535, -1, -1}};
@@ -235,7 +235,7 @@ GrammarRule ops_ruleArray_4_21[2] = {{{ops_prodArray_4_21_0_0, ops_prodArray_4_2
 
 EXIGrammar ops_grammar_4_21 = {ops_ruleArray_4_21, 2, 14, 0};
 
-Production ops_prodArray_4_22_0_0[1] = {{{9,{3, 41}}, 65535, -1, 1}};
+Production ops_prodArray_4_22_0_0[1] = {{{9,{3, 64}}, 65535, -1, 1}};
 Production ops_prodArray_4_22_0_1[0] = {};
 Production ops_prodArray_4_22_0_2[0] = {};
 Production ops_prodArray_4_22_1_0[1] = {{{8,{1, 65535}}, 65535, -1, -1}};
@@ -246,7 +246,7 @@ GrammarRule ops_ruleArray_4_22[2] = {{{ops_prodArray_4_22_0_0, ops_prodArray_4_2
 
 EXIGrammar ops_grammar_4_22 = {ops_ruleArray_4_22, 2, 14, 0};
 
-Production ops_prodArray_4_23_0_0[1] = {{{9,{3, 42}}, 65535, -1, 1}};
+Production ops_prodArray_4_23_0_0[1] = {{{9,{3, 65}}, 65535, -1, 1}};
 Production ops_prodArray_4_23_0_1[0] = {};
 Production ops_prodArray_4_23_0_2[0] = {};
 Production ops_prodArray_4_23_1_0[1] = {{{8,{1, 65535}}, 65535, -1, -1}};
@@ -257,7 +257,7 @@ GrammarRule ops_ruleArray_4_23[2] = {{{ops_prodArray_4_23_0_0, ops_prodArray_4_2
 
 EXIGrammar ops_grammar_4_23 = {ops_ruleArray_4_23, 2, 14, 0};
 
-Production ops_prodArray_4_24_0_0[1] = {{{9,{20, 31}}, 65535, -1, 1}};
+Production ops_prodArray_4_24_0_0[1] = {{{9,{20, 54}}, 65535, -1, 1}};
 Production ops_prodArray_4_24_0_1[0] = {};
 Production ops_prodArray_4_24_0_2[0] = {};
 Production ops_prodArray_4_24_1_0[1] = {{{8,{1, 65535}}, 65535, -1, -1}};
@@ -308,7 +308,7 @@ GrammarRule ops_ruleArray_4_30[6] = {{{ops_prodArray_4_30_0_0, ops_prodArray_4_3
 
 EXIGrammar ops_grammar_4_30 = {ops_ruleArray_4_30, 6, 14, 0};
 
-Production ops_prodArray_4_31_0_0[1] = {{{9,{2, 25}}, 65535, -1, 1}};
+Production ops_prodArray_4_31_0_0[1] = {{{9,{2, 48}}, 65535, -1, 1}};
 Production ops_prodArray_4_31_0_1[1] = {{{2,{1, 65535}}, 2, 0, 0}};
 Production ops_prodArray_4_31_0_2[0] = {};
 Production ops_prodArray_4_31_1_0[1] = {{{8,{1, 65535}}, 65535, -1, -1}};
@@ -319,7 +319,7 @@ GrammarRule ops_ruleArray_4_31[2] = {{{ops_prodArray_4_31_0_0, ops_prodArray_4_3
 
 EXIGrammar ops_grammar_4_31 = {ops_ruleArray_4_31, 2, 14, 0};
 
-Production ops_prodArray_4_34_0_0[1] = {{{9,{2, 32}}, 65535, -1, 1}};
+Production ops_prodArray_4_34_0_0[1] = {{{9,{2, 55}}, 65535, -1, 1}};
 Production ops_prodArray_4_34_0_1[0] = {};
 Production ops_prodArray_4_34_0_2[0] = {};
 Production ops_prodArray_4_34_1_0[1] = {{{8,{1, 65535}}, 65535, -1, -1}};
@@ -330,7 +330,7 @@ GrammarRule ops_ruleArray_4_34[2] = {{{ops_prodArray_4_34_0_0, ops_prodArray_4_3
 
 EXIGrammar ops_grammar_4_34 = {ops_ruleArray_4_34, 2, 14, 0};
 
-Production ops_prodArray_4_35_0_0[1] = {{{9,{5, 35}}, 65535, -1, 1}};
+Production ops_prodArray_4_35_0_0[1] = {{{9,{5, 58}}, 65535, -1, 1}};
 Production ops_prodArray_4_35_0_1[0] = {};
 Production ops_prodArray_4_35_0_2[0] = {};
 Production ops_prodArray_4_35_1_0[1] = {{{8,{1, 65535}}, 65535, -1, -1}};
@@ -367,7 +367,7 @@ GrammarRule ops_ruleArray_4_36[7] = {{{ops_prodArray_4_36_0_0, ops_prodArray_4_3
 
 EXIGrammar ops_grammar_4_36 = {ops_ruleArray_4_36, 7, 14, 0};
 
-Production ops_prodArray_4_37_0_0[1] = {{{9,{22, 22}}, 65535, -1, 1}};
+Production ops_prodArray_4_37_0_0[1] = {{{9,{22, 45}}, 65535, -1, 1}};
 Production ops_prodArray_4_37_0_1[0] = {};
 Production ops_prodArray_4_37_0_2[0] = {};
 Production ops_prodArray_4_37_1_0[1] = {{{8,{1, 65535}}, 65535, -1, -1}};
@@ -378,7 +378,7 @@ GrammarRule ops_ruleArray_4_37[2] = {{{ops_prodArray_4_37_0_0, ops_prodArray_4_3
 
 EXIGrammar ops_grammar_4_37 = {ops_ruleArray_4_37, 2, 14, 0};
 
-Production ops_prodArray_4_38_0_0[1] = {{{9,{22, 23}}, 65535, -1, 1}};
+Production ops_prodArray_4_38_0_0[1] = {{{9,{22, 46}}, 65535, -1, 1}};
 Production ops_prodArray_4_38_0_1[0] = {};
 Production ops_prodArray_4_38_0_2[0] = {};
 Production ops_prodArray_4_38_1_0[1] = {{{8,{1, 65535}}, 65535, -1, -1}};
@@ -397,6 +397,6 @@ URITable ops_uriTbl = {ops_uriRows, 5, 5, {NULL, 0}};
 
 QNameID ops_qnames[1] = {{4, 20}};
 
-SimpleType ops_simpleTypes[43] = {{4096, 0, 0, 0},{4096, 0, 0, 0},{4096, 0, 0, 0},{4096, 0, 0, 0},{4096, 0, 0, 0},{4096, 0, 0, 0},{4096, 0, 0, 0},{4096, 0, 0, 0},{4096, 0, 0, 0},{4096, 0, 0, 0},{4160, 0, 0, 0},{64, -1, 0, 0},{4096, 0, 0, 0},{4096, 0, 0, 0},{4672, 32767, -32768, 0},{576, 127, -128, 0},{4608, 0, 0, 0},{4608, 0, 0, 0},{4608, 0, 0, 0},{4672, 65535, 0, 0},{576, 255, 0, 0},{512, 0, 1, 0},{512, 0, 0, 0},{512, 0, 0, 0},{512, 1, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0}};
+SimpleType ops_simpleTypes[66] = {{4096, 0, 0, 0},{4096, 0, 0, 0},{4096, 0, 0, 0},{4096, 0, 0, 0},{4096, 0, 0, 0},{0, 0, 0, 0},{4096, 0, 0, 0},{4096, 0, 0, 0},{0, 0, 0, 0},{4096, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{4096, 0, 0, 0},{4096, 0, 0, 0},{4160, 0, 0, 0},{64, -1, 0, 0},{4096, 0, 0, 0},{4096, 0, 0, 0},{4672, 32767, -32768, 0},{576, 127, -128, 0},{4608, 0, 0, 0},{4608, 0, 0, 0},{4608, 0, 0, 0},{4672, 65535, 0, 0},{576, 255, 0, 0},{512, 0, 1, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{512, 0, 0, 0},{512, 0, 0, 0},{512, 1, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0},{0, 0, 0, 0}};
 
-const EXIPSchema ops_schema = {&ops_uriTbl, ops_qnames, 1, ops_simpleTypes, 43, 1, 1, {NULL, NULL}};
+const EXIPSchema ops_schema = {&ops_uriTbl, ops_qnames, 1, ops_simpleTypes, 66, 1, 1, {NULL, NULL}};
