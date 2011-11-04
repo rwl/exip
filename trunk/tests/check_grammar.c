@@ -70,7 +70,7 @@ START_TEST (test_createDocGrammar)
 
 	err = createDocGrammar(&testGrammar, &testStream, NULL);
 
-	fail_unless (err == ERR_OK, "getBuildInDocGrammar returns error code %d", err);
+	fail_unless (err == ERR_OK, "createDocGrammar returns an error code %d", err);
 
 	//TODO: add more tests!
 }
@@ -78,7 +78,24 @@ END_TEST
 
 START_TEST (test_processNextProduction)
 {
-	fail("Test not implemented yet!");
+	errorCode err = UNEXPECTED_ERROR;
+	EXIStream strm;
+	EXIEvent event;
+	size_t nonTermID_out;
+	ContentHandler handler;
+	EXIGrammar testGrammar;
+
+	initAllocList(&strm.memList);
+
+	err = createDocGrammar(&testGrammar, &strm, NULL);
+	fail_unless (err == ERR_OK, "createDocGrammar returns an error code %d", err);
+
+	err = pushGrammar(&strm.gStack, &testGrammar);
+	fail_unless (err == ERR_OK, "pushGrammar returns an error code %d", err);
+
+	strm.context.nonTermID = 4;
+	err = processNextProduction(&strm, &event, &nonTermID_out, &handler, NULL);
+	fail_unless (err == INCONSISTENT_PROC_STATE, "processNextProduction does not return the correct error code");
 }
 END_TEST
 
@@ -169,7 +186,18 @@ END_TEST
 
 START_TEST (test_insertZeroProduction)
 {
-	fail("Not implemented yet");
+	DynGrammarRule rule;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	Production prod0Arr[2];
+	EXIEvent event = {EVENT_CH, {VALUE_TYPE_BOOLEAN, UINT16_MAX}};
+
+	rule.prodCounts[0] = 0;
+	rule.prod1Dimension = 1;
+	rule.prodArrays[0] = prod0Arr;
+
+	tmp_err_code = insertZeroProduction(&rule, event, 5, 0, 0);
+	fail_unless (tmp_err_code == ERR_OK, "insertZeroProduction returns an error code %d", tmp_err_code);
+	fail_unless (rule.prodCounts[0] == 1);
 }
 END_TEST
 
