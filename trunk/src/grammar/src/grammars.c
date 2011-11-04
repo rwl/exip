@@ -53,6 +53,7 @@
 #include "bodyDecode.h"
 
 #define DEF_DOC_GRAMMAR_RULE_NUMBER 3
+#define DEF_FRAG_GRAMMAR_RULE_NUMBER 2
 #define DEF_ELEMENT_GRAMMAR_RULE_NUMBER 2
 
 static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Production* prodHit,
@@ -630,6 +631,134 @@ static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Pro
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
+	return ERR_OK;
+}
+
+errorCode createFragmentGrammar(EXIGrammar* fragGrammar, EXIStream* strm, const EXIPSchema* schema)
+{
+	GrammarRule* tmp_rule;
+	unsigned int tmp_code1 = 0; // the number of productions with event codes with length 1
+	unsigned int tmp_code2 = 0; // the number of productions with event codes with length 2
+
+	fragGrammar->rulesDimension = DEF_FRAG_GRAMMAR_RULE_NUMBER;
+	fragGrammar->grammarType = GR_TYPE_BUILD_IN_FRAG;
+	fragGrammar->contentIndex = 0;
+	fragGrammar->isNillable = FALSE;
+	fragGrammar->ruleArray = (GrammarRule*) memManagedAllocate(&strm->memList, sizeof(GrammarRule)*DEF_FRAG_GRAMMAR_RULE_NUMBER);
+	if(fragGrammar->ruleArray == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	/* Fragment : SD FragmentContent	0 */
+	tmp_rule = &fragGrammar->ruleArray[GR_FRAGMENT];
+	tmp_rule->prodArrays[0] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production));
+	if(tmp_rule->prodArrays[0] == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	tmp_rule->prodArrays[0]->event = getEventDefType(EVENT_SD);
+	tmp_rule->prodArrays[0]->nonTermID = GR_FRAGMENT_CONTENT;
+	tmp_rule->prodCounts[0] = 1;
+	tmp_rule->bits[0] = 0;
+	tmp_rule->bits[1] = 0;
+	tmp_rule->bits[2] = 0;
+	tmp_rule->prodArrays[1] = NULL;
+	tmp_rule->prodCounts[1] = 0;
+	tmp_rule->prodArrays[2] = NULL;
+	tmp_rule->prodCounts[2] = 0;
+
+
+	tmp_rule = &fragGrammar->ruleArray[GR_FRAGMENT_CONTENT];
+	tmp_rule->prodArrays[1] = NULL;
+	tmp_rule->prodCounts[1] = 0;
+	tmp_rule->prodArrays[2] = NULL;
+	tmp_rule->prodCounts[2] = 0;
+	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
+		tmp_code2 += 1;
+	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
+		tmp_code2 += 1;
+
+	if(schema != NULL)   // Creates Schema Informed Grammar
+	{
+		unsigned int e = 0;
+
+		fragGrammar->grammarType = GR_TYPE_SCHEMA_FRAG;
+		tmp_code1 = schema->globalElemGrammarsCount + 2;
+
+		tmp_rule->prodArrays[0] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code1);
+		if(tmp_rule->prodArrays[0] == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+
+		tmp_rule->prodCounts[0] = tmp_code1;
+		tmp_rule->bits[0] = getBitsNumber(schema->globalElemGrammarsCount + (tmp_code2 > 0));
+
+		/*
+		   FragmentContent :
+					   	SE (F-0)   FragmentContent	0
+						SE (F-1)   FragmentContent	1
+						⋮	⋮      ⋮
+						SE (F-n−1) FragmentContent  n-1
+					//	SE (*)     FragmentContent	n		//  This is created as part of the Build-In grammar down
+ 					//	ED		   					n+1		//  This is created as part of the Build-In grammar down
+					//	CM FragmentContent			n+2.0	//  This is created as part of the Build-In grammar down
+					//	PI FragmentContent			n+2.1	//  This is created as part of the Build-In grammar down
+		 */
+
+		for(e = 0; e < schema->globalElemGrammarsCount; e++)
+		{
+			tmp_rule->prodArrays[0][schema->globalElemGrammarsCount - e].event = getEventDefType(EVENT_SE_QNAME);
+			tmp_rule->prodArrays[0][schema->globalElemGrammarsCount - e].nonTermID = GR_FRAGMENT_CONTENT;
+			tmp_rule->prodArrays[0][schema->globalElemGrammarsCount - e].lnRowID = schema->globalElemGrammars[e].lnRowId;
+			tmp_rule->prodArrays[0][schema->globalElemGrammarsCount - e].uriRowID = schema->globalElemGrammars[e].uriRowId;
+		}
+	}
+	else
+	{
+		tmp_code1 = 2;
+		tmp_rule->prodArrays[0] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code1);
+		if(tmp_rule->prodArrays[0] == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+
+		tmp_rule->prodCounts[0] = 2;
+		tmp_rule->bits[0] = 1 + (tmp_code2 > 0);
+	}
+
+	/*
+	   FragmentContent :
+					SE (*) FragmentContent	0
+					ED						1
+					CM FragmentContent		2.0
+					PI FragmentContent		2.1
+	 */
+
+	tmp_rule->bits[1] = (tmp_code2 > 1);
+	tmp_rule->bits[2] = 0;
+
+	tmp_rule->prodArrays[0][0].event = getEventDefType(EVENT_ED);
+	tmp_rule->prodArrays[0][0].nonTermID = GR_VOID_NON_TERMINAL;
+
+	tmp_rule->prodArrays[0][1].event = getEventDefType(EVENT_SE_ALL);
+	tmp_rule->prodArrays[0][1].nonTermID = GR_FRAGMENT_CONTENT;
+
+	if(tmp_code2 > 0)
+	{
+		tmp_rule->prodArrays[1] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code2);
+		if(tmp_rule->prodArrays[1] == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+
+		tmp_rule->prodCounts[1] = tmp_code2;
+
+		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
+		{
+			tmp_rule->prodArrays[1][tmp_code2 - 1].event = getEventDefType(EVENT_CM);
+			tmp_rule->prodArrays[1][tmp_code2 - 1].nonTermID = GR_FRAGMENT_CONTENT;
+		}
+
+		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
+		{
+			tmp_rule->prodArrays[1][0].event = getEventDefType(EVENT_PI);
+			tmp_rule->prodArrays[1][0].nonTermID = GR_FRAGMENT_CONTENT;
+		}
+	}
+
 	return ERR_OK;
 }
 

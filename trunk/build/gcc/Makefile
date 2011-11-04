@@ -117,7 +117,7 @@ FIRST_GOAL = $(word 1,$(MAKECMDGOALS))
 
 # If the first goal is check then the target for checking is the whole project
 ifeq ($(FIRST_GOAL), check)
-   CHECK_TARGET=$(TESTS_BIN_DIR)/test_streamIO $(TESTS_BIN_DIR)/test_stringTables $(TESTS_BIN_DIR)/test_grammar $(TESTS_BIN_DIR)/test_contentIO
+   CHECK_TARGET=$(TESTS_BIN_DIR)/test_streamIO $(TESTS_BIN_DIR)/test_stringTables $(TESTS_BIN_DIR)/test_grammar $(TESTS_BIN_DIR)/test_contentIO $(TESTS_BIN_DIR)/test_exip
 else
    CHECK_TARGET=$(TESTS_BIN_DIR)/test_$(FIRST_GOAL)
 endif

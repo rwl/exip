@@ -94,9 +94,18 @@ errorCode parseHeader(Parser* parser)
 		return tmp_err_code;
 
 	parser->strm.gStack = NULL;
-	tmp_err_code = createDocGrammar(&parser->documentGrammar, &parser->strm, parser->strm.schema);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	if(WITH_FRAGMENT(parser->strm.header.opts.enumOpt))
+	{
+		tmp_err_code = createFragmentGrammar(&parser->documentGrammar, &parser->strm, parser->strm.schema);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else
+	{
+		tmp_err_code = createDocGrammar(&parser->documentGrammar, &parser->strm, parser->strm.schema);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
 
 	tmp_err_code = pushGrammar(&parser->strm.gStack, &parser->documentGrammar);
 	if(tmp_err_code != ERR_OK)
