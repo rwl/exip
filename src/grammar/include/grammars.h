@@ -91,6 +91,18 @@ void popGrammar(EXIGrammarStack** gStack, EXIGrammar** grammar);
 errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const EXIPSchema* schema);
 
 /**
+ * @brief Creates an instance of the EXI Built-in Fragment Grammar or Schema-Informed Fragment Grammar
+ * If schema is NULL then it creates EXI Built-in Fragment Grammar, otherwise
+ * it creates Schema-Informed Fragment Grammar
+ *
+ * @param[in, out] fragGrammar empty grammar container to be filled with rules
+ * @param[in, out] strm EXI stream for which the allocations are made; also the EXI options are read from here
+ * @param[in] schema the schema describing the document if any; if Built-in Fragment Grammar is created then the schema is NULL
+ * @return Error handling code
+ */
+errorCode createFragmentGrammar(EXIGrammar* fragGrammar, EXIStream* strm, const EXIPSchema* schema);
+
+/**
  * @brief Creates an instance of EXI Built-in Element Grammar
  * @param[in] elementGrammar empty grammar container
  * @param[in, out] strm EXI stream for which the allocation is made

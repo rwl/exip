@@ -142,9 +142,18 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 			return tmp_err_code;
 	}
 
-	tmp_err_code = createDocGrammar(docGr, strm, schema);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	if(WITH_FRAGMENT(strm->header.opts.enumOpt))
+	{
+		tmp_err_code = createFragmentGrammar(docGr, strm, schema);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else
+	{
+		tmp_err_code = createDocGrammar(docGr, strm, schema);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
 
 	tmp_err_code = pushGrammar(&strm->gStack, docGr);
 	if(tmp_err_code != ERR_OK)
@@ -185,8 +194,6 @@ errorCode endDocument(EXIStream* strm, unsigned char fastSchemaMode, size_t sche
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	ValueType dummmyType;
 	EXIGrammar* dummmyGrammar;
-	if(strm->context.nonTermID != GR_DOC_END)
-		return INCONSISTENT_PROC_STATE;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">End doc serialization\n"));
 
