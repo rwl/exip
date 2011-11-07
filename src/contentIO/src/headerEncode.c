@@ -276,11 +276,29 @@ errorCode encodeHeader(EXIStream* strm)
 				tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 1 - options_strm.context.nonTermID);
 				tmp_err_code += serialize.endElement(&options_strm, TRUE, 0);
 			}
-			if(!isStringEmpty(&strm->header.opts.schemaID))
+			if(strm->header.opts.schemaID.str != NULL || strm->header.opts.schemaID.length != 0) // SchemaID modes are encoded in the length part
 			{
 				tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 2 - options_strm.context.nonTermID);
-				// TODO: not implemented yet
-				return NOT_IMPLEMENTED_YET;
+				if(strm->header.opts.schemaID.str != NULL)
+				{
+					tmp_err_code += serialize.stringData(&options_strm, strm->header.opts.schemaID, TRUE, 0);
+				}
+				else if(strm->header.opts.schemaID.length == SCHEMA_ID_NIL)
+				{
+					QName nil;
+					nil.uri = &strm->uriTable->rows[2].string_val;
+					nil.localName = &strm->uriTable->rows[2].lTable->rows[0].string_val;
+					tmp_err_code += serialize.attribute(&options_strm, &nil, VALUE_TYPE_BOOLEAN, TRUE, 1);
+					tmp_err_code += serialize.booleanData(&options_strm, TRUE, FALSE, 0);
+				}
+				else if(strm->header.opts.schemaID.length == SCHEMA_ID_EMPTY)
+				{
+					String empty;
+					getEmptyString(&empty);
+					tmp_err_code += serialize.stringData(&options_strm, empty, TRUE, 0);
+				}
+
+				tmp_err_code += serialize.endElement(&options_strm, TRUE, 0);
 			}
 			tmp_err_code += serialize.endElement(&options_strm, TRUE, 3 - options_strm.context.nonTermID);
 		}

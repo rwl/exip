@@ -77,7 +77,7 @@ START_TEST (test_default_options)
 	// III: Define an external stream for the output if any
 
 	// IV: Initialize the stream
-	tmp_err_code = serialize.initStream(&testStrm, buf, OUTPUT_BUFFER_SIZE, NULL, NULL);
+	tmp_err_code = serialize.initStream(&testStrm, buf, OUTPUT_BUFFER_SIZE, NULL, NULL, SCHEMA_ID_ABSENT, NULL);
 	fail_unless (tmp_err_code == ERR_OK, "initStream returns an error code %d", tmp_err_code);
 
 	// V: Start building the stream step by step: header, document, element etc...
@@ -176,7 +176,7 @@ START_TEST (test_fragment_option)
 	// III: Define an external stream for the output if any
 
 	// IV: Initialize the stream
-	tmp_err_code = serialize.initStream(&testStrm, buf, OUTPUT_BUFFER_SIZE, NULL, NULL);
+	tmp_err_code = serialize.initStream(&testStrm, buf, OUTPUT_BUFFER_SIZE, NULL, NULL, SCHEMA_ID_ABSENT, NULL);
 	fail_unless (tmp_err_code == ERR_OK, "initStream returns an error code %d", tmp_err_code);
 
 	// V: Start building the stream step by step: header, document, element etc...

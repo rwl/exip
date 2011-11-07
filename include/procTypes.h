@@ -94,6 +94,16 @@ typedef struct stackNode GenericStack;
 #define SET_FRAGMENT(p)               (p = p | FRAGMENT)
 #define SET_SELF_CONTAINED(p)         (p = p | SELF_CONTAINED)
 
+// SchemaID option modes (http://www.w3.org/TR/2011/REC-exi-20110310/#key-schemaIdOption):
+// SCHEMA_ID_ABSENT - default,  no statement is made about the schema information
+// SCHEMA_ID_SET - some sting identification of the schema is given
+// SCHEMA_ID_NIL - no schema information is used for processing the EXI body (i.e. a schema-less EXI stream)
+// SCHEMA_ID_EMPTY - no user defined schema information is used for processing the EXI body; however, the built-in XML schema types are available for use in the EXI body
+#define SCHEMA_ID_ABSENT 0
+#define SCHEMA_ID_SET    1
+#define SCHEMA_ID_NIL    2
+#define SCHEMA_ID_EMPTY  3
+
 /**
  *	Fidelity option	Effect
  *---------------------------------------------

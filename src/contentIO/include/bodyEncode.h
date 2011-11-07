@@ -73,7 +73,23 @@ errorCode selfContained(EXIStream* strm);  // Used for indexing independent elem
 
 // EXIP specific
 void initHeader(EXIStream* strm);
-errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStrm, EXIPSchema *schema);
+
+/**
+ * @brief Encodes String value into EXI stream
+ *
+ * @param[in, out] strm EXI stream
+ * @param[in, out] buf binary buffer for storing the encodded EXI stream
+ * @param[in] bufSize the size of the buffer in bytes
+ * @param[in] ioStrm defines an output stream to be used to flush the binary buffer when full, NULL if no such output stream exists
+ * @param[in] schema a compiled schema information to be used for schema enabled processing, NULL if no schema is available
+ * @param[in] schemaIdMode one of SCHEMA_ID_ABSENT, SCHEMA_ID_SET, SCHEMA_ID_NIL or SCHEMA_ID_EMPTY
+ * @param[in] schemaID if in SCHEMA_ID_SET a valid string representing the schemaID, NULL otherwise
+ * @return Error handling code
+ */
+errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStrm, EXIPSchema *schema,
+					unsigned char schemaIdMode, String* schemaID);
+
+
 errorCode closeEXIStream(EXIStream* strm);
 
 /****  END: Serializer API implementation  ****/

@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
 			outStrm.stream = outfile;
 
 			// IV: Initialize the stream
-			tmp_err_code = serialize.initStream(&testStrm, buf, OUTPUT_BUFFER_SIZE, &outStrm, schemaPtr);
+			tmp_err_code = serialize.initStream(&testStrm, buf, OUTPUT_BUFFER_SIZE, &outStrm, schemaPtr, SCHEMA_ID_ABSENT, NULL);
 			if(tmp_err_code != ERR_OK)
 				printError(tmp_err_code, &testStrm, outfile);
 

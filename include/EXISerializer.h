@@ -76,7 +76,7 @@ struct EXISerializer
 
 	// EXIP specific
 	void (*initHeader)(EXIStream* strm);
-	errorCode (*initStream)(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStrm, EXIPSchema* schema);
+	errorCode (*initStream)(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStrm, EXIPSchema* schema, unsigned char schemaIdMode, String* schemaID);
 	errorCode (*closeEXIStream)(EXIStream* strm);
 };
 
