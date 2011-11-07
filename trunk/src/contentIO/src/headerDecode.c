@@ -51,6 +51,7 @@
 #include "grammars.h"
 #include "EXIParser.h"
 #include "sTables.h"
+#include "stringManipulate.h"
 
 /** This is the statically generated EXIP schema definition for the EXI Options document*/
 extern const EXIPSchema ops_schema;
@@ -64,12 +65,23 @@ static char ops_endElement(void* app_data);
 static char ops_attribute(QName qname, void* app_data);
 static char ops_stringData(const String value, void* app_data);
 static char ops_intData(Integer int_val, void* app_data);
+static char ops_boolData(unsigned char bool_val, void* app_data);
 
 struct ops_AppData
 {
 	EXIOptions* parsed_ops;
 	EXIStream* o_strm;
+	AllocList* permanentAllocList;
+	unsigned char prevElementUriID;
+	unsigned char prevElementLnID;
+	unsigned char schemaIDOptions;
 };
+
+#define SCHEMA_ID_NO_ELEMENT  0
+#define SCHEMA_ID_EL_NIL      1
+#define SCHEMA_ID_EL_NIL_TRUE 2
+#define SCHEMA_ID_EL_EMPTY    3
+#define SCHEMA_ID_EL_STRING   4
 
 errorCode decodeHeader(EXIStream* strm)
 {
@@ -181,9 +193,14 @@ errorCode decodeHeader(EXIStream* strm)
 		optionsParser.handler.stringData = ops_stringData;
 		optionsParser.handler.endElement = ops_endElement;
 		optionsParser.handler.intData = ops_intData;
+		optionsParser.handler.booleanData = ops_boolData;
 
 		appD.o_strm = &optionsParser.strm;
 		appD.parsed_ops = &strm->header.opts;
+		appD.prevElementLnID = 0;
+		appD.prevElementUriID = 0;
+		appD.schemaIDOptions = SCHEMA_ID_NO_ELEMENT;
+		appD.permanentAllocList = &strm->memList;
 
 		optionsParser.strm.gStack = NULL;
 		tmp_err_code = createDocGrammar(&optionsParser.documentGrammar, &optionsParser.strm, optionsParser.strm.schema);
@@ -224,6 +241,26 @@ errorCode decodeHeader(EXIStream* strm)
 			}
 		}
 
+		// When the "schemaId" element in the EXI options document contains the xsi:nil attribute
+		// with its value set to true, no schema information is used for processing the EXI body
+		// (i.e. a schema-less EXI stream)
+		if(appD.schemaIDOptions == SCHEMA_ID_EL_NIL_TRUE)
+		{
+			if(strm->schema != NULL)
+			{
+				if(strm->schema->isStatic == FALSE)
+				{
+					freeAllocList(&strm->schema->memList);
+				}
+				strm->schema = NULL;
+			}
+		}
+		else if(appD.schemaIDOptions == SCHEMA_ID_EL_EMPTY)
+		{
+			// When the value of the "schemaId" element is empty, no user defined schema information
+			// is used for processing the EXI body; however, the built-in XML schema types are available for use in the EXI body
+			// TODO: Implement this case!
+		}
 	}
 
 	return ERR_OK;
@@ -251,53 +288,79 @@ static char ops_startElement(QName qname, void* app_data)
 {
 	struct ops_AppData* o_appD = (struct ops_AppData*) app_data;
 
-	if(o_appD->o_strm->context.curr_uriID != 4) // URI != http://www.w3.org/2009/exi
+	if(o_appD->o_strm->context.curr_uriID == 4) // URI == http://www.w3.org/2009/exi
 	{
-		DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Wrong namespace in the EXI Options\n"));
-		return EXIP_HANDLER_STOP;
-	}
+		o_appD->prevElementUriID = 4;
 
-	switch(o_appD->o_strm->context.curr_lnID)
+		switch(o_appD->o_strm->context.curr_lnID)
+		{
+			case 33:	// strict
+				SET_STRICT(o_appD->parsed_ops->enumOpt);
+				o_appD->prevElementLnID = 33;
+			break;
+			case 31:	// schemaId
+				o_appD->prevElementLnID = 31;
+				o_appD->schemaIDOptions = SCHEMA_ID_EL_EMPTY;
+			break;
+			case 7:		// compression
+				SET_COMPRESSION(o_appD->parsed_ops->enumOpt);
+				o_appD->prevElementLnID = 7;
+			break;
+			case 14:	// fragment
+				SET_FRAGMENT(o_appD->parsed_ops->enumOpt);
+				o_appD->prevElementLnID = 14;
+			break;
+			case 13:	// dtd
+				SET_PRESERVED(o_appD->parsed_ops->preserve, PRESERVE_DTD);
+				o_appD->prevElementLnID = 13;
+			break;
+			case 29:	// prefixes
+				SET_PRESERVED(o_appD->parsed_ops->preserve, PRESERVE_PREFIXES);
+				o_appD->prevElementLnID = 29;
+			break;
+			case 26:	// lexicalValues
+				SET_PRESERVED(o_appD->parsed_ops->preserve, PRESERVE_LEXVALUES);
+				o_appD->prevElementLnID = 26;
+			break;
+			case 5:	// comments
+				SET_PRESERVED(o_appD->parsed_ops->preserve, PRESERVE_COMMENTS);
+				o_appD->prevElementLnID = 5;
+			break;
+			case 27:	// pis
+				SET_PRESERVED(o_appD->parsed_ops->preserve, PRESERVE_PIS);
+				o_appD->prevElementLnID = 27;
+			break;
+			case 4:	// alignment->byte
+				SET_ALIGNMENT(o_appD->parsed_ops->enumOpt, BYTE_ALIGNMENT);
+				o_appD->prevElementLnID = 4;
+			break;
+			case 28:	// alignment->pre-compress
+				SET_ALIGNMENT(o_appD->parsed_ops->enumOpt, PRE_COMPRESSION);
+				o_appD->prevElementLnID = 28;
+			break;
+			case 32:	// selfContained
+				SET_SELF_CONTAINED(o_appD->parsed_ops->enumOpt);
+				o_appD->prevElementLnID = 32;
+			break;
+			case 8:	// datatypeRepresentationMap
+				o_appD->prevElementLnID = 8;
+			break;
+			case 36:	// uncommon
+				o_appD->prevElementLnID = 36;
+			break;
+		}
+	}
+	else // URI != http://www.w3.org/2009/exi
 	{
-		case 33:	// strict
-			SET_STRICT(o_appD->parsed_ops->enumOpt);
-		break;
-		case 31:	// schemaId
-			// TODO: implement this!
-		break;
-		case 7:		// compression
-			SET_COMPRESSION(o_appD->parsed_ops->enumOpt);
-		break;
-		case 14:	// fragment
-			SET_FRAGMENT(o_appD->parsed_ops->enumOpt);
-		break;
-		case 13:	// dtd
-			SET_PRESERVED(o_appD->parsed_ops->preserve, PRESERVE_DTD);
-		break;
-		case 29:	// prefixes
-			SET_PRESERVED(o_appD->parsed_ops->preserve, PRESERVE_PREFIXES);
-		break;
-		case 26:	// lexicalValues
-			SET_PRESERVED(o_appD->parsed_ops->preserve, PRESERVE_LEXVALUES);
-		break;
-		case 5:	// comments
-			SET_PRESERVED(o_appD->parsed_ops->preserve, PRESERVE_COMMENTS);
-		break;
-		case 27:	// pis
-			SET_PRESERVED(o_appD->parsed_ops->preserve, PRESERVE_PIS);
-		break;
-		case 4:	// alignment->byte
-			SET_ALIGNMENT(o_appD->parsed_ops->enumOpt, BYTE_ALIGNMENT);
-		break;
-		case 28:	// alignment->pre-compress
-			SET_ALIGNMENT(o_appD->parsed_ops->enumOpt, PRE_COMPRESSION);
-		break;
-		case 32:	// selfContained
-			SET_SELF_CONTAINED(o_appD->parsed_ops->enumOpt);
-		break;
-		case 8:	// datatypeRepresentationMap
-			// TODO: implement this!
-		break;
+		// The previous element should be either uncommon or datatypeRepresentationMap otherwise it is an error
+		// These are the only places where <any> element is allowed
+		if(o_appD->prevElementUriID != 4 || o_appD->prevElementLnID != 36 || o_appD->prevElementLnID != 8)
+		{
+			DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Wrong namespace in the EXI Options\n"));
+			return EXIP_HANDLER_STOP;
+		}
+
+		// Handle here the user defined meta-data that follows! http://www.w3.org/TR/2011/REC-exi-20110310/#key-userMetaData
 	}
 
 	return EXIP_HANDLER_OK;
@@ -310,11 +373,69 @@ static char ops_endElement(void* app_data)
 
 static char ops_attribute(QName qname, void* app_data)
 {
+	struct ops_AppData* o_appD = (struct ops_AppData*) app_data;
+
+	if(o_appD->prevElementUriID == 4) // URI == http://www.w3.org/2009/exi
+	{
+		if(o_appD->prevElementLnID != 31) // schemaId
+		{
+			DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Corrupt EXI Options\n"));
+			return EXIP_HANDLER_STOP;
+		}
+		else
+		{
+			if(o_appD->o_strm->context.curr_uriID == 2 && o_appD->o_strm->context.curr_lnID == 0) // xsi:nil
+			{
+				o_appD->schemaIDOptions = SCHEMA_ID_EL_NIL;
+			}
+			else
+			{
+				DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Corrupt EXI Options\n"));
+				return EXIP_HANDLER_STOP;
+			}
+		}
+	}
+	else
+	{
+		// Handle here the user defined meta-data that follows! http://www.w3.org/TR/2011/REC-exi-20110310/#key-userMetaData
+	}
+
 	return EXIP_HANDLER_OK;
 }
 
 static char ops_stringData(const String value, void* app_data)
 {
+	struct ops_AppData* o_appD = (struct ops_AppData*) app_data;
+
+	if(o_appD->prevElementUriID == 4) // URI == http://www.w3.org/2009/exi
+	{
+		if(o_appD->prevElementLnID != 31) // schemaId
+		{
+			DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Corrupt EXI Options\n"));
+			return EXIP_HANDLER_STOP;
+		}
+		else
+		{
+			if(isStringEmpty(&value))
+			{
+				o_appD->schemaIDOptions = SCHEMA_ID_EL_EMPTY;
+			}
+			else
+			{
+				o_appD->schemaIDOptions = SCHEMA_ID_EL_STRING;
+				if(cloneString(&value, &o_appD->parsed_ops->schemaID, o_appD->permanentAllocList) != ERR_OK)
+				{
+					DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Memory error\n"));
+					return EXIP_HANDLER_STOP;
+				}
+			}
+		}
+	}
+	else
+	{
+		// Handle here the user defined meta-data that follows! http://www.w3.org/TR/2011/REC-exi-20110310/#key-userMetaData
+	}
+
 	return EXIP_HANDLER_OK;
 }
 
@@ -334,5 +455,24 @@ static char ops_intData(Integer int_val, void* app_data)
 			o_appD->parsed_ops->blockSize = (unsigned int) int_val;
 		break;
 	}
+	return EXIP_HANDLER_OK;
+}
+
+static char ops_boolData(unsigned char bool_val, void* app_data)
+{
+	struct ops_AppData* o_appD = (struct ops_AppData*) app_data;
+
+	if(o_appD->schemaIDOptions == SCHEMA_ID_EL_NIL) // xsi:nil attribute
+	{
+		if(bool_val == TRUE)
+			o_appD->schemaIDOptions = SCHEMA_ID_EL_NIL_TRUE;
+		else
+			o_appD->schemaIDOptions = SCHEMA_ID_EL_EMPTY;
+	}
+	else
+	{
+		// Handle here the user defined meta-data that follows! http://www.w3.org/TR/2011/REC-exi-20110310/#key-userMetaData
+	}
+
 	return EXIP_HANDLER_OK;
 }

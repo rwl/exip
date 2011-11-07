@@ -84,7 +84,7 @@ void initHeader(EXIStream* strm)
 	makeDefaultOpts(&strm->header.opts);
 }
 
-errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStrm, EXIPSchema* schema)
+errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStrm, EXIPSchema* schema, unsigned char schemaIdMode, String* schemaID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIGrammar* docGr;
@@ -121,8 +121,11 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 	if(docGr == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	if(schema != NULL)
+	if(schema != NULL) // schema enabled encoding
 	{
+		if(schemaIdMode == SCHEMA_ID_NIL || schemaIdMode == SCHEMA_ID_EMPTY)
+			return INVALID_EXIP_CONFIGURATION;
+
 		strm->uriTable = schema->initialStringTables;
 		tmp_err_code = createValueTable(&(strm->vTable), &(strm->memList));
 		if(tmp_err_code != ERR_OK)
@@ -173,6 +176,30 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 		strm->vTable->hashTbl = create_hashtable(53, djbHash, stringEqual);
 		if(strm->vTable->hashTbl == NULL)
 			return HASH_TABLE_ERROR;
+	}
+
+	// EXI schemaID handling
+
+	if(schemaIdMode == SCHEMA_ID_ABSENT)
+	{
+		if(schemaID != NULL)
+			return INVALID_EXIP_CONFIGURATION;
+	}
+	else if(schemaIdMode == SCHEMA_ID_SET)
+	{
+		if(schemaID == NULL)
+			return INVALID_EXIP_CONFIGURATION;
+		tmp_err_code = cloneString(schemaID, &strm->header.opts.schemaID, &strm->memList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else if(schemaIdMode == SCHEMA_ID_NIL)
+	{
+		strm->header.opts.schemaID.length = SCHEMA_ID_NIL;
+	}
+	else if(schemaIdMode == SCHEMA_ID_EMPTY)
+	{
+		strm->header.opts.schemaID.length = SCHEMA_ID_EMPTY;
 	}
 
 	return ERR_OK;

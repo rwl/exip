@@ -154,6 +154,8 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 				grammar->ruleArray[i].prodArrays[1][tmp_prod2_indx].lnRowID = 1; // type
 				tmp_prod2_indx --;
 
+				tmpEvent.valueType.exiType = VALUE_TYPE_BOOLEAN;
+
 				grammar->ruleArray[i].prodArrays[1][tmp_prod2_indx].event = tmpEvent;
 				grammar->ruleArray[i].prodArrays[1][tmp_prod2_indx].nonTermID = 0;
 				grammar->ruleArray[i].prodArrays[1][tmp_prod2_indx].uriRowID = 2; // "http://www.w3.org/2001/XMLSchema-instance"
@@ -487,7 +489,7 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 			}
 
 			grammar->ruleArray[0].prodArrays[1][prodIndex].event.eventType = EVENT_AT_QNAME;
-			grammar->ruleArray[0].prodArrays[1][prodIndex].event.valueType.exiType = VALUE_TYPE_NONE;
+			grammar->ruleArray[0].prodArrays[1][prodIndex].event.valueType.exiType = VALUE_TYPE_BOOLEAN;
 			grammar->ruleArray[0].prodArrays[1][prodIndex].event.valueType.simpleTypeID = UINT16_MAX;
 			grammar->ruleArray[0].prodArrays[1][prodIndex].nonTermID = 0;
 

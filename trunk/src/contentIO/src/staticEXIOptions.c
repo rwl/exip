@@ -1,4 +1,4 @@
-/** AUTO-GENERATED: Wed Nov  2 16:18:29 2011
+/** AUTO-GENERATED: Mon Nov  7 16:02:43 2011
   * Copyright (c) 2010 - 2011, Rumen Kyusakov, EISLAB, LTU
   * $Id$ */
 
@@ -309,7 +309,7 @@ GrammarRule ops_ruleArray_4_30[6] = {{{ops_prodArray_4_30_0_0, ops_prodArray_4_3
 EXIGrammar ops_grammar_4_30 = {ops_ruleArray_4_30, 6, 14, 0};
 
 Production ops_prodArray_4_31_0_0[1] = {{{9,{2, 48}}, 65535, -1, 1}};
-Production ops_prodArray_4_31_0_1[1] = {{{2,{1, 65535}}, 2, 0, 0}};
+Production ops_prodArray_4_31_0_1[1] = {{{2,{6, 65535}}, 2, 0, 0}};
 Production ops_prodArray_4_31_0_2[0] = {};
 Production ops_prodArray_4_31_1_0[1] = {{{8,{1, 65535}}, 65535, -1, -1}};
 Production ops_prodArray_4_31_1_1[0] = {};

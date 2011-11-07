@@ -82,6 +82,9 @@ typedef char errorCode;
 /** No error, everything OK. */
 #define ERR_OK    0
 
+/** The information passed to the EXIP API is invalid */
+#define INVALID_EXIP_CONFIGURATION 17
+
 /** The number MAXIMUM_NUMBER_OF_PREFIXES_PER_URI is reached - must be increased in the build */
 #define TOO_MUCH_PREFIXES_PER_URI 16
 
