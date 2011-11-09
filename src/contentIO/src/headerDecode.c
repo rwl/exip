@@ -205,16 +205,25 @@ errorCode decodeHeader(EXIStream* strm)
 		optionsParser.strm.gStack = NULL;
 		tmp_err_code = createDocGrammar(&optionsParser.documentGrammar, &optionsParser.strm, optionsParser.strm.schema);
 		if(tmp_err_code != ERR_OK)
+		{
+			destroyParser(&optionsParser);
 			return tmp_err_code;
+		}
 
 		tmp_err_code = pushGrammar(&optionsParser.strm.gStack, &optionsParser.documentGrammar);
 		if(tmp_err_code != ERR_OK)
+		{
+			destroyParser(&optionsParser);
 			return tmp_err_code;
+		}
 
 		optionsParser.strm.uriTable = optionsParser.strm.schema->initialStringTables;
 		tmp_err_code = createValueTable(&(optionsParser.strm.vTable), &(optionsParser.strm.memList));
 		if(tmp_err_code != ERR_OK)
+		{
+			destroyParser(&optionsParser);
 			return tmp_err_code;
+		}
 
 		while(tmp_err_code == ERR_OK)
 		{

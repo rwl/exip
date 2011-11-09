@@ -68,6 +68,10 @@ errorCode initParser(Parser* parser, char* binaryBuf, size_t bufLen, size_t bufC
 	parser->strm.context.expectATData = 0;
 	parser->strm.bufContent = bufContent;
 	parser->strm.schema = schema;
+	parser->strm.gStack = NULL;
+	parser->strm.uriTable = NULL;
+	parser->strm.vTable = NULL;
+
 	if(ioStrm == NULL)
 	{
 		parser->strm.ioStrm.readWriteToStream = NULL;
@@ -171,6 +175,12 @@ errorCode parseNext(Parser* parser)
 
 void destroyParser(Parser* parser)
 {
+	EXIGrammar* tmp;
+	while(parser->strm.gStack != NULL)
+	{
+		popGrammar(&parser->strm.gStack, &tmp);
+	}
+
 	if(parser->strm.schema != NULL)
 	{
 		if(parser->strm.schema->isStatic == TRUE)

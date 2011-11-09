@@ -116,7 +116,7 @@ void freeAllMem(EXIStream* strm)
 {
 	// Hash tables are freed separately
 	// #DOCUMENT#
-	if(strm->vTable->hashTbl != NULL)
+	if(strm->vTable != NULL && strm->vTable->hashTbl != NULL)
 		hashtable_destroy(strm->vTable->hashTbl);
 
 	freeAllocList(&(strm->memList));

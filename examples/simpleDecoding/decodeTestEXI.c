@@ -227,11 +227,6 @@ int main(int argc, char *argv[])
 			// IV: Parse the header of the stream
 
 			tmp_err_code = parseHeader(&testParser);
-			if(tmp_err_code != ERR_OK)
-			{
-				printf("\nError during parsing of the EXI header: %d", tmp_err_code);
-				return 1;
-			}
 
 			// V: Parse the body of the EXI stream
 
@@ -249,7 +244,7 @@ int main(int argc, char *argv[])
 				return ERR_OK;
 			else
 			{
-				printf("\nError during parsing of the EXI body: %d", tmp_err_code);
+				printf("\nError during parsing of the EXI stream: %d", tmp_err_code);
 				return 1;
 			}
 		}

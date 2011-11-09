@@ -105,6 +105,8 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 	strm->context.curr_lnID = 0;
 	strm->context.expectATData = 0;
 	strm->gStack = NULL;
+	strm->uriTable = NULL;
+	strm->vTable = NULL;
 	strm->schema = schema;
 	if(ioStrm == NULL)
 	{
@@ -398,11 +400,19 @@ errorCode selfContained(EXIStream* strm)
 
 errorCode closeEXIStream(EXIStream* strm)
 {
+	errorCode tmp_err_code = ERR_OK;
+	EXIGrammar* tmp;
+
+	while(strm->gStack != NULL)
+	{
+		popGrammar(&strm->gStack, &tmp);
+	}
+
 	// Flush the buffer first if there is output Stream
 	if(strm->ioStrm.readWriteToStream != NULL)
 	{
 		if(strm->ioStrm.readWriteToStream(strm->buffer, strm->context.bufferIndx + 1, strm->ioStrm.stream) < strm->context.bufferIndx + 1)
-			return BUFFER_END_REACHED;
+			tmp_err_code = BUFFER_END_REACHED;
 	}
 	if(strm->schema != NULL)
 	{
@@ -423,5 +433,5 @@ errorCode closeEXIStream(EXIStream* strm)
 			freeAllocList(&strm->schema->memList);
 	}
 	freeAllMem(strm);
-	return ERR_OK;
+	return tmp_err_code;
 }

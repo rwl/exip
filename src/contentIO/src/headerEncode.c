@@ -49,6 +49,7 @@
 #include "sTables.h"
 #include "EXISerializer.h"
 #include "stringManipulate.h"
+#include "bodyEncode.h"
 
 /** This is the statically generated EXIP schema definition for the EXI Options document*/
 extern const EXIPSchema ops_schema;
@@ -136,15 +137,26 @@ errorCode encodeHeader(EXIStream* strm)
 		options_strm.uriTable = ops_schema.initialStringTables;
 		tmp_err_code = createValueTable(&(options_strm.vTable), &(options_strm.memList));
 		if(tmp_err_code != ERR_OK)
+		{
+			closeEXIStream(&options_strm);
 			return tmp_err_code;
+		}
 
 		tmp_err_code = createDocGrammar(&docGr, &options_strm, &ops_schema);
 		if(tmp_err_code != ERR_OK)
+		{
+			closeEXIStream(&options_strm);
 			return tmp_err_code;
+		}
 
 		tmp_err_code = pushGrammar(&options_strm.gStack, &docGr);
 		if(tmp_err_code != ERR_OK)
+		{
+			closeEXIStream(&options_strm);
 			return tmp_err_code;
+		}
+
+		// TODO: Below, provide a checks for tmp_err_code and stop the execution on an error condition
 
 		tmp_err_code += serialize.startDocument(&options_strm, TRUE, 0);
 		tmp_err_code += serialize.startElement(&options_strm, NULL, TRUE, 0);
