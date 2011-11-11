@@ -363,7 +363,7 @@ static char xsd_endDocument(void* app_data)
 		for(i = 0; i < appD->globalElemGrammars->elementCount; i++)
 		{
 			tmpQnameID = ((QNameID*) appD->globalElemGrammars->elements) + i;
-			tmpGrammar = appD->schema->initialStringTables->rows[tmpQnameID->uriRowId].lTable->rows[tmpQnameID->lnRowId].globalGrammar;
+			tmpGrammar = appD->schema->initialStringTables->rows[tmpQnameID->uriRowId].lTable->rows[tmpQnameID->lnRowId].typeGrammar;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\nURI: "));
 			printString(&appD->schema->initialStringTables->rows[tmpQnameID->uriRowId].string_val);
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\nLN: "));
@@ -419,7 +419,7 @@ static char xsd_endDocument(void* app_data)
 	{
 		for (j = 0; j < appD->schema->initialStringTables->rows[i].lTable->rowCount; j++)
 		{
-			tmpGrammar = appD->schema->initialStringTables->rows[i].lTable->rows[j].globalGrammar;
+			tmpGrammar = appD->schema->initialStringTables->rows[i].lTable->rows[j].typeGrammar;
 			if(tmpGrammar != NULL)
 			{
 				for (t = 0; t < tmpGrammar->rulesDimension; t++)
@@ -1176,7 +1176,7 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 	}
 #endif
 
-		app_data->schema->initialStringTables->rows[uriRowID].lTable->rows[lnRowID].globalGrammar = complexEXIGrammar;
+		app_data->schema->initialStringTables->rows[uriRowID].lTable->rows[lnRowID].typeGrammar = complexEXIGrammar;
 	}
 
 	return ERR_OK;
@@ -1264,7 +1264,7 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 	}
 #endif
 
-		app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].globalGrammar = exiTypeGrammar;
+		app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeGrammar = exiTypeGrammar;
 		globalQnameID.uriRowId = uriRowId;
 		globalQnameID.lnRowId = lnRowId;
 		tmp_err_code = addDynElement(app_data->globalElemGrammars, &globalQnameID, &dynElID, &app_data->schema->memList);
@@ -1308,7 +1308,7 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 				}
 #endif
 
-				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].globalGrammar = exiTypeGrammar;
+				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeGrammar = exiTypeGrammar;
 			}
 			else
 			{
@@ -1348,7 +1348,7 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 					app_data->emptyGrammar->ruleArray->prodArrays[0][0].lnRowID = SIZE_MAX;
 					app_data->emptyGrammar->ruleArray->prodArrays[0][0].nonTermID = GR_VOID_NON_TERMINAL;
 				}
-				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].globalGrammar = app_data->emptyGrammar;
+				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeGrammar = app_data->emptyGrammar;
 			}
 		}
 		else // The element has a particular named type
@@ -1379,7 +1379,7 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 
 				exiTypeGrammar->isNillable = isNillable;
 
-				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].globalGrammar = exiTypeGrammar;
+				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeGrammar = exiTypeGrammar;
 			}
 			else // A complex type name or derived simple type
 			{
@@ -1678,7 +1678,7 @@ static errorCode handleSimpleTypeEl(struct xsdAppData* app_data)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		app_data->schema->initialStringTables->rows[app_data->props.targetNSMetaID].lTable->rows[lnRowID].globalGrammar = exiTypeGrammar;
+		app_data->schema->initialStringTables->rows[app_data->props.targetNSMetaID].lTable->rows[lnRowID].typeGrammar = exiTypeGrammar;
 
 		return ERR_OK;
 	}

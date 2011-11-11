@@ -243,7 +243,7 @@ errorCode startElement(EXIStream* strm, QName* qname, unsigned char fastSchemaMo
 		return tmp_err_code;
 
 	// New element grammar is pushed on the stack
-	elemGrammar = strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].globalGrammar;
+	elemGrammar = strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].typeGrammar;
 	strm->gStack->lastNonTermID = strm->context.nonTermID;
 	if(elemGrammar != NULL) // The grammar is found
 	{
@@ -261,7 +261,7 @@ errorCode startElement(EXIStream* strm, QName* qname, unsigned char fastSchemaMo
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].globalGrammar = newElementGrammar;
+		strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].typeGrammar = newElementGrammar;
 
 		strm->context.nonTermID = GR_START_TAG_CONTENT;
 		tmp_err_code = pushGrammar(&(strm->gStack), newElementGrammar);
@@ -294,7 +294,7 @@ errorCode endElement(EXIStream* strm, unsigned char fastSchemaMode, size_t schem
 errorCode attribute(EXIStream* strm, QName* qname, EXIType exiType, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start attr serialization\n"));
-	strm->context.expectATData = TRUE;
+	strm->context.expectATData = exiType;
 	return encodeComplexEXIEvent(strm, qname, EVENT_AT_ALL, EVENT_AT_URI, EVENT_AT_QNAME, exiType, fastSchemaMode, schemaProduction);
 }
 

@@ -513,7 +513,7 @@ errorCode addUndeclaredProductionsToAll(AllocList* memList, URITable* stringTabl
 	{
 		for (j = 0; j < stringTables->rows[i].lTable->rowCount; j++)
 		{
-			tmpGrammar = stringTables->rows[i].lTable->rows[j].globalGrammar;
+			tmpGrammar = stringTables->rows[i].lTable->rows[j].typeGrammar;
 			if(tmpGrammar != NULL)
 			{
 				tmp_err_code = addUndeclaredProductions(memList, WITH_STRICT(opts->enumOpt), WITH_SELF_CONTAINED(opts->enumOpt), opts->preserve, tmpGrammar, simpleTypeArray, sTypeArraySize);

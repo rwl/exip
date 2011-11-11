@@ -301,7 +301,7 @@ int main(int argc, char *argv[])
 
 					for(j = 0; j < schema.initialStringTables->rows[i].lTable->rowCount; j++)
 					{
-						tmpGrammar = schema.initialStringTables->rows[i].lTable->rows[j].globalGrammar;
+						tmpGrammar = schema.initialStringTables->rows[i].lTable->rows[j].typeGrammar;
 						if(tmpGrammar != NULL)
 						{
 							if(mask_specified == TRUE)
@@ -399,7 +399,7 @@ int main(int argc, char *argv[])
 							printf("\n ERROR: OUT_SRC_STAT output format!");
 							exit(1);
 						}
-						if(schema.initialStringTables->rows[i].lTable->rows[j].globalGrammar != NULL)
+						if(schema.initialStringTables->rows[i].lTable->rows[j].typeGrammar != NULL)
 						{
 							sprintf(printfBuf, "LNrows_%d[%d].globalGrammar = grammar_%d_%d;\n\t", i, j, i, j);
 							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
@@ -567,7 +567,7 @@ int main(int argc, char *argv[])
 
 					for(j = 0; j < schema.initialStringTables->rows[i].lTable->rowCount; j++)
 					{
-						tmpGrammar = schema.initialStringTables->rows[i].lTable->rows[j].globalGrammar;
+						tmpGrammar = schema.initialStringTables->rows[i].lTable->rows[j].typeGrammar;
 						if(tmpGrammar != NULL)
 						{
 							if(mask_specified == TRUE)
@@ -624,7 +624,7 @@ int main(int argc, char *argv[])
 							printf("\n ERROR: OUT_SRC_STAT output format!");
 							exit(1);
 						}
-						if(schema.initialStringTables->rows[i].lTable->rows[j].globalGrammar != NULL)
+						if(schema.initialStringTables->rows[i].lTable->rows[j].typeGrammar != NULL)
 						{
 							sprintf(printfBuf, "%s{NULL, {\"%s\", %d}, &%sgrammar_%d_%d}", j==0?"":",",
 									conv_buff, schema.initialStringTables->rows[i].lTable->rows[j].string_val.length, prefix, i, j);
@@ -699,7 +699,7 @@ int main(int argc, char *argv[])
 				{
 					for(j = 0; j < schema.initialStringTables->rows[i].lTable->rowCount; j++)
 					{
-						tmpGrammar = schema.initialStringTables->rows[i].lTable->rows[j].globalGrammar;
+						tmpGrammar = schema.initialStringTables->rows[i].lTable->rows[j].typeGrammar;
 						if(tmpGrammar != NULL)
 						{
 							if(mask_specified == TRUE)
