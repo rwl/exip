@@ -468,7 +468,8 @@ typedef struct PrefixTable PrefixTable;
 struct LocalNamesRow {
 	ValueLocalCrossTable* vCrossTable;
 	String string_val;
-	EXIGrammar* globalGrammar;
+	EXIGrammar* typeGrammar;
+	EXIGrammar* emptyTypeGrammar;
 };
 
 struct LocalNamesTable {

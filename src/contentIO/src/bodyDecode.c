@@ -199,7 +199,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		}
 
 		// New element grammar is pushed on the stack
-		elemGrammar = strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].globalGrammar;
+		elemGrammar = strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].typeGrammar;
 
 		strm->gStack->lastNonTermID = *nonTermID_out;
 		if(elemGrammar != NULL) // The grammar is found
@@ -218,7 +218,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].globalGrammar = newElementGrammar;
+			strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].typeGrammar = newElementGrammar;
 			*nonTermID_out = GR_START_TAG_CONTENT;
 			tmp_err_code = pushGrammar(&(strm->gStack), newElementGrammar);
 			if(tmp_err_code != ERR_OK)
@@ -270,7 +270,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		}
 
 		// New element grammar is pushed on the stack
-		elemGrammar = strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].globalGrammar;
+		elemGrammar = strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].typeGrammar;
 		strm->gStack->lastNonTermID = *nonTermID_out;
 		if(elemGrammar != NULL) // The grammar is found
 		{
@@ -296,6 +296,12 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 				if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
 					return HANDLER_STOP_RECEIVED;
 			}
+
+			// handle xsi:nil attribute
+			if(strm->gStack->grammar->grammarType >= GR_TYPE_SCHEMA_DOC && strm->context.curr_uriID == 2 && strm->context.curr_lnID == 0) // Schema-enabled grammar and http://www.w3.org/2001/XMLSchema-instance:nil
+			{
+				strm->context.expectATData = VALUE_TYPE_BOOLEAN;
+			}
 		}
 		else
 		{
@@ -306,6 +312,11 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		{
 			String value;
 			unsigned char freeable = FALSE;
+
+			//  If nil is not a valid Boolean, represent the xsi:nil attribute event using the AT (*) [untyped value] terminal
+			if(event.valueType.exiType == VALUE_TYPE_UNTYPED)
+				strm->context.expectATData = FALSE;
+
 			tmp_err_code = decodeStringValue(strm, &value, &freeable);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
@@ -319,7 +330,26 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		}
 		else if(event.valueType.exiType == VALUE_TYPE_BOOLEAN)
 		{
-			return NOT_IMPLEMENTED_YET;
+			unsigned char bool_val;
+			tmp_err_code = decodeBoolean(strm, &bool_val);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			if(handler->booleanData != NULL)  // Invoke handler method
+			{
+				if(handler->booleanData(bool_val, app_data) == EXIP_HANDLER_STOP)
+					return HANDLER_STOP_RECEIVED;
+			}
+
+			if(strm->gStack->grammar->grammarType >= GR_TYPE_SCHEMA_DOC && strm->context.expectATData == VALUE_TYPE_BOOLEAN)
+			{
+				if(bool_val == TRUE)
+				{
+					// TODO: If the value of nil is true, evaluate the element contents using the grammar TypeEmpty k defined above rather than RightHandSide.
+					return NOT_IMPLEMENTED_YET;
+				}
+				strm->context.expectATData = FALSE;
+			}
 		}
 		else if(event.valueType.exiType == VALUE_TYPE_BINARY)
 		{
