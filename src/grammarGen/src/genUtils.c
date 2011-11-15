@@ -377,7 +377,7 @@ errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, ProtoGrammar** res
 }
 
 errorCode createAttributeUseGrammar(AllocList* tmpMemList, unsigned char required, String* name, String* target_ns,
-										  QName simpleType, QName scope, ProtoGrammar** result,  uint16_t uriRowID, size_t lnRowID)
+										  QNameID simpleTypeID, QName scope, ProtoGrammar** result,  uint16_t uriRowID, size_t lnRowID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIEvent event1;
@@ -388,7 +388,7 @@ errorCode createAttributeUseGrammar(AllocList* tmpMemList, unsigned char require
 	(*result)->contentIndex = 0;
 
 	event1.eventType = EVENT_AT_QNAME;
-	tmp_err_code = getEXIDataType(simpleType, &event1.valueType);
+	tmp_err_code = getEXIDataTypeFromSimpleType(simpleTypeID, &event1.valueType);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -714,194 +714,201 @@ errorCode createAllModelGroupsGrammar(AllocList* memList, ProtoGrammar* pTermArr
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode getEXIDataType(QName simpleXSDType, ValueType* vType)
+errorCode getEXIDataTypeFromSimpleType(QNameID simpleXSDType, ValueType* vType)
 {
-	if(stringEqualToAscii(*simpleXSDType.localName, "string"))
-	{
-		vType->simpleTypeID = SIMPLE_TYPE_STRING;
-		vType->exiType = VALUE_TYPE_STRING;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "normalizedString"))
-	{
-		vType->simpleTypeID = SIMPLE_TYPE_NORMALIZED_STRING;
-		vType->exiType = VALUE_TYPE_STRING;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "token"))
-	{
-		vType->simpleTypeID = SIMPLE_TYPE_TOKEN;
-		vType->exiType = VALUE_TYPE_STRING;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "Name"))
-	{
-		vType->simpleTypeID = SIMPLE_TYPE_NAME;
-		vType->exiType = VALUE_TYPE_STRING;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "NMTOKEN"))
-	{
-		vType->simpleTypeID = SIMPLE_TYPE_NMTOKEN;
-		vType->exiType = VALUE_TYPE_STRING;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "NCName"))
-	{
-		vType->simpleTypeID = SIMPLE_TYPE_NCNAME;
-		vType->exiType = VALUE_TYPE_STRING;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "IDREF"))
-	{
-		vType->simpleTypeID = SIMPLE_TYPE_IDREF;
-		vType->exiType = VALUE_TYPE_STRING;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "ENTITY"))
-	{
-		vType->simpleTypeID = SIMPLE_TYPE_ENTITY;
-		vType->exiType = VALUE_TYPE_STRING;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "duration") ||
-			stringEqualToAscii(*simpleXSDType.localName, "anyURI") ||
-			stringEqualToAscii(*simpleXSDType.localName, "ID") ||
-			stringEqualToAscii(*simpleXSDType.localName, "language") ||
-			stringEqualToAscii(*simpleXSDType.localName, "NOTATION"))
+	if(simpleXSDType.uriRowId != 3) // != http://www.w3.org/2001/XMLSchema
+		return UNEXPECTED_ERROR;
 
+	switch(simpleXSDType.lnRowId)
 	{
-		vType->exiType = VALUE_TYPE_STRING;
-		vType->simpleTypeID = UINT16_MAX;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "boolean"))
-	{
-		vType->exiType = VALUE_TYPE_BOOLEAN;
-		vType->simpleTypeID = UINT16_MAX;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "integer"))
-	{
-		vType->simpleTypeID = SIMPLE_TYPE_INTEGER;
-		vType->exiType = VALUE_TYPE_INTEGER;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "long"))
-	{
-		vType->simpleTypeID = SIMPLE_TYPE_LONG;
-		vType->exiType = VALUE_TYPE_INTEGER;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "int"))
-	{
-		vType->simpleTypeID = SIMPLE_TYPE_INT;
-		vType->exiType = VALUE_TYPE_INTEGER;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "nonPositiveInteger"))
-	{
-		vType->simpleTypeID = SIMPLE_TYPE_NON_POSITIVE_INTEGER;
-		vType->exiType = VALUE_TYPE_INTEGER;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "negativeInteger"))
-	{
-		vType->simpleTypeID = SIMPLE_TYPE_NEGATIVE_INTEGER;
-		vType->exiType = VALUE_TYPE_INTEGER;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "short"))
-	{
-		vType->simpleTypeID = SIMPLE_TYPE_SHORT;
-		vType->exiType = VALUE_TYPE_INTEGER;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "byte"))
-	{
-		vType->simpleTypeID = SIMPLE_TYPE_BYTE;
-		vType->exiType = VALUE_TYPE_SMALL_INTEGER;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "nonNegativeInteger"))
-	{
-		vType->simpleTypeID = SIMPLE_TYPE_NON_NEGATIVE_INTEGER;
-		vType->exiType = VALUE_TYPE_NON_NEGATIVE_INT;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "unsignedLong"))
-	{
-		vType->simpleTypeID = SIMPLE_TYPE_UNSIGNED_LONG;
-		vType->exiType = VALUE_TYPE_NON_NEGATIVE_INT;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "unsignedInt"))
-	{
-		vType->simpleTypeID = SIMPLE_TYPE_UNSIGNED_INT;
-		vType->exiType = VALUE_TYPE_NON_NEGATIVE_INT;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "positiveInteger"))
-	{
-		vType->simpleTypeID = SIMPLE_TYPE_POSITIVE_INTEGER;
-		vType->exiType = VALUE_TYPE_NON_NEGATIVE_INT;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "unsignedShort"))
-	{
-		vType->simpleTypeID = SIMPLE_TYPE_UNSIGNED_SHORT;
-		vType->exiType = VALUE_TYPE_NON_NEGATIVE_INT;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "unsignedByte"))
-	{
-		vType->simpleTypeID = SIMPLE_TYPE_UNSIGNED_BYTE;
-		vType->exiType = VALUE_TYPE_SMALL_INTEGER;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "float") ||
-				stringEqualToAscii(*simpleXSDType.localName, "double"))
-	{
-		vType->exiType = VALUE_TYPE_FLOAT;
-		vType->simpleTypeID = UINT16_MAX;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "decimal"))
-	{
-		vType->simpleTypeID = SIMPLE_TYPE_DECIMAL;
-		vType->exiType = VALUE_TYPE_DECIMAL;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "hexBinary") ||
-				stringEqualToAscii(*simpleXSDType.localName, "base64Binary"))
-	{
-		vType->exiType = VALUE_TYPE_BINARY;
-		vType->simpleTypeID = UINT16_MAX;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "dateTime") ||
-			stringEqualToAscii(*simpleXSDType.localName, "time") ||
-			stringEqualToAscii(*simpleXSDType.localName, "date") ||
-			stringEqualToAscii(*simpleXSDType.localName, "gYearMonth") ||
-			stringEqualToAscii(*simpleXSDType.localName, "gYear") ||
-			stringEqualToAscii(*simpleXSDType.localName, "gMonthDay") ||
-			stringEqualToAscii(*simpleXSDType.localName, "gDay") ||
-			stringEqualToAscii(*simpleXSDType.localName, "gMonth"))
-	{
-		vType->exiType = VALUE_TYPE_DATE_TIME;
-		vType->simpleTypeID = UINT16_MAX;
-		return ERR_OK;
-	}
-	else if(stringEqualToAscii(*simpleXSDType.localName, "NMTOKENS") ||
-			stringEqualToAscii(*simpleXSDType.localName, "IDREFS") ||
-			stringEqualToAscii(*simpleXSDType.localName, "ENTITIES"))
-	{
-		vType->exiType = VALUE_TYPE_LIST;
-		vType->simpleTypeID = UINT16_MAX;
-		return ERR_OK;
+		case 0: // "ENTITIES"
+			vType->exiType = VALUE_TYPE_LIST;
+			vType->simpleTypeID = SIMPLE_TYPE_ENTITIES;
+		break;
+		case 1: // "ENTITY"
+			vType->exiType = VALUE_TYPE_STRING;
+			vType->simpleTypeID = SIMPLE_TYPE_ENTITY;
+		break;
+		case 2: // ID
+			vType->exiType = VALUE_TYPE_STRING;
+			vType->simpleTypeID = SIMPLE_TYPE_ID;
+		break;
+		case 3: // IDREF
+			vType->exiType = VALUE_TYPE_STRING;
+			vType->simpleTypeID = SIMPLE_TYPE_IDREF;
+		break;
+		case 4: // IDREFS
+			vType->exiType = VALUE_TYPE_LIST;
+			vType->simpleTypeID = SIMPLE_TYPE_IDREFS;
+		break;
+		case 5: // NCName
+			vType->exiType = VALUE_TYPE_STRING;
+			vType->simpleTypeID = SIMPLE_TYPE_NCNAME;
+		break;
+		case 6: // NMTOKEN
+			vType->exiType = VALUE_TYPE_STRING;
+			vType->simpleTypeID = SIMPLE_TYPE_NMTOKEN;
+		break;
+		case 7: // NMTOKENS
+			vType->exiType = VALUE_TYPE_LIST;
+			vType->simpleTypeID = SIMPLE_TYPE_NMTOKENS;
+		break;
+		case 8: // NOTATION
+			vType->exiType = VALUE_TYPE_STRING;
+			vType->simpleTypeID = SIMPLE_TYPE_NOTATION;
+		break;
+		case 9: // Name
+			vType->exiType = VALUE_TYPE_STRING;
+			vType->simpleTypeID = SIMPLE_TYPE_NAME;
+		break;
+		case 10: // QName
+			vType->exiType = VALUE_TYPE_STRING;
+			vType->simpleTypeID = SIMPLE_TYPE_QNAME;
+		break;
+		case 11: // anySimpleType
+			vType->exiType = VALUE_TYPE_STRING;
+			vType->simpleTypeID = SIMPLE_TYPE_ANY_SIMPLE_TYPE;
+		break;
+		case 12: // anyType
+			vType->simpleTypeID = SIMPLE_TYPE_ANY_TYPE;
+			// TODO: This is not a simple type!
+			// It must be handled with creating a Complex Ur-Type Grammar: http://www.w3.org/TR/2011/REC-exi-20110310/#anyTypeGrammar
+		break;
+		case 13: // anyURI
+			vType->exiType = VALUE_TYPE_STRING;
+			vType->simpleTypeID = SIMPLE_TYPE_ANY_URI;
+		break;
+		case 14: // base64Binary
+			vType->exiType = VALUE_TYPE_BINARY;
+			vType->simpleTypeID = SIMPLE_TYPE_BASE64_BINARY;
+		break;
+		case 15: // boolean
+			vType->exiType = VALUE_TYPE_BOOLEAN;
+			vType->simpleTypeID = SIMPLE_TYPE_BOOLEAN;
+		break;
+		case 16: // byte
+			vType->exiType = VALUE_TYPE_SMALL_INTEGER;
+			vType->simpleTypeID = SIMPLE_TYPE_BYTE;
+		break;
+		case 17: // date
+			vType->exiType = VALUE_TYPE_DATE_TIME;
+			vType->simpleTypeID = SIMPLE_TYPE_DATE;
+		break;
+		case 18: // dateTime
+			vType->exiType = VALUE_TYPE_DATE_TIME;
+			vType->simpleTypeID = SIMPLE_TYPE_DATE_TIME;
+		break;
+		case 19: // decimal
+			vType->exiType = VALUE_TYPE_DECIMAL;
+			vType->simpleTypeID = SIMPLE_TYPE_DECIMAL;
+		break;
+		case 20: // double
+			vType->exiType = VALUE_TYPE_FLOAT;
+			vType->simpleTypeID = SIMPLE_TYPE_DOUBLE;
+		break;
+		case 21: // duration
+			vType->exiType = VALUE_TYPE_STRING;
+			vType->simpleTypeID = SIMPLE_TYPE_DURATION;
+		break;
+		case 22: // float
+			vType->exiType = VALUE_TYPE_FLOAT;
+			vType->simpleTypeID = SIMPLE_TYPE_FLOAT;
+		break;
+		case 23: // gDay
+			vType->exiType = VALUE_TYPE_DATE_TIME;
+			vType->simpleTypeID = SIMPLE_TYPE_GDAY;
+		break;
+		case 24: // gMonth
+			vType->exiType = VALUE_TYPE_DATE_TIME;
+			vType->simpleTypeID = SIMPLE_TYPE_GMONTH;
+		break;
+		case 25: // gMonthDay
+			vType->exiType = VALUE_TYPE_DATE_TIME;
+			vType->simpleTypeID = SIMPLE_TYPE_GMONTH_DAY;
+		break;
+		case 26: // gYear
+			vType->exiType = VALUE_TYPE_DATE_TIME;
+			vType->simpleTypeID = SIMPLE_TYPE_GYEAR;
+		break;
+		case 27: // gYearMonth
+			vType->exiType = VALUE_TYPE_DATE_TIME;
+			vType->simpleTypeID = SIMPLE_TYPE_GYEAR_MONTH;
+		break;
+		case 28: // hexBinary
+			vType->exiType = VALUE_TYPE_BINARY;
+			vType->simpleTypeID = SIMPLE_TYPE_HEX_BINARY;
+		break;
+		case 29: // int
+			vType->exiType = VALUE_TYPE_INTEGER;
+			vType->simpleTypeID = SIMPLE_TYPE_INT;
+		break;
+		case 30: // integer
+			vType->exiType = VALUE_TYPE_INTEGER;
+			vType->simpleTypeID = SIMPLE_TYPE_INTEGER;
+		break;
+		case 31: // language
+			vType->exiType = VALUE_TYPE_STRING;
+			vType->simpleTypeID = SIMPLE_TYPE_LANGUAGE;
+		break;
+		case 32: // long
+			vType->exiType = VALUE_TYPE_INTEGER;
+			vType->simpleTypeID = SIMPLE_TYPE_LONG;
+		break;
+		case 33: // negativeInteger
+			vType->exiType = VALUE_TYPE_INTEGER;
+			vType->simpleTypeID = SIMPLE_TYPE_NEGATIVE_INTEGER;
+		break;
+		case 34: // nonNegativeInteger
+			vType->exiType = VALUE_TYPE_NON_NEGATIVE_INT;
+			vType->simpleTypeID = SIMPLE_TYPE_NON_NEGATIVE_INTEGER;
+		break;
+		case 35: // nonPositiveInteger
+			vType->exiType = VALUE_TYPE_INTEGER;
+			vType->simpleTypeID = SIMPLE_TYPE_NON_POSITIVE_INTEGER;
+		break;
+		case 36: // normalizedString
+			vType->exiType = VALUE_TYPE_STRING;
+			vType->simpleTypeID = SIMPLE_TYPE_NORMALIZED_STRING;
+		break;
+		case 37: // positiveInteger
+			vType->exiType = VALUE_TYPE_NON_NEGATIVE_INT;
+			vType->simpleTypeID = SIMPLE_TYPE_POSITIVE_INTEGER;
+		break;
+		case 38: // short
+			vType->exiType = VALUE_TYPE_INTEGER;
+			vType->simpleTypeID = SIMPLE_TYPE_SHORT;
+		break;
+		case 39: // string
+			vType->exiType = VALUE_TYPE_STRING;
+			vType->simpleTypeID = SIMPLE_TYPE_STRING;
+		break;
+		case 40: // time
+			vType->exiType = VALUE_TYPE_DATE_TIME;
+			vType->simpleTypeID = SIMPLE_TYPE_TIME;
+		break;
+		case 41: // token
+			vType->exiType = VALUE_TYPE_STRING;
+			vType->simpleTypeID = SIMPLE_TYPE_TOKEN;
+		break;
+		case 42: // unsignedByte
+			vType->exiType = VALUE_TYPE_SMALL_INTEGER;
+			vType->simpleTypeID = SIMPLE_TYPE_UNSIGNED_BYTE;
+		break;
+		case 43: // unsignedInt
+			vType->exiType = VALUE_TYPE_NON_NEGATIVE_INT;
+			vType->simpleTypeID = SIMPLE_TYPE_UNSIGNED_INT;
+		break;
+		case 44: // unsignedLong
+			vType->exiType = VALUE_TYPE_NON_NEGATIVE_INT;
+			vType->simpleTypeID = SIMPLE_TYPE_UNSIGNED_LONG;
+		break;
+		case 45: // unsignedShort
+			vType->exiType = VALUE_TYPE_NON_NEGATIVE_INT;
+			vType->simpleTypeID = SIMPLE_TYPE_UNSIGNED_SHORT;
+		break;
 	}
 
-	return INCONSISTENT_PROC_STATE;
+	return ERR_OK;
 }
 
 int qnamesCompare(const String* uri1, const String* ln1, const String* uri2, const String* ln2)
@@ -973,7 +980,7 @@ static int compareProductions(const void* prod1, const void* prod2)
 	}
 }
 
-errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
+errorCode createBuildInTypesDefinitions(DynArray* sTypeArr, AllocList* memList)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	SimpleType sType;
@@ -1014,6 +1021,15 @@ errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList)
 	// nmtoken
 	sType.facetPresenceMask = 0;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE;
+	sType.maxInclusive = 0;
+	sType.minInclusive = 0;
+	sType.maxLength = 0;
+	tmp_err_code = addDynElement(sTypeArr, &sType, &elID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// nmtokens
+	sType.facetPresenceMask = 0;
 	sType.maxInclusive = 0;
 	sType.minInclusive = 0;
 	sType.maxLength = 0;

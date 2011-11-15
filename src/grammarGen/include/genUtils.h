@@ -162,7 +162,7 @@ errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, ProtoGrammar** res
  * @param[in] required 0 - false; otherwise true
  * @param[in] name attribute local name
  * @param[in] target_ns attribute namespace
- * @param[in] simpleType qname of the simple type of the attribute type definition
+ * @param[in] simpleTypeID qnameID of the simple type of the attribute type definition
  * @param[in] scope attribute scope - if NULL then the scope is global otherwise the QName of the complex type which is the scope
  * @param[out] result the resulted proto-grammar
  * @param[in] uriRowID row index of the uri in the unsorted string tables
@@ -170,7 +170,7 @@ errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, ProtoGrammar** res
  * @return Error handling code
  */
 errorCode createAttributeUseGrammar(AllocList* tmpMemList, unsigned char required, String* name, String* target_ns,
-										  QName simpleType, QName scope, ProtoGrammar** result, uint16_t uriRowID, size_t lnRowID);
+									QNameID simpleTypeID, QName scope, ProtoGrammar** result, uint16_t uriRowID, size_t lnRowID);
 
 /**
  * @brief Creates Particle Proto-Grammar from XML Schema particle
@@ -245,11 +245,11 @@ errorCode createAllModelGroupsGrammar(AllocList* memList, ProtoGrammar* pTermArr
 /**
  * @brief Maps a simple XSD type to its EXI datatype representation
  *
- * @param[in] simpleXSDType simple XSD type
+ * @param[in] simpleXSDType simple XSD type QName given as string table ids
  * @param[out] vType corresponding EXI type with constraining facets
  * @return Error handling code
  */
-errorCode getEXIDataType(QName simpleXSDType, ValueType* vType);
+errorCode getEXIDataTypeFromSimpleType(QNameID simpleXSDType, ValueType* vType);
 
 /**
  * @brief Compare lexicographically two qnames
@@ -278,6 +278,6 @@ errorCode assignCodes(ProtoGrammar* grammar, URITable* metaSTable);
  * @param[in, out] memList memory allocations
  * @return Error handling code
  */
-errorCode createBuildInTypes(DynArray* sTypeArr, AllocList* memList);
+errorCode createBuildInTypesDefinitions(DynArray* sTypeArr, AllocList* memList);
 
 #endif /* GENUTILS_H_ */

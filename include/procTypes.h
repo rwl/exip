@@ -469,7 +469,7 @@ struct LocalNamesRow {
 	ValueLocalCrossTable* vCrossTable;
 	String string_val;
 	EXIGrammar* typeGrammar;
-	EXIGrammar* emptyTypeGrammar;
+	EXIGrammar* typeEmptyGrammar;
 };
 
 struct LocalNamesTable {
@@ -542,49 +542,50 @@ typedef struct SimpleType SimpleType;
 #define SIMPLE_TYPE_NORMALIZED_STRING     1
 #define SIMPLE_TYPE_TOKEN                 2
 #define SIMPLE_TYPE_NMTOKEN               3
-#define SIMPLE_TYPE_NAME                  4
-#define SIMPLE_TYPE_LANGUAGE              5
-#define SIMPLE_TYPE_NCNAME                6
-#define SIMPLE_TYPE_IDREF                 7
-#define SIMPLE_TYPE_IDREFS                8
-#define SIMPLE_TYPE_ENTITY                9
-#define SIMPLE_TYPE_ENTITIES             10
-#define SIMPLE_TYPE_ID                   11
-#define SIMPLE_TYPE_DECIMAL              12
-#define SIMPLE_TYPE_INTEGER              13
-#define SIMPLE_TYPE_NON_POSITIVE_INTEGER 14
-#define SIMPLE_TYPE_NEGATIVE_INTEGER     15
-#define SIMPLE_TYPE_LONG                 16
-#define SIMPLE_TYPE_INT                  17
-#define SIMPLE_TYPE_SHORT                18
-#define SIMPLE_TYPE_BYTE                 19
-#define SIMPLE_TYPE_NON_NEGATIVE_INTEGER 20
-#define SIMPLE_TYPE_UNSIGNED_LONG        21
-#define SIMPLE_TYPE_UNSIGNED_INT         22
-#define SIMPLE_TYPE_UNSIGNED_SHORT       23
-#define SIMPLE_TYPE_UNSIGNED_BYTE        24
-#define SIMPLE_TYPE_POSITIVE_INTEGER     25
-#define SIMPLE_TYPE_BOOLEAN              26
-#define SIMPLE_TYPE_BASE64_BINARY        27
-#define SIMPLE_TYPE_HEX_BINARY           28
-#define SIMPLE_TYPE_FLOAT                29
-#define SIMPLE_TYPE_DOUBLE               30
-#define SIMPLE_TYPE_ANY_URI              31
-#define SIMPLE_TYPE_QNAME                32
-#define SIMPLE_TYPE_NOTATION             33
-#define SIMPLE_TYPE_DURATION             34
-#define SIMPLE_TYPE_DATE_TIME            35
-#define SIMPLE_TYPE_TIME                 36
-#define SIMPLE_TYPE_DATE                 37
-#define SIMPLE_TYPE_GYEAR_MONTH          38
-#define SIMPLE_TYPE_GYEAR                39
-#define SIMPLE_TYPE_GMONTH_DAY           40
-#define SIMPLE_TYPE_GDAY                 41
-#define SIMPLE_TYPE_GMONTH               42
-#define SIMPLE_TYPE_ANY_SIMPLE_TYPE      43
-#define SIMPLE_TYPE_ANY_TYPE             44
+#define SIMPLE_TYPE_NMTOKENS              4
+#define SIMPLE_TYPE_NAME                  5
+#define SIMPLE_TYPE_LANGUAGE              6
+#define SIMPLE_TYPE_NCNAME                7
+#define SIMPLE_TYPE_IDREF                 8
+#define SIMPLE_TYPE_IDREFS                9
+#define SIMPLE_TYPE_ENTITY               10
+#define SIMPLE_TYPE_ENTITIES             11
+#define SIMPLE_TYPE_ID                   12
+#define SIMPLE_TYPE_DECIMAL              13
+#define SIMPLE_TYPE_INTEGER              14
+#define SIMPLE_TYPE_NON_POSITIVE_INTEGER 15
+#define SIMPLE_TYPE_NEGATIVE_INTEGER     16
+#define SIMPLE_TYPE_LONG                 17
+#define SIMPLE_TYPE_INT                  18
+#define SIMPLE_TYPE_SHORT                19
+#define SIMPLE_TYPE_BYTE                 20
+#define SIMPLE_TYPE_NON_NEGATIVE_INTEGER 21
+#define SIMPLE_TYPE_UNSIGNED_LONG        22
+#define SIMPLE_TYPE_UNSIGNED_INT         23
+#define SIMPLE_TYPE_UNSIGNED_SHORT       24
+#define SIMPLE_TYPE_UNSIGNED_BYTE        25
+#define SIMPLE_TYPE_POSITIVE_INTEGER     26
+#define SIMPLE_TYPE_BOOLEAN              27
+#define SIMPLE_TYPE_BASE64_BINARY        28
+#define SIMPLE_TYPE_HEX_BINARY           29
+#define SIMPLE_TYPE_FLOAT                30
+#define SIMPLE_TYPE_DOUBLE               31
+#define SIMPLE_TYPE_ANY_URI              32
+#define SIMPLE_TYPE_QNAME                33
+#define SIMPLE_TYPE_NOTATION             34
+#define SIMPLE_TYPE_DURATION             35
+#define SIMPLE_TYPE_DATE_TIME            36
+#define SIMPLE_TYPE_TIME                 37
+#define SIMPLE_TYPE_DATE                 38
+#define SIMPLE_TYPE_GYEAR_MONTH          39
+#define SIMPLE_TYPE_GYEAR                40
+#define SIMPLE_TYPE_GMONTH_DAY           41
+#define SIMPLE_TYPE_GDAY                 42
+#define SIMPLE_TYPE_GMONTH               43
+#define SIMPLE_TYPE_ANY_SIMPLE_TYPE      44
+#define SIMPLE_TYPE_ANY_TYPE             45
 
-#define SIMPLE_TYPE_COUNT                45
+#define SIMPLE_TYPE_COUNT                46
 
 struct EXIPSchema
 {

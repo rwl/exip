@@ -47,7 +47,7 @@
 #include "errorHandle.h"
 #include "procTypes.h"
 
-/** Supported schema formats like XML-XSD, EXI-XSD, DTD or any other schema representation supported */
+/** Supported schema formats like XML-XSD, EXI-XSD, DTD or any other schema representation */
 #define SCHEMA_FORMAT_XSD_EXI           0
 #define SCHEMA_FORMAT_XSD_XML           1
 #define SCHEMA_FORMAT_DTD               2
@@ -68,5 +68,17 @@
  */
 errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t bufContent, IOStream* ioStrm,
 										unsigned char schemaFormat, EXIPSchema* schema);
+
+/**
+ * @brief Generate a Schema-informed Type and TypeEmpty Grammars for all build-in XML Schema Types
+ * It is used by generateSchemaInformedGrammars() and when the value of the "schemaId" element is empty,
+ * no user defined schema information is used for processing the EXI body; however, the built-in XML schema
+ * types are available for use in the EXI body.
+ *
+ * @param[in, out] sTables string tables holding the references to the grammars
+ * @param[in, out] memList A list storing the memory allocations
+ * @return Error handling code
+ */
+errorCode generateBuildInTypesGrammars(URITable* sTables, AllocList* memList);
 
 #endif /* GRAMMARGENERATOR_H_ */
