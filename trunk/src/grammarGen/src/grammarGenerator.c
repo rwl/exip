@@ -159,11 +159,6 @@ struct xsdAppData
 	DynArray* globalElemGrammars; // QNameID* of globalElemGrammars
 	DynArray* simpleTypesArray; // A temporary array of simple type definitions
 	EXIPSchema* schema;
-
-	/** Used only for empty elements such as <xsd:complexType /> in EXI options document.
-	 *  The purpose is to reuse it and not create a multiple empty grammars each time
-	 *  there is an empty element declared - the case for EXI options document*/
-	EXIGrammar* emptyGrammar;
 };
 
 struct TypeFacet
@@ -271,7 +266,6 @@ errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t 
 	getEmptyString(&parsing_data.props.targetNamespace);
 
 	parsing_data.contextStack = NULL;
-	parsing_data.emptyGrammar = NULL;
 
 	tmp_err_code = createDynArray(&parsing_data.elNotResolvedArray, sizeof(struct elementNotResolved), 10, &parsing_data.tmpMemList);
 	if(tmp_err_code != ERR_OK)
@@ -285,7 +279,7 @@ errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t 
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = createBuildInTypes(parsing_data.simpleTypesArray, &parsing_data.tmpMemList);
+	tmp_err_code = createBuildInTypesDefinitions(parsing_data.simpleTypesArray, &parsing_data.tmpMemList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -306,6 +300,10 @@ errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t 
 		return tmp_err_code;
 
 	parsing_data.schema = schema;
+
+	tmp_err_code = generateBuildInTypesGrammars(schema->initialStringTables, &schema->memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	// Parse the EXI stream
 
@@ -935,6 +933,7 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 	unsigned char required = 0;
 	String* target_ns;
 	QName simpleType;
+	QNameID simpleTypeID;
 	QName scope;
 	ProtoGrammar* attrUseGrammar;
 	size_t attrUseGrammarID;
@@ -968,15 +967,31 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
+	tmp_err_code = getTypeQName(&app_data->tmpMemList, elemDesc->attributePointers[ATTRIBUTE_TYPE], &simpleType);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
-	simpleType.localName = &(elemDesc->attributePointers[ATTRIBUTE_TYPE]);
-	simpleType.uri =  &app_data->props.emptyString;
+	if(isStringEmpty(simpleType.uri)) // The type does not have defined namespace -> assume http://www.w3.org/2001/XMLSchema
+	{
+		simpleType.uri = &app_data->metaStringTables->rows[3].string_val;
+		simpleTypeID.uriRowId = 3;
+	}
+	else
+	{
+		tmp_err_code = addURIString(app_data,(String*) simpleType.uri, &simpleTypeID.uriRowId);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+
+	tmp_err_code = addLocalName(simpleTypeID.uriRowId, app_data,(String*) simpleType.localName, &simpleTypeID.lnRowId);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	scope.localName = &app_data->props.emptyString;
 	scope.uri = &app_data->props.emptyString;
 
 	tmp_err_code = createAttributeUseGrammar(&app_data->tmpMemList, required, attrName,
-											 target_ns, simpleType, scope, &attrUseGrammar, uriRowID, lnRowID);
+											 target_ns, simpleTypeID, scope, &attrUseGrammar, uriRowID, lnRowID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1006,6 +1021,7 @@ static errorCode handleExtentionEl(struct xsdAppData* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	QName simpleType;
+	QNameID simpleTypeID;
 	String* typeName;
 	String* target_ns;
 	ProtoGrammar* simpleTypeGrammar;
@@ -1018,10 +1034,27 @@ static errorCode handleExtentionEl(struct xsdAppData* app_data)
 	typeName = &app_data->props.emptyString;
 	target_ns = &app_data->props.emptyString;
 
-	simpleType.localName = &(elemDesc->attributePointers[ATTRIBUTE_BASE]);
-	simpleType.uri = &app_data->props.emptyString;
+	tmp_err_code = getTypeQName(&app_data->tmpMemList, elemDesc->attributePointers[ATTRIBUTE_BASE], &simpleType);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
-	tmp_err_code = getEXIDataType(simpleType, &vType);
+	if(isStringEmpty(simpleType.uri)) // The type does not have defined namespace -> assume http://www.w3.org/2001/XMLSchema
+	{
+		simpleType.uri = &app_data->metaStringTables->rows[3].string_val;
+		simpleTypeID.uriRowId = 3;
+	}
+	else
+	{
+		tmp_err_code = addURIString(app_data,(String*) simpleType.uri, &simpleTypeID.uriRowId);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+
+	tmp_err_code = addLocalName(simpleTypeID.uriRowId, app_data,(String*) simpleType.localName, &simpleTypeID.lnRowId);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = getEXIDataTypeFromSimpleType(simpleTypeID, &vType);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1310,45 +1343,13 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 
 				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeGrammar = exiTypeGrammar;
 			}
-			else
+			else // <xsd:complexType />
 			{
-				if(app_data->emptyGrammar == NULL)
-				{
-					app_data->emptyGrammar = memManagedAllocate(&app_data->schema->memList, sizeof(EXIGrammar));
-					if(app_data->emptyGrammar == NULL)
-						return MEMORY_ALLOCATION_ERROR;
+				/** Empty element (<xsd:complexType /> )
+				 *  Reuse the empty grammar defined for simple types TypeEmpty grammars and not create a multiple empty grammars each time
+				 *  there is an empty element declared - the case for EXI options document*/
 
-					app_data->emptyGrammar->contentIndex = 0;
-					app_data->emptyGrammar->isNillable = FALSE;
-					app_data->emptyGrammar->grammarType = GR_TYPE_SCHEMA_ELEM;
-					app_data->emptyGrammar->rulesDimension = 1;
-
-					// One more rule slot for grammar augmentation when strict == FASLE
-					app_data->emptyGrammar->ruleArray = memManagedAllocate(&app_data->schema->memList, sizeof(GrammarRule)*2);
-					if(app_data->emptyGrammar->ruleArray == NULL)
-						return MEMORY_ALLOCATION_ERROR;
-
-					app_data->emptyGrammar->ruleArray->bits[0] = 0;
-					app_data->emptyGrammar->ruleArray->bits[1] = 0;
-					app_data->emptyGrammar->ruleArray->bits[2] = 0;
-
-					app_data->emptyGrammar->ruleArray->prodCounts[0] = 1;
-					app_data->emptyGrammar->ruleArray->prodCounts[1] = 0;
-					app_data->emptyGrammar->ruleArray->prodCounts[2] = 0;
-
-					app_data->emptyGrammar->ruleArray->prodArrays[0] = memManagedAllocate(&app_data->schema->memList, sizeof(Production));
-					if(app_data->emptyGrammar->ruleArray->prodArrays[0] == NULL)
-						return MEMORY_ALLOCATION_ERROR;
-
-					app_data->emptyGrammar->ruleArray->prodArrays[1] = NULL;
-					app_data->emptyGrammar->ruleArray->prodArrays[2] = NULL;
-
-					app_data->emptyGrammar->ruleArray->prodArrays[0][0].event = getEventDefType(EVENT_EE);
-					app_data->emptyGrammar->ruleArray->prodArrays[0][0].uriRowID = UINT16_MAX;
-					app_data->emptyGrammar->ruleArray->prodArrays[0][0].lnRowID = SIZE_MAX;
-					app_data->emptyGrammar->ruleArray->prodArrays[0][0].nonTermID = GR_VOID_NON_TERMINAL;
-				}
-				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeGrammar = app_data->emptyGrammar;
+				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeGrammar = app_data->schema->initialStringTables->rows[3].lTable->rows[0].typeEmptyGrammar;
 			}
 		}
 		else // The element has a particular named type
@@ -1359,27 +1360,13 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 
 			if(isStringEmpty(typeQname.uri) || stringEqualToAscii(*typeQname.uri, XML_SCHEMA_NAMESPACE)) // This is build-in simple type definition
 			{
-				ValueType vType;
+				size_t stypelnRowId;
 
-				tmp_err_code = getEXIDataType(typeQname, &vType);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
+				if(lookupLN(app_data->metaStringTables->rows[3].lTable, *typeQname.localName, &stypelnRowId) == FALSE)
+					return UNEXPECTED_ERROR;
 
-				tmp_err_code = createSimpleTypeGrammar(&app_data->tmpMemList, vType, &typeGrammar);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
-
-				tmp_err_code = assignCodes(typeGrammar, app_data->metaStringTables);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
-
-				tmp_err_code = convertProtoGrammar(&app_data->schema->memList, typeGrammar, &exiTypeGrammar);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
-
-				exiTypeGrammar->isNillable = isNillable;
-
-				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeGrammar = exiTypeGrammar;
+				// URI 3 -> http://www.w3.org/2001/XMLSchema
+				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeGrammar = app_data->schema->initialStringTables->rows[3].lTable->rows[stypelnRowId].typeGrammar;
 			}
 			else // A complex type name or derived simple type
 			{
@@ -1574,6 +1561,7 @@ static errorCode handleRestrictionEl(struct xsdAppData* app_data)
 	ElementDescription* elemDesc;
 	ProtoGrammar* simpleRestrictedGrammar;
 	QName baseType;
+	QNameID baseTypeID;
 	TypeFacet* tmpFacet;
 	SimpleType newSimpleType;
 	ValueType vType;
@@ -1585,7 +1573,23 @@ static errorCode handleRestrictionEl(struct xsdAppData* app_data)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = getEXIDataType(baseType, &vType);
+	if(isStringEmpty(baseType.uri)) // The type does not have defined namespace -> assume http://www.w3.org/2001/XMLSchema
+	{
+		baseType.uri = &app_data->metaStringTables->rows[3].string_val;
+		baseTypeID.uriRowId = 3;
+	}
+	else
+	{
+		tmp_err_code = addURIString(app_data,(String*) baseType.uri, &baseTypeID.uriRowId);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+
+	tmp_err_code = addLocalName(baseTypeID.uriRowId, app_data,(String*) baseType.localName, &baseTypeID.lnRowId);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = getEXIDataTypeFromSimpleType(baseTypeID, &vType);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1879,6 +1883,7 @@ static int parseOccuranceAttribute(const String occurance)
 static errorCode getTypeQName(AllocList* memList, const String typeLiteral, QName* qname)
 {
 	// TODO: Just a temporary implementation. Only works for the ASCII string representation. Fix that!
+	// 		There should be a function in the StringManipulation that search to a character
 	int i;
 	String* ln;
 	String* uri;
@@ -1917,6 +1922,121 @@ static errorCode getTypeQName(AllocList* memList, const String typeLiteral, QNam
 
 	qname->localName = ln;
 	qname->uri = uri;
+
+	return ERR_OK;
+}
+
+errorCode generateBuildInTypesGrammars(URITable* sTables, AllocList* memList)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	unsigned int i;
+	QNameID typeQnameID;
+	ValueType vType;
+	EXIGrammar* grammar;
+	EXIGrammar* typeEmptyGrammar;
+
+	typeEmptyGrammar = memManagedAllocate(memList, sizeof(EXIGrammar));
+	if(typeEmptyGrammar == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	typeEmptyGrammar->contentIndex = 0;
+	typeEmptyGrammar->isNillable = FALSE;
+	typeEmptyGrammar->grammarType = GR_TYPE_SCHEMA_EMPTY_TYPE;
+	typeEmptyGrammar->rulesDimension = 1;
+
+	// One more rule slot for grammar augmentation when strict == FASLE
+	typeEmptyGrammar->ruleArray = memManagedAllocate(memList, sizeof(GrammarRule)*2);
+	if(typeEmptyGrammar->ruleArray == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	typeEmptyGrammar->ruleArray->bits[0] = 0;
+	typeEmptyGrammar->ruleArray->bits[1] = 0;
+	typeEmptyGrammar->ruleArray->bits[2] = 0;
+
+	typeEmptyGrammar->ruleArray->prodCounts[0] = 1;
+	typeEmptyGrammar->ruleArray->prodCounts[1] = 0;
+	typeEmptyGrammar->ruleArray->prodCounts[2] = 0;
+
+	typeEmptyGrammar->ruleArray->prodArrays[0] = memManagedAllocate(memList, sizeof(Production));
+	if(typeEmptyGrammar->ruleArray->prodArrays[0] == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	typeEmptyGrammar->ruleArray->prodArrays[1] = NULL;
+	typeEmptyGrammar->ruleArray->prodArrays[2] = NULL;
+
+	typeEmptyGrammar->ruleArray->prodArrays[0][0].event = getEventDefType(EVENT_EE);
+	typeEmptyGrammar->ruleArray->prodArrays[0][0].uriRowID = UINT16_MAX;
+	typeEmptyGrammar->ruleArray->prodArrays[0][0].lnRowID = SIZE_MAX;
+	typeEmptyGrammar->ruleArray->prodArrays[0][0].nonTermID = GR_VOID_NON_TERMINAL;
+
+	// URI id 3 -> http://www.w3.org/2001/XMLSchema
+	typeQnameID.uriRowId = 3;
+
+	for(i = 0; i < sTables->rows[3].lTable->rowCount; i++)
+	{
+		typeQnameID.lnRowId = i;
+		tmp_err_code = getEXIDataTypeFromSimpleType(typeQnameID, &vType);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		grammar = memManagedAllocate(memList, sizeof(EXIGrammar));
+		if(grammar == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+
+		grammar->contentIndex = 0;
+		grammar->grammarType = GR_TYPE_SCHEMA_TYPE;
+		grammar->isNillable = FALSE;
+		grammar->rulesDimension = 2;
+
+		// One more rule slot for grammar augmentation when strict == FASLE
+		grammar->ruleArray = memManagedAllocate(memList, sizeof(GrammarRule)*(grammar->rulesDimension + 1));
+		if(grammar->ruleArray == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+
+		grammar->ruleArray[0].bits[0] = 0;
+		grammar->ruleArray[0].bits[1] = 0;
+		grammar->ruleArray[0].bits[2] = 0;
+		grammar->ruleArray[0].prodCounts[0] = 1;
+		grammar->ruleArray[0].prodCounts[1] = 0;
+		grammar->ruleArray[0].prodCounts[2] = 0;
+
+		grammar->ruleArray[0].prodArrays[0] = memManagedAllocate(memList, sizeof(Production));
+		if(grammar->ruleArray[0].prodArrays[0] == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+
+		grammar->ruleArray[0].prodArrays[1] = NULL;
+		grammar->ruleArray[0].prodArrays[2] = NULL;
+
+		grammar->ruleArray[0].prodArrays[0][0].event.eventType = EVENT_CH;
+		grammar->ruleArray[0].prodArrays[0][0].event.valueType = vType;
+		grammar->ruleArray[0].prodArrays[0][0].nonTermID = 1;
+		grammar->ruleArray[0].prodArrays[0][0].uriRowID = UINT16_MAX;
+		grammar->ruleArray[0].prodArrays[0][0].lnRowID = SIZE_MAX;
+
+		grammar->ruleArray[1].bits[0] = 0;
+		grammar->ruleArray[1].bits[1] = 0;
+		grammar->ruleArray[1].bits[2] = 0;
+		grammar->ruleArray[1].prodCounts[0] = 1;
+		grammar->ruleArray[1].prodCounts[1] = 0;
+		grammar->ruleArray[1].prodCounts[2] = 0;
+
+		grammar->ruleArray[1].prodArrays[0] = memManagedAllocate(memList, sizeof(Production));
+		if(grammar->ruleArray[1].prodArrays[0] == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+
+		grammar->ruleArray[1].prodArrays[1] = NULL;
+		grammar->ruleArray[1].prodArrays[2] = NULL;
+
+		grammar->ruleArray[1].prodArrays[0][0].event.eventType = EVENT_EE;
+		grammar->ruleArray[1].prodArrays[0][0].event.valueType.exiType = VALUE_TYPE_NONE;
+		grammar->ruleArray[1].prodArrays[0][0].event.valueType.simpleTypeID = UINT16_MAX;
+		grammar->ruleArray[1].prodArrays[0][0].nonTermID = GR_VOID_NON_TERMINAL;
+		grammar->ruleArray[1].prodArrays[0][0].uriRowID = UINT16_MAX;
+		grammar->ruleArray[1].prodArrays[0][0].lnRowID = SIZE_MAX;
+
+		sTables->rows[3].lTable->rows[i].typeGrammar = grammar;
+		sTables->rows[3].lTable->rows[i].typeEmptyGrammar = typeEmptyGrammar;
+	}
 
 	return ERR_OK;
 }
