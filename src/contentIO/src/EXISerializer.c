@@ -231,7 +231,7 @@ errorCode endDocument(EXIStream* strm, unsigned char fastSchemaMode, size_t sche
 	return tmp_err_code;
 }
 
-errorCode startElement(EXIStream* strm, QName* qname, unsigned char fastSchemaMode, size_t schemaProduction)
+errorCode startElement(EXIStream* strm, QName qname, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIGrammar* elemGrammar = NULL;
@@ -291,7 +291,7 @@ errorCode endElement(EXIStream* strm, unsigned char fastSchemaMode, size_t schem
 	return ERR_OK;
 }
 
-errorCode attribute(EXIStream* strm, QName* qname, EXIType exiType, unsigned char fastSchemaMode, size_t schemaProduction)
+errorCode attribute(EXIStream* strm, QName qname, EXIType exiType, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start attr serialization\n"));
 	strm->context.expectATData = exiType;

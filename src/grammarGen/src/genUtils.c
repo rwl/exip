@@ -277,8 +277,7 @@ errorCode createSimpleEmptyTypeGrammar(AllocList* memList, ProtoGrammar** result
 	return ERR_OK;
 }
 
-errorCode createComplexTypeGrammar(AllocList* memList, String* name, String* target_ns,
-								   ProtoGrammar* attrUsesArray, unsigned int attrUsesArraySize,
+errorCode createComplexTypeGrammar(AllocList* memList, ProtoGrammar* attrUsesArray, unsigned int attrUsesArraySize,
 		                           String* wildcardArray, unsigned int wildcardArraySize,
 		                           ProtoGrammar* contentTypeGrammar,
 		                           ProtoGrammar** result)
@@ -324,8 +323,7 @@ errorCode createComplexTypeGrammar(AllocList* memList, String* name, String* tar
 	return ERR_OK;
 }
 
-errorCode createComplexEmptyTypeGrammar(AllocList* memList, String name, String target_ns,
-									ProtoGrammar* attrUsesArray, unsigned int attrUsesArraySize,
+errorCode createComplexEmptyTypeGrammar(AllocList* memList,ProtoGrammar* attrUsesArray, unsigned int attrUsesArraySize,
 		                            String* wildcardArray, unsigned int wildcardArraySize,
 		                            ProtoGrammar** result)
 {
@@ -376,8 +374,8 @@ errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, ProtoGrammar** res
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode createAttributeUseGrammar(AllocList* tmpMemList, unsigned char required, String* name, String* target_ns,
-										  QNameID simpleTypeID, QName scope, ProtoGrammar** result,  uint16_t uriRowID, size_t lnRowID)
+errorCode createAttributeUseGrammar(AllocList* tmpMemList, unsigned char required, QNameID simpleTypeID, QName scope,
+									ProtoGrammar** result,  uint16_t uriRowID, size_t lnRowID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIEvent event1;
@@ -515,8 +513,7 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
 	return ERR_OK;
 }
 
-errorCode createElementTermGrammar(AllocList* memList, String* name, String* target_ns,
-								   ProtoGrammar** result, uint16_t uriRowID, size_t lnRowID)
+errorCode createElementTermGrammar(AllocList* memList, ProtoGrammar** result, uint16_t uriRowID, size_t lnRowID)
 {
 	//TODO: enable support for {substitution group affiliation} property of the elements
 

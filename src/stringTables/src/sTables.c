@@ -264,6 +264,7 @@ errorCode createInitialEntries(AllocList* memList, URITable* uTable, unsigned ch
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	String emptyStr;
 	String tmp_str;
+	unsigned int prfxID;
 
 	// Insert initial entries in the URI partition
 	getEmptyString(&emptyStr);
@@ -278,7 +279,7 @@ errorCode createInitialEntries(AllocList* memList, URITable* uTable, unsigned ch
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
-	tmp_err_code = addPrefixRow(uTable->rows[uriID].pTable, emptyStr);
+	tmp_err_code = addPrefixRow(uTable->rows[uriID].pTable, emptyStr, &prfxID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -299,7 +300,7 @@ errorCode createInitialEntries(AllocList* memList, URITable* uTable, unsigned ch
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
-	tmp_err_code = addPrefixRow(uTable->rows[uriID].pTable, tmp_str);
+	tmp_err_code = addPrefixRow(uTable->rows[uriID].pTable, tmp_str, &prfxID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -331,7 +332,7 @@ errorCode createInitialEntries(AllocList* memList, URITable* uTable, unsigned ch
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
-	tmp_err_code = addPrefixRow(uTable->rows[uriID].pTable, tmp_str);
+	tmp_err_code = addPrefixRow(uTable->rows[uriID].pTable, tmp_str, &prfxID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -429,13 +430,14 @@ errorCode addValueRows(EXIStream* strm, String* value)
 	return ERR_OK;
 }
 
-errorCode addPrefixRow(PrefixTable* pTable, String px_value)
+errorCode addPrefixRow(PrefixTable* pTable, String px_value, unsigned int* prfxID)
 {
 	if(pTable->rowCount >= MAXIMUM_NUMBER_OF_PREFIXES_PER_URI)
 		return TOO_MUCH_PREFIXES_PER_URI;
 
 	pTable->string_val[pTable->rowCount].length = px_value.length;
 	pTable->string_val[pTable->rowCount].str = px_value.str;
+	*prfxID = pTable->rowCount;
 	pTable->rowCount += 1;
 
 	return ERR_OK;
@@ -465,6 +467,22 @@ char lookupLN(LocalNamesTable* lTable, String value, size_t* rowID)
 	for(i = 0; i < lTable->rowCount; i++)
 	{
 		if(stringEqual(lTable->rows[i].string_val, value))
+		{
+			*rowID = i;
+			return 1;
+		}
+	}
+	return 0;
+}
+
+char lookupPrefix(PrefixTable* pTable, String value, size_t* rowID)
+{
+	unsigned int i = 0;
+	if(pTable == NULL)
+		return 0;
+	for(i = 0; i < pTable->rowCount; i++)
+	{
+		if(stringEqual(pTable->string_val[i], value))
 		{
 			*rowID = i;
 			return 1;

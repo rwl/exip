@@ -57,6 +57,7 @@ void initContentHandler(ContentHandler* handler)
 	handler->floatData = NULL;
 	handler->intData = NULL;
 	handler->processingInstruction = NULL;
+	handler->namespaceDeclaration = NULL;
 	handler->selfContained = NULL;
 	handler->startDocument = NULL;
 	handler->startElement = NULL;

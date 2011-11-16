@@ -52,9 +52,9 @@
 // For handling the meta-data (document structure)
 errorCode startDocument(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
 errorCode endDocument(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
-errorCode startElement(EXIStream* strm, QName* qname, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode startElement(EXIStream* strm, QName qname, unsigned char fastSchemaMode, size_t schemaProduction);
 errorCode endElement(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
-errorCode attribute(EXIStream* strm, QName* qname, EXIType exiType, unsigned char fastSchemaMode, size_t schemaProduction);
+errorCode attribute(EXIStream* strm, QName qname, EXIType exiType, unsigned char fastSchemaMode, size_t schemaProduction);
 
 // For handling the data
 errorCode intData(EXIStream* strm, Integer int_val, unsigned char fastSchemaMode, size_t schemaProduction);
@@ -126,16 +126,30 @@ errorCode encodeSimpleEXIEvent(EXIStream* strm, EXIEvent event, unsigned char fa
  * @param[in] schemaProduction the order number of the schema production (starting from 0), only needed if fastSchemaMode == TRUE
  * @return Error handling code
  */
-errorCode encodeComplexEXIEvent(EXIStream* strm, QName* qname, EventType event_all, EventType event_uri,
+errorCode encodeComplexEXIEvent(EXIStream* strm, QName qname, EventType event_all, EventType event_uri,
 						EventType event_qname, EXIType exiType, unsigned char fastSchemaMode, size_t schemaProduction);
 
 /**
  * @brief Encodes QName into EXI stream
  * @param[in, out] strm EXI stream
  * @param[in] qname qname to be written
+ * @param[in] eventT (EVENT_SE_ALL or EVENT_AT_ALL) used for error checking purposes:
+ * If the given prefix does not exist in the associated partition, the QName MUST be part of an SE event and
+ * the prefix MUST be resolved by one of the NS events immediately following the SE event (see resolution rules below).
  * @return Error handling code
  */
-errorCode encodeQName(EXIStream* strm, QName qname);
+errorCode encodeQName(EXIStream* strm, QName qname, EventType eventT);
+
+/**
+ * @brief Encodes the prefix part of the QName into the EXI stream in case the Preserve.prefixes == TRUE
+ * @param[in, out] strm EXI stream
+ * @param[in] qname qname to be written
+ * @param[in] eventT (EVENT_SE_ALL or EVENT_AT_ALL) used for error checking purposes:
+ * If the given prefix does not exist in the associated partition, the QName MUST be part of an SE event and
+ * the prefix MUST be resolved by one of the NS events immediately following the SE event (see resolution rules below).
+ * @return Error handling code
+ */
+errorCode encodePrefixQName(EXIStream* strm, QName qname, EventType eventT);
 
 /**
  * @brief Encodes Integer value into EXI stream

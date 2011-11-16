@@ -95,8 +95,6 @@ errorCode createSimpleEmptyTypeGrammar(AllocList* memList, ProtoGrammar** result
  * Result: Type-i = H-0 ⊕ H-1 ⊕ … ⊕ H-n−1 ⊕ Content-i
  *
  * @param[in, out] memList A list storing the memory allocations
- * @param[in] name complex type local name
- * @param[in] target_ns complex type namespace
  * @param[in] attrUsesArray array of attribute uses grammars included in this complex type.
  *            It should be lexicographically sorted
  * @param[in] attrUsesArraySize the size of the attribute uses array
@@ -108,8 +106,7 @@ errorCode createSimpleEmptyTypeGrammar(AllocList* memList, ProtoGrammar** result
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createComplexTypeGrammar(AllocList* memList, String* name, String* target_ns,
-								   ProtoGrammar* attrUsesArray, unsigned int attrUsesArraySize,
+errorCode createComplexTypeGrammar(AllocList* memList, ProtoGrammar* attrUsesArray, unsigned int attrUsesArraySize,
 		                           String* wildcardArray, unsigned int wildcardArraySize,
 		                           ProtoGrammar* contentTypeGrammar,
 		                           ProtoGrammar** result);
@@ -122,8 +119,6 @@ errorCode createComplexTypeGrammar(AllocList* memList, String* name, String* tar
  * Content-i,0 : EE
  *
  * @param[in, out] memList A list storing the memory allocations
- * @param[in] name complex type local name
- * @param[in] target_ns complex type namespace
  * @param[in] attrUsesArray array of attribute uses grammars included in this complex type
  * @param[in] attrUsesArraySize the size of the attribute uses array
  * @param[in] wildcardArray array of strings. Possible values: "any" or a set of namespace names and "absent"
@@ -132,8 +127,7 @@ errorCode createComplexTypeGrammar(AllocList* memList, String* name, String* tar
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createComplexEmptyTypeGrammar(AllocList* memList, String name, String target_ns,
-									ProtoGrammar* attrUsesArray, unsigned int attrUsesArraySize,
+errorCode createComplexEmptyTypeGrammar(AllocList* memList, ProtoGrammar* attrUsesArray, unsigned int attrUsesArraySize,
 		                            String* wildcardArray, unsigned int wildcardArraySize,
 		                            ProtoGrammar** result);
 
@@ -160,8 +154,6 @@ errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, ProtoGrammar** res
  *
  * @param[in, out] tmpMemList A list storing the memory allocations during schema parsing
  * @param[in] required 0 - false; otherwise true
- * @param[in] name attribute local name
- * @param[in] target_ns attribute namespace
  * @param[in] simpleTypeID qnameID of the simple type of the attribute type definition
  * @param[in] scope attribute scope - if NULL then the scope is global otherwise the QName of the complex type which is the scope
  * @param[out] result the resulted proto-grammar
@@ -169,8 +161,8 @@ errorCode createComplexUrEmptyTypeGrammar(AllocList* memList, ProtoGrammar** res
  * @param[in] lnRowID row index of the local name in the unsorted string tables
  * @return Error handling code
  */
-errorCode createAttributeUseGrammar(AllocList* tmpMemList, unsigned char required, String* name, String* target_ns,
-									QNameID simpleTypeID, QName scope, ProtoGrammar** result, uint16_t uriRowID, size_t lnRowID);
+errorCode createAttributeUseGrammar(AllocList* tmpMemList, unsigned char required, QNameID simpleTypeID, QName scope,
+									ProtoGrammar** result, uint16_t uriRowID, size_t lnRowID);
 
 /**
  * @brief Creates Particle Proto-Grammar from XML Schema particle
@@ -189,15 +181,12 @@ errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int3
  * @brief Creates Element Term Proto-Grammar from Particle term that is XML Schema element declaration
  *
  * @param[in, out] memList A list storing the memory allocations
- * @param[in] name element local name
- * @param[in] target_ns element target namespace
  * @param[out] result the resulted proto-grammar
  * @param[in] uriRowID row index of the uri in the unsorted string tables
  * @param[in] lnRowID row index of the local name in the unsorted string tables
  * @return Error handling code
  */
-errorCode createElementTermGrammar(AllocList* memList, String* name, String* target_ns,
-								ProtoGrammar** result, uint16_t uriRowID, size_t lnRowID);
+errorCode createElementTermGrammar(AllocList* memList, ProtoGrammar** result, uint16_t uriRowID, size_t lnRowID);
 
 /**
  * @brief Creates Wildcard Term Proto-Grammar from Particle term that is XML Schema wildcard

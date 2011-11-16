@@ -213,7 +213,7 @@ errorCode encodeSimpleEXIEvent(EXIStream* strm, EXIEvent event, unsigned char fa
 	return ERR_OK;
 }
 
-errorCode encodeComplexEXIEvent(EXIStream* strm, QName* qname, EventType event_all, EventType event_uri, EventType event_qname, EXIType exiType, unsigned char fastSchemaMode, size_t schemaProduction)
+errorCode encodeComplexEXIEvent(EXIStream* strm, QName qname, EventType event_all, EventType event_uri, EventType event_qname, EXIType exiType, unsigned char fastSchemaMode, size_t schemaProduction)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char b = 0;
@@ -248,10 +248,10 @@ errorCode encodeComplexEXIEvent(EXIStream* strm, QName* qname, EventType event_a
 				{
 					if(currentRule->prodArrays[b][tmp_prod_indx].event.eventType == event_all ||   // (1)
 					   (currentRule->prodArrays[b][tmp_prod_indx].event.eventType == event_uri &&    // (2)
-							   stringEqual(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].string_val, *(qname->uri))) ||
+							   stringEqual(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].string_val, *(qname.uri))) ||
 						(currentRule->prodArrays[b][tmp_prod_indx].event.eventType == event_qname && // (3)
-								stringEqual(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].string_val, *(qname->uri)) &&
-								stringEqual(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].lTable->rows[currentRule->prodArrays[b][tmp_prod_indx].lnRowID].string_val, *(qname->localName)))
+								stringEqual(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].string_val, *(qname.uri)) &&
+								stringEqual(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].lTable->rows[currentRule->prodArrays[b][tmp_prod_indx].lnRowID].string_val, *(qname.localName)))
 					   )
 					{
 						prodHit = &currentRule->prodArrays[b][tmp_prod_indx];
@@ -300,7 +300,7 @@ errorCode encodeComplexEXIEvent(EXIStream* strm, QName* qname, EventType event_a
 
 	if(prodHit->event.eventType == event_all)
 	{
-		tmp_err_code = encodeQName(strm, *qname);
+		tmp_err_code = encodeQName(strm, qname, event_all);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -319,13 +319,17 @@ errorCode encodeComplexEXIEvent(EXIStream* strm, QName* qname, EventType event_a
 	{
 		strm->context.curr_uriID = prodHit->uriRowID;
 		strm->context.curr_lnID = prodHit->lnRowID;
+
+		tmp_err_code = encodePrefixQName(strm, qname, event_all);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 	}
 
 	strm->context.nonTermID = prodHit->nonTermID;
 	return ERR_OK;
 }
 
-errorCode encodeQName(EXIStream* strm, QName qname)
+errorCode encodeQName(EXIStream* strm, QName qname, EventType eventT)
 {
 	//TODO: add the case when Preserve.prefixes is true
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -404,6 +408,43 @@ errorCode encodeQName(EXIStream* strm, QName qname)
 	strm->context.curr_lnID = lnID;
 
 /******* End: Local name **********/
+
+	return encodePrefixQName(strm, qname, eventT);
+}
+
+errorCode encodePrefixQName(EXIStream* strm, QName qname, EventType eventT)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	unsigned char prefixBits = 0;
+	size_t prefixID = 0;
+
+	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) == FALSE)
+		return ERR_OK;
+
+	if(strm->uriTable->rows[strm->context.curr_uriID].pTable->rowCount == 0)
+		return ERR_OK;
+
+	prefixBits = getBitsNumber(strm->uriTable->rows[strm->context.curr_uriID].pTable->rowCount - 1);
+
+	if(prefixBits > 0)
+	{
+		if(lookupPrefix(strm->uriTable->rows[strm->context.curr_uriID].pTable, *qname.prefix, &prefixID) == TRUE)
+		{
+			tmp_err_code = encodeNBitUnsignedInteger(strm, prefixBits, prefixID);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+		else
+		{
+			if(eventT != EVENT_SE_ALL)
+				return INCONSISTENT_PROC_STATE;
+
+			tmp_err_code = encodeNBitUnsignedInteger(strm, prefixBits, 0);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+	}
+
 	return ERR_OK;
 }
 
