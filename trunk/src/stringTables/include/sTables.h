@@ -161,9 +161,10 @@ errorCode addValueRows(EXIStream* strm, String* value);
  *
  * @param[in, out] pTable Prefix string table
  * @param[in] px_value the string representing this Local-Names. The String can be allocated on the stack.
+ * @param[out] prfxID the id of the added string in the Prefix table
  * @return Error handling code
  */
-errorCode addPrefixRow(PrefixTable* pTable, String px_value);
+errorCode addPrefixRow(PrefixTable* pTable, String px_value, unsigned int* prfxID);
 
 /**
  * @brief Search the URI table for a particular string value
@@ -186,6 +187,17 @@ char lookupURI(URITable* uTable, String value, uint16_t* rowID); //TODO: try to 
  * @return 0-not found, 1 found
  */
 char lookupLN(LocalNamesTable* lTable, String value, size_t* rowID); //TODO: try to optimize
+
+/**
+ * @brief Search the Prefix table for a particular string value
+ * Implements full scan
+ *
+ * @param[in] pTable Prefix table to be searched
+ * @param[in] value The string searched for
+ * @param[out] rowID if found, ID of the Prefix row with that string
+ * @return 0-not found, 1 found
+ */
+char lookupPrefix(PrefixTable* pTable, String value, size_t* rowID);
 
 /**
  * @brief Search the Local partition of the Value table for a particular string value

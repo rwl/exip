@@ -500,8 +500,9 @@ typedef struct URITable URITable;
 
 
 struct QName {
-	const String* uri;       // Pointer to a String value in the string table. It is not allowed to modify the string table content from this pointer.
-	const String* localName; // Pointer to a String value in the string table. It is not allowed to modify the string table content from this pointer.
+	const String* uri;       // Pointer to a String value in the URI string table. It is not allowed to modify the string table content from this pointer.
+	const String* localName; // Pointer to a String value in the LN sting table. It is not allowed to modify the string table content from this pointer.
+	const String* prefix; 	 // Pointer to a String value in the Prefix string table if Preserve.prefixes == TRUE. NULL otherwise. It is not allowed to modify the string table content from this pointer.
 };
 
 typedef struct QName QName;

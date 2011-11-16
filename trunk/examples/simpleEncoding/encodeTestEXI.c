@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
 			EXIStream testStrm;
 			String uri;
 			String ln;
-			QName qname= {&uri, &ln};
+			QName qname= {&uri, &ln, NULL};
 			String chVal;
 			char buf[OUTPUT_BUFFER_SIZE];
 			IOStream outStrm;

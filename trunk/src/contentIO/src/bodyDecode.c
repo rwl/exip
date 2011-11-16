@@ -50,16 +50,36 @@
 
 errorCode decodeQName(EXIStream* strm, QName* qname)
 {
-	//TODO: add the case when Preserve.prefixes is true
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	uint16_t uriID;
+	size_t lnID;
+
+	DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Decoding QName\n"));
+
+	tmp_err_code = decodeURI(strm, &uriID);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	qname->uri = &(strm->uriTable->rows[uriID].string_val);
+
+	tmp_err_code = decodeLocalName(strm, uriID, &lnID);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	qname->localName = &(strm->uriTable->rows[uriID].lTable->rows[lnID].string_val);
+
+	strm->context.curr_uriID = uriID;
+	strm->context.curr_lnID = lnID;
+
+	return decodePrefixQname(strm, qname);
+}
+
+errorCode decodeURI(EXIStream* strm, uint16_t* uriID)
+{
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int tmp_val_buf = 0;
 	unsigned char uriBits = getBitsNumber(strm->uriTable->rowCount);
-	uint16_t uriID = 0; // The URI id in the URI string table
-	UnsignedInteger tmpVar = 0;
-	size_t lnID = 0;
 
-
-	DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Decoding QName\n"));
 	tmp_err_code = decodeNBitUnsignedInteger(strm, uriBits, &tmp_val_buf);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -71,17 +91,25 @@ errorCode decodeQName(EXIStream* strm, QName* qname)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = addURIRow(strm->uriTable, str, &uriID, &strm->memList);
+		tmp_err_code = addURIRow(strm->uriTable, str, uriID, &strm->memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		qname->uri = &(strm->uriTable->rows[uriID].string_val);
 	}
 	else // uri hit
 	{
 		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">URI hit\n"));
-		qname->uri = &(strm->uriTable->rows[tmp_val_buf-1].string_val);
-		uriID = tmp_val_buf-1;
+		*uriID = tmp_val_buf-1;
+		if(*uriID >= strm->uriTable->rowCount)
+			return INVALID_EXI_INPUT;
 	}
+
+	return ERR_OK;
+}
+
+errorCode decodeLocalName(EXIStream* strm, uint16_t uriID, size_t* lnID)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	UnsignedInteger tmpVar = 0;
 
 	tmp_err_code = decodeUnsignedInteger(strm, &tmpVar);
 	if(tmp_err_code != ERR_OK)
@@ -91,10 +119,12 @@ errorCode decodeQName(EXIStream* strm, QName* qname)
 	{
 		unsigned char lnBits = getBitsNumber((unsigned int)(strm->uriTable->rows[uriID].lTable->rowCount - 1));
 		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">local-name table hit\n"));
-		tmp_err_code = decodeNBitUnsignedInteger(strm, lnBits, &lnID);
+		tmp_err_code = decodeNBitUnsignedInteger(strm, lnBits, lnID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		qname->localName = &(strm->uriTable->rows[uriID].lTable->rows[lnID].string_val);
+
+		if(*lnID >= strm->uriTable->rows[uriID].lTable->rowCount)
+			return INVALID_EXI_INPUT;
 	}
 	else // local-name table miss
 	{
@@ -109,13 +139,75 @@ errorCode decodeQName(EXIStream* strm, QName* qname)
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
-		tmp_err_code = addLNRow(strm->uriTable->rows[uriID].lTable, lnStr, &lnID);
+		tmp_err_code = addLNRow(strm->uriTable->rows[uriID].lTable, lnStr, lnID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		qname->localName = &(strm->uriTable->rows[uriID].lTable->rows[lnID].string_val);
 	}
-	strm->context.curr_uriID = uriID;
-	strm->context.curr_lnID = lnID;
+
+	return ERR_OK;
+}
+
+errorCode decodePrefixQname(EXIStream* strm, QName* qname)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	unsigned char prefixBits = 0;
+	unsigned int prefixID = 0;
+
+	qname->prefix = NULL;
+
+	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) == FALSE)
+		return ERR_OK;
+
+	if(strm->uriTable->rows[strm->context.curr_uriID].pTable->rowCount == 0)
+		return ERR_OK;
+
+	prefixBits = getBitsNumber(strm->uriTable->rows[strm->context.curr_uriID].pTable->rowCount - 1);
+
+	if(prefixBits > 0)
+	{
+		tmp_err_code = decodeNBitUnsignedInteger(strm, prefixBits, &prefixID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		if(prefixID >= strm->uriTable->rows[strm->context.curr_uriID].pTable->rowCount)
+			return INVALID_EXI_INPUT;
+	}
+
+	qname->prefix = &strm->uriTable->rows[strm->context.curr_uriID].pTable->string_val[prefixID];
+
+	return ERR_OK;
+}
+
+errorCode decodePrefix(EXIStream* strm, uint16_t uriID, unsigned int* prfxID)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	unsigned int tmp_val_buf = 0;
+	unsigned char prfxBits = getBitsNumber(strm->uriTable->rows[uriID].pTable->rowCount);
+
+	tmp_err_code = decodeNBitUnsignedInteger(strm, prfxBits, &tmp_val_buf);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	if(tmp_val_buf == 0) // prefix miss
+	{
+		String str;
+		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Prefix miss\n"));
+		tmp_err_code = decodeString(strm, &str);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = addPrefixRow(strm->uriTable->rows[uriID].pTable, str, prfxID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else // prefix hit
+	{
+		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Prefix hit\n"));
+		*prfxID = tmp_val_buf-1;
+		if(*prfxID >= strm->uriTable->rows[uriID].pTable->rowCount)
+			return INVALID_EXI_INPUT;
+	}
+
 	return ERR_OK;
 }
 
@@ -174,8 +266,9 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 									size_t* nonTermID_out, GrammarRule* currRule,  void* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	// TODO: implement all cases
+	// TODO: implement all cases of events
 	QName qname;
+
 	if(event.eventType == EVENT_SE_ALL)
 	{
 		EXIGrammar* elemGrammar = NULL;
@@ -185,6 +278,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		tmp_err_code = decodeQName(strm, &qname);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
+
 		if(handler->startElement != NULL)  // Invoke handler method passing the element qname
 		{
 			if(handler->startElement(qname, app_data) == EXIP_HANDLER_STOP)
@@ -263,6 +357,10 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">SE(qname) event\n"));
 		qname.uri = &(strm->uriTable->rows[strm->context.curr_uriID].string_val);
 		qname.localName = &(strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].string_val);
+		tmp_err_code = decodePrefixQname(strm, &qname);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
 		if(handler->startElement != NULL)  // Invoke handler method passing the element qname
 		{
 			if(handler->startElement(qname, app_data) == EXIP_HANDLER_STOP)
@@ -291,6 +389,9 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">AT(qname) event\n"));
 			qname.uri = &(strm->uriTable->rows[strm->context.curr_uriID].string_val);
 			qname.localName = &(strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].string_val);
+			tmp_err_code = decodePrefixQname(strm, &qname);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
 			if(handler->attribute != NULL)  // Invoke handler method
 			{
 				if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
@@ -461,6 +562,26 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		}
 		else
 			return INCONSISTENT_PROC_STATE;
+	}
+	else if(event.eventType == EVENT_NS)
+	{
+		uint16_t uriID;
+		unsigned int prfxID;
+		unsigned char boolean = FALSE;
+
+		tmp_err_code = decodeURI(strm, &uriID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = decodePrefix(strm, uriID, &prfxID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = decodeBoolean(strm, &boolean);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		// TODO: finish this
 	}
 	else
 	{

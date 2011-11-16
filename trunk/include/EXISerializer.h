@@ -54,9 +54,9 @@ struct EXISerializer
 	// For handling the meta-data (document structure)
 	errorCode (*startDocument)(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
 	errorCode (*endDocument)(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
-	errorCode (*startElement)(EXIStream* strm, QName* qname, unsigned char fastSchemaMode, size_t schemaProduction);
+	errorCode (*startElement)(EXIStream* strm, QName qname, unsigned char fastSchemaMode, size_t schemaProduction);
 	errorCode (*endElement)(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
-	errorCode (*attribute)(EXIStream* strm, QName* qname, EXIType valueType, unsigned char fastSchemaMode, size_t schemaProduction);
+	errorCode (*attribute)(EXIStream* strm, QName qname, EXIType valueType, unsigned char fastSchemaMode, size_t schemaProduction);
 
 	// For handling the data
 	errorCode (*intData)(EXIStream* strm, Integer int_val, unsigned char fastSchemaMode, size_t schemaProduction);

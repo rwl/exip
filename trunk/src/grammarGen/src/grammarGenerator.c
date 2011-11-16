@@ -132,6 +132,7 @@ struct elementDescr {
 	unsigned char element;  // represented with codes defined above
 	String attributePointers[ATTRIBUTE_CONTEXT_ARRAY_SIZE]; // the index is the code of the attribute
 	GenericStack* pGrammarStack; // The proto-grammars created so far and connected to this elemDescr
+	GenericStack* pEmptyGrammarStack; // The Empty proto-grammars created so far and connected to this elemDescr
 	DynArray* attributeUses; // For complex types/content this array stores the attribute uses
 	GenericStack* pTypeFacets; // The Constraining Facets attached to this element if any
 };
@@ -918,6 +919,7 @@ static void initElemContext(ElementDescription* elem)
 	unsigned int i = 0;
 	elem->element = ELEMENT_VOID;
 	elem->pGrammarStack = NULL;
+	elem->pEmptyGrammarStack = NULL;
 	elem->attributeUses = NULL;
 	elem->pTypeFacets = NULL;
 	for(i = 0; i < ATTRIBUTE_CONTEXT_ARRAY_SIZE; i++)
@@ -990,8 +992,7 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 	scope.localName = &app_data->props.emptyString;
 	scope.uri = &app_data->props.emptyString;
 
-	tmp_err_code = createAttributeUseGrammar(&app_data->tmpMemList, required, attrName,
-											 target_ns, simpleTypeID, scope, &attrUseGrammar, uriRowID, lnRowID);
+	tmp_err_code = createAttributeUseGrammar(&app_data->tmpMemList, required, simpleTypeID, scope, &attrUseGrammar, uriRowID, lnRowID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1063,8 +1064,7 @@ static errorCode handleExtentionEl(struct xsdAppData* app_data)
 		return tmp_err_code;
 
 	// TODO: the attributeUses array must be sorted first before calling createComplexTypeGrammar()
-	tmp_err_code = createComplexTypeGrammar(&app_data->tmpMemList, typeName, target_ns,
-			(ProtoGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount),
+	tmp_err_code = createComplexTypeGrammar(&app_data->tmpMemList, (ProtoGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount),
 									   NULL, 0, simpleTypeGrammar, &resultComplexGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -1116,6 +1116,7 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 	String* target_ns;
 	ProtoGrammar* contentTypeGrammar;
 	ProtoGrammar* resultComplexGrammar;
+	ProtoGrammar* resultComplexEmptyGrammar;
 	ElementDescription* elemDesc;
 	size_t lnRowID;
 	uint16_t uriRowID;
@@ -1152,11 +1153,13 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 	{
 		// TODO: the attributeUses array must be sorted first before calling createComplexTypeGrammar()
 
-		tmp_err_code = createComplexTypeGrammar(&app_data->tmpMemList, typeName, target_ns,
-				(ProtoGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount),
+		tmp_err_code = createComplexTypeGrammar(&app_data->tmpMemList, (ProtoGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount),
 										   NULL, 0, contentTypeGrammar, &resultComplexGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
+
+		tmp_err_code = createComplexEmptyTypeGrammar(&app_data->tmpMemList, (ProtoGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount),
+				NULL, 0, &resultComplexEmptyGrammar);
 
 		//TODO: the attributeUses array must be emptied here
 
@@ -1183,10 +1186,15 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 		tmp_err_code = pushOnStack(&(((ElementDescription*) app_data->contextStack->element)->pGrammarStack), resultComplexGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
+
+		tmp_err_code = pushOnStack(&(((ElementDescription*) app_data->contextStack->element)->pEmptyGrammarStack), resultComplexEmptyGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 	}
 	else // Named complex type - put it directly in the typeGrammars list
 	{
 		EXIGrammar* complexEXIGrammar;
+		EXIGrammar* complexEXIEmptyGrammar;
 
 		tmp_err_code = assignCodes(resultComplexGrammar, app_data->metaStringTables);
 		if(tmp_err_code != ERR_OK)
@@ -1209,7 +1217,16 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 	}
 #endif
 
+		tmp_err_code = assignCodes(resultComplexEmptyGrammar, app_data->metaStringTables);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = convertProtoGrammar(&app_data->schema->memList, resultComplexEmptyGrammar, &complexEXIEmptyGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
 		app_data->schema->initialStringTables->rows[uriRowID].lTable->rows[lnRowID].typeGrammar = complexEXIGrammar;
+		app_data->schema->initialStringTables->rows[uriRowID].lTable->rows[lnRowID].typeEmptyGrammar = complexEXIEmptyGrammar;
 	}
 
 	return ERR_OK;
@@ -1221,12 +1238,14 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 	ElementDescription* elemDesc;
 	String type;
 	ProtoGrammar* typeGrammar;
+	ProtoGrammar* typeEmptyGrammar;
 	String* elName;
 	String* target_ns;
 	unsigned char isGlobal = 0;
 	uint16_t uriRowId;
 	size_t lnRowId;
 	EXIGrammar* exiTypeGrammar;
+	EXIGrammar* exiTypeEmptyGrammar;
 	unsigned char isNillable = FALSE;
 
 	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
@@ -1265,9 +1284,10 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 		QNameID globalQnameID;
 		size_t dynElID;
 
-		if(isStringEmpty(&type))  // There is no type attribute i.e. there must be some complex type in the pGrammarStack
+		if(isStringEmpty(&type))  // There is no type attribute i.e. there must be some complex/simple type in the pGrammarStack
 		{
 			popFromStack(&(elemDesc->pGrammarStack), (void**) &typeGrammar);
+			popFromStack(&(elemDesc->pEmptyGrammarStack), (void**) &typeEmptyGrammar);
 		}
 		else // The element has a particular named type
 		{
@@ -1297,7 +1317,18 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 	}
 #endif
 
+		tmp_err_code = assignCodes(typeEmptyGrammar, app_data->metaStringTables);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = convertProtoGrammar(&app_data->schema->memList, typeEmptyGrammar, &exiTypeEmptyGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		exiTypeEmptyGrammar->isNillable = isNillable;
+
 		app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeGrammar = exiTypeGrammar;
+		app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeEmptyGrammar = exiTypeEmptyGrammar;
 		globalQnameID.uriRowId = uriRowId;
 		globalQnameID.lnRowId = lnRowId;
 		tmp_err_code = addDynElement(app_data->globalElemGrammars, &globalQnameID, &dynElID, &app_data->schema->memList);
@@ -1315,6 +1346,7 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 		if(isStringEmpty(&type))  // There is no type attribute i.e. there must be some complex type in the pGrammarStack
 		{
 			popFromStack(&(elemDesc->pGrammarStack), (void**) &typeGrammar);
+			popFromStack(&(elemDesc->pEmptyGrammarStack), (void**) &typeEmptyGrammar);
 
 			if(typeGrammar != NULL) // It is not an empty element: <xsd:complexType />
 			{
@@ -1341,7 +1373,18 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 				}
 #endif
 
+				tmp_err_code = assignCodes(typeEmptyGrammar, app_data->metaStringTables);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				tmp_err_code = convertProtoGrammar(&app_data->schema->memList, typeEmptyGrammar, &exiTypeEmptyGrammar);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				exiTypeEmptyGrammar->isNillable = isNillable;
+
 				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeGrammar = exiTypeGrammar;
+				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeEmptyGrammar = exiTypeEmptyGrammar;
 			}
 			else // <xsd:complexType />
 			{
@@ -1350,6 +1393,7 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 				 *  there is an empty element declared - the case for EXI options document*/
 
 				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeGrammar = app_data->schema->initialStringTables->rows[3].lTable->rows[0].typeEmptyGrammar;
+				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeEmptyGrammar = app_data->schema->initialStringTables->rows[3].lTable->rows[0].typeEmptyGrammar;
 			}
 		}
 		else // The element has a particular named type
@@ -1367,6 +1411,7 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 
 				// URI 3 -> http://www.w3.org/2001/XMLSchema
 				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeGrammar = app_data->schema->initialStringTables->rows[3].lTable->rows[stypelnRowId].typeGrammar;
+				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeEmptyGrammar = app_data->schema->initialStringTables->rows[3].lTable->rows[stypelnRowId].typeEmptyGrammar;
 			}
 			else // A complex type name or derived simple type
 			{
@@ -1377,7 +1422,7 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 		minOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MIN_OCCURS]);
 		maxOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MAX_OCCURS]);
 
-		tmp_err_code = createElementTermGrammar(&app_data->tmpMemList, elName, target_ns, &elTermGrammar, uriRowId, lnRowId);
+		tmp_err_code = createElementTermGrammar(&app_data->tmpMemList, &elTermGrammar, uriRowId, lnRowId);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -1683,6 +1728,7 @@ static errorCode handleSimpleTypeEl(struct xsdAppData* app_data)
 			return tmp_err_code;
 
 		app_data->schema->initialStringTables->rows[app_data->props.targetNSMetaID].lTable->rows[lnRowID].typeGrammar = exiTypeGrammar;
+		app_data->schema->initialStringTables->rows[app_data->props.targetNSMetaID].lTable->rows[lnRowID].typeEmptyGrammar = app_data->schema->initialStringTables->rows[3].lTable->rows[0].typeEmptyGrammar;
 
 		return ERR_OK;
 	}

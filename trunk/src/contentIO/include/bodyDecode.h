@@ -48,11 +48,52 @@
 
 /**
  * @brief Decodes a QName from the EXI stream
+ *
  * @param[in, out] strm EXI stream representation
  * @param[out] qname the QName decoded
  * @return Error handling code
  */
 errorCode decodeQName(EXIStream* strm, QName* qname);
+
+/**
+ * @brief Decodes the URI part of a QName from the EXI stream
+ *
+ * @param[in, out] strm EXI stream representation
+ * @param[out] uriID The URI id in the URI string table
+ * @return Error handling code
+ */
+errorCode decodeURI(EXIStream* strm, uint16_t* uriID);
+
+/**
+ * @brief Decodes the Local name part of a QName from the EXI stream
+ *
+ * @param[in, out] strm EXI stream representation
+ * @param[in] uriID The URI id in the URI string table
+ * @param[out] lnID The LN id in the Local name string table
+ * @return Error handling code
+ */
+errorCode decodeLocalName(EXIStream* strm, uint16_t uriID, size_t* lnID);
+
+/**
+ * @brief Decodes the prefix component of the QName from the EXI stream
+ * In case of Preserve.prefixes the QName type contains a prefix also
+ *
+ * @param[in, out] strm EXI stream representation
+ * @param[in] uriID The URI id in the URI string table
+ * @param[out] qname qname that holds the prefix
+ * @return Error handling code
+ */
+errorCode decodePrefixQname(EXIStream* strm, QName* qname);
+
+/**
+ * @brief Decodes the URI part of a QName from the EXI stream
+ *
+ * @param[in, out] strm EXI stream representation
+ * @param[in] uriID The URI id in the URI string table
+ * @param[out] prfxID The prefix id in the Prefix string table
+ * @return Error handling code
+ */
+errorCode decodePrefix(EXIStream* strm, uint16_t uriID, unsigned int* prfxID);
 
 /**
  * @brief Decodes a string value from the EXI stream
