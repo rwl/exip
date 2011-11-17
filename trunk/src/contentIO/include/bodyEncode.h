@@ -67,6 +67,7 @@ errorCode decimalData(EXIStream* strm, Decimal dec_val, unsigned char fastSchema
 
 // Miscellaneous
 errorCode processingInstruction(EXIStream* strm); // TODO: define the parameters!
+errorCode namespaceDeclaration(EXIStream* strm, const String namespace, const String prefix, unsigned char isLocalElementNS, unsigned char fastSchemaMode, size_t schemaProduction);
 
 // EXI specific
 errorCode selfContained(EXIStream* strm);  // Used for indexing independent elements for random access
@@ -104,7 +105,7 @@ errorCode closeEXIStream(EXIStream* strm);
 errorCode encodeStringData(EXIStream* strm, String strng);
 
 /**
- * @brief Encodes SD, ED, EE, CH events
+ * @brief Encodes SD, ED, EE, CH, NS events
  * @param[in, out] strm EXI stream
  * @param[in] event event to be encoded
  * @param[in] fastSchemaMode - TRUE/FALSE, require valid schemaProduction order number
@@ -141,6 +142,25 @@ errorCode encodeComplexEXIEvent(EXIStream* strm, QName qname, EventType event_al
 errorCode encodeQName(EXIStream* strm, QName qname, EventType eventT);
 
 /**
+ * @brief Encodes URI into EXI stream
+ * @param[in, out] strm EXI stream
+ * @param[in] uri uri to be written
+ * @param[out] uriID id of the uri row written in the string table
+ * @return Error handling code
+ */
+errorCode encodeURI(EXIStream* strm, String* uri, uint16_t* uriID);
+
+/**
+ * @brief Encodes Local Name into EXI stream
+ * @param[in, out] strm EXI stream
+ * @param[in] ln ln to be written
+ * @param[in] uriID id of the uri row of the URI the string table
+ * @param[out] lnID id of the LN row written in the string table
+ * @return Error handling code
+ */
+errorCode encodeLocalName(EXIStream* strm, String* ln, uint16_t uriID, size_t* lnID);
+
+/**
  * @brief Encodes the prefix part of the QName into the EXI stream in case the Preserve.prefixes == TRUE
  * @param[in, out] strm EXI stream
  * @param[in] qname qname to be written
@@ -150,6 +170,15 @@ errorCode encodeQName(EXIStream* strm, QName qname, EventType eventT);
  * @return Error handling code
  */
 errorCode encodePrefixQName(EXIStream* strm, QName qname, EventType eventT);
+
+/**
+ * @brief Encodes the prefix part of the NS event into the EXI stream
+ * @param[in, out] strm EXI stream
+ * @param[in] uriID id of the uri row of the URI the string table
+ * @param[in] prefix prefix to be written
+ * @return Error handling code
+ */
+errorCode encodePrefix(EXIStream* strm, uint16_t uriID, String* prefix);
 
 /**
  * @brief Encodes Integer value into EXI stream
