@@ -99,7 +99,6 @@
 
 #define ATTRIBUTE_CONTEXT_ARRAY_SIZE 20
 
-
 #define INITIAL_STATE         0
 #define SCHEMA_ELEMENT_STATE  1
 #define SCHEMA_CONTENT_STATE  2
@@ -108,6 +107,12 @@
 #define FORM_DEF_QUALIFIED     1
 #define FORM_DEF_EXPECTING     2
 #define FORM_DEF_INITIAL_STATE 3
+
+struct prefixNS
+{
+	String prefix;
+	String ns;
+};
 
 /**
  * Global schema properties (found as an attributes of the schema root element in XSD)
@@ -121,6 +126,7 @@ struct globalSchemaProps {
 	uint16_t targetNSMetaID;  // the uri row ID in the metaURI table of the targetNamespace
 	unsigned char attributeFormDefault; // 0 unqualified, 1 qualified, 2 expecting value, 3 initial state
 	unsigned char elementFormDefault;  // 0 unqualified, 1 qualified, 2 expecting value, 3 initial state
+	DynArray* prefixNamespaces; // array of struct prefixNS: prefix, namespace pairs
 	String emptyString; // A holder for the empty string constant used throughout the generation
 };
 
@@ -178,6 +184,7 @@ static char xsd_startElement(QName qname, void* app_data);
 static char xsd_endElement(void* app_data);
 static char xsd_attribute(QName qname, void* app_data);
 static char xsd_stringData(const String value, void* app_data);
+static char xsd_namespaceDeclaration(const String namespace, const String prefix, unsigned char isLocalElementNS, void* app_data);
 
 static void initElemContext(ElementDescription* elem);
 
@@ -221,7 +228,7 @@ static int compareURI(const void* uriRow1, const void* uriRow2);
 
 static int parseOccuranceAttribute(const String occurance);
 
-static errorCode getTypeQName(AllocList* memList, const String typeLiteral, QName* qname);
+static errorCode getTypeQName(struct xsdAppData* app_data, const String typeLiteral, QName* qname);
 
 ////////////
 
@@ -241,7 +248,6 @@ errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t 
 	tmp_err_code = initAllocList(&schema->memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	schema->isAugmented = FALSE;
 	schema->isStatic = FALSE;
 
 	tmp_err_code = initParser(&xsdParser, binaryBuf, bufLen, bufContent, ioStrm, NULL, &parsing_data);
@@ -256,6 +262,7 @@ errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t 
 	xsdParser.handler.attribute = xsd_attribute;
 	xsdParser.handler.stringData = xsd_stringData;
 	xsdParser.handler.endElement = xsd_endElement;
+	xsdParser.handler.namespaceDeclaration = xsd_namespaceDeclaration;
 
 	parsing_data.props.propsStat = INITIAL_STATE;
 	parsing_data.props.expectAttributeData = FALSE;
@@ -267,6 +274,10 @@ errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t 
 	getEmptyString(&parsing_data.props.targetNamespace);
 
 	parsing_data.contextStack = NULL;
+
+	tmp_err_code = createDynArray(&parsing_data.props.prefixNamespaces, sizeof(struct prefixNS), 10, &parsing_data.tmpMemList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	tmp_err_code = createDynArray(&parsing_data.elNotResolvedArray, sizeof(struct elementNotResolved), 10, &parsing_data.tmpMemList);
 	if(tmp_err_code != ERR_OK)
@@ -914,6 +925,30 @@ static char xsd_stringData(const String value, void* app_data)
 	return EXIP_HANDLER_OK;
 }
 
+static char xsd_namespaceDeclaration(const String namespace, const String prefix, unsigned char isLocalElementNS, void* app_data)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	struct xsdAppData* appD = (struct xsdAppData*) app_data;
+	struct prefixNS prNS;
+	size_t elID;
+	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Namespace declaration\n"));
+
+	prNS.ns.length = namespace.length;
+	prNS.ns.str = namespace.str;
+
+	prNS.prefix.length = prefix.length;
+	prNS.prefix.str = prefix.str;
+
+	tmp_err_code = addDynElement(appD->props.prefixNamespaces, &prNS, &elID, &appD->tmpMemList);
+	if(tmp_err_code != ERR_OK)
+	{
+		DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Error addDynElement\n"));
+		return EXIP_HANDLER_STOP;
+	}
+
+	return EXIP_HANDLER_OK;
+}
+
 static void initElemContext(ElementDescription* elem)
 {
 	unsigned int i = 0;
@@ -969,7 +1004,7 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = getTypeQName(&app_data->tmpMemList, elemDesc->attributePointers[ATTRIBUTE_TYPE], &simpleType);
+	tmp_err_code = getTypeQName(app_data, elemDesc->attributePointers[ATTRIBUTE_TYPE], &simpleType);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1035,7 +1070,7 @@ static errorCode handleExtentionEl(struct xsdAppData* app_data)
 	typeName = &app_data->props.emptyString;
 	target_ns = &app_data->props.emptyString;
 
-	tmp_err_code = getTypeQName(&app_data->tmpMemList, elemDesc->attributePointers[ATTRIBUTE_BASE], &simpleType);
+	tmp_err_code = getTypeQName(app_data, elemDesc->attributePointers[ATTRIBUTE_BASE], &simpleType);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1398,7 +1433,7 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 		}
 		else // The element has a particular named type
 		{
-			tmp_err_code = getTypeQName(&app_data->tmpMemList, type, &typeQname);
+			tmp_err_code = getTypeQName(app_data, type, &typeQname);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
@@ -1614,7 +1649,7 @@ static errorCode handleRestrictionEl(struct xsdAppData* app_data)
 
 	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
 
-	tmp_err_code = getTypeQName(&app_data->tmpMemList, elemDesc->attributePointers[ATTRIBUTE_BASE], &baseType);
+	tmp_err_code = getTypeQName(app_data, elemDesc->attributePointers[ATTRIBUTE_BASE], &baseType);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1926,7 +1961,7 @@ static int parseOccuranceAttribute(const String occurance)
 	return atoi(buff);
 }
 
-static errorCode getTypeQName(AllocList* memList, const String typeLiteral, QName* qname)
+static errorCode getTypeQName(struct xsdAppData* app_data, const String typeLiteral, QName* qname)
 {
 	// TODO: Just a temporary implementation. Only works for the ASCII string representation. Fix that!
 	// 		There should be a function in the StringManipulation that search to a character
@@ -1934,11 +1969,11 @@ static errorCode getTypeQName(AllocList* memList, const String typeLiteral, QNam
 	String* ln;
 	String* uri;
 
-	ln = memManagedAllocate(memList, sizeof(String));
+	ln = memManagedAllocate(&app_data->tmpMemList, sizeof(String));
 	if(ln == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	uri = memManagedAllocate(memList, sizeof(String));
+	uri = memManagedAllocate(&app_data->tmpMemList, sizeof(String));
 	if(uri == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -1946,8 +1981,32 @@ static errorCode getTypeQName(AllocList* memList, const String typeLiteral, QNam
 	{
 		if(typeLiteral.str[i] == ':')
 		{
+			int p;
+			unsigned char prefixFound = FALSE;
+			struct prefixNS* pns;
+
 			uri->length = i;
 			uri->str = typeLiteral.str;
+
+			for(p = 0; p < app_data->props.prefixNamespaces->elementCount; p++)
+			{
+				pns = &((struct prefixNS*) app_data->props.prefixNamespaces->elements)[p];
+				if(stringEqual(*uri, pns->prefix))
+				{
+					prefixFound = TRUE;
+					break;
+				}
+			}
+
+			if(prefixFound)
+			{
+				uri = &pns->ns;
+			}
+			else
+			{
+				DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Invalid schema base type definition\n"));
+				return INVALID_EXI_INPUT;
+			}
 
 			ln->length = typeLiteral.length - i - 1;
 			ln->str = &typeLiteral.str[i + 1];
@@ -1987,6 +2046,7 @@ errorCode generateBuildInTypesGrammars(URITable* sTables, AllocList* memList)
 
 	typeEmptyGrammar->contentIndex = 0;
 	typeEmptyGrammar->isNillable = FALSE;
+	typeEmptyGrammar->isAugmented = FALSE;
 	typeEmptyGrammar->grammarType = GR_TYPE_SCHEMA_EMPTY_TYPE;
 	typeEmptyGrammar->rulesDimension = 1;
 
@@ -2032,6 +2092,7 @@ errorCode generateBuildInTypesGrammars(URITable* sTables, AllocList* memList)
 		grammar->contentIndex = 0;
 		grammar->grammarType = GR_TYPE_SCHEMA_TYPE;
 		grammar->isNillable = FALSE;
+		grammar->isAugmented = FALSE;
 		grammar->rulesDimension = 2;
 
 		// One more rule slot for grammar augmentation when strict == FASLE

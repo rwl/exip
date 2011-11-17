@@ -122,12 +122,9 @@ errorCode parseHeader(Parser* parser)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		if(parser->strm.schema->isAugmented == FALSE)
-		{
-			tmp_err_code = addUndeclaredProductionsToAll(&parser->strm.memList, parser->strm.uriTable, &parser->strm.header.opts, parser->strm.schema->simpleTypeArray, parser->strm.schema->sTypeArraySize);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-		}
+		tmp_err_code = addUndeclaredProductionsToAll(&parser->strm.memList, parser->strm.uriTable, &parser->strm.header.opts, parser->strm.schema->simpleTypeArray, parser->strm.schema->sTypeArraySize);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 	}
 	else
 	{

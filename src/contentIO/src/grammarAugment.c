@@ -499,6 +499,9 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 			grammar->ruleArray[0].prodArrays[1][prodIndex].lnRowID = 0;
 		}
 	}
+
+	grammar->isAugmented = TRUE;
+
 	return ERR_OK;
 }
 
@@ -507,6 +510,7 @@ errorCode addUndeclaredProductionsToAll(AllocList* memList, URITable* stringTabl
 	unsigned int i = 0;
 	size_t j = 0;
 	EXIGrammar* tmpGrammar = NULL;
+	EXIGrammar* tmpEmptyGrammar = NULL;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
 	for (i = 0; i < stringTables->rowCount; i++)
@@ -514,9 +518,16 @@ errorCode addUndeclaredProductionsToAll(AllocList* memList, URITable* stringTabl
 		for (j = 0; j < stringTables->rows[i].lTable->rowCount; j++)
 		{
 			tmpGrammar = stringTables->rows[i].lTable->rows[j].typeGrammar;
-			if(tmpGrammar != NULL)
+			if(tmpGrammar != NULL && tmpGrammar->isAugmented == FALSE)
 			{
 				tmp_err_code = addUndeclaredProductions(memList, WITH_STRICT(opts->enumOpt), WITH_SELF_CONTAINED(opts->enumOpt), opts->preserve, tmpGrammar, simpleTypeArray, sTypeArraySize);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
+			tmpEmptyGrammar = stringTables->rows[i].lTable->rows[j].typeEmptyGrammar;
+			if(tmpEmptyGrammar != NULL && tmpEmptyGrammar->isAugmented == FALSE)
+			{
+				tmp_err_code = addUndeclaredProductions(memList, WITH_STRICT(opts->enumOpt), WITH_SELF_CONTAINED(opts->enumOpt), opts->preserve, tmpEmptyGrammar, simpleTypeArray, sTypeArraySize);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			}

@@ -134,12 +134,9 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		if(schema->isAugmented == FALSE)
-		{
-			tmp_err_code = addUndeclaredProductionsToAll(&strm->memList, strm->uriTable, &strm->header.opts, schema->simpleTypeArray, schema->sTypeArraySize);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-		}
+		tmp_err_code = addUndeclaredProductionsToAll(&strm->memList, strm->uriTable, &strm->header.opts, schema->simpleTypeArray, schema->sTypeArraySize);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 	}
 	else
 	{
