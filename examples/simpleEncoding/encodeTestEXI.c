@@ -167,11 +167,11 @@ int main(int argc, char *argv[])
 
 			tmp_err_code += asciiToString("http://www.ltu.se/EISLAB/schema-test", &uri, &testStrm.memList, FALSE);
 			tmp_err_code += asciiToString("EXIPEncoder", &ln, &testStrm.memList, FALSE);
-			tmp_err_code += serialize.startElement(&testStrm, &qname, FALSE, 0);
+			tmp_err_code += serialize.startElement(&testStrm, qname, FALSE, 0);
 
 			tmp_err_code += asciiToString("", &uri, &testStrm.memList, FALSE);
 			tmp_err_code += asciiToString("version", &ln, &testStrm.memList, FALSE);
-			tmp_err_code += serialize.attribute(&testStrm, &qname, VALUE_TYPE_STRING, FALSE, 0);
+			tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING, FALSE, 0);
 
 			tmp_err_code += asciiToString("0.2", &chVal, &testStrm.memList, FALSE);
 			tmp_err_code += serialize.stringData(&testStrm, chVal, FALSE, 0);

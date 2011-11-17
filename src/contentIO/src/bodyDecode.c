@@ -581,7 +581,11 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		// TODO: finish this
+		if(handler->namespaceDeclaration != NULL)  // Invoke handler method
+		{
+			if(handler->namespaceDeclaration(strm->uriTable->rows[uriID].string_val, strm->uriTable->rows[uriID].pTable->string_val[prfxID], boolean, app_data) == EXIP_HANDLER_STOP)
+				return HANDLER_STOP_RECEIVED;
+		}
 	}
 	else
 	{

@@ -86,7 +86,7 @@ errorCode decodeLocalName(EXIStream* strm, uint16_t uriID, size_t* lnID);
 errorCode decodePrefixQname(EXIStream* strm, QName* qname);
 
 /**
- * @brief Decodes the URI part of a QName from the EXI stream
+ * @brief Decodes the Prefix part of a NS event from the EXI stream
  *
  * @param[in, out] strm EXI stream representation
  * @param[in] uriID The URI id in the URI string table

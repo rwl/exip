@@ -69,6 +69,7 @@ const EXISerializer serialize ={startDocument,
 								dateTimeData,
 								decimalData,
 								processingInstruction,
+								namespaceDeclaration,
 								encodeHeader,
 								selfContained,
 								initHeader,
@@ -391,6 +392,28 @@ errorCode decimalData(EXIStream* strm, Decimal dec_val, unsigned char fastSchema
 errorCode processingInstruction(EXIStream* strm)
 {
 	return NOT_IMPLEMENTED_YET;
+}
+
+errorCode namespaceDeclaration(EXIStream* strm, const String namespace, const String prefix, unsigned char isLocalElementNS, unsigned char fastSchemaMode, size_t schemaProduction)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	ValueType dummmyType;
+	uint16_t uriID;
+	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start namespace declaration\n"));
+
+	tmp_err_code = encodeSimpleEXIEvent(strm, getEventDefType(EVENT_NS), fastSchemaMode, schemaProduction, &dummmyType);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = encodeURI(strm, (String*) &namespace, &uriID);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = encodePrefix(strm, uriID, (String*) &prefix);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	return encodeBoolean(strm, isLocalElementNS);
 }
 
 errorCode selfContained(EXIStream* strm)

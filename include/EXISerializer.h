@@ -69,6 +69,7 @@ struct EXISerializer
 
 	// Miscellaneous
 	errorCode (*processingInstruction)(EXIStream* strm); // TODO: define the parameters!
+	errorCode (*namespaceDeclaration)(EXIStream* strm, const String namespace, const String prefix, unsigned char isLocalElementNS, unsigned char fastSchemaMode, size_t schemaProduction);
 
 	// EXI specific
 	errorCode (*exiHeader)(EXIStream* strm);

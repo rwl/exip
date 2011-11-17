@@ -89,12 +89,12 @@ START_TEST (test_default_options)
 
 	tmp_err_code += asciiToString("http://www.ltu.se/EISLAB/schema-test", &uri, &testStrm.memList, FALSE);
 	tmp_err_code += asciiToString("EXIPEncoder", &ln, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.startElement(&testStrm, &qname, FALSE, 0);
+	tmp_err_code += serialize.startElement(&testStrm, qname, FALSE, 0);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.startElement returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("", &uri, &testStrm.memList, FALSE);
 	tmp_err_code += asciiToString("version", &ln, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.attribute(&testStrm, &qname, VALUE_TYPE_STRING, FALSE, 0);
+	tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING, FALSE, 0);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.attribute returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("0.2", &chVal, &testStrm.memList, FALSE);
@@ -103,7 +103,7 @@ START_TEST (test_default_options)
 
 	tmp_err_code += asciiToString("", &uri, &testStrm.memList, FALSE);
 	tmp_err_code += asciiToString("status", &ln, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.attribute(&testStrm, &qname, VALUE_TYPE_STRING, FALSE, 0);
+	tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING, FALSE, 0);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.attribute returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("alpha", &chVal, &testStrm.memList, FALSE);
@@ -188,12 +188,12 @@ START_TEST (test_fragment_option)
 
 	tmp_err_code += asciiToString("http://www.ltu.se/EISLAB/schema-test", &uri, &testStrm.memList, FALSE);
 	tmp_err_code += asciiToString("EXIPEncoder", &ln, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.startElement(&testStrm, &qname, FALSE, 0);
+	tmp_err_code += serialize.startElement(&testStrm, qname, FALSE, 0);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.startElement returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("", &uri, &testStrm.memList, FALSE);
 	tmp_err_code += asciiToString("version", &ln, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.attribute(&testStrm, &qname, VALUE_TYPE_STRING, FALSE, 0);
+	tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING, FALSE, 0);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.attribute returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("0.2", &chVal, &testStrm.memList, FALSE);
@@ -202,7 +202,7 @@ START_TEST (test_fragment_option)
 
 	tmp_err_code += asciiToString("", &uri, &testStrm.memList, FALSE);
 	tmp_err_code += asciiToString("status", &ln, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.attribute(&testStrm, &qname, VALUE_TYPE_STRING, FALSE, 0);
+	tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING, FALSE, 0);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.attribute returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("alpha", &chVal, &testStrm.memList, FALSE);
@@ -210,7 +210,7 @@ START_TEST (test_fragment_option)
 	fail_unless (tmp_err_code == ERR_OK, "serialize.stringData returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("Test", &ln, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.startElement(&testStrm, &qname, FALSE, 0);
+	tmp_err_code += serialize.startElement(&testStrm, qname, FALSE, 0);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.startElement returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("beta tests", &chVal, &testStrm.memList, FALSE);
@@ -222,7 +222,7 @@ START_TEST (test_fragment_option)
 	tmp_err_code += serialize.endElement(&testStrm, FALSE, 0);
 
 	tmp_err_code += asciiToString("Test2", &ln, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.startElement(&testStrm, &qname, FALSE, 0);
+	tmp_err_code += serialize.startElement(&testStrm, qname, FALSE, 0);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.startElement returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("beta tests -> second root element", &chVal, &testStrm.memList, FALSE);

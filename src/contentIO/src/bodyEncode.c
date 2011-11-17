@@ -331,18 +331,40 @@ errorCode encodeComplexEXIEvent(EXIStream* strm, QName qname, EventType event_al
 
 errorCode encodeQName(EXIStream* strm, QName qname, EventType eventT)
 {
-	//TODO: add the case when Preserve.prefixes is true
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	uint16_t uriID;
 	size_t lnID = 0;
 
+	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Encoding QName\n"));
+
 /******* Start: URI **********/
-	uint16_t uriID = 0;
+	tmp_err_code = encodeURI(strm, (String*) qname.uri, &uriID);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	strm->context.curr_uriID = uriID;
+/******* End: URI **********/
+
+/******* Start: Local name **********/
+	tmp_err_code = encodeLocalName(strm, (String*) qname.localName, uriID, &lnID);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	strm->context.curr_lnID = lnID;
+
+/******* End: Local name **********/
+
+	return encodePrefixQName(strm, qname, eventT);
+}
+
+errorCode encodeURI(EXIStream* strm, String* uri, uint16_t* uriID)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char uriBits = getBitsNumber(strm->uriTable->rowCount);
 
-	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Encoding QName\n"));
-	if(lookupURI(strm->uriTable, *(qname.uri), &uriID)) // uri hit
+	if(lookupURI(strm->uriTable, *uri, uriID)) // uri hit
 	{
-		tmp_err_code = encodeNBitUnsignedInteger(strm, uriBits, uriID + 1);
+		tmp_err_code = encodeNBitUnsignedInteger(strm, uriBits, *uriID + 1);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -352,23 +374,27 @@ errorCode encodeQName(EXIStream* strm, QName qname, EventType eventT)
 		tmp_err_code = encodeNBitUnsignedInteger(strm, uriBits, 0);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		tmp_err_code = encodeString(strm, qname.uri);
+		tmp_err_code = encodeString(strm, uri);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = cloneString(qname.uri, &copiedURI, &strm->memList);
+		tmp_err_code = cloneString(uri, &copiedURI, &strm->memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = addURIRow(strm->uriTable, copiedURI, &uriID, &strm->memList);
+		tmp_err_code = addURIRow(strm->uriTable, copiedURI, uriID, &strm->memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
-	strm->context.curr_uriID = uriID;
-/******* End: URI **********/
 
-/******* Start: Local name **********/
-	if(lookupLN(strm->uriTable->rows[uriID].lTable, *(qname.localName), &lnID)) // local-name table hit
+	return ERR_OK;
+}
+
+errorCode encodeLocalName(EXIStream* strm, String* ln, uint16_t uriID, size_t* lnID)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+
+	if(lookupLN(strm->uriTable->rows[uriID].lTable, *ln, lnID)) // local-name table hit
 	{
 		unsigned char lnBits = getBitsNumber((unsigned int)(strm->uriTable->rows[uriID].lTable->rowCount - 1));
 		tmp_err_code = encodeUnsignedInteger(strm, 0);
@@ -382,11 +408,11 @@ errorCode encodeQName(EXIStream* strm, QName qname, EventType eventT)
 	else // local-name table miss
 	{
 		String copiedLN;
-		tmp_err_code = encodeUnsignedInteger(strm, (UnsignedInteger)(qname.localName->length + 1) );
+		tmp_err_code = encodeUnsignedInteger(strm, (UnsignedInteger)(ln->length + 1) );
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = encodeStringOnly(strm,  qname.localName);
+		tmp_err_code = encodeStringOnly(strm,  ln);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -397,19 +423,16 @@ errorCode encodeQName(EXIStream* strm, QName qname, EventType eventT)
 				return tmp_err_code;
 		}
 
-		tmp_err_code = cloneString(qname.localName, &copiedLN, &strm->memList);
+		tmp_err_code = cloneString(ln, &copiedLN, &strm->memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = addLNRow(strm->uriTable->rows[uriID].lTable, copiedLN, &lnID);
+		tmp_err_code = addLNRow(strm->uriTable->rows[uriID].lTable, copiedLN, lnID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
-	strm->context.curr_lnID = lnID;
 
-/******* End: Local name **********/
-
-	return encodePrefixQName(strm, qname, eventT);
+	return ERR_OK;
 }
 
 errorCode encodePrefixQName(EXIStream* strm, QName qname, EventType eventT)
@@ -443,6 +466,40 @@ errorCode encodePrefixQName(EXIStream* strm, QName qname, EventType eventT)
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
+	}
+
+	return ERR_OK;
+}
+
+errorCode encodePrefix(EXIStream* strm, uint16_t uriID, String* prefix)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	size_t prfxID;
+	unsigned char prfxBits = getBitsNumber(strm->uriTable->rows[uriID].pTable->rowCount);
+
+	if(lookupPrefix(strm->uriTable->rows[uriID].pTable, *prefix, &prfxID)) // prefix hit
+	{
+		tmp_err_code = encodeNBitUnsignedInteger(strm, prfxBits, prfxID + 1);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else  // prefix miss
+	{
+		String copiedPrefix;
+		tmp_err_code = encodeNBitUnsignedInteger(strm, prfxBits, 0);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		tmp_err_code = encodeString(strm, prefix);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = cloneString(prefix, &copiedPrefix, &strm->memList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = addPrefixRow(strm->uriTable->rows[uriID].pTable, copiedPrefix, &prfxID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 	}
 
 	return ERR_OK;
