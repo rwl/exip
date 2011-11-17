@@ -70,6 +70,7 @@ errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const EXIPSc
 	docGrammar->grammarType = GR_TYPE_BUILD_IN_DOC;
 	docGrammar->contentIndex = 0;
 	docGrammar->isNillable = FALSE;
+	docGrammar->isAugmented = TRUE;
 	docGrammar->ruleArray = (GrammarRule*) memManagedAllocate(&strm->memList, sizeof(GrammarRule)*DEF_DOC_GRAMMAR_RULE_NUMBER);
 	if(docGrammar->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -263,6 +264,7 @@ errorCode createBuildInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 	elementGrammar->grammarType = GR_TYPE_BUILD_IN_ELEM;
 	elementGrammar->contentIndex = 0;
 	elementGrammar->isNillable = FALSE;
+	elementGrammar->isAugmented = TRUE;
 	elementGrammar->ruleArray = (GrammarRule*) memManagedAllocate(&strm->memList, sizeof(DynGrammarRule)*DEF_ELEMENT_GRAMMAR_RULE_NUMBER);
 	if(elementGrammar->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -644,6 +646,7 @@ errorCode createFragmentGrammar(EXIGrammar* fragGrammar, EXIStream* strm, const 
 	fragGrammar->grammarType = GR_TYPE_BUILD_IN_FRAG;
 	fragGrammar->contentIndex = 0;
 	fragGrammar->isNillable = FALSE;
+	fragGrammar->isAugmented = TRUE;
 	fragGrammar->ruleArray = (GrammarRule*) memManagedAllocate(&strm->memList, sizeof(GrammarRule)*DEF_FRAG_GRAMMAR_RULE_NUMBER);
 	if(fragGrammar->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;

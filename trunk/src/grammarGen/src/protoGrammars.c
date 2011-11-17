@@ -163,6 +163,7 @@ errorCode convertProtoGrammar(AllocList* memlist, ProtoGrammar* pg, EXIGrammar**
 	(*result)->contentIndex = pg->contentIndex;
 	(*result)->rulesDimension = pg->rulesCount;
 	(*result)->isNillable = FALSE;
+	(*result)->isAugmented = FALSE;
 
 	// #DOCUMENT# one more rule slot is created as it can be needed for addUndeclaredProductions
 	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memlist, sizeof(GrammarRule)*(pg->rulesCount + 1));

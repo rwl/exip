@@ -407,6 +407,7 @@ struct EXIGrammar
 	size_t rulesDimension; // The size of the array
 	unsigned char grammarType;
 	unsigned char isNillable;
+	unsigned char isAugmented;
 	size_t contentIndex;
 };
 
@@ -595,7 +596,6 @@ struct EXIPSchema
 	unsigned int globalElemGrammarsCount;
 	SimpleType* simpleTypeArray;
 	uint16_t sTypeArraySize;
-	unsigned char isAugmented;
 	unsigned char isStatic;
 
 	AllocList memList; // Stores the information for all memory allocations for that schema
