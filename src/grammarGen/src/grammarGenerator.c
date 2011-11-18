@@ -323,6 +323,17 @@ errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t 
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
+	if(IS_PRESERVED(xsdParser.strm.header.opts.preserve, PRESERVE_PREFIXES) == FALSE)
+	{
+		/* When qualified namesNS are used in the values of AT or CH events in an EXI Stream,
+		 * the Preserve.prefixes fidelity option SHOULD be turned on to enable the preservation of
+		 * the NS prefix declarations used by these values. Note, in particular among other cases,
+		 * that this practice applies to the use of xsi:type attributes in EXI streams when Preserve.lexicalValues
+		 * fidelity option is set to true.*/
+		DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">XML Schema must be EXI encoded with the prefixes preserved\n"));
+		return NO_PREFIXES_PRESERVED_XML_SCHEMA;
+	}
+
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">XML Schema header parsed\n"));
 
 	while(tmp_err_code == ERR_OK)
@@ -1282,6 +1293,7 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 	EXIGrammar* exiTypeGrammar;
 	EXIGrammar* exiTypeEmptyGrammar;
 	unsigned char isNillable = FALSE;
+	QName typeQname;
 
 	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
 
@@ -1314,56 +1326,95 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 		isNillable = TRUE;
 	}
 
+	if(isStringEmpty(&type))  // There is no type attribute i.e. there must be some complex/simple type in the pGrammarStack
+	{
+		popFromStack(&(elemDesc->pGrammarStack), (void**) &typeGrammar);
+		popFromStack(&(elemDesc->pEmptyGrammarStack), (void**) &typeEmptyGrammar);
+
+		if(typeGrammar != NULL) // It is not an empty element: <xsd:complexType />
+		{
+			tmp_err_code = assignCodes(typeGrammar, app_data->metaStringTables);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			tmp_err_code = convertProtoGrammar(&app_data->schema->memList, typeGrammar, &exiTypeGrammar);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			exiTypeGrammar->isNillable = isNillable;
+
+#if DEBUG_GRAMMAR_GEN == ON
+			{
+				uint16_t t = 0;
+				DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Element grammar:\n"));
+				for(t = 0; t < exiTypeGrammar->rulesDimension; t++)
+				{
+					tmp_err_code = printGrammarRule(t, &(exiTypeGrammar->ruleArray[t]));
+					if(tmp_err_code != ERR_OK)
+						return tmp_err_code;
+				}
+			}
+#endif
+
+			if(typeEmptyGrammar != NULL)
+			{
+				tmp_err_code = assignCodes(typeEmptyGrammar, app_data->metaStringTables);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				tmp_err_code = convertProtoGrammar(&app_data->schema->memList, typeEmptyGrammar, &exiTypeEmptyGrammar);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				exiTypeEmptyGrammar->isNillable = isNillable;
+			}
+			else
+			{
+				exiTypeEmptyGrammar = app_data->schema->initialStringTables->rows[3].lTable->rows[0].typeEmptyGrammar;
+			}
+
+			app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeGrammar = exiTypeGrammar;
+			app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeEmptyGrammar = exiTypeEmptyGrammar;
+		}
+		else // <xsd:complexType />
+		{
+			/** Empty element (<xsd:complexType /> )
+			 *  Reuse the empty grammar defined for simple types TypeEmpty grammars and not create a multiple empty grammars each time
+			 *  there is an empty element declared - the case for EXI options document*/
+
+			app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeGrammar = app_data->schema->initialStringTables->rows[3].lTable->rows[0].typeEmptyGrammar;
+			app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeEmptyGrammar = app_data->schema->initialStringTables->rows[3].lTable->rows[0].typeEmptyGrammar;
+		}
+	}
+	else // The element has a particular named type
+	{
+		tmp_err_code = getTypeQName(app_data, type, &typeQname);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		if(isStringEmpty(typeQname.uri) || stringEqualToAscii(*typeQname.uri, XML_SCHEMA_NAMESPACE)) // This is build-in simple type definition
+		{
+			size_t stypelnRowId;
+
+			if(lookupLN(app_data->metaStringTables->rows[3].lTable, *typeQname.localName, &stypelnRowId) == FALSE)
+				return UNEXPECTED_ERROR;
+
+			// URI 3 -> http://www.w3.org/2001/XMLSchema
+			app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeGrammar = app_data->schema->initialStringTables->rows[3].lTable->rows[stypelnRowId].typeGrammar;
+			app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeEmptyGrammar = app_data->schema->initialStringTables->rows[3].lTable->rows[stypelnRowId].typeEmptyGrammar;
+		}
+		else // A complex type name or derived simple type
+		{
+			return NOT_IMPLEMENTED_YET;
+		}
+	}
+
+
 	if(isGlobal)
 	{
 		QNameID globalQnameID;
 		size_t dynElID;
 
-		if(isStringEmpty(&type))  // There is no type attribute i.e. there must be some complex/simple type in the pGrammarStack
-		{
-			popFromStack(&(elemDesc->pGrammarStack), (void**) &typeGrammar);
-			popFromStack(&(elemDesc->pEmptyGrammarStack), (void**) &typeEmptyGrammar);
-		}
-		else // The element has a particular named type
-		{
-			return NOT_IMPLEMENTED_YET;
-		}
-
-		tmp_err_code = assignCodes(typeGrammar, app_data->metaStringTables);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = convertProtoGrammar(&app_data->schema->memList, typeGrammar, &exiTypeGrammar);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		exiTypeGrammar->isNillable = isNillable;
-
-#if DEBUG_GRAMMAR_GEN == ON
-	{
-		uint16_t t = 0;
-		DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Element grammar:\n"));
-		for(t = 0; t < exiTypeGrammar->rulesDimension; t++)
-		{
-			tmp_err_code = printGrammarRule(t, &(exiTypeGrammar->ruleArray[t]));
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-		}
-	}
-#endif
-
-		tmp_err_code = assignCodes(typeEmptyGrammar, app_data->metaStringTables);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = convertProtoGrammar(&app_data->schema->memList, typeEmptyGrammar, &exiTypeEmptyGrammar);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		exiTypeEmptyGrammar->isNillable = isNillable;
-
-		app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeGrammar = exiTypeGrammar;
-		app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeEmptyGrammar = exiTypeEmptyGrammar;
 		globalQnameID.uriRowId = uriRowId;
 		globalQnameID.lnRowId = lnRowId;
 		tmp_err_code = addDynElement(app_data->globalElemGrammars, &globalQnameID, &dynElID, &app_data->schema->memList);
@@ -1376,83 +1427,6 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 		ProtoGrammar* elParticleGrammar;
 		unsigned int minOccurs = 1;
 		int32_t maxOccurs = 1;
-		QName typeQname;
-
-		if(isStringEmpty(&type))  // There is no type attribute i.e. there must be some complex type in the pGrammarStack
-		{
-			popFromStack(&(elemDesc->pGrammarStack), (void**) &typeGrammar);
-			popFromStack(&(elemDesc->pEmptyGrammarStack), (void**) &typeEmptyGrammar);
-
-			if(typeGrammar != NULL) // It is not an empty element: <xsd:complexType />
-			{
-				tmp_err_code = assignCodes(typeGrammar, app_data->metaStringTables);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
-
-				tmp_err_code = convertProtoGrammar(&app_data->schema->memList, typeGrammar, &exiTypeGrammar);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
-
-				exiTypeGrammar->isNillable = isNillable;
-
-#if DEBUG_GRAMMAR_GEN == ON
-				{
-					uint16_t t = 0;
-					DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Element grammar:\n"));
-					for(t = 0; t < exiTypeGrammar->rulesDimension; t++)
-					{
-						tmp_err_code = printGrammarRule(t, &(exiTypeGrammar->ruleArray[t]));
-						if(tmp_err_code != ERR_OK)
-							return tmp_err_code;
-					}
-				}
-#endif
-
-				tmp_err_code = assignCodes(typeEmptyGrammar, app_data->metaStringTables);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
-
-				tmp_err_code = convertProtoGrammar(&app_data->schema->memList, typeEmptyGrammar, &exiTypeEmptyGrammar);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
-
-				exiTypeEmptyGrammar->isNillable = isNillable;
-
-				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeGrammar = exiTypeGrammar;
-				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeEmptyGrammar = exiTypeEmptyGrammar;
-			}
-			else // <xsd:complexType />
-			{
-				/** Empty element (<xsd:complexType /> )
-				 *  Reuse the empty grammar defined for simple types TypeEmpty grammars and not create a multiple empty grammars each time
-				 *  there is an empty element declared - the case for EXI options document*/
-
-				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeGrammar = app_data->schema->initialStringTables->rows[3].lTable->rows[0].typeEmptyGrammar;
-				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeEmptyGrammar = app_data->schema->initialStringTables->rows[3].lTable->rows[0].typeEmptyGrammar;
-			}
-		}
-		else // The element has a particular named type
-		{
-			tmp_err_code = getTypeQName(app_data, type, &typeQname);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-
-			if(isStringEmpty(typeQname.uri) || stringEqualToAscii(*typeQname.uri, XML_SCHEMA_NAMESPACE)) // This is build-in simple type definition
-			{
-				size_t stypelnRowId;
-
-				if(lookupLN(app_data->metaStringTables->rows[3].lTable, *typeQname.localName, &stypelnRowId) == FALSE)
-					return UNEXPECTED_ERROR;
-
-				// URI 3 -> http://www.w3.org/2001/XMLSchema
-				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeGrammar = app_data->schema->initialStringTables->rows[3].lTable->rows[stypelnRowId].typeGrammar;
-				app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeEmptyGrammar = app_data->schema->initialStringTables->rows[3].lTable->rows[stypelnRowId].typeEmptyGrammar;
-			}
-			else // A complex type name or derived simple type
-			{
-				return NOT_IMPLEMENTED_YET;
-			}
-		}
 
 		minOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MIN_OCCURS]);
 		maxOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MAX_OCCURS]);

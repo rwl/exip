@@ -158,7 +158,7 @@ errorCode decodePrefixQname(EXIStream* strm, QName* qname)
 	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) == FALSE)
 		return ERR_OK;
 
-	if(strm->uriTable->rows[strm->context.curr_uriID].pTable->rowCount == 0)
+	if(strm->uriTable->rows[strm->context.curr_uriID].pTable == NULL || strm->uriTable->rows[strm->context.curr_uriID].pTable->rowCount == 0)
 		return ERR_OK;
 
 	prefixBits = getBitsNumber(strm->uriTable->rows[strm->context.curr_uriID].pTable->rowCount - 1);
@@ -572,6 +572,13 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		tmp_err_code = decodeURI(strm, &uriID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
+
+		if(strm->uriTable->rows[uriID].pTable == NULL)
+		{
+			tmp_err_code = createPrefixTable(&strm->uriTable->rows[uriID].pTable, &strm->memList);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
 
 		tmp_err_code = decodePrefix(strm, uriID, &prfxID);
 		if(tmp_err_code != ERR_OK)

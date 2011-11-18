@@ -444,7 +444,7 @@ errorCode encodePrefixQName(EXIStream* strm, QName qname, EventType eventT)
 	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) == FALSE)
 		return ERR_OK;
 
-	if(strm->uriTable->rows[strm->context.curr_uriID].pTable->rowCount == 0)
+	if(strm->uriTable->rows[strm->context.curr_uriID].pTable == NULL || strm->uriTable->rows[strm->context.curr_uriID].pTable->rowCount == 0)
 		return ERR_OK;
 
 	prefixBits = getBitsNumber(strm->uriTable->rows[strm->context.curr_uriID].pTable->rowCount - 1);

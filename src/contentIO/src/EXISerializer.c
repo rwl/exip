@@ -406,6 +406,13 @@ errorCode namespaceDeclaration(EXIStream* strm, const String namespace, const St
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
+	if(strm->uriTable->rows[uriID].pTable == NULL)
+	{
+		tmp_err_code = createPrefixTable(&strm->uriTable->rows[uriID].pTable, &strm->memList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+
 	tmp_err_code = encodePrefix(strm, uriID, (String*) &prefix);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
