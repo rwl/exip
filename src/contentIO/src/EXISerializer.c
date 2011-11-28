@@ -52,6 +52,7 @@
 #include "hashtable.h"
 #include "stringManipulate.h"
 #include "streamEncode.h"
+#include "buildInGrammars.h"
 
 /**
  * The handler to be used by the applications to serialize EXI streams
@@ -200,6 +201,14 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 	else if(schemaIdMode == SCHEMA_ID_EMPTY)
 	{
 		strm->header.opts.schemaID.length = SCHEMA_ID_EMPTY;
+
+		strm->schema = memManagedAllocate(&strm->memList, sizeof(EXIPSchema));
+		if(strm->schema == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+
+		tmp_err_code = generateSchemaBuildInGrammars(strm->schema);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 	}
 
 	return ERR_OK;
@@ -324,7 +333,49 @@ errorCode intData(EXIStream* strm, Integer int_val, unsigned char fastSchemaMode
 
 errorCode booleanData(EXIStream* strm, unsigned char bool_val, unsigned char fastSchemaMode, size_t schemaProduction)
 {
-	return NOT_IMPLEMENTED_YET;
+	ValueType dummmyType;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	unsigned char isXsiNilAttr = FALSE;
+	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start boolean data serialization\n"));
+
+	if(strm->context.expectATData) // Value for an attribute
+	{
+		strm->context.expectATData = FALSE;
+		if(strm->context.curr_uriID == 2 && strm->context.curr_lnID == 0)
+		{
+			// xsi:nill
+			isXsiNilAttr = TRUE;
+		}
+	}
+	else
+	{
+		EXIEvent event = {EVENT_CH, {VALUE_TYPE_BOOLEAN, SIMPLE_TYPE_BOOLEAN}};
+
+		tmp_err_code = encodeSimpleEXIEvent(strm, event, fastSchemaMode, schemaProduction, &dummmyType);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+
+	tmp_err_code = encodeBoolean(strm, bool_val);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	if(strm->gStack->grammar->grammarType >= GR_TYPE_SCHEMA_DOC && isXsiNilAttr && bool_val)
+	{
+		// In a schema-informed grammar && xsi:nil == TRUE
+		EXIGrammar* tmpGrammar;
+		popGrammar(&(strm->gStack), &tmpGrammar);
+		if(strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].typeEmptyGrammar == NULL)
+			return INCONSISTENT_PROC_STATE;
+
+		tmp_err_code = pushGrammar(&(strm->gStack), strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].typeEmptyGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		strm->context.nonTermID = GR_START_TAG_CONTENT;
+	}
+
+	return ERR_OK;
 }
 
 errorCode stringData(EXIStream* strm, const String str_val, unsigned char fastSchemaMode, size_t schemaProduction)

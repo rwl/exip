@@ -33,40 +33,67 @@
 \===================================================================================*/
 
 /**
- * @file grammarGenerator.h
- * @brief Definition and functions for generating Schema-informed Grammar definitions
- * @date Nov 22, 2010
+ * @file buildInGrammars.h
+ * @brief Defines a function for generation of build-in Schema type grammars.
+ * This functionality is put in this module (and not grammarGen) because of:
+ * When the value of the "schemaId" element is empty, no user defined schema information is
+ * used for processing the EXI body; however, the built-in XML schema types are available for use in the EXI body
+ * This requires that some grammar generation is done even if there is no dynamic
+ * grammar generation.
+ *
+ * @date Nov 28, 2011
  * @author Rumen Kyusakov
  * @version 0.1
  * @par[Revision] $Id$
  */
 
-#ifndef GRAMMARGENERATOR_H_
-#define GRAMMARGENERATOR_H_
+#ifndef BUILDINGRAMMARS_H_
+#define BUILDINGRAMMARS_H_
 
 #include "errorHandle.h"
 #include "procTypes.h"
-
-/** Supported schema formats like XML-XSD, EXI-XSD, DTD or any other schema representation */
-#define SCHEMA_FORMAT_XSD_EXI           0
-#define SCHEMA_FORMAT_XSD_XML           1
-#define SCHEMA_FORMAT_DTD               2
-#define SCHEMA_FORMAT_RELAX_NG          3
+#include "dynamicArray.h"
+#include "memManagement.h"
 
 /**
- * @brief Generate a Schema-informed Document Grammar and all Schema-informed Element and Type Grammars
- * Initial implementation is targeted at XML Schema definitions encoded with EXI with default options.
- * The grammar of the schema can be further optimized in the future.
+ * @brief Generate all build in Schema-informed Element and Type Grammars
+ * It is used when the value of the "schemaId" element is empty, no user defined schema information
+ * is used for processing the EXI body; however, the built-in XML schema types are available for use in the EXI body
  *
- * @param[in] binaryBuf an input buffer holding (part of) the representation of the schema
- * @param[in] bufLen size of binaryBuf - number of bytes
- * @param[in] bufContent the size of the data stored in binaryBuf - number of bytes; if 0 - then readInput will be called to fill it in
- * @param[in] ioStrm input stream used to fill the binaryBuf when parsed. If NULL the whole schema is stored in binaryBuf
- * @param[in] schemaFormat EXI, XSD, DTD or any other schema representation supported
  * @param[out] schema the resulted schema information used for processing EXI streams
  * @return Error handling code
  */
-errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t bufContent, IOStream* ioStrm,
-										unsigned char schemaFormat, EXIPSchema* schema);
+errorCode generateSchemaBuildInGrammars(EXIPSchema* schema);
 
-#endif /* GRAMMARGENERATOR_H_ */
+/**
+ * @brief Generate a Schema-informed Type and TypeEmpty Grammars for all build-in XML Schema Types
+ * It is used by generateSchemaInformedGrammars() and when the value of the "schemaId" element is empty,
+ * no user defined schema information is used for processing the EXI body; however, the built-in XML schema
+ * types are available for use in the EXI body.
+ *
+ * @param[in, out] sTables string tables holding the references to the grammars
+ * @param[in, out] memList A list storing the memory allocations
+ * @return Error handling code
+ */
+errorCode generateBuildInTypesGrammars(URITable* sTables, AllocList* memList);
+
+
+/**
+ * @brief Populate initial simple type array with the build-in simple types
+ *
+ * @param[in, out] sTypeArr Dynamic array storing the simple types definitions
+ * @param[in, out] memList memory allocations
+ * @return Error handling code
+ */
+errorCode createBuildInTypesDefinitions(DynArray* sTypeArr, AllocList* memList);
+
+/**
+ * @brief Maps a simple XSD type to its EXI datatype representation
+ *
+ * @param[in] simpleXSDType simple XSD type QName given as string table ids
+ * @param[out] vType corresponding EXI type with constraining facets
+ * @return Error handling code
+ */
+errorCode getEXIDataTypeFromSimpleType(QNameID simpleXSDType, ValueType* vType);
+
+#endif /* BUILDINGRAMMARS_H_ */
