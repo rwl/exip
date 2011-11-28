@@ -52,6 +52,7 @@
 #include "EXIParser.h"
 #include "sTables.h"
 #include "stringManipulate.h"
+#include "buildInGrammars.h"
 
 /** This is the statically generated EXIP schema definition for the EXI Options document*/
 extern const EXIPSchema ops_schema;
@@ -268,7 +269,13 @@ errorCode decodeHeader(EXIStream* strm)
 		{
 			// When the value of the "schemaId" element is empty, no user defined schema information
 			// is used for processing the EXI body; however, the built-in XML schema types are available for use in the EXI body
-			// TODO: Implement this case!
+			strm->schema = memManagedAllocate(&strm->memList, sizeof(EXIPSchema));
+			if(strm->schema == NULL)
+				return MEMORY_ALLOCATION_ERROR;
+
+			tmp_err_code = generateSchemaBuildInGrammars(strm->schema);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
 		}
 	}
 

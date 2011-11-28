@@ -49,6 +49,7 @@
 #include "memManagement.h"
 #include "grammars.h"
 #include "grammarAugment.h"
+#include "buildInGrammars.h"
 
 #define XML_SCHEMA_NAMESPACE "http://www.w3.org/2001/XMLSchema"
 
@@ -331,6 +332,9 @@ errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t 
 		 * that this practice applies to the use of xsi:type attributes in EXI streams when Preserve.lexicalValues
 		 * fidelity option is set to true.*/
 		DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">XML Schema must be EXI encoded with the prefixes preserved\n"));
+		destroyParser(&xsdParser);
+		freeAllocList(&schema->memList);
+		freeAllocList(&parsing_data.tmpMemList);
 		return NO_PREFIXES_PRESERVED_XML_SCHEMA;
 	}
 
@@ -2001,123 +2005,6 @@ static errorCode getTypeQName(struct xsdAppData* app_data, const String typeLite
 
 	qname->localName = ln;
 	qname->uri = uri;
-
-	return ERR_OK;
-}
-
-errorCode generateBuildInTypesGrammars(URITable* sTables, AllocList* memList)
-{
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned int i;
-	QNameID typeQnameID;
-	ValueType vType;
-	EXIGrammar* grammar;
-	EXIGrammar* typeEmptyGrammar;
-
-	typeEmptyGrammar = memManagedAllocate(memList, sizeof(EXIGrammar));
-	if(typeEmptyGrammar == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	typeEmptyGrammar->contentIndex = 0;
-	typeEmptyGrammar->isNillable = FALSE;
-	typeEmptyGrammar->isAugmented = FALSE;
-	typeEmptyGrammar->grammarType = GR_TYPE_SCHEMA_EMPTY_TYPE;
-	typeEmptyGrammar->rulesDimension = 1;
-
-	// One more rule slot for grammar augmentation when strict == FASLE
-	typeEmptyGrammar->ruleArray = memManagedAllocate(memList, sizeof(GrammarRule)*2);
-	if(typeEmptyGrammar->ruleArray == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	typeEmptyGrammar->ruleArray->bits[0] = 0;
-	typeEmptyGrammar->ruleArray->bits[1] = 0;
-	typeEmptyGrammar->ruleArray->bits[2] = 0;
-
-	typeEmptyGrammar->ruleArray->prodCounts[0] = 1;
-	typeEmptyGrammar->ruleArray->prodCounts[1] = 0;
-	typeEmptyGrammar->ruleArray->prodCounts[2] = 0;
-
-	typeEmptyGrammar->ruleArray->prodArrays[0] = memManagedAllocate(memList, sizeof(Production));
-	if(typeEmptyGrammar->ruleArray->prodArrays[0] == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	typeEmptyGrammar->ruleArray->prodArrays[1] = NULL;
-	typeEmptyGrammar->ruleArray->prodArrays[2] = NULL;
-
-	typeEmptyGrammar->ruleArray->prodArrays[0][0].event = getEventDefType(EVENT_EE);
-	typeEmptyGrammar->ruleArray->prodArrays[0][0].uriRowID = UINT16_MAX;
-	typeEmptyGrammar->ruleArray->prodArrays[0][0].lnRowID = SIZE_MAX;
-	typeEmptyGrammar->ruleArray->prodArrays[0][0].nonTermID = GR_VOID_NON_TERMINAL;
-
-	// URI id 3 -> http://www.w3.org/2001/XMLSchema
-	typeQnameID.uriRowId = 3;
-
-	for(i = 0; i < sTables->rows[3].lTable->rowCount; i++)
-	{
-		typeQnameID.lnRowId = i;
-		tmp_err_code = getEXIDataTypeFromSimpleType(typeQnameID, &vType);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		grammar = memManagedAllocate(memList, sizeof(EXIGrammar));
-		if(grammar == NULL)
-			return MEMORY_ALLOCATION_ERROR;
-
-		grammar->contentIndex = 0;
-		grammar->grammarType = GR_TYPE_SCHEMA_TYPE;
-		grammar->isNillable = FALSE;
-		grammar->isAugmented = FALSE;
-		grammar->rulesDimension = 2;
-
-		// One more rule slot for grammar augmentation when strict == FASLE
-		grammar->ruleArray = memManagedAllocate(memList, sizeof(GrammarRule)*(grammar->rulesDimension + 1));
-		if(grammar->ruleArray == NULL)
-			return MEMORY_ALLOCATION_ERROR;
-
-		grammar->ruleArray[0].bits[0] = 0;
-		grammar->ruleArray[0].bits[1] = 0;
-		grammar->ruleArray[0].bits[2] = 0;
-		grammar->ruleArray[0].prodCounts[0] = 1;
-		grammar->ruleArray[0].prodCounts[1] = 0;
-		grammar->ruleArray[0].prodCounts[2] = 0;
-
-		grammar->ruleArray[0].prodArrays[0] = memManagedAllocate(memList, sizeof(Production));
-		if(grammar->ruleArray[0].prodArrays[0] == NULL)
-			return MEMORY_ALLOCATION_ERROR;
-
-		grammar->ruleArray[0].prodArrays[1] = NULL;
-		grammar->ruleArray[0].prodArrays[2] = NULL;
-
-		grammar->ruleArray[0].prodArrays[0][0].event.eventType = EVENT_CH;
-		grammar->ruleArray[0].prodArrays[0][0].event.valueType = vType;
-		grammar->ruleArray[0].prodArrays[0][0].nonTermID = 1;
-		grammar->ruleArray[0].prodArrays[0][0].uriRowID = UINT16_MAX;
-		grammar->ruleArray[0].prodArrays[0][0].lnRowID = SIZE_MAX;
-
-		grammar->ruleArray[1].bits[0] = 0;
-		grammar->ruleArray[1].bits[1] = 0;
-		grammar->ruleArray[1].bits[2] = 0;
-		grammar->ruleArray[1].prodCounts[0] = 1;
-		grammar->ruleArray[1].prodCounts[1] = 0;
-		grammar->ruleArray[1].prodCounts[2] = 0;
-
-		grammar->ruleArray[1].prodArrays[0] = memManagedAllocate(memList, sizeof(Production));
-		if(grammar->ruleArray[1].prodArrays[0] == NULL)
-			return MEMORY_ALLOCATION_ERROR;
-
-		grammar->ruleArray[1].prodArrays[1] = NULL;
-		grammar->ruleArray[1].prodArrays[2] = NULL;
-
-		grammar->ruleArray[1].prodArrays[0][0].event.eventType = EVENT_EE;
-		grammar->ruleArray[1].prodArrays[0][0].event.valueType.exiType = VALUE_TYPE_NONE;
-		grammar->ruleArray[1].prodArrays[0][0].event.valueType.simpleTypeID = UINT16_MAX;
-		grammar->ruleArray[1].prodArrays[0][0].nonTermID = GR_VOID_NON_TERMINAL;
-		grammar->ruleArray[1].prodArrays[0][0].uriRowID = UINT16_MAX;
-		grammar->ruleArray[1].prodArrays[0][0].lnRowID = SIZE_MAX;
-
-		sTables->rows[3].lTable->rows[i].typeGrammar = grammar;
-		sTables->rows[3].lTable->rows[i].typeEmptyGrammar = typeEmptyGrammar;
-	}
 
 	return ERR_OK;
 }

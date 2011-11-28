@@ -446,8 +446,17 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 			{
 				if(bool_val == TRUE)
 				{
-					// TODO: If the value of nil is true, evaluate the element contents using the grammar TypeEmpty k defined above rather than RightHandSide.
-					return NOT_IMPLEMENTED_YET;
+					// xsi:nil attribute equals to true & schema mode
+					EXIGrammar* tmpGrammar;
+					popGrammar(&(strm->gStack), &tmpGrammar);
+					if(strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].typeEmptyGrammar == NULL)
+						return INCONSISTENT_PROC_STATE;
+
+					tmp_err_code = pushGrammar(&(strm->gStack), strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].typeEmptyGrammar);
+					if(tmp_err_code != ERR_OK)
+						return tmp_err_code;
+
+					*nonTermID_out = GR_START_TAG_CONTENT;
 				}
 				strm->context.expectATData = FALSE;
 			}

@@ -2,7 +2,8 @@
 
 CONTENT_IO_OBJ = $(BIN_DIR)/headerDecode.o $(BIN_DIR)/headerEncode.o \
 				 $(BIN_DIR)/bodyDecode.o $(BIN_DIR)/EXIParser.o $(BIN_DIR)/EXISerializer.o \
-				 $(BIN_DIR)/bodyEncode.o $(BIN_DIR)/grammarAugment.o $(BIN_DIR)/staticEXIOptions.o
+				 $(BIN_DIR)/bodyEncode.o $(BIN_DIR)/grammarAugment.o $(BIN_DIR)/staticEXIOptions.o \
+				 $(BIN_DIR)/buildInGrammars.o
 
 $(BIN_DIR)/headerEncode.o : $(CONTENT_IO_SRC)/include/headerEncode.h $(CONTENT_IO_SRC)/src/headerEncode.c
 		$(CC) -c $(CFLAGS) $(CONTENT_IO_SRC)/src/headerEncode.c -o $(BIN_DIR)/headerEncode.o
@@ -27,3 +28,6 @@ $(BIN_DIR)/grammarAugment.o : $(CONTENT_IO_SRC)/include/grammarAugment.h $(CONTE
 		
 $(BIN_DIR)/staticEXIOptions.o : $(CONTENT_IO_SRC)/src/staticEXIOptions.c
 		$(CC) -c $(CFLAGS) $(CONTENT_IO_SRC)/src/staticEXIOptions.c -o $(BIN_DIR)/staticEXIOptions.o
+		
+$(BIN_DIR)/buildInGrammars.o : $(CONTENT_IO_SRC)/src/buildInGrammars.c
+		$(CC) -c $(CFLAGS) $(CONTENT_IO_SRC)/src/buildInGrammars.c -o $(BIN_DIR)/buildInGrammars.o

@@ -232,15 +232,6 @@ errorCode createChoiceModelGroupsGrammar(AllocList* memList, GenericStack* proto
 errorCode createAllModelGroupsGrammar(AllocList* memList, ProtoGrammar* pTermArray, unsigned int pTermArraySize, ProtoGrammar** result);
 
 /**
- * @brief Maps a simple XSD type to its EXI datatype representation
- *
- * @param[in] simpleXSDType simple XSD type QName given as string table ids
- * @param[out] vType corresponding EXI type with constraining facets
- * @return Error handling code
- */
-errorCode getEXIDataTypeFromSimpleType(QNameID simpleXSDType, ValueType* vType);
-
-/**
  * @brief Compare lexicographically two qnames
  *
  * @param[in] uri1 uri of the first qname
@@ -259,14 +250,5 @@ int qnamesCompare(const String* uri1, const String* ln1, const String* uri2, con
  * @return Error handling code
  */
 errorCode assignCodes(ProtoGrammar* grammar, URITable* metaSTable);
-
-/**
- * @brief Populate initial simple type array with the build-in simple types
- *
- * @param[in, out] sTypeArr Dynamic array storing the simple types definitions
- * @param[in, out] memList memory allocations
- * @return Error handling code
- */
-errorCode createBuildInTypesDefinitions(DynArray* sTypeArr, AllocList* memList);
 
 #endif /* GENUTILS_H_ */

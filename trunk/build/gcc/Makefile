@@ -197,10 +197,10 @@ mk_tests:
 		mkdir -p $(TESTS_BIN_DIR)
 		
 test_sets_copy_examples:
-		cp $(EXAMPLES_SRC_DIR)/simpleEncoding/exip-test-xsd.exi $(EXAMPLES_BIN_DIR)/exipe-test-xsd.exi
-		cp $(EXAMPLES_SRC_DIR)/simpleDecoding/exip-test-xsd.exi $(EXAMPLES_BIN_DIR)/exipd-test-xsd.exi
-		cp $(EXAMPLES_SRC_DIR)/simpleDecoding/exip-test.exi $(EXAMPLES_BIN_DIR)/exipd-test.exi
-		cp $(EXAMPLES_SRC_DIR)/simpleDecoding/exip-test-schema.exi $(EXAMPLES_BIN_DIR)/exipd-test-schema.exi
+		cp $(EXAMPLES_SRC_DIR)/simpleEncoding/exipe-test-xsd.exi $(EXAMPLES_BIN_DIR)/exipe-test-xsd.exi
+		cp $(EXAMPLES_SRC_DIR)/simpleDecoding/exipd-test-xsd.exi $(EXAMPLES_BIN_DIR)/exipd-test-xsd.exi
+		cp $(EXAMPLES_SRC_DIR)/simpleDecoding/exipd-test.exi $(EXAMPLES_BIN_DIR)/exipd-test.exi
+		cp $(EXAMPLES_SRC_DIR)/simpleDecoding/exipd-test-schema.exi $(EXAMPLES_BIN_DIR)/exipd-test-schema.exi
 		
 test_sets_copy_utils:		
 		cp $(UTILS_SRC_DIR)/schemaHandling/EXIOptions-xsd.exi $(UTILS_BIN_DIR)/EXIOptions-xsd.exi
