@@ -52,24 +52,24 @@
 struct EXISerializer
 {
 	// For handling the meta-data (document structure)
-	errorCode (*startDocument)(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
-	errorCode (*endDocument)(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
-	errorCode (*startElement)(EXIStream* strm, QName qname, unsigned char fastSchemaMode, size_t schemaProduction);
-	errorCode (*endElement)(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
-	errorCode (*attribute)(EXIStream* strm, QName qname, EXIType valueType, unsigned char fastSchemaMode, size_t schemaProduction);
+	errorCode (*startDocument)(EXIStream* strm);
+	errorCode (*endDocument)(EXIStream* strm);
+	errorCode (*startElement)(EXIStream* strm, QName qname);
+	errorCode (*endElement)(EXIStream* strm);
+	errorCode (*attribute)(EXIStream* strm, QName qname, EXIType valueType);
 
 	// For handling the data
-	errorCode (*intData)(EXIStream* strm, Integer int_val, unsigned char fastSchemaMode, size_t schemaProduction);
-	errorCode (*booleanData)(EXIStream* strm, unsigned char bool_val, unsigned char fastSchemaMode, size_t schemaProduction);
-	errorCode (*stringData)(EXIStream* strm, const String str_val, unsigned char fastSchemaMode, size_t schemaProduction);
-	errorCode (*floatData)(EXIStream* strm, Float float_val, unsigned char fastSchemaMode, size_t schemaProduction);
-	errorCode (*binaryData)(EXIStream* strm, const char* binary_val, size_t nbytes, unsigned char fastSchemaMode, size_t schemaProduction);
-	errorCode (*dateTimeData)(EXIStream* strm, struct tm dt_val, uint16_t presenceMask, unsigned char fastSchemaMode, size_t schemaProduction);
-	errorCode (*decimalData)(EXIStream* strm, Decimal dec_val, unsigned char fastSchemaMode, size_t schemaProduction);
+	errorCode (*intData)(EXIStream* strm, Integer int_val);
+	errorCode (*booleanData)(EXIStream* strm, unsigned char bool_val);
+	errorCode (*stringData)(EXIStream* strm, const String str_val);
+	errorCode (*floatData)(EXIStream* strm, Float float_val);
+	errorCode (*binaryData)(EXIStream* strm, const char* binary_val, size_t nbytes);
+	errorCode (*dateTimeData)(EXIStream* strm, struct tm dt_val, uint16_t presenceMask);
+	errorCode (*decimalData)(EXIStream* strm, Decimal dec_val);
 
 	// Miscellaneous
 	errorCode (*processingInstruction)(EXIStream* strm); // TODO: define the parameters!
-	errorCode (*namespaceDeclaration)(EXIStream* strm, const String namespace, const String prefix, unsigned char isLocalElementNS, unsigned char fastSchemaMode, size_t schemaProduction);
+	errorCode (*namespaceDeclaration)(EXIStream* strm, const String namespace, const String prefix, unsigned char isLocalElementNS);
 
 	// EXI specific
 	errorCode (*exiHeader)(EXIStream* strm);
@@ -82,5 +82,70 @@ struct EXISerializer
 };
 
 typedef struct EXISerializer EXISerializer;
+
+/**** START: Serializer API implementation  ****/
+
+// For handling the meta-data (document structure)
+errorCode startDocument(EXIStream* strm);
+errorCode endDocument(EXIStream* strm);
+errorCode startElement(EXIStream* strm, QName qname);
+errorCode endElement(EXIStream* strm);
+errorCode attribute(EXIStream* strm, QName qname, EXIType exiType);
+
+// For handling the data
+errorCode intData(EXIStream* strm, Integer int_val);
+errorCode booleanData(EXIStream* strm, unsigned char bool_val);
+errorCode stringData(EXIStream* strm, const String str_val);
+errorCode floatData(EXIStream* strm, Float float_val);
+errorCode binaryData(EXIStream* strm, const char* binary_val, size_t nbytes);
+errorCode dateTimeData(EXIStream* strm, struct tm dt_val, uint16_t presenceMask);
+errorCode decimalData(EXIStream* strm, Decimal dec_val);
+
+// Miscellaneous
+errorCode processingInstruction(EXIStream* strm); // TODO: define the parameters!
+errorCode namespaceDeclaration(EXIStream* strm, const String namespace, const String prefix, unsigned char isLocalElementNS);
+
+// EXI specific
+errorCode selfContained(EXIStream* strm);  // Used for indexing independent elements for random access
+
+// EXIP specific
+void initHeader(EXIStream* strm);
+
+/**
+ * @brief Encodes String value into EXI stream
+ *
+ * @param[in, out] strm EXI stream
+ * @param[in, out] buf binary buffer for storing the encodded EXI stream
+ * @param[in] bufSize the size of the buffer in bytes
+ * @param[in] ioStrm defines an output stream to be used to flush the binary buffer when full, NULL if no such output stream exists
+ * @param[in] schema a compiled schema information to be used for schema enabled processing, NULL if no schema is available
+ * @param[in] schemaIdMode one of SCHEMA_ID_ABSENT, SCHEMA_ID_SET, SCHEMA_ID_NIL or SCHEMA_ID_EMPTY
+ * @param[in] schemaID if in SCHEMA_ID_SET a valid string representing the schemaID, NULL otherwise
+ * @return Error handling code
+ */
+errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStrm, EXIPSchema *schema,
+					unsigned char schemaIdMode, String* schemaID);
+
+
+errorCode closeEXIStream(EXIStream* strm);
+
+/****  END: Serializer API implementation  ****/
+
+
+/**** START: Fast, low level API for schema encoding only ****/
+
+/**
+ * To be used by code generation tools such as static XML bindings
+ * and when efficiency is of high importance
+ *
+ * @param[in, out] strm EXI stream
+ * @param[in] codeLength 1,2 or 3 is the allowed length of EXI event codes
+ * @param[in] lastCodePart the last part of the event code
+ * @param[in] qname used only for SE(*), AT(*), SE(uri:*), AT(uri:*) and when
+ * a new prefix should be serialized in SE(QName) and AT(QName); NULL otherwise
+ */
+errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, size_t lastCodePart, QName* qname);
+
+/****  END: Fast, low level API for schema encoding only ****/
 
 #endif /* EXISERIALIZER_H_ */

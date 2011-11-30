@@ -116,216 +116,51 @@ errorCode encodeStringData(EXIStream* strm, String strng)
 	return ERR_OK;
 }
 
-errorCode encodeSimpleEXIEvent(EXIStream* strm, EXIEvent event, unsigned char fastSchemaMode, size_t schemaProduction, ValueType* prodType)
+errorCode lookupProduction(EXIStream* strm, EXIEvent event, QName* qname, unsigned char* codeLength, size_t* lastCodePart)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char b = 0;
 	size_t j = 0;
 	GrammarRule* currentRule;
 	Production* prodHit = NULL;
-
-	if(strm->context.nonTermID >=  strm->gStack->grammar->rulesDimension)
-		return INCONSISTENT_PROC_STATE;
-
-	currentRule = &strm->gStack->grammar->ruleArray[strm->context.nonTermID];
-
-#if DEBUG_CONTENT_IO == ON
-	{
-		tmp_err_code = printGrammarRule(strm->context.nonTermID, currentRule);
-		if(tmp_err_code != ERR_OK)
-		{
-			DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Error printing grammar rule\n"));
-		}
-	}
-#endif
-
-	if(fastSchemaMode == FALSE)
-	{
-		for (b = 0; b < 3; b++)
-		{
-			for(j = 0; j < currentRule->prodCounts[b]; j++)
-			{
-				if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM || valueTypeClassesEqual(currentRule->prodArrays[b][currentRule->prodCounts[b] - 1 - j].event.valueType.exiType, event.valueType.exiType))
-				{
-					if(currentRule->prodArrays[b][currentRule->prodCounts[b] - 1 - j].event.eventType == event.eventType)
-					{
-						prodHit = &currentRule->prodArrays[b][currentRule->prodCounts[b] - 1 - j];
-						break;
-					}
-				}
-			}
-			if(prodHit != NULL)
-				break;
-		}
-
-		tmp_err_code = writeEventCode(strm, currentRule, b + 1, j);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM && b > 0
-			&& (event.eventType == EVENT_CH || event.eventType == EVENT_EE))  // If the current grammar is build-in Element grammar and the event code size is bigger than 1 and the event is CH or EE...
-		{
-			// #1# COMMENT and #2# COMMENT
-			tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, getEventDefType(event.eventType), prodHit->nonTermID,
-					prodHit->lnRowID, prodHit->uriRowID);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-		}
-	}
-	else // fastSchemaMode == TRUE
-	{
-		int prod2 = currentRule->prodCounts[0] - schemaProduction;
-		if(prod2 > 0)
-		{
-			b = 0;
-			j = schemaProduction;
-			prodHit = &currentRule->prodArrays[b][prod2 - 1];
-
-		}
-		else
-		{
-			int prod3 = currentRule->prodCounts[1] + prod2;
-			if(prod3 > 0)
-			{
-				b = 1;
-				j = -prod2;
-				prodHit = &currentRule->prodArrays[b][prod3 - 1];
-			}
-			else
-			{
-				if(currentRule->prodCounts[2] + prod3 <= 0)
-					return INCONSISTENT_PROC_STATE;
-
-				b = 2;
-				j = -prod3;
-				prodHit = &currentRule->prodArrays[b][currentRule->prodCounts[2] + prod3 - 1];
-			}
-		}
-
-		tmp_err_code = writeEventCode(strm, currentRule, b + 1, j);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-
-	strm->context.nonTermID = prodHit->nonTermID;
-	*prodType = prodHit->event.valueType;
-
-	return ERR_OK;
-}
-
-errorCode encodeComplexEXIEvent(EXIStream* strm, QName qname, EventType event_all, EventType event_uri, EventType event_qname, EXIType exiType, unsigned char fastSchemaMode, size_t schemaProduction)
-{
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned char b = 0;
-	size_t j = 0;
 	size_t tmp_prod_indx = 0;
-	GrammarRule* currentRule;
-	Production* prodHit = NULL;
 
 	if(strm->context.nonTermID >=  strm->gStack->grammar->rulesDimension)
 		return INCONSISTENT_PROC_STATE;
 
 	currentRule = &strm->gStack->grammar->ruleArray[strm->context.nonTermID];
 
-#if DEBUG_CONTENT_IO == ON
+	for (b = 0; b < 3; b++)
 	{
-		tmp_err_code = printGrammarRule(strm->context.nonTermID, currentRule);
-		if(tmp_err_code != ERR_OK)
+		for(j = 0; j < currentRule->prodCounts[b]; j++)
 		{
-			DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Error printing grammar rule\n"));
-		}
-	}
-#endif
-
-	if(fastSchemaMode == FALSE)
-	{
-		for (b = 0; b < 3; b++)
-		{
-			for(j = 0; j < currentRule->prodCounts[b]; j++)
+			tmp_prod_indx = currentRule->prodCounts[b] - 1 - j;
+			if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM || valueTypeClassesEqual(currentRule->prodArrays[b][tmp_prod_indx].event.valueType.exiType, event.valueType.exiType))
 			{
-				tmp_prod_indx = currentRule->prodCounts[b] - 1 - j;
-				if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM || valueTypeClassesEqual(currentRule->prodArrays[b][tmp_prod_indx].event.valueType.exiType, exiType))
+				if(currentRule->prodArrays[b][tmp_prod_indx].event.eventType == event.eventType || // (1)
+						(qname != NULL &&
+						(((currentRule->prodArrays[b][tmp_prod_indx].event.eventType == EVENT_AT_URI || currentRule->prodArrays[b][tmp_prod_indx].event.eventType == EVENT_SE_URI) &&    // (2)
+						stringEqual(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].string_val, *(qname->uri))) ||
+						((currentRule->prodArrays[b][tmp_prod_indx].event.eventType == EVENT_AT_QNAME || currentRule->prodArrays[b][tmp_prod_indx].event.eventType == EVENT_SE_QNAME) && // (3)
+						stringEqual(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].string_val, *(qname->uri)) &&
+						stringEqual(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].lTable->rows[currentRule->prodArrays[b][tmp_prod_indx].lnRowID].string_val, *(qname->localName))))
+						)
+				)
 				{
-					if(currentRule->prodArrays[b][tmp_prod_indx].event.eventType == event_all ||   // (1)
-					   (currentRule->prodArrays[b][tmp_prod_indx].event.eventType == event_uri &&    // (2)
-							   stringEqual(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].string_val, *(qname.uri))) ||
-						(currentRule->prodArrays[b][tmp_prod_indx].event.eventType == event_qname && // (3)
-								stringEqual(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].string_val, *(qname.uri)) &&
-								stringEqual(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].lTable->rows[currentRule->prodArrays[b][tmp_prod_indx].lnRowID].string_val, *(qname.localName)))
-					   )
-					{
-						prodHit = &currentRule->prodArrays[b][tmp_prod_indx];
-						break;
-					}
+					prodHit = &currentRule->prodArrays[b][tmp_prod_indx];
+					break;
 				}
 			}
-			if(prodHit != NULL)
-				break;
 		}
-	}
-	else // fastSchemaMode == TRUE
-	{
-		int prod2 = currentRule->prodCounts[0] - schemaProduction;
-		if(prod2 > 0)
-		{
-			b = 0;
-			j = schemaProduction;
-			prodHit = &currentRule->prodArrays[b][prod2 - 1];
-
-		}
-		else
-		{
-			int prod3 = currentRule->prodCounts[1] + prod2;
-			if(prod3 > 0)
-			{
-				b = 1;
-				j = -prod2;
-				prodHit = &currentRule->prodArrays[b][prod3 - 1];
-			}
-			else
-			{
-				if(currentRule->prodCounts[2] + prod3 <= 0)
-					return INCONSISTENT_PROC_STATE;
-
-				b = 2;
-				j = -prod3;
-				prodHit = &currentRule->prodArrays[b][currentRule->prodCounts[2] + prod3 - 1];
-			}
-		}
+		if(prodHit != NULL)
+			break;
 	}
 
-	tmp_err_code = writeEventCode(strm, currentRule, b + 1, j);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	if(prodHit == NULL)
+		return INCONSISTENT_PROC_STATE;
 
-	if(prodHit->event.eventType == event_all)
-	{
-		tmp_err_code = encodeQName(strm, qname, event_all);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+	*codeLength = b + 1;
+	*lastCodePart = j;
 
-		if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)  // If the current grammar is build-in Element grammar ...
-		{
-			tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, getEventDefType(EVENT_SE_QNAME), prodHit->nonTermID, strm->context.curr_lnID, strm->context.curr_uriID);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-		}
-	}
-	else if(prodHit->event.eventType == event_uri)
-	{
-		return NOT_IMPLEMENTED_YET;
-	}
-	else if(prodHit->event.eventType == event_qname)
-	{
-		strm->context.curr_uriID = prodHit->uriRowID;
-		strm->context.curr_lnID = prodHit->lnRowID;
-
-		tmp_err_code = encodePrefixQName(strm, qname, event_all);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-
-	strm->context.nonTermID = prodHit->nonTermID;
 	return ERR_OK;
 }
 
@@ -354,7 +189,7 @@ errorCode encodeQName(EXIStream* strm, QName qname, EventType eventT)
 
 /******* End: Local name **********/
 
-	return encodePrefixQName(strm, qname, eventT);
+	return encodePrefixQName(strm, &qname, eventT);
 }
 
 errorCode encodeURI(EXIStream* strm, String* uri, uint16_t* uriID)
@@ -435,7 +270,7 @@ errorCode encodeLocalName(EXIStream* strm, String* ln, uint16_t uriID, size_t* l
 	return ERR_OK;
 }
 
-errorCode encodePrefixQName(EXIStream* strm, QName qname, EventType eventT)
+errorCode encodePrefixQName(EXIStream* strm, QName* qname, EventType eventT)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char prefixBits = 0;
@@ -451,7 +286,10 @@ errorCode encodePrefixQName(EXIStream* strm, QName qname, EventType eventT)
 
 	if(prefixBits > 0)
 	{
-		if(lookupPrefix(strm->uriTable->rows[strm->context.curr_uriID].pTable, *qname.prefix, &prefixID) == TRUE)
+		if(qname == NULL)
+			return NULL_POINTER_REF;
+
+		if(lookupPrefix(strm->uriTable->rows[strm->context.curr_uriID].pTable, *qname->prefix, &prefixID) == TRUE)
 		{
 			tmp_err_code = encodeNBitUnsignedInteger(strm, prefixBits, prefixID);
 			if(tmp_err_code != ERR_OK)

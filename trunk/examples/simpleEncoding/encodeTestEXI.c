@@ -163,24 +163,24 @@ int main(int argc, char *argv[])
 			// V: Start building the stream step by step: header, document, element etc...
 			tmp_err_code += serialize.exiHeader(&testStrm);
 
-			tmp_err_code += serialize.startDocument(&testStrm, FALSE, 0);
+			tmp_err_code += serialize.startDocument(&testStrm);
 
 			tmp_err_code += asciiToString("http://www.ltu.se/EISLAB/schema-test", &uri, &testStrm.memList, FALSE);
 			tmp_err_code += asciiToString("EXIPEncoder", &ln, &testStrm.memList, FALSE);
-			tmp_err_code += serialize.startElement(&testStrm, qname, FALSE, 0);
+			tmp_err_code += serialize.startElement(&testStrm, qname);
 
 			tmp_err_code += asciiToString("", &uri, &testStrm.memList, FALSE);
 			tmp_err_code += asciiToString("version", &ln, &testStrm.memList, FALSE);
-			tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING, FALSE, 0);
+			tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING);
 
 			tmp_err_code += asciiToString("0.2", &chVal, &testStrm.memList, FALSE);
-			tmp_err_code += serialize.stringData(&testStrm, chVal, FALSE, 0);
+			tmp_err_code += serialize.stringData(&testStrm, chVal);
 
 			tmp_err_code += asciiToString("This is an example of serializing EXI streams using EXIP low level API", &chVal, &testStrm.memList, FALSE);
-			tmp_err_code += serialize.stringData(&testStrm, chVal, FALSE, 0);
+			tmp_err_code += serialize.stringData(&testStrm, chVal);
 
-			tmp_err_code += serialize.endElement(&testStrm, FALSE, 0);
-			tmp_err_code += serialize.endDocument(&testStrm, FALSE, 0);
+			tmp_err_code += serialize.endElement(&testStrm);
+			tmp_err_code += serialize.endDocument(&testStrm);
 
 			if(tmp_err_code != ERR_OK)
 				printError(tmp_err_code, &testStrm, outfile);

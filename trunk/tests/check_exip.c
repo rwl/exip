@@ -84,37 +84,37 @@ START_TEST (test_default_options)
 	tmp_err_code = serialize.exiHeader(&testStrm);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.exiHeader returns an error code %d", tmp_err_code);
 
-	tmp_err_code = serialize.startDocument(&testStrm, FALSE, 0);
+	tmp_err_code = serialize.startDocument(&testStrm);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.startDocument returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("http://www.ltu.se/EISLAB/schema-test", &uri, &testStrm.memList, FALSE);
 	tmp_err_code += asciiToString("EXIPEncoder", &ln, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.startElement(&testStrm, qname, FALSE, 0);
+	tmp_err_code += serialize.startElement(&testStrm, qname);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.startElement returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("", &uri, &testStrm.memList, FALSE);
 	tmp_err_code += asciiToString("version", &ln, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING, FALSE, 0);
+	tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.attribute returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("0.2", &chVal, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.stringData(&testStrm, chVal, FALSE, 0);
+	tmp_err_code += serialize.stringData(&testStrm, chVal);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.stringData returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("", &uri, &testStrm.memList, FALSE);
 	tmp_err_code += asciiToString("status", &ln, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING, FALSE, 0);
+	tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.attribute returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("alpha", &chVal, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.stringData(&testStrm, chVal, FALSE, 0);
+	tmp_err_code += serialize.stringData(&testStrm, chVal);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.stringData returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("This is an example of serializing EXI streams using EXIP low level API", &chVal, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.stringData(&testStrm, chVal, FALSE, 0);
+	tmp_err_code += serialize.stringData(&testStrm, chVal);
 
-	tmp_err_code += serialize.endElement(&testStrm, FALSE, 0);
-	tmp_err_code += serialize.endDocument(&testStrm, FALSE, 0);
+	tmp_err_code += serialize.endElement(&testStrm);
+	tmp_err_code += serialize.endDocument(&testStrm);
 
 	if(tmp_err_code != ERR_OK)
 		fail_unless (tmp_err_code == ERR_OK, "serialization ended with error code %d", tmp_err_code);
@@ -183,56 +183,56 @@ START_TEST (test_fragment_option)
 	tmp_err_code = serialize.exiHeader(&testStrm);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.exiHeader returns an error code %d", tmp_err_code);
 
-	tmp_err_code = serialize.startDocument(&testStrm, FALSE, 0);
+	tmp_err_code = serialize.startDocument(&testStrm);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.startDocument returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("http://www.ltu.se/EISLAB/schema-test", &uri, &testStrm.memList, FALSE);
 	tmp_err_code += asciiToString("EXIPEncoder", &ln, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.startElement(&testStrm, qname, FALSE, 0);
+	tmp_err_code += serialize.startElement(&testStrm, qname);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.startElement returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("", &uri, &testStrm.memList, FALSE);
 	tmp_err_code += asciiToString("version", &ln, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING, FALSE, 0);
+	tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.attribute returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("0.2", &chVal, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.stringData(&testStrm, chVal, FALSE, 0);
+	tmp_err_code += serialize.stringData(&testStrm, chVal);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.stringData returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("", &uri, &testStrm.memList, FALSE);
 	tmp_err_code += asciiToString("status", &ln, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING, FALSE, 0);
+	tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.attribute returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("alpha", &chVal, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.stringData(&testStrm, chVal, FALSE, 0);
+	tmp_err_code += serialize.stringData(&testStrm, chVal);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.stringData returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("Test", &ln, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.startElement(&testStrm, qname, FALSE, 0);
+	tmp_err_code += serialize.startElement(&testStrm, qname);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.startElement returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("beta tests", &chVal, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.stringData(&testStrm, chVal, FALSE, 0);
+	tmp_err_code += serialize.stringData(&testStrm, chVal);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.stringData returns an error code %d", tmp_err_code);
 
-	tmp_err_code += serialize.endElement(&testStrm, FALSE, 0);
+	tmp_err_code += serialize.endElement(&testStrm);
 
-	tmp_err_code += serialize.endElement(&testStrm, FALSE, 0);
+	tmp_err_code += serialize.endElement(&testStrm);
 
 	tmp_err_code += asciiToString("Test2", &ln, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.startElement(&testStrm, qname, FALSE, 0);
+	tmp_err_code += serialize.startElement(&testStrm, qname);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.startElement returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("beta tests -> second root element", &chVal, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.stringData(&testStrm, chVal, FALSE, 0);
+	tmp_err_code += serialize.stringData(&testStrm, chVal);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.stringData returns an error code %d", tmp_err_code);
 
-	tmp_err_code = serialize.endElement(&testStrm, FALSE, 0);
+	tmp_err_code = serialize.endElement(&testStrm);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.endElement returns an error code %d", tmp_err_code);
 
-	tmp_err_code = serialize.endDocument(&testStrm, FALSE, 0);
+	tmp_err_code = serialize.endDocument(&testStrm);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.endDocument returns an error code %d", tmp_err_code);
 
 	if(tmp_err_code != ERR_OK)
