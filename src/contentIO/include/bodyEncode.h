@@ -47,54 +47,16 @@
 #include "errorHandle.h"
 #include "procTypes.h"
 
-/**** START: Serializer API implementation  ****/
-
-// For handling the meta-data (document structure)
-errorCode startDocument(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
-errorCode endDocument(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
-errorCode startElement(EXIStream* strm, QName qname, unsigned char fastSchemaMode, size_t schemaProduction);
-errorCode endElement(EXIStream* strm, unsigned char fastSchemaMode, size_t schemaProduction);
-errorCode attribute(EXIStream* strm, QName qname, EXIType exiType, unsigned char fastSchemaMode, size_t schemaProduction);
-
-// For handling the data
-errorCode intData(EXIStream* strm, Integer int_val, unsigned char fastSchemaMode, size_t schemaProduction);
-errorCode booleanData(EXIStream* strm, unsigned char bool_val, unsigned char fastSchemaMode, size_t schemaProduction);
-errorCode stringData(EXIStream* strm, const String str_val, unsigned char fastSchemaMode, size_t schemaProduction);
-errorCode floatData(EXIStream* strm, Float float_val, unsigned char fastSchemaMode, size_t schemaProduction);
-errorCode binaryData(EXIStream* strm, const char* binary_val, size_t nbytes, unsigned char fastSchemaMode, size_t schemaProduction);
-errorCode dateTimeData(EXIStream* strm, struct tm dt_val, uint16_t presenceMask, unsigned char fastSchemaMode, size_t schemaProduction);
-errorCode decimalData(EXIStream* strm, Decimal dec_val, unsigned char fastSchemaMode, size_t schemaProduction);
-
-// Miscellaneous
-errorCode processingInstruction(EXIStream* strm); // TODO: define the parameters!
-errorCode namespaceDeclaration(EXIStream* strm, const String namespace, const String prefix, unsigned char isLocalElementNS, unsigned char fastSchemaMode, size_t schemaProduction);
-
-// EXI specific
-errorCode selfContained(EXIStream* strm);  // Used for indexing independent elements for random access
-
-// EXIP specific
-void initHeader(EXIStream* strm);
-
 /**
- * @brief Encodes String value into EXI stream
- *
+ * @brief Finds the grammar production based on the event (and eventually the qname in case of SE and AT)
  * @param[in, out] strm EXI stream
- * @param[in, out] buf binary buffer for storing the encodded EXI stream
- * @param[in] bufSize the size of the buffer in bytes
- * @param[in] ioStrm defines an output stream to be used to flush the binary buffer when full, NULL if no such output stream exists
- * @param[in] schema a compiled schema information to be used for schema enabled processing, NULL if no schema is available
- * @param[in] schemaIdMode one of SCHEMA_ID_ABSENT, SCHEMA_ID_SET, SCHEMA_ID_NIL or SCHEMA_ID_EMPTY
- * @param[in] schemaID if in SCHEMA_ID_SET a valid string representing the schemaID, NULL otherwise
+ * @param[in] event event to be encoded
+ * @param[in] qname element or attribute QName in case of SE or AT events; NULL otherwise
+ * @param[out] codeLength 1,2 or 3 is the allowed length of EXI event codes
+ * @param[out] lastCodePart the last part of the event code
  * @return Error handling code
  */
-errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStrm, EXIPSchema *schema,
-					unsigned char schemaIdMode, String* schemaID);
-
-
-errorCode closeEXIStream(EXIStream* strm);
-
-/****  END: Serializer API implementation  ****/
-
+errorCode lookupProduction(EXIStream* strm, EXIEvent event, QName* qname, unsigned char* codeLength, size_t* lastCodePart);
 
 /**
  * @brief Encodes String value into EXI stream
@@ -103,32 +65,6 @@ errorCode closeEXIStream(EXIStream* strm);
  * @return Error handling code
  */
 errorCode encodeStringData(EXIStream* strm, String strng);
-
-/**
- * @brief Encodes SD, ED, EE, CH, NS events
- * @param[in, out] strm EXI stream
- * @param[in] event event to be encoded
- * @param[in] fastSchemaMode - TRUE/FALSE, require valid schemaProduction order number
- * @param[in] schemaProduction the order number of the schema production (starting from 0), only needed if fastSchemaMode == TRUE
- * @param[out] prodType the valueType of the production hit in the grammar
- * @return Error handling code
- */
-errorCode encodeSimpleEXIEvent(EXIStream* strm, EXIEvent event, unsigned char fastSchemaMode, size_t schemaProduction, ValueType* prodType);
-
-/**
- * @brief Encodes SE, AT events
- * @param[in, out] strm EXI stream
- * @param[in] qname element or attribute QName
- * @param[in] event_all EVENT_SE_ALL or EVENT_AT_ALL
- * @param[in] event_uri EVENT_SE_URI or EVENT_AT_URI
- * @param[in] event_qname EVENT_SE_QNAME or EVENT_AT_QNAME
- * @param[in] exiType used for AT events
- * @param[in] fastSchemaMode - TRUE/FALSE, require valid schemaProduction order number
- * @param[in] schemaProduction the order number of the schema production (starting from 0), only needed if fastSchemaMode == TRUE
- * @return Error handling code
- */
-errorCode encodeComplexEXIEvent(EXIStream* strm, QName qname, EventType event_all, EventType event_uri,
-						EventType event_qname, EXIType exiType, unsigned char fastSchemaMode, size_t schemaProduction);
 
 /**
  * @brief Encodes QName into EXI stream
@@ -169,7 +105,7 @@ errorCode encodeLocalName(EXIStream* strm, String* ln, uint16_t uriID, size_t* l
  * the prefix MUST be resolved by one of the NS events immediately following the SE event (see resolution rules below).
  * @return Error handling code
  */
-errorCode encodePrefixQName(EXIStream* strm, QName qname, EventType eventT);
+errorCode encodePrefixQName(EXIStream* strm, QName* qname, EventType eventT);
 
 /**
  * @brief Encodes the prefix part of the NS event into the EXI stream
