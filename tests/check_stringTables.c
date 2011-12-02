@@ -277,7 +277,7 @@ START_TEST (test_addValueRows)
 	testStrm.context.curr_lnID = 2; // lang
 
 	asciiToString("TEST-007", &testStr, &testStrm.memList, FALSE);
-	tmp_err_code = addValueRows(&testStrm, &testStr);
+	tmp_err_code = addValueRows(&testStrm, &testStr, 1, 2);
 
 	fail_unless (tmp_err_code == ERR_OK, "addValueRows returns an error code %d", tmp_err_code);
 	fail_unless (testStrm.uriTable->rows[testStrm.context.curr_uriID].lTable->rows[testStrm.context.curr_lnID].vCrossTable != NULL, "addValueRows does not create vCrossTable");

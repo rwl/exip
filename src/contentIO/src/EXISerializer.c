@@ -105,6 +105,8 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 	strm->context.nonTermID = GR_DOCUMENT;
 	strm->context.curr_uriID = 0;
 	strm->context.curr_lnID = 0;
+	strm->context.curr_attr_uriID = 0;
+	strm->context.curr_attr_lnID = 0;
 	strm->context.expectATData = 0;
 	strm->gStack = NULL;
 	strm->uriTable = NULL;
@@ -139,7 +141,7 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
-	else
+	else if(schemaIdMode != SCHEMA_ID_EMPTY)
 	{
 		tmp_err_code = createInitialStringTables(strm);
 		if(tmp_err_code != ERR_OK)
@@ -162,22 +164,6 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 	tmp_err_code = pushGrammar(&strm->gStack, docGr);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-
-	// #DOCUMENT#
-	// Hashtable for fast look-up of global values in the table.
-	// Only used when:
-	// serializing &&
-	// valuePartitionCapacity > 50  &&   //for small table full-scan will work better
-	// valueMaxLength > 0 && // this is essentially equal to valuePartitionCapacity == 0
-	// HASH_TABLE_USE == ON // build configuration parameter
-	if(strm->header.opts.valuePartitionCapacity > DEFAULT_VALUE_ROWS_NUMBER &&
-			strm->header.opts.valueMaxLength > 0 &&
-			HASH_TABLE_USE == ON)
-	{
-		strm->vTable->hashTbl = create_hashtable(53, djbHash, stringEqual);
-		if(strm->vTable->hashTbl == NULL)
-			return HASH_TABLE_ERROR;
-	}
 
 	// EXI schemaID handling
 
@@ -209,6 +195,31 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 		tmp_err_code = generateSchemaBuildInGrammars(strm->schema);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
+
+		strm->uriTable = strm->schema->initialStringTables;
+		tmp_err_code = createValueTable(&(strm->vTable), &(strm->memList));
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = addUndeclaredProductionsToAll(&strm->memList, strm->uriTable, &strm->header.opts, strm->schema->simpleTypeArray, strm->schema->sTypeArraySize);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+
+	// #DOCUMENT#
+	// Hashtable for fast look-up of global values in the table.
+	// Only used when:
+	// serializing &&
+	// valuePartitionCapacity > 50  &&   //for small table full-scan will work better
+	// valueMaxLength > 0 && // this is essentially equal to valuePartitionCapacity == 0
+	// HASH_TABLE_USE == ON // build configuration parameter
+	if(strm->header.opts.valuePartitionCapacity > DEFAULT_VALUE_ROWS_NUMBER &&
+			strm->header.opts.valueMaxLength > 0 &&
+			HASH_TABLE_USE == ON)
+	{
+		strm->vTable->hashTbl = create_hashtable(53, djbHash, stringEqual);
+		if(strm->vTable->hashTbl == NULL)
+			return HASH_TABLE_ERROR;
 	}
 
 	return ERR_OK;
@@ -341,7 +352,7 @@ errorCode booleanData(EXIStream* strm, unsigned char bool_val)
 	if(strm->context.expectATData) // Value for an attribute
 	{
 		strm->context.expectATData = FALSE;
-		if(strm->context.curr_uriID == 2 && strm->context.curr_lnID == 0)
+		if(strm->context.curr_attr_uriID == 2 && strm->context.curr_attr_lnID == 0)
 		{
 			// xsi:nill
 			isXsiNilAttr = TRUE;
@@ -371,10 +382,12 @@ errorCode booleanData(EXIStream* strm, unsigned char bool_val)
 		// In a schema-informed grammar && xsi:nil == TRUE
 		EXIGrammar* tmpGrammar;
 		popGrammar(&(strm->gStack), &tmpGrammar);
-		if(strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].typeEmptyGrammar == NULL)
+
+		tmpGrammar = strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].typeEmptyGrammar;
+		if(tmpGrammar == NULL)
 			return INCONSISTENT_PROC_STATE;
 
-		tmp_err_code = pushGrammar(&(strm->gStack), strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].typeEmptyGrammar);
+		tmp_err_code = pushGrammar(&(strm->gStack), tmpGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -386,11 +399,15 @@ errorCode booleanData(EXIStream* strm, unsigned char bool_val)
 
 errorCode stringData(EXIStream* strm, const String str_val)
 {
+	uint16_t uriID;
+	size_t lnID;
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start string data serialization\n"));
 
 	if(strm->context.expectATData) // Value for an attribute
 	{
 		strm->context.expectATData = FALSE;
+		uriID = strm->context.curr_attr_uriID;
+		lnID = strm->context.curr_attr_lnID;
 	}
 	else
 	{
@@ -406,9 +423,12 @@ errorCode stringData(EXIStream* strm, const String str_val)
 		tmp_err_code = serializeEvent(strm, codeLength, lastCodePart, NULL);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
+
+		uriID = strm->context.curr_uriID;
+		lnID = strm->context.curr_lnID;
 	}
 
-	return encodeStringData(strm, str_val);
+	return encodeStringData(strm, str_val, uriID, lnID);
 }
 
 errorCode floatData(EXIStream* strm, Float float_val)
@@ -572,47 +592,92 @@ errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, size_t lastC
 		&& (prodHit->event.eventType == EVENT_CH || prodHit->event.eventType == EVENT_EE))  // If the current grammar is build-in Element grammar and the event code size is bigger than 1 and the event is CH or EE...
 	{
 		// #1# COMMENT and #2# COMMENT
-		tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, getEventDefType(prodHit->event.eventType), prodHit->nonTermID,
+		tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, prodHit->event, prodHit->nonTermID,
 				prodHit->lnRowID, prodHit->uriRowID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 
-	if(prodHit->event.eventType == EVENT_AT_ALL || prodHit->event.eventType == EVENT_SE_ALL)
+	switch(prodHit->event.eventType)
 	{
-		if(qname == NULL)
-			return NULL_POINTER_REF;
-
-		tmp_err_code = encodeQName(strm, *qname, prodHit->event.eventType);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)  // If the current grammar is build-in Element grammar ...
+		case EVENT_AT_ALL:
 		{
-			EXIEvent newEvent;
+			if(qname == NULL)
+				return NULL_POINTER_REF;
 
-			/** prodHit->event - 2 is equivalent to EVENT_AT_QNAME or EVENT_SE_QNAME*/
-			newEvent.eventType = prodHit->event.eventType - 2;
-			newEvent.valueType.exiType = prodHit->event.valueType.exiType;
-			newEvent.valueType.simpleTypeID = prodHit->event.valueType.simpleTypeID;
+			tmp_err_code = encodeQName(strm, *qname, prodHit->event.eventType, &strm->context.curr_attr_uriID, &strm->context.curr_attr_lnID);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
 
-			tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, newEvent, prodHit->nonTermID, strm->context.curr_lnID, strm->context.curr_uriID);
+			if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)  // If the current grammar is build-in Element grammar ...
+			{
+				EXIEvent newEvent;
+
+				/** prodHit->event - 2 is equivalent to EVENT_AT_QNAME or EVENT_SE_QNAME*/
+				newEvent.eventType = prodHit->event.eventType - 2;
+				newEvent.valueType.exiType = prodHit->event.valueType.exiType;
+				newEvent.valueType.simpleTypeID = prodHit->event.valueType.simpleTypeID;
+
+				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, newEvent, prodHit->nonTermID, strm->context.curr_attr_lnID, strm->context.curr_attr_uriID);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
+		}
+		break;
+		case EVENT_SE_ALL:
+		{
+			if(qname == NULL)
+				return NULL_POINTER_REF;
+
+			tmp_err_code = encodeQName(strm, *qname, prodHit->event.eventType, &strm->context.curr_uriID, &strm->context.curr_lnID);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)  // If the current grammar is build-in Element grammar ...
+			{
+				EXIEvent newEvent;
+
+				/** prodHit->event - 2 is equivalent to EVENT_AT_QNAME or EVENT_SE_QNAME*/
+				newEvent.eventType = prodHit->event.eventType - 2;
+				newEvent.valueType.exiType = prodHit->event.valueType.exiType;
+				newEvent.valueType.simpleTypeID = prodHit->event.valueType.simpleTypeID;
+
+				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, newEvent, prodHit->nonTermID, strm->context.curr_lnID, strm->context.curr_uriID);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
+		}
+		break;
+		case EVENT_AT_URI:
+		{
+			return NOT_IMPLEMENTED_YET;
+		}
+		break;
+		case EVENT_SE_URI:
+		{
+			return NOT_IMPLEMENTED_YET;
+		}
+		break;
+		case EVENT_AT_QNAME:
+		{
+			strm->context.curr_attr_uriID = prodHit->uriRowID;
+			strm->context.curr_attr_lnID = prodHit->lnRowID;
+
+			tmp_err_code = encodePrefixQName(strm, qname, prodHit->event.eventType, prodHit->uriRowID);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
-	}
-	else if(prodHit->event.eventType == EVENT_AT_URI || prodHit->event.eventType == EVENT_SE_URI)
-	{
-		return NOT_IMPLEMENTED_YET;
-	}
-	else if(prodHit->event.eventType == EVENT_AT_QNAME || prodHit->event.eventType == EVENT_SE_QNAME)
-	{
-		strm->context.curr_uriID = prodHit->uriRowID;
-		strm->context.curr_lnID = prodHit->lnRowID;
+		break;
+		case EVENT_SE_QNAME:
+		{
+			strm->context.curr_uriID = prodHit->uriRowID;
+			strm->context.curr_lnID = prodHit->lnRowID;
 
-		tmp_err_code = encodePrefixQName(strm, qname, prodHit->event.eventType);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+			tmp_err_code = encodePrefixQName(strm, qname, prodHit->event.eventType, prodHit->uriRowID);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+		break;
 	}
 
 	strm->context.nonTermID = prodHit->nonTermID;

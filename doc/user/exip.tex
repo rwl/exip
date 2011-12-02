@@ -1,0 +1,132 @@
+%%% LaTeX Template
+%%% This template can be used for both articles and reports.
+%%%
+%%% Copyright: http://www.howtotex.com/
+%%% Date: February 2011
+
+%%% Preamble
+\documentclass[paper=a4, fontsize=11pt]{scrartcl}	% Article class of KOMA-script with 11pt font and a4 format
+
+\usepackage[english]{babel}															% English language/hyphenation
+\usepackage[protrusion=true,expansion=true]{microtype}				% Better typography
+\usepackage{amsmath,amsfonts,amsthm}										% Math packages
+\usepackage[pdftex]{graphicx}														% Enable pdflatex
+%\usepackage{color,transparent}													% If you use color and/or transparency
+\usepackage[hang, small,labelfont=bf,up,textfont=it,up]{caption}	% Custom captions under/above floats
+\usepackage{epstopdf}																	% Converts .eps to .pdf
+\usepackage{subfig}																		% Subfigures
+\usepackage{booktabs}																	% Nicer tables
+\usepackage{indentfirst}
+\usepackage{hyperref}
+
+%%% Advanced verbatim environment
+\usepackage{verbatim}
+\usepackage{fancyvrb}
+\DefineShortVerb{\|}								% delimiter to display inline verbatim text
+
+
+%%% Custom sectioning (sectsty package)
+\usepackage{sectsty}								% Custom sectioning (see below)
+\allsectionsfont{%									% Change font of al section commands
+	\usefont{OT1}{bch}{b}{n}%					% bch-b-n: CharterBT-Bold font
+%	\hspace{15pt}%									% Uncomment for indentation
+	}
+
+\sectionfont{%										% Change font of \section command
+	\usefont{OT1}{bch}{b}{n}%					% bch-b-n: CharterBT-Bold font
+	\sectionrule{0pt}{0pt}{-5pt}{0.8pt}%	% Horizontal rule below section
+	}
+
+
+%%% Custom headers/footers (fancyhdr package)
+\usepackage{fancyhdr}
+\pagestyle{fancyplain}
+\fancyhead{}														% No page header
+\fancyfoot[C]{\thepage}										% Pagenumbering at center of footer
+\fancyfoot[R]{\small \texttt{exip v0.3}}	% You can remove/edit this line 
+\renewcommand{\headrulewidth}{0pt}				% Remove header underlines
+\renewcommand{\footrulewidth}{0pt}				% Remove footer underlines
+\setlength{\headheight}{13.6pt}
+\addtolength{\textheight}{0.7in}
+
+%%% Equation and float numbering
+\numberwithin{equation}{section}															% Equationnumbering: section.eq#
+\numberwithin{figure}{section}																% Figurenumbering: section.fig#
+\numberwithin{table}{section}																% Tablenumbering: section.tab#
+
+\usepackage{url}
+% ------------------------------------------------------------------------------
+% Definitions (do not change this)
+% ------------------------------------------------------------------------------
+\newcommand{\HRule}[1]{\rule{\linewidth}{#1}} 	% Horizontal rule
+
+\makeatletter							% Title
+\def\printtitle{%						
+    {\centering \@title\par}}
+\makeatother									
+
+\makeatletter							% Author
+\def\printauthor{%					
+    {\centering \large \@author}}				
+\makeatother							
+
+% ------------------------------------------------------------------------------
+% Metadata (Change this)
+% ------------------------------------------------------------------------------
+\title{	\normalsize \textsc{EXIP - Embeddable EXI implementation in C} 	% Subtitle of the document
+		 	\\[2.0cm]													% 2cm spacing
+			\HRule{0.5pt} \\										% Upper rule
+			\LARGE \textbf{\uppercase{EXIP User Guide}}	% Title
+			\HRule{2pt} \\ [0.5cm]								% Lower rule + 0.5cm spacing
+			\normalsize \today									% Todays date
+		}
+
+\author{
+		\textbf{Rumen Kyusakov}\\	
+		PhD student, Lule{\aa} University of Technology\\ [0.5cm]
+		\HRule{0.5pt} \\ [0.5cm]
+}
+
+%%% Title	
+%\title{ \vspace{-1in} 	\usefont{OT1}{bch}{b}{n}
+%		\huge \strut This is the title of the template report \strut \\
+%		\Large \bfseries \strut and a subtitle \strut
+%}
+%\author{ 									\usefont{OT1}{bch}{m}{n}
+%        Firstname Lastname\\		\usefont{OT1}{bch}{m}{n}
+%       University of Examples\\	\usefont{OT1}{bch}{m}{n}
+%        Random Department\\
+%        \texttt{email@example.com}
+%}
+%\date{}
+
+%%% Begin document
+\begin{document}
+\thispagestyle{empty}				% Remove page numbering on this page
+
+\printtitle									% Print the title data as defined above
+  	\vfill
+\begin{figure}[!h]
+ \begin{center}
+ \includegraphics[width=0.70\textwidth, keepaspectratio=true]{images/logo.pdf}
+\end{center}
+\end{figure}
+
+\printauthor
+
+\textit{Copyright (c) 2011, Rumen Kyusakov. This work is licensed under \href{http://creativecommons.org/licenses/by-sa/3.0/}{Creative Commons Attribution-ShareAlike 3.0 License}.}
+
+\clearpage
+\setcounter{page}{1}
+
+\input{Introduction.tex}
+
+\input{Serialization.tex}
+
+\input{Parsing.tex}
+
+\input{Schema-information.tex}
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+\end{document}

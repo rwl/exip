@@ -65,6 +65,8 @@ errorCode initParser(Parser* parser, char* binaryBuf, size_t bufLen, size_t bufC
 	parser->strm.context.nonTermID = GR_DOCUMENT;
 	parser->strm.context.curr_lnID = 0;
 	parser->strm.context.curr_uriID = 0;
+	parser->strm.context.curr_attr_lnID = 0;
+	parser->strm.context.curr_attr_uriID = 0;
 	parser->strm.context.expectATData = 0;
 	parser->strm.bufContent = bufContent;
 	parser->strm.schema = schema;

@@ -47,10 +47,12 @@
 #include "grammarGenerator.h"
 #include "memManagement.h"
 #include "grammarAugment.h"
+#include "hashtable.h"
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 
+#define MAX_GRAMMARS_COUNT 5000
 #define INPUT_BUFFER_SIZE 200
 #define SPRINTF_BUFFER_SIZE 300
 #define OUT_EXIP     0
@@ -227,12 +229,25 @@ int main(int argc, char *argv[])
 			char conv_buff[SPRINTF_BUFFER_SIZE];
 			AllocList memList;
 			time_t now;
+			struct hashtable *typeGrammrarsHash;
+			struct hashtable *typeEmptyGrammrarsHash;
+			size_t typeGrammarID;
+			size_t typeEmptyGrammarID;
+			String hashKey;
+			QNameID typeGrammars[MAX_GRAMMARS_COUNT];
+			unsigned int tgCount = 0;
+			QNameID typeEmptyGrammars[MAX_GRAMMARS_COUNT];
+			unsigned int tegCount = 0;
+			unsigned int grammarPointer = 0;
 
 			if(ERR_OK != initAllocList(&memList))
 			{
 				printf("unexpected error!");
 				exit(1);
 			}
+
+			typeGrammrarsHash = create_hashtable(200, djbHash, stringEqual);
+			typeEmptyGrammrarsHash = create_hashtable(200, djbHash, stringEqual);
 
 			time(&now);
 			sprintf(printfBuf, "/** AUTO-GENERATED: %.24s\n  * Copyright (c) 2010 - 2011, Rumen Kyusakov, EISLAB, LTU\n  * $Id$ */\n\n",  ctime(&now));
@@ -302,7 +317,11 @@ int main(int argc, char *argv[])
 					for(j = 0; j < schema.initialStringTables->rows[i].lTable->rowCount; j++)
 					{
 						tmpGrammar = schema.initialStringTables->rows[i].lTable->rows[j].typeGrammar;
-						if(tmpGrammar != NULL)
+						grammarPointer = (unsigned int) tmpGrammar;
+						hashKey.str = (char*) &grammarPointer;
+						hashKey.length = sizeof(grammarPointer);
+						typeGrammarID = hashtable_search(typeGrammrarsHash, &hashKey);
+						if(tmpGrammar != NULL && typeGrammarID == SIZE_MAX)
 						{
 							if(mask_specified == TRUE)
 							{
@@ -386,6 +405,127 @@ int main(int argc, char *argv[])
 							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 							sprintf(printfBuf, "grammar_%d_%d->ruleArray = ruleArray_%d_%d;\n\t", i, j, i, j);
 							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+							if(tgCount >= MAX_GRAMMARS_COUNT)
+							{
+								printf("\n ERROR: MAX_GRAMMARS_COUNT reached!");
+								exit(1);
+							}
+
+							if(ERR_OK != hashtable_insert(typeGrammrarsHash, &hashKey, tgCount))
+							{
+								printf("\n ERROR: OUT_SRC_DYN output format!");
+								exit(1);
+							}
+							typeGrammars[tgCount].uriRowId = i;
+							typeGrammars[tgCount].lnRowId = j;
+							tgCount++;
+						}
+
+						tmpGrammar = schema.initialStringTables->rows[i].lTable->rows[j].typeEmptyGrammar;
+						grammarPointer = (unsigned int) tmpGrammar;
+						hashKey.str = (char*) &grammarPointer;
+						hashKey.length = sizeof(grammarPointer);
+						typeEmptyGrammarID = hashtable_search(typeEmptyGrammrarsHash, &hashKey);
+						if(tmpGrammar != NULL && typeEmptyGrammarID == SIZE_MAX)
+						{
+							if(mask_specified == TRUE)
+							{
+								if(ERR_OK != addUndeclaredProductions(&memList, mask_strict, mask_sc, mask_preserve, tmpGrammar, schema.simpleTypeArray, schema.sTypeArraySize))
+								{
+									printf("\n ERROR: OUT_SRC_DYN output format!");
+									exit(1);
+								}
+							}
+
+							for(r = 0; r < tmpGrammar->rulesDimension; r++)
+							{
+								for(k = 0; k < 3; k++)
+								{
+									sprintf(printfBuf, "Production* prodArray_empty_%d_%d_%d_%d = memManagedAllocate(&schema->memList, %d * sizeof(Production));\n\t", i, j, r, k, tmpGrammar->ruleArray[r].prodCounts[k]);
+									fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+									sprintf(printfBuf, "if(prodArray_empty_%d_%d_%d_%d == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t", i, j, r, k);
+									fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+									for(p = 0; p < tmpGrammar->ruleArray[r].prodCounts[k]; p++)
+									{
+										sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].event.eventType = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].event.eventType);
+										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+										sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].event.valueType.exiType = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].event.valueType.exiType);
+										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+										sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].event.valueType.simpleTypeID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].event.valueType.simpleTypeID);
+										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+										sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].nonTermID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].nonTermID);
+										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+										sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].uriRowID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].uriRowID);
+										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+										sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].lnRowID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].lnRowID);
+										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+									}
+								}
+							}
+							// #DOCUMENT# IMPORTANT! tmpGrammar->rulesDimension + (mask_specified == FALSE) because It must be assured that the schema informed grammars have one empty slot for the rule:  Element i, content2
+							sprintf(printfBuf, "GrammarRule* ruleArray_empty_%d_%d = memManagedAllocate(&schema->memList, %d * sizeof(GrammarRule));\n\t", i, j, tmpGrammar->rulesDimension + (mask_specified == FALSE));
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+							sprintf(printfBuf, "if(ruleArray_empty_%d_%d == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t", i, j);
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+							for(r = 0; r < tmpGrammar->rulesDimension; r++)
+							{
+								sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].bits[0] = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].bits[0]);
+								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+								sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].bits[1] = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].bits[1]);
+								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+								sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].bits[1] = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].bits[2]);
+								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+								sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].prodCounts[0] = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].prodCounts[0]);
+								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+								sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].prodCounts[1] = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].prodCounts[1]);
+								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+								sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].prodCounts[2] = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].prodCounts[2]);
+								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+								sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].prodArrays[0] = prodArray_%d_%d_%d_0;\n\t", i, j, r, i, j, r);
+								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+								sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].prodArrays[1] = prodArray_%d_%d_%d_1;\n\t", i, j, r, i, j, r);
+								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+								sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].prodArrays[2] = prodArray_%d_%d_%d_2;\n\t", i, j, r, i, j, r);
+								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+							}
+
+							sprintf(printfBuf, "EXIGrammar* grammar_empty_%d_%d = memManagedAllocate(&schema->memList, sizeof(EXIGrammar));\n\t", i, j);
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+							sprintf(printfBuf, "if(grammar_empty_%d_%d == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t", i, j);
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+							sprintf(printfBuf, "grammar_empty_%d_%d->contentIndex = %d;\n\t", i, j, tmpGrammar->contentIndex);
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+							sprintf(printfBuf, "grammar_empty_%d_%d->grammarType = %d;\n\t", i, j, tmpGrammar->grammarType);
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+							sprintf(printfBuf, "grammar_empty_%d_%d->isNillable = %d;\n\t", i, j, tmpGrammar->isNillable);
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+							sprintf(printfBuf, "grammar_empty_%d_%d->isAugmented = %d;\n\t", i, j, tmpGrammar->isAugmented);
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+							sprintf(printfBuf, "grammar_empty_%d_%d->rulesDimension = %d;\n\t", i, j, tmpGrammar->rulesDimension);
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+							sprintf(printfBuf, "grammar_empty_%d_%d->ruleArray = ruleArray_%d_%d;\n\t", i, j, i, j);
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+							if(tegCount >= MAX_GRAMMARS_COUNT)
+							{
+								printf("\n ERROR: MAX_GRAMMARS_COUNT reached!");
+								exit(1);
+							}
+
+							if(ERR_OK != hashtable_insert(typeEmptyGrammrarsHash, &hashKey, tegCount))
+							{
+								printf("\n ERROR: OUT_SRC_DYN output format!");
+								exit(1);
+							}
+							typeEmptyGrammars[tegCount].uriRowId = i;
+							typeEmptyGrammars[tegCount].lnRowId = j;
+							tegCount++;
 						}
 					}
 
@@ -401,14 +541,38 @@ int main(int argc, char *argv[])
 							printf("\n ERROR: OUT_SRC_STAT output format!");
 							exit(1);
 						}
-						if(schema.initialStringTables->rows[i].lTable->rows[j].typeGrammar != NULL)
+
+						tmpGrammar = schema.initialStringTables->rows[i].lTable->rows[j].typeGrammar;
+						grammarPointer = (unsigned int) tmpGrammar;
+						hashKey.str = (char*) &grammarPointer;
+						hashKey.length = sizeof(grammarPointer);
+						typeGrammarID = hashtable_search(typeGrammrarsHash, &hashKey);
+
+						if(tmpGrammar != NULL)
 						{
-							sprintf(printfBuf, "LNrows_%d[%d].globalGrammar = grammar_%d_%d;\n\t", i, j, i, j);
+							sprintf(printfBuf, "LNrows_%d[%d].typeGrammar = grammar_%d_%d;\n\t", i, j, typeGrammars[typeGrammarID].uriRowId, typeGrammars[typeGrammarID].lnRowId);
 							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 						}
 						else
 						{
-							sprintf(printfBuf, "LNrows_%d[%d].globalGrammar = NULL;\n\t", i, j);
+							sprintf(printfBuf, "LNrows_%d[%d].typeGrammar = NULL;\n\t", i, j);
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+						}
+
+						tmpGrammar = schema.initialStringTables->rows[i].lTable->rows[j].typeEmptyGrammar;
+						grammarPointer = (unsigned int) tmpGrammar;
+						hashKey.str = (char*) &grammarPointer;
+						hashKey.length = sizeof(grammarPointer);
+						typeEmptyGrammarID = hashtable_search(typeEmptyGrammrarsHash, &hashKey);
+
+						if(tmpGrammar != NULL)
+						{
+							sprintf(printfBuf, "LNrows_%d[%d].typeEmptyGrammar = grammar_empty_%d_%d;\n\t", i, j, typeEmptyGrammars[typeEmptyGrammarID].uriRowId, typeEmptyGrammars[typeEmptyGrammarID].lnRowId);
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+						}
+						else
+						{
+							sprintf(printfBuf, "LNrows_%d[%d].typeEmptyGrammar = NULL;\n\t", i, j);
 							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 						}
 
@@ -570,7 +734,12 @@ int main(int argc, char *argv[])
 					for(j = 0; j < schema.initialStringTables->rows[i].lTable->rowCount; j++)
 					{
 						tmpGrammar = schema.initialStringTables->rows[i].lTable->rows[j].typeGrammar;
-						if(tmpGrammar != NULL)
+						grammarPointer = (unsigned int) tmpGrammar;
+						hashKey.str = (char*) &grammarPointer;
+						hashKey.length = sizeof(grammarPointer);
+						typeGrammarID = hashtable_search(typeGrammrarsHash, &hashKey);
+
+						if(tmpGrammar != NULL && typeGrammarID == SIZE_MAX)
 						{
 							if(mask_specified == TRUE)
 							{
@@ -613,6 +782,87 @@ int main(int argc, char *argv[])
 							sprintf(printfBuf, "EXIGrammar %sgrammar_%d_%d = {%sruleArray_%d_%d, %d, %d, %d, %d, %d};\n\n",
 									prefix, i, j, prefix, i, j, tmpGrammar->rulesDimension, tmpGrammar->grammarType, tmpGrammar->isNillable, tmpGrammar->isAugmented, tmpGrammar->contentIndex);
 							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+							if(tgCount >= MAX_GRAMMARS_COUNT)
+							{
+								printf("\n ERROR: MAX_GRAMMARS_COUNT reached!");
+								exit(1);
+							}
+
+							if(ERR_OK != hashtable_insert(typeGrammrarsHash, &hashKey, tgCount))
+							{
+								printf("\n ERROR: OUT_SRC_DYN output format!");
+								exit(1);
+							}
+							typeGrammars[tgCount].uriRowId = i;
+							typeGrammars[tgCount].lnRowId = j;
+							tgCount++;
+						}
+
+						tmpGrammar = schema.initialStringTables->rows[i].lTable->rows[j].typeEmptyGrammar;
+						grammarPointer = (unsigned int) tmpGrammar;
+						hashKey.str = (char*) &grammarPointer;
+						hashKey.length = sizeof(grammarPointer);
+						typeEmptyGrammarID = hashtable_search(typeEmptyGrammrarsHash, &hashKey);
+
+						if(tmpGrammar != NULL && typeEmptyGrammarID == SIZE_MAX)
+						{
+							if(mask_specified == TRUE)
+							{
+								if(ERR_OK != addUndeclaredProductions(&memList, mask_strict, mask_sc, mask_preserve, tmpGrammar, schema.simpleTypeArray, schema.sTypeArraySize))
+								{
+									printf("\n ERROR: OUT_SRC_STAT output format!");
+									exit(1);
+								}
+							}
+
+							for(r = 0; r < tmpGrammar->rulesDimension; r++)
+							{
+								for(k = 0; k < 3; k++)
+								{
+									sprintf(printfBuf, "Production %sprodArray_empty_%d_%d_%d_%d[%d] = {", prefix, i, j, r, k, tmpGrammar->ruleArray[r].prodCounts[k]);
+									fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+									for(p = 0; p < tmpGrammar->ruleArray[r].prodCounts[k]; p++)
+									{
+										sprintf(printfBuf, "%s{{%d,{%d, %d}}, %d, %d, %d}", p==0?"":",", tmpGrammar->ruleArray[r].prodArrays[k][p].event.eventType, tmpGrammar->ruleArray[r].prodArrays[k][p].event.valueType.exiType, tmpGrammar->ruleArray[r].prodArrays[k][p].event.valueType.simpleTypeID, tmpGrammar->ruleArray[r].prodArrays[k][p].uriRowID, tmpGrammar->ruleArray[r].prodArrays[k][p].lnRowID, tmpGrammar->ruleArray[r].prodArrays[k][p].nonTermID);
+										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+									}
+									fwrite("};\n", 1, strlen("};\n"), outfile);
+								}
+							}
+							// #DOCUMENT# IMPORTANT! tmpGrammar->rulesDimension + (mask_specified == FALSE) because It must be assured that the schema informed grammars have one empty slot for the rule:  Element i, content2
+							sprintf(printfBuf, "\nGrammarRule %sruleArray_empty_%d_%d[%d] = {", prefix, i, j, tmpGrammar->rulesDimension + (mask_specified == FALSE));
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+							for(r = 0; r < tmpGrammar->rulesDimension; r++)
+							{
+								sprintf(printfBuf, "%s{{%sprodArray_empty_%d_%d_%d_0, %sprodArray_empty_%d_%d_%d_1, %sprodArray_empty_%d_%d_%d_2}, {%d, %d, %d}, {%d, %d, %d}}",
+										r==0?"":",", prefix, i, j, r, prefix, i, j, r, prefix, i, j, r,
+										tmpGrammar->ruleArray[r].prodCounts[0], tmpGrammar->ruleArray[r].prodCounts[1], tmpGrammar->ruleArray[r].prodCounts[2],
+										tmpGrammar->ruleArray[r].bits[0], tmpGrammar->ruleArray[r].bits[1], tmpGrammar->ruleArray[r].bits[2]);
+								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+							}
+
+							fwrite("};\n\n", 1, strlen("};\n\n"), outfile);
+
+							sprintf(printfBuf, "EXIGrammar %sgrammar_empty_%d_%d = {%sruleArray_empty_%d_%d, %d, %d, %d, %d, %d};\n\n",
+									prefix, i, j, prefix, i, j, tmpGrammar->rulesDimension, tmpGrammar->grammarType, tmpGrammar->isNillable, tmpGrammar->isAugmented, tmpGrammar->contentIndex);
+							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+							if(tegCount >= MAX_GRAMMARS_COUNT)
+							{
+								printf("\n ERROR: MAX_GRAMMARS_COUNT reached!");
+								exit(1);
+							}
+
+							if(ERR_OK != hashtable_insert(typeEmptyGrammrarsHash, &hashKey, tegCount))
+							{
+								printf("\n ERROR: OUT_SRC_DYN output format!");
+								exit(1);
+							}
+							typeEmptyGrammars[tegCount].uriRowId = i;
+							typeEmptyGrammars[tegCount].lnRowId = j;
+							tegCount++;
 						}
 					}
 
@@ -626,15 +876,38 @@ int main(int argc, char *argv[])
 							printf("\n ERROR: OUT_SRC_STAT output format!");
 							exit(1);
 						}
-						if(schema.initialStringTables->rows[i].lTable->rows[j].typeGrammar != NULL)
+
+						tmpGrammar = schema.initialStringTables->rows[i].lTable->rows[j].typeGrammar;
+						grammarPointer = (unsigned int) tmpGrammar;
+						hashKey.str = (char*) &grammarPointer;
+						hashKey.length = sizeof(grammarPointer);
+						typeGrammarID = hashtable_search(typeGrammrarsHash, &hashKey);
+
+						if(tmpGrammar != NULL)
 						{
-							sprintf(printfBuf, "%s{NULL, {\"%s\", %d}, &%sgrammar_%d_%d}", j==0?"":",",
-									conv_buff, schema.initialStringTables->rows[i].lTable->rows[j].string_val.length, prefix, i, j);
+							sprintf(printfBuf, "%s{NULL, {\"%s\", %d}, &%sgrammar_%d_%d", j==0?"":",",
+									conv_buff, schema.initialStringTables->rows[i].lTable->rows[j].string_val.length, prefix, typeGrammars[typeGrammarID].uriRowId, typeGrammars[typeGrammarID].lnRowId);
 						}
 						else
 						{
-							sprintf(printfBuf, "%s{NULL, {\"%s\", %d}, NULL}", j==0?"":",",
+							sprintf(printfBuf, "%s{NULL, {\"%s\", %d}, NULL", j==0?"":",",
 							conv_buff, schema.initialStringTables->rows[i].lTable->rows[j].string_val.length);
+						}
+						fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+						tmpGrammar = schema.initialStringTables->rows[i].lTable->rows[j].typeEmptyGrammar;
+						grammarPointer = (unsigned int) tmpGrammar;
+						hashKey.str = (char*) &grammarPointer;
+						hashKey.length = sizeof(grammarPointer);
+						typeEmptyGrammarID = hashtable_search(typeEmptyGrammrarsHash, &hashKey);
+
+						if(tmpGrammar != NULL)
+						{
+							sprintf(printfBuf, ", &%sgrammar_empty_%d_%d}", prefix, typeEmptyGrammars[typeEmptyGrammarID].uriRowId, typeEmptyGrammars[typeEmptyGrammarID].lnRowId);
+						}
+						else
+						{
+							sprintf(printfBuf, ", NULL}");
 						}
 						fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 					}
@@ -691,7 +964,7 @@ int main(int argc, char *argv[])
 				}
 				fwrite("};\n\n", 1, strlen("};\n\n"), outfile);
 
-				sprintf(printfBuf, "const EXIPSchema %sschema = {&%suriTbl, %sqnames, %d, %ssimpleTypes, %d, %d, 1, {NULL, NULL}};\n", prefix, prefix, prefix, schema.globalElemGrammarsCount, prefix, schema.sTypeArraySize, mask_specified);
+				sprintf(printfBuf, "const EXIPSchema %sschema = {&%suriTbl, %sqnames, %d, %ssimpleTypes, %d, %d, {NULL, NULL}};\n", prefix, prefix, prefix, schema.globalElemGrammarsCount, prefix, schema.sTypeArraySize, mask_specified);
 				fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 
 			}
@@ -823,6 +1096,9 @@ int main(int argc, char *argv[])
 				}
 			}
 			freeAllocList(&memList);
+
+			hashtable_destroy(typeGrammrarsHash);
+			hashtable_destroy(typeEmptyGrammrarsHash);
 		}
 		freeAllocList(&schema.memList);
 	}

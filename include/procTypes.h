@@ -621,8 +621,14 @@ struct StreamContext
 	 */
 	size_t nonTermID;
 
+	/** The current element being parsed/serialized */
 	uint16_t curr_uriID;
 	size_t curr_lnID;
+
+	/** The current attribute QName*/
+	uint16_t curr_attr_uriID;
+	size_t curr_attr_lnID;
+
 	unsigned char expectATData; // 0 - FALSE, otherwise the ValueType of the expected data
 };
 

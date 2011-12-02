@@ -13,8 +13,8 @@
    height="373.91635"
    id="svg2"
    version="1.1"
-   inkscape:version="0.47pre4 r22446"
-   sodipodi:docname="EXIP-overview.png">
+   inkscape:version="0.47 r22583"
+   sodipodi:docname="EXIP-overview.svg">
   <defs
      id="defs4">
     <marker
@@ -136,7 +136,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.98994949"
-     inkscape:cx="481.14471"
+     inkscape:cx="525.95016"
      inkscape:cy="186.3835"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -163,7 +163,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -367,7 +367,7 @@
            y="280.10056"
            style="font-size:16px" /></flowRegion><flowPara
          id="flowPara3742-4-8">Content IO</flowPara></flowRoot>    <rect
-       style="fill:#e9afaf;fill-opacity:1;stroke:#000000;stroke-width:2.53500009;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+       style="fill:#afd7e9;fill-opacity:1;stroke:#000000;stroke-width:2.53500009000000004;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect3704-6-2-0"
        width="118.3"
        height="92.949997"

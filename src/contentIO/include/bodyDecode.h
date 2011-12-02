@@ -51,9 +51,11 @@
  *
  * @param[in, out] strm EXI stream representation
  * @param[out] qname the QName decoded
+ * @param[out] uriID the QName uriID
+ * @param[out] lnID the QName lnID
  * @return Error handling code
  */
-errorCode decodeQName(EXIStream* strm, QName* qname);
+errorCode decodeQName(EXIStream* strm, QName* qname, uint16_t* uriID, size_t* lnID);
 
 /**
  * @brief Decodes the URI part of a QName from the EXI stream
@@ -81,9 +83,10 @@ errorCode decodeLocalName(EXIStream* strm, uint16_t uriID, size_t* lnID);
  * @param[in, out] strm EXI stream representation
  * @param[in] uriID The URI id in the URI string table
  * @param[out] qname qname that holds the prefix
+ * @param[in] uriID the QName uriID
  * @return Error handling code
  */
-errorCode decodePrefixQname(EXIStream* strm, QName* qname);
+errorCode decodePrefixQname(EXIStream* strm, QName* qname, uint16_t uriID);
 
 /**
  * @brief Decodes the Prefix part of a NS event from the EXI stream
@@ -98,23 +101,41 @@ errorCode decodePrefix(EXIStream* strm, uint16_t uriID, unsigned int* prfxID);
 /**
  * @brief Decodes a string value from the EXI stream
  * @param[in, out] strm EXI stream representation
+ * @param[in] uriID The URI id in the URI string table
+ * @param[in] lnID The ln id in the LN string table
  * @param[out] value the string decoded
  * @param[out] freeable if TRUE the value can be freed immediately afterwards using freeLastManagedAlloc()
  * @return Error handling code
  */
-errorCode decodeStringValue(EXIStream* strm, String* value, unsigned char* freeable);
+errorCode decodeStringValue(EXIStream* strm, uint16_t uriID, size_t lnID, String* value, unsigned char* freeable);
 
 /**
  * @brief Decodes the content of EXI event
  * @param[in, out] strm EXI stream representation
- * @param[in] event the event which content will be decoded
+ * @param[in] event the event whose content will be decoded
  * @param[in] handler application content handler; stores the callback functions
  * @param[out] nonTermID_out nonTerminal ID after the content decoding
  * @param[in] currRule the current grammar rule in use for the event
  * @param[in] app_data Application data to be passed to the content handler callbacks
+ * @param[in] prod_uriID the uriID of the production
+ * @param[in] prod_lnID the lnID of the production
  * @return Error handling code
  */
-errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* handler,
-									size_t* nonTermID_out, GrammarRule* currRule, void* app_data);
+errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* handler, size_t* nonTermID_out,
+							GrammarRule* currRule, void* app_data, uint16_t prod_uriID, size_t prod_lnID);
+
+/**
+ * @brief Decodes the value content item of an EXI event
+ *
+ * @param[in, out] strm EXI stream representation
+ * @param[in] type the type of the value content
+ * @param[in] handler application content handler; stores the callback functions
+ * @param[out] nonTermID_out nonTerminal ID after the content decoding
+ * @param[in] local_uriID the local URI ID
+ * @param[in] local_lnID the local LN ID
+ * @param[in] app_data Application data to be passed to the content handler callbacks
+ * @return Error handling code
+ */
+errorCode decodeValueItem(EXIStream* strm, ValueType type, ContentHandler* handler, size_t* nonTermID_out, uint16_t local_uriID, size_t local_lnID, void* app_data);
 
 #endif /* BODYDECODE_H_ */

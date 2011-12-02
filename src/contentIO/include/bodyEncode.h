@@ -62,9 +62,11 @@ errorCode lookupProduction(EXIStream* strm, EXIEvent event, QName* qname, unsign
  * @brief Encodes String value into EXI stream
  * @param[in, out] strm EXI stream
  * @param[in] strng string to be written
+ * @param[in] uriID The URI id in the URI string table
+ * @param[in] lnID The ln id in the LN string table
  * @return Error handling code
  */
-errorCode encodeStringData(EXIStream* strm, String strng);
+errorCode encodeStringData(EXIStream* strm, String strng, uint16_t uriID, size_t lnID);
 
 /**
  * @brief Encodes QName into EXI stream
@@ -73,9 +75,11 @@ errorCode encodeStringData(EXIStream* strm, String strng);
  * @param[in] eventT (EVENT_SE_ALL or EVENT_AT_ALL) used for error checking purposes:
  * If the given prefix does not exist in the associated partition, the QName MUST be part of an SE event and
  * the prefix MUST be resolved by one of the NS events immediately following the SE event (see resolution rules below).
+ * @param[out] uriID the QName uriID
+ * @param[out] lnID the QName lnID
  * @return Error handling code
  */
-errorCode encodeQName(EXIStream* strm, QName qname, EventType eventT);
+errorCode encodeQName(EXIStream* strm, QName qname, EventType eventT, uint16_t* uriID, size_t* lnID);
 
 /**
  * @brief Encodes URI into EXI stream
@@ -103,9 +107,10 @@ errorCode encodeLocalName(EXIStream* strm, String* ln, uint16_t uriID, size_t* l
  * @param[in] eventT (EVENT_SE_ALL or EVENT_AT_ALL) used for error checking purposes:
  * If the given prefix does not exist in the associated partition, the QName MUST be part of an SE event and
  * the prefix MUST be resolved by one of the NS events immediately following the SE event (see resolution rules below).
+ * @param[in] uriID the QName uriID
  * @return Error handling code
  */
-errorCode encodePrefixQName(EXIStream* strm, QName* qname, EventType eventT);
+errorCode encodePrefixQName(EXIStream* strm, QName* qname, EventType eventT, uint16_t uriID);
 
 /**
  * @brief Encodes the prefix part of the NS event into the EXI stream
