@@ -48,30 +48,25 @@
 #include "streamDecode.h"
 #include "grammars.h"
 
-errorCode decodeQName(EXIStream* strm, QName* qname)
+errorCode decodeQName(EXIStream* strm, QName* qname, uint16_t* uriID, size_t* lnID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	uint16_t uriID;
-	size_t lnID;
 
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Decoding QName\n"));
 
-	tmp_err_code = decodeURI(strm, &uriID);
+	tmp_err_code = decodeURI(strm, uriID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	qname->uri = &(strm->uriTable->rows[uriID].string_val);
+	qname->uri = &(strm->uriTable->rows[*uriID].string_val);
 
-	tmp_err_code = decodeLocalName(strm, uriID, &lnID);
+	tmp_err_code = decodeLocalName(strm, *uriID, lnID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	qname->localName = &(strm->uriTable->rows[uriID].lTable->rows[lnID].string_val);
+	qname->localName = &(strm->uriTable->rows[*uriID].lTable->rows[*lnID].string_val);
 
-	strm->context.curr_uriID = uriID;
-	strm->context.curr_lnID = lnID;
-
-	return decodePrefixQname(strm, qname);
+	return decodePrefixQname(strm, qname, *uriID);
 }
 
 errorCode decodeURI(EXIStream* strm, uint16_t* uriID)
@@ -147,7 +142,7 @@ errorCode decodeLocalName(EXIStream* strm, uint16_t uriID, size_t* lnID)
 	return ERR_OK;
 }
 
-errorCode decodePrefixQname(EXIStream* strm, QName* qname)
+errorCode decodePrefixQname(EXIStream* strm, QName* qname, uint16_t uriID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char prefixBits = 0;
@@ -158,10 +153,10 @@ errorCode decodePrefixQname(EXIStream* strm, QName* qname)
 	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) == FALSE)
 		return ERR_OK;
 
-	if(strm->uriTable->rows[strm->context.curr_uriID].pTable == NULL || strm->uriTable->rows[strm->context.curr_uriID].pTable->rowCount == 0)
+	if(strm->uriTable->rows[uriID].pTable == NULL || strm->uriTable->rows[uriID].pTable->rowCount == 0)
 		return ERR_OK;
 
-	prefixBits = getBitsNumber(strm->uriTable->rows[strm->context.curr_uriID].pTable->rowCount - 1);
+	prefixBits = getBitsNumber(strm->uriTable->rows[uriID].pTable->rowCount - 1);
 
 	if(prefixBits > 0)
 	{
@@ -169,11 +164,11 @@ errorCode decodePrefixQname(EXIStream* strm, QName* qname)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		if(prefixID >= strm->uriTable->rows[strm->context.curr_uriID].pTable->rowCount)
+		if(prefixID >= strm->uriTable->rows[uriID].pTable->rowCount)
 			return INVALID_EXI_INPUT;
 	}
 
-	qname->prefix = &strm->uriTable->rows[strm->context.curr_uriID].pTable->string_val[prefixID];
+	qname->prefix = &strm->uriTable->rows[uriID].pTable->string_val[prefixID];
 
 	return ERR_OK;
 }
@@ -211,11 +206,9 @@ errorCode decodePrefix(EXIStream* strm, uint16_t uriID, unsigned int* prfxID)
 	return ERR_OK;
 }
 
-errorCode decodeStringValue(EXIStream* strm, String* value, unsigned char* freeable)
+errorCode decodeStringValue(EXIStream* strm, uint16_t uriID, size_t lnID, String* value, unsigned char* freeable)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	uint16_t uriID = strm->context.curr_uriID;
-	size_t lnID = strm->context.curr_lnID;
 	UnsignedInteger tmpVar = 0;
 	tmp_err_code = decodeUnsignedInteger(strm, &tmpVar);
 	if(tmp_err_code != ERR_OK)
@@ -252,7 +245,7 @@ errorCode decodeStringValue(EXIStream* strm, String* value, unsigned char* freea
 
 		if(value->length > 0 && value->length <= strm->header.opts.valueMaxLength && strm->header.opts.valuePartitionCapacity > 0)
 		{
-			tmp_err_code = addValueRows(strm, value);
+			tmp_err_code = addValueRows(strm, value, uriID, lnID);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -263,133 +256,74 @@ errorCode decodeStringValue(EXIStream* strm, String* value, unsigned char* freea
 }
 
 errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* handler,
-									size_t* nonTermID_out, GrammarRule* currRule,  void* app_data)
+							size_t* nonTermID_out, GrammarRule* currRule,  void* app_data, uint16_t prod_uriID, size_t prod_lnID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	// TODO: implement all cases of events
 	QName qname;
+	uint16_t uriID;
+	size_t lnID;
+	// TODO: implement all cases of events such as PI, CM etc.
 
-	if(event.eventType == EVENT_SE_ALL)
+	switch(event.eventType)
 	{
-		EXIGrammar* elemGrammar = NULL;
-
-		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">SE(*) event\n"));
-		// The content of SE event is the element qname
-		tmp_err_code = decodeQName(strm, &qname);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		if(handler->startElement != NULL)  // Invoke handler method passing the element qname
+		case EVENT_SE_ALL:
 		{
-			if(handler->startElement(qname, app_data) == EXIP_HANDLER_STOP)
-				return HANDLER_STOP_RECEIVED;
-		}
+			EXIGrammar* elemGrammar = NULL;
 
-		if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)  // If the current grammar is build-in Element grammar ...
-		{
-			tmp_err_code = insertZeroProduction((DynGrammarRule*) currRule, getEventDefType(EVENT_SE_QNAME), *nonTermID_out, strm->context.curr_lnID, strm->context.curr_uriID);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-		}
-
-		// New element grammar is pushed on the stack
-		elemGrammar = strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].typeGrammar;
-
-		strm->gStack->lastNonTermID = *nonTermID_out;
-		if(elemGrammar != NULL) // The grammar is found
-		{
-			*nonTermID_out = GR_START_TAG_CONTENT;
-			tmp_err_code = pushGrammar(&(strm->gStack), elemGrammar);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-		}
-		else
-		{
-			EXIGrammar* newElementGrammar = (EXIGrammar*) memManagedAllocate(&strm->memList, sizeof(EXIGrammar));
-			if(newElementGrammar == NULL)
-				return MEMORY_ALLOCATION_ERROR;
-			tmp_err_code = createBuildInElementGrammar(newElementGrammar, strm);
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">SE(*) event\n"));
+			// The content of SE event is the element qname
+			tmp_err_code = decodeQName(strm, &qname, &uriID, &lnID);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].typeGrammar = newElementGrammar;
-			*nonTermID_out = GR_START_TAG_CONTENT;
-			tmp_err_code = pushGrammar(&(strm->gStack), newElementGrammar);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-		}
-
-	}
-	else if(event.eventType == EVENT_AT_ALL)
-	{
-		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">AT(*) event\n"));
-		tmp_err_code = decodeQName(strm, &qname);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		if(handler->attribute != NULL)  // Invoke handler method
-		{
-			if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
-				return HANDLER_STOP_RECEIVED;
-		}
-		if(event.valueType.exiType == VALUE_TYPE_STRING || event.valueType.exiType == VALUE_TYPE_NONE)
-		{
-			String value;
-			unsigned char freeable = FALSE;
-			tmp_err_code = decodeStringValue(strm, &value, &freeable);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-			if(handler->stringData != NULL)  // Invoke handler method
+			if(handler->startElement != NULL)  // Invoke handler method passing the element qname
 			{
-				if(handler->stringData(value, app_data) == EXIP_HANDLER_STOP)
+				if(handler->startElement(qname, app_data) == EXIP_HANDLER_STOP)
 					return HANDLER_STOP_RECEIVED;
 			}
-			if(freeable)
-				freeLastManagedAlloc(&strm->memList);
-		}
-		tmp_err_code = insertZeroProduction((DynGrammarRule*) currRule, getEventDefType(EVENT_AT_QNAME), *nonTermID_out, strm->context.curr_lnID, strm->context.curr_uriID);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-	else if(event.eventType == EVENT_SE_QNAME)
-	{
-		EXIGrammar* elemGrammar = NULL;
 
-		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">SE(qname) event\n"));
-		qname.uri = &(strm->uriTable->rows[strm->context.curr_uriID].string_val);
-		qname.localName = &(strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].string_val);
-		tmp_err_code = decodePrefixQname(strm, &qname);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+			if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)  // If the current grammar is build-in Element grammar ...
+			{
+				tmp_err_code = insertZeroProduction((DynGrammarRule*) currRule, getEventDefType(EVENT_SE_QNAME), *nonTermID_out, lnID, uriID);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
 
-		if(handler->startElement != NULL)  // Invoke handler method passing the element qname
-		{
-			if(handler->startElement(qname, app_data) == EXIP_HANDLER_STOP)
-				return HANDLER_STOP_RECEIVED;
-		}
+			// New element grammar is pushed on the stack
+			elemGrammar = strm->uriTable->rows[uriID].lTable->rows[lnID].typeGrammar;
 
-		// New element grammar is pushed on the stack
-		elemGrammar = strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].typeGrammar;
-		strm->gStack->lastNonTermID = *nonTermID_out;
-		if(elemGrammar != NULL) // The grammar is found
-		{
-			*nonTermID_out = GR_START_TAG_CONTENT;
-			tmp_err_code = pushGrammar(&(strm->gStack), elemGrammar);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			strm->gStack->lastNonTermID = *nonTermID_out;
+			if(elemGrammar != NULL) // The grammar is found
+			{
+				*nonTermID_out = GR_START_TAG_CONTENT;
+				tmp_err_code = pushGrammar(&(strm->gStack), elemGrammar);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
+			else
+			{
+				EXIGrammar* newElementGrammar = (EXIGrammar*) memManagedAllocate(&strm->memList, sizeof(EXIGrammar));
+				if(newElementGrammar == NULL)
+					return MEMORY_ALLOCATION_ERROR;
+				tmp_err_code = createBuildInElementGrammar(newElementGrammar, strm);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				strm->uriTable->rows[uriID].lTable->rows[lnID].typeGrammar = newElementGrammar;
+				*nonTermID_out = GR_START_TAG_CONTENT;
+				tmp_err_code = pushGrammar(&(strm->gStack), newElementGrammar);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
+
+			strm->context.curr_uriID = uriID;
+			strm->context.curr_lnID = lnID;
 		}
-		else
+		break;
+		case EVENT_AT_ALL:
 		{
-			return INCONSISTENT_PROC_STATE;  // The event require the presence of Element Grammar previously created
-		}
-	}
-	else if(event.eventType == EVENT_AT_QNAME || event.eventType == EVENT_CH)
-	{
-		if(event.eventType == EVENT_AT_QNAME)
-		{
-			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">AT(qname) event\n"));
-			qname.uri = &(strm->uriTable->rows[strm->context.curr_uriID].string_val);
-			qname.localName = &(strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].string_val);
-			tmp_err_code = decodePrefixQname(strm, &qname);
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">AT(*) event\n"));
+			tmp_err_code = decodeQName(strm, &qname, &uriID, &lnID);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 			if(handler->attribute != NULL)  // Invoke handler method
@@ -398,117 +332,129 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 					return HANDLER_STOP_RECEIVED;
 			}
 
-			// handle xsi:nil attribute
-			if(strm->gStack->grammar->grammarType >= GR_TYPE_SCHEMA_DOC && strm->context.curr_uriID == 2 && strm->context.curr_lnID == 0) // Schema-enabled grammar and http://www.w3.org/2001/XMLSchema-instance:nil
+			tmp_err_code = decodeValueItem(strm, event.valueType, handler, nonTermID_out, uriID, lnID, app_data);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			tmp_err_code = insertZeroProduction((DynGrammarRule*) currRule, getEventDefType(EVENT_AT_QNAME), *nonTermID_out, lnID, uriID);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			strm->context.curr_attr_uriID = uriID;
+			strm->context.curr_attr_lnID = lnID;
+		}
+		break;
+		case EVENT_SE_QNAME:
+		{
+			EXIGrammar* elemGrammar = NULL;
+
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">SE(qname) event\n"));
+			strm->context.curr_uriID = prod_uriID;
+			strm->context.curr_lnID = prod_lnID;
+			qname.uri = &(strm->uriTable->rows[prod_uriID].string_val);
+			qname.localName = &(strm->uriTable->rows[prod_uriID].lTable->rows[strm->context.curr_lnID].string_val);
+			tmp_err_code = decodePrefixQname(strm, &qname, prod_uriID);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			if(handler->startElement != NULL)  // Invoke handler method passing the element qname
 			{
-				strm->context.expectATData = VALUE_TYPE_BOOLEAN;
+				if(handler->startElement(qname, app_data) == EXIP_HANDLER_STOP)
+					return HANDLER_STOP_RECEIVED;
+			}
+
+			// New element grammar is pushed on the stack
+			elemGrammar = strm->uriTable->rows[prod_uriID].lTable->rows[strm->context.curr_lnID].typeGrammar;
+			strm->gStack->lastNonTermID = *nonTermID_out;
+			if(elemGrammar != NULL) // The grammar is found
+			{
+				*nonTermID_out = GR_START_TAG_CONTENT;
+				tmp_err_code = pushGrammar(&(strm->gStack), elemGrammar);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
+			else
+			{
+				return INCONSISTENT_PROC_STATE;  // The event require the presence of Element Grammar previously created
 			}
 		}
-		else
+		break;
+		case EVENT_AT_QNAME:
+		{
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">AT(qname) event\n"));
+			strm->context.curr_attr_uriID = prod_uriID;
+			strm->context.curr_attr_lnID = prod_lnID;
+			qname.uri = &(strm->uriTable->rows[strm->context.curr_attr_uriID].string_val);
+			qname.localName = &(strm->uriTable->rows[strm->context.curr_attr_uriID].lTable->rows[prod_lnID].string_val);
+			tmp_err_code = decodePrefixQname(strm, &qname, strm->context.curr_attr_uriID);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+			if(handler->attribute != NULL)  // Invoke handler method
+			{
+				if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
+					return HANDLER_STOP_RECEIVED;
+			}
+
+			tmp_err_code = decodeValueItem(strm, event.valueType, handler, nonTermID_out, prod_uriID, prod_lnID, app_data);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+		break;
+		case EVENT_CH:
 		{
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">CH event\n"));
-		}
 
-		if(event.valueType.exiType == VALUE_TYPE_STRING || event.valueType.exiType == VALUE_TYPE_NONE || event.valueType.exiType == VALUE_TYPE_UNTYPED)
-		{
-			String value;
-			unsigned char freeable = FALSE;
-
-			//  If nil is not a valid Boolean, represent the xsi:nil attribute event using the AT (*) [untyped value] terminal
-			if(event.valueType.exiType == VALUE_TYPE_UNTYPED)
-				strm->context.expectATData = FALSE;
-
-			tmp_err_code = decodeStringValue(strm, &value, &freeable);
+			tmp_err_code = decodeValueItem(strm, event.valueType, handler, nonTermID_out, strm->context.curr_uriID, strm->context.curr_lnID, app_data);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
-			if(handler->stringData != NULL)  // Invoke handler method
-			{
-				if(handler->stringData(value, app_data) == EXIP_HANDLER_STOP)
-					return HANDLER_STOP_RECEIVED;
-			}
-			if(freeable)
-				freeLastManagedAlloc(&strm->memList);
 		}
-		else if(event.valueType.exiType == VALUE_TYPE_BOOLEAN)
+		break;
+		case EVENT_NS:
 		{
-			unsigned char bool_val;
-			tmp_err_code = decodeBoolean(strm, &bool_val);
+			uint16_t ns_uriID;
+			unsigned int prfxID;
+			unsigned char boolean = FALSE;
+
+			tmp_err_code = decodeURI(strm, &ns_uriID);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			if(handler->booleanData != NULL)  // Invoke handler method
+			if(strm->uriTable->rows[ns_uriID].pTable == NULL)
 			{
-				if(handler->booleanData(bool_val, app_data) == EXIP_HANDLER_STOP)
+				tmp_err_code = createPrefixTable(&strm->uriTable->rows[ns_uriID].pTable, &strm->memList);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
+
+			tmp_err_code = decodePrefix(strm, ns_uriID, &prfxID);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			tmp_err_code = decodeBoolean(strm, &boolean);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			if(handler->namespaceDeclaration != NULL)  // Invoke handler method
+			{
+				if(handler->namespaceDeclaration(strm->uriTable->rows[ns_uriID].string_val, strm->uriTable->rows[ns_uriID].pTable->string_val[prfxID], boolean, app_data) == EXIP_HANDLER_STOP)
 					return HANDLER_STOP_RECEIVED;
 			}
-
-			if(strm->gStack->grammar->grammarType >= GR_TYPE_SCHEMA_DOC && strm->context.expectATData == VALUE_TYPE_BOOLEAN)
-			{
-				if(bool_val == TRUE)
-				{
-					// xsi:nil attribute equals to true & schema mode
-					EXIGrammar* tmpGrammar;
-					popGrammar(&(strm->gStack), &tmpGrammar);
-					if(strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].typeEmptyGrammar == NULL)
-						return INCONSISTENT_PROC_STATE;
-
-					tmp_err_code = pushGrammar(&(strm->gStack), strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].typeEmptyGrammar);
-					if(tmp_err_code != ERR_OK)
-						return tmp_err_code;
-
-					*nonTermID_out = GR_START_TAG_CONTENT;
-				}
-				strm->context.expectATData = FALSE;
-			}
 		}
-		else if(event.valueType.exiType == VALUE_TYPE_BINARY)
-		{
+		break;
+		default:
 			return NOT_IMPLEMENTED_YET;
-		}
-		else if(event.valueType.exiType == VALUE_TYPE_DATE_TIME)
-		{
-			return NOT_IMPLEMENTED_YET;
-		}
-		else if(event.valueType.exiType == VALUE_TYPE_DECIMAL)
-		{
-			Decimal decVal;
-			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Decimal value\n"));
-			tmp_err_code = decodeDecimalValue(strm, &decVal);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-			if(handler->decimalData != NULL)  // Invoke handler method
-			{
-				if(handler->decimalData(decVal, app_data) == EXIP_HANDLER_STOP)
-					return HANDLER_STOP_RECEIVED;
-			}
-		}
-		else if(event.valueType.exiType == VALUE_TYPE_FLOAT)
-		{
-			Float flVal;
-			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Float value\n"));
-			tmp_err_code = decodeFloatValue(strm, &flVal);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-			if(handler->floatData != NULL)  // Invoke handler method
-			{
-				if(handler->floatData(flVal, app_data) == EXIP_HANDLER_STOP)
-					return HANDLER_STOP_RECEIVED;
-			}
-		}
-		else if(event.valueType.exiType == VALUE_TYPE_INTEGER)
-		{
-			Integer sintVal;
-			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Integer value\n"));
-			tmp_err_code = decodeIntegerValue(strm, &sintVal);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-			if(handler->intData != NULL)  // Invoke handler method
-			{
-				if(handler->intData(sintVal, app_data) == EXIP_HANDLER_STOP)
-					return HANDLER_STOP_RECEIVED;
-			}
-		}
-		else if(event.valueType.exiType == VALUE_TYPE_NON_NEGATIVE_INT)
+	}
+
+	return ERR_OK;
+}
+
+errorCode decodeValueItem(EXIStream* strm, ValueType type, ContentHandler* handler, size_t* nonTermID_out, uint16_t local_uriID, size_t local_lnID, void* app_data)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+
+	switch(type.exiType)
+	{
+		case VALUE_TYPE_NON_NEGATIVE_INT:
 		{
 			UnsignedInteger uintVal;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Unsigned integer value\n"));
@@ -523,7 +469,22 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 					return HANDLER_STOP_RECEIVED;
 			}
 		}
-		else if(event.valueType.exiType == VALUE_TYPE_SMALL_INTEGER)
+		break;
+		case VALUE_TYPE_INTEGER:
+		{
+			Integer sintVal;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Integer value\n"));
+			tmp_err_code = decodeIntegerValue(strm, &sintVal);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+			if(handler->intData != NULL)  // Invoke handler method
+			{
+				if(handler->intData(sintVal, app_data) == EXIP_HANDLER_STOP)
+					return HANDLER_STOP_RECEIVED;
+			}
+		}
+		break;
+		case VALUE_TYPE_SMALL_INTEGER:
 		{
 			unsigned int uintVal;
 			int base;
@@ -531,23 +492,23 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Small integer value\n"));
 
-			if(event.valueType.simpleTypeID >= strm->schema->sTypeArraySize)
+			if(type.simpleTypeID >= strm->schema->sTypeArraySize)
 				return INVALID_EXI_INPUT;
 
-			if((strm->schema->simpleTypeArray[event.valueType.simpleTypeID].facetPresenceMask & TYPE_FACET_MIN_INCLUSIVE) == 0
-					&& (strm->schema->simpleTypeArray[event.valueType.simpleTypeID].facetPresenceMask & TYPE_FACET_MIN_EXCLUSIVE) == 0)
+			if((strm->schema->simpleTypeArray[type.simpleTypeID].facetPresenceMask & TYPE_FACET_MIN_INCLUSIVE) == 0
+					&& (strm->schema->simpleTypeArray[type.simpleTypeID].facetPresenceMask & TYPE_FACET_MIN_EXCLUSIVE) == 0)
 				return INVALID_EXI_INPUT;
-			if((strm->schema->simpleTypeArray[event.valueType.simpleTypeID].facetPresenceMask & TYPE_FACET_MAX_INCLUSIVE) == 0
-					&& (strm->schema->simpleTypeArray[event.valueType.simpleTypeID].facetPresenceMask & TYPE_FACET_MAX_EXCLUSIVE) == 0)
+			if((strm->schema->simpleTypeArray[type.simpleTypeID].facetPresenceMask & TYPE_FACET_MAX_INCLUSIVE) == 0
+					&& (strm->schema->simpleTypeArray[type.simpleTypeID].facetPresenceMask & TYPE_FACET_MAX_EXCLUSIVE) == 0)
 				return INVALID_EXI_INPUT;
 
-			if((strm->schema->simpleTypeArray[event.valueType.simpleTypeID].facetPresenceMask & TYPE_FACET_MIN_INCLUSIVE) != 0)
-				base = strm->schema->simpleTypeArray[event.valueType.simpleTypeID].minInclusive;
+			if((strm->schema->simpleTypeArray[type.simpleTypeID].facetPresenceMask & TYPE_FACET_MIN_INCLUSIVE) != 0)
+				base = strm->schema->simpleTypeArray[type.simpleTypeID].minInclusive;
 			else
 				return NOT_IMPLEMENTED_YET;
 
-			if((strm->schema->simpleTypeArray[event.valueType.simpleTypeID].facetPresenceMask & TYPE_FACET_MAX_INCLUSIVE) != 0)
-				upLimit = strm->schema->simpleTypeArray[event.valueType.simpleTypeID].maxInclusive;
+			if((strm->schema->simpleTypeArray[type.simpleTypeID].facetPresenceMask & TYPE_FACET_MAX_INCLUSIVE) != 0)
+				upLimit = strm->schema->simpleTypeArray[type.simpleTypeID].maxInclusive;
 			else
 				return NOT_IMPLEMENTED_YET;
 
@@ -561,51 +522,106 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 					return HANDLER_STOP_RECEIVED;
 			}
 		}
-		else if(event.valueType.exiType == VALUE_TYPE_LIST)
+		break;
+		case VALUE_TYPE_FLOAT:
 		{
-			return NOT_IMPLEMENTED_YET;
-		}
-		else if(event.valueType.exiType == VALUE_TYPE_QNAME)
-		{
-			return NOT_IMPLEMENTED_YET;
-		}
-		else
-			return INCONSISTENT_PROC_STATE;
-	}
-	else if(event.eventType == EVENT_NS)
-	{
-		uint16_t uriID;
-		unsigned int prfxID;
-		unsigned char boolean = FALSE;
-
-		tmp_err_code = decodeURI(strm, &uriID);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		if(strm->uriTable->rows[uriID].pTable == NULL)
-		{
-			tmp_err_code = createPrefixTable(&strm->uriTable->rows[uriID].pTable, &strm->memList);
+			Float flVal;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Float value\n"));
+			tmp_err_code = decodeFloatValue(strm, &flVal);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
+			if(handler->floatData != NULL)  // Invoke handler method
+			{
+				if(handler->floatData(flVal, app_data) == EXIP_HANDLER_STOP)
+					return HANDLER_STOP_RECEIVED;
+			}
 		}
-
-		tmp_err_code = decodePrefix(strm, uriID, &prfxID);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = decodeBoolean(strm, &boolean);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		if(handler->namespaceDeclaration != NULL)  // Invoke handler method
+		break;
+		case VALUE_TYPE_BOOLEAN:
 		{
-			if(handler->namespaceDeclaration(strm->uriTable->rows[uriID].string_val, strm->uriTable->rows[uriID].pTable->string_val[prfxID], boolean, app_data) == EXIP_HANDLER_STOP)
-				return HANDLER_STOP_RECEIVED;
+			unsigned char bool_val;
+			tmp_err_code = decodeBoolean(strm, &bool_val);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			if(handler->booleanData != NULL)  // Invoke handler method
+			{
+				if(handler->booleanData(bool_val, app_data) == EXIP_HANDLER_STOP)
+					return HANDLER_STOP_RECEIVED;
+			}
+
+			// handle xsi:nil attribute
+			if(strm->gStack->grammar->grammarType >= GR_TYPE_SCHEMA_DOC && local_uriID == 2 && local_lnID == 0) // Schema-enabled grammar and http://www.w3.org/2001/XMLSchema-instance:nil
+			{
+				if(bool_val == TRUE)
+				{
+					// xsi:nil attribute equals to true & schema mode
+					EXIGrammar* tmpGrammar;
+					popGrammar(&(strm->gStack), &tmpGrammar);
+
+					tmpGrammar = strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].typeEmptyGrammar;
+					if(tmpGrammar == NULL)
+						return INCONSISTENT_PROC_STATE;
+
+					tmp_err_code = pushGrammar(&(strm->gStack), tmpGrammar);
+					if(tmp_err_code != ERR_OK)
+						return tmp_err_code;
+
+					*nonTermID_out = GR_START_TAG_CONTENT;
+				}
+			}
 		}
-	}
-	else
-	{
-		return NOT_IMPLEMENTED_YET;
+		break;
+		case VALUE_TYPE_BINARY:
+		{
+			return NOT_IMPLEMENTED_YET;
+		}
+		break;
+		case VALUE_TYPE_DECIMAL:
+		{
+			Decimal decVal;
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Decimal value\n"));
+			tmp_err_code = decodeDecimalValue(strm, &decVal);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+			if(handler->decimalData != NULL)  // Invoke handler method
+			{
+				if(handler->decimalData(decVal, app_data) == EXIP_HANDLER_STOP)
+					return HANDLER_STOP_RECEIVED;
+			}
+		}
+		break;
+		case VALUE_TYPE_DATE_TIME:
+		{
+			return NOT_IMPLEMENTED_YET;
+		}
+		break;
+		case VALUE_TYPE_LIST:
+		{
+			return NOT_IMPLEMENTED_YET;
+		}
+		break;
+		case VALUE_TYPE_QNAME:
+		{
+			return NOT_IMPLEMENTED_YET;
+		}
+		break;
+		default: // VALUE_TYPE_STRING || VALUE_TYPE_NONE || VALUE_TYPE_UNTYPED
+		{
+			String value;
+			unsigned char freeable = FALSE;
+
+			tmp_err_code = decodeStringValue(strm, local_uriID, local_lnID, &value, &freeable);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+			if(handler->stringData != NULL)  // Invoke handler method
+			{
+				if(handler->stringData(value, app_data) == EXIP_HANDLER_STOP)
+					return HANDLER_STOP_RECEIVED;
+			}
+			if(freeable)
+				freeLastManagedAlloc(&strm->memList);
+		}
 	}
 
 	return ERR_OK;

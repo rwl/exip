@@ -366,11 +366,11 @@ errorCode createInitialEntries(AllocList* memList, URITable* uTable, unsigned ch
 	return ERR_OK;
 }
 
-errorCode addValueRows(EXIStream* strm, String* value)
+errorCode addValueRows(EXIStream* strm, String* value, uint16_t uriID, size_t lnID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	size_t* vLocalCrossTablePtr = NULL;
-	struct LocalNamesRow* lnRow = &(strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID]);
+	struct LocalNamesRow* lnRow = &(strm->uriTable->rows[uriID].lTable->rows[lnID]);
 
 	// Add entry to the local value table
 	if(lnRow->vCrossTable == NULL)

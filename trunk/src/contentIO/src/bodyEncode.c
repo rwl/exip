@@ -52,14 +52,12 @@
 #include "grammars.h"
 #include "memManagement.h"
 
-errorCode encodeStringData(EXIStream* strm, String strng)
+errorCode encodeStringData(EXIStream* strm, String strng, uint16_t uriID, size_t lnID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char flag_StringLiteralsPartition = 0;
-	uint16_t p_uriID = strm->context.curr_uriID;
-	size_t p_lnID = strm->context.curr_lnID;
 	uint16_t lvRowID = 0;
-	ValueLocalCrossTable* vlTable = strm->uriTable->rows[p_uriID].lTable->rows[p_lnID].vCrossTable;
+	ValueLocalCrossTable* vlTable = strm->uriTable->rows[uriID].lTable->rows[lnID].vCrossTable;
 
 	flag_StringLiteralsPartition = lookupLV(strm->vTable, vlTable, strng, &lvRowID);
 	if(flag_StringLiteralsPartition && vlTable->valueRowIds[lvRowID] != SIZE_MAX) //  "local" value partition table hit; when SIZE_MAX -> compact identifier permanently unassigned
@@ -106,7 +104,7 @@ errorCode encodeStringData(EXIStream* strm, String strng)
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 
-				tmp_err_code = addValueRows(strm, &copiedValue);
+				tmp_err_code = addValueRows(strm, &copiedValue, uriID, lnID);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			}
@@ -164,32 +162,25 @@ errorCode lookupProduction(EXIStream* strm, EXIEvent event, QName* qname, unsign
 	return ERR_OK;
 }
 
-errorCode encodeQName(EXIStream* strm, QName qname, EventType eventT)
+errorCode encodeQName(EXIStream* strm, QName qname, EventType eventT, uint16_t* uriID, size_t* lnID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	uint16_t uriID;
-	size_t lnID = 0;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Encoding QName\n"));
 
 /******* Start: URI **********/
-	tmp_err_code = encodeURI(strm, (String*) qname.uri, &uriID);
+	tmp_err_code = encodeURI(strm, (String*) qname.uri, uriID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-
-	strm->context.curr_uriID = uriID;
 /******* End: URI **********/
 
 /******* Start: Local name **********/
-	tmp_err_code = encodeLocalName(strm, (String*) qname.localName, uriID, &lnID);
+	tmp_err_code = encodeLocalName(strm, (String*) qname.localName, *uriID, lnID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-
-	strm->context.curr_lnID = lnID;
-
 /******* End: Local name **********/
 
-	return encodePrefixQName(strm, &qname, eventT);
+	return encodePrefixQName(strm, &qname, eventT, *uriID);
 }
 
 errorCode encodeURI(EXIStream* strm, String* uri, uint16_t* uriID)
@@ -270,7 +261,7 @@ errorCode encodeLocalName(EXIStream* strm, String* ln, uint16_t uriID, size_t* l
 	return ERR_OK;
 }
 
-errorCode encodePrefixQName(EXIStream* strm, QName* qname, EventType eventT)
+errorCode encodePrefixQName(EXIStream* strm, QName* qname, EventType eventT, uint16_t uriID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char prefixBits = 0;
@@ -279,17 +270,17 @@ errorCode encodePrefixQName(EXIStream* strm, QName* qname, EventType eventT)
 	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) == FALSE)
 		return ERR_OK;
 
-	if(strm->uriTable->rows[strm->context.curr_uriID].pTable == NULL || strm->uriTable->rows[strm->context.curr_uriID].pTable->rowCount == 0)
+	if(strm->uriTable->rows[uriID].pTable == NULL || strm->uriTable->rows[uriID].pTable->rowCount == 0)
 		return ERR_OK;
 
-	prefixBits = getBitsNumber(strm->uriTable->rows[strm->context.curr_uriID].pTable->rowCount - 1);
+	prefixBits = getBitsNumber(strm->uriTable->rows[uriID].pTable->rowCount - 1);
 
 	if(prefixBits > 0)
 	{
 		if(qname == NULL)
 			return NULL_POINTER_REF;
 
-		if(lookupPrefix(strm->uriTable->rows[strm->context.curr_uriID].pTable, *qname->prefix, &prefixID) == TRUE)
+		if(lookupPrefix(strm->uriTable->rows[uriID].pTable, *qname->prefix, &prefixID) == TRUE)
 		{
 			tmp_err_code = encodeNBitUnsignedInteger(strm, prefixBits, prefixID);
 			if(tmp_err_code != ERR_OK)

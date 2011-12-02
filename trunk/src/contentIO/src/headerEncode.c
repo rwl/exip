@@ -130,6 +130,8 @@ errorCode encodeHeader(EXIStream* strm)
 		options_strm.context.nonTermID = GR_DOCUMENT;
 		options_strm.context.curr_lnID = 0;
 		options_strm.context.curr_uriID = 0;
+		options_strm.context.curr_attr_lnID = 0;
+		options_strm.context.curr_attr_uriID = 0;
 		options_strm.context.expectATData = 0;
 		options_strm.bufContent = strm->bufContent;
 		options_strm.ioStrm = strm->ioStrm;
@@ -292,7 +294,7 @@ errorCode encodeHeader(EXIStream* strm)
 				tmp_err_code += serializeEvent(&options_strm, 1, 1 - options_strm.context.nonTermID, NULL); // serialize.startElement
 				tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endElement
 			}
-			if(strm->header.opts.schemaID.str != NULL || strm->header.opts.schemaID.length != 0) // SchemaID modes are encoded in the length part
+			if(strm->header.opts.schemaID.length != 0) // SchemaID modes are encoded in the length part
 			{
 				tmp_err_code += serializeEvent(&options_strm, 1, 2 - options_strm.context.nonTermID, NULL); // serialize.startElement
 				if(strm->header.opts.schemaID.str != NULL)
@@ -305,7 +307,7 @@ errorCode encodeHeader(EXIStream* strm)
 					nil.uri = &strm->uriTable->rows[2].string_val;
 					nil.localName = &strm->uriTable->rows[2].lTable->rows[0].string_val;
 					nil.prefix = &strm->uriTable->rows[2].pTable->string_val[0];
-					tmp_err_code += serializeEvent(&options_strm, 1, 1, &nil); // serialize.attribute
+					tmp_err_code += serializeEvent(&options_strm, 2, 0, &nil); // serialize.attribute
 					tmp_err_code += serialize.booleanData(&options_strm, TRUE);
 				}
 				else if(strm->header.opts.schemaID.length == SCHEMA_ID_EMPTY)

@@ -152,9 +152,11 @@ errorCode createInitialEntries(AllocList* memList, URITable* uTable, unsigned ch
  *
  * @param[in, out] strm EXI stream of bits
  * @param[in] value the string representing this global value. The String can be allocated on the stack.
+ * @param[in] uriID The URI id in the URI string table
+ * @param[in] lnID The ln id in the LN string table
  * @return Error handling code
  */
-errorCode addValueRows(EXIStream* strm, String* value);
+errorCode addValueRows(EXIStream* strm, String* value, uint16_t uriID, size_t lnID);
 
 /**
  * @brief Add a new row into the Prefix string table

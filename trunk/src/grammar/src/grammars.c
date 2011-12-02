@@ -570,6 +570,9 @@ static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Pro
 
 	*event = prodHit->event;
 	*nonTermID_out = prodHit->nonTermID;
+
+	// TODO: consider using switch{} statement instead of if
+
 	if(event->eventType == EVENT_SD)
 	{
 		if(handler->startDocument != NULL)
@@ -596,10 +599,8 @@ static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Pro
 
 		if(codeLength > 1 && strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)   // #1# COMMENT
 		{
-			strm->context.curr_uriID = prodHit->uriRowID;
-			strm->context.curr_lnID = prodHit->lnRowID;
 			tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL,
-												strm->context.curr_lnID, strm->context.curr_uriID);
+												SIZE_MAX, UINT16_MAX);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -618,18 +619,13 @@ static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Pro
 		{
 			if(codeLength > 1 && strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)   // #2# COMMENT
 			{
-				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, getEventDefType(EVENT_CH), *nonTermID_out,
-													strm->context.curr_lnID, strm->context.curr_uriID);
+				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, getEventDefType(EVENT_CH), *nonTermID_out, SIZE_MAX, UINT16_MAX);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			}
 		}
-		else // event->eventType != EVENT_CH; CH events do not have QName in their content
-		{
-			strm->context.curr_uriID = prodHit->uriRowID;
-			strm->context.curr_lnID = prodHit->lnRowID;
-		}
-		tmp_err_code = decodeEventContent(strm, *event, handler, nonTermID_out, currentRule, app_data);
+
+		tmp_err_code = decodeEventContent(strm, *event, handler, nonTermID_out, currentRule, app_data, prodHit->uriRowID, prodHit->lnRowID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
