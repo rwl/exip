@@ -24,3 +24,9 @@ examples - build samples' executables in /bin/examples
 <module_name> check - runs the unit test for module <module_name>
 
 clean - deletes the bin/ directory
+
+utils - builds exip utility applications
+
+doc - generates Doxygen documentation
+
+mulle - builds the exip library for the Mulle sensor platform
