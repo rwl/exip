@@ -49,7 +49,6 @@
 
 /**
  * @brief Allocate a memory for a string with UCSchars number of UCS characters
- * Note! The implementation of this function is platform-specific.
  * It depends on the representation of the characters
  *
  * @param[in, out] str a pointer to the uninitialized string
@@ -61,7 +60,6 @@ errorCode allocateStringMemory(CharType** str, size_t UCSchars, AllocList* memLi
 
 /**
  * @brief Writes a UCS [ISO/IEC 10646] code point to a string
- * Note! The implementation of this function is platform-specific.
  * It depends on the representation of the characters.
  * The memory needed for str should be allocated before the invocation
  * of this function
@@ -79,14 +77,12 @@ errorCode writeCharToString(String* str, uint32_t code_point, size_t* UCSpositio
 
 /**
  * @brief Creates an empty string
- * Note! The implementation of this function is platform-specific.
  * @param[in, out] emptyStr empty string
  */
 void getEmptyString(String* emptyStr);
 
 /**
  * @brief Checks if an string is empty
- * Note! The implementation of this function is platform-specific.
  * @param[in] str string to check
  * @return 0 if not empty, 1 if empty
  */
@@ -94,7 +90,6 @@ char isStringEmpty(const String* str);
 
 /**
  * @brief Transform a NULL terminated string of ASCII chars to String allocating memory for the CharType*.
- * Note! The implementation of this function is platform-specific.
  * @param[in] inStr ASCII stream
  * @param[in, out] outStr resulted string
  * @param[in, out] memList A list storing the memory allocations
@@ -107,7 +102,6 @@ errorCode asciiToString(const char* inStr, String* outStr, AllocList* memList, u
 
 /**
  * @brief Tests if two strings are equal
- * Note! The implementation of this function is platform-specific.
  * @param[in] str1 string to compare
  * @param[in] str2 string to compare
  * @return 1 if the strings are equal, 0 - otherwise
@@ -116,7 +110,6 @@ char stringEqual(const String str1, const String str2);
 
 /**
  * @brief Compare two strings lexicographically
- * Note! The implementation of this function is platform-specific.
  * @param[in] str1 string to compare
  * @param[in] str2 string to compare
  * @return 0 when the strings are equal; negative int when str1<str2; positive when  str1>str2
@@ -125,7 +118,6 @@ int stringCompare(const String str1, const String str2);
 
 /**
  * @brief Checks if a String string and ASCII string are equal
- * Note! The implementation of this function is platform-specific.
  * @param[in] str1 string to compare
  * @param[in] str2 null terminated string to compare
  * @return 1 if the strings are equal, 0 - otherwise
@@ -134,7 +126,6 @@ char stringEqualToAscii(const String str1, const char* str2);
 
 /**
  * @brief Returns the UCS [ISO/IEC 10646] code point at particular index from a String
- * Note! The implementation of this function is platform-specific.
  * @param[in] str string
  * @param[in] charIndex character index within the string
  * @param[out] UCScp the returned UCS code point
@@ -144,7 +135,6 @@ errorCode getUCSCodePoint(const String* str, size_t charIndex, uint32_t* UCScp);
 
 /**
  * @brief Makes a copy of the string in a new location
- * Note! The implementation of this function is platform-specific.
  * @param[in] src the string to be copied
  * @param[in] newStr will point to the newly allocated memory with scr->CharType* copied there
  * @param[in, out] memList A list storing the memory allocations
@@ -167,7 +157,6 @@ errorCode splitStringByChar(const String* src, CharType separator, String** toke
 
 /**
  * @brief Prints out a String
- * Note! The implementation of this function is platform-specific.
  * Used for debugging purposes.
  * @param[in] inStr Input string to be printed
  */
