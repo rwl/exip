@@ -108,18 +108,29 @@
   	\vfill
 \begin{figure}[!h]
  \begin{center}
- \includegraphics[width=0.70\textwidth, keepaspectratio=true]{images/logo.pdf}
+ \includegraphics[width=0.70\textwidth, keepaspectratio=true]{images/logo.pdf} \\ [3.5cm]
 \end{center}
-\end{figure}
+\end{figure} 
 
 \printauthor
 
 \textit{Copyright (c) 2011, Rumen Kyusakov. This work is licensed under \href{http://creativecommons.org/licenses/by-sa/3.0/}{Creative Commons Attribution-ShareAlike 3.0 License}.}
 
 \clearpage
+
+\thispagestyle{empty}				% Remove page numbering on this page
+
+\tableofcontents
+
+\clearpage
+
 \setcounter{page}{1}
 
 \input{Introduction.tex}
+
+\input{Basic-concepts.tex}
+
+\input{Maturity-statement.tex}
 
 \input{Serialization.tex}
 

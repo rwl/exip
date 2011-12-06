@@ -1,3 +1,19 @@
 \section{Serialization}
 
-Describe the serialization step by step
+This section describes the process of serializing an EXI stream using the EXIP API.
+The description is divided into two parts - schema-less and schema-enabled encoding.
+The basic steps are essentially the same in both cases so the schema-enabled one is only
+discussing some special use-cases and configurations that differ from the schema-less
+serialization. 
+
+As discussed in section \ref{sec:Basic-Concepts}, the EXIP API is especially useful
+for applications that are not dependent on XML APIs and text XML inputs. Example
+use cases are embedded devices working exclusively with EXI, XML binding tools
+that generate parsing/serialization code from XML Schema definitions, productivity tools
+etc. If your application works with text XML input that needs to be converted to EXI
+you need to create an external module that is build on top of the EXIP serialization API.
+
+
+\subsection{Schema-less encoding}
+
+\subsection{Schema-enabled encoding}

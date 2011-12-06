@@ -155,7 +155,7 @@
     <ClCompile Include="..\..\src\common\src\memManagement.c">
       <Filter>Source Files\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\common\src\p_ASCII_stringManipulate.c">
+    <ClCompile Include="..\..\src\common\src\ASCII_stringManipulate.c">
       <Filter>Source Files\common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\common\src\procTypes.c">

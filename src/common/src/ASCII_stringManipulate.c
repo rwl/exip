@@ -33,7 +33,7 @@
 \===================================================================================*/
 
 /**
- * @file p_ASCII_stringManipulate.c
+ * @file ASCII_stringManipulate.c
  * @brief String manipulation functions used for UCS <-> ASCII transformations
  * Note! This file is platform dependent.
  * @date Sep 3, 2010

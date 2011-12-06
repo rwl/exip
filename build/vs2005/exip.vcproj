@@ -172,7 +172,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\common\src\p_ASCII_stringManipulate.c"
+					RelativePath="..\..\src\common\src\ASCII_stringManipulate.c"
 					>
 				</File>
 				<File

@@ -1,11 +1,11 @@
 # Common module build
 
-COMMON_OBJ = $(BIN_DIR)/p_ASCII_stringManipulate.o $(BIN_DIR)/procTypes.o \
+COMMON_OBJ = $(BIN_DIR)/ASCII_stringManipulate.o $(BIN_DIR)/procTypes.o \
 			 $(BIN_DIR)/contentHandler.o $(BIN_DIR)/memManagement.o \
 			 $(BIN_DIR)/hashtable.o $(BIN_DIR)/dynamicArray.o
 
-$(BIN_DIR)/p_ASCII_stringManipulate.o : $(COMMON_SRC)/src/p_ASCII_stringManipulate.c $(PUBLIC_INCLUDE_DIR)/stringManipulate.h $(PUBLIC_INCLUDE_DIR)/procTypes.h $(PUBLIC_INCLUDE_DIR)/errorHandle.h
-		$(CC) -c $(CFLAGS) $(COMMON_SRC)/src/p_ASCII_stringManipulate.c -o $(BIN_DIR)/p_ASCII_stringManipulate.o
+$(BIN_DIR)/ASCII_stringManipulate.o : $(COMMON_SRC)/src/ASCII_stringManipulate.c $(PUBLIC_INCLUDE_DIR)/stringManipulate.h $(PUBLIC_INCLUDE_DIR)/procTypes.h $(PUBLIC_INCLUDE_DIR)/errorHandle.h
+		$(CC) -c $(CFLAGS) $(COMMON_SRC)/src/ASCII_stringManipulate.c -o $(BIN_DIR)/ASCII_stringManipulate.o
 	
 $(BIN_DIR)/procTypes.o : $(COMMON_SRC)/src/procTypes.c $(PUBLIC_INCLUDE_DIR)/procTypes.h $(PUBLIC_INCLUDE_DIR)/errorHandle.h
 		$(CC) -c $(CFLAGS) $(COMMON_SRC)/src/procTypes.c -o $(BIN_DIR)/procTypes.o
