@@ -1,0 +1,225 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{0914d483-9236-4274-8958-b299b56a711e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{92cf3498-5c1f-495e-9031-226549efb99a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\common">
+      <UniqueIdentifier>{8495422e-09b1-4788-84f1-48c0c5016496}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\contentIO">
+      <UniqueIdentifier>{fbdab686-b3bf-42d3-b8da-e0bffd84dd65}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\grammar">
+      <UniqueIdentifier>{241a59eb-692c-4d25-b9f1-52498213ad2b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\streamIO">
+      <UniqueIdentifier>{fedb6584-24a8-4a7e-ad6a-b8463ef2ee94}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\stringTables">
+      <UniqueIdentifier>{765ef8cf-897b-45d4-9d21-b9a22b027dc2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\common">
+      <UniqueIdentifier>{68732c62-6205-45b3-9d7e-3d4466047c6c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\contentIO">
+      <UniqueIdentifier>{d606a1be-5f3f-4d35-8061-38163d10875e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\grammar">
+      <UniqueIdentifier>{6a7bd2c8-1509-4f42-b567-057cc40b0576}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\stringTables">
+      <UniqueIdentifier>{a79af724-685a-491f-a32b-f2f4f79bf958}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\streamIO">
+      <UniqueIdentifier>{77a712b4-59d2-48a4-9350-27e5336ceb0a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\grammarGen">
+      <UniqueIdentifier>{93f663fe-7d6f-4672-88ef-7f69bf1899fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\grammarGen">
+      <UniqueIdentifier>{77e8349e-a5d9-4385-8197-39f81e8c236e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\include\contentHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\errorHandle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\EXIParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\exipConfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\EXISerializer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\procTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\stringManipulate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\common\include\dynamicArray.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\common\include\hashtable.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\common\include\hashtable_private.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\common\include\hashUtils.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\contentIO\include\bodyDecode.h">
+      <Filter>Header Files\contentIO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\contentIO\include\bodyEncode.h">
+      <Filter>Header Files\contentIO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\contentIO\include\headerDecode.h">
+      <Filter>Header Files\contentIO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\grammar\include\eventsEXI.h">
+      <Filter>Header Files\grammar</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\grammar\include\grammarRules.h">
+      <Filter>Header Files\grammar</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\grammar\include\grammars.h">
+      <Filter>Header Files\grammar</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\stringTables\include\sTables.h">
+      <Filter>Header Files\stringTables</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\streamIO\include\ioUtil.h">
+      <Filter>Header Files\streamIO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\streamIO\include\streamDecode.h">
+      <Filter>Header Files\streamIO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\streamIO\include\streamEncode.h">
+      <Filter>Header Files\streamIO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\streamIO\include\streamRead.h">
+      <Filter>Header Files\streamIO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\streamIO\include\streamWrite.h">
+      <Filter>Header Files\streamIO</Filter>
+    </ClInclude>
+    <ClInclude Include="stdint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\schema.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\grammarGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\grammarGen\include\normGrammar.h">
+      <Filter>Header Files\grammarGen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\grammarGen\include\genUtils.h">
+      <Filter>Header Files\grammarGen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\common\include\memManagement.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\contentIO\include\headerEncode.h">
+      <Filter>Header Files\contentIO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\contentIO\include\grammarAugment.h">
+      <Filter>Header Files\contentIO</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\common\src\contentHandler.c">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\common\src\dynamicArray.c">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\common\src\hashtable.c">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\common\src\hashUtils.c">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\common\src\memManagement.c">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\common\src\ASCII_stringManipulate.c">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\common\src\procTypes.c">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\contentIO\src\bodyDecode.c">
+      <Filter>Source Files\contentIO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\contentIO\src\EXIParser.c">
+      <Filter>Source Files\contentIO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\contentIO\src\EXISerializer.c">
+      <Filter>Source Files\contentIO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\contentIO\src\headerDecode.c">
+      <Filter>Source Files\contentIO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\contentIO\src\headerEncode.c">
+      <Filter>Source Files\contentIO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\grammar\src\eventsEXI.c">
+      <Filter>Source Files\grammar</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\grammar\src\grammarRules.c">
+      <Filter>Source Files\grammar</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\grammar\src\grammars.c">
+      <Filter>Source Files\grammar</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\streamIO\src\ioUtil.c">
+      <Filter>Source Files\streamIO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\streamIO\src\streamDecode.c">
+      <Filter>Source Files\streamIO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\streamIO\src\streamEncode.c">
+      <Filter>Source Files\streamIO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\streamIO\src\streamRead.c">
+      <Filter>Source Files\streamIO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\streamIO\src\streamWrite.c">
+      <Filter>Source Files\streamIO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\stringTables\src\sTables.c">
+      <Filter>Source Files\stringTables</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\grammarGen\src\grammarGenerator.c">
+      <Filter>Source Files\grammarGen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\grammarGen\src\normGrammar.c">
+      <Filter>Source Files\grammarGen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\grammarGen\src\genUtils.c">
+      <Filter>Source Files\grammarGen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\contentIO\src\grammarAugment.c">
+      <Filter>Source Files\contentIO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\contentIO\src\bodyEncode.c">
+      <Filter>Source Files\contentIO</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.txt" />
+  </ItemGroup>
+</Project>

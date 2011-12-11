@@ -1,0 +1,18 @@
+\section{Maturity Statement}
+\label{sec:Maturity-Statement}
+
+The latest release of the EXIP library is pre-alpha version 0.3. As such, 
+many features are missing and others are not stable enough for real-world
+usage. Here is the status of the EXIP functionality:
+
+\begin{itemize}
+ \item Currently only ASCII strings are supported. It should be relatively easy to extend
+that with Unicode strings by implementing a dozen of functions in the header
+file \texttt{stringManipulate.h}
+ \item EXIP is working quite stable when using the default options in the EXI header in schema-less mode
+ \item Schema-enabled mode is unstable and has limited features supported. The reason is in the
+status of the grammar generation utility that converts XML Schema definitions to EXIP grammars.
+For example, the import of external schema definitions through \texttt{xsd:import} is currently not supported.
+ \item The following EXI header options are supported: EXI Cookie, Options Presence Bit, Strict, Fragment,
+Preserve.prefixes, SchemaId, ValueMaxLength and ValuePartitionCapacity.
+\end{itemize}
