@@ -79,6 +79,12 @@ int main(int argc, char *argv[])
 			char *schemaBuffer;
 			char schemaFileName[50];
 
+			if(argc <= 3)
+			{
+				printfHelp();
+				return 0;
+			}
+
 			strcpy(schemaFileName, argv[2]);
 
 			schemaFile = fopen(schemaFileName, "rb" );
@@ -156,7 +162,7 @@ int main(int argc, char *argv[])
 			outStrm.stream = outfile;
 
 			// IV: Initialize the stream
-			tmp_err_code = serialize.initStream(&testStrm, buf, OUTPUT_BUFFER_SIZE, &outStrm, schemaPtr, SCHEMA_ID_EMPTY, NULL);
+			tmp_err_code = serialize.initStream(&testStrm, buf, OUTPUT_BUFFER_SIZE, &outStrm, schemaPtr, SCHEMA_ID_ABSENT, NULL);
 			if(tmp_err_code != ERR_OK)
 				printError(tmp_err_code, &testStrm, outfile);
 
@@ -185,7 +191,7 @@ int main(int argc, char *argv[])
 			if(tmp_err_code != ERR_OK)
 				printError(tmp_err_code, &testStrm, outfile);
 
-			// V: Free the memory allocated by the EXI stream object
+			// VI: Free the memory allocated by the EXI stream object
 			tmp_err_code = serialize.closeEXIStream(&testStrm);
 
 			fclose(outfile);

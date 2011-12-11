@@ -1,4 +1,5 @@
 \section{Serialization}
+\label{sec:Serialization}
 
 This section describes the process of serializing an EXI stream using the EXIP API.
 The description is divided into two parts - schema-less and schema-enabled encoding.
@@ -13,7 +14,159 @@ that generate parsing/serialization code from XML Schema definitions, productivi
 etc. If your application works with text XML input that needs to be converted to EXI
 you need to create an external module that is build on top of the EXIP serialization API.
 
-
+The serialization API is defined in \texttt{EXISerializer.h}. You can work with the
+serialization functions directly or use the \texttt{serialize} global variable by including:
+\begin{lstlisting}
+ extern const EXISerializer serialize;
+\end{lstlisting}
+in your source file.
+ 
 \subsection{Schema-less encoding}
+The serialization of an EXI stream consists of 7 simple steps:
+\begin{enumerate}
+ \item Declare a stream container that holds the serialized data and EXIP state:
+\begin{lstlisting}
+EXIStream strm;
+\end{lstlisting}
+
+ \item Initialize the EXI header of the new stream container:
+\begin{lstlisting}
+serialize.initHeader(&strm);                                                            
+\end{lstlisting}
+
+
+ \item \label{item:step-options} (Optional) Set any options in the EXI header, if different from the defaults:
+\begin{lstlisting}
+strm.header.has_options = TRUE; /* Set the options presence bit */ 
+strm.header.has_cookie = TRUE; /* Include EXI cookie in the header */
+SET_STRICT(strm.header.opts.enumOpt); /* Indicate a STRICT mode encoding */
+\end{lstlisting}
+
+ \item (Optional) Define an external stream for sending the serialized output if any. If an output stream
+is not defined the whole EXI document must fit into a memory buffer:
+\begin{lstlisting}
+IOStream out; /* Declare an output stream container */
+FILE *outfile; /* Using a file for storing the serialized data */
+outfile = fopen(destinationEXIFile, "wb" ); /* open the file before use */
+out.readWriteToStream = writeToFileOutputStream; /* writeToFileOutputStream
+is a function implementing the actual writing to the stream */
+out.stream = outfile; /* Sets the output stream to the file */
+\end{lstlisting}
+
+ \item \label{item:initialization}  Define an intermediate buffer and initialize the stream:
+\begin{lstlisting}
+#define OUTPUT_BUFFER_SIZE 200 /* The size of the buffer in bytes */
+char buffer[OUTPUT_BUFFER_SIZE];
+serialize.initStream(&strm, buffer, OUTPUT_BUFFER_SIZE, &out, NULL, 
+					SCHEMA_ID_ABSENT, NULL);
+/**
+ * @param[in, out] strm EXI stream container
+ * @param[in, out] buffer binary buffer for storing the encodded EXI stream
+ * @param[in] OUTPUT_BUFFER_SIZE the size of the buffer in bytes
+ * @param[in] out output stream to be used to flush the binary buffer when
+		      full if any; NULL otherwise
+ * @param[in] NULL a compiled schema information to be used for schema
+		      enabled processing; NULL if no schema is available
+ * @param[in] SCHEMA_ID_ABSENT one of SCHEMA_ID_ABSENT, SCHEMA_ID_SET,
+		SCHEMA_ID_NIL or SCHEMA_ID_EMPTY as defined in the specification
+ * @param[in] NULL when in SCHEMA_ID_SET mode a valid string representing
+		      the schemaID; NULL otherwise
+ */                             
+\end{lstlisting}
+
+ \item \label{item:encoding} Start building the stream step by step starting from the header. The body should always start with
+    \texttt{startDocument()} and ends with \texttt{endDocument()} with at least one element declaration.
+In schema-less mode the only type of data allowed is \texttt{string} so when encoding element or
+attribute values you should use \texttt{stringData()}:
+\begin{lstlisting}
+serialize.exiHeader(&strm); /* Always first */
+serialize.startDocument(&strm); /* Indicates beginning of the EXI body */
+
+String uri; /* EXIP string representing a namespace/URI */
+String ln; /* EXIP string representing a local name */
+QName qname= {&uri, &ln, NULL}; /* QName definition cosisting of
+namespace, local name and prefix if any*/
+
+/* Convert a static ASCII string constant to EXIP string type */
+asciiToString("http://www.ltu.se/exip", &uri, &strm.memList, FALSE);
+asciiToString("rootElement", &ln, &strm.memList, FALSE);
+
+/* Encode an element with QName <http://www.ltu.se/exip:rootElement> */
+serialize.startElement(&strm, qname);
+
+getEmptyString(&uri);
+asciiToString("testAttribute", &ln, &strm.memList, FALSE);
+
+/* Encode attribute with QName <testAttribute> and indicate its type */
+serialize.attribute(&strm, qname, VALUE_TYPE_STRING);
+
+String ch; /* EXIP string representing a string value */
+asciiToString("attribute value", &ch, &strm.memList, FALSE);
+
+serialize.stringData(&strm, ch); /* Encode the value of the attribute */
+
+asciiToString("element value", &ch, &strm.memList, FALSE);
+
+serialize.stringData(&strm, ch); /* The value of the <rootElement> */
+
+serialize.endElement(&strm); /* Close element <rootElement> */
+
+serialize.endDocument(&strm); /* Close the EXI body*/
+\end{lstlisting}
+
+ \item Destroy the EXI stream container and free the memory allocated by it. If any other
+streams are left open close them as well:
+\begin{lstlisting}
+serialize.closeEXIStream(&strm);
+fclose(outfile); /* Close the file used to store the serialized data */
+\end{lstlisting}
+
+\end{enumerate}
+
 
 \subsection{Schema-enabled encoding}
+When in schema-enabled mode the basic serialization steps are essentially the same.
+The difference is in the parameters passed to the \texttt{serialize.initStream()}.
+You need to pass a valid \texttt{EXIPSchema} object and not NULL as in the schema-less
+case. This object contains all the definitions and constrains from the XML schema and
+its creation is a topic of section \ref{sec:Schema-Infromation} \textbf{Schema Information}.
+During the encoding in Step \ref{item:encoding} you must use the types for the
+values as defined by the schema definitions. For example, \texttt{serialize.intData()} for
+integer values of elements or attributes and \texttt{serialize.booleanData()} for boolean values.
+There are also few options
+in the EXI header that influence how the schema information is utilized when encoding
+the EXI body:
+\begin{description}
+ \item[strict] this is a boolean option that specify if deviations from the schema
+definitions are allowed (has value of \texttt{false}) or are not allowed (has value of \texttt{true})
+in the EXI body. The default value of this option is \texttt{false}. When in STRICT mode
+(strict equals \texttt{true}) the representation is slightly more compact. You can set the
+value of this option in Step \ref{item:step-options} with the following macro:
+\begin{lstlisting}
+SET_STRICT(strm.header.opts.enumOpt); /* Indicate a STRICT mode encoding */
+\end{lstlisting}
+
+ \item[schemaId] this option takes a string for its value. There are four possible states
+for this option as defined in the \href{http://www.w3.org/TR/2011/REC-exi-20110310/#key-schemaIdOption}{specification}:
+\begin{itemize}
+ \item SCHEMA\_ID\_ABSENT - default state; no statement is made about the schema information.
+Is it a schema-less or schema-enabled mode and what schema definitions to be used when decoding must be communicated out of band.
+ \item SCHEMA\_ID\_SET - a string identification of the schema used for encoding is specified in the EXI header
+ \item SCHEMA\_ID\_NIL - no schema information is used for processing the EXI body (i.e. a schema-less EXI stream)
+ \item SCHEMA\_ID\_EMPTY - no user defined schema information is used for processing the EXI body; however, the built-in XML schema types are available for use in the EXI body
+through the \texttt{xsi:type} attribute
+\end{itemize}
+  All of these states can be set during initialization - Step \ref{item:initialization}:
+\begin{lstlisting}
+String schemaID;
+asciiToString("http://www.ltu.se/schema", &schemaID, &strm.memList, FALSE);
+serialize.initStream(&strm, buffer, OUTPUT_BUFFER_SIZE, &out, NULL, 
+					SCHEMA_ID_SET, schemaID);                           
+\end{lstlisting}
+In this example we defined the state to SCHEMA\_ID\_SET and give an identifier to the schema used - \texttt{http://www.ltu.se/schema}.
+ \end{description}
+
+The serialization interface defined in \texttt{EXISerializer.h} has a more efficient low level API
+for encoding the document structure when in schema-enabled mode. This API is accessed through \texttt{serializeEvent()}
+function. A description on how it can be used might be included in the future versions of this guide. If you want to know more about it
+you can check how it is used to encode the EXI options document in the header of an EXI stream in \texttt{headerEncode.c}. 

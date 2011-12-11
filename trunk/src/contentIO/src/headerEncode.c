@@ -56,6 +56,8 @@ extern const EXIPSchema ops_schema;
 
 extern const EXISerializer serialize;
 
+static void closeOptionsStream(EXIStream* strm);
+
 errorCode encodeHeader(EXIStream* strm)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -135,26 +137,28 @@ errorCode encodeHeader(EXIStream* strm)
 		options_strm.context.expectATData = 0;
 		options_strm.bufContent = strm->bufContent;
 		options_strm.ioStrm = strm->ioStrm;
+		options_strm.gStack = NULL;
+		options_strm.schema = (EXIPSchema*) &ops_schema;
 
 		options_strm.uriTable = ops_schema.initialStringTables;
 		tmp_err_code = createValueTable(&(options_strm.vTable), &(options_strm.memList));
 		if(tmp_err_code != ERR_OK)
 		{
-			closeEXIStream(&options_strm);
+			closeOptionsStream(&options_strm);
 			return tmp_err_code;
 		}
 
 		tmp_err_code = createDocGrammar(&docGr, &options_strm, &ops_schema);
 		if(tmp_err_code != ERR_OK)
 		{
-			closeEXIStream(&options_strm);
+			closeOptionsStream(&options_strm);
 			return tmp_err_code;
 		}
 
 		tmp_err_code = pushGrammar(&options_strm.gStack, &docGr);
 		if(tmp_err_code != ERR_OK)
 		{
-			closeEXIStream(&options_strm);
+			closeOptionsStream(&options_strm);
 			return tmp_err_code;
 		}
 
@@ -347,10 +351,20 @@ errorCode encodeHeader(EXIStream* strm)
 			}
 		}
 
-		freeAllMem(&options_strm);
+		closeOptionsStream(&options_strm);
 
 		return tmp_err_code;
 	}
 
 	return ERR_OK;
+}
+
+static void closeOptionsStream(EXIStream* strm)
+{
+	EXIGrammar* tmp;
+	while(strm->gStack != NULL)
+	{
+		popGrammar(&strm->gStack, &tmp);
+	}
+	freeAllMem(strm);
 }

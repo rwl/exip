@@ -53,12 +53,91 @@ For further information and details on the EXIP API and the rational
 behind it see the paper that first presents EXIP \cite{RumenKyusakov2011} (please refer to this work when 
 citing information from this guide or other EXIP documentation).
 
+\subsection{Project structure}
+\label{sec:project-structure}
+
+The EXIP library is an Eclipse C project structured in the following subdirectories:
+\begin{itemize}
+ \item \texttt{bin/} - this is the build output directory. It is automatically created/removed when
+doing builds of the project. The library binaries are located directly into the \texttt{bin/} folder
+while the examples and other utils are compiled in separate subfolders
+
+ \item \texttt{build/} - this folder contains the build scripts of the project. The current release
+provides only gcc toolchain builds under \texttt{build/gcc/}. The platform-dependent parameters and
+headers are located in subfolders - \texttt{build/gcc/mulle} for the Mulle sensor platform and
+\texttt{build/gcc/pc} for PCs. The build is started from \texttt{build/gcc/} with the following
+\texttt{make} build targets available:
+\begin{description}
+ \item[all] compiles the EXIP library. The default target platform is PC. To change the target
+platform to Mulle add \texttt{target=mulle} as an argument of \texttt{make}
+ \item[check] invokes the Check unit tests
+ \item[clean] removes the \texttt{bin/} folder
+ \item[doc] generates the project Doxygen documentation. The output directory is set to \texttt{doc/doxygen/}
+ \item[examples] compiles and builds the example executables
+ \item[utils] compiles and builds the utils executables
+ \end{description}
+
+ \item \texttt{doc/} - the project documentation: \texttt{doc/user/} contains the source of this user guide;
+    \texttt{doc/doxygen/} is the output directory of the Doxygen source code documentation; 
+  \texttt{doc/www/} contains the information available on the project web page
+
+ \item \texttt{examples/} - the root of the example applications shipped with the EXIP library
+
+ \item \texttt{include/} - this folder contains the public header files of EXIP
+
+ \item \texttt{src/} - here are all internal definitions and \texttt{.c} files divided into
+	      subfolders according to the modules in which they belong
+
+ \item \texttt{tests/} - Check unit tests, integration and validation tests
+
+ \item \texttt{utils/} - supporting utilities and development tools
+
+\end{itemize}
+
+
 \subsection{Strings in EXIP}
 \label{sec:strings}
 
-All character strings in EXIP are length prefixed. 
+All character strings in EXIP are length prefixed. This means that all the strings that are passed to
+the EXI encoder and all the strings that are parsed from the decoder are in this format. The motivation
+for that is the number of string comparisons that the EXI processor must perform when going through an
+EXI stream. In many cases, when the strings differ in length, this operation is very efficient
+when the length is saved together with the characters data. EXIP provides an API for working with
+this type of strings defined in \texttt{stringManipulate.h}. The implementation of the functions
+declared in this header file defines what type of characters are supported in the string.
+For example, \texttt{ASCII\_stringManipulate.c} implements the strings as ASCII character arrays.
+
+One way of increasing the compactness defined in the EXI specification is through the use of string tables.
+The string tables are partitioned dictionary that stores and indexes the strings that occur in particular
+EXI document. In such way, when a string has been used once in the document it is added to the string tables.
+Every other occurrence of the same string in the document is represented by its index in the string tables.
+
+\begin{figure}[h!]
+ \begin{center}
+ \includegraphics[width=0.90\textwidth, keepaspectratio=true]{images/StringTablesDiag.pdf}
+\end{center}
+\caption{String tables in EXIP}
+\label{fig:EXIP-string-tables} 
+\end{figure} 
+
+Figure \ref{fig:EXIP-string-tables} shows how the string tables are implemented in EXIP. As a user of
+the library you do not need to understand the actual implementation details. The only thing that you need
+to be aware of is that the strings that are passed to your application by the EXIP parser should not be
+modified as they are integral part of the string tables. You can clone the strings and use that copy
+for string manipulations.
 
 \subsection{Error handling and memory management}
 \label{sec:errors-memory}
+When an invalid input is given to the EXIP parser or some other error conditions occur, the
+EXIP library functions return a numeric error codes that are defined in \texttt{errorHandle.h}.
+More fine-grained error messages can be acquired by turning on the debugging routines.
+You have control over the level of verbosity (INFO, WARNING or ERROR) and the source of
+debugging information. All these parameters can be configured in the \texttt{exipConfig.h} header
+that is defined per target platform in \texttt{build/gcc/<target\_platform>}.
+When turned on the debugging information is by default printed on the standard output.
 
-Some short and concise info here
+EXIP has an internal memory management infrastructure and you are not required to
+know its details unless you are using the EXIP string type in your own applications. That is because
+the string manipulation functions use \texttt{AllocList} to manage their allocations.
+You can either define your own string manipulation functions or acquaint yourself with 
+the memory management routines defined in \texttt{memManagement.h}.
