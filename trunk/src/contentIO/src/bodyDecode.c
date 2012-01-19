@@ -112,14 +112,16 @@ errorCode decodeLocalName(EXIStream* strm, uint16_t uriID, size_t* lnID)
 
 	if(tmpVar == 0) // local-name table hit
 	{
+		unsigned int l_lnID;
 		unsigned char lnBits = getBitsNumber((unsigned int)(strm->uriTable->rows[uriID].lTable->rowCount - 1));
 		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">local-name table hit\n"));
-		tmp_err_code = decodeNBitUnsignedInteger(strm, lnBits, lnID);
+		tmp_err_code = decodeNBitUnsignedInteger(strm, lnBits, &l_lnID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		if(*lnID >= strm->uriTable->rows[uriID].lTable->rowCount)
+		if(l_lnID >= strm->uriTable->rows[uriID].lTable->rowCount)
 			return INVALID_EXI_INPUT;
+		*lnID = l_lnID;
 	}
 	else // local-name table miss
 	{
@@ -230,7 +232,7 @@ errorCode decodeStringValue(EXIStream* strm, uint16_t uriID, size_t lnID, String
 	}
 	else if(tmpVar == 1)// global value partition table hit
 	{
-		size_t gvID = 0;
+		unsigned int gvID = 0;
 		unsigned char gvBits = getBitsNumber((unsigned int)(strm->vTable->rowCount - 1));
 		tmp_err_code = decodeNBitUnsignedInteger(strm, gvBits, &gvID);
 		if(tmp_err_code != ERR_OK)

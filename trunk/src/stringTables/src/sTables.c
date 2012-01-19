@@ -475,7 +475,7 @@ char lookupLN(LocalNamesTable* lTable, String value, size_t* rowID)
 	return 0;
 }
 
-char lookupPrefix(PrefixTable* pTable, String value, size_t* rowID)
+char lookupPrefix(PrefixTable* pTable, String value, unsigned int* rowID)
 {
 	unsigned int i = 0;
 	if(pTable == NULL)

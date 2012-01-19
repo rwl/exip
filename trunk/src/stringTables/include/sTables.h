@@ -199,7 +199,7 @@ char lookupLN(LocalNamesTable* lTable, String value, size_t* rowID); //TODO: try
  * @param[out] rowID if found, ID of the Prefix row with that string
  * @return 0-not found, 1 found
  */
-char lookupPrefix(PrefixTable* pTable, String value, size_t* rowID);
+char lookupPrefix(PrefixTable* pTable, String value, unsigned int* rowID);
 
 /**
  * @brief Search the Local partition of the Value table for a particular string value
