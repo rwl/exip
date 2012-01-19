@@ -227,7 +227,7 @@ errorCode encodeLocalName(EXIStream* strm, String* ln, uint16_t uriID, size_t* l
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = encodeNBitUnsignedInteger(strm, lnBits, (unsigned int)(lnID) );
+		tmp_err_code = encodeNBitUnsignedInteger(strm, lnBits, (unsigned int)(*lnID) );
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -265,7 +265,7 @@ errorCode encodePrefixQName(EXIStream* strm, QName* qname, EventType eventT, uin
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char prefixBits = 0;
-	size_t prefixID = 0;
+	unsigned int prefixID = 0;
 
 	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) == FALSE)
 		return ERR_OK;
@@ -303,7 +303,7 @@ errorCode encodePrefixQName(EXIStream* strm, QName* qname, EventType eventT, uin
 errorCode encodePrefix(EXIStream* strm, uint16_t uriID, String* prefix)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	size_t prfxID;
+	unsigned int prfxID;
 	unsigned char prfxBits = getBitsNumber(strm->uriTable->rows[uriID].pTable->rowCount);
 
 	if(lookupPrefix(strm->uriTable->rows[uriID].pTable, *prefix, &prfxID)) // prefix hit
