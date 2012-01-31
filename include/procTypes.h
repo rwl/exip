@@ -72,27 +72,27 @@ typedef struct stackNode GenericStack;
 /**
  * EXI options related macros
  */
-#define BIT_PACKED      0b00000000
-#define BYTE_ALIGNMENT  0b01000000
-#define PRE_COMPRESSION 0b10000000
-#define ALIGNMENT       0b11000000
+#define BIT_PACKED      0x00 // 0b00000000
+#define BYTE_ALIGNMENT  0x40 // 0b01000000
+#define PRE_COMPRESSION 0x80 // 0b10000000
+#define ALIGNMENT       0xc0 // 0b11000000
 
-#define COMPRESSION     0b00000001
-#define STRICT          0b00000010
-#define FRAGMENT        0b00000100
-#define SELF_CONTAINED  0b00001000
+#define COMPRESSION     0x01 // 0b00000001
+#define STRICT          0x02 // 0b00000010
+#define FRAGMENT        0x04 // 0b00000100
+#define SELF_CONTAINED  0x08 // 0b00001000
 
-#define GET_ALIGNMENT(p)       (p & ALIGNMENT)
-#define WITH_COMPRESSION(p)    ((p & COMPRESSION) != 0)
-#define WITH_STRICT(p)         ((p & STRICT) != 0)
-#define WITH_FRAGMENT(p)       ((p & FRAGMENT) != 0)
-#define WITH_SELF_CONTAINED(p) ((p & SELF_CONTAINED) != 0)
+#define GET_ALIGNMENT(p)       ((p) & ALIGNMENT)
+#define WITH_COMPRESSION(p)    (((p) & COMPRESSION) != 0)
+#define WITH_STRICT(p)         (((p) & STRICT) != 0)
+#define WITH_FRAGMENT(p)       (((p) & FRAGMENT) != 0)
+#define WITH_SELF_CONTAINED(p) (((p) & SELF_CONTAINED) != 0)
 
-#define SET_ALIGNMENT(p, align_const) (p = p | align_const)
-#define SET_COMPRESSION(p)            (p = p | COMPRESSION)
-#define SET_STRICT(p)                 (p = p | STRICT)
-#define SET_FRAGMENT(p)               (p = p | FRAGMENT)
-#define SET_SELF_CONTAINED(p)         (p = p | SELF_CONTAINED)
+#define SET_ALIGNMENT(p, align_const) ((p) = (p) | align_const)
+#define SET_COMPRESSION(p)            ((p) = (p) | COMPRESSION)
+#define SET_STRICT(p)                 ((p) = (p) | STRICT)
+#define SET_FRAGMENT(p)               ((p) = (p) | FRAGMENT)
+#define SET_SELF_CONTAINED(p)         ((p) = (p) | SELF_CONTAINED)
 
 // SchemaID option modes (http://www.w3.org/TR/2011/REC-exi-20110310/#key-schemaIdOption):
 // SCHEMA_ID_ABSENT - default,  no statement is made about the schema information
@@ -114,14 +114,14 @@ typedef struct stackNode GenericStack;
  *	Preserve.lexicalValues	Lexical form of element and attribute values is preserved in value content items
  *
  **/
-#define PRESERVE_COMMENTS  0b00000001
-#define PRESERVE_PIS       0b00000010
-#define PRESERVE_DTD       0b00000100
-#define PRESERVE_PREFIXES  0b00001000
-#define PRESERVE_LEXVALUES 0b00010000
+#define PRESERVE_COMMENTS  0x01 // 0b00000001
+#define PRESERVE_PIS       0x02 // 0b00000010
+#define PRESERVE_DTD       0x04 // 0b00000100
+#define PRESERVE_PREFIXES  0x08 // 0b00001000
+#define PRESERVE_LEXVALUES 0x10 // 0b00010000
 
-#define IS_PRESERVED(p, mask) ((p & mask) != 0)
-#define SET_PRESERVED(p, preserve_const) (p = p | preserve_const)
+#define IS_PRESERVED(p, mask) (((p) & (mask)) != 0)
+#define SET_PRESERVED(p, preserve_const) ((p) = (p) | (preserve_const))
 
 // #DOCUMENT# If there is a possibility that a document defines more than 4 prefixes per namespace i.e. something insane, this should be increased
 // Note that will require many changes - for example statically generated grammars from XML schemas needs to be rebuilt
@@ -132,18 +132,18 @@ typedef struct stackNode GenericStack;
 /**
  * For handling the DATE-TIME type (structure tm from time.h)
  */
-#define SEC_PRESENCE       0b0000000000000001
-#define MIN_PRESENCE       0b0000000000000010
-#define HOUR_PRESENCE      0b0000000000000100
-#define MDAY_PRESENCE      0b0000000000001000
-#define MON_PRESENCE       0b0000000000010000
-#define YEAR_PRESENCE      0b0000000000100000
-#define WDAY_PRESENCE      0b0000000001000000
-#define YDAY_PRESENCE      0b0000000010000000
-#define DST_PRESENCE       0b0000000100000000
-#define TZONE_PRESENCE     0b0000001000000000
+#define SEC_PRESENCE       0x0001 // 0b0000000000000001
+#define MIN_PRESENCE       0x0002 // 0b0000000000000010
+#define HOUR_PRESENCE      0x0004 // 0b0000000000000100
+#define MDAY_PRESENCE      0x0008 // 0b0000000000001000
+#define MON_PRESENCE       0x0010 // 0b0000000000010000
+#define YEAR_PRESENCE      0x0020 // 0b0000000000100000
+#define WDAY_PRESENCE      0x0040 // 0b0000000001000000
+#define YDAY_PRESENCE      0x0080 // 0b0000000010000000
+#define DST_PRESENCE       0x0100 // 0b0000000100000000
+#define TZONE_PRESENCE     0x0200 // 0b0000001000000000
 
-#define IS_PRESENT(p, mask) ((p & mask) != 0)
+#define IS_PRESENT(p, mask) (((p) & (mask)) != 0)
 
 #ifndef EXIP_UNSIGNED_INTEGER
 # define EXIP_UNSIGNED_INTEGER uint64_t
@@ -516,20 +516,20 @@ struct QNameID {
 typedef struct QNameID QNameID;
 
 // Constraining Facets IDs. Used for fine-grained schema validation
-#define TYPE_FACET_LENGTH             0b0000000000000001
-#define TYPE_FACET_MIN_LENGTH         0b0000000000000010
-#define TYPE_FACET_MAX_LENGTH         0b0000000000000100
-#define TYPE_FACET_PATTERN            0b0000000000001000
-#define TYPE_FACET_ENUMERATION        0b0000000000010000
-#define TYPE_FACET_WHITE_SPACE        0b0000000000100000
-#define TYPE_FACET_MAX_INCLUSIVE      0b0000000001000000
-#define TYPE_FACET_MAX_EXCLUSIVE      0b0000000010000000
-#define TYPE_FACET_MIN_EXCLUSIVE      0b0000000100000000
-#define TYPE_FACET_MIN_INCLUSIVE      0b0000001000000000
-#define TYPE_FACET_TOTAL_DIGITS       0b0000010000000000
-#define TYPE_FACET_FRACTION_DIGITS    0b0000100000000000
-#define TYPE_FACET_NAMED_SUBTYPE      0b0001000000000000
-#define TYPE_FACET_SIMPLE_UNION_TYPE  0b0010000000000000
+#define TYPE_FACET_LENGTH             0x0001 // 0b0000000000000001
+#define TYPE_FACET_MIN_LENGTH         0x0002 // 0b0000000000000010
+#define TYPE_FACET_MAX_LENGTH         0x0004 // 0b0000000000000100
+#define TYPE_FACET_PATTERN            0x0008 // 0b0000000000001000
+#define TYPE_FACET_ENUMERATION        0x0010 // 0b0000000000010000
+#define TYPE_FACET_WHITE_SPACE        0x0020 // 0b0000000000100000
+#define TYPE_FACET_MAX_INCLUSIVE      0x0040 // 0b0000000001000000
+#define TYPE_FACET_MAX_EXCLUSIVE      0x0080 // 0b0000000010000000
+#define TYPE_FACET_MIN_EXCLUSIVE      0x0100 // 0b0000000100000000
+#define TYPE_FACET_MIN_INCLUSIVE      0x0200 // 0b0000001000000000
+#define TYPE_FACET_TOTAL_DIGITS       0x0400 // 0b0000010000000000
+#define TYPE_FACET_FRACTION_DIGITS    0x0800 // 0b0000100000000000
+#define TYPE_FACET_NAMED_SUBTYPE      0x1000 // 0b0001000000000000
+#define TYPE_FACET_SIMPLE_UNION_TYPE  0x2000 // 0b0010000000000000
 
 struct SimpleType {
 	uint16_t facetPresenceMask;
@@ -809,7 +809,6 @@ typedef struct EXIStream EXIStream;
  * @param[in, out] opts EXI options structure
  */
 void makeDefaultOpts(EXIOptions* opts);
-
 
 errorCode pushOnStack(GenericStack** stack, void* element);
 
