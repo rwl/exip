@@ -31,7 +31,7 @@
     <ClInclude Include="..\..\src\contentIO\include\headerDecode.h" />
     <ClInclude Include="..\..\src\contentIO\include\headerEncode.h" />
     <ClInclude Include="..\..\src\grammarGen\include\genUtils.h" />
-    <ClInclude Include="..\..\src\grammarGen\include\normGrammar.h" />
+    <ClInclude Include="..\..\src\grammarGen\include\protoGrammars.h" />
     <ClInclude Include="..\..\src\grammar\include\eventsEXI.h" />
     <ClInclude Include="..\..\src\grammar\include\grammarRules.h" />
     <ClInclude Include="..\..\src\grammar\include\grammars.h" />
@@ -44,23 +44,24 @@
     <ClInclude Include="stdint.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\common\src\ASCII_stringManipulate.c" />
     <ClCompile Include="..\..\src\common\src\contentHandler.c" />
     <ClCompile Include="..\..\src\common\src\dynamicArray.c" />
     <ClCompile Include="..\..\src\common\src\hashtable.c" />
-    <ClCompile Include="..\..\src\common\src\hashUtils.c" />
     <ClCompile Include="..\..\src\common\src\memManagement.c" />
     <ClCompile Include="..\..\src\common\src\procTypes.c" />
-    <ClCompile Include="..\..\src\common\src\ASCII_stringManipulate.c" />
     <ClCompile Include="..\..\src\contentIO\src\bodyDecode.c" />
     <ClCompile Include="..\..\src\contentIO\src\bodyEncode.c" />
+    <ClCompile Include="..\..\src\contentIO\src\buildInGrammars.c" />
     <ClCompile Include="..\..\src\contentIO\src\EXIParser.c" />
     <ClCompile Include="..\..\src\contentIO\src\EXISerializer.c" />
     <ClCompile Include="..\..\src\contentIO\src\grammarAugment.c" />
     <ClCompile Include="..\..\src\contentIO\src\headerDecode.c" />
     <ClCompile Include="..\..\src\contentIO\src\headerEncode.c" />
+    <ClCompile Include="..\..\src\contentIO\src\staticEXIOptions.c" />
     <ClCompile Include="..\..\src\grammarGen\src\genUtils.c" />
     <ClCompile Include="..\..\src\grammarGen\src\grammarGenerator.c" />
-    <ClCompile Include="..\..\src\grammarGen\src\normGrammar.c" />
+    <ClCompile Include="..\..\src\grammarGen\src\protoGrammars.c" />
     <ClCompile Include="..\..\src\grammar\src\eventsEXI.c" />
     <ClCompile Include="..\..\src\grammar\src\grammarRules.c" />
     <ClCompile Include="..\..\src\grammar\src\grammars.c" />
@@ -108,7 +109,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>.\;..\..\include;..\..\src\common\include;..\..\src\contentIO\include;..\..\src\grammar\include;..\..\src\streamIO\include;..\..\src\stringTables\include;..\..\src\grammarGen\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
