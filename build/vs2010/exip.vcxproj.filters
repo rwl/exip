@@ -123,9 +123,6 @@
     <ClInclude Include="..\..\include\grammarGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\grammarGen\include\normGrammar.h">
-      <Filter>Header Files\grammarGen</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\grammarGen\include\genUtils.h">
       <Filter>Header Files\grammarGen</Filter>
     </ClInclude>
@@ -138,6 +135,9 @@
     <ClInclude Include="..\..\src\contentIO\include\grammarAugment.h">
       <Filter>Header Files\contentIO</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\grammarGen\include\protoGrammars.h">
+      <Filter>Header Files\grammarGen</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\common\src\contentHandler.c">
@@ -149,13 +149,7 @@
     <ClCompile Include="..\..\src\common\src\hashtable.c">
       <Filter>Source Files\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\common\src\hashUtils.c">
-      <Filter>Source Files\common</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\common\src\memManagement.c">
-      <Filter>Source Files\common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\common\src\ASCII_stringManipulate.c">
       <Filter>Source Files\common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\common\src\procTypes.c">
@@ -206,9 +200,6 @@
     <ClCompile Include="..\..\src\grammarGen\src\grammarGenerator.c">
       <Filter>Source Files\grammarGen</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\grammarGen\src\normGrammar.c">
-      <Filter>Source Files\grammarGen</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\grammarGen\src\genUtils.c">
       <Filter>Source Files\grammarGen</Filter>
     </ClCompile>
@@ -216,6 +207,18 @@
       <Filter>Source Files\contentIO</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\contentIO\src\bodyEncode.c">
+      <Filter>Source Files\contentIO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\contentIO\src\buildInGrammars.c">
+      <Filter>Source Files\contentIO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\grammarGen\src\protoGrammars.c">
+      <Filter>Source Files\grammarGen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\common\src\ASCII_stringManipulate.c">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\contentIO\src\staticEXIOptions.c">
       <Filter>Source Files\contentIO</Filter>
     </ClCompile>
   </ItemGroup>
