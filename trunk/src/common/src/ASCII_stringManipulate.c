@@ -54,12 +54,14 @@ errorCode allocateStringMemory(CharType** str, size_t UCSchars, AllocList* memLi
 }
 
 /**
- * Simple translation working only for ASCII characters. No error checking implemented!
+ * Simple translation working only for ASCII characters
  */
-errorCode writeCharToString(String* str, uint32_t code_point, size_t* UCSposition)
+errorCode writeCharToString(String* str, uint32_t code_point, size_t* writerPosition)
 {
-	str->str[*UCSposition] = (CharType) code_point;
-	*UCSposition += 1;
+	if(*writerPosition >= str->length)
+		return OUT_OF_BOUND_BUFFER;
+	str->str[*writerPosition] = (CharType) code_point;
+	*writerPosition += 1;
 	return ERR_OK;
 }
 
@@ -167,11 +169,15 @@ int stringCompare(const String str1, const String str2)
 	}
 }
 
-errorCode getUCSCodePoint(const String* str, size_t charIndex, uint32_t* UCScp)
+// TODO: consider removing the OUT_OF_BOUND_BUFFER check: the length of the string must be valid
+// => return void
+
+errorCode readCharFromString(const String* str, size_t* readerPosition, uint32_t* UCScp)
 {
-	if(str->length <= charIndex)
+	if(*readerPosition >= str->length)
 		return OUT_OF_BOUND_BUFFER;
-	*UCScp = (uint32_t) str->str[charIndex];
+	*UCScp = (uint32_t) str->str[*readerPosition];
+	*readerPosition += 1;
 	return ERR_OK;
 }
 
@@ -187,32 +193,16 @@ errorCode cloneString(const String* src, String* newStr, AllocList* memList)
 	return ERR_OK;
 }
 
-errorCode splitStringByChar(const String* src, CharType separator, String** tokensArray, unsigned int* tokensCount, AllocList* memList)
+void getIndexOfChar(const String* src, CharType sCh, size_t* sChIndex)
 {
 	size_t i;
-	size_t lastHitIndex = 0;
 
-	*tokensCount = 1;
-	*tokensArray = (String*) src;
-
+	*sChIndex = SIZE_MAX;
 	for(i = 0; i < src->length; i++)
 	{
-		if(src->str[i] == separator)
-		{
-			if(lastHitIndex + 1 >= i)
-			{
-				lastHitIndex = i;
-				continue;
-			}
-			else
-			{
-				return NOT_IMPLEMENTED_YET;
-			}
-
-		}
+		if(src->str[i] == sCh)
+			*sChIndex = i;
 	}
-
-    return ERR_OK;
 }
 
 #if EXIP_DEBUG == ON

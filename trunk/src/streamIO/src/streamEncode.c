@@ -125,9 +125,10 @@ errorCode encodeStringOnly(EXIStream* strm, const String* string_val)
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	uint32_t tmp_val= 0;
 	size_t i = 0;
+	size_t readerPosition = 0;
 	for(i = 0; i < string_val->length; i++)
 	{
-		tmp_err_code = getUCSCodePoint(string_val, i, &tmp_val);
+		tmp_err_code = readCharFromString(string_val, &readerPosition, &tmp_val);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		tmp_err_code = encodeUnsignedInteger(strm, (UnsignedInteger) tmp_val);

@@ -66,14 +66,25 @@ errorCode allocateStringMemory(CharType** str, size_t UCSchars, AllocList* memLi
  *
  * @param[in, out] str string to be written on
  * @param[in] code_point UCS [ISO/IEC 10646] code point
- * @param[in, out] UCSposition the position of the code point relatively to the beginning of the string.
- * 				   If the string is empty, then 0 should be passed. The position of the next character is
- * 				   returned in the same parameter. This is needed because in some encodings (ex. UTF-8)
- * 				   there is no direct correspondence between the character in UCS and the number of CharTypes that it
- * 			       takes in the encoding. For example 1 UCS character may require 2 or 3  CharTypes to be encoded.
+ * @param[in, out] writerPosition:
+ * 					[in] the index of the next CharType to be written i.e.
+ * 					str->str + *writerPosition is a pointer to the beginning
+ * 					of the next character position where the character with Code Point code_point will be written.
+ * 					[out] the next writerPosition used for any subsequent call to writeCharToString
  * @return Error handling code
  */
-errorCode writeCharToString(String* str, uint32_t code_point, size_t* UCSposition);
+errorCode writeCharToString(String* str, uint32_t code_point, size_t* writerPosition);
+
+/**
+ * @brief Returns the UCS [ISO/IEC 10646] code point at particular index from a String
+ * @param[in] str string
+ * @param[in, out] readerPosition:
+ * 				[in] The position that marks the beginning of the character to be read
+ * 				[out] The position of the next character to be passed to a subsequent calls to readCharFromString
+ * @param[out] UCScp the returned UCS code point
+ * @return 1 if the strings are equal, 0 - otherwise
+ */
+errorCode readCharFromString(const String* str, size_t* readerPosition, uint32_t* UCScp);
 
 /**
  * @brief Creates an empty string
@@ -125,15 +136,6 @@ int stringCompare(const String str1, const String str2);
 char stringEqualToAscii(const String str1, const char* str2);
 
 /**
- * @brief Returns the UCS [ISO/IEC 10646] code point at particular index from a String
- * @param[in] str string
- * @param[in] charIndex character index within the string
- * @param[out] UCScp the returned UCS code point
- * @return 1 if the strings are equal, 0 - otherwise
- */
-errorCode getUCSCodePoint(const String* str, size_t charIndex, uint32_t* UCScp);
-
-/**
  * @brief Makes a copy of the string in a new location
  * @param[in] src the string to be copied
  * @param[in] newStr will point to the newly allocated memory with scr->CharType* copied there
@@ -143,15 +145,13 @@ errorCode getUCSCodePoint(const String* str, size_t charIndex, uint32_t* UCScp);
 errorCode cloneString(const String* src, String* newStr, AllocList* memList);
 
 /**
- * @brief Split a string into multiple tokens/strings based on a particular character
+ * @brief Returns the index of the first occurrence of a character in a string
  * @param[in] src the source string
- * @param[in] separator a pattern used to split the src string
- * @param[out] tokensArray an array of tokens
- * @param[out] tokensCount the number of tokens
- * @param[in, out] memList A list storing the memory allocations
- * @return Error handling code
+ * @param[in] sCh a character that is searched
+ * @param[out] sChIndex the index of first occurrence; SIZE_MAX if not found
  */
-errorCode splitStringByChar(const String* src, CharType separator, String** tokensArray, unsigned int* tokensCount, AllocList* memList);
+void getIndexOfChar(const String* src, CharType sCh, size_t* sChIndex);
+
 
 #if EXIP_DEBUG == ON
 

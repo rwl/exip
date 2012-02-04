@@ -1453,49 +1453,75 @@ static errorCode handleAnyEl(struct xsdAppData* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	ElementDescription* elemDesc;
-	String* namespaceArr;
-	unsigned int namespaceCount = 0;
 	uint16_t uriRowId;
-	unsigned int i = 0;
 	ProtoGrammar* wildTermGrammar;
 	ProtoGrammar* wildParticleGrammar;
 	unsigned int minOccurs = 1;
 	int32_t maxOccurs = 1;
+	DynArray* nsDynArray;
+	size_t dummy_elemID;
+
+	tmp_err_code = createDynArray(&nsDynArray, sizeof(String), 5, &app_data->tmpMemList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
 
 	if(isStringEmpty(&elemDesc->attributePointers[ATTRIBUTE_NAMESPACE]))
 	{
-		namespaceCount = 1;
-		namespaceArr = &elemDesc->attributePointers[ATTRIBUTE_NAMESPACE];
-		tmp_err_code = asciiToString("##any", namespaceArr, &app_data->tmpMemList, FALSE);
+		String anyString;
+		tmp_err_code = asciiToString("##any", &anyString, &app_data->tmpMemList, TRUE);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = addDynElement(nsDynArray, &anyString, &dummy_elemID, &app_data->tmpMemList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 	else
 	{
-		tmp_err_code = splitStringByChar(&elemDesc->attributePointers[ATTRIBUTE_NAMESPACE], ' ', &namespaceArr, &namespaceCount, &app_data->tmpMemList);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
+		size_t sChIndex;
+		String attrNamespece;
 
-	for(i = 0; i < namespaceCount; i++)
-	{
-		if(!stringEqualToAscii(namespaceArr[i], "##any") &&
-				!stringEqualToAscii(namespaceArr[i], "##other") &&
-				!stringEqualToAscii(namespaceArr[i], "##targetNamespace") &&
-				!stringEqualToAscii(namespaceArr[i], "##local"))
+		attrNamespece.length = elemDesc->attributePointers[ATTRIBUTE_NAMESPACE].length;
+		attrNamespece.str = elemDesc->attributePointers[ATTRIBUTE_NAMESPACE].str;
+		getIndexOfChar(&attrNamespece, ' ', &sChIndex);
+
+		while(sChIndex != SIZE_MAX)
 		{
-			tmp_err_code = addURIString(app_data, &namespaceArr[i], &uriRowId);
+			String tmpNS;
+			tmpNS.length = sChIndex;
+			tmpNS.str = attrNamespece.str;
+
+			if(!stringEqualToAscii(tmpNS, "##any") &&
+					!stringEqualToAscii(tmpNS, "##other") &&
+					!stringEqualToAscii(tmpNS, "##targetNamespace") &&
+					!stringEqualToAscii(tmpNS, "##local"))
+			{
+				tmp_err_code = addURIString(app_data, &tmpNS, &uriRowId);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
+
+			tmp_err_code = addDynElement(nsDynArray, &tmpNS, &dummy_elemID, &app_data->tmpMemList);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
+
+			attrNamespece.length = attrNamespece.length - sChIndex - sizeof(CharType);
+			attrNamespece.str = attrNamespece.str + sChIndex + sizeof(CharType);
+
+			getIndexOfChar(&attrNamespece, ' ', &sChIndex);
 		}
+
+		tmp_err_code = addDynElement(nsDynArray, &attrNamespece, &dummy_elemID, &app_data->tmpMemList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 	}
 
 	minOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MIN_OCCURS]);
 	maxOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MAX_OCCURS]);
 
-	tmp_err_code = createWildcardTermGrammar(&app_data->tmpMemList, namespaceArr, namespaceCount, &wildTermGrammar);
+	tmp_err_code = createWildcardTermGrammar(&app_data->tmpMemList, (String*) nsDynArray->elements, nsDynArray->elementCount, &wildTermGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 

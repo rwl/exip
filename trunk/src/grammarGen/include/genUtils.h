@@ -198,7 +198,7 @@ errorCode createElementTermGrammar(AllocList* memList, ProtoGrammar** result, ui
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createWildcardTermGrammar(AllocList* memList, String* wildcardArray, unsigned int wildcardArraySize, ProtoGrammar** result);
+errorCode createWildcardTermGrammar(AllocList* memList, String* wildcardArray, size_t wildcardArraySize, ProtoGrammar** result);
 
 /**
  * @brief Creates Sequence Model Group Proto-Grammar from Particle term that is XML Schema Model Group with {compositor} equal to "sequence"
