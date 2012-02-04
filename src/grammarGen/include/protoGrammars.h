@@ -46,6 +46,9 @@
 
 #include "procTypes.h"
 
+/**
+ * The proto-grammars are consisting of n rules (prods[0], prods[1] ... prods[n])
+ * and k productions in each rule (prods[0][0] ... prods[0][k]) */
 struct protoGrammar
 {
 	Production** prods;
@@ -55,7 +58,7 @@ struct protoGrammar
 	unsigned int* prodDim;
 	unsigned int contentIndex;
 	struct reAllocPair rulesMemPair; // Used by the memoryManager when there is a reallocation for prods
-	struct reAllocPair* prodMemPair; // Used by the memoryManager when there is a reallocation for prods[k]
+	struct reAllocPair* prodMemPair; // Used by the memoryManager when there is a reallocation for prods[n]
 };
 
 typedef struct protoGrammar ProtoGrammar;

@@ -542,7 +542,7 @@ errorCode createElementTermGrammar(AllocList* memList, ProtoGrammar** result, ui
 	return ERR_OK;
 }
 
-errorCode createWildcardTermGrammar(AllocList* memList, String* wildcardArray, unsigned int wildcardArraySize, ProtoGrammar** result)
+errorCode createWildcardTermGrammar(AllocList* memList, String* wildcardArray, size_t wildcardArraySize, ProtoGrammar** result)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
