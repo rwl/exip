@@ -174,7 +174,7 @@ errorCode createAttributeUseGrammar(AllocList* tmpMemList, unsigned char require
  * @param[out] result the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int32_t maxOccurs,
+errorCode createParticleGrammar(AllocList* memList, int minOccurs, int maxOccurs,
 								ProtoGrammar* termGrammar, ProtoGrammar** result);
 
 /**

@@ -45,6 +45,8 @@
 #include "stringManipulate.h"
 #include "memManagement.h"
 
+#define PARSING_STRING_MAX_LENGTH 100
+
 errorCode allocateStringMemory(CharType** str, size_t UCSchars, AllocList* memList)
 {
 	(*str) = (CharType*) memManagedAllocate(memList, sizeof(CharType)*UCSchars);
@@ -193,16 +195,41 @@ errorCode cloneString(const String* src, String* newStr, AllocList* memList)
 	return ERR_OK;
 }
 
-void getIndexOfChar(const String* src, CharType sCh, size_t* sChIndex)
+size_t getIndexOfChar(const String* src, CharType sCh)
 {
 	size_t i;
 
-	*sChIndex = SIZE_MAX;
 	for(i = 0; i < src->length; i++)
 	{
 		if(src->str[i] == sCh)
-			*sChIndex = i;
+			return i;
 	}
+	return SIZE_MAX;
+}
+
+errorCode stringToInteger(const String* src, int* number)
+{
+	char buff[PARSING_STRING_MAX_LENGTH];
+	long result;
+	char *endPointer;
+
+	if(src->length == 0 || src->length >= PARSING_STRING_MAX_LENGTH)
+		return INVALID_STRING_OPERATION;
+
+	memcpy(buff, src->str, src->length);
+	buff[src->length] = '\0';
+
+	result = strtol(buff, &endPointer, 10);
+
+	if(result == LONG_MAX || result == LONG_MIN || *src->str == *endPointer)
+		return INVALID_STRING_OPERATION;
+
+	if(result >= INT_MAX || result <= INT_MIN)
+		return OUT_OF_BOUND_BUFFER;
+
+	*number = (int) result;
+
+	return ERR_OK;
 }
 
 #if EXIP_DEBUG == ON

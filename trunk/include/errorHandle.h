@@ -82,6 +82,8 @@ typedef char errorCode;
 /** No error, everything OK. */
 #define ERR_OK    0
 
+#define INVALID_STRING_OPERATION 19
+
 /** When encoding XML Schema in EXI the prefixes must be preserved:
  * When qualified namesNS are used in the values of AT or CH events in an EXI Stream,
  * the Preserve.prefixes fidelity option SHOULD be turned on to enable the preservation of
