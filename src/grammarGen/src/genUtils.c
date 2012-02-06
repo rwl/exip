@@ -52,7 +52,7 @@
 
 #define MAX_COLLISIONS_NUMBER 50
 
-static URITable* comparison_ptr = NULL;
+URITable* comparison_ptr = NULL;
 
 struct collisionInfo
 {
@@ -417,7 +417,7 @@ errorCode createAttributeUseGrammar(AllocList* tmpMemList, unsigned char require
 	return ERR_OK;
 }
 
-errorCode createParticleGrammar(AllocList* memList, unsigned int minOccurs, int32_t maxOccurs,
+errorCode createParticleGrammar(AllocList* memList, int minOccurs, int maxOccurs,
 								ProtoGrammar* termGrammar, ProtoGrammar** result)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;

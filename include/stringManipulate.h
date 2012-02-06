@@ -148,9 +148,17 @@ errorCode cloneString(const String* src, String* newStr, AllocList* memList);
  * @brief Returns the index of the first occurrence of a character in a string
  * @param[in] src the source string
  * @param[in] sCh a character that is searched
- * @param[out] sChIndex the index of first occurrence; SIZE_MAX if not found
+ * @return the index of first occurrence; SIZE_MAX if not found
  */
-void getIndexOfChar(const String* src, CharType sCh, size_t* sChIndex);
+size_t getIndexOfChar(const String* src, CharType sCh);
+
+/**
+ * @brief Converts a string to int representation. Only 10-base representation
+ * @param[in] src the source string
+ * @param[out] number the int representation of the string
+ * @return Error handling code
+ */
+errorCode stringToInteger(const String* src, int* number);
 
 
 #if EXIP_DEBUG == ON

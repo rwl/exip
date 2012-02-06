@@ -51,6 +51,8 @@
 #include "grammarAugment.h"
 #include "buildInGrammars.h"
 
+extern URITable* comparison_ptr;
+
 #define XML_SCHEMA_NAMESPACE "http://www.w3.org/2001/XMLSchema"
 
 /** Form Choice values */
@@ -227,9 +229,13 @@ static int compareLN(const void* lnRow1, const void* lnRow2);
 
 static int compareURI(const void* uriRow1, const void* uriRow2);
 
-static int parseOccuranceAttribute(const String occurance);
+static int compareAttrUse(const void* attrPG1, const void* attrPG2);
+
+static errorCode parseOccuranceAttribute(const String occurance, int* outInt);
 
 static errorCode getTypeQName(struct xsdAppData* app_data, const String typeLiteral, QName* qname);
+
+static void sortAttributeUseGrammars(ProtoGrammar* attrProtoGrammars, unsigned int elementCount, URITable* metaSTable);
 
 ////////////
 
@@ -1113,7 +1119,8 @@ static errorCode handleExtentionEl(struct xsdAppData* app_data)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	// TODO: the attributeUses array must be sorted first before calling createComplexTypeGrammar()
+	sortAttributeUseGrammars((ProtoGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount), app_data->metaStringTables);
+
 	tmp_err_code = createComplexTypeGrammar(&app_data->tmpMemList, (ProtoGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount),
 									   NULL, 0, simpleTypeGrammar, &resultComplexGrammar);
 	if(tmp_err_code != ERR_OK)
@@ -1159,8 +1166,6 @@ static errorCode handleSimpleContentEl(struct xsdAppData* app_data)
 
 static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 {
-	// TODO: The attribute uses must be sorted first
-
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	String* typeName;
 	String* target_ns;
@@ -1201,7 +1206,7 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 		resultComplexGrammar = NULL;
 	else
 	{
-		// TODO: the attributeUses array must be sorted first before calling createComplexTypeGrammar()
+		sortAttributeUseGrammars((ProtoGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount), app_data->metaStringTables);
 
 		tmp_err_code = createComplexTypeGrammar(&app_data->tmpMemList, (ProtoGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount),
 										   NULL, 0, contentTypeGrammar, &resultComplexGrammar);
@@ -1210,8 +1215,6 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 
 		tmp_err_code = createComplexEmptyTypeGrammar(&app_data->tmpMemList, (ProtoGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount),
 				NULL, 0, &resultComplexEmptyGrammar);
-
-		//TODO: the attributeUses array must be emptied here
 
 #if DEBUG_GRAMMAR_GEN == ON
 		{
@@ -1429,11 +1432,16 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 	{
 		ProtoGrammar* elTermGrammar;
 		ProtoGrammar* elParticleGrammar;
-		unsigned int minOccurs = 1;
-		int32_t maxOccurs = 1;
+		int minOccurs = 1;
+		int maxOccurs = 1;
 
-		minOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MIN_OCCURS]);
-		maxOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MAX_OCCURS]);
+		tmp_err_code = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MIN_OCCURS], &minOccurs);
+		tmp_err_code += parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MAX_OCCURS], &maxOccurs);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		if(minOccurs < 0 || maxOccurs < -1)
+			return UNEXPECTED_ERROR;
 
 		tmp_err_code = createElementTermGrammar(&app_data->tmpMemList, &elTermGrammar, uriRowId, lnRowId);
 		if(tmp_err_code != ERR_OK)
@@ -1456,8 +1464,8 @@ static errorCode handleAnyEl(struct xsdAppData* app_data)
 	uint16_t uriRowId;
 	ProtoGrammar* wildTermGrammar;
 	ProtoGrammar* wildParticleGrammar;
-	unsigned int minOccurs = 1;
-	int32_t maxOccurs = 1;
+	int minOccurs = 1;
+	int maxOccurs = 1;
 	DynArray* nsDynArray;
 	size_t dummy_elemID;
 
@@ -1485,7 +1493,7 @@ static errorCode handleAnyEl(struct xsdAppData* app_data)
 
 		attrNamespece.length = elemDesc->attributePointers[ATTRIBUTE_NAMESPACE].length;
 		attrNamespece.str = elemDesc->attributePointers[ATTRIBUTE_NAMESPACE].str;
-		getIndexOfChar(&attrNamespece, ' ', &sChIndex);
+		sChIndex = getIndexOfChar(&attrNamespece, ' ');
 
 		while(sChIndex != SIZE_MAX)
 		{
@@ -1510,7 +1518,7 @@ static errorCode handleAnyEl(struct xsdAppData* app_data)
 			attrNamespece.length = attrNamespece.length - sChIndex - sizeof(CharType);
 			attrNamespece.str = attrNamespece.str + sChIndex + sizeof(CharType);
 
-			getIndexOfChar(&attrNamespece, ' ', &sChIndex);
+			sChIndex = getIndexOfChar(&attrNamespece, ' ');
 		}
 
 		tmp_err_code = addDynElement(nsDynArray, &attrNamespece, &dummy_elemID, &app_data->tmpMemList);
@@ -1518,8 +1526,13 @@ static errorCode handleAnyEl(struct xsdAppData* app_data)
 			return tmp_err_code;
 	}
 
-	minOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MIN_OCCURS]);
-	maxOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MAX_OCCURS]);
+	tmp_err_code = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MIN_OCCURS], &minOccurs);
+	tmp_err_code += parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MAX_OCCURS], &maxOccurs);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	if(minOccurs < 0 || maxOccurs < -1)
+		return UNEXPECTED_ERROR;
 
 	tmp_err_code = createWildcardTermGrammar(&app_data->tmpMemList, (String*) nsDynArray->elements, nsDynArray->elementCount, &wildTermGrammar);
 	if(tmp_err_code != ERR_OK)
@@ -1556,13 +1569,18 @@ static errorCode handleElementSequence(struct xsdAppData* app_data)
 	ElementDescription* elemDesc;
 	ProtoGrammar* seqGrammar;
 	ProtoGrammar* seqPartGrammar;
-	unsigned int minOccurs = 1;
-	int32_t maxOccurs = 1;
+	int minOccurs = 1;
+	int maxOccurs = 1;
 
 	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
 
-	minOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MIN_OCCURS]);
-	maxOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MAX_OCCURS]);
+	tmp_err_code = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MIN_OCCURS], &minOccurs);
+	tmp_err_code += parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MAX_OCCURS], &maxOccurs);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	if(minOccurs < 0 || maxOccurs < -1)
+		return UNEXPECTED_ERROR;
 
 	tmp_err_code = createSequenceModelGroupsGrammar(&app_data->tmpMemList, elemDesc->pGrammarStack, &seqGrammar);
 	if(tmp_err_code != ERR_OK)
@@ -1600,13 +1618,18 @@ static errorCode handleChoiceEl(struct xsdAppData* app_data)
 	ElementDescription* elemDesc;
 	ProtoGrammar* choiceGrammar;
 	ProtoGrammar* choicePartGrammar;
-	unsigned int minOccurs = 1;
-	int32_t maxOccurs = 1;
+	int minOccurs = 1;
+	int maxOccurs = 1;
 
 	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
 
-	minOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MIN_OCCURS]);
-	maxOccurs = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MAX_OCCURS]);
+	tmp_err_code = parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MIN_OCCURS], &minOccurs);
+	tmp_err_code += parseOccuranceAttribute(elemDesc->attributePointers[ATTRIBUTE_MAX_OCCURS], &maxOccurs);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	if(minOccurs < 0 || maxOccurs < -1)
+		return UNEXPECTED_ERROR;
 
 	tmp_err_code = createChoiceModelGroupsGrammar(&app_data->tmpMemList, elemDesc->pGrammarStack, &choiceGrammar);
 	if(tmp_err_code != ERR_OK)
@@ -1908,6 +1931,26 @@ static int compareURI(const void* uriRow1, const void* uriRow2)
 	return stringCompare(r1->string_val, r2->string_val);
 }
 
+static int compareAttrUse(const void* attrPG1, const void* attrPG2)
+{
+	int lnComp;
+	ProtoGrammar* a1 = (ProtoGrammar*) attrPG1;
+	ProtoGrammar* a2 = (ProtoGrammar*) attrPG2;
+	String attrUri1 = comparison_ptr->rows[a1->prods[0][0].uriRowID].string_val;
+	String attrLn1 = comparison_ptr->rows[a1->prods[0][0].uriRowID].lTable->rows[a1->prods[0][0].lnRowID].string_val;
+	String attrUri2 = comparison_ptr->rows[a2->prods[0][0].uriRowID].string_val;
+	String attrLn2 = comparison_ptr->rows[a2->prods[0][0].uriRowID].lTable->rows[a2->prods[0][0].lnRowID].string_val;
+
+	lnComp = stringCompare(attrLn1, attrLn2);
+
+	if(lnComp == 0)
+	{
+		return stringCompare(attrUri1, attrUri2);
+	}
+
+	return lnComp;
+}
+
 static void sortInitialStringTables(URITable* stringTables)
 {
 	uint16_t i = 0;
@@ -1948,28 +1991,23 @@ static void sortInitialStringTables(URITable* stringTables)
 	qsort(stringTables->rows + 4, stringTables->rowCount - 4, sizeof(struct URIRow), compareURI);
 }
 
-static int parseOccuranceAttribute(const String occurance)
+static errorCode parseOccuranceAttribute(const String occurance, int* outInt)
 {
-	// TODO: Just a temporary implementation. Only works for the ASCII string representation. Fix that!
-	char buff[20];
-
 	if(isStringEmpty(&occurance))
-		return 1; // The default value
+		*outInt = 1; // The default value
+	else if(stringEqualToAscii(occurance, "unbounded"))
+		*outInt = -1;
+	else
+	{
+		return stringToInteger(&occurance, outInt);
+	}
 
-	if(stringEqualToAscii(occurance, "unbounded"))
-		return -1;
-
-	memcpy(buff, occurance.str, occurance.length);
-	buff[occurance.length] = '\0';
-
-	return atoi(buff);
+	return ERR_OK;
 }
 
 static errorCode getTypeQName(struct xsdAppData* app_data, const String typeLiteral, QName* qname)
 {
-	// TODO: Just a temporary implementation. Only works for the ASCII string representation. Fix that!
-	// 		There should be a function in the StringManipulation that search to a character
-	int i;
+	size_t indx;
 	String* ln;
 	String* uri;
 
@@ -1981,56 +2019,57 @@ static errorCode getTypeQName(struct xsdAppData* app_data, const String typeLite
 	if(uri == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	for(i = 0; i < (int)(typeLiteral.length); i++)
+	indx = getIndexOfChar(&typeLiteral, ':');
+
+	if(indx != SIZE_MAX)
 	{
-		if(typeLiteral.str[i] == ':')
+		// There is some prefix defined
+		unsigned char prefixFound = FALSE;
+		struct prefixNS* pns;
+		size_t p;
+
+		uri->length = indx;
+		uri->str = typeLiteral.str;
+
+		for(p = 0; p < app_data->props.prefixNamespaces->elementCount; p++)
 		{
-			int p;
-			unsigned char prefixFound = FALSE;
-			struct prefixNS* pns;
-
-			uri->length = i;
-			uri->str = typeLiteral.str;
-
-			for(p = 0; p < app_data->props.prefixNamespaces->elementCount; p++)
+			pns = &((struct prefixNS*) app_data->props.prefixNamespaces->elements)[p];
+			if(stringEqual(*uri, pns->prefix))
 			{
-				pns = &((struct prefixNS*) app_data->props.prefixNamespaces->elements)[p];
-				if(stringEqual(*uri, pns->prefix))
-				{
-					prefixFound = TRUE;
-					break;
-				}
+				prefixFound = TRUE;
+				break;
 			}
-
-			if(prefixFound)
-			{
-				uri = &pns->ns;
-			}
-			else
-			{
-				DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Invalid schema base type definition\n"));
-				return INVALID_EXI_INPUT;
-			}
-
-			ln->length = typeLiteral.length - i - 1;
-			ln->str = &typeLiteral.str[i + 1];
-
-			qname->localName = ln;
-			qname->uri = uri;
-
-			return ERR_OK;
 		}
+
+		if(prefixFound)
+		{
+			uri = &pns->ns;
+		}
+		else
+		{
+			DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Invalid schema base type definition\n"));
+			return INVALID_EXI_INPUT;
+		}
+
+		ln->length = typeLiteral.length - indx - sizeof(CharType);
+		ln->str = &typeLiteral.str[indx + sizeof(CharType)];
 	}
+	else // Else, there are no ':' characters; i.e. no prefix
+	{
+		getEmptyString(uri);
 
-	// Else, there are no ':' characters; i.e. no prefix
-
-	getEmptyString(uri);
-
-	ln->length = typeLiteral.length;
-	ln->str = typeLiteral.str;
+		ln->length = typeLiteral.length;
+		ln->str = typeLiteral.str;
+	}
 
 	qname->localName = ln;
 	qname->uri = uri;
 
 	return ERR_OK;
+}
+
+static void sortAttributeUseGrammars(ProtoGrammar* attrProtoGrammars, unsigned int elementCount, URITable* metaSTable)
+{
+	comparison_ptr = metaSTable;
+	qsort(attrProtoGrammars, elementCount, sizeof(ProtoGrammar), compareAttrUse);
 }
