@@ -1515,8 +1515,8 @@ static errorCode handleAnyEl(struct xsdAppData* app_data)
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			attrNamespece.length = attrNamespece.length - sChIndex - sizeof(CharType);
-			attrNamespece.str = attrNamespece.str + sChIndex + sizeof(CharType);
+			attrNamespece.length = attrNamespece.length - sChIndex - 1;
+			attrNamespece.str = attrNamespece.str + sChIndex + 1;
 
 			sChIndex = getIndexOfChar(&attrNamespece, ' ');
 		}
@@ -2051,8 +2051,8 @@ static errorCode getTypeQName(struct xsdAppData* app_data, const String typeLite
 			return INVALID_EXI_INPUT;
 		}
 
-		ln->length = typeLiteral.length - indx - sizeof(CharType);
-		ln->str = &typeLiteral.str[indx + sizeof(CharType)];
+		ln->length = typeLiteral.length - indx - 1;
+		ln->str = typeLiteral.str + indx + 1;
 	}
 	else // Else, there are no ':' characters; i.e. no prefix
 	{
