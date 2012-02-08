@@ -233,7 +233,12 @@ static int compareAttrUse(const void* attrPG1, const void* attrPG2);
 
 static errorCode parseOccuranceAttribute(const String occurance, int* outInt);
 
-static errorCode getTypeQName(struct xsdAppData* app_data, const String typeLiteral, QName* qname);
+/**
+ * From a string encoded QName derives the "namespace" part and the "local name" part.
+ * It also adds the "namespace" and the "local name" into the string tables if not there yet.
+ * Used for the value of the "type" attribute of element and attribute use definitions
+ */
+static errorCode getTypeQName(struct xsdAppData* app_data, const String typeLiteral, QNameID* qname);
 
 static void sortAttributeUseGrammars(ProtoGrammar* attrProtoGrammars, unsigned int elementCount, URITable* metaSTable);
 
@@ -990,7 +995,6 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char required = 0;
 	String* target_ns;
-	QName simpleType;
 	QNameID simpleTypeID;
 	QName scope;
 	ProtoGrammar* attrUseGrammar;
@@ -1025,23 +1029,7 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = getTypeQName(app_data, elemDesc->attributePointers[ATTRIBUTE_TYPE], &simpleType);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	if(isStringEmpty(simpleType.uri)) // The type does not have defined namespace -> assume http://www.w3.org/2001/XMLSchema
-	{
-		simpleType.uri = &app_data->metaStringTables->rows[3].string_val;
-		simpleTypeID.uriRowId = 3;
-	}
-	else
-	{
-		tmp_err_code = addURIString(app_data,(String*) simpleType.uri, &simpleTypeID.uriRowId);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-
-	tmp_err_code = addLocalName(simpleTypeID.uriRowId, app_data,(String*) simpleType.localName, &simpleTypeID.lnRowId);
+	tmp_err_code = getTypeQName(app_data, elemDesc->attributePointers[ATTRIBUTE_TYPE], &simpleTypeID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1077,7 +1065,6 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 static errorCode handleExtentionEl(struct xsdAppData* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	QName simpleType;
 	QNameID simpleTypeID;
 	String* typeName;
 	String* target_ns;
@@ -1091,23 +1078,7 @@ static errorCode handleExtentionEl(struct xsdAppData* app_data)
 	typeName = &app_data->props.emptyString;
 	target_ns = &app_data->props.emptyString;
 
-	tmp_err_code = getTypeQName(app_data, elemDesc->attributePointers[ATTRIBUTE_BASE], &simpleType);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	if(isStringEmpty(simpleType.uri)) // The type does not have defined namespace -> assume http://www.w3.org/2001/XMLSchema
-	{
-		simpleType.uri = &app_data->metaStringTables->rows[3].string_val;
-		simpleTypeID.uriRowId = 3;
-	}
-	else
-	{
-		tmp_err_code = addURIString(app_data,(String*) simpleType.uri, &simpleTypeID.uriRowId);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-
-	tmp_err_code = addLocalName(simpleTypeID.uriRowId, app_data,(String*) simpleType.localName, &simpleTypeID.lnRowId);
+	tmp_err_code = getTypeQName(app_data, elemDesc->attributePointers[ATTRIBUTE_BASE], &simpleTypeID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1300,7 +1271,6 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 	EXIGrammar* exiTypeGrammar;
 	EXIGrammar* exiTypeEmptyGrammar;
 	unsigned char isNillable = FALSE;
-	QName typeQname;
 
 	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
 
@@ -1395,20 +1365,17 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 	}
 	else // The element has a particular named type
 	{
-		tmp_err_code = getTypeQName(app_data, type, &typeQname);
+		QNameID typeQnameID;
+
+		tmp_err_code = getTypeQName(app_data, type, &typeQnameID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		if(isStringEmpty(typeQname.uri) || stringEqualToAscii(*typeQname.uri, XML_SCHEMA_NAMESPACE)) // This is build-in simple type definition
+		if(typeQnameID.uriRowId == 3) // This is build-in simple type definition
 		{
-			size_t stypelnRowId;
-
-			if(lookupLN(app_data->metaStringTables->rows[3].lTable, *typeQname.localName, &stypelnRowId) == FALSE)
-				return UNEXPECTED_ERROR;
-
 			// URI 3 -> http://www.w3.org/2001/XMLSchema
-			app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeGrammar = app_data->schema->initialStringTables->rows[3].lTable->rows[stypelnRowId].typeGrammar;
-			app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeEmptyGrammar = app_data->schema->initialStringTables->rows[3].lTable->rows[stypelnRowId].typeEmptyGrammar;
+			app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeGrammar = app_data->schema->initialStringTables->rows[3].lTable->rows[typeQnameID.lnRowId].typeGrammar;
+			app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeEmptyGrammar = app_data->schema->initialStringTables->rows[3].lTable->rows[typeQnameID.lnRowId].typeEmptyGrammar;
 		}
 		else // A complex type name or derived simple type
 		{
@@ -1667,7 +1634,6 @@ static errorCode handleRestrictionEl(struct xsdAppData* app_data)
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	ElementDescription* elemDesc;
 	ProtoGrammar* simpleRestrictedGrammar;
-	QName baseType;
 	QNameID baseTypeID;
 	TypeFacet* tmpFacet;
 	SimpleType newSimpleType;
@@ -1676,23 +1642,7 @@ static errorCode handleRestrictionEl(struct xsdAppData* app_data)
 
 	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
 
-	tmp_err_code = getTypeQName(app_data, elemDesc->attributePointers[ATTRIBUTE_BASE], &baseType);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	if(isStringEmpty(baseType.uri)) // The type does not have defined namespace -> assume http://www.w3.org/2001/XMLSchema
-	{
-		baseType.uri = &app_data->metaStringTables->rows[3].string_val;
-		baseTypeID.uriRowId = 3;
-	}
-	else
-	{
-		tmp_err_code = addURIString(app_data,(String*) baseType.uri, &baseTypeID.uriRowId);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-
-	tmp_err_code = addLocalName(baseTypeID.uriRowId, app_data,(String*) baseType.localName, &baseTypeID.lnRowId);
+	tmp_err_code = getTypeQName(app_data, elemDesc->attributePointers[ATTRIBUTE_BASE], &baseTypeID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -2005,11 +1955,15 @@ static errorCode parseOccuranceAttribute(const String occurance, int* outInt)
 	return ERR_OK;
 }
 
-static errorCode getTypeQName(struct xsdAppData* app_data, const String typeLiteral, QName* qname)
+static errorCode getTypeQName(struct xsdAppData* app_data, const String typeLiteral, QNameID* qname)
 {
 	size_t indx;
 	String* ln;
 	String* uri;
+	size_t p;
+	unsigned char prefixFound = FALSE;
+	struct prefixNS* pns;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
 	ln = memManagedAllocate(&app_data->tmpMemList, sizeof(String));
 	if(ln == NULL)
@@ -2024,10 +1978,6 @@ static errorCode getTypeQName(struct xsdAppData* app_data, const String typeLite
 	if(indx != SIZE_MAX)
 	{
 		// There is some prefix defined
-		unsigned char prefixFound = FALSE;
-		struct prefixNS* pns;
-		size_t p;
-
 		uri->length = indx;
 		uri->str = typeLiteral.str;
 
@@ -2054,16 +2004,64 @@ static errorCode getTypeQName(struct xsdAppData* app_data, const String typeLite
 		ln->length = typeLiteral.length - indx - 1;
 		ln->str = typeLiteral.str + indx + 1;
 	}
-	else // Else, there are no ':' characters; i.e. no prefix
+	else // Else, there are no ':' characters; i.e. no explicit prefix => there should be some namespace declaration with void prefix
 	{
-		getEmptyString(uri);
+		for(p = 0; p < app_data->props.prefixNamespaces->elementCount; p++)
+		{
+			pns = &((struct prefixNS*) app_data->props.prefixNamespaces->elements)[p];
+			if(isStringEmpty(&pns->prefix))
+			{
+				prefixFound = TRUE;
+				break;
+			}
+		}
+
+		if(prefixFound)
+		{
+			uri = &pns->ns;
+		}
+		else
+		{
+			getEmptyString(uri);
+		}
 
 		ln->length = typeLiteral.length;
 		ln->str = typeLiteral.str;
 	}
 
-	qname->localName = ln;
-	qname->uri = uri;
+	// Validation checks:
+	//	The appropriate case among the following must be true:
+	//		4.1 If the ·namespace name· of the ·QName· is ·absent·, then one of the following must be true:
+	//		4.1.1 The <schema> element information item of the schema document containing the ·QName· has no targetNamespace [attribute].
+	//		4.1.2 The <schema> element information item of the that schema document contains an <import> element information item with no namespace [attribute].
+	//		4.2 otherwise the ·namespace name· of the ·QName· is the same as one of the following:
+	//		4.2.1 The ·actual value· of the targetNamespace [attribute] of the <schema> element information item of the schema document containing the ·QName·.
+	//		4.2.2 The ·actual value· of the namespace [attribute] of some <import> element information item contained in the <schema> element information item of that schema document.
+
+	if(isStringEmpty(uri)) // 4.1
+	{
+		// TODO: instead of this TRUE below should be the check in 4.1.2
+		if(!isStringEmpty(&app_data->props.targetNamespace) && TRUE)
+		{
+			return INVALID_EXI_INPUT;
+		}
+	}
+	else if(!stringEqualToAscii(*uri, XML_SCHEMA_NAMESPACE)) // 4.2 - there must be a hole in this definition, the schema namespace should be also valid
+	{
+		// TODO: instead of this TRUE below should be the check in 4.2.2
+		if(!stringEqual(app_data->props.targetNamespace, *uri) && TRUE)
+		{
+			return INVALID_EXI_INPUT;
+		}
+	}
+
+	tmp_err_code = addURIString(app_data, uri, &qname->uriRowId);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = addLocalName(qname->uriRowId, app_data, ln, &qname->lnRowId);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	return ERR_OK;
 }
