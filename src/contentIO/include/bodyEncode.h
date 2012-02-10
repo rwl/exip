@@ -50,13 +50,13 @@
 /**
  * @brief Finds the grammar production based on the event (and eventually the qname in case of SE and AT)
  * @param[in, out] strm EXI stream
- * @param[in] event event to be encoded
+ * @param[in] evnt event to be encoded
  * @param[in] qname element or attribute QName in case of SE or AT events; NULL otherwise
  * @param[out] codeLength 1,2 or 3 is the allowed length of EXI event codes
  * @param[out] lastCodePart the last part of the event code
  * @return Error handling code
  */
-errorCode lookupProduction(EXIStream* strm, EXIEvent event, QName* qname, unsigned char* codeLength, size_t* lastCodePart);
+errorCode lookupProduction(EXIStream* strm, EXIEvent evnt, QName* qname, unsigned char* codeLength, size_t* lastCodePart);
 
 /**
  * @brief Encodes String value into EXI stream

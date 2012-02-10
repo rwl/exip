@@ -145,7 +145,7 @@ errorCode generateBuildInTypesGrammars(URITable* sTables, AllocList* memList)
 	typeEmptyGrammar->ruleArray->part[1].prodArray = NULL;
 	typeEmptyGrammar->ruleArray->part[2].prodArray = NULL;
 
-	typeEmptyGrammar->ruleArray->part[0].prodArray[0].event = getEventDefType(EVENT_EE);
+	typeEmptyGrammar->ruleArray->part[0].prodArray[0].evnt = getEventDefType(EVENT_EE);
 	typeEmptyGrammar->ruleArray->part[0].prodArray[0].qname.uriRowId = UINT16_MAX;
 	typeEmptyGrammar->ruleArray->part[0].prodArray[0].qname.lnRowId = SIZE_MAX;
 	typeEmptyGrammar->ruleArray->part[0].prodArray[0].nonTermID = GR_VOID_NON_TERMINAL;
@@ -189,8 +189,8 @@ errorCode generateBuildInTypesGrammars(URITable* sTables, AllocList* memList)
 		grammar->ruleArray[0].part[1].prodArray = NULL;
 		grammar->ruleArray[0].part[2].prodArray = NULL;
 
-		grammar->ruleArray[0].part[0].prodArray[0].event.eventType = EVENT_CH;
-		grammar->ruleArray[0].part[0].prodArray[0].event.valueType = vType;
+		grammar->ruleArray[0].part[0].prodArray[0].evnt.eventType = EVENT_CH;
+		grammar->ruleArray[0].part[0].prodArray[0].evnt.valueType = vType;
 		grammar->ruleArray[0].part[0].prodArray[0].nonTermID = 1;
 		grammar->ruleArray[0].part[0].prodArray[0].qname.uriRowId = UINT16_MAX;
 		grammar->ruleArray[0].part[0].prodArray[0].qname.lnRowId = SIZE_MAX;
@@ -209,9 +209,9 @@ errorCode generateBuildInTypesGrammars(URITable* sTables, AllocList* memList)
 		grammar->ruleArray[1].part[1].prodArray = NULL;
 		grammar->ruleArray[1].part[2].prodArray = NULL;
 
-		grammar->ruleArray[1].part[0].prodArray[0].event.eventType = EVENT_EE;
-		grammar->ruleArray[1].part[0].prodArray[0].event.valueType.exiType = VALUE_TYPE_NONE;
-		grammar->ruleArray[1].part[0].prodArray[0].event.valueType.simpleTypeID = UINT16_MAX;
+		grammar->ruleArray[1].part[0].prodArray[0].evnt.eventType = EVENT_EE;
+		grammar->ruleArray[1].part[0].prodArray[0].evnt.valueType.exiType = VALUE_TYPE_NONE;
+		grammar->ruleArray[1].part[0].prodArray[0].evnt.valueType.simpleTypeID = UINT16_MAX;
 		grammar->ruleArray[1].part[0].prodArray[0].nonTermID = GR_VOID_NON_TERMINAL;
 		grammar->ruleArray[1].part[0].prodArray[0].qname.uriRowId = UINT16_MAX;
 		grammar->ruleArray[1].part[0].prodArray[0].qname.lnRowId = SIZE_MAX;

@@ -352,7 +352,7 @@ typedef struct EXIEvent EXIEvent;
 
 struct Production
 {
-	EXIEvent event;
+	EXIEvent evnt;
 	/**
 	 * For SE(qname), SE(uri:*), AT(qname) and AT(uri:*). Points to the qname of the element/attribute
 	 */

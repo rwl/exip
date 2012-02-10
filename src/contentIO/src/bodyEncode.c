@@ -114,7 +114,7 @@ errorCode encodeStringData(EXIStream* strm, String strng, uint16_t uriID, size_t
 	return ERR_OK;
 }
 
-errorCode lookupProduction(EXIStream* strm, EXIEvent event, QName* qname, unsigned char* codeLength, size_t* lastCodePart)
+errorCode lookupProduction(EXIStream* strm, EXIEvent evnt, QName* qname, unsigned char* codeLength, size_t* lastCodePart)
 {
 	unsigned char b = 0;
 	size_t j = 0;
@@ -132,13 +132,13 @@ errorCode lookupProduction(EXIStream* strm, EXIEvent event, QName* qname, unsign
 		for(j = 0; j < currentRule->part[b].prodArraySize; j++)
 		{
 			tmp_prod_indx = currentRule->part[b].prodArraySize - 1 - j;
-			if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM || valueTypeClassesEqual(currentRule->part[b].prodArray[tmp_prod_indx].event.valueType.exiType, event.valueType.exiType))
+			if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM || valueTypeClassesEqual(currentRule->part[b].prodArray[tmp_prod_indx].evnt.valueType.exiType, evnt.valueType.exiType))
 			{
-				if(currentRule->part[b].prodArray[tmp_prod_indx].event.eventType == event.eventType || // (1)
+				if(currentRule->part[b].prodArray[tmp_prod_indx].evnt.eventType == evnt.eventType || // (1)
 						(qname != NULL &&
-						(((currentRule->part[b].prodArray[tmp_prod_indx].event.eventType == EVENT_AT_URI || currentRule->part[b].prodArray[tmp_prod_indx].event.eventType == EVENT_SE_URI) &&    // (2)
+						(((currentRule->part[b].prodArray[tmp_prod_indx].evnt.eventType == EVENT_AT_URI || currentRule->part[b].prodArray[tmp_prod_indx].evnt.eventType == EVENT_SE_URI) &&    // (2)
 						stringEqual(strm->uriTable->rows[currentRule->part[b].prodArray[tmp_prod_indx].qname.uriRowId].string_val, *(qname->uri))) ||
-						((currentRule->part[b].prodArray[tmp_prod_indx].event.eventType == EVENT_AT_QNAME || currentRule->part[b].prodArray[tmp_prod_indx].event.eventType == EVENT_SE_QNAME) && // (3)
+						((currentRule->part[b].prodArray[tmp_prod_indx].evnt.eventType == EVENT_AT_QNAME || currentRule->part[b].prodArray[tmp_prod_indx].evnt.eventType == EVENT_SE_QNAME) && // (3)
 						stringEqual(strm->uriTable->rows[currentRule->part[b].prodArray[tmp_prod_indx].qname.uriRowId].string_val, *(qname->uri)) &&
 						stringEqual(strm->uriTable->rows[currentRule->part[b].prodArray[tmp_prod_indx].qname.uriRowId].lTable->rows[currentRule->part[b].prodArray[tmp_prod_indx].qname.lnRowId].string_val, *(qname->localName))))
 						)

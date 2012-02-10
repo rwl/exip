@@ -257,7 +257,7 @@ errorCode decodeStringValue(EXIStream* strm, uint16_t uriID, size_t lnID, String
 	return ERR_OK;
 }
 
-errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* handler,
+errorCode decodeEventContent(EXIStream* strm, EXIEvent evnt, ContentHandler* handler,
 							size_t* nonTermID_out, GrammarRule* currRule,  void* app_data, uint16_t prod_uriID, size_t prod_lnID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -266,7 +266,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 	size_t lnID;
 	// TODO: implement all cases of events such as PI, CM etc.
 
-	switch(event.eventType)
+	switch(evnt.eventType)
 	{
 		case EVENT_SE_ALL:
 		{
@@ -334,7 +334,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 					return HANDLER_STOP_RECEIVED;
 			}
 
-			tmp_err_code = decodeValueItem(strm, event.valueType, handler, nonTermID_out, uriID, lnID, app_data);
+			tmp_err_code = decodeValueItem(strm, evnt.valueType, handler, nonTermID_out, uriID, lnID, app_data);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
@@ -397,7 +397,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 					return HANDLER_STOP_RECEIVED;
 			}
 
-			tmp_err_code = decodeValueItem(strm, event.valueType, handler, nonTermID_out, prod_uriID, prod_lnID, app_data);
+			tmp_err_code = decodeValueItem(strm, evnt.valueType, handler, nonTermID_out, prod_uriID, prod_lnID, app_data);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -406,7 +406,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		{
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">CH event\n"));
 
-			tmp_err_code = decodeValueItem(strm, event.valueType, handler, nonTermID_out, strm->context.currElem.uriRowId, strm->context.currElem.lnRowId, app_data);
+			tmp_err_code = decodeValueItem(strm, evnt.valueType, handler, nonTermID_out, strm->context.currElem.uriRowId, strm->context.currElem.lnRowId, app_data);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}

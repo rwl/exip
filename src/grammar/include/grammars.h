@@ -54,13 +54,13 @@
  * @brief Process the next grammar production in the Current Grammar
  * Returns the terminal symbol of the production i.e. the EXI Event Type;
  * @param[in] strm EXI stream of bits
- * @param[out] event the terminal part of the production
+ * @param[out] evnt the terminal part of the production
  * @param[out] nonTermID_out unique identifier of right-hand side Non-terminal
  * @param[in] handler content handler callbacks
  * @param[in] app_data Application data to be passed to the content handler callbacks
  * @return Error handling code
  */
-errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
+errorCode processNextProduction(EXIStream* strm, EXIEvent* evnt,
 							    size_t* nonTermID_out, ContentHandler* handler, void* app_data);
 
 /**

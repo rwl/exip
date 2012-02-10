@@ -93,7 +93,7 @@ errorCode concatenateGrammars(AllocList* memList, ProtoGrammar* left, ProtoGramm
 
 		for(prodIterR = 0; prodIterR < right->prodCount[ruleIterR]; prodIterR++)
 		{
-			tmp_err_code = addProductionToAProtoRule(memList, left, left->rulesCount - 1, right->prods[ruleIterR][prodIterR].event, right->prods[ruleIterR][prodIterR].qname.uriRowId, right->prods[ruleIterR][prodIterR].qname.lnRowId, right->prods[ruleIterR][prodIterR].nonTermID + ((right->prods[ruleIterR][prodIterR].event.eventType == EVENT_EE)?0:(initialLeftRulesCount-1)));
+			tmp_err_code = addProductionToAProtoRule(memList, left, left->rulesCount - 1, right->prods[ruleIterR][prodIterR].evnt, right->prods[ruleIterR][prodIterR].qname.uriRowId, right->prods[ruleIterR][prodIterR].qname.lnRowId, right->prods[ruleIterR][prodIterR].nonTermID + ((right->prods[ruleIterR][prodIterR].evnt.eventType == EVENT_EE)?0:(initialLeftRulesCount-1)));
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -105,7 +105,7 @@ errorCode concatenateGrammars(AllocList* memList, ProtoGrammar* left, ProtoGramm
 	{
 		for(prodIterL = 0; prodIterL < left->prodCount[ruleIterL]; prodIterL++)
 		{
-			if(left->prods[ruleIterL][prodIterL].event.eventType == EVENT_EE)
+			if(left->prods[ruleIterL][prodIterL].evnt.eventType == EVENT_EE)
 			{
 				// Remove this production
 				if(prodIterL == left->prodCount[ruleIterL] - 1)
@@ -143,13 +143,13 @@ static errorCode addProductionsToARule(AllocList* memList, ProtoGrammar* left, u
 		for(prodIterL = 0; prodIterL < left->prodCount[ruleIndex]; prodIterL++)
 		{
 			// If the terminal symbol is identical
-			if(eventsIdentical(left->prods[ruleIndex][prodIterL].event, rightRule[prodIterR].event) &&
+			if(eventsIdentical(left->prods[ruleIndex][prodIterL].evnt, rightRule[prodIterR].evnt) &&
 					left->prods[ruleIndex][prodIterL].qname.uriRowId == rightRule[prodIterR].qname.uriRowId &&
 					left->prods[ruleIndex][prodIterL].qname.lnRowId == rightRule[prodIterR].qname.lnRowId)
 			{
 				// Collision
 				collisionFound = FALSE;
-				if(left->prods[ruleIndex][prodIterL].event.eventType == EVENT_EE ||
+				if(left->prods[ruleIndex][prodIterL].evnt.eventType == EVENT_EE ||
 						(left->prods[ruleIndex][prodIterL].nonTermID == rightRule[prodIterR].nonTermID + initialLeftRulesCount))
 				{
 					// If the NonTerminals are the same
@@ -191,7 +191,7 @@ static errorCode addProductionsToARule(AllocList* memList, ProtoGrammar* left, u
 		if(terminalCollision == FALSE)
 		{
 			// just add the production
-			tmp_err_code = addProductionToAProtoRule(memList, left, ruleIndex, rightRule[prodIterR].event, rightRule[prodIterR].qname.uriRowId, rightRule[prodIterR].qname.lnRowId, rightRule[prodIterR].nonTermID + ((rightRule[prodIterR].event.eventType == EVENT_EE)?0:initialLeftRulesCount));
+			tmp_err_code = addProductionToAProtoRule(memList, left, ruleIndex, rightRule[prodIterR].evnt, rightRule[prodIterR].qname.uriRowId, rightRule[prodIterR].qname.lnRowId, rightRule[prodIterR].nonTermID + ((rightRule[prodIterR].evnt.eventType == EVENT_EE)?0:initialLeftRulesCount));
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -216,7 +216,7 @@ static errorCode resolveCollisionsInGrammar(AllocList* memList, struct collision
 		for(prodIterL = 0; prodIterL < left->prodCount[collisions[collisIter].leftNonTerminal]; prodIterL++)
 		{
 			tmpProduction = &(left->prods[collisions[collisIter].leftNonTerminal][prodIterL]);
-			tmp_err_code = addProductionToAProtoRule(memList, left, left->rulesCount - 1, tmpProduction->event, tmpProduction->qname.uriRowId, tmpProduction->qname.lnRowId, tmpProduction->nonTermID);
+			tmp_err_code = addProductionToAProtoRule(memList, left, left->rulesCount - 1, tmpProduction->evnt, tmpProduction->qname.uriRowId, tmpProduction->qname.lnRowId, tmpProduction->nonTermID);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -239,14 +239,14 @@ errorCode createSimpleTypeGrammar(AllocList* tmpMemList, ValueType vType, ProtoG
 
 	(*result)->contentIndex = 0;
 
-	(*result)->prods[0][0].event.eventType = EVENT_CH;
-	(*result)->prods[0][0].event.valueType = vType;
+	(*result)->prods[0][0].evnt.eventType = EVENT_CH;
+	(*result)->prods[0][0].evnt.valueType = vType;
 	(*result)->prods[0][0].nonTermID = 1;
 	(*result)->prods[0][0].qname.uriRowId = UINT16_MAX;
 	(*result)->prods[0][0].qname.lnRowId = SIZE_MAX;
 	(*result)->prodCount[0] = 1;
 
-	(*result)->prods[1][0].event = getEventDefType(EVENT_EE);
+	(*result)->prods[1][0].evnt = getEventDefType(EVENT_EE);
 	(*result)->prods[1][0].nonTermID = GR_VOID_NON_TERMINAL;
 	(*result)->prods[1][0].qname.uriRowId = UINT16_MAX;
 	(*result)->prods[1][0].qname.lnRowId = SIZE_MAX;
@@ -267,7 +267,7 @@ errorCode createSimpleEmptyTypeGrammar(AllocList* memList, ProtoGrammar** result
 
 	(*result)->contentIndex = 0;
 
-	(*result)->prods[0][0].event = getEventDefType(EVENT_EE);
+	(*result)->prods[0][0].evnt = getEventDefType(EVENT_EE);
 	(*result)->prods[0][0].nonTermID = GR_VOID_NON_TERMINAL;
 	(*result)->prods[0][0].qname.uriRowId = UINT16_MAX;
 	(*result)->prods[0][0].qname.lnRowId = SIZE_MAX;
@@ -294,7 +294,7 @@ errorCode createComplexTypeGrammar(AllocList* memList, ProtoGrammar* attrUsesArr
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		(*result)->prods[0][0].event = getEventDefType(EVENT_EE);
+		(*result)->prods[0][0].evnt = getEventDefType(EVENT_EE);
 		(*result)->prods[0][0].nonTermID = GR_VOID_NON_TERMINAL;
 		(*result)->prods[0][0].qname.uriRowId = UINT16_MAX;
 		(*result)->prods[0][0].qname.lnRowId = SIZE_MAX;
@@ -337,7 +337,7 @@ errorCode createComplexEmptyTypeGrammar(AllocList* memList,ProtoGrammar* attrUse
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	(*result)->prods[0][0].event = getEventDefType(EVENT_EE);
+	(*result)->prods[0][0].evnt = getEventDefType(EVENT_EE);
 	(*result)->prods[0][0].nonTermID = GR_VOID_NON_TERMINAL;
 	(*result)->prods[0][0].qname.uriRowId = UINT16_MAX;
 	(*result)->prods[0][0].qname.lnRowId = SIZE_MAX;
@@ -391,7 +391,7 @@ errorCode createAttributeUseGrammar(AllocList* tmpMemList, unsigned char require
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	(*result)->prods[0][0].event = event1;
+	(*result)->prods[0][0].evnt = event1;
 	(*result)->prods[0][0].nonTermID = 1;
 	(*result)->prods[0][0].qname.uriRowId = uriRowID;
 	(*result)->prods[0][0].qname.lnRowId = lnRowID;
@@ -399,14 +399,14 @@ errorCode createAttributeUseGrammar(AllocList* tmpMemList, unsigned char require
 
 	if(!required)
 	{
-		(*result)->prods[0][1].event = getEventDefType(EVENT_EE);
+		(*result)->prods[0][1].evnt = getEventDefType(EVENT_EE);
 		(*result)->prods[0][1].nonTermID = GR_VOID_NON_TERMINAL;
 		(*result)->prods[0][1].qname.uriRowId = UINT16_MAX;
 		(*result)->prods[0][1].qname.lnRowId = SIZE_MAX;
 		(*result)->prodCount[0] = 2;
 	}
 
-	(*result)->prods[1][0].event = getEventDefType(EVENT_EE);
+	(*result)->prods[1][0].evnt = getEventDefType(EVENT_EE);
 	(*result)->prods[1][0].nonTermID = GR_VOID_NON_TERMINAL;
 	(*result)->prods[1][0].qname.uriRowId = UINT16_MAX;
 	(*result)->prods[1][0].qname.lnRowId = SIZE_MAX;
@@ -428,7 +428,7 @@ errorCode createParticleGrammar(AllocList* memList, int minOccurs, int maxOccurs
 		return tmp_err_code;
 	(*result)->contentIndex = 0;
 
-	(*result)->prods[0][0].event = getEventDefType(EVENT_EE);
+	(*result)->prods[0][0].evnt = getEventDefType(EVENT_EE);
 	(*result)->prods[0][0].nonTermID = GR_VOID_NON_TERMINAL;
 	(*result)->prods[0][0].qname.uriRowId = UINT16_MAX;
 	(*result)->prods[0][0].qname.lnRowId = SIZE_MAX;
@@ -448,7 +448,7 @@ errorCode createParticleGrammar(AllocList* memList, int minOccurs, int maxOccurs
 		unsigned char prodEEFound = FALSE;
 		for(i = 0; i < termGrammar->prodCount[0]; i++)
 		{
-			if(termGrammar->prods[0][i].event.eventType == EVENT_EE)
+			if(termGrammar->prods[0][i].evnt.eventType == EVENT_EE)
 			{
 				prodEEFound = TRUE;
 				break;
@@ -482,7 +482,7 @@ errorCode createParticleGrammar(AllocList* memList, int minOccurs, int maxOccurs
 			{
 				for(j = 0; j < termGrammar->prodCount[i]; j++)
 				{
-					if(termGrammar->prods[i][j].event.eventType == EVENT_EE)
+					if(termGrammar->prods[i][j].evnt.eventType == EVENT_EE)
 					{
 						// Remove this production
 						if(j == termGrammar->prodCount[i] - 1)
@@ -525,13 +525,13 @@ errorCode createElementTermGrammar(AllocList* memList, ProtoGrammar** result, ui
 		return tmp_err_code;
 	(*result)->contentIndex = 0;
 
-	(*result)->prods[0][0].event =  getEventDefType(EVENT_SE_QNAME);
+	(*result)->prods[0][0].evnt =  getEventDefType(EVENT_SE_QNAME);
 	(*result)->prods[0][0].nonTermID = 1;
 	(*result)->prods[0][0].qname.uriRowId = uriRowID;
 	(*result)->prods[0][0].qname.lnRowId = lnRowID;
 	(*result)->prodCount[0] = 1;
 
-	(*result)->prods[1][0].event = getEventDefType(EVENT_EE);
+	(*result)->prods[1][0].evnt = getEventDefType(EVENT_EE);
 	(*result)->prods[1][0].nonTermID = GR_VOID_NON_TERMINAL;
 	(*result)->prods[1][0].qname.uriRowId = UINT16_MAX;
 	(*result)->prods[1][0].qname.lnRowId = SIZE_MAX;
@@ -553,7 +553,7 @@ errorCode createWildcardTermGrammar(AllocList* memList, String* wildcardArray, s
 
 	if(stringEqualToAscii(wildcardArray[0], "##any") || stringEqualToAscii(wildcardArray[0], "##other"))
 	{
-		(*result)->prods[0][0].event =  getEventDefType(EVENT_SE_ALL);
+		(*result)->prods[0][0].evnt =  getEventDefType(EVENT_SE_ALL);
 		(*result)->prods[0][0].nonTermID = 1;
 		(*result)->prods[0][0].qname.uriRowId = UINT16_MAX;
 		(*result)->prods[0][0].qname.lnRowId = SIZE_MAX;
@@ -564,7 +564,7 @@ errorCode createWildcardTermGrammar(AllocList* memList, String* wildcardArray, s
 		return NOT_IMPLEMENTED_YET;
 	}
 
-	(*result)->prods[1][0].event = getEventDefType(EVENT_EE);
+	(*result)->prods[1][0].evnt = getEventDefType(EVENT_EE);
 	(*result)->prods[1][0].nonTermID = GR_VOID_NON_TERMINAL;
 	(*result)->prods[1][0].qname.uriRowId = UINT16_MAX;
 	(*result)->prods[1][0].qname.lnRowId = SIZE_MAX;
@@ -591,7 +591,7 @@ errorCode createSequenceModelGroupsGrammar(AllocList* memList, GenericStack* pro
 			return tmp_err_code;
 		(*result)->contentIndex = 0;
 
-		(*result)->prods[0][0].event = getEventDefType(EVENT_EE);
+		(*result)->prods[0][0].evnt = getEventDefType(EVENT_EE);
 		(*result)->prods[0][0].nonTermID = GR_VOID_NON_TERMINAL;
 		(*result)->prods[0][0].qname.uriRowId = UINT16_MAX;
 		(*result)->prods[0][0].qname.lnRowId = SIZE_MAX;
@@ -642,7 +642,7 @@ errorCode createChoiceModelGroupsGrammar(AllocList* memList, GenericStack* proto
 
 	(*result)->contentIndex = 0;
 
-	(*result)->prods[0][0].event = getEventDefType(EVENT_EE);
+	(*result)->prods[0][0].evnt = getEventDefType(EVENT_EE);
 	(*result)->prods[0][0].nonTermID = GR_VOID_NON_TERMINAL;
 	(*result)->prods[0][0].qname.uriRowId = UINT16_MAX;
 	(*result)->prods[0][0].qname.lnRowId = SIZE_MAX;
@@ -685,7 +685,7 @@ errorCode createChoiceModelGroupsGrammar(AllocList* memList, GenericStack* proto
 
 				for(prodIterTerm = 0; prodIterTerm < tmpGrammar->prodCount[ruleIterTerm]; prodIterTerm++)
 				{
-					tmp_err_code = addProductionToAProtoRule(memList, (*result), (*result)->rulesCount - 1, tmpGrammar->prods[ruleIterTerm][prodIterTerm].event, tmpGrammar->prods[ruleIterTerm][prodIterTerm].qname.uriRowId, tmpGrammar->prods[ruleIterTerm][prodIterTerm].qname.lnRowId, tmpGrammar->prods[ruleIterTerm][prodIterTerm].nonTermID + ((tmpGrammar->prods[ruleIterTerm][prodIterTerm].event.eventType == EVENT_EE)?0:(initialResultRulesCount-1)));
+					tmp_err_code = addProductionToAProtoRule(memList, (*result), (*result)->rulesCount - 1, tmpGrammar->prods[ruleIterTerm][prodIterTerm].evnt, tmpGrammar->prods[ruleIterTerm][prodIterTerm].qname.uriRowId, tmpGrammar->prods[ruleIterTerm][prodIterTerm].qname.lnRowId, tmpGrammar->prods[ruleIterTerm][prodIterTerm].nonTermID + ((tmpGrammar->prods[ruleIterTerm][prodIterTerm].evnt.eventType == EVENT_EE)?0:(initialResultRulesCount-1)));
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
 				}
@@ -739,13 +739,13 @@ static int compareProductions(const void* prod1, const void* prod2)
 	Production* p1 = (Production*) prod1;
 	Production* p2 = (Production*) prod2;
 
-	if(p1->event.eventType < p2->event.eventType)
+	if(p1->evnt.eventType < p2->evnt.eventType)
 		return 1;
-	else if(p1->event.eventType > p2->event.eventType)
+	else if(p1->evnt.eventType > p2->evnt.eventType)
 		return -1;
 	else // the same event Type
 	{
-		if(p1->event.eventType == EVENT_AT_QNAME)
+		if(p1->evnt.eventType == EVENT_AT_QNAME)
 		{
 			int i = 0;
 			i = stringCompare(comparison_ptr->rows[p1->qname.uriRowId].lTable->rows[p1->qname.lnRowId].string_val, comparison_ptr->rows[p2->qname.uriRowId].lTable->rows[p2->qname.lnRowId].string_val);
@@ -756,11 +756,11 @@ static int compareProductions(const void* prod1, const void* prod2)
 			else
 				return -i;
 		}
-		else if(p1->event.eventType == EVENT_AT_URI)
+		else if(p1->evnt.eventType == EVENT_AT_URI)
 		{
 			return -stringCompare(comparison_ptr->rows[p1->qname.uriRowId].string_val, comparison_ptr->rows[p2->qname.uriRowId].string_val);
 		}
-		else if(p1->event.eventType == EVENT_SE_QNAME)
+		else if(p1->evnt.eventType == EVENT_SE_QNAME)
 		{
 			// Using the fact that the uri tables are not sorted yet.
 			// when lnID_1 < lnID_2 then lnID_1 came first in the schema
@@ -773,7 +773,7 @@ static int compareProductions(const void* prod1, const void* prod2)
 			else
 				return -1;
 		}
-		else if(p1->event.eventType == EVENT_SE_URI)
+		else if(p1->evnt.eventType == EVENT_SE_URI)
 		{
 			// TODO: figure out how it should be done
 		}

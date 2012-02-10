@@ -67,11 +67,11 @@ errorCode writeEventCode(EXIStream* strm, GrammarRule* currentRule, unsigned cha
 
 EXIEvent getEventDefType(EventType eType)
 {
-	EXIEvent event;
-	event.eventType = eType;
-	event.valueType.exiType = VALUE_TYPE_NONE;
-	event.valueType.simpleTypeID = UINT16_MAX;
-	return event;
+	EXIEvent evnt;
+	evnt.eventType = eType;
+	evnt.valueType.exiType = VALUE_TYPE_NONE;
+	evnt.valueType.simpleTypeID = UINT16_MAX;
+	return evnt;
 }
 
 unsigned char eventsIdentical(EXIEvent e1, EXIEvent e2)
