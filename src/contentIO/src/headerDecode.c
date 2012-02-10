@@ -304,11 +304,11 @@ static char ops_startElement(QName qname, void* app_data)
 {
 	struct ops_AppData* o_appD = (struct ops_AppData*) app_data;
 
-	if(o_appD->o_strm->context.curr_uriID == 4) // URI == http://www.w3.org/2009/exi
+	if(o_appD->o_strm->context.currElem.uriRowId == 4) // URI == http://www.w3.org/2009/exi
 	{
 		o_appD->prevElementUriID = 4;
 
-		switch(o_appD->o_strm->context.curr_lnID)
+		switch(o_appD->o_strm->context.currElem.lnRowId)
 		{
 			case 33:	// strict
 				SET_STRICT(o_appD->parsed_ops->enumOpt);
@@ -400,7 +400,7 @@ static char ops_attribute(QName qname, void* app_data)
 		}
 		else
 		{
-			if(o_appD->o_strm->context.curr_attr_uriID == 2 && o_appD->o_strm->context.curr_attr_lnID == 0) // xsi:nil
+			if(o_appD->o_strm->context.currAttr.uriRowId == 2 && o_appD->o_strm->context.currAttr.lnRowId == 0) // xsi:nil
 			{
 				o_appD->schemaIDOptions = SCHEMA_ID_EL_NIL;
 			}
@@ -459,7 +459,7 @@ static char ops_intData(Integer int_val, void* app_data)
 {
 	struct ops_AppData* o_appD = (struct ops_AppData*) app_data;
 
-	switch(o_appD->o_strm->context.curr_lnID)
+	switch(o_appD->o_strm->context.currElem.lnRowId)
 	{
 		case 37:	// valueMaxLength
 			o_appD->parsed_ops->valueMaxLength = (unsigned int) int_val;
