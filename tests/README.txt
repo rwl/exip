@@ -6,6 +6,7 @@
  * @par[Revision] $Id$
  */
 
-Efficient XML Interchange Processor - Unit tests
+Efficient XML Interchange Processor - Source code tests
 
-The folder contains the unit tests for the project.
+The folder contains source code tests for the project - unit tests with Check,
+valgrind tests, integration tests with some test cases etc.

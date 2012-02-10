@@ -135,8 +135,8 @@ errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const EXIPSc
 		{
 			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].event = getEventDefType(EVENT_SE_QNAME);
 			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].nonTermID = GR_DOC_END;
-			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].lnRowID = schema->globalElemGrammars[e].lnRowId;
-			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].uriRowID = schema->globalElemGrammars[e].uriRowId;
+			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].qname.lnRowId = schema->globalElemGrammars[e].lnRowId;
+			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].qname.uriRowId = schema->globalElemGrammars[e].uriRowId;
 		}
 	}
 	else
@@ -625,7 +625,7 @@ static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Pro
 			}
 		}
 
-		tmp_err_code = decodeEventContent(strm, *event, handler, nonTermID_out, currentRule, app_data, prodHit->uriRowID, prodHit->lnRowID);
+		tmp_err_code = decodeEventContent(strm, *event, handler, nonTermID_out, currentRule, app_data, prodHit->qname.uriRowId, prodHit->qname.lnRowId);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -705,8 +705,8 @@ errorCode createFragmentGrammar(EXIGrammar* fragGrammar, EXIStream* strm, const 
 		{
 			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].event = getEventDefType(EVENT_SE_QNAME);
 			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].nonTermID = GR_FRAGMENT_CONTENT;
-			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].lnRowID = schema->globalElemGrammars[e].lnRowId;
-			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].uriRowID = schema->globalElemGrammars[e].uriRowId;
+			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].qname.lnRowId = schema->globalElemGrammars[e].lnRowId;
+			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].qname.uriRowId = schema->globalElemGrammars[e].uriRowId;
 		}
 	}
 	else

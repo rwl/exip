@@ -60,8 +60,8 @@ errorCode insertZeroProduction(DynGrammarRule* rule, EXIEvent event, size_t nonT
 
 	rule->part[0].prodArray[rule->part[0].prodArraySize].event = event;
 	rule->part[0].prodArray[rule->part[0].prodArraySize].nonTermID = nonTermID;
-	rule->part[0].prodArray[rule->part[0].prodArraySize].lnRowID = lnRowID;
-	rule->part[0].prodArray[rule->part[0].prodArraySize].uriRowID = uriRowID;
+	rule->part[0].prodArray[rule->part[0].prodArraySize].qname.lnRowId = lnRowID;
+	rule->part[0].prodArray[rule->part[0].prodArraySize].qname.uriRowId = uriRowID;
 
 	rule->part[0].prodArraySize += 1;
 	rule->part[0].bits = getBitsNumber(rule->part[0].prodArraySize - 1 + (rule->part[1].prodArraySize + rule->part[2].prodArraySize > 0));
@@ -126,7 +126,7 @@ errorCode printGrammarRule(size_t nonTermID, GrammarRule* rule)
 					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("ED "));
 					break;
 				case EVENT_SE_QNAME:
-					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("SE (qname: %d:%d)", rule->part[b].prodArray[tmp_prod_indx].uriRowID, rule->part[b].prodArray[tmp_prod_indx].lnRowID));
+					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("SE (qname: %d:%d)", rule->part[b].prodArray[tmp_prod_indx].qname.uriRowId, rule->part[b].prodArray[tmp_prod_indx].qname.lnRowId));
 					break;
 				case EVENT_SE_URI:
 					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("SE (uri) "));
@@ -138,7 +138,7 @@ errorCode printGrammarRule(size_t nonTermID, GrammarRule* rule)
 					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("EE "));
 					break;
 				case EVENT_AT_QNAME:
-					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("AT (qname %d:%d) [%d]", rule->part[b].prodArray[tmp_prod_indx].uriRowID, rule->part[b].prodArray[tmp_prod_indx].lnRowID, rule->part[b].prodArray[tmp_prod_indx].event.valueType.exiType));
+					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("AT (qname %d:%d) [%d]", rule->part[b].prodArray[tmp_prod_indx].qname.uriRowId, rule->part[b].prodArray[tmp_prod_indx].qname.lnRowId, rule->part[b].prodArray[tmp_prod_indx].event.valueType.exiType));
 					break;
 				case EVENT_AT_URI:
 					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("AT (uri) "));

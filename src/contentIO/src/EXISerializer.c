@@ -593,7 +593,7 @@ errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, size_t lastC
 	{
 		// #1# COMMENT and #2# COMMENT
 		tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, prodHit->event, prodHit->nonTermID,
-				prodHit->lnRowID, prodHit->uriRowID);
+				prodHit->qname.lnRowId, prodHit->qname.uriRowId);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -660,20 +660,20 @@ errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, size_t lastC
 		break;
 		case EVENT_AT_QNAME:
 		{
-			strm->context.curr_attr_uriID = prodHit->uriRowID;
-			strm->context.curr_attr_lnID = prodHit->lnRowID;
+			strm->context.curr_attr_uriID = prodHit->qname.uriRowId;
+			strm->context.curr_attr_lnID = prodHit->qname.lnRowId;
 
-			tmp_err_code = encodePrefixQName(strm, qname, prodHit->event.eventType, prodHit->uriRowID);
+			tmp_err_code = encodePrefixQName(strm, qname, prodHit->event.eventType, prodHit->qname.uriRowId);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 		break;
 		case EVENT_SE_QNAME:
 		{
-			strm->context.curr_uriID = prodHit->uriRowID;
-			strm->context.curr_lnID = prodHit->lnRowID;
+			strm->context.curr_uriID = prodHit->qname.uriRowId;
+			strm->context.curr_lnID = prodHit->qname.lnRowId;
 
-			tmp_err_code = encodePrefixQName(strm, qname, prodHit->event.eventType, prodHit->uriRowID);
+			tmp_err_code = encodePrefixQName(strm, qname, prodHit->event.eventType, prodHit->qname.uriRowId);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}

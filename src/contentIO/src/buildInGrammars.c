@@ -146,8 +146,8 @@ errorCode generateBuildInTypesGrammars(URITable* sTables, AllocList* memList)
 	typeEmptyGrammar->ruleArray->part[2].prodArray = NULL;
 
 	typeEmptyGrammar->ruleArray->part[0].prodArray[0].event = getEventDefType(EVENT_EE);
-	typeEmptyGrammar->ruleArray->part[0].prodArray[0].uriRowID = UINT16_MAX;
-	typeEmptyGrammar->ruleArray->part[0].prodArray[0].lnRowID = SIZE_MAX;
+	typeEmptyGrammar->ruleArray->part[0].prodArray[0].qname.uriRowId = UINT16_MAX;
+	typeEmptyGrammar->ruleArray->part[0].prodArray[0].qname.lnRowId = SIZE_MAX;
 	typeEmptyGrammar->ruleArray->part[0].prodArray[0].nonTermID = GR_VOID_NON_TERMINAL;
 
 	// URI id 3 -> http://www.w3.org/2001/XMLSchema
@@ -192,8 +192,8 @@ errorCode generateBuildInTypesGrammars(URITable* sTables, AllocList* memList)
 		grammar->ruleArray[0].part[0].prodArray[0].event.eventType = EVENT_CH;
 		grammar->ruleArray[0].part[0].prodArray[0].event.valueType = vType;
 		grammar->ruleArray[0].part[0].prodArray[0].nonTermID = 1;
-		grammar->ruleArray[0].part[0].prodArray[0].uriRowID = UINT16_MAX;
-		grammar->ruleArray[0].part[0].prodArray[0].lnRowID = SIZE_MAX;
+		grammar->ruleArray[0].part[0].prodArray[0].qname.uriRowId = UINT16_MAX;
+		grammar->ruleArray[0].part[0].prodArray[0].qname.lnRowId = SIZE_MAX;
 
 		grammar->ruleArray[1].part[0].bits = 0;
 		grammar->ruleArray[1].part[1].bits = 0;
@@ -213,8 +213,8 @@ errorCode generateBuildInTypesGrammars(URITable* sTables, AllocList* memList)
 		grammar->ruleArray[1].part[0].prodArray[0].event.valueType.exiType = VALUE_TYPE_NONE;
 		grammar->ruleArray[1].part[0].prodArray[0].event.valueType.simpleTypeID = UINT16_MAX;
 		grammar->ruleArray[1].part[0].prodArray[0].nonTermID = GR_VOID_NON_TERMINAL;
-		grammar->ruleArray[1].part[0].prodArray[0].uriRowID = UINT16_MAX;
-		grammar->ruleArray[1].part[0].prodArray[0].lnRowID = SIZE_MAX;
+		grammar->ruleArray[1].part[0].prodArray[0].qname.uriRowId = UINT16_MAX;
+		grammar->ruleArray[1].part[0].prodArray[0].qname.lnRowId = SIZE_MAX;
 
 		sTables->rows[3].lTable->rows[i].typeGrammar = grammar;
 		sTables->rows[3].lTable->rows[i].typeEmptyGrammar = typeEmptyGrammar;

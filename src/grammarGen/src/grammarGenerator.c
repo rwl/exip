@@ -463,21 +463,21 @@ static char xsd_endDocument(void* app_data)
 					for (p = 0; p < tmpGrammar->ruleArray[t].part[0].prodArraySize; p++)
 					{
 						tmpProd = &tmpGrammar->ruleArray[t].part[0].prodArray[p];
-						if(tmpProd->uriRowID != UINT16_MAX)
+						if(tmpProd->qname.uriRowId != UINT16_MAX)
 						{
-							if(!lookupURI(appD->schema->initialStringTables, appD->metaStringTables->rows[tmpProd->uriRowID].string_val, &uriRowID))
+							if(!lookupURI(appD->schema->initialStringTables, appD->metaStringTables->rows[tmpProd->qname.uriRowId].string_val, &uriRowID))
 							{
 								DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Error in the schema generation\n"));
 								return EXIP_HANDLER_STOP;
 							}
-							tmpProd->uriRowID = uriRowID;
+							tmpProd->qname.uriRowId = uriRowID;
 
-							if(!lookupLN(appD->schema->initialStringTables->rows[uriRowID].lTable, appD->metaStringTables->rows[uriRowID].lTable->rows[tmpProd->lnRowID].string_val, &lnRowID))
+							if(!lookupLN(appD->schema->initialStringTables->rows[uriRowID].lTable, appD->metaStringTables->rows[uriRowID].lTable->rows[tmpProd->qname.lnRowId].string_val, &lnRowID))
 							{
 								DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Error in the schema generation\n"));
 								return EXIP_HANDLER_STOP;
 							}
-							tmpProd->lnRowID = lnRowID;
+							tmpProd->qname.lnRowId = lnRowID;
 						}
 					}
 				}
@@ -1886,10 +1886,10 @@ static int compareAttrUse(const void* attrPG1, const void* attrPG2)
 	int lnComp;
 	ProtoGrammar* a1 = (ProtoGrammar*) attrPG1;
 	ProtoGrammar* a2 = (ProtoGrammar*) attrPG2;
-	String attrUri1 = comparison_ptr->rows[a1->prods[0][0].uriRowID].string_val;
-	String attrLn1 = comparison_ptr->rows[a1->prods[0][0].uriRowID].lTable->rows[a1->prods[0][0].lnRowID].string_val;
-	String attrUri2 = comparison_ptr->rows[a2->prods[0][0].uriRowID].string_val;
-	String attrLn2 = comparison_ptr->rows[a2->prods[0][0].uriRowID].lTable->rows[a2->prods[0][0].lnRowID].string_val;
+	String attrUri1 = comparison_ptr->rows[a1->prods[0][0].qname.uriRowId].string_val;
+	String attrLn1 = comparison_ptr->rows[a1->prods[0][0].qname.uriRowId].lTable->rows[a1->prods[0][0].qname.lnRowId].string_val;
+	String attrUri2 = comparison_ptr->rows[a2->prods[0][0].qname.uriRowId].string_val;
+	String attrLn2 = comparison_ptr->rows[a2->prods[0][0].qname.uriRowId].lTable->rows[a2->prods[0][0].qname.lnRowId].string_val;
 
 	lnComp = stringCompare(attrLn1, attrLn2);
 
