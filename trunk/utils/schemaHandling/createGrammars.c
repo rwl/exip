@@ -817,11 +817,11 @@ int main(int argc, char *argv[])
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 
 								if (tmpGrammar->ruleArray[r].prodCounts[2] > 0)
-									sprintf(printfBuf, "%sprodArray_%d_%d_%d_2", prefix, i, j, r);
+									sprintf(printfBuf, "%sprodArray_%d_%d_%d_2, ", prefix, i, j, r);
 								else
-									sprintf(printfBuf, "NULL");
+									sprintf(printfBuf, "NULL, ");
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-								sprintf(printfBuf, "%d, %d}} ", tmpGrammar->ruleArray[r].prodCounts[2], tmpGrammar->ruleArray[r].bits[2]);
+								sprintf(printfBuf, "%d, %d}}", tmpGrammar->ruleArray[r].prodCounts[2], tmpGrammar->ruleArray[r].bits[2]);
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 							}
 
@@ -905,9 +905,9 @@ int main(int argc, char *argv[])
 								sprintf(printfBuf, "%d, %d}, {", tmpGrammar->ruleArray[r].prodCounts[1], tmpGrammar->ruleArray[r].bits[1]);
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 								if (tmpGrammar->ruleArray[r].prodCounts[2] > 0)
-									sprintf(printfBuf, "%sprodArray_empty_%d_%d_%d_2", prefix, i, j, r);
+									sprintf(printfBuf, "%sprodArray_empty_%d_%d_%d_2, ", prefix, i, j, r);
 								else
-									sprintf(printfBuf, "NULL");
+									sprintf(printfBuf, "NULL, ");
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 								sprintf(printfBuf, "%d, %d}}", tmpGrammar->ruleArray[r].prodCounts[2], tmpGrammar->ruleArray[r].bits[2]);
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
