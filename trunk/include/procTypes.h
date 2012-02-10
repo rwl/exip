@@ -211,6 +211,24 @@ struct StringType
 
 typedef struct StringType String;
 
+struct QName {
+	const String* uri;       // Pointer to a String value in the URI string table. It is not allowed to modify the string table content from this pointer.
+	const String* localName; // Pointer to a String value in the LN sting table. It is not allowed to modify the string table content from this pointer.
+	const String* prefix; 	 // Pointer to a String value in the Prefix string table if Preserve.prefixes == TRUE. NULL otherwise. It is not allowed to modify the string table content from this pointer.
+};
+
+typedef struct QName QName;
+
+/**
+ * Position of a qname in the string tables
+ */
+struct QNameID {
+	uint16_t uriRowId;	// VOID == UINT16_MAX
+	size_t lnRowId;		// VOID == SIZE_MAX
+};
+
+typedef struct QNameID QNameID;
+
 /********* START: Memory management definitions ***************/
 
 #define ALLOCATION_ARRAY_SIZE 100 // #DOCUMENT#
@@ -336,12 +354,9 @@ struct Production
 {
 	EXIEvent event;
 	/**
-	 * For SE(qname), SE(uri:*), AT(qname) and AT(uri:*). Points to the qname or its local name
-	 * of the element/attribute
+	 * For SE(qname), SE(uri:*), AT(qname) and AT(uri:*). Points to the qname of the element/attribute
 	 */
-	uint16_t uriRowID; // VOID == UINT16_MAX
-	size_t lnRowID; // VOID == SIZE_MAX
-
+	QNameID qname;
 	size_t nonTermID; // unique identifier of right-hand side Non-terminal
 };
 
@@ -528,22 +543,6 @@ struct URITable {
 typedef struct URITable URITable;
 
 /********* END: String Table Types ***************/
-
-
-struct QName {
-	const String* uri;       // Pointer to a String value in the URI string table. It is not allowed to modify the string table content from this pointer.
-	const String* localName; // Pointer to a String value in the LN sting table. It is not allowed to modify the string table content from this pointer.
-	const String* prefix; 	 // Pointer to a String value in the Prefix string table if Preserve.prefixes == TRUE. NULL otherwise. It is not allowed to modify the string table content from this pointer.
-};
-
-typedef struct QName QName;
-
-struct QNameID {
-	uint16_t uriRowId;
-	size_t lnRowId;
-};
-
-typedef struct QNameID QNameID;
 
 // Constraining Facets IDs. Used for fine-grained schema validation
 #define TYPE_FACET_LENGTH             0x0001 // 0b0000000000000001

@@ -137,10 +137,10 @@ errorCode lookupProduction(EXIStream* strm, EXIEvent event, QName* qname, unsign
 				if(currentRule->part[b].prodArray[tmp_prod_indx].event.eventType == event.eventType || // (1)
 						(qname != NULL &&
 						(((currentRule->part[b].prodArray[tmp_prod_indx].event.eventType == EVENT_AT_URI || currentRule->part[b].prodArray[tmp_prod_indx].event.eventType == EVENT_SE_URI) &&    // (2)
-						stringEqual(strm->uriTable->rows[currentRule->part[b].prodArray[tmp_prod_indx].uriRowID].string_val, *(qname->uri))) ||
+						stringEqual(strm->uriTable->rows[currentRule->part[b].prodArray[tmp_prod_indx].qname.uriRowId].string_val, *(qname->uri))) ||
 						((currentRule->part[b].prodArray[tmp_prod_indx].event.eventType == EVENT_AT_QNAME || currentRule->part[b].prodArray[tmp_prod_indx].event.eventType == EVENT_SE_QNAME) && // (3)
-						stringEqual(strm->uriTable->rows[currentRule->part[b].prodArray[tmp_prod_indx].uriRowID].string_val, *(qname->uri)) &&
-						stringEqual(strm->uriTable->rows[currentRule->part[b].prodArray[tmp_prod_indx].uriRowID].lTable->rows[currentRule->part[b].prodArray[tmp_prod_indx].lnRowID].string_val, *(qname->localName))))
+						stringEqual(strm->uriTable->rows[currentRule->part[b].prodArray[tmp_prod_indx].qname.uriRowId].string_val, *(qname->uri)) &&
+						stringEqual(strm->uriTable->rows[currentRule->part[b].prodArray[tmp_prod_indx].qname.uriRowId].lTable->rows[currentRule->part[b].prodArray[tmp_prod_indx].qname.lnRowId].string_val, *(qname->localName))))
 						)
 				)
 				{

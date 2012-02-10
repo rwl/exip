@@ -354,9 +354,9 @@ int main(int argc, char *argv[])
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 											sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].nonTermID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].nonTermID);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-											sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].uriRowID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].uriRowID);
+											sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].qname.uriRowId = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].qname.uriRowId);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-											sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].lnRowID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].lnRowID);
+											sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].qname.lnRowId = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].qname.lnRowId);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 										}
 									}
@@ -472,9 +472,9 @@ int main(int argc, char *argv[])
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 											sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].nonTermID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].nonTermID);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-											sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].uriRowID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].uriRowID);
+											sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].qname.uriRowId = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].qname.uriRowId);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-											sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].lnRowID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].lnRowID);
+											sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].qname.lnRowId = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].qname.lnRowId);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 										}
 									}
@@ -785,7 +785,7 @@ int main(int argc, char *argv[])
 										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 										for(p = 0; p < tmpGrammar->ruleArray[r].part[k].prodArraySize; p++)
 										{
-											sprintf(printfBuf, "%s{{%d,{%d, %d}}, %d, %d, %d}", p==0?"":",", tmpGrammar->ruleArray[r].part[k].prodArray[p].event.eventType, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.valueType.exiType, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.valueType.simpleTypeID, tmpGrammar->ruleArray[r].part[k].prodArray[p].uriRowID, tmpGrammar->ruleArray[r].part[k].prodArray[p].lnRowID, tmpGrammar->ruleArray[r].part[k].prodArray[p].nonTermID);
+											sprintf(printfBuf, "%s{{%d,{%d, %d}}, {%d, %d}, %d}", p==0?"":",", tmpGrammar->ruleArray[r].part[k].prodArray[p].event.eventType, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.valueType.exiType, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.valueType.simpleTypeID, tmpGrammar->ruleArray[r].part[k].prodArray[p].qname.uriRowId, tmpGrammar->ruleArray[r].part[k].prodArray[p].qname.lnRowId, tmpGrammar->ruleArray[r].part[k].prodArray[p].nonTermID);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 										}
 										fwrite("};\n", 1, strlen("};\n"), outfile);
@@ -874,7 +874,7 @@ int main(int argc, char *argv[])
 										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 										for(p = 0; p < tmpGrammar->ruleArray[r].part[k].prodArraySize; p++)
 										{
-											sprintf(printfBuf, "%s{{%d,{%d, %d}}, %d, %d, %d}", p==0?"":",", tmpGrammar->ruleArray[r].part[k].prodArray[p].event.eventType, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.valueType.exiType, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.valueType.simpleTypeID, tmpGrammar->ruleArray[r].part[k].prodArray[p].uriRowID, tmpGrammar->ruleArray[r].part[k].prodArray[p].lnRowID, tmpGrammar->ruleArray[r].part[k].prodArray[p].nonTermID);
+											sprintf(printfBuf, "%s{{%d,{%d, %d}}, {%d, %d}, %d}", p==0?"":",", tmpGrammar->ruleArray[r].part[k].prodArray[p].event.eventType, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.valueType.exiType, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.valueType.simpleTypeID, tmpGrammar->ruleArray[r].part[k].prodArray[p].qname.uriRowId, tmpGrammar->ruleArray[r].part[k].prodArray[p].qname.lnRowId, tmpGrammar->ruleArray[r].part[k].prodArray[p].nonTermID);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 										}
 										fwrite("};\n", 1, strlen("};\n"), outfile);
@@ -1085,11 +1085,11 @@ int main(int argc, char *argv[])
 												fwrite("\tED ", 1, strlen("\tED "), outfile);
 												break;
 											case EVENT_SE_QNAME:
-												sprintf(printfBuf, "\tSE ([%d:%d]", tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].uriRowID, tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].lnRowID);
+												sprintf(printfBuf, "\tSE ([%d:%d]", tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].qname.uriRowId, tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].qname.lnRowId);
 												fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-												fwrite(schema.initialStringTables->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].uriRowID].string_val.str, 1, schema.initialStringTables->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].uriRowID].string_val.length, outfile);
+												fwrite(schema.initialStringTables->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].qname.uriRowId].string_val.str, 1, schema.initialStringTables->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].qname.uriRowId].string_val.length, outfile);
 												fwrite(":", 1, 1, outfile);
-												fwrite(schema.initialStringTables->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].uriRowID].lTable->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].lnRowID].string_val.str, 1, schema.initialStringTables->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].uriRowID].lTable->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].lnRowID].string_val.length, outfile);
+												fwrite(schema.initialStringTables->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].qname.uriRowId].lTable->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].qname.lnRowId].string_val.str, 1, schema.initialStringTables->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].qname.uriRowId].lTable->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].qname.lnRowId].string_val.length, outfile);
 												fwrite(") ", 1, 2, outfile);
 												break;
 											case EVENT_SE_URI:
@@ -1102,11 +1102,11 @@ int main(int argc, char *argv[])
 												fwrite("\tEE ", 1, strlen("\tEE "), outfile);
 												break;
 											case EVENT_AT_QNAME:
-												sprintf(printfBuf, "\tAT ([%d:%d]", tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].uriRowID, tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].lnRowID);
+												sprintf(printfBuf, "\tAT ([%d:%d]", tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].qname.uriRowId, tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].qname.lnRowId);
 												fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-												fwrite(schema.initialStringTables->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].uriRowID].string_val.str, 1, schema.initialStringTables->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].uriRowID].string_val.length, outfile);
+												fwrite(schema.initialStringTables->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].qname.uriRowId].string_val.str, 1, schema.initialStringTables->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].qname.uriRowId].string_val.length, outfile);
 												fwrite(":", 1, 1, outfile);
-												fwrite(schema.initialStringTables->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].uriRowID].lTable->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].lnRowID].string_val.str, 1, schema.initialStringTables->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].uriRowID].lTable->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].lnRowID].string_val.length, outfile);
+												fwrite(schema.initialStringTables->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].qname.uriRowId].lTable->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].qname.lnRowId].string_val.str, 1, schema.initialStringTables->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].qname.uriRowId].lTable->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].qname.lnRowId].string_val.length, outfile);
 												fwrite(") ", 1, 2, outfile);
 												getValueTypeString(printfBuf, tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].event.valueType);
 												fwrite(printfBuf, 1, strlen(printfBuf), outfile);

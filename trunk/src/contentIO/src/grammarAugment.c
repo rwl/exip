@@ -137,8 +137,8 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 			{
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].event = getEventDefType(EVENT_EE);
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].nonTermID = GR_VOID_NON_TERMINAL;
-				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].uriRowID = UINT16_MAX;
-				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].lnRowID = SIZE_MAX;
+				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.uriRowId = UINT16_MAX;
+				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.lnRowId = SIZE_MAX;
 				tmp_prod2_indx --;
 			}
 
@@ -150,16 +150,16 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].event = tmpEvent;
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].nonTermID = 0;
-				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].uriRowID = 2; // "http://www.w3.org/2001/XMLSchema-instance"
-				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].lnRowID = 1; // type
+				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.uriRowId = 2; // "http://www.w3.org/2001/XMLSchema-instance"
+				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.lnRowId = 1; // type
 				tmp_prod2_indx --;
 
 				tmpEvent.valueType.exiType = VALUE_TYPE_BOOLEAN;
 
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].event = tmpEvent;
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].nonTermID = 0;
-				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].uriRowID = 2; // "http://www.w3.org/2001/XMLSchema-instance"
-				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].lnRowID = 0; // nil
+				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.uriRowId = 2; // "http://www.w3.org/2001/XMLSchema-instance"
+				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.lnRowId = 0; // nil
 				tmp_prod2_indx --;
 			}
 
@@ -170,8 +170,8 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 
 			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].event = tmpEvent;
 			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].nonTermID = i;
-			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].uriRowID = UINT16_MAX;
-			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].lnRowID = SIZE_MAX;
+			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.uriRowId = UINT16_MAX;
+			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.lnRowId = SIZE_MAX;
 			tmp_prod2_indx --;
 
 			grammar->ruleArray[i].part[2].bits = getBitsNumber(prod3number);
@@ -190,8 +190,8 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 
 				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].event = tmpEvent;
 				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].nonTermID = attrProdArray[j]->nonTermID;
-				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].uriRowID = attrProdArray[j]->uriRowID;
-				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].lnRowID = attrProdArray[j]->lnRowID;
+				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].qname.uriRowId = attrProdArray[j]->qname.uriRowId;
+				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].qname.lnRowId = attrProdArray[j]->qname.lnRowId;
 				tmp_prod3_indx --;
 			}
 
@@ -201,8 +201,8 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 
 			grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].event = tmpEvent;
 			grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].nonTermID = i;
-			grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].uriRowID = UINT16_MAX;
-			grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].lnRowID = SIZE_MAX;
+			grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].qname.uriRowId = UINT16_MAX;
+			grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].qname.lnRowId = SIZE_MAX;
 			tmp_prod3_indx --;
 
 			if(i == 0)
@@ -215,8 +215,8 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 
 					grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].event = tmpEvent;
 					grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].nonTermID = 0;
-					grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].uriRowID = UINT16_MAX;
-					grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].lnRowID = SIZE_MAX;
+					grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.uriRowId = UINT16_MAX;
+					grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.lnRowId = SIZE_MAX;
 					tmp_prod2_indx --;
 				}
 
@@ -228,8 +228,8 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 
 					grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].event = tmpEvent;
 					grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].nonTermID = GR_FRAGMENT;
-					grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].uriRowID = UINT16_MAX;
-					grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].lnRowID = SIZE_MAX;
+					grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.uriRowId = UINT16_MAX;
+					grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.lnRowId = SIZE_MAX;
 					tmp_prod2_indx --;
 				}
 			}
@@ -241,8 +241,8 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 
 			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].event = tmpEvent;
 			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].nonTermID = grammar->rulesDimension - 1;
-			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].uriRowID = UINT16_MAX;
-			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].lnRowID = SIZE_MAX;
+			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.uriRowId = UINT16_MAX;
+			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.lnRowId = SIZE_MAX;
 			tmp_prod2_indx --;
 
 			// Element i, j : CH [untyped value] Element i, content2
@@ -252,8 +252,8 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 
 			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].event = tmpEvent;
 			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].nonTermID = grammar->rulesDimension - 1;
-			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].uriRowID = UINT16_MAX;
-			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].lnRowID = SIZE_MAX;
+			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.uriRowId = UINT16_MAX;
+			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.lnRowId = SIZE_MAX;
 			tmp_prod2_indx --;
 
 			if(IS_PRESERVED(preserve, PRESERVE_DTD)) // Element i, j : ER Element i, content2
@@ -264,8 +264,8 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].event = tmpEvent;
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].nonTermID = grammar->rulesDimension - 1;
-				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].uriRowID = UINT16_MAX;
-				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].lnRowID = SIZE_MAX;
+				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.uriRowId = UINT16_MAX;
+				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.lnRowId = SIZE_MAX;
 				tmp_prod2_indx --;
 			}
 
@@ -277,8 +277,8 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 
 				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].event = tmpEvent;
 				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].nonTermID = grammar->rulesDimension - 1;
-				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].uriRowID = UINT16_MAX;
-				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].lnRowID = SIZE_MAX;
+				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].qname.uriRowId = UINT16_MAX;
+				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].qname.lnRowId = SIZE_MAX;
 				tmp_prod3_indx --;
 			}
 			if(IS_PRESERVED(preserve, PRESERVE_PIS))  // Element i, j : PI Element i, content2
@@ -289,8 +289,8 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 
 				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].event = tmpEvent;
 				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].nonTermID = grammar->rulesDimension - 1;
-				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].uriRowID = UINT16_MAX;
-				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].lnRowID = SIZE_MAX;
+				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].qname.uriRowId = UINT16_MAX;
+				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].qname.lnRowId = SIZE_MAX;
 				tmp_prod3_indx --;
 			}
 		}
@@ -339,8 +339,8 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 			{
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].event = getEventDefType(EVENT_EE);
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].nonTermID = GR_VOID_NON_TERMINAL;
-				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].uriRowID = UINT16_MAX;
-				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].lnRowID = SIZE_MAX;
+				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.uriRowId = UINT16_MAX;
+				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.lnRowId = SIZE_MAX;
 				tmp_prod2_indx --;
 			}
 
@@ -351,8 +351,8 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 
 			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].event = tmpEvent;
 			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].nonTermID = i;
-			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].uriRowID = UINT16_MAX;
-			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].lnRowID = SIZE_MAX;
+			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.uriRowId = UINT16_MAX;
+			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.lnRowId = SIZE_MAX;
 			tmp_prod2_indx --;
 
 			//  Element i, j : CH [untyped value] Element i, j
@@ -362,8 +362,8 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 
 			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].event = tmpEvent;
 			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].nonTermID = i;
-			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].uriRowID = UINT16_MAX;
-			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].lnRowID = SIZE_MAX;
+			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.uriRowId = UINT16_MAX;
+			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.lnRowId = SIZE_MAX;
 			tmp_prod2_indx --;
 
 			if(IS_PRESERVED(preserve, PRESERVE_DTD))  // Element i, j : ER Element i, j
@@ -374,8 +374,8 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].event = tmpEvent;
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].nonTermID = i;
-				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].uriRowID = UINT16_MAX;
-				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].lnRowID = SIZE_MAX;
+				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.uriRowId = UINT16_MAX;
+				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.lnRowId = SIZE_MAX;
 				tmp_prod2_indx --;
 			}
 
@@ -397,8 +397,8 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 
 					grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].event = tmpEvent;
 					grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].nonTermID = i;
-					grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].uriRowID = UINT16_MAX;
-					grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].lnRowID = SIZE_MAX;
+					grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].qname.uriRowId = UINT16_MAX;
+					grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].qname.lnRowId = SIZE_MAX;
 					tmp_prod3_indx --;
 				}
 
@@ -410,8 +410,8 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 
 					grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].event = tmpEvent;
 					grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].nonTermID = i;
-					grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].uriRowID = UINT16_MAX;
-					grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].lnRowID = SIZE_MAX;
+					grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].qname.uriRowId = UINT16_MAX;
+					grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].qname.lnRowId = SIZE_MAX;
 					tmp_prod3_indx --;
 				}
 			}
@@ -455,9 +455,9 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 						grammar->ruleArray[0].part[1].prodArray[0].nonTermID = 0;
 
 						// "http://www.w3.org/2001/XMLSchema-instance" = 2
-						grammar->ruleArray[0].part[1].prodArray[0].uriRowID = 2;
+						grammar->ruleArray[0].part[1].prodArray[0].qname.uriRowId = 2;
 						// type = 1
-						grammar->ruleArray[0].part[1].prodArray[0].lnRowID = 1;
+						grammar->ruleArray[0].part[1].prodArray[0].qname.lnRowId = 1;
 						subTypeFound = TRUE;
 						break;
 					}
@@ -494,9 +494,9 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 			grammar->ruleArray[0].part[1].prodArray[prodIndex].nonTermID = 0;
 
 			// "http://www.w3.org/2001/XMLSchema-instance" = 2
-			grammar->ruleArray[0].part[1].prodArray[prodIndex].uriRowID = 2;
+			grammar->ruleArray[0].part[1].prodArray[prodIndex].qname.uriRowId = 2;
 			// nil = 0
-			grammar->ruleArray[0].part[1].prodArray[prodIndex].lnRowID = 0;
+			grammar->ruleArray[0].part[1].prodArray[prodIndex].qname.lnRowId = 0;
 		}
 	}
 

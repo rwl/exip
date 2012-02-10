@@ -141,8 +141,8 @@ errorCode addProductionToAProtoRule(AllocList* memlist, ProtoGrammar* pg, unsign
 	}
 
 	pg->prods[ruleIndex][pg->prodCount[ruleIndex]].event = event;
-	pg->prods[ruleIndex][pg->prodCount[ruleIndex]].lnRowID = lnRowID;
-	pg->prods[ruleIndex][pg->prodCount[ruleIndex]].uriRowID = uriRowID;
+	pg->prods[ruleIndex][pg->prodCount[ruleIndex]].qname.lnRowId = lnRowID;
+	pg->prods[ruleIndex][pg->prodCount[ruleIndex]].qname.uriRowId = uriRowID;
 	pg->prods[ruleIndex][pg->prodCount[ruleIndex]].nonTermID = nonTermID;
 
 	pg->prodCount[ruleIndex] += 1;
