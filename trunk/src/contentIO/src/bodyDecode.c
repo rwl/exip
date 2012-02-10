@@ -318,8 +318,8 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 					return tmp_err_code;
 			}
 
-			strm->context.curr_uriID = uriID;
-			strm->context.curr_lnID = lnID;
+			strm->context.currElem.uriRowId = uriID;
+			strm->context.currElem.lnRowId = lnID;
 		}
 		break;
 		case EVENT_AT_ALL:
@@ -342,8 +342,8 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			strm->context.curr_attr_uriID = uriID;
-			strm->context.curr_attr_lnID = lnID;
+			strm->context.currAttr.uriRowId = uriID;
+			strm->context.currAttr.lnRowId = lnID;
 		}
 		break;
 		case EVENT_SE_QNAME:
@@ -351,10 +351,10 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 			EXIGrammar* elemGrammar = NULL;
 
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">SE(qname) event\n"));
-			strm->context.curr_uriID = prod_uriID;
-			strm->context.curr_lnID = prod_lnID;
+			strm->context.currElem.uriRowId = prod_uriID;
+			strm->context.currElem.lnRowId = prod_lnID;
 			qname.uri = &(strm->uriTable->rows[prod_uriID].string_val);
-			qname.localName = &(strm->uriTable->rows[prod_uriID].lTable->rows[strm->context.curr_lnID].string_val);
+			qname.localName = &(strm->uriTable->rows[prod_uriID].lTable->rows[strm->context.currElem.lnRowId].string_val);
 			tmp_err_code = decodePrefixQname(strm, &qname, prod_uriID);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
@@ -366,7 +366,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 			}
 
 			// New element grammar is pushed on the stack
-			elemGrammar = strm->uriTable->rows[prod_uriID].lTable->rows[strm->context.curr_lnID].typeGrammar;
+			elemGrammar = strm->uriTable->rows[prod_uriID].lTable->rows[strm->context.currElem.lnRowId].typeGrammar;
 			strm->gStack->lastNonTermID = *nonTermID_out;
 			if(elemGrammar != NULL) // The grammar is found
 			{
@@ -384,11 +384,11 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		case EVENT_AT_QNAME:
 		{
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">AT(qname) event\n"));
-			strm->context.curr_attr_uriID = prod_uriID;
-			strm->context.curr_attr_lnID = prod_lnID;
-			qname.uri = &(strm->uriTable->rows[strm->context.curr_attr_uriID].string_val);
-			qname.localName = &(strm->uriTable->rows[strm->context.curr_attr_uriID].lTable->rows[prod_lnID].string_val);
-			tmp_err_code = decodePrefixQname(strm, &qname, strm->context.curr_attr_uriID);
+			strm->context.currAttr.uriRowId = prod_uriID;
+			strm->context.currAttr.lnRowId = prod_lnID;
+			qname.uri = &(strm->uriTable->rows[strm->context.currAttr.uriRowId].string_val);
+			qname.localName = &(strm->uriTable->rows[strm->context.currAttr.uriRowId].lTable->rows[prod_lnID].string_val);
+			tmp_err_code = decodePrefixQname(strm, &qname, strm->context.currAttr.uriRowId);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 			if(handler->attribute != NULL)  // Invoke handler method
@@ -406,7 +406,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* ha
 		{
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">CH event\n"));
 
-			tmp_err_code = decodeValueItem(strm, event.valueType, handler, nonTermID_out, strm->context.curr_uriID, strm->context.curr_lnID, app_data);
+			tmp_err_code = decodeValueItem(strm, event.valueType, handler, nonTermID_out, strm->context.currElem.uriRowId, strm->context.currElem.lnRowId, app_data);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -561,7 +561,7 @@ errorCode decodeValueItem(EXIStream* strm, ValueType type, ContentHandler* handl
 					EXIGrammar* tmpGrammar;
 					popGrammar(&(strm->gStack), &tmpGrammar);
 
-					tmpGrammar = strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].typeEmptyGrammar;
+					tmpGrammar = strm->uriTable->rows[strm->context.currElem.uriRowId].lTable->rows[strm->context.currElem.lnRowId].typeEmptyGrammar;
 					if(tmpGrammar == NULL)
 						return INCONSISTENT_PROC_STATE;
 

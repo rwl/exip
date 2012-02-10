@@ -130,10 +130,10 @@ errorCode encodeHeader(EXIStream* strm)
 		options_strm.context.bufferIndx = strm->context.bufferIndx;
 		options_strm.bufLen = strm->bufLen;
 		options_strm.context.nonTermID = GR_DOCUMENT;
-		options_strm.context.curr_lnID = 0;
-		options_strm.context.curr_uriID = 0;
-		options_strm.context.curr_attr_lnID = 0;
-		options_strm.context.curr_attr_uriID = 0;
+		options_strm.context.currElem.lnRowId = 0;
+		options_strm.context.currElem.uriRowId = 0;
+		options_strm.context.currAttr.lnRowId = 0;
+		options_strm.context.currAttr.uriRowId = 0;
 		options_strm.context.expectATData = 0;
 		options_strm.bufContent = strm->bufContent;
 		options_strm.ioStrm = strm->ioStrm;

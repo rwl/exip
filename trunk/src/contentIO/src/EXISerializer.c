@@ -103,10 +103,10 @@ errorCode initStream(EXIStream* strm, char* buf, size_t bufSize, IOStream* ioStr
 	strm->bufContent = 0;
 	strm->context.bufferIndx = 0;
 	strm->context.nonTermID = GR_DOCUMENT;
-	strm->context.curr_uriID = 0;
-	strm->context.curr_lnID = 0;
-	strm->context.curr_attr_uriID = 0;
-	strm->context.curr_attr_lnID = 0;
+	strm->context.currElem.uriRowId = 0;
+	strm->context.currElem.lnRowId = 0;
+	strm->context.currAttr.uriRowId = 0;
+	strm->context.currAttr.lnRowId = 0;
 	strm->context.expectATData = 0;
 	strm->gStack = NULL;
 	strm->uriTable = NULL;
@@ -352,7 +352,7 @@ errorCode booleanData(EXIStream* strm, unsigned char bool_val)
 	if(strm->context.expectATData) // Value for an attribute
 	{
 		strm->context.expectATData = FALSE;
-		if(strm->context.curr_attr_uriID == 2 && strm->context.curr_attr_lnID == 0)
+		if(strm->context.currAttr.uriRowId == 2 && strm->context.currAttr.lnRowId == 0)
 		{
 			// xsi:nill
 			isXsiNilAttr = TRUE;
@@ -383,7 +383,7 @@ errorCode booleanData(EXIStream* strm, unsigned char bool_val)
 		EXIGrammar* tmpGrammar;
 		popGrammar(&(strm->gStack), &tmpGrammar);
 
-		tmpGrammar = strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].typeEmptyGrammar;
+		tmpGrammar = strm->uriTable->rows[strm->context.currElem.uriRowId].lTable->rows[strm->context.currElem.lnRowId].typeEmptyGrammar;
 		if(tmpGrammar == NULL)
 			return INCONSISTENT_PROC_STATE;
 
@@ -406,8 +406,8 @@ errorCode stringData(EXIStream* strm, const String str_val)
 	if(strm->context.expectATData) // Value for an attribute
 	{
 		strm->context.expectATData = FALSE;
-		uriID = strm->context.curr_attr_uriID;
-		lnID = strm->context.curr_attr_lnID;
+		uriID = strm->context.currAttr.uriRowId;
+		lnID = strm->context.currAttr.lnRowId;
 	}
 	else
 	{
@@ -424,8 +424,8 @@ errorCode stringData(EXIStream* strm, const String str_val)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		uriID = strm->context.curr_uriID;
-		lnID = strm->context.curr_lnID;
+		uriID = strm->context.currElem.uriRowId;
+		lnID = strm->context.currElem.lnRowId;
 	}
 
 	return encodeStringData(strm, str_val, uriID, lnID);
@@ -605,7 +605,7 @@ errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, size_t lastC
 			if(qname == NULL)
 				return NULL_POINTER_REF;
 
-			tmp_err_code = encodeQName(strm, *qname, prodHit->event.eventType, &strm->context.curr_attr_uriID, &strm->context.curr_attr_lnID);
+			tmp_err_code = encodeQName(strm, *qname, prodHit->event.eventType, &strm->context.currAttr.uriRowId, &strm->context.currAttr.lnRowId);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
@@ -618,7 +618,7 @@ errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, size_t lastC
 				newEvent.valueType.exiType = prodHit->event.valueType.exiType;
 				newEvent.valueType.simpleTypeID = prodHit->event.valueType.simpleTypeID;
 
-				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, newEvent, prodHit->nonTermID, strm->context.curr_attr_lnID, strm->context.curr_attr_uriID);
+				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, newEvent, prodHit->nonTermID, strm->context.currAttr.lnRowId, strm->context.currAttr.uriRowId);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			}
@@ -629,7 +629,7 @@ errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, size_t lastC
 			if(qname == NULL)
 				return NULL_POINTER_REF;
 
-			tmp_err_code = encodeQName(strm, *qname, prodHit->event.eventType, &strm->context.curr_uriID, &strm->context.curr_lnID);
+			tmp_err_code = encodeQName(strm, *qname, prodHit->event.eventType, &strm->context.currElem.uriRowId, &strm->context.currElem.lnRowId);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
@@ -642,7 +642,7 @@ errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, size_t lastC
 				newEvent.valueType.exiType = prodHit->event.valueType.exiType;
 				newEvent.valueType.simpleTypeID = prodHit->event.valueType.simpleTypeID;
 
-				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, newEvent, prodHit->nonTermID, strm->context.curr_lnID, strm->context.curr_uriID);
+				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, newEvent, prodHit->nonTermID, strm->context.currElem.lnRowId, strm->context.currElem.uriRowId);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			}
@@ -660,8 +660,8 @@ errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, size_t lastC
 		break;
 		case EVENT_AT_QNAME:
 		{
-			strm->context.curr_attr_uriID = prodHit->qname.uriRowId;
-			strm->context.curr_attr_lnID = prodHit->qname.lnRowId;
+			strm->context.currAttr.uriRowId = prodHit->qname.uriRowId;
+			strm->context.currAttr.lnRowId = prodHit->qname.lnRowId;
 
 			tmp_err_code = encodePrefixQName(strm, qname, prodHit->event.eventType, prodHit->qname.uriRowId);
 			if(tmp_err_code != ERR_OK)
@@ -670,8 +670,8 @@ errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, size_t lastC
 		break;
 		case EVENT_SE_QNAME:
 		{
-			strm->context.curr_uriID = prodHit->qname.uriRowId;
-			strm->context.curr_lnID = prodHit->qname.lnRowId;
+			strm->context.currElem.uriRowId = prodHit->qname.uriRowId;
+			strm->context.currElem.lnRowId = prodHit->qname.lnRowId;
 
 			tmp_err_code = encodePrefixQName(strm, qname, prodHit->event.eventType, prodHit->qname.uriRowId);
 			if(tmp_err_code != ERR_OK)
@@ -689,7 +689,7 @@ errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, size_t lastC
 		EXIGrammar* elemGrammar = NULL;
 
 		// New element grammar is pushed on the stack
-		elemGrammar = strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].typeGrammar;
+		elemGrammar = strm->uriTable->rows[strm->context.currElem.uriRowId].lTable->rows[strm->context.currElem.lnRowId].typeGrammar;
 		strm->gStack->lastNonTermID = strm->context.nonTermID;
 		if(elemGrammar != NULL) // The grammar is found
 		{
@@ -707,7 +707,7 @@ errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, size_t lastC
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			strm->uriTable->rows[strm->context.curr_uriID].lTable->rows[strm->context.curr_lnID].typeGrammar = newElementGrammar;
+			strm->uriTable->rows[strm->context.currElem.uriRowId].lTable->rows[strm->context.currElem.lnRowId].typeGrammar = newElementGrammar;
 
 			strm->context.nonTermID = GR_START_TAG_CONTENT;
 			tmp_err_code = pushGrammar(&(strm->gStack), newElementGrammar);

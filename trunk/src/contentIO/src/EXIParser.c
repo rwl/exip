@@ -63,10 +63,10 @@ errorCode initParser(Parser* parser, char* binaryBuf, size_t bufLen, size_t bufC
 	parser->strm.context.bufferIndx = 0;
 	parser->strm.bufLen = bufLen;
 	parser->strm.context.nonTermID = GR_DOCUMENT;
-	parser->strm.context.curr_lnID = 0;
-	parser->strm.context.curr_uriID = 0;
-	parser->strm.context.curr_attr_lnID = 0;
-	parser->strm.context.curr_attr_uriID = 0;
+	parser->strm.context.currElem.lnRowId = 0;
+	parser->strm.context.currElem.uriRowId = 0;
+	parser->strm.context.currAttr.lnRowId = 0;
+	parser->strm.context.currAttr.uriRowId = 0;
 	parser->strm.context.expectATData = 0;
 	parser->strm.bufContent = bufContent;
 	parser->strm.schema = schema;
