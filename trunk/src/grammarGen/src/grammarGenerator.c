@@ -460,9 +460,9 @@ static char xsd_endDocument(void* app_data)
 			{
 				for (t = 0; t < tmpGrammar->rulesDimension; t++)
 				{
-					for (p = 0; p < tmpGrammar->ruleArray[t].prodCounts[0]; p++)
+					for (p = 0; p < tmpGrammar->ruleArray[t].part[0].prodArraySize; p++)
 					{
-						tmpProd = &tmpGrammar->ruleArray[t].prodArrays[0][p];
+						tmpProd = &tmpGrammar->ruleArray[t].part[0].prodArray[p];
 						if(tmpProd->uriRowID != UINT16_MAX)
 						{
 							if(!lookupURI(appD->schema->initialStringTables, appD->metaStringTables->rows[tmpProd->uriRowID].string_val, &uriRowID))

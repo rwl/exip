@@ -191,13 +191,13 @@ START_TEST (test_insertZeroProduction)
 	Production prod0Arr[2];
 	EXIEvent event = {EVENT_CH, {VALUE_TYPE_BOOLEAN, UINT16_MAX}};
 
-	rule.prodCounts[0] = 0;
-	rule.prod1Dimension = 1;
-	rule.prodArrays[0] = prod0Arr;
+	rule.part[0].prodArraySize = 0;
+	rule.part0Dimension = 1;
+	rule.part[0].prodArray = prod0Arr;
 
 	tmp_err_code = insertZeroProduction(&rule, event, 5, 0, 0);
 	fail_unless (tmp_err_code == ERR_OK, "insertZeroProduction returns an error code %d", tmp_err_code);
-	fail_unless (rule.prodCounts[0] == 1);
+	fail_unless (rule.part[0].prodArraySize == 1);
 }
 END_TEST
 

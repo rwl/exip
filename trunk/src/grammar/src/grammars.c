@@ -77,27 +77,27 @@ errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const EXIPSc
 
 	/* Document : SD DocContent	0 */
 	tmp_rule = &docGrammar->ruleArray[GR_DOCUMENT];
-	tmp_rule->prodArrays[0] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production));
-	if(tmp_rule->prodArrays[0] == NULL)
+	tmp_rule->part[0].prodArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production));
+	if(tmp_rule->part[0].prodArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_rule->prodArrays[0]->event = getEventDefType(EVENT_SD);
-	tmp_rule->prodArrays[0]->nonTermID = GR_DOC_CONTENT;
-	tmp_rule->prodCounts[0] = 1;
-	tmp_rule->bits[0] = 0;
-	tmp_rule->bits[1] = 0;
-	tmp_rule->bits[2] = 0;
-	tmp_rule->prodArrays[1] = NULL;
-	tmp_rule->prodCounts[1] = 0;
-	tmp_rule->prodArrays[2] = NULL;
-	tmp_rule->prodCounts[2] = 0;
+	tmp_rule->part[0].prodArray->event = getEventDefType(EVENT_SD);
+	tmp_rule->part[0].prodArray->nonTermID = GR_DOC_CONTENT;
+	tmp_rule->part[0].prodArraySize = 1;
+	tmp_rule->part[0].bits = 0;
+	tmp_rule->part[1].bits = 0;
+	tmp_rule->part[2].bits = 0;
+	tmp_rule->part[1].prodArray = NULL;
+	tmp_rule->part[1].prodArraySize = 0;
+	tmp_rule->part[2].prodArray = NULL;
+	tmp_rule->part[2].prodArraySize = 0;
 
 
 	tmp_rule = &docGrammar->ruleArray[GR_DOC_CONTENT];
-	tmp_rule->prodArrays[1] = NULL;
-	tmp_rule->prodCounts[1] = 0;
-	tmp_rule->prodArrays[2] = NULL;
-	tmp_rule->prodCounts[2] = 0;
+	tmp_rule->part[1].prodArray = NULL;
+	tmp_rule->part[1].prodArraySize = 0;
+	tmp_rule->part[2].prodArray = NULL;
+	tmp_rule->part[2].prodArraySize = 0;
 	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
 		tmp_code2 += 1;
 	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
@@ -112,12 +112,12 @@ errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const EXIPSc
 		docGrammar->grammarType = GR_TYPE_SCHEMA_DOC;
 		tmp_code1 = schema->globalElemGrammarsCount + 1;
 
-		tmp_rule->prodArrays[0] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code1);
-		if(tmp_rule->prodArrays[0] == NULL)
+		tmp_rule->part[0].prodArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code1);
+		if(tmp_rule->part[0].prodArray == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		tmp_rule->prodCounts[0] = tmp_code1;
-		tmp_rule->bits[0] = getBitsNumber(schema->globalElemGrammarsCount + ((tmp_code2 + tmp_code3) > 0));
+		tmp_rule->part[0].prodArraySize = tmp_code1;
+		tmp_rule->part[0].bits = getBitsNumber(schema->globalElemGrammarsCount + ((tmp_code2 + tmp_code3) > 0));
 
 		/*
 		   DocContent :
@@ -133,22 +133,22 @@ errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const EXIPSc
 
 		for(e = 0; e < schema->globalElemGrammarsCount; e++)
 		{
-			tmp_rule->prodArrays[0][schema->globalElemGrammarsCount - e].event = getEventDefType(EVENT_SE_QNAME);
-			tmp_rule->prodArrays[0][schema->globalElemGrammarsCount - e].nonTermID = GR_DOC_END;
-			tmp_rule->prodArrays[0][schema->globalElemGrammarsCount - e].lnRowID = schema->globalElemGrammars[e].lnRowId;
-			tmp_rule->prodArrays[0][schema->globalElemGrammarsCount - e].uriRowID = schema->globalElemGrammars[e].uriRowId;
+			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].event = getEventDefType(EVENT_SE_QNAME);
+			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].nonTermID = GR_DOC_END;
+			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].lnRowID = schema->globalElemGrammars[e].lnRowId;
+			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].uriRowID = schema->globalElemGrammars[e].uriRowId;
 		}
 	}
 	else
 	{
-		tmp_rule->prodArrays[0] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production));
-		if(tmp_rule->prodArrays[0] == NULL)
+		tmp_rule->part[0].prodArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production));
+		if(tmp_rule->part[0].prodArray == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
 		tmp_code1 = 1;
 
-		tmp_rule->prodCounts[0] = 1;
-		tmp_rule->bits[0] = (tmp_code2 + tmp_code3) > 0;
+		tmp_rule->part[0].prodArraySize = 1;
+		tmp_rule->part[0].bits = (tmp_code2 + tmp_code3) > 0;
 	}
 
 	/*
@@ -159,40 +159,40 @@ errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const EXIPSc
 					PI DocContent	1.1.1
 	 */
 
-	tmp_rule->bits[1] = (tmp_code2 && (tmp_code3 > 0));
-	tmp_rule->bits[2] = tmp_code3 > 1;
+	tmp_rule->part[1].bits = (tmp_code2 && (tmp_code3 > 0));
+	tmp_rule->part[2].bits = tmp_code3 > 1;
 
-	tmp_rule->prodArrays[0][0].event = getEventDefType(EVENT_SE_ALL);
-	tmp_rule->prodArrays[0][0].nonTermID = GR_DOC_END;
+	tmp_rule->part[0].prodArray[0].event = getEventDefType(EVENT_SE_ALL);
+	tmp_rule->part[0].prodArray[0].nonTermID = GR_DOC_END;
 
 	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
 	{
-		tmp_rule->prodArrays[1] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production));
-		if(tmp_rule->prodArrays[1] == NULL)
+		tmp_rule->part[1].prodArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production));
+		if(tmp_rule->part[1].prodArray == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		tmp_rule->prodCounts[1] = 1;
-		tmp_rule->prodArrays[1]->event = getEventDefType(EVENT_DT);
-		tmp_rule->prodArrays[1]->nonTermID = GR_DOC_CONTENT;
+		tmp_rule->part[1].prodArraySize = 1;
+		tmp_rule->part[1].prodArray->event = getEventDefType(EVENT_DT);
+		tmp_rule->part[1].prodArray->nonTermID = GR_DOC_CONTENT;
 	}
 	if(tmp_code3 > 0)
 	{
-		tmp_rule->prodArrays[2] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code3);
-		if(tmp_rule->prodArrays[2] == NULL)
+		tmp_rule->part[2].prodArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code3);
+		if(tmp_rule->part[2].prodArray == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		tmp_rule->prodCounts[2] = tmp_code3;
+		tmp_rule->part[2].prodArraySize = tmp_code3;
 
 		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
 		{
-			tmp_rule->prodArrays[2][tmp_code3 - 1].event = getEventDefType(EVENT_CM);
-			tmp_rule->prodArrays[2][tmp_code3 - 1].nonTermID = GR_DOC_CONTENT;
+			tmp_rule->part[2].prodArray[tmp_code3 - 1].event = getEventDefType(EVENT_CM);
+			tmp_rule->part[2].prodArray[tmp_code3 - 1].nonTermID = GR_DOC_CONTENT;
 		}
 
 		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 		{
-			tmp_rule->prodArrays[2][0].event = getEventDefType(EVENT_PI);
-			tmp_rule->prodArrays[2][0].nonTermID = GR_DOC_CONTENT;
+			tmp_rule->part[2].prodArray[0].event = getEventDefType(EVENT_PI);
+			tmp_rule->part[2].prodArray[0].nonTermID = GR_DOC_CONTENT;
 		}
 	}
 
@@ -206,46 +206,46 @@ errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const EXIPSc
 	tmp_code1 = 1;
 	tmp_code2 = 0;
 	tmp_code3 = 0;
-	tmp_rule->prodArrays[1] = NULL;
-	tmp_rule->prodCounts[1] = 0;
-	tmp_rule->prodArrays[2] = NULL;
-	tmp_rule->prodCounts[2] = 0;
+	tmp_rule->part[1].prodArray = NULL;
+	tmp_rule->part[1].prodArraySize = 0;
+	tmp_rule->part[2].prodArray = NULL;
+	tmp_rule->part[2].prodArraySize = 0;
 
 	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
 		tmp_code2 += 1;
 	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 		tmp_code2 += 1;
 
-	tmp_rule->bits[0] = tmp_code2 > 0;
-	tmp_rule->bits[1] = tmp_code2 > 1;
-	tmp_rule->bits[2] = 0;
+	tmp_rule->part[0].bits = tmp_code2 > 0;
+	tmp_rule->part[1].bits = tmp_code2 > 1;
+	tmp_rule->part[2].bits = 0;
 
-	tmp_rule->prodArrays[0] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production));
-	if(tmp_rule->prodArrays[0] == NULL)
+	tmp_rule->part[0].prodArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production));
+	if(tmp_rule->part[0].prodArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_rule->prodCounts[0] = 1;
-	tmp_rule->prodArrays[0]->event = getEventDefType(EVENT_ED);
-	tmp_rule->prodArrays[0]->nonTermID = GR_VOID_NON_TERMINAL;
+	tmp_rule->part[0].prodArraySize = 1;
+	tmp_rule->part[0].prodArray->event = getEventDefType(EVENT_ED);
+	tmp_rule->part[0].prodArray->nonTermID = GR_VOID_NON_TERMINAL;
 
 	if(tmp_code2 > 0)
 	{
-		tmp_rule->prodArrays[1] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code2);
-		if(tmp_rule->prodArrays[1] == NULL)
+		tmp_rule->part[1].prodArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code2);
+		if(tmp_rule->part[1].prodArray == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		tmp_rule->prodCounts[1] = tmp_code2;
+		tmp_rule->part[1].prodArraySize = tmp_code2;
 
 		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
 		{
-			tmp_rule->prodArrays[1][tmp_code2 - 1].event = getEventDefType(EVENT_CM);
-			tmp_rule->prodArrays[1][tmp_code2 - 1].nonTermID = GR_DOC_END;
+			tmp_rule->part[1].prodArray[tmp_code2 - 1].event = getEventDefType(EVENT_CM);
+			tmp_rule->part[1].prodArray[tmp_code2 - 1].nonTermID = GR_DOC_END;
 		}
 
 		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 		{
-			tmp_rule->prodArrays[1][0].event = getEventDefType(EVENT_PI);
-			tmp_rule->prodArrays[1][0].nonTermID = GR_DOC_END;
+			tmp_rule->part[1].prodArray[0].event = getEventDefType(EVENT_PI);
+			tmp_rule->part[1].prodArray[0].nonTermID = GR_DOC_END;
 		}
 	}
 
@@ -281,16 +281,16 @@ errorCode createBuildInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 							PI ElementContent	    0.7.1 */
 
 	tmp_rule = (DynGrammarRule*) &elementGrammar->ruleArray[GR_START_TAG_CONTENT];
-	tmp_rule->prodArrays[0] = (Production*) memManagedAllocatePtr(&strm->memList, sizeof(Production)*DEFAULT_PROD_ARRAY_DIM, &tmp_rule->memPair);
-	if(tmp_rule->prodArrays[0] == NULL)
+	tmp_rule->part[0].prodArray = (Production*) memManagedAllocatePtr(&strm->memList, sizeof(Production)*DEFAULT_PROD_ARRAY_DIM, &tmp_rule->memPair);
+	if(tmp_rule->part[0].prodArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_rule->prodCounts[0] = 0;
-	tmp_rule->prod1Dimension = DEFAULT_PROD_ARRAY_DIM;
-	tmp_rule->prodArrays[1] = NULL;
-	tmp_rule->prodCounts[1] = 0;
-	tmp_rule->prodArrays[2] = NULL;
-	tmp_rule->prodCounts[2] = 0;
+	tmp_rule->part[0].prodArraySize = 0;
+	tmp_rule->part0Dimension = DEFAULT_PROD_ARRAY_DIM;
+	tmp_rule->part[1].prodArray = NULL;
+	tmp_rule->part[1].prodArraySize = 0;
+	tmp_rule->part[2].prodArray = NULL;
+	tmp_rule->part[2].prodArraySize = 0;
 
 	tmp_code1 = 0;
 	tmp_code2 = 4;
@@ -307,58 +307,58 @@ errorCode createBuildInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 		tmp_code3 += 1;
 
-	tmp_rule->bits[0] = 0;
-	tmp_rule->bits[1] = getBitsNumber(tmp_code2 - 1 + (tmp_code3 > 0));
-	tmp_rule->bits[2] = tmp_code3 > 1;
+	tmp_rule->part[0].bits = 0;
+	tmp_rule->part[1].bits = getBitsNumber(tmp_code2 - 1 + (tmp_code3 > 0));
+	tmp_rule->part[2].bits = tmp_code3 > 1;
 
 
-	tmp_rule->prodArrays[1] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code2);
-	if(tmp_rule->prodArrays[1] == NULL)
+	tmp_rule->part[1].prodArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code2);
+	if(tmp_rule->part[1].prodArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_rule->prodCounts[1] = tmp_code2;
+	tmp_rule->part[1].prodArraySize = tmp_code2;
 
 	/* EE	                    0.0 */
-	tmp_rule->prodArrays[1][tmp_code2-p].event = getEventDefType(EVENT_EE);
-	tmp_rule->prodArrays[1][tmp_code2-p].nonTermID = GR_VOID_NON_TERMINAL;
+	tmp_rule->part[1].prodArray[tmp_code2-p].event = getEventDefType(EVENT_EE);
+	tmp_rule->part[1].prodArray[tmp_code2-p].nonTermID = GR_VOID_NON_TERMINAL;
 	p += 1;
 
 	/* AT (*) StartTagContent	0.1 */
-	tmp_rule->prodArrays[1][tmp_code2-p].event = getEventDefType(EVENT_AT_ALL);
-	tmp_rule->prodArrays[1][tmp_code2-p].nonTermID = GR_START_TAG_CONTENT;
+	tmp_rule->part[1].prodArray[tmp_code2-p].event = getEventDefType(EVENT_AT_ALL);
+	tmp_rule->part[1].prodArray[tmp_code2-p].nonTermID = GR_START_TAG_CONTENT;
 	p += 1;
 
 	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES))
 	{
 		/* NS StartTagContent	    0.2 */
-		tmp_rule->prodArrays[1][tmp_code2-p].event = getEventDefType(EVENT_NS);
-		tmp_rule->prodArrays[1][tmp_code2-p].nonTermID = GR_START_TAG_CONTENT;
+		tmp_rule->part[1].prodArray[tmp_code2-p].event = getEventDefType(EVENT_NS);
+		tmp_rule->part[1].prodArray[tmp_code2-p].nonTermID = GR_START_TAG_CONTENT;
 		p += 1;
 	}
 
 	if(WITH_SELF_CONTAINED(strm->header.opts.enumOpt))
 	{
 		/* SC Fragment	            0.3 */
-		tmp_rule->prodArrays[1][tmp_code2-p].event = getEventDefType(EVENT_SC);
-		tmp_rule->prodArrays[1][tmp_code2-p].nonTermID = GR_FRAGMENT;
+		tmp_rule->part[1].prodArray[tmp_code2-p].event = getEventDefType(EVENT_SC);
+		tmp_rule->part[1].prodArray[tmp_code2-p].nonTermID = GR_FRAGMENT;
 		p += 1;
 	}
 
 	/* SE (*) ElementContent	0.2 */
-	tmp_rule->prodArrays[1][tmp_code2-p].event = getEventDefType(EVENT_SE_ALL);
-	tmp_rule->prodArrays[1][tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
+	tmp_rule->part[1].prodArray[tmp_code2-p].event = getEventDefType(EVENT_SE_ALL);
+	tmp_rule->part[1].prodArray[tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
 	p += 1;
 
 	/* CH ElementContent	    0.3 */
-	tmp_rule->prodArrays[1][tmp_code2-p].event = getEventDefType(EVENT_CH);
-	tmp_rule->prodArrays[1][tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
+	tmp_rule->part[1].prodArray[tmp_code2-p].event = getEventDefType(EVENT_CH);
+	tmp_rule->part[1].prodArray[tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
 	p += 1;
 
 	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
 	{
 		/* ER ElementContent	    0.6 */
-		tmp_rule->prodArrays[1][tmp_code2-p].event = getEventDefType(EVENT_ER);
-		tmp_rule->prodArrays[1][tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
+		tmp_rule->part[1].prodArray[tmp_code2-p].event = getEventDefType(EVENT_ER);
+		tmp_rule->part[1].prodArray[tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
 		p += 1;
 	}
 
@@ -366,24 +366,24 @@ errorCode createBuildInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 	{
 		p = 1;
 
-		tmp_rule->prodArrays[2] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code3);
-		if(tmp_rule->prodArrays[2] == NULL)
+		tmp_rule->part[2].prodArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code3);
+		if(tmp_rule->part[2].prodArray == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		tmp_rule->prodCounts[2] = tmp_code3;
+		tmp_rule->part[2].prodArraySize = tmp_code3;
 
 		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
 		{
 			/* CM ElementContent	    0.7.0 */
-			tmp_rule->prodArrays[2][tmp_code3-p].event = getEventDefType(EVENT_CM);
-			tmp_rule->prodArrays[2][tmp_code3-p].nonTermID = GR_ELEMENT_CONTENT;
+			tmp_rule->part[2].prodArray[tmp_code3-p].event = getEventDefType(EVENT_CM);
+			tmp_rule->part[2].prodArray[tmp_code3-p].nonTermID = GR_ELEMENT_CONTENT;
 			p += 1;
 		}
 		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 		{
 			/* PI ElementContent	    0.7.1 */
-			tmp_rule->prodArrays[2][tmp_code3-p].event = getEventDefType(EVENT_PI);
-			tmp_rule->prodArrays[2][tmp_code3-p].nonTermID = GR_ELEMENT_CONTENT;
+			tmp_rule->part[2].prodArray[tmp_code3-p].event = getEventDefType(EVENT_PI);
+			tmp_rule->part[2].prodArray[tmp_code3-p].nonTermID = GR_ELEMENT_CONTENT;
 		}
 	}
 
@@ -398,19 +398,19 @@ errorCode createBuildInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 							PI ElementContent	    1.3.1 */
 
 	tmp_rule = (DynGrammarRule*) &elementGrammar->ruleArray[GR_ELEMENT_CONTENT];
-	tmp_rule->prodArrays[0] = (Production*) memManagedAllocatePtr(&strm->memList, sizeof(Production)*DEFAULT_PROD_ARRAY_DIM, &tmp_rule->memPair);
-	if(tmp_rule->prodArrays[0] == NULL)
+	tmp_rule->part[0].prodArray = (Production*) memManagedAllocatePtr(&strm->memList, sizeof(Production)*DEFAULT_PROD_ARRAY_DIM, &tmp_rule->memPair);
+	if(tmp_rule->part[0].prodArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
 	/* EE	                  0 */
-	tmp_rule->prodArrays[0][0].event = getEventDefType(EVENT_EE);
-	tmp_rule->prodArrays[0][0].nonTermID = GR_VOID_NON_TERMINAL;
-	tmp_rule->prodCounts[0] = 1;
-	tmp_rule->prod1Dimension = DEFAULT_PROD_ARRAY_DIM;
-	tmp_rule->prodArrays[1] = NULL;
-	tmp_rule->prodCounts[1] = 0;
-	tmp_rule->prodArrays[2] = NULL;
-	tmp_rule->prodCounts[2] = 0;
+	tmp_rule->part[0].prodArray[0].event = getEventDefType(EVENT_EE);
+	tmp_rule->part[0].prodArray[0].nonTermID = GR_VOID_NON_TERMINAL;
+	tmp_rule->part[0].prodArraySize = 1;
+	tmp_rule->part0Dimension = DEFAULT_PROD_ARRAY_DIM;
+	tmp_rule->part[1].prodArray = NULL;
+	tmp_rule->part[1].prodArraySize = 0;
+	tmp_rule->part[2].prodArray = NULL;
+	tmp_rule->part[2].prodArraySize = 0;
 
 	tmp_code1 = 1;
 	tmp_code2 = 2;
@@ -424,56 +424,56 @@ errorCode createBuildInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 		tmp_code3 += 1;
 
-	tmp_rule->bits[0] = 1;
-	tmp_rule->bits[1] = 1 + ((tmp_code2 - 2 + tmp_code3) > 0);
-	tmp_rule->bits[2] = tmp_code3 > 1;
+	tmp_rule->part[0].bits = 1;
+	tmp_rule->part[1].bits = 1 + ((tmp_code2 - 2 + tmp_code3) > 0);
+	tmp_rule->part[2].bits = tmp_code3 > 1;
 
 
-	tmp_rule->prodArrays[1] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code2);
-	if(tmp_rule->prodArrays[1] == NULL)
+	tmp_rule->part[1].prodArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code2);
+	if(tmp_rule->part[1].prodArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_rule->prodCounts[1] = tmp_code2;
+	tmp_rule->part[1].prodArraySize = tmp_code2;
 
 	/* SE (*) ElementContent	1.0 */
-	tmp_rule->prodArrays[1][tmp_code2-p].event = getEventDefType(EVENT_SE_ALL);
-	tmp_rule->prodArrays[1][tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
+	tmp_rule->part[1].prodArray[tmp_code2-p].event = getEventDefType(EVENT_SE_ALL);
+	tmp_rule->part[1].prodArray[tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
 	p += 1;
 
 	/* CH ElementContent	    1.1 */
-	tmp_rule->prodArrays[1][tmp_code2-p].event = getEventDefType(EVENT_CH);
-	tmp_rule->prodArrays[1][tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
+	tmp_rule->part[1].prodArray[tmp_code2-p].event = getEventDefType(EVENT_CH);
+	tmp_rule->part[1].prodArray[tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
 	p += 1;
 
 	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
 	{
 		/* ER ElementContent	    1.2 */
-		tmp_rule->prodArrays[1][tmp_code2-p].event = getEventDefType(EVENT_ER);
-		tmp_rule->prodArrays[1][tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
+		tmp_rule->part[1].prodArray[tmp_code2-p].event = getEventDefType(EVENT_ER);
+		tmp_rule->part[1].prodArray[tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
 	}
 
 	if(tmp_code3 > 0)
 	{
 		p = 1;
 
-		tmp_rule->prodArrays[2] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code3);
-		if(tmp_rule->prodArrays[2] == NULL)
+		tmp_rule->part[2].prodArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code3);
+		if(tmp_rule->part[2].prodArray == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		tmp_rule->prodCounts[2] = tmp_code3;
+		tmp_rule->part[2].prodArraySize = tmp_code3;
 
 		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
 		{
 			/* CM ElementContent	    1.3.0 */
-			tmp_rule->prodArrays[2][tmp_code3-p].event = getEventDefType(EVENT_CM);
-			tmp_rule->prodArrays[2][tmp_code3-p].nonTermID = GR_ELEMENT_CONTENT;
+			tmp_rule->part[2].prodArray[tmp_code3-p].event = getEventDefType(EVENT_CM);
+			tmp_rule->part[2].prodArray[tmp_code3-p].nonTermID = GR_ELEMENT_CONTENT;
 			p += 1;
 		}
 		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 		{
 			/* PI ElementContent	    1.3.1 */
-			tmp_rule->prodArrays[2][tmp_code3-p].event = getEventDefType(EVENT_PI);
-			tmp_rule->prodArrays[2][tmp_code3-p].nonTermID = GR_ELEMENT_CONTENT;
+			tmp_rule->part[2].prodArray[tmp_code3-p].event = getEventDefType(EVENT_PI);
+			tmp_rule->part[2].prodArray[tmp_code3-p].nonTermID = GR_ELEMENT_CONTENT;
 		}
 	}
 
@@ -529,19 +529,19 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 
 	for(b = 0; b < 3; b++)
 	{
-		if(currentRule->prodCounts[b] == 0) // No productions available with this length code
+		if(currentRule->part[b].prodArraySize == 0) // No productions available with this length code
 			continue;
-		if(currentRule->bits[b] == 0) // encoded with zero bits
-			return handleProduction(strm, currentRule, &currentRule->prodArrays[b][0], event, nonTermID_out, handler, app_data, b + 1);
+		if(currentRule->part[b].bits == 0) // encoded with zero bits
+			return handleProduction(strm, currentRule, &currentRule->part[b].prodArray[0], event, nonTermID_out, handler, app_data, b + 1);
 
-		tmp_err_code = decodeNBitUnsignedInteger(strm, currentRule->bits[b], &tmp_bits_val);
+		tmp_err_code = decodeNBitUnsignedInteger(strm, currentRule->part[b].bits, &tmp_bits_val);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		if(tmp_bits_val == currentRule->prodCounts[b]) // The code has more parts
+		if(tmp_bits_val == currentRule->part[b].prodArraySize) // The code has more parts
 			continue;
 
-		return handleProduction(strm, currentRule, &currentRule->prodArrays[b][currentRule->prodCounts[b] - 1 - tmp_bits_val], event, nonTermID_out, handler, app_data, b + 1);
+		return handleProduction(strm, currentRule, &currentRule->part[b].prodArray[currentRule->part[b].prodArraySize - 1 - tmp_bits_val], event, nonTermID_out, handler, app_data, b + 1);
 	}
 	return tmp_err_code;
 }
@@ -649,27 +649,27 @@ errorCode createFragmentGrammar(EXIGrammar* fragGrammar, EXIStream* strm, const 
 
 	/* Fragment : SD FragmentContent	0 */
 	tmp_rule = &fragGrammar->ruleArray[GR_FRAGMENT];
-	tmp_rule->prodArrays[0] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production));
-	if(tmp_rule->prodArrays[0] == NULL)
+	tmp_rule->part[0].prodArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production));
+	if(tmp_rule->part[0].prodArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_rule->prodArrays[0]->event = getEventDefType(EVENT_SD);
-	tmp_rule->prodArrays[0]->nonTermID = GR_FRAGMENT_CONTENT;
-	tmp_rule->prodCounts[0] = 1;
-	tmp_rule->bits[0] = 0;
-	tmp_rule->bits[1] = 0;
-	tmp_rule->bits[2] = 0;
-	tmp_rule->prodArrays[1] = NULL;
-	tmp_rule->prodCounts[1] = 0;
-	tmp_rule->prodArrays[2] = NULL;
-	tmp_rule->prodCounts[2] = 0;
+	tmp_rule->part[0].prodArray->event = getEventDefType(EVENT_SD);
+	tmp_rule->part[0].prodArray->nonTermID = GR_FRAGMENT_CONTENT;
+	tmp_rule->part[0].prodArraySize = 1;
+	tmp_rule->part[0].bits = 0;
+	tmp_rule->part[1].bits = 0;
+	tmp_rule->part[2].bits = 0;
+	tmp_rule->part[1].prodArray = NULL;
+	tmp_rule->part[1].prodArraySize = 0;
+	tmp_rule->part[2].prodArray = NULL;
+	tmp_rule->part[2].prodArraySize = 0;
 
 
 	tmp_rule = &fragGrammar->ruleArray[GR_FRAGMENT_CONTENT];
-	tmp_rule->prodArrays[1] = NULL;
-	tmp_rule->prodCounts[1] = 0;
-	tmp_rule->prodArrays[2] = NULL;
-	tmp_rule->prodCounts[2] = 0;
+	tmp_rule->part[1].prodArray = NULL;
+	tmp_rule->part[1].prodArraySize = 0;
+	tmp_rule->part[2].prodArray = NULL;
+	tmp_rule->part[2].prodArraySize = 0;
 	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
 		tmp_code2 += 1;
 	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
@@ -682,12 +682,12 @@ errorCode createFragmentGrammar(EXIGrammar* fragGrammar, EXIStream* strm, const 
 		fragGrammar->grammarType = GR_TYPE_SCHEMA_FRAG;
 		tmp_code1 = schema->globalElemGrammarsCount + 2;
 
-		tmp_rule->prodArrays[0] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code1);
-		if(tmp_rule->prodArrays[0] == NULL)
+		tmp_rule->part[0].prodArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code1);
+		if(tmp_rule->part[0].prodArray == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		tmp_rule->prodCounts[0] = tmp_code1;
-		tmp_rule->bits[0] = getBitsNumber(schema->globalElemGrammarsCount + (tmp_code2 > 0));
+		tmp_rule->part[0].prodArraySize = tmp_code1;
+		tmp_rule->part[0].bits = getBitsNumber(schema->globalElemGrammarsCount + (tmp_code2 > 0));
 
 		/*
 		   FragmentContent :
@@ -703,21 +703,21 @@ errorCode createFragmentGrammar(EXIGrammar* fragGrammar, EXIStream* strm, const 
 
 		for(e = 0; e < schema->globalElemGrammarsCount; e++)
 		{
-			tmp_rule->prodArrays[0][schema->globalElemGrammarsCount - e].event = getEventDefType(EVENT_SE_QNAME);
-			tmp_rule->prodArrays[0][schema->globalElemGrammarsCount - e].nonTermID = GR_FRAGMENT_CONTENT;
-			tmp_rule->prodArrays[0][schema->globalElemGrammarsCount - e].lnRowID = schema->globalElemGrammars[e].lnRowId;
-			tmp_rule->prodArrays[0][schema->globalElemGrammarsCount - e].uriRowID = schema->globalElemGrammars[e].uriRowId;
+			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].event = getEventDefType(EVENT_SE_QNAME);
+			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].nonTermID = GR_FRAGMENT_CONTENT;
+			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].lnRowID = schema->globalElemGrammars[e].lnRowId;
+			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].uriRowID = schema->globalElemGrammars[e].uriRowId;
 		}
 	}
 	else
 	{
 		tmp_code1 = 2;
-		tmp_rule->prodArrays[0] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code1);
-		if(tmp_rule->prodArrays[0] == NULL)
+		tmp_rule->part[0].prodArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code1);
+		if(tmp_rule->part[0].prodArray == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		tmp_rule->prodCounts[0] = 2;
-		tmp_rule->bits[0] = 1 + (tmp_code2 > 0);
+		tmp_rule->part[0].prodArraySize = 2;
+		tmp_rule->part[0].bits = 1 + (tmp_code2 > 0);
 	}
 
 	/*
@@ -728,33 +728,33 @@ errorCode createFragmentGrammar(EXIGrammar* fragGrammar, EXIStream* strm, const 
 					PI FragmentContent		2.1
 	 */
 
-	tmp_rule->bits[1] = (tmp_code2 > 1);
-	tmp_rule->bits[2] = 0;
+	tmp_rule->part[1].bits = (tmp_code2 > 1);
+	tmp_rule->part[2].bits = 0;
 
-	tmp_rule->prodArrays[0][0].event = getEventDefType(EVENT_ED);
-	tmp_rule->prodArrays[0][0].nonTermID = GR_VOID_NON_TERMINAL;
+	tmp_rule->part[0].prodArray[0].event = getEventDefType(EVENT_ED);
+	tmp_rule->part[0].prodArray[0].nonTermID = GR_VOID_NON_TERMINAL;
 
-	tmp_rule->prodArrays[0][1].event = getEventDefType(EVENT_SE_ALL);
-	tmp_rule->prodArrays[0][1].nonTermID = GR_FRAGMENT_CONTENT;
+	tmp_rule->part[0].prodArray[1].event = getEventDefType(EVENT_SE_ALL);
+	tmp_rule->part[0].prodArray[1].nonTermID = GR_FRAGMENT_CONTENT;
 
 	if(tmp_code2 > 0)
 	{
-		tmp_rule->prodArrays[1] = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code2);
-		if(tmp_rule->prodArrays[1] == NULL)
+		tmp_rule->part[1].prodArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code2);
+		if(tmp_rule->part[1].prodArray == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		tmp_rule->prodCounts[1] = tmp_code2;
+		tmp_rule->part[1].prodArraySize = tmp_code2;
 
 		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
 		{
-			tmp_rule->prodArrays[1][tmp_code2 - 1].event = getEventDefType(EVENT_CM);
-			tmp_rule->prodArrays[1][tmp_code2 - 1].nonTermID = GR_FRAGMENT_CONTENT;
+			tmp_rule->part[1].prodArray[tmp_code2 - 1].event = getEventDefType(EVENT_CM);
+			tmp_rule->part[1].prodArray[tmp_code2 - 1].nonTermID = GR_FRAGMENT_CONTENT;
 		}
 
 		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 		{
-			tmp_rule->prodArrays[1][0].event = getEventDefType(EVENT_PI);
-			tmp_rule->prodArrays[1][0].nonTermID = GR_FRAGMENT_CONTENT;
+			tmp_rule->part[1].prodArray[0].event = getEventDefType(EVENT_PI);
+			tmp_rule->part[1].prodArray[0].nonTermID = GR_FRAGMENT_CONTENT;
 		}
 	}
 
