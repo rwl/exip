@@ -80,7 +80,7 @@ START_TEST (test_processNextProduction)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	EXIStream strm;
-	EXIEvent event;
+	EXIEvent evnt;
 	size_t nonTermID_out;
 	ContentHandler handler;
 	EXIGrammar testGrammar;
@@ -94,7 +94,7 @@ START_TEST (test_processNextProduction)
 	fail_unless (err == ERR_OK, "pushGrammar returns an error code %d", err);
 
 	strm.context.nonTermID = 4;
-	err = processNextProduction(&strm, &event, &nonTermID_out, &handler, NULL);
+	err = processNextProduction(&strm, &evnt, &nonTermID_out, &handler, NULL);
 	fail_unless (err == INCONSISTENT_PROC_STATE, "processNextProduction does not return the correct error code");
 }
 END_TEST
@@ -189,13 +189,13 @@ START_TEST (test_insertZeroProduction)
 	DynGrammarRule rule;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	Production prod0Arr[2];
-	EXIEvent event = {EVENT_CH, {VALUE_TYPE_BOOLEAN, UINT16_MAX}};
+	EXIEvent evnt = {EVENT_CH, {VALUE_TYPE_BOOLEAN, UINT16_MAX}};
 
 	rule.part[0].prodArraySize = 0;
 	rule.part0Dimension = 1;
 	rule.part[0].prodArray = prod0Arr;
 
-	tmp_err_code = insertZeroProduction(&rule, event, 5, 0, 0);
+	tmp_err_code = insertZeroProduction(&rule, evnt, 5, 0, 0);
 	fail_unless (tmp_err_code == ERR_OK, "insertZeroProduction returns an error code %d", tmp_err_code);
 	fail_unless (rule.part[0].prodArraySize == 1);
 }

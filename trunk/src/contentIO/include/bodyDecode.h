@@ -112,7 +112,7 @@ errorCode decodeStringValue(EXIStream* strm, uint16_t uriID, size_t lnID, String
 /**
  * @brief Decodes the content of EXI event
  * @param[in, out] strm EXI stream representation
- * @param[in] event the event whose content will be decoded
+ * @param[in] evnt the event whose content will be decoded
  * @param[in] handler application content handler; stores the callback functions
  * @param[out] nonTermID_out nonTerminal ID after the content decoding
  * @param[in] currRule the current grammar rule in use for the event
@@ -121,7 +121,7 @@ errorCode decodeStringValue(EXIStream* strm, uint16_t uriID, size_t lnID, String
  * @param[in] prod_lnID the lnID of the production
  * @return Error handling code
  */
-errorCode decodeEventContent(EXIStream* strm, EXIEvent event, ContentHandler* handler, size_t* nonTermID_out,
+errorCode decodeEventContent(EXIStream* strm, EXIEvent evnt, ContentHandler* handler, size_t* nonTermID_out,
 							GrammarRule* currRule, void* app_data, uint16_t prod_uriID, size_t prod_lnID);
 
 /**

@@ -46,7 +46,7 @@
 #include "memManagement.h"
 #include "ioUtil.h"
 
-errorCode insertZeroProduction(DynGrammarRule* rule, EXIEvent event, size_t nonTermID,
+errorCode insertZeroProduction(DynGrammarRule* rule, EXIEvent evnt, size_t nonTermID,
 								size_t lnRowID, uint16_t uriRowID)
 {
 	if(rule->part[0].prodArraySize == rule->part0Dimension) // The dynamic array rule->prodArrays[0] needs to be resized
@@ -58,7 +58,7 @@ errorCode insertZeroProduction(DynGrammarRule* rule, EXIEvent event, size_t nonT
 		rule->part0Dimension += DEFAULT_PROD_ARRAY_DIM;
 	}
 
-	rule->part[0].prodArray[rule->part[0].prodArraySize].event = event;
+	rule->part[0].prodArray[rule->part[0].prodArraySize].evnt = evnt;
 	rule->part[0].prodArray[rule->part[0].prodArraySize].nonTermID = nonTermID;
 	rule->part[0].prodArray[rule->part[0].prodArraySize].qname.lnRowId = lnRowID;
 	rule->part[0].prodArray[rule->part[0].prodArraySize].qname.uriRowId = uriRowID;
@@ -117,7 +117,7 @@ errorCode printGrammarRule(size_t nonTermID, GrammarRule* rule)
 		{
 			tmp_prod_indx = rule->part[b].prodArraySize - 1 - j;
 			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\t"));
-			switch(rule->part[b].prodArray[tmp_prod_indx].event.eventType)
+			switch(rule->part[b].prodArray[tmp_prod_indx].evnt.eventType)
 			{
 				case EVENT_SD:
 					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("SD "));
@@ -138,16 +138,16 @@ errorCode printGrammarRule(size_t nonTermID, GrammarRule* rule)
 					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("EE "));
 					break;
 				case EVENT_AT_QNAME:
-					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("AT (qname %d:%d) [%d]", rule->part[b].prodArray[tmp_prod_indx].qname.uriRowId, rule->part[b].prodArray[tmp_prod_indx].qname.lnRowId, rule->part[b].prodArray[tmp_prod_indx].event.valueType.exiType));
+					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("AT (qname %d:%d) [%d]", rule->part[b].prodArray[tmp_prod_indx].qname.uriRowId, rule->part[b].prodArray[tmp_prod_indx].qname.lnRowId, rule->part[b].prodArray[tmp_prod_indx].evnt.valueType.exiType));
 					break;
 				case EVENT_AT_URI:
 					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("AT (uri) "));
 					break;
 				case EVENT_AT_ALL:
-					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("AT (*) [%d]", rule->part[b].prodArray[tmp_prod_indx].event.valueType.exiType));
+					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("AT (*) [%d]", rule->part[b].prodArray[tmp_prod_indx].evnt.valueType.exiType));
 					break;
 				case EVENT_CH:
-					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("CH [%d]", rule->part[b].prodArray[tmp_prod_indx].event.valueType.exiType));
+					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("CH [%d]", rule->part[b].prodArray[tmp_prod_indx].evnt.valueType.exiType));
 					break;
 				case EVENT_NS:
 					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("NS "));

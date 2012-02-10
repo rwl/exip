@@ -128,7 +128,7 @@ errorCode addProtoRule(AllocList* memlist, ProtoGrammar* pg)
 	return ERR_OK;
 }
 
-errorCode addProductionToAProtoRule(AllocList* memlist, ProtoGrammar* pg, unsigned int ruleIndex, EXIEvent event, uint16_t uriRowID, size_t lnRowID, size_t nonTermID)
+errorCode addProductionToAProtoRule(AllocList* memlist, ProtoGrammar* pg, unsigned int ruleIndex, EXIEvent evnt, uint16_t uriRowID, size_t lnRowID, size_t nonTermID)
 {
 	if(pg->prodCount[ruleIndex] == pg->prodDim[ruleIndex]) // An extension is needed
 	{
@@ -140,7 +140,7 @@ errorCode addProductionToAProtoRule(AllocList* memlist, ProtoGrammar* pg, unsign
 			return tmp_err_code;
 	}
 
-	pg->prods[ruleIndex][pg->prodCount[ruleIndex]].event = event;
+	pg->prods[ruleIndex][pg->prodCount[ruleIndex]].evnt = evnt;
 	pg->prods[ruleIndex][pg->prodCount[ruleIndex]].qname.lnRowId = lnRowID;
 	pg->prods[ruleIndex][pg->prodCount[ruleIndex]].qname.uriRowId = uriRowID;
 	pg->prods[ruleIndex][pg->prodCount[ruleIndex]].nonTermID = nonTermID;

@@ -324,12 +324,12 @@ errorCode intData(EXIStream* strm, Integer int_val)
 	else
 	{
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		EXIEvent event = {EVENT_CH, {VALUE_TYPE_INTEGER, UINT16_MAX}};
+		EXIEvent evnt = {EVENT_CH, {VALUE_TYPE_INTEGER, UINT16_MAX}};
 		unsigned char codeLength;
 		size_t lastCodePart;
 		size_t currentRule = strm->context.nonTermID;
 
-		tmp_err_code = lookupProduction(strm, event, NULL, &codeLength, &lastCodePart);
+		tmp_err_code = lookupProduction(strm, evnt, NULL, &codeLength, &lastCodePart);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -337,7 +337,7 @@ errorCode intData(EXIStream* strm, Integer int_val)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		intType.exiType = strm->gStack->grammar->ruleArray[currentRule].part[codeLength - 1].prodArray[lastCodePart].event.valueType.exiType;
+		intType.exiType = strm->gStack->grammar->ruleArray[currentRule].part[codeLength - 1].prodArray[lastCodePart].evnt.valueType.exiType;
 	}
 
 	return encodeIntData(strm, int_val, intType);
@@ -360,11 +360,11 @@ errorCode booleanData(EXIStream* strm, unsigned char bool_val)
 	}
 	else
 	{
-		EXIEvent event = {EVENT_CH, {VALUE_TYPE_BOOLEAN, SIMPLE_TYPE_BOOLEAN}};
+		EXIEvent evnt = {EVENT_CH, {VALUE_TYPE_BOOLEAN, SIMPLE_TYPE_BOOLEAN}};
 		unsigned char codeLength;
 		size_t lastCodePart;
 
-		tmp_err_code = lookupProduction(strm, event, NULL, &codeLength, &lastCodePart);
+		tmp_err_code = lookupProduction(strm, evnt, NULL, &codeLength, &lastCodePart);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -412,11 +412,11 @@ errorCode stringData(EXIStream* strm, const String str_val)
 	else
 	{
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		EXIEvent event = {EVENT_CH, {VALUE_TYPE_STRING, UINT16_MAX}};
+		EXIEvent evnt = {EVENT_CH, {VALUE_TYPE_STRING, UINT16_MAX}};
 		unsigned char codeLength;
 		size_t lastCodePart;
 
-		tmp_err_code = lookupProduction(strm, event, NULL, &codeLength, &lastCodePart);
+		tmp_err_code = lookupProduction(strm, evnt, NULL, &codeLength, &lastCodePart);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -442,11 +442,11 @@ errorCode floatData(EXIStream* strm, Float float_val)
 	else
 	{
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		EXIEvent event = {EVENT_CH, {VALUE_TYPE_FLOAT, UINT16_MAX}};
+		EXIEvent evnt = {EVENT_CH, {VALUE_TYPE_FLOAT, UINT16_MAX}};
 		unsigned char codeLength;
 		size_t lastCodePart;
 
-		tmp_err_code = lookupProduction(strm, event, NULL, &codeLength, &lastCodePart);
+		tmp_err_code = lookupProduction(strm, evnt, NULL, &codeLength, &lastCodePart);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -589,23 +589,23 @@ errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, size_t lastC
 		return tmp_err_code;
 
 	if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM && codeLength > 1
-		&& (prodHit->event.eventType == EVENT_CH || prodHit->event.eventType == EVENT_EE))  // If the current grammar is build-in Element grammar and the event code size is bigger than 1 and the event is CH or EE...
+		&& (prodHit->evnt.eventType == EVENT_CH || prodHit->evnt.eventType == EVENT_EE))  // If the current grammar is build-in Element grammar and the event code size is bigger than 1 and the event is CH or EE...
 	{
 		// #1# COMMENT and #2# COMMENT
-		tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, prodHit->event, prodHit->nonTermID,
+		tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, prodHit->evnt, prodHit->nonTermID,
 				prodHit->qname.lnRowId, prodHit->qname.uriRowId);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 
-	switch(prodHit->event.eventType)
+	switch(prodHit->evnt.eventType)
 	{
 		case EVENT_AT_ALL:
 		{
 			if(qname == NULL)
 				return NULL_POINTER_REF;
 
-			tmp_err_code = encodeQName(strm, *qname, prodHit->event.eventType, &strm->context.currAttr.uriRowId, &strm->context.currAttr.lnRowId);
+			tmp_err_code = encodeQName(strm, *qname, prodHit->evnt.eventType, &strm->context.currAttr.uriRowId, &strm->context.currAttr.lnRowId);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
@@ -613,10 +613,10 @@ errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, size_t lastC
 			{
 				EXIEvent newEvent;
 
-				/** prodHit->event - 2 is equivalent to EVENT_AT_QNAME or EVENT_SE_QNAME*/
-				newEvent.eventType = prodHit->event.eventType - 2;
-				newEvent.valueType.exiType = prodHit->event.valueType.exiType;
-				newEvent.valueType.simpleTypeID = prodHit->event.valueType.simpleTypeID;
+				/** prodHit->evnt - 2 is equivalent to EVENT_AT_QNAME or EVENT_SE_QNAME*/
+				newEvent.eventType = prodHit->evnt.eventType - 2;
+				newEvent.valueType.exiType = prodHit->evnt.valueType.exiType;
+				newEvent.valueType.simpleTypeID = prodHit->evnt.valueType.simpleTypeID;
 
 				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, newEvent, prodHit->nonTermID, strm->context.currAttr.lnRowId, strm->context.currAttr.uriRowId);
 				if(tmp_err_code != ERR_OK)
@@ -629,7 +629,7 @@ errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, size_t lastC
 			if(qname == NULL)
 				return NULL_POINTER_REF;
 
-			tmp_err_code = encodeQName(strm, *qname, prodHit->event.eventType, &strm->context.currElem.uriRowId, &strm->context.currElem.lnRowId);
+			tmp_err_code = encodeQName(strm, *qname, prodHit->evnt.eventType, &strm->context.currElem.uriRowId, &strm->context.currElem.lnRowId);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
@@ -637,10 +637,10 @@ errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, size_t lastC
 			{
 				EXIEvent newEvent;
 
-				/** prodHit->event - 2 is equivalent to EVENT_AT_QNAME or EVENT_SE_QNAME*/
-				newEvent.eventType = prodHit->event.eventType - 2;
-				newEvent.valueType.exiType = prodHit->event.valueType.exiType;
-				newEvent.valueType.simpleTypeID = prodHit->event.valueType.simpleTypeID;
+				/** prodHit->evnt - 2 is equivalent to EVENT_AT_QNAME or EVENT_SE_QNAME*/
+				newEvent.eventType = prodHit->evnt.eventType - 2;
+				newEvent.valueType.exiType = prodHit->evnt.valueType.exiType;
+				newEvent.valueType.simpleTypeID = prodHit->evnt.valueType.simpleTypeID;
 
 				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, newEvent, prodHit->nonTermID, strm->context.currElem.lnRowId, strm->context.currElem.uriRowId);
 				if(tmp_err_code != ERR_OK)
@@ -663,7 +663,7 @@ errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, size_t lastC
 			strm->context.currAttr.uriRowId = prodHit->qname.uriRowId;
 			strm->context.currAttr.lnRowId = prodHit->qname.lnRowId;
 
-			tmp_err_code = encodePrefixQName(strm, qname, prodHit->event.eventType, prodHit->qname.uriRowId);
+			tmp_err_code = encodePrefixQName(strm, qname, prodHit->evnt.eventType, prodHit->qname.uriRowId);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -673,7 +673,7 @@ errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, size_t lastC
 			strm->context.currElem.uriRowId = prodHit->qname.uriRowId;
 			strm->context.currElem.lnRowId = prodHit->qname.lnRowId;
 
-			tmp_err_code = encodePrefixQName(strm, qname, prodHit->event.eventType, prodHit->qname.uriRowId);
+			tmp_err_code = encodePrefixQName(strm, qname, prodHit->evnt.eventType, prodHit->qname.uriRowId);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -682,9 +682,9 @@ errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, size_t lastC
 
 	strm->context.nonTermID = prodHit->nonTermID;
 
-	if(prodHit->event.eventType == EVENT_SE_ALL ||
-			prodHit->event.eventType == EVENT_SE_QNAME ||
-			prodHit->event.eventType == EVENT_SE_URI)
+	if(prodHit->evnt.eventType == EVENT_SE_ALL ||
+			prodHit->evnt.eventType == EVENT_SE_QNAME ||
+			prodHit->evnt.eventType == EVENT_SE_URI)
 	{
 		EXIGrammar* elemGrammar = NULL;
 
@@ -715,7 +715,7 @@ errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, size_t lastC
 				return tmp_err_code;
 		}
 	}
-	else if(prodHit->event.eventType == EVENT_EE)
+	else if(prodHit->evnt.eventType == EVENT_EE)
 	{
 		if(strm->context.nonTermID == GR_VOID_NON_TERMINAL)
 		{
@@ -725,11 +725,11 @@ errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, size_t lastC
 				strm->context.nonTermID = strm->gStack->lastNonTermID;
 		}
 	}
-	else if(prodHit->event.eventType == EVENT_AT_ALL ||
-			prodHit->event.eventType == EVENT_AT_QNAME ||
-			prodHit->event.eventType == EVENT_AT_URI)
+	else if(prodHit->evnt.eventType == EVENT_AT_ALL ||
+			prodHit->evnt.eventType == EVENT_AT_QNAME ||
+			prodHit->evnt.eventType == EVENT_AT_URI)
 	{
-		strm->context.expectATData = prodHit->event.valueType.exiType;
+		strm->context.expectATData = prodHit->evnt.valueType.exiType;
 	}
 
 	return ERR_OK;

@@ -105,13 +105,13 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 
 			for(j = 0; j < grammar->ruleArray[i].part[0].prodArraySize; j++)
 			{
-				if(prodEEFound == FALSE && grammar->ruleArray[i].part[0].prodArray[j].nonTermID == GR_VOID_NON_TERMINAL && grammar->ruleArray[i].part[0].prodArray[j].event.eventType == EVENT_EE)
+				if(prodEEFound == FALSE && grammar->ruleArray[i].part[0].prodArray[j].nonTermID == GR_VOID_NON_TERMINAL && grammar->ruleArray[i].part[0].prodArray[j].evnt.eventType == EVENT_EE)
 				{
 					prodEEFound = TRUE;
 					prod2number -= 1;
 				}
 
-				if(grammar->ruleArray[i].part[0].prodArray[j].event.eventType == EVENT_AT_QNAME)
+				if(grammar->ruleArray[i].part[0].prodArray[j].evnt.eventType == EVENT_AT_QNAME)
 				{
 					if(att >= ATTR_PROD_ARRAY_SIZE)
 						return INCONSISTENT_PROC_STATE;
@@ -135,7 +135,7 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 
 			if(prodEEFound == FALSE) //	There is no production Gi,0 : EE so add one
 			{
-				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].event = getEventDefType(EVENT_EE);
+				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].evnt = getEventDefType(EVENT_EE);
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].nonTermID = GR_VOID_NON_TERMINAL;
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.uriRowId = UINT16_MAX;
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.lnRowId = SIZE_MAX;
@@ -148,7 +148,7 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 				tmpEvent.valueType.exiType = VALUE_TYPE_QNAME;
 				tmpEvent.valueType.simpleTypeID = UINT16_MAX;
 
-				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].event = tmpEvent;
+				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].evnt = tmpEvent;
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].nonTermID = 0;
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.uriRowId = 2; // "http://www.w3.org/2001/XMLSchema-instance"
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.lnRowId = 1; // type
@@ -156,7 +156,7 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 
 				tmpEvent.valueType.exiType = VALUE_TYPE_BOOLEAN;
 
-				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].event = tmpEvent;
+				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].evnt = tmpEvent;
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].nonTermID = 0;
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.uriRowId = 2; // "http://www.w3.org/2001/XMLSchema-instance"
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.lnRowId = 0; // nil
@@ -168,7 +168,7 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 			tmpEvent.valueType.exiType = VALUE_TYPE_NONE;
 			tmpEvent.valueType.simpleTypeID = UINT16_MAX;
 
-			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].event = tmpEvent;
+			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].evnt = tmpEvent;
 			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].nonTermID = i;
 			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.uriRowId = UINT16_MAX;
 			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.lnRowId = SIZE_MAX;
@@ -188,7 +188,7 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 				tmpEvent.valueType.exiType = VALUE_TYPE_UNTYPED;
 				tmpEvent.valueType.simpleTypeID = UINT16_MAX;
 
-				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].event = tmpEvent;
+				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].evnt = tmpEvent;
 				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].nonTermID = attrProdArray[j]->nonTermID;
 				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].qname.uriRowId = attrProdArray[j]->qname.uriRowId;
 				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].qname.lnRowId = attrProdArray[j]->qname.lnRowId;
@@ -199,7 +199,7 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 			tmpEvent.valueType.exiType = VALUE_TYPE_UNTYPED;
 			tmpEvent.valueType.simpleTypeID = UINT16_MAX;
 
-			grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].event = tmpEvent;
+			grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].evnt = tmpEvent;
 			grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].nonTermID = i;
 			grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].qname.uriRowId = UINT16_MAX;
 			grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].qname.lnRowId = SIZE_MAX;
@@ -213,7 +213,7 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 					tmpEvent.valueType.exiType = VALUE_TYPE_NONE;
 					tmpEvent.valueType.simpleTypeID = UINT16_MAX;
 
-					grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].event = tmpEvent;
+					grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].evnt = tmpEvent;
 					grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].nonTermID = 0;
 					grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.uriRowId = UINT16_MAX;
 					grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.lnRowId = SIZE_MAX;
@@ -226,7 +226,7 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 					tmpEvent.valueType.exiType = VALUE_TYPE_NONE;
 					tmpEvent.valueType.simpleTypeID = UINT16_MAX;
 
-					grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].event = tmpEvent;
+					grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].evnt = tmpEvent;
 					grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].nonTermID = GR_FRAGMENT;
 					grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.uriRowId = UINT16_MAX;
 					grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.lnRowId = SIZE_MAX;
@@ -239,7 +239,7 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 			tmpEvent.valueType.exiType = VALUE_TYPE_NONE;
 			tmpEvent.valueType.simpleTypeID = UINT16_MAX;
 
-			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].event = tmpEvent;
+			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].evnt = tmpEvent;
 			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].nonTermID = grammar->rulesDimension - 1;
 			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.uriRowId = UINT16_MAX;
 			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.lnRowId = SIZE_MAX;
@@ -250,7 +250,7 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 			tmpEvent.valueType.exiType = VALUE_TYPE_UNTYPED;
 			tmpEvent.valueType.simpleTypeID = UINT16_MAX;
 
-			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].event = tmpEvent;
+			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].evnt = tmpEvent;
 			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].nonTermID = grammar->rulesDimension - 1;
 			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.uriRowId = UINT16_MAX;
 			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.lnRowId = SIZE_MAX;
@@ -262,7 +262,7 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 				tmpEvent.valueType.exiType = VALUE_TYPE_NONE;
 				tmpEvent.valueType.simpleTypeID = UINT16_MAX;
 
-				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].event = tmpEvent;
+				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].evnt = tmpEvent;
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].nonTermID = grammar->rulesDimension - 1;
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.uriRowId = UINT16_MAX;
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.lnRowId = SIZE_MAX;
@@ -275,7 +275,7 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 				tmpEvent.valueType.exiType = VALUE_TYPE_NONE;
 				tmpEvent.valueType.simpleTypeID = UINT16_MAX;
 
-				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].event = tmpEvent;
+				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].evnt = tmpEvent;
 				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].nonTermID = grammar->rulesDimension - 1;
 				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].qname.uriRowId = UINT16_MAX;
 				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].qname.lnRowId = SIZE_MAX;
@@ -287,7 +287,7 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 				tmpEvent.valueType.exiType = VALUE_TYPE_NONE;
 				tmpEvent.valueType.simpleTypeID = UINT16_MAX;
 
-				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].event = tmpEvent;
+				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].evnt = tmpEvent;
 				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].nonTermID = grammar->rulesDimension - 1;
 				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].qname.uriRowId = UINT16_MAX;
 				grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].qname.lnRowId = SIZE_MAX;
@@ -317,7 +317,7 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 
 			for(j = 0; j < grammar->ruleArray[i].part[0].prodArraySize; j++)
 			{
-				if(grammar->ruleArray[i].part[0].prodArray[j].nonTermID == GR_VOID_NON_TERMINAL && grammar->ruleArray[i].part[0].prodArray[j].event.eventType == EVENT_EE)
+				if(grammar->ruleArray[i].part[0].prodArray[j].nonTermID == GR_VOID_NON_TERMINAL && grammar->ruleArray[i].part[0].prodArray[j].evnt.eventType == EVENT_EE)
 				{
 					prodEEFound = TRUE;
 					prod2number -= 1;
@@ -337,7 +337,7 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 
 			if(prodEEFound == FALSE) //	There is no production Gi,0 : EE so add one
 			{
-				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].event = getEventDefType(EVENT_EE);
+				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].evnt = getEventDefType(EVENT_EE);
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].nonTermID = GR_VOID_NON_TERMINAL;
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.uriRowId = UINT16_MAX;
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.lnRowId = SIZE_MAX;
@@ -349,7 +349,7 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 			tmpEvent.valueType.exiType = VALUE_TYPE_NONE;
 			tmpEvent.valueType.simpleTypeID = UINT16_MAX;
 
-			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].event = tmpEvent;
+			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].evnt = tmpEvent;
 			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].nonTermID = i;
 			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.uriRowId = UINT16_MAX;
 			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.lnRowId = SIZE_MAX;
@@ -360,7 +360,7 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 			tmpEvent.valueType.exiType = VALUE_TYPE_UNTYPED;
 			tmpEvent.valueType.simpleTypeID = UINT16_MAX;
 
-			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].event = tmpEvent;
+			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].evnt = tmpEvent;
 			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].nonTermID = i;
 			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.uriRowId = UINT16_MAX;
 			grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.lnRowId = SIZE_MAX;
@@ -372,7 +372,7 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 				tmpEvent.valueType.exiType = VALUE_TYPE_NONE;
 				tmpEvent.valueType.simpleTypeID = UINT16_MAX;
 
-				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].event = tmpEvent;
+				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].evnt = tmpEvent;
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].nonTermID = i;
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.uriRowId = UINT16_MAX;
 				grammar->ruleArray[i].part[1].prodArray[tmp_prod2_indx].qname.lnRowId = SIZE_MAX;
@@ -395,7 +395,7 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 					tmpEvent.valueType.exiType = VALUE_TYPE_NONE;
 					tmpEvent.valueType.simpleTypeID = UINT16_MAX;
 
-					grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].event = tmpEvent;
+					grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].evnt = tmpEvent;
 					grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].nonTermID = i;
 					grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].qname.uriRowId = UINT16_MAX;
 					grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].qname.lnRowId = SIZE_MAX;
@@ -408,7 +408,7 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 					tmpEvent.valueType.exiType = VALUE_TYPE_NONE;
 					tmpEvent.valueType.simpleTypeID = UINT16_MAX;
 
-					grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].event = tmpEvent;
+					grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].evnt = tmpEvent;
 					grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].nonTermID = i;
 					grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].qname.uriRowId = UINT16_MAX;
 					grammar->ruleArray[i].part[2].prodArray[tmp_prod3_indx].qname.lnRowId = SIZE_MAX;
@@ -436,10 +436,10 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 		{
 			for(j = 0; j < grammar->ruleArray[i].part[0].prodArraySize; j++)
 			{
-				if(grammar->ruleArray[i].part[0].prodArray[j].event.eventType == EVENT_CH)
+				if(grammar->ruleArray[i].part[0].prodArray[j].evnt.eventType == EVENT_CH)
 				{
-					if(grammar->ruleArray[i].part[0].prodArray[j].event.valueType.simpleTypeID < sTypeArraySize &&
-							(simpleTypeArray[grammar->ruleArray[i].part[0].prodArray[j].event.valueType.simpleTypeID].facetPresenceMask & TYPE_FACET_NAMED_SUBTYPE) > 0)
+					if(grammar->ruleArray[i].part[0].prodArray[j].evnt.valueType.simpleTypeID < sTypeArraySize &&
+							(simpleTypeArray[grammar->ruleArray[i].part[0].prodArray[j].evnt.valueType.simpleTypeID].facetPresenceMask & TYPE_FACET_NAMED_SUBTYPE) > 0)
 					{
 						grammar->ruleArray[0].part[1].prodArray = (Production*) memManagedAllocate(memList, sizeof(Production) * (1 + isNillable));
 						if(grammar->ruleArray[0].part[1].prodArray == NULL)
@@ -449,9 +449,9 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 						grammar->ruleArray[0].part[1].bits = isNillable;
 						grammar->ruleArray[0].part[0].bits = getBitsNumber(grammar->ruleArray[0].part[0].prodArraySize);
 
-						grammar->ruleArray[0].part[1].prodArray[0].event.eventType = EVENT_AT_QNAME;
-						grammar->ruleArray[0].part[1].prodArray[0].event.valueType.exiType = VALUE_TYPE_NONE;
-						grammar->ruleArray[0].part[1].prodArray[0].event.valueType.simpleTypeID = UINT16_MAX;
+						grammar->ruleArray[0].part[1].prodArray[0].evnt.eventType = EVENT_AT_QNAME;
+						grammar->ruleArray[0].part[1].prodArray[0].evnt.valueType.exiType = VALUE_TYPE_NONE;
+						grammar->ruleArray[0].part[1].prodArray[0].evnt.valueType.simpleTypeID = UINT16_MAX;
 						grammar->ruleArray[0].part[1].prodArray[0].nonTermID = 0;
 
 						// "http://www.w3.org/2001/XMLSchema-instance" = 2
@@ -488,9 +488,9 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 				grammar->ruleArray[0].part[0].bits = getBitsNumber(grammar->ruleArray[0].part[0].prodArraySize);
 			}
 
-			grammar->ruleArray[0].part[1].prodArray[prodIndex].event.eventType = EVENT_AT_QNAME;
-			grammar->ruleArray[0].part[1].prodArray[prodIndex].event.valueType.exiType = VALUE_TYPE_BOOLEAN;
-			grammar->ruleArray[0].part[1].prodArray[prodIndex].event.valueType.simpleTypeID = UINT16_MAX;
+			grammar->ruleArray[0].part[1].prodArray[prodIndex].evnt.eventType = EVENT_AT_QNAME;
+			grammar->ruleArray[0].part[1].prodArray[prodIndex].evnt.valueType.exiType = VALUE_TYPE_BOOLEAN;
+			grammar->ruleArray[0].part[1].prodArray[prodIndex].evnt.valueType.simpleTypeID = UINT16_MAX;
 			grammar->ruleArray[0].part[1].prodArray[prodIndex].nonTermID = 0;
 
 			// "http://www.w3.org/2001/XMLSchema-instance" = 2

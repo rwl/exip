@@ -142,9 +142,9 @@ errorCode parseNext(Parser* parser)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	size_t tmpNonTermID = GR_VOID_NON_TERMINAL;
-	EXIEvent event;
+	EXIEvent evnt;
 
-	tmp_err_code = processNextProduction(&parser->strm, &event, &tmpNonTermID, &parser->handler, parser->app_data);
+	tmp_err_code = processNextProduction(&parser->strm, &evnt, &tmpNonTermID, &parser->handler, parser->app_data);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 

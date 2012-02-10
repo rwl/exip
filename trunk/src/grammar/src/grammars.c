@@ -57,7 +57,7 @@
 #define DEF_ELEMENT_GRAMMAR_RULE_NUMBER 2
 
 static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Production* prodHit,
-				EXIEvent* event, size_t* nonTermID_out, ContentHandler* handler, void* app_data, unsigned int codeLength);
+				EXIEvent* evnt, size_t* nonTermID_out, ContentHandler* handler, void* app_data, unsigned int codeLength);
 
 errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const EXIPSchema* schema)
 {
@@ -81,7 +81,7 @@ errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const EXIPSc
 	if(tmp_rule->part[0].prodArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_rule->part[0].prodArray->event = getEventDefType(EVENT_SD);
+	tmp_rule->part[0].prodArray->evnt = getEventDefType(EVENT_SD);
 	tmp_rule->part[0].prodArray->nonTermID = GR_DOC_CONTENT;
 	tmp_rule->part[0].prodArraySize = 1;
 	tmp_rule->part[0].bits = 0;
@@ -133,7 +133,7 @@ errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const EXIPSc
 
 		for(e = 0; e < schema->globalElemGrammarsCount; e++)
 		{
-			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].event = getEventDefType(EVENT_SE_QNAME);
+			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].evnt = getEventDefType(EVENT_SE_QNAME);
 			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].nonTermID = GR_DOC_END;
 			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].qname.lnRowId = schema->globalElemGrammars[e].lnRowId;
 			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].qname.uriRowId = schema->globalElemGrammars[e].uriRowId;
@@ -162,7 +162,7 @@ errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const EXIPSc
 	tmp_rule->part[1].bits = (tmp_code2 && (tmp_code3 > 0));
 	tmp_rule->part[2].bits = tmp_code3 > 1;
 
-	tmp_rule->part[0].prodArray[0].event = getEventDefType(EVENT_SE_ALL);
+	tmp_rule->part[0].prodArray[0].evnt = getEventDefType(EVENT_SE_ALL);
 	tmp_rule->part[0].prodArray[0].nonTermID = GR_DOC_END;
 
 	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
@@ -172,7 +172,7 @@ errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const EXIPSc
 			return MEMORY_ALLOCATION_ERROR;
 
 		tmp_rule->part[1].prodArraySize = 1;
-		tmp_rule->part[1].prodArray->event = getEventDefType(EVENT_DT);
+		tmp_rule->part[1].prodArray->evnt = getEventDefType(EVENT_DT);
 		tmp_rule->part[1].prodArray->nonTermID = GR_DOC_CONTENT;
 	}
 	if(tmp_code3 > 0)
@@ -185,13 +185,13 @@ errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const EXIPSc
 
 		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
 		{
-			tmp_rule->part[2].prodArray[tmp_code3 - 1].event = getEventDefType(EVENT_CM);
+			tmp_rule->part[2].prodArray[tmp_code3 - 1].evnt = getEventDefType(EVENT_CM);
 			tmp_rule->part[2].prodArray[tmp_code3 - 1].nonTermID = GR_DOC_CONTENT;
 		}
 
 		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 		{
-			tmp_rule->part[2].prodArray[0].event = getEventDefType(EVENT_PI);
+			tmp_rule->part[2].prodArray[0].evnt = getEventDefType(EVENT_PI);
 			tmp_rule->part[2].prodArray[0].nonTermID = GR_DOC_CONTENT;
 		}
 	}
@@ -225,7 +225,7 @@ errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const EXIPSc
 		return MEMORY_ALLOCATION_ERROR;
 
 	tmp_rule->part[0].prodArraySize = 1;
-	tmp_rule->part[0].prodArray->event = getEventDefType(EVENT_ED);
+	tmp_rule->part[0].prodArray->evnt = getEventDefType(EVENT_ED);
 	tmp_rule->part[0].prodArray->nonTermID = GR_VOID_NON_TERMINAL;
 
 	if(tmp_code2 > 0)
@@ -238,13 +238,13 @@ errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const EXIPSc
 
 		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
 		{
-			tmp_rule->part[1].prodArray[tmp_code2 - 1].event = getEventDefType(EVENT_CM);
+			tmp_rule->part[1].prodArray[tmp_code2 - 1].evnt = getEventDefType(EVENT_CM);
 			tmp_rule->part[1].prodArray[tmp_code2 - 1].nonTermID = GR_DOC_END;
 		}
 
 		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 		{
-			tmp_rule->part[1].prodArray[0].event = getEventDefType(EVENT_PI);
+			tmp_rule->part[1].prodArray[0].evnt = getEventDefType(EVENT_PI);
 			tmp_rule->part[1].prodArray[0].nonTermID = GR_DOC_END;
 		}
 	}
@@ -319,19 +319,19 @@ errorCode createBuildInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 	tmp_rule->part[1].prodArraySize = tmp_code2;
 
 	/* EE	                    0.0 */
-	tmp_rule->part[1].prodArray[tmp_code2-p].event = getEventDefType(EVENT_EE);
+	tmp_rule->part[1].prodArray[tmp_code2-p].evnt = getEventDefType(EVENT_EE);
 	tmp_rule->part[1].prodArray[tmp_code2-p].nonTermID = GR_VOID_NON_TERMINAL;
 	p += 1;
 
 	/* AT (*) StartTagContent	0.1 */
-	tmp_rule->part[1].prodArray[tmp_code2-p].event = getEventDefType(EVENT_AT_ALL);
+	tmp_rule->part[1].prodArray[tmp_code2-p].evnt = getEventDefType(EVENT_AT_ALL);
 	tmp_rule->part[1].prodArray[tmp_code2-p].nonTermID = GR_START_TAG_CONTENT;
 	p += 1;
 
 	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES))
 	{
 		/* NS StartTagContent	    0.2 */
-		tmp_rule->part[1].prodArray[tmp_code2-p].event = getEventDefType(EVENT_NS);
+		tmp_rule->part[1].prodArray[tmp_code2-p].evnt = getEventDefType(EVENT_NS);
 		tmp_rule->part[1].prodArray[tmp_code2-p].nonTermID = GR_START_TAG_CONTENT;
 		p += 1;
 	}
@@ -339,25 +339,25 @@ errorCode createBuildInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 	if(WITH_SELF_CONTAINED(strm->header.opts.enumOpt))
 	{
 		/* SC Fragment	            0.3 */
-		tmp_rule->part[1].prodArray[tmp_code2-p].event = getEventDefType(EVENT_SC);
+		tmp_rule->part[1].prodArray[tmp_code2-p].evnt = getEventDefType(EVENT_SC);
 		tmp_rule->part[1].prodArray[tmp_code2-p].nonTermID = GR_FRAGMENT;
 		p += 1;
 	}
 
 	/* SE (*) ElementContent	0.2 */
-	tmp_rule->part[1].prodArray[tmp_code2-p].event = getEventDefType(EVENT_SE_ALL);
+	tmp_rule->part[1].prodArray[tmp_code2-p].evnt = getEventDefType(EVENT_SE_ALL);
 	tmp_rule->part[1].prodArray[tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
 	p += 1;
 
 	/* CH ElementContent	    0.3 */
-	tmp_rule->part[1].prodArray[tmp_code2-p].event = getEventDefType(EVENT_CH);
+	tmp_rule->part[1].prodArray[tmp_code2-p].evnt = getEventDefType(EVENT_CH);
 	tmp_rule->part[1].prodArray[tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
 	p += 1;
 
 	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
 	{
 		/* ER ElementContent	    0.6 */
-		tmp_rule->part[1].prodArray[tmp_code2-p].event = getEventDefType(EVENT_ER);
+		tmp_rule->part[1].prodArray[tmp_code2-p].evnt = getEventDefType(EVENT_ER);
 		tmp_rule->part[1].prodArray[tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
 		p += 1;
 	}
@@ -375,14 +375,14 @@ errorCode createBuildInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
 		{
 			/* CM ElementContent	    0.7.0 */
-			tmp_rule->part[2].prodArray[tmp_code3-p].event = getEventDefType(EVENT_CM);
+			tmp_rule->part[2].prodArray[tmp_code3-p].evnt = getEventDefType(EVENT_CM);
 			tmp_rule->part[2].prodArray[tmp_code3-p].nonTermID = GR_ELEMENT_CONTENT;
 			p += 1;
 		}
 		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 		{
 			/* PI ElementContent	    0.7.1 */
-			tmp_rule->part[2].prodArray[tmp_code3-p].event = getEventDefType(EVENT_PI);
+			tmp_rule->part[2].prodArray[tmp_code3-p].evnt = getEventDefType(EVENT_PI);
 			tmp_rule->part[2].prodArray[tmp_code3-p].nonTermID = GR_ELEMENT_CONTENT;
 		}
 	}
@@ -403,7 +403,7 @@ errorCode createBuildInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 		return MEMORY_ALLOCATION_ERROR;
 
 	/* EE	                  0 */
-	tmp_rule->part[0].prodArray[0].event = getEventDefType(EVENT_EE);
+	tmp_rule->part[0].prodArray[0].evnt = getEventDefType(EVENT_EE);
 	tmp_rule->part[0].prodArray[0].nonTermID = GR_VOID_NON_TERMINAL;
 	tmp_rule->part[0].prodArraySize = 1;
 	tmp_rule->part0Dimension = DEFAULT_PROD_ARRAY_DIM;
@@ -436,19 +436,19 @@ errorCode createBuildInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 	tmp_rule->part[1].prodArraySize = tmp_code2;
 
 	/* SE (*) ElementContent	1.0 */
-	tmp_rule->part[1].prodArray[tmp_code2-p].event = getEventDefType(EVENT_SE_ALL);
+	tmp_rule->part[1].prodArray[tmp_code2-p].evnt = getEventDefType(EVENT_SE_ALL);
 	tmp_rule->part[1].prodArray[tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
 	p += 1;
 
 	/* CH ElementContent	    1.1 */
-	tmp_rule->part[1].prodArray[tmp_code2-p].event = getEventDefType(EVENT_CH);
+	tmp_rule->part[1].prodArray[tmp_code2-p].evnt = getEventDefType(EVENT_CH);
 	tmp_rule->part[1].prodArray[tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
 	p += 1;
 
 	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
 	{
 		/* ER ElementContent	    1.2 */
-		tmp_rule->part[1].prodArray[tmp_code2-p].event = getEventDefType(EVENT_ER);
+		tmp_rule->part[1].prodArray[tmp_code2-p].evnt = getEventDefType(EVENT_ER);
 		tmp_rule->part[1].prodArray[tmp_code2-p].nonTermID = GR_ELEMENT_CONTENT;
 	}
 
@@ -465,14 +465,14 @@ errorCode createBuildInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
 		{
 			/* CM ElementContent	    1.3.0 */
-			tmp_rule->part[2].prodArray[tmp_code3-p].event = getEventDefType(EVENT_CM);
+			tmp_rule->part[2].prodArray[tmp_code3-p].evnt = getEventDefType(EVENT_CM);
 			tmp_rule->part[2].prodArray[tmp_code3-p].nonTermID = GR_ELEMENT_CONTENT;
 			p += 1;
 		}
 		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 		{
 			/* PI ElementContent	    1.3.1 */
-			tmp_rule->part[2].prodArray[tmp_code3-p].event = getEventDefType(EVENT_PI);
+			tmp_rule->part[2].prodArray[tmp_code3-p].evnt = getEventDefType(EVENT_PI);
 			tmp_rule->part[2].prodArray[tmp_code3-p].nonTermID = GR_ELEMENT_CONTENT;
 		}
 	}
@@ -502,7 +502,7 @@ void popGrammar(EXIGrammarStack** gStack, EXIGrammar** grammar)
 	EXIP_MFREE(node);
 }
 
-errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
+errorCode processNextProduction(EXIStream* strm, EXIEvent* evnt,
 							    size_t* nonTermID_out, ContentHandler* handler, void* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -532,7 +532,7 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 		if(currentRule->part[b].prodArraySize == 0) // No productions available with this length code
 			continue;
 		if(currentRule->part[b].bits == 0) // encoded with zero bits
-			return handleProduction(strm, currentRule, &currentRule->part[b].prodArray[0], event, nonTermID_out, handler, app_data, b + 1);
+			return handleProduction(strm, currentRule, &currentRule->part[b].prodArray[0], evnt, nonTermID_out, handler, app_data, b + 1);
 
 		tmp_err_code = decodeNBitUnsignedInteger(strm, currentRule->part[b].bits, &tmp_bits_val);
 		if(tmp_err_code != ERR_OK)
@@ -541,7 +541,7 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
 		if(tmp_bits_val == currentRule->part[b].prodArraySize) // The code has more parts
 			continue;
 
-		return handleProduction(strm, currentRule, &currentRule->part[b].prodArray[currentRule->part[b].prodArraySize - 1 - tmp_bits_val], event, nonTermID_out, handler, app_data, b + 1);
+		return handleProduction(strm, currentRule, &currentRule->part[b].prodArray[currentRule->part[b].prodArraySize - 1 - tmp_bits_val], evnt, nonTermID_out, handler, app_data, b + 1);
 	}
 	return tmp_err_code;
 }
@@ -564,16 +564,16 @@ errorCode processNextProduction(EXIStream* strm, EXIEvent* event,
  * */
 
 static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Production* prodHit,
-				EXIEvent* event, size_t* nonTermID_out, ContentHandler* handler, void* app_data, unsigned int codeLength)
+				EXIEvent* evnt, size_t* nonTermID_out, ContentHandler* handler, void* app_data, unsigned int codeLength)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
-	*event = prodHit->event;
+	*evnt = prodHit->evnt;
 	*nonTermID_out = prodHit->nonTermID;
 
 	// TODO: consider using switch{} statement instead of if
 
-	if(event->eventType == EVENT_SD)
+	if(evnt->eventType == EVENT_SD)
 	{
 		if(handler->startDocument != NULL)
 		{
@@ -581,7 +581,7 @@ static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Pro
 				return HANDLER_STOP_RECEIVED;
 		}
 	}
-	else if(event->eventType == EVENT_ED)
+	else if(evnt->eventType == EVENT_ED)
 	{
 		if(handler->endDocument != NULL)
 		{
@@ -589,7 +589,7 @@ static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Pro
 				return HANDLER_STOP_RECEIVED;
 		}
 	}
-	else if(event->eventType == EVENT_EE)
+	else if(evnt->eventType == EVENT_EE)
 	{
 		if(handler->endElement != NULL)
 		{
@@ -605,7 +605,7 @@ static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Pro
 				return tmp_err_code;
 		}
 	}
-	else if(event->eventType == EVENT_SC)
+	else if(evnt->eventType == EVENT_SC)
 	{
 		if(handler->selfContained != NULL)
 		{
@@ -615,7 +615,7 @@ static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Pro
 	}
 	else // The event has content!
 	{
-		if(event->eventType == EVENT_CH)
+		if(evnt->eventType == EVENT_CH)
 		{
 			if(codeLength > 1 && strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)   // #2# COMMENT
 			{
@@ -625,7 +625,7 @@ static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Pro
 			}
 		}
 
-		tmp_err_code = decodeEventContent(strm, *event, handler, nonTermID_out, currentRule, app_data, prodHit->qname.uriRowId, prodHit->qname.lnRowId);
+		tmp_err_code = decodeEventContent(strm, *evnt, handler, nonTermID_out, currentRule, app_data, prodHit->qname.uriRowId, prodHit->qname.lnRowId);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -653,7 +653,7 @@ errorCode createFragmentGrammar(EXIGrammar* fragGrammar, EXIStream* strm, const 
 	if(tmp_rule->part[0].prodArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_rule->part[0].prodArray->event = getEventDefType(EVENT_SD);
+	tmp_rule->part[0].prodArray->evnt = getEventDefType(EVENT_SD);
 	tmp_rule->part[0].prodArray->nonTermID = GR_FRAGMENT_CONTENT;
 	tmp_rule->part[0].prodArraySize = 1;
 	tmp_rule->part[0].bits = 0;
@@ -703,7 +703,7 @@ errorCode createFragmentGrammar(EXIGrammar* fragGrammar, EXIStream* strm, const 
 
 		for(e = 0; e < schema->globalElemGrammarsCount; e++)
 		{
-			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].event = getEventDefType(EVENT_SE_QNAME);
+			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].evnt = getEventDefType(EVENT_SE_QNAME);
 			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].nonTermID = GR_FRAGMENT_CONTENT;
 			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].qname.lnRowId = schema->globalElemGrammars[e].lnRowId;
 			tmp_rule->part[0].prodArray[schema->globalElemGrammarsCount - e].qname.uriRowId = schema->globalElemGrammars[e].uriRowId;
@@ -731,10 +731,10 @@ errorCode createFragmentGrammar(EXIGrammar* fragGrammar, EXIStream* strm, const 
 	tmp_rule->part[1].bits = (tmp_code2 > 1);
 	tmp_rule->part[2].bits = 0;
 
-	tmp_rule->part[0].prodArray[0].event = getEventDefType(EVENT_ED);
+	tmp_rule->part[0].prodArray[0].evnt = getEventDefType(EVENT_ED);
 	tmp_rule->part[0].prodArray[0].nonTermID = GR_VOID_NON_TERMINAL;
 
-	tmp_rule->part[0].prodArray[1].event = getEventDefType(EVENT_SE_ALL);
+	tmp_rule->part[0].prodArray[1].evnt = getEventDefType(EVENT_SE_ALL);
 	tmp_rule->part[0].prodArray[1].nonTermID = GR_FRAGMENT_CONTENT;
 
 	if(tmp_code2 > 0)
@@ -747,13 +747,13 @@ errorCode createFragmentGrammar(EXIGrammar* fragGrammar, EXIStream* strm, const 
 
 		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
 		{
-			tmp_rule->part[1].prodArray[tmp_code2 - 1].event = getEventDefType(EVENT_CM);
+			tmp_rule->part[1].prodArray[tmp_code2 - 1].evnt = getEventDefType(EVENT_CM);
 			tmp_rule->part[1].prodArray[tmp_code2 - 1].nonTermID = GR_FRAGMENT_CONTENT;
 		}
 
 		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 		{
-			tmp_rule->part[1].prodArray[0].event = getEventDefType(EVENT_PI);
+			tmp_rule->part[1].prodArray[0].evnt = getEventDefType(EVENT_PI);
 			tmp_rule->part[1].prodArray[0].nonTermID = GR_FRAGMENT_CONTENT;
 		}
 	}

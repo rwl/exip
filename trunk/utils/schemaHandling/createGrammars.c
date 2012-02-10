@@ -346,11 +346,11 @@ int main(int argc, char *argv[])
 
 										for(p = 0; p < tmpGrammar->ruleArray[r].part[k].prodArraySize; p++)
 										{
-											sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].event.eventType = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.eventType);
+											sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].evnt.eventType = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].evnt.eventType);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-											sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].event.valueType.exiType = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.valueType.exiType);
+											sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].evnt.valueType.exiType = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].evnt.valueType.exiType);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-											sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].event.valueType.simpleTypeID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.valueType.simpleTypeID);
+											sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].evnt.valueType.simpleTypeID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].evnt.valueType.simpleTypeID);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 											sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].nonTermID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].nonTermID);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
@@ -464,11 +464,11 @@ int main(int argc, char *argv[])
 
 										for(p = 0; p < tmpGrammar->ruleArray[r].part[k].prodArraySize; p++)
 										{
-											sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].event.eventType = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.eventType);
+											sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].evnt.eventType = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].evnt.eventType);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-											sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].event.valueType.exiType = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.valueType.exiType);
+											sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].evnt.valueType.exiType = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].evnt.valueType.exiType);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-											sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].event.valueType.simpleTypeID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.valueType.simpleTypeID);
+											sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].evnt.valueType.simpleTypeID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].evnt.valueType.simpleTypeID);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 											sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].nonTermID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].nonTermID);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
@@ -785,7 +785,7 @@ int main(int argc, char *argv[])
 										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 										for(p = 0; p < tmpGrammar->ruleArray[r].part[k].prodArraySize; p++)
 										{
-											sprintf(printfBuf, "%s{{%d,{%d, %d}}, {%d, %d}, %d}", p==0?"":",", tmpGrammar->ruleArray[r].part[k].prodArray[p].event.eventType, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.valueType.exiType, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.valueType.simpleTypeID, tmpGrammar->ruleArray[r].part[k].prodArray[p].qname.uriRowId, tmpGrammar->ruleArray[r].part[k].prodArray[p].qname.lnRowId, tmpGrammar->ruleArray[r].part[k].prodArray[p].nonTermID);
+											sprintf(printfBuf, "%s{{%d,{%d, %d}}, {%d, %d}, %d}", p==0?"":",", tmpGrammar->ruleArray[r].part[k].prodArray[p].evnt.eventType, tmpGrammar->ruleArray[r].part[k].prodArray[p].evnt.valueType.exiType, tmpGrammar->ruleArray[r].part[k].prodArray[p].evnt.valueType.simpleTypeID, tmpGrammar->ruleArray[r].part[k].prodArray[p].qname.uriRowId, tmpGrammar->ruleArray[r].part[k].prodArray[p].qname.lnRowId, tmpGrammar->ruleArray[r].part[k].prodArray[p].nonTermID);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 										}
 										fwrite("};\n", 1, strlen("};\n"), outfile);
@@ -874,7 +874,7 @@ int main(int argc, char *argv[])
 										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 										for(p = 0; p < tmpGrammar->ruleArray[r].part[k].prodArraySize; p++)
 										{
-											sprintf(printfBuf, "%s{{%d,{%d, %d}}, {%d, %d}, %d}", p==0?"":",", tmpGrammar->ruleArray[r].part[k].prodArray[p].event.eventType, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.valueType.exiType, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.valueType.simpleTypeID, tmpGrammar->ruleArray[r].part[k].prodArray[p].qname.uriRowId, tmpGrammar->ruleArray[r].part[k].prodArray[p].qname.lnRowId, tmpGrammar->ruleArray[r].part[k].prodArray[p].nonTermID);
+											sprintf(printfBuf, "%s{{%d,{%d, %d}}, {%d, %d}, %d}", p==0?"":",", tmpGrammar->ruleArray[r].part[k].prodArray[p].evnt.eventType, tmpGrammar->ruleArray[r].part[k].prodArray[p].evnt.valueType.exiType, tmpGrammar->ruleArray[r].part[k].prodArray[p].evnt.valueType.simpleTypeID, tmpGrammar->ruleArray[r].part[k].prodArray[p].qname.uriRowId, tmpGrammar->ruleArray[r].part[k].prodArray[p].qname.lnRowId, tmpGrammar->ruleArray[r].part[k].prodArray[p].nonTermID);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 										}
 										fwrite("};\n", 1, strlen("};\n"), outfile);
@@ -1076,7 +1076,7 @@ int main(int argc, char *argv[])
 									for(p = 0; p < tmpGrammar->ruleArray[r].part[k].prodArraySize; p++)
 									{
 										tmp_prod_indx = tmpGrammar->ruleArray[r].part[k].prodArraySize - 1 - p;
-										switch(tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].event.eventType)
+										switch(tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].evnt.eventType)
 										{
 											case EVENT_SD:
 												fwrite("\tSD ", 1, strlen("\tSD "), outfile);
@@ -1108,7 +1108,7 @@ int main(int argc, char *argv[])
 												fwrite(":", 1, 1, outfile);
 												fwrite(schema.initialStringTables->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].qname.uriRowId].lTable->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].qname.lnRowId].string_val.str, 1, schema.initialStringTables->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].qname.uriRowId].lTable->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].qname.lnRowId].string_val.length, outfile);
 												fwrite(") ", 1, 2, outfile);
-												getValueTypeString(printfBuf, tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].event.valueType);
+												getValueTypeString(printfBuf, tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].evnt.valueType);
 												fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 												break;
 											case EVENT_AT_URI:
@@ -1116,12 +1116,12 @@ int main(int argc, char *argv[])
 												break;
 											case EVENT_AT_ALL:
 												fwrite("\tAT (*) ", 1, strlen("\tAT (*) "), outfile);
-												getValueTypeString(printfBuf, tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].event.valueType);
+												getValueTypeString(printfBuf, tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].evnt.valueType);
 												fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 												break;
 											case EVENT_CH:
 												fwrite("\tCH ", 1, strlen("\tCH "), outfile);
-												getValueTypeString(printfBuf, tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].event.valueType);
+												getValueTypeString(printfBuf, tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].evnt.valueType);
 												fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 												break;
 											case EVENT_NS:

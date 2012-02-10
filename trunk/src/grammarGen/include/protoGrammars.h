@@ -89,13 +89,13 @@ errorCode addProtoRule(AllocList* memlist, ProtoGrammar* pg);
  * @param[in, out] memlist A list storing the memory allocations
  * @param[in, out] pg the proto-grammar
  * @param[in] ruleIndex the index of the rule in which the production is inserted
- * @param[in] event of the production
+ * @param[in] evnt of the production
  * @param[in] uriRowID of the production
  * @param[in] lnRowID of the production
  * @param[in] nonTermID of the production
  * @return Error handling code
  */
-errorCode addProductionToAProtoRule(AllocList* memlist, ProtoGrammar* pg, unsigned int ruleIndex, EXIEvent event, uint16_t uriRowID, size_t lnRowID, size_t nonTermID);
+errorCode addProductionToAProtoRule(AllocList* memlist, ProtoGrammar* pg, unsigned int ruleIndex, EXIEvent evnt, uint16_t uriRowID, size_t lnRowID, size_t nonTermID);
 
 /**
  * @brief Create a new EXI grammar from existing proto grammar

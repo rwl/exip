@@ -55,13 +55,13 @@
  * Note! It increments the first part of the event code of each production
  * in the current grammar with the non-terminal LeftHandSide on the left-hand side
  * @param[in, out] rule a Grammar Rule
- * @param[in] event event and value type
+ * @param[in] evnt event and value type
  * @param[in] nonTermID unique identifier of right-hand side Non-terminal
  * @param[in] lnRowID Local name part of the qname of the Event Type corresponding to the inserted production
  * @param[in] uriRowID URI part of the qname of the Event Type corresponding to the inserted production
  * @return Error handling code
  */
-errorCode insertZeroProduction(DynGrammarRule* rule, EXIEvent event, size_t nonTermID,
+errorCode insertZeroProduction(DynGrammarRule* rule, EXIEvent evnt, size_t nonTermID,
 								size_t lnRowID, uint16_t uriRowID);
 
 /**
