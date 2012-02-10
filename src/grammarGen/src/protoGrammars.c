@@ -172,25 +172,25 @@ errorCode convertProtoGrammar(AllocList* memlist, ProtoGrammar* pg, EXIGrammar**
 
 	for(ruleIter = 0; ruleIter < pg->rulesCount; ruleIter++)
 	{
-		(*result)->ruleArray[ruleIter].prodArrays[1] = NULL;
-		(*result)->ruleArray[ruleIter].prodArrays[2] = NULL;
+		(*result)->ruleArray[ruleIter].part[1].prodArray = NULL;
+		(*result)->ruleArray[ruleIter].part[2].prodArray = NULL;
 
-		(*result)->ruleArray[ruleIter].prodCounts[1] = 0;
-		(*result)->ruleArray[ruleIter].prodCounts[2] = 0;
+		(*result)->ruleArray[ruleIter].part[1].prodArraySize = 0;
+		(*result)->ruleArray[ruleIter].part[2].prodArraySize = 0;
 
-		(*result)->ruleArray[ruleIter].bits[1] = 0;
-		(*result)->ruleArray[ruleIter].bits[2] = 0;
+		(*result)->ruleArray[ruleIter].part[1].bits = 0;
+		(*result)->ruleArray[ruleIter].part[2].bits = 0;
 
-		(*result)->ruleArray[ruleIter].prodArrays[0] = memManagedAllocate(memlist, sizeof(Production)*pg->prodCount[ruleIter]);
-		if((*result)->ruleArray[ruleIter].prodArrays[0] == NULL)
+		(*result)->ruleArray[ruleIter].part[0].prodArray = memManagedAllocate(memlist, sizeof(Production)*pg->prodCount[ruleIter]);
+		if((*result)->ruleArray[ruleIter].part[0].prodArray == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		(*result)->ruleArray[ruleIter].prodCounts[0] = pg->prodCount[ruleIter];
-		(*result)->ruleArray[ruleIter].bits[0] = getBitsNumber(pg->prodCount[ruleIter] - 1);
+		(*result)->ruleArray[ruleIter].part[0].prodArraySize = pg->prodCount[ruleIter];
+		(*result)->ruleArray[ruleIter].part[0].bits = getBitsNumber(pg->prodCount[ruleIter] - 1);
 
 		for(prodIter = 0; prodIter < pg->prodCount[ruleIter]; prodIter++)
 		{
-			(*result)->ruleArray[ruleIter].prodArrays[0][prodIter] = pg->prods[ruleIter][prodIter];
+			(*result)->ruleArray[ruleIter].part[0].prodArray[prodIter] = pg->prods[ruleIter][prodIter];
 		}
 	}
 

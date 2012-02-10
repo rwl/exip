@@ -337,7 +337,7 @@ errorCode intData(EXIStream* strm, Integer int_val)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		intType.exiType = strm->gStack->grammar->ruleArray[currentRule].prodArrays[codeLength - 1][lastCodePart].event.valueType.exiType;
+		intType.exiType = strm->gStack->grammar->ruleArray[currentRule].part[codeLength - 1].prodArray[lastCodePart].event.valueType.exiType;
 	}
 
 	return encodeIntData(strm, int_val, intType);
@@ -579,10 +579,10 @@ errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, size_t lastC
 	if(codeLength - 1 > 2)
 		return INCONSISTENT_PROC_STATE;
 
-	if(lastCodePart >= currentRule->prodCounts[codeLength - 1])
+	if(lastCodePart >= currentRule->part[codeLength - 1].prodArraySize)
 		return INCONSISTENT_PROC_STATE;
 
-	prodHit = &currentRule->prodArrays[codeLength - 1][currentRule->prodCounts[codeLength - 1] - 1 - lastCodePart];
+	prodHit = &currentRule->part[codeLength - 1].prodArray[currentRule->part[codeLength - 1].prodArraySize - 1 - lastCodePart];
 
 	tmp_err_code = writeEventCode(strm, currentRule, codeLength, lastCodePart);
 	if(tmp_err_code != ERR_OK)

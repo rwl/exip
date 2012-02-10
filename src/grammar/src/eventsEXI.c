@@ -53,12 +53,12 @@ errorCode writeEventCode(EXIStream* strm, GrammarRule* currentRule, unsigned cha
 	unsigned char i = 0;
 	for(i = 0; i < codeLength - 1; i++)
 	{
-		tmp_err_code = encodeNBitUnsignedInteger(strm, currentRule->bits[i], (unsigned int) currentRule->prodCounts[i]);
+		tmp_err_code = encodeNBitUnsignedInteger(strm, currentRule->part[i].bits, (unsigned int) currentRule->part[i].prodArraySize);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 
-	tmp_err_code = encodeNBitUnsignedInteger(strm, currentRule->bits[codeLength - 1], (unsigned int) codeLastPart);
+	tmp_err_code = encodeNBitUnsignedInteger(strm, currentRule->part[codeLength - 1].bits, (unsigned int) codeLastPart);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 

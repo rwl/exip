@@ -49,22 +49,22 @@
 errorCode insertZeroProduction(DynGrammarRule* rule, EXIEvent event, size_t nonTermID,
 								size_t lnRowID, uint16_t uriRowID)
 {
-	if(rule->prodCounts[0] == rule->prod1Dimension) // The dynamic array rule->prodArrays[0] needs to be resized
+	if(rule->part[0].prodArraySize == rule->part0Dimension) // The dynamic array rule->prodArrays[0] needs to be resized
 	{
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		tmp_err_code = memManagedReAllocate((void **) &rule->prodArrays[0], sizeof(Production)*(rule->prod1Dimension + DEFAULT_PROD_ARRAY_DIM), rule->memPair);
+		tmp_err_code = memManagedReAllocate((void **) &rule->part[0].prodArray, sizeof(Production)*(rule->part0Dimension + DEFAULT_PROD_ARRAY_DIM), rule->memPair);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		rule->prod1Dimension += DEFAULT_PROD_ARRAY_DIM;
+		rule->part0Dimension += DEFAULT_PROD_ARRAY_DIM;
 	}
 
-	rule->prodArrays[0][rule->prodCounts[0]].event = event;
-	rule->prodArrays[0][rule->prodCounts[0]].nonTermID = nonTermID;
-	rule->prodArrays[0][rule->prodCounts[0]].lnRowID = lnRowID;
-	rule->prodArrays[0][rule->prodCounts[0]].uriRowID = uriRowID;
+	rule->part[0].prodArray[rule->part[0].prodArraySize].event = event;
+	rule->part[0].prodArray[rule->part[0].prodArraySize].nonTermID = nonTermID;
+	rule->part[0].prodArray[rule->part[0].prodArraySize].lnRowID = lnRowID;
+	rule->part[0].prodArray[rule->part[0].prodArraySize].uriRowID = uriRowID;
 
-	rule->prodCounts[0] += 1;
-	rule->bits[0] = getBitsNumber(rule->prodCounts[0] - 1 + (rule->prodCounts[1] + rule->prodCounts[2] > 0));
+	rule->part[0].prodArraySize += 1;
+	rule->part[0].bits = getBitsNumber(rule->part[0].prodArraySize - 1 + (rule->part[1].prodArraySize + rule->part[2].prodArraySize > 0));
 	return ERR_OK;
 }
 
@@ -75,24 +75,24 @@ errorCode copyGrammarRule(AllocList* memList, GrammarRule* src, GrammarRule* des
 
 	for(b = 0; b < 3; b++)
 	{
-		dest->bits[b] = src->bits[b];
-		dest->prodCounts[b] = src->prodCounts[b];
+		dest->part[b].bits = src->part[b].bits;
+		dest->part[b].prodArraySize = src->part[b].prodArraySize;
 
-		if(src->prodCounts[b] != 0)
+		if(src->part[b].prodArraySize != 0)
 		{
-			dest->prodArrays[b] = (Production*) memManagedAllocate(memList, sizeof(Production)*dest->prodCounts[b]);
-			if(dest->prodArrays[b] == NULL)
+			dest->part[b].prodArray = (Production*) memManagedAllocate(memList, sizeof(Production)*dest->part[b].prodArraySize);
+			if(dest->part[b].prodArray == NULL)
 				return MEMORY_ALLOCATION_ERROR;
 
-			for(j = 0;j < dest->prodCounts[b]; j++)
+			for(j = 0;j < dest->part[b].prodArraySize; j++)
 			{
-				dest->prodArrays[b][j] = src->prodArrays[b][j];
-				if(src->prodArrays[b][j].nonTermID != GR_VOID_NON_TERMINAL)
-					dest->prodArrays[b][j].nonTermID = src->prodArrays[b][j].nonTermID;
+				dest->part[b].prodArray[j] = src->part[b].prodArray[j];
+				if(src->part[b].prodArray[j].nonTermID != GR_VOID_NON_TERMINAL)
+					dest->part[b].prodArray[j].nonTermID = src->part[b].prodArray[j].nonTermID;
 			}
 		}
 		else
-			dest->prodArrays[b] = NULL;
+			dest->part[b].prodArray = NULL;
 	}
 
 	return ERR_OK;
@@ -113,11 +113,11 @@ errorCode printGrammarRule(size_t nonTermID, GrammarRule* rule)
 
 	for(b = 0; b < 3; b++)
 	{
-		for(j = 0; j < rule->prodCounts[b]; j++)
+		for(j = 0; j < rule->part[b].prodArraySize; j++)
 		{
-			tmp_prod_indx = rule->prodCounts[b] - 1 - j;
+			tmp_prod_indx = rule->part[b].prodArraySize - 1 - j;
 			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\t"));
-			switch(rule->prodArrays[b][tmp_prod_indx].event.eventType)
+			switch(rule->part[b].prodArray[tmp_prod_indx].event.eventType)
 			{
 				case EVENT_SD:
 					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("SD "));
@@ -126,7 +126,7 @@ errorCode printGrammarRule(size_t nonTermID, GrammarRule* rule)
 					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("ED "));
 					break;
 				case EVENT_SE_QNAME:
-					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("SE (qname: %d:%d)", rule->prodArrays[b][tmp_prod_indx].uriRowID, rule->prodArrays[b][tmp_prod_indx].lnRowID));
+					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("SE (qname: %d:%d)", rule->part[b].prodArray[tmp_prod_indx].uriRowID, rule->part[b].prodArray[tmp_prod_indx].lnRowID));
 					break;
 				case EVENT_SE_URI:
 					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("SE (uri) "));
@@ -138,16 +138,16 @@ errorCode printGrammarRule(size_t nonTermID, GrammarRule* rule)
 					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("EE "));
 					break;
 				case EVENT_AT_QNAME:
-					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("AT (qname %d:%d) [%d]", rule->prodArrays[b][tmp_prod_indx].uriRowID, rule->prodArrays[b][tmp_prod_indx].lnRowID, rule->prodArrays[b][tmp_prod_indx].event.valueType.exiType));
+					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("AT (qname %d:%d) [%d]", rule->part[b].prodArray[tmp_prod_indx].uriRowID, rule->part[b].prodArray[tmp_prod_indx].lnRowID, rule->part[b].prodArray[tmp_prod_indx].event.valueType.exiType));
 					break;
 				case EVENT_AT_URI:
 					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("AT (uri) "));
 					break;
 				case EVENT_AT_ALL:
-					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("AT (*) [%d]", rule->prodArrays[b][tmp_prod_indx].event.valueType.exiType));
+					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("AT (*) [%d]", rule->part[b].prodArray[tmp_prod_indx].event.valueType.exiType));
 					break;
 				case EVENT_CH:
-					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("CH [%d]", rule->prodArrays[b][tmp_prod_indx].event.valueType.exiType));
+					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("CH [%d]", rule->part[b].prodArray[tmp_prod_indx].event.valueType.exiType));
 					break;
 				case EVENT_NS:
 					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("NS "));
@@ -174,15 +174,15 @@ errorCode printGrammarRule(size_t nonTermID, GrammarRule* rule)
 					return UNEXPECTED_ERROR;
 			}
 			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\t"));
-			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("NT-%u", (unsigned int) rule->prodArrays[b][tmp_prod_indx].nonTermID));
+			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("NT-%u", (unsigned int) rule->part[b].prodArray[tmp_prod_indx].nonTermID));
 			DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("\t"));
 			if(b > 0)
 			{
-				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("%d", rule->prodCounts[0]));
+				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("%d", rule->part[0].prodArraySize));
 				DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("."));
 				if(b > 1)
 				{
-					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("%d", rule->prodCounts[1]));
+					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("%d", rule->part[1].prodArraySize));
 					DEBUG_MSG(INFO, DEBUG_ALL_MODULES, ("."));
 				}
 			}

@@ -360,11 +360,37 @@ typedef struct Production Production;
 #define GR_FRAGMENT          0
 #define GR_FRAGMENT_CONTENT  1
 
+/**
+ * Productions in a rule with the same number of parts in their event codes
+ */
+struct GrammarRulePart
+{
+     /**
+      * Array of grammar productions
+      */
+     Production* prodArray;
+     /**
+      * The number of productions in prodArray
+      */
+     size_t prodArraySize;
+     /**
+      * The number of bits used for the event code enumerations
+      * prodArraySize <= 2 ^ bits
+      */
+     unsigned char bits;
+};
+
+typedef struct GrammarRulePart GrammarRulePart;
+
 struct GrammarRule
 {
-	Production* prodArrays[3]; // 3 arrays of grammar productions that have event codes of length 1 (array prodArrays[0]), 2 (prodArrays[1]) and 3 (prodArrays[2])
-	size_t prodCounts[3]; // The number of productions in the prodArrays
-	unsigned char bits[3]; // The number of bits used for the integers constituting the EventCode
+     /**
+      * 3 arrays of grammar productions that have event codes of:
+      * - one part (part[0])
+      * - two parts (part[1])
+      * - three parts (part[2])
+      */
+     GrammarRulePart part[3];
 };
 
 typedef struct GrammarRule GrammarRule;
@@ -376,13 +402,17 @@ typedef struct GrammarRule GrammarRule;
  */
 struct DynGrammarRule
 {
-	Production* prodArrays[3]; // 3 arrays of grammar productions that have event codes of length 1 (Dynamic array prodArrays[0]), 2 (prodArrays[1]) and 3 (prodArrays[2])
-	size_t prodCounts[3]; // The number of productions in the prodArrays
-	unsigned char bits[3]; // The number of bits used for the integers constituting the EventCode
+    /**
+     * 3 arrays of grammar productions that have event codes of:
+     * - one part (part[0])
+     * - two parts (part[1])
+     * - three parts (part[2])
+     */
+    GrammarRulePart part[3];
 
 	// Additional fields
-	size_t prod1Dimension; // The size of the prodArrays[0] Dynamic production array /allocated space for Productions in it/
-	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation for prodArrays[0]
+	size_t part0Dimension; // The size of the part[0] Dynamic production array /allocated space for Productions in it/
+	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation for part[0]
 };
 
 typedef struct DynGrammarRule DynGrammarRule;

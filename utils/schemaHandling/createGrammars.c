@@ -337,26 +337,26 @@ int main(int argc, char *argv[])
 							{
 								for(k = 0; k < 3; k++)
 								{
-									if(tmpGrammar->ruleArray[r].prodCounts[k] > 0)
+									if(tmpGrammar->ruleArray[r].part[k].prodArraySize > 0)
 									{
-										sprintf(printfBuf, "Production* prodArray_%d_%d_%d_%d = memManagedAllocate(&schema->memList, %d * sizeof(Production));\n\t", i, j, r, k, tmpGrammar->ruleArray[r].prodCounts[k]);
+										sprintf(printfBuf, "Production* prodArray_%d_%d_%d_%d = memManagedAllocate(&schema->memList, %d * sizeof(Production));\n\t", i, j, r, k, tmpGrammar->ruleArray[r].part[k].prodArraySize);
 										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 										sprintf(printfBuf, "if(prodArray_%d_%d_%d_%d == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t", i, j, r, k);
 										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 
-										for(p = 0; p < tmpGrammar->ruleArray[r].prodCounts[k]; p++)
+										for(p = 0; p < tmpGrammar->ruleArray[r].part[k].prodArraySize; p++)
 										{
-											sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].event.eventType = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].event.eventType);
+											sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].event.eventType = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.eventType);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-											sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].event.valueType.exiType = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].event.valueType.exiType);
+											sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].event.valueType.exiType = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.valueType.exiType);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-											sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].event.valueType.simpleTypeID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].event.valueType.simpleTypeID);
+											sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].event.valueType.simpleTypeID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.valueType.simpleTypeID);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-											sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].nonTermID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].nonTermID);
+											sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].nonTermID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].nonTermID);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-											sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].uriRowID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].uriRowID);
+											sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].uriRowID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].uriRowID);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-											sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].lnRowID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].lnRowID);
+											sprintf(printfBuf, "prodArray_%d_%d_%d_%d[%d].lnRowID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].lnRowID);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 										}
 									}
@@ -370,31 +370,31 @@ int main(int argc, char *argv[])
 
 							for(r = 0; r < tmpGrammar->rulesDimension; r++)
 							{
-								sprintf(printfBuf, "ruleArray_%d_%d[%d].part[0].bits = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].bits[0]);
+								sprintf(printfBuf, "ruleArray_%d_%d[%d].part[0].bits = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].part[0].bits);
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-								sprintf(printfBuf, "ruleArray_%d_%d[%d].part[1].bits = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].bits[1]);
+								sprintf(printfBuf, "ruleArray_%d_%d[%d].part[1].bits = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].part[1].bits);
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-								sprintf(printfBuf, "ruleArray_%d_%d[%d].part[2].bits = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].bits[2]);
-								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-
-								sprintf(printfBuf, "ruleArray_%d_%d[%d].part[0].prodArraySize = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].prodCounts[0]);
-								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-								sprintf(printfBuf, "ruleArray_%d_%d[%d].part[1].prodArraySize = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].prodCounts[1]);
-								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-								sprintf(printfBuf, "ruleArray_%d_%d[%d].part[2].prodArraySize = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].prodCounts[2]);
+								sprintf(printfBuf, "ruleArray_%d_%d[%d].part[2].bits = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].part[2].bits);
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 
-								if(tmpGrammar->ruleArray[r].prodCounts[0] > 0)
+								sprintf(printfBuf, "ruleArray_%d_%d[%d].part[0].prodArraySize = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].part[0].prodArraySize);
+								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+								sprintf(printfBuf, "ruleArray_%d_%d[%d].part[1].prodArraySize = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].part[1].prodArraySize);
+								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+								sprintf(printfBuf, "ruleArray_%d_%d[%d].part[2].prodArraySize = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].part[2].prodArraySize);
+								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+								if(tmpGrammar->ruleArray[r].part[0].prodArraySize > 0)
 									sprintf(printfBuf, "ruleArray_%d_%d[%d].part[0].prodArray = prodArray_%d_%d_%d_0;\n\t", i, j, r, i, j, r);
 								else
 									sprintf(printfBuf, "ruleArray_%d_%d[%d].part[0].prodArray = NULL;\n\t", i, j, r);
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-								if(tmpGrammar->ruleArray[r].prodCounts[0] > 0)
+								if(tmpGrammar->ruleArray[r].part[0].prodArraySize > 0)
 									sprintf(printfBuf, "ruleArray_%d_%d[%d].part[1].prodArray = prodArray_%d_%d_%d_1;\n\t", i, j, r, i, j, r);
 								else
 									sprintf(printfBuf, "ruleArray_%d_%d[%d].part[1].prodArray = NULL;\n\t", i, j, r);
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-								if(tmpGrammar->ruleArray[r].prodCounts[0] > 0)
+								if(tmpGrammar->ruleArray[r].part[0].prodArraySize > 0)
 									sprintf(printfBuf, "ruleArray_%d_%d[%d].part[2].prodArray = prodArray_%d_%d_%d_2;\n\t", i, j, r, i, j, r);
 								else
 									sprintf(printfBuf, "ruleArray_%d_%d[%d].part[2].prodArray = NULL;\n\t", i, j, r);
@@ -455,26 +455,26 @@ int main(int argc, char *argv[])
 							{
 								for(k = 0; k < 3; k++)
 								{
-									if(tmpGrammar->ruleArray[r].prodCounts[k] > 0)
+									if(tmpGrammar->ruleArray[r].part[k].prodArraySize > 0)
 									{
-										sprintf(printfBuf, "Production* prodArray_empty_%d_%d_%d_%d = memManagedAllocate(&schema->memList, %d * sizeof(Production));\n\t", i, j, r, k, tmpGrammar->ruleArray[r].prodCounts[k]);
+										sprintf(printfBuf, "Production* prodArray_empty_%d_%d_%d_%d = memManagedAllocate(&schema->memList, %d * sizeof(Production));\n\t", i, j, r, k, tmpGrammar->ruleArray[r].part[k].prodArraySize);
 										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 										sprintf(printfBuf, "if(prodArray_empty_%d_%d_%d_%d == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t", i, j, r, k);
 										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 
-										for(p = 0; p < tmpGrammar->ruleArray[r].prodCounts[k]; p++)
+										for(p = 0; p < tmpGrammar->ruleArray[r].part[k].prodArraySize; p++)
 										{
-											sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].event.eventType = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].event.eventType);
+											sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].event.eventType = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.eventType);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-											sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].event.valueType.exiType = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].event.valueType.exiType);
+											sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].event.valueType.exiType = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.valueType.exiType);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-											sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].event.valueType.simpleTypeID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].event.valueType.simpleTypeID);
+											sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].event.valueType.simpleTypeID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.valueType.simpleTypeID);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-											sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].nonTermID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].nonTermID);
+											sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].nonTermID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].nonTermID);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-											sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].uriRowID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].uriRowID);
+											sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].uriRowID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].uriRowID);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-											sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].lnRowID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].prodArrays[k][p].lnRowID);
+											sprintf(printfBuf, "prodArray_empty_%d_%d_%d_%d[%d].lnRowID = %d;\n\t", i, j, r, k, p, tmpGrammar->ruleArray[r].part[k].prodArray[p].lnRowID);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 										}
 									}
@@ -488,31 +488,31 @@ int main(int argc, char *argv[])
 
 							for(r = 0; r < tmpGrammar->rulesDimension; r++)
 							{
-								sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].part[0].bits = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].bits[0]);
+								sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].part[0].bits = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].part[0].bits);
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-								sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].part[1].bits = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].bits[1]);
+								sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].part[1].bits = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].part[1].bits);
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-								sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].part[2].bits = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].bits[2]);
-								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-
-								sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].part[0].prodArraySize = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].prodCounts[0]);
-								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-								sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].part[1].prodArraySize = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].prodCounts[1]);
-								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-								sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].part[2].prodArraySize = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].prodCounts[2]);
+								sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].part[2].bits = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].part[2].bits);
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 
-								if(tmpGrammar->ruleArray[r].prodCounts[0] > 0)
+								sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].part[0].prodArraySize = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].part[0].prodArraySize);
+								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+								sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].part[1].prodArraySize = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].part[1].prodArraySize);
+								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+								sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].part[2].prodArraySize = %d;\n\t", i, j, r, tmpGrammar->ruleArray[r].part[2].prodArraySize);
+								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
+
+								if(tmpGrammar->ruleArray[r].part[0].prodArraySize > 0)
 									sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].part[0].prodArray = prodArray_empty_%d_%d_%d_0;\n\t", i, j, r, i, j, r);
 								else
 									sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].part[0].prodArray = NULL;\n\t", i, j, r);
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-								if(tmpGrammar->ruleArray[r].prodCounts[0] > 0)
+								if(tmpGrammar->ruleArray[r].part[0].prodArraySize > 0)
 									sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].part[1].prodArray = prodArray_empty_%d_%d_%d_1;\n\t", i, j, r, i, j, r);
 								else
 									sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].part[1].prodArray = NULL;\n\t", i, j, r);
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-								if(tmpGrammar->ruleArray[r].prodCounts[0] > 0)
+								if(tmpGrammar->ruleArray[r].part[0].prodArraySize > 0)
 									sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].part[2].prodArray = prodArray_empty_%d_%d_%d_2;\n\t", i, j, r, i, j, r);
 								else
 									sprintf(printfBuf, "ruleArray_empty_%d_%d[%d].part[2].prodArray = NULL;\n\t", i, j, r);
@@ -779,13 +779,13 @@ int main(int argc, char *argv[])
 							{
 								for(k = 0; k < 3; k++)
 								{
-									if (tmpGrammar->ruleArray[r].prodCounts[k])
+									if (tmpGrammar->ruleArray[r].part[k].prodArraySize)
 									{
-										sprintf(printfBuf, "Production %sprodArray_%d_%d_%d_%d[%d] = {", prefix, i, j, r, k, tmpGrammar->ruleArray[r].prodCounts[k]);
+										sprintf(printfBuf, "Production %sprodArray_%d_%d_%d_%d[%d] = {", prefix, i, j, r, k, tmpGrammar->ruleArray[r].part[k].prodArraySize);
 										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-										for(p = 0; p < tmpGrammar->ruleArray[r].prodCounts[k]; p++)
+										for(p = 0; p < tmpGrammar->ruleArray[r].part[k].prodArraySize; p++)
 										{
-											sprintf(printfBuf, "%s{{%d,{%d, %d}}, %d, %d, %d}", p==0?"":",", tmpGrammar->ruleArray[r].prodArrays[k][p].event.eventType, tmpGrammar->ruleArray[r].prodArrays[k][p].event.valueType.exiType, tmpGrammar->ruleArray[r].prodArrays[k][p].event.valueType.simpleTypeID, tmpGrammar->ruleArray[r].prodArrays[k][p].uriRowID, tmpGrammar->ruleArray[r].prodArrays[k][p].lnRowID, tmpGrammar->ruleArray[r].prodArrays[k][p].nonTermID);
+											sprintf(printfBuf, "%s{{%d,{%d, %d}}, %d, %d, %d}", p==0?"":",", tmpGrammar->ruleArray[r].part[k].prodArray[p].event.eventType, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.valueType.exiType, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.valueType.simpleTypeID, tmpGrammar->ruleArray[r].part[k].prodArray[p].uriRowID, tmpGrammar->ruleArray[r].part[k].prodArray[p].lnRowID, tmpGrammar->ruleArray[r].part[k].prodArray[p].nonTermID);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 										}
 										fwrite("};\n", 1, strlen("};\n"), outfile);
@@ -798,30 +798,30 @@ int main(int argc, char *argv[])
 
 							for(r = 0; r < tmpGrammar->rulesDimension; r++)
 							{
-								sprintf(printfBuf, "%s{{", r==0?"":",");
+								sprintf(printfBuf, "%s{{{", r==0?"":",");
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-								if (tmpGrammar->ruleArray[r].prodCounts[0] > 0)
+								if (tmpGrammar->ruleArray[r].part[0].prodArraySize > 0)
 									sprintf(printfBuf, "%sprodArray_%d_%d_%d_0, ", prefix, i, j, r);
 								else
 									sprintf(printfBuf, "NULL, ");
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-								sprintf(printfBuf, "%d, %d}, {", tmpGrammar->ruleArray[r].prodCounts[0], tmpGrammar->ruleArray[r].bits[0]);
+								sprintf(printfBuf, "%d, %d}, {", tmpGrammar->ruleArray[r].part[0].prodArraySize, tmpGrammar->ruleArray[r].part[0].bits);
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 
-								if (tmpGrammar->ruleArray[r].prodCounts[1] > 0)
+								if (tmpGrammar->ruleArray[r].part[1].prodArraySize > 0)
 									sprintf(printfBuf, "%sprodArray_%d_%d_%d_1, ", prefix, i, j, r);
 								else
 									sprintf(printfBuf, "NULL, ");
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-								sprintf(printfBuf, "%d, %d}, {", tmpGrammar->ruleArray[r].prodCounts[1], tmpGrammar->ruleArray[r].bits[1]);
+								sprintf(printfBuf, "%d, %d}, {", tmpGrammar->ruleArray[r].part[1].prodArraySize, tmpGrammar->ruleArray[r].part[1].bits);
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 
-								if (tmpGrammar->ruleArray[r].prodCounts[2] > 0)
+								if (tmpGrammar->ruleArray[r].part[2].prodArraySize > 0)
 									sprintf(printfBuf, "%sprodArray_%d_%d_%d_2, ", prefix, i, j, r);
 								else
 									sprintf(printfBuf, "NULL, ");
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-								sprintf(printfBuf, "%d, %d}}", tmpGrammar->ruleArray[r].prodCounts[2], tmpGrammar->ruleArray[r].bits[2]);
+								sprintf(printfBuf, "%d, %d}}}", tmpGrammar->ruleArray[r].part[2].prodArraySize, tmpGrammar->ruleArray[r].part[2].bits);
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 							}
 
@@ -868,13 +868,13 @@ int main(int argc, char *argv[])
 							{
 								for(k = 0; k < 3; k++)
 								{
-									if (tmpGrammar->ruleArray[r].prodCounts[k])
+									if (tmpGrammar->ruleArray[r].part[k].prodArraySize)
 									{
-										sprintf(printfBuf, "Production %sprodArray_empty_%d_%d_%d_%d[%d] = {", prefix, i, j, r, k, tmpGrammar->ruleArray[r].prodCounts[k]);
+										sprintf(printfBuf, "Production %sprodArray_empty_%d_%d_%d_%d[%d] = {", prefix, i, j, r, k, tmpGrammar->ruleArray[r].part[k].prodArraySize);
 										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-										for(p = 0; p < tmpGrammar->ruleArray[r].prodCounts[k]; p++)
+										for(p = 0; p < tmpGrammar->ruleArray[r].part[k].prodArraySize; p++)
 										{
-											sprintf(printfBuf, "%s{{%d,{%d, %d}}, %d, %d, %d}", p==0?"":",", tmpGrammar->ruleArray[r].prodArrays[k][p].event.eventType, tmpGrammar->ruleArray[r].prodArrays[k][p].event.valueType.exiType, tmpGrammar->ruleArray[r].prodArrays[k][p].event.valueType.simpleTypeID, tmpGrammar->ruleArray[r].prodArrays[k][p].uriRowID, tmpGrammar->ruleArray[r].prodArrays[k][p].lnRowID, tmpGrammar->ruleArray[r].prodArrays[k][p].nonTermID);
+											sprintf(printfBuf, "%s{{%d,{%d, %d}}, %d, %d, %d}", p==0?"":",", tmpGrammar->ruleArray[r].part[k].prodArray[p].event.eventType, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.valueType.exiType, tmpGrammar->ruleArray[r].part[k].prodArray[p].event.valueType.simpleTypeID, tmpGrammar->ruleArray[r].part[k].prodArray[p].uriRowID, tmpGrammar->ruleArray[r].part[k].prodArray[p].lnRowID, tmpGrammar->ruleArray[r].part[k].prodArray[p].nonTermID);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 										}
 										fwrite("};\n", 1, strlen("};\n"), outfile);
@@ -887,29 +887,29 @@ int main(int argc, char *argv[])
 
 							for(r = 0; r < tmpGrammar->rulesDimension; r++)
 							{
-								sprintf(printfBuf, "%s{{", r==0?"":",");
+								sprintf(printfBuf, "%s{{{", r==0?"":",");
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-								if (tmpGrammar->ruleArray[r].prodCounts[0] > 0)
+								if (tmpGrammar->ruleArray[r].part[0].prodArraySize > 0)
 									sprintf(printfBuf, "%sprodArray_empty_%d_%d_%d_0, ", prefix, i, j, r);
 								else
 									sprintf(printfBuf, "NULL, ");
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-								sprintf(printfBuf, "%d, %d}, {", tmpGrammar->ruleArray[r].prodCounts[0], tmpGrammar->ruleArray[r].bits[0]);
+								sprintf(printfBuf, "%d, %d}, {", tmpGrammar->ruleArray[r].part[0].prodArraySize, tmpGrammar->ruleArray[r].part[0].bits);
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 
-								if (tmpGrammar->ruleArray[r].prodCounts[1] > 0)
+								if (tmpGrammar->ruleArray[r].part[1].prodArraySize > 0)
 									sprintf(printfBuf, "%sprodArray_empty_%d_%d_%d_1, ", prefix, i, j, r);
 								else
 									sprintf(printfBuf, "NULL, ");
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-								sprintf(printfBuf, "%d, %d}, {", tmpGrammar->ruleArray[r].prodCounts[1], tmpGrammar->ruleArray[r].bits[1]);
+								sprintf(printfBuf, "%d, %d}, {", tmpGrammar->ruleArray[r].part[1].prodArraySize, tmpGrammar->ruleArray[r].part[1].bits);
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-								if (tmpGrammar->ruleArray[r].prodCounts[2] > 0)
+								if (tmpGrammar->ruleArray[r].part[2].prodArraySize > 0)
 									sprintf(printfBuf, "%sprodArray_empty_%d_%d_%d_2, ", prefix, i, j, r);
 								else
 									sprintf(printfBuf, "NULL, ");
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-								sprintf(printfBuf, "%d, %d}}", tmpGrammar->ruleArray[r].prodCounts[2], tmpGrammar->ruleArray[r].bits[2]);
+								sprintf(printfBuf, "%d, %d}}}", tmpGrammar->ruleArray[r].part[2].prodArraySize, tmpGrammar->ruleArray[r].part[2].bits);
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 							}
 
@@ -1073,10 +1073,10 @@ int main(int argc, char *argv[])
 								fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 								for(k = 0; k < 3; k++)
 								{
-									for(p = 0; p < tmpGrammar->ruleArray[r].prodCounts[k]; p++)
+									for(p = 0; p < tmpGrammar->ruleArray[r].part[k].prodArraySize; p++)
 									{
-										tmp_prod_indx = tmpGrammar->ruleArray[r].prodCounts[k] - 1 - p;
-										switch(tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].event.eventType)
+										tmp_prod_indx = tmpGrammar->ruleArray[r].part[k].prodArraySize - 1 - p;
+										switch(tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].event.eventType)
 										{
 											case EVENT_SD:
 												fwrite("\tSD ", 1, strlen("\tSD "), outfile);
@@ -1085,11 +1085,11 @@ int main(int argc, char *argv[])
 												fwrite("\tED ", 1, strlen("\tED "), outfile);
 												break;
 											case EVENT_SE_QNAME:
-												sprintf(printfBuf, "\tSE ([%d:%d]", tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].uriRowID, tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].lnRowID);
+												sprintf(printfBuf, "\tSE ([%d:%d]", tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].uriRowID, tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].lnRowID);
 												fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-												fwrite(schema.initialStringTables->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].uriRowID].string_val.str, 1, schema.initialStringTables->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].uriRowID].string_val.length, outfile);
+												fwrite(schema.initialStringTables->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].uriRowID].string_val.str, 1, schema.initialStringTables->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].uriRowID].string_val.length, outfile);
 												fwrite(":", 1, 1, outfile);
-												fwrite(schema.initialStringTables->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].uriRowID].lTable->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].lnRowID].string_val.str, 1, schema.initialStringTables->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].uriRowID].lTable->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].lnRowID].string_val.length, outfile);
+												fwrite(schema.initialStringTables->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].uriRowID].lTable->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].lnRowID].string_val.str, 1, schema.initialStringTables->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].uriRowID].lTable->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].lnRowID].string_val.length, outfile);
 												fwrite(") ", 1, 2, outfile);
 												break;
 											case EVENT_SE_URI:
@@ -1102,13 +1102,13 @@ int main(int argc, char *argv[])
 												fwrite("\tEE ", 1, strlen("\tEE "), outfile);
 												break;
 											case EVENT_AT_QNAME:
-												sprintf(printfBuf, "\tAT ([%d:%d]", tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].uriRowID, tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].lnRowID);
+												sprintf(printfBuf, "\tAT ([%d:%d]", tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].uriRowID, tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].lnRowID);
 												fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-												fwrite(schema.initialStringTables->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].uriRowID].string_val.str, 1, schema.initialStringTables->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].uriRowID].string_val.length, outfile);
+												fwrite(schema.initialStringTables->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].uriRowID].string_val.str, 1, schema.initialStringTables->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].uriRowID].string_val.length, outfile);
 												fwrite(":", 1, 1, outfile);
-												fwrite(schema.initialStringTables->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].uriRowID].lTable->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].lnRowID].string_val.str, 1, schema.initialStringTables->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].uriRowID].lTable->rows[tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].lnRowID].string_val.length, outfile);
+												fwrite(schema.initialStringTables->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].uriRowID].lTable->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].lnRowID].string_val.str, 1, schema.initialStringTables->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].uriRowID].lTable->rows[tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].lnRowID].string_val.length, outfile);
 												fwrite(") ", 1, 2, outfile);
-												getValueTypeString(printfBuf, tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].event.valueType);
+												getValueTypeString(printfBuf, tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].event.valueType);
 												fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 												break;
 											case EVENT_AT_URI:
@@ -1116,12 +1116,12 @@ int main(int argc, char *argv[])
 												break;
 											case EVENT_AT_ALL:
 												fwrite("\tAT (*) ", 1, strlen("\tAT (*) "), outfile);
-												getValueTypeString(printfBuf, tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].event.valueType);
+												getValueTypeString(printfBuf, tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].event.valueType);
 												fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 												break;
 											case EVENT_CH:
 												fwrite("\tCH ", 1, strlen("\tCH "), outfile);
-												getValueTypeString(printfBuf, tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].event.valueType);
+												getValueTypeString(printfBuf, tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].event.valueType);
 												fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 												break;
 											case EVENT_NS:
@@ -1148,15 +1148,15 @@ int main(int argc, char *argv[])
 											default:
 												return UNEXPECTED_ERROR;
 										}
-										sprintf(printfBuf, "\tNT-%u\t", (unsigned int) tmpGrammar->ruleArray[r].prodArrays[k][tmp_prod_indx].nonTermID);
+										sprintf(printfBuf, "\tNT-%u\t", (unsigned int) tmpGrammar->ruleArray[r].part[k].prodArray[tmp_prod_indx].nonTermID);
 										fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 										if(k > 0)
 										{
-											sprintf(printfBuf, "%d.", tmpGrammar->ruleArray[r].prodCounts[0]);
+											sprintf(printfBuf, "%d.", tmpGrammar->ruleArray[r].part[0].prodArraySize);
 											fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 											if(k > 1)
 											{
-												sprintf(printfBuf, "%d.", tmpGrammar->ruleArray[r].prodCounts[1]);
+												sprintf(printfBuf, "%d.", tmpGrammar->ruleArray[r].part[1].prodArraySize);
 												fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 											}
 										}

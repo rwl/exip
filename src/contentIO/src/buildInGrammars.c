@@ -130,25 +130,25 @@ errorCode generateBuildInTypesGrammars(URITable* sTables, AllocList* memList)
 	if(typeEmptyGrammar->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	typeEmptyGrammar->ruleArray->bits[0] = 0;
-	typeEmptyGrammar->ruleArray->bits[1] = 0;
-	typeEmptyGrammar->ruleArray->bits[2] = 0;
+	typeEmptyGrammar->ruleArray->part[0].bits = 0;
+	typeEmptyGrammar->ruleArray->part[1].bits = 0;
+	typeEmptyGrammar->ruleArray->part[2].bits = 0;
 
-	typeEmptyGrammar->ruleArray->prodCounts[0] = 1;
-	typeEmptyGrammar->ruleArray->prodCounts[1] = 0;
-	typeEmptyGrammar->ruleArray->prodCounts[2] = 0;
+	typeEmptyGrammar->ruleArray->part[0].prodArraySize = 1;
+	typeEmptyGrammar->ruleArray->part[1].prodArraySize = 0;
+	typeEmptyGrammar->ruleArray->part[2].prodArraySize = 0;
 
-	typeEmptyGrammar->ruleArray->prodArrays[0] = memManagedAllocate(memList, sizeof(Production));
-	if(typeEmptyGrammar->ruleArray->prodArrays[0] == NULL)
+	typeEmptyGrammar->ruleArray->part[0].prodArray = memManagedAllocate(memList, sizeof(Production));
+	if(typeEmptyGrammar->ruleArray->part[0].prodArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	typeEmptyGrammar->ruleArray->prodArrays[1] = NULL;
-	typeEmptyGrammar->ruleArray->prodArrays[2] = NULL;
+	typeEmptyGrammar->ruleArray->part[1].prodArray = NULL;
+	typeEmptyGrammar->ruleArray->part[2].prodArray = NULL;
 
-	typeEmptyGrammar->ruleArray->prodArrays[0][0].event = getEventDefType(EVENT_EE);
-	typeEmptyGrammar->ruleArray->prodArrays[0][0].uriRowID = UINT16_MAX;
-	typeEmptyGrammar->ruleArray->prodArrays[0][0].lnRowID = SIZE_MAX;
-	typeEmptyGrammar->ruleArray->prodArrays[0][0].nonTermID = GR_VOID_NON_TERMINAL;
+	typeEmptyGrammar->ruleArray->part[0].prodArray[0].event = getEventDefType(EVENT_EE);
+	typeEmptyGrammar->ruleArray->part[0].prodArray[0].uriRowID = UINT16_MAX;
+	typeEmptyGrammar->ruleArray->part[0].prodArray[0].lnRowID = SIZE_MAX;
+	typeEmptyGrammar->ruleArray->part[0].prodArray[0].nonTermID = GR_VOID_NON_TERMINAL;
 
 	// URI id 3 -> http://www.w3.org/2001/XMLSchema
 	typeQnameID.uriRowId = 3;
@@ -175,46 +175,46 @@ errorCode generateBuildInTypesGrammars(URITable* sTables, AllocList* memList)
 		if(grammar->ruleArray == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		grammar->ruleArray[0].bits[0] = 0;
-		grammar->ruleArray[0].bits[1] = 0;
-		grammar->ruleArray[0].bits[2] = 0;
-		grammar->ruleArray[0].prodCounts[0] = 1;
-		grammar->ruleArray[0].prodCounts[1] = 0;
-		grammar->ruleArray[0].prodCounts[2] = 0;
+		grammar->ruleArray[0].part[0].bits = 0;
+		grammar->ruleArray[0].part[1].bits = 0;
+		grammar->ruleArray[0].part[2].bits = 0;
+		grammar->ruleArray[0].part[0].prodArraySize = 1;
+		grammar->ruleArray[0].part[1].prodArraySize = 0;
+		grammar->ruleArray[0].part[2].prodArraySize = 0;
 
-		grammar->ruleArray[0].prodArrays[0] = memManagedAllocate(memList, sizeof(Production));
-		if(grammar->ruleArray[0].prodArrays[0] == NULL)
+		grammar->ruleArray[0].part[0].prodArray = memManagedAllocate(memList, sizeof(Production));
+		if(grammar->ruleArray[0].part[0].prodArray == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		grammar->ruleArray[0].prodArrays[1] = NULL;
-		grammar->ruleArray[0].prodArrays[2] = NULL;
+		grammar->ruleArray[0].part[1].prodArray = NULL;
+		grammar->ruleArray[0].part[2].prodArray = NULL;
 
-		grammar->ruleArray[0].prodArrays[0][0].event.eventType = EVENT_CH;
-		grammar->ruleArray[0].prodArrays[0][0].event.valueType = vType;
-		grammar->ruleArray[0].prodArrays[0][0].nonTermID = 1;
-		grammar->ruleArray[0].prodArrays[0][0].uriRowID = UINT16_MAX;
-		grammar->ruleArray[0].prodArrays[0][0].lnRowID = SIZE_MAX;
+		grammar->ruleArray[0].part[0].prodArray[0].event.eventType = EVENT_CH;
+		grammar->ruleArray[0].part[0].prodArray[0].event.valueType = vType;
+		grammar->ruleArray[0].part[0].prodArray[0].nonTermID = 1;
+		grammar->ruleArray[0].part[0].prodArray[0].uriRowID = UINT16_MAX;
+		grammar->ruleArray[0].part[0].prodArray[0].lnRowID = SIZE_MAX;
 
-		grammar->ruleArray[1].bits[0] = 0;
-		grammar->ruleArray[1].bits[1] = 0;
-		grammar->ruleArray[1].bits[2] = 0;
-		grammar->ruleArray[1].prodCounts[0] = 1;
-		grammar->ruleArray[1].prodCounts[1] = 0;
-		grammar->ruleArray[1].prodCounts[2] = 0;
+		grammar->ruleArray[1].part[0].bits = 0;
+		grammar->ruleArray[1].part[1].bits = 0;
+		grammar->ruleArray[1].part[2].bits = 0;
+		grammar->ruleArray[1].part[0].prodArraySize = 1;
+		grammar->ruleArray[1].part[1].prodArraySize = 0;
+		grammar->ruleArray[1].part[2].prodArraySize = 0;
 
-		grammar->ruleArray[1].prodArrays[0] = memManagedAllocate(memList, sizeof(Production));
-		if(grammar->ruleArray[1].prodArrays[0] == NULL)
+		grammar->ruleArray[1].part[0].prodArray = memManagedAllocate(memList, sizeof(Production));
+		if(grammar->ruleArray[1].part[0].prodArray == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		grammar->ruleArray[1].prodArrays[1] = NULL;
-		grammar->ruleArray[1].prodArrays[2] = NULL;
+		grammar->ruleArray[1].part[1].prodArray = NULL;
+		grammar->ruleArray[1].part[2].prodArray = NULL;
 
-		grammar->ruleArray[1].prodArrays[0][0].event.eventType = EVENT_EE;
-		grammar->ruleArray[1].prodArrays[0][0].event.valueType.exiType = VALUE_TYPE_NONE;
-		grammar->ruleArray[1].prodArrays[0][0].event.valueType.simpleTypeID = UINT16_MAX;
-		grammar->ruleArray[1].prodArrays[0][0].nonTermID = GR_VOID_NON_TERMINAL;
-		grammar->ruleArray[1].prodArrays[0][0].uriRowID = UINT16_MAX;
-		grammar->ruleArray[1].prodArrays[0][0].lnRowID = SIZE_MAX;
+		grammar->ruleArray[1].part[0].prodArray[0].event.eventType = EVENT_EE;
+		grammar->ruleArray[1].part[0].prodArray[0].event.valueType.exiType = VALUE_TYPE_NONE;
+		grammar->ruleArray[1].part[0].prodArray[0].event.valueType.simpleTypeID = UINT16_MAX;
+		grammar->ruleArray[1].part[0].prodArray[0].nonTermID = GR_VOID_NON_TERMINAL;
+		grammar->ruleArray[1].part[0].prodArray[0].uriRowID = UINT16_MAX;
+		grammar->ruleArray[1].part[0].prodArray[0].lnRowID = SIZE_MAX;
 
 		sTables->rows[3].lTable->rows[i].typeGrammar = grammar;
 		sTables->rows[3].lTable->rows[i].typeEmptyGrammar = typeEmptyGrammar;

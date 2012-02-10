@@ -129,22 +129,22 @@ errorCode lookupProduction(EXIStream* strm, EXIEvent event, QName* qname, unsign
 
 	for (b = 0; b < 3; b++)
 	{
-		for(j = 0; j < currentRule->prodCounts[b]; j++)
+		for(j = 0; j < currentRule->part[b].prodArraySize; j++)
 		{
-			tmp_prod_indx = currentRule->prodCounts[b] - 1 - j;
-			if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM || valueTypeClassesEqual(currentRule->prodArrays[b][tmp_prod_indx].event.valueType.exiType, event.valueType.exiType))
+			tmp_prod_indx = currentRule->part[b].prodArraySize - 1 - j;
+			if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM || valueTypeClassesEqual(currentRule->part[b].prodArray[tmp_prod_indx].event.valueType.exiType, event.valueType.exiType))
 			{
-				if(currentRule->prodArrays[b][tmp_prod_indx].event.eventType == event.eventType || // (1)
+				if(currentRule->part[b].prodArray[tmp_prod_indx].event.eventType == event.eventType || // (1)
 						(qname != NULL &&
-						(((currentRule->prodArrays[b][tmp_prod_indx].event.eventType == EVENT_AT_URI || currentRule->prodArrays[b][tmp_prod_indx].event.eventType == EVENT_SE_URI) &&    // (2)
-						stringEqual(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].string_val, *(qname->uri))) ||
-						((currentRule->prodArrays[b][tmp_prod_indx].event.eventType == EVENT_AT_QNAME || currentRule->prodArrays[b][tmp_prod_indx].event.eventType == EVENT_SE_QNAME) && // (3)
-						stringEqual(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].string_val, *(qname->uri)) &&
-						stringEqual(strm->uriTable->rows[currentRule->prodArrays[b][tmp_prod_indx].uriRowID].lTable->rows[currentRule->prodArrays[b][tmp_prod_indx].lnRowID].string_val, *(qname->localName))))
+						(((currentRule->part[b].prodArray[tmp_prod_indx].event.eventType == EVENT_AT_URI || currentRule->part[b].prodArray[tmp_prod_indx].event.eventType == EVENT_SE_URI) &&    // (2)
+						stringEqual(strm->uriTable->rows[currentRule->part[b].prodArray[tmp_prod_indx].uriRowID].string_val, *(qname->uri))) ||
+						((currentRule->part[b].prodArray[tmp_prod_indx].event.eventType == EVENT_AT_QNAME || currentRule->part[b].prodArray[tmp_prod_indx].event.eventType == EVENT_SE_QNAME) && // (3)
+						stringEqual(strm->uriTable->rows[currentRule->part[b].prodArray[tmp_prod_indx].uriRowID].string_val, *(qname->uri)) &&
+						stringEqual(strm->uriTable->rows[currentRule->part[b].prodArray[tmp_prod_indx].uriRowID].lTable->rows[currentRule->part[b].prodArray[tmp_prod_indx].lnRowID].string_val, *(qname->localName))))
 						)
 				)
 				{
-					prodHit = &currentRule->prodArrays[b][tmp_prod_indx];
+					prodHit = &currentRule->part[b].prodArray[tmp_prod_indx];
 					break;
 				}
 			}
