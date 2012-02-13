@@ -155,8 +155,8 @@ typedef struct elementDescr ElementDescription;
  * These elements are put in a dynamic array
  * */
 struct elementNotResolved {
-	QName element;
-	QName type;
+	QNameID element;
+	QNameID type;
 };
 
 struct xsdAppData
@@ -164,7 +164,7 @@ struct xsdAppData
 	struct globalSchemaProps props;
 	AllocList tmpMemList;   			// Temporary allocations during the schema creation
 	GenericStack* contextStack; // Stack of ElementDescriptions
-	DynArray* elNotResolvedArray;
+	DynArray* elNotResolvedArray; // An array of struct elementNotResolved elements
 	URITable* metaStringTables;
 	DynArray* globalElemGrammars; // QNameID* of globalElemGrammars
 	DynArray* simpleTypesArray; // A temporary array of simple type definitions
@@ -291,11 +291,11 @@ errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t 
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = createDynArray(&parsing_data.elNotResolvedArray, sizeof(struct elementNotResolved), 10, &parsing_data.tmpMemList);
+	tmp_err_code = createDynArray(&parsing_data.elNotResolvedArray, sizeof(struct elementNotResolved), 50, &parsing_data.tmpMemList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = createDynArray(&parsing_data.globalElemGrammars, sizeof(QNameID), 10, &parsing_data.tmpMemList);
+	tmp_err_code = createDynArray(&parsing_data.globalElemGrammars, sizeof(QNameID), 50, &parsing_data.tmpMemList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -388,6 +388,7 @@ static char xsd_endDocument(void* app_data)
 	Production* tmpProd;
 	size_t t = 0;
 	size_t p = 0;
+	struct elementNotResolved* unResEl;
 
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End XML Schema parsing\n"));
 
@@ -415,6 +416,25 @@ static char xsd_endDocument(void* app_data)
 		}
 	}
 #endif
+
+	// Resolve the element types that were left for the end.
+
+	for(i = 0; i < appD->elNotResolvedArray->elementCount; i++)
+	{
+		unResEl = ((struct elementNotResolved*) appD->elNotResolvedArray->elements) + i;
+		if(appD->schema->initialStringTables->rows[unResEl->type.uriRowId].lTable->rows[unResEl->type.lnRowId].typeGrammar != NULL
+						&& appD->schema->initialStringTables->rows[unResEl->type.uriRowId].lTable->rows[unResEl->type.lnRowId].typeEmptyGrammar != NULL)
+		{
+			// The grammars for this type are already created
+			appD->schema->initialStringTables->rows[unResEl->element.uriRowId].lTable->rows[unResEl->element.lnRowId].typeGrammar = appD->schema->initialStringTables->rows[unResEl->type.uriRowId].lTable->rows[unResEl->type.lnRowId].typeGrammar;
+			appD->schema->initialStringTables->rows[unResEl->element.uriRowId].lTable->rows[unResEl->element.lnRowId].typeEmptyGrammar = appD->schema->initialStringTables->rows[unResEl->type.uriRowId].lTable->rows[unResEl->type.lnRowId].typeEmptyGrammar;
+		}
+		else // the type definition is missing
+		{
+			DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Some element types are left unresolved\n"));
+			return EXIP_HANDLER_STOP;
+		}
+	}
 
 	sortInitialStringTables(appD->schema->initialStringTables);
 
@@ -1065,7 +1085,7 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 static errorCode handleExtentionEl(struct xsdAppData* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	QNameID simpleTypeID;
+	QNameID baseTypeID;
 	String* typeName;
 	String* target_ns;
 	ProtoGrammar* simpleTypeGrammar;
@@ -1078,11 +1098,11 @@ static errorCode handleExtentionEl(struct xsdAppData* app_data)
 	typeName = &app_data->props.emptyString;
 	target_ns = &app_data->props.emptyString;
 
-	tmp_err_code = getTypeQName(app_data, elemDesc->attributePointers[ATTRIBUTE_BASE], &simpleTypeID);
+	tmp_err_code = getTypeQName(app_data, elemDesc->attributePointers[ATTRIBUTE_BASE], &baseTypeID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = getEXIDataTypeFromSimpleType(simpleTypeID, &vType);
+	tmp_err_code = getEXIDataTypeFromSimpleType(baseTypeID, &vType);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1371,15 +1391,23 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		if(typeQnameID.uriRowId == 3) // This is build-in simple type definition
+		if(app_data->schema->initialStringTables->rows[typeQnameID.uriRowId].lTable->rows[typeQnameID.lnRowId].typeGrammar != NULL
+				&& app_data->schema->initialStringTables->rows[typeQnameID.uriRowId].lTable->rows[typeQnameID.lnRowId].typeEmptyGrammar != NULL)
 		{
-			// URI 3 -> http://www.w3.org/2001/XMLSchema
-			app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeGrammar = app_data->schema->initialStringTables->rows[3].lTable->rows[typeQnameID.lnRowId].typeGrammar;
-			app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeEmptyGrammar = app_data->schema->initialStringTables->rows[3].lTable->rows[typeQnameID.lnRowId].typeEmptyGrammar;
+			// The grammars for this type are already created
+			app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeGrammar = app_data->schema->initialStringTables->rows[typeQnameID.uriRowId].lTable->rows[typeQnameID.lnRowId].typeGrammar;
+			app_data->schema->initialStringTables->rows[uriRowId].lTable->rows[lnRowId].typeEmptyGrammar = app_data->schema->initialStringTables->rows[typeQnameID.uriRowId].lTable->rows[typeQnameID.lnRowId].typeEmptyGrammar;
 		}
-		else // A complex type name or derived simple type
+		else // the type definition is still not reached.
 		{
-			return NOT_IMPLEMENTED_YET;
+			struct elementNotResolved unResEl;
+			size_t elID;
+			unResEl.element.uriRowId = uriRowId;
+			unResEl.element.lnRowId = lnRowId;
+			unResEl.type.uriRowId = typeQnameID.uriRowId;
+			unResEl.type.lnRowId = typeQnameID.lnRowId;
+
+			addDynElement(app_data->elNotResolvedArray, &unResEl, &elID, &app_data->tmpMemList);
 		}
 	}
 
