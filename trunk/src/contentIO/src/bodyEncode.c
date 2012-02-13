@@ -132,7 +132,7 @@ errorCode lookupProduction(EXIStream* strm, EXIEvent evnt, QName* qname, unsigne
 		for(j = 0; j < currentRule->part[b].prodArraySize; j++)
 		{
 			tmp_prod_indx = currentRule->part[b].prodArraySize - 1 - j;
-			if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM || valueTypeClassesEqual(currentRule->part[b].prodArray[tmp_prod_indx].evnt.valueType.exiType, evnt.valueType.exiType))
+			if(IS_BUILD_IN_ELEM(strm->gStack->grammar->props) || valueTypeClassesEqual(currentRule->part[b].prodArray[tmp_prod_indx].evnt.valueType.exiType, evnt.valueType.exiType))
 			{
 				if(currentRule->part[b].prodArray[tmp_prod_indx].evnt.eventType == evnt.eventType || // (1)
 						(qname != NULL &&

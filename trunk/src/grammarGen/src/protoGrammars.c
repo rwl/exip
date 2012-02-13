@@ -159,11 +159,10 @@ errorCode convertProtoGrammar(AllocList* memlist, ProtoGrammar* pg, EXIGrammar**
 	if(*result == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*result)->grammarType = GR_TYPE_SCHEMA_TYPE;  // TODO: the proto-grammar might have different type
+	(*result)->props = 0;
+	SET_SCHEMA((*result)->props);
 	(*result)->contentIndex = pg->contentIndex;
 	(*result)->rulesDimension = pg->rulesCount;
-	(*result)->isNillable = FALSE;
-	(*result)->isAugmented = FALSE;
 
 	// #DOCUMENT# one more rule slot is created as it can be needed for addUndeclaredProductions
 	(*result)->ruleArray = (GrammarRule*) memManagedAllocate(memlist, sizeof(GrammarRule)*(pg->rulesCount + 1));

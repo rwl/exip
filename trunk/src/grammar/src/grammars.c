@@ -67,10 +67,9 @@ errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const EXIPSc
 	unsigned int tmp_code3 = 0; // the number of productions with event codes with length 3
 
 	docGrammar->rulesDimension = DEF_DOC_GRAMMAR_RULE_NUMBER;
-	docGrammar->grammarType = GR_TYPE_BUILD_IN_DOC;
+	docGrammar->props = 0;
+	SET_AUGMENTED(docGrammar->props);
 	docGrammar->contentIndex = 0;
-	docGrammar->isNillable = FALSE;
-	docGrammar->isAugmented = TRUE;
 	docGrammar->ruleArray = (GrammarRule*) memManagedAllocate(&strm->memList, sizeof(GrammarRule)*DEF_DOC_GRAMMAR_RULE_NUMBER);
 	if(docGrammar->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -109,7 +108,7 @@ errorCode createDocGrammar(EXIGrammar* docGrammar, EXIStream* strm, const EXIPSc
 	{
 		unsigned int e = 0;
 
-		docGrammar->grammarType = GR_TYPE_SCHEMA_DOC;
+		SET_SCHEMA(docGrammar->props);
 		tmp_code1 = schema->globalElemGrammarsCount + 1;
 
 		tmp_rule->part[0].prodArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code1);
@@ -261,10 +260,10 @@ errorCode createBuildInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 	unsigned int p = 1;
 
 	elementGrammar->rulesDimension = DEF_ELEMENT_GRAMMAR_RULE_NUMBER;
-	elementGrammar->grammarType = GR_TYPE_BUILD_IN_ELEM;
+	elementGrammar->props = 0;
+	SET_BUILD_IN_ELEM(elementGrammar->props);
+	SET_AUGMENTED(elementGrammar->props);
 	elementGrammar->contentIndex = 0;
-	elementGrammar->isNillable = FALSE;
-	elementGrammar->isAugmented = TRUE;
 	elementGrammar->ruleArray = (GrammarRule*) memManagedAllocate(&strm->memList, sizeof(DynGrammarRule)*DEF_ELEMENT_GRAMMAR_RULE_NUMBER);
 	if(elementGrammar->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -597,7 +596,7 @@ static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Pro
 				return HANDLER_STOP_RECEIVED;
 		}
 
-		if(codeLength > 1 && strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)   // #1# COMMENT
+		if(codeLength > 1 && IS_BUILD_IN_ELEM(strm->gStack->grammar->props))   // #1# COMMENT
 		{
 			tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, getEventDefType(EVENT_EE), GR_VOID_NON_TERMINAL,
 												SIZE_MAX, UINT16_MAX);
@@ -617,7 +616,7 @@ static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Pro
 	{
 		if(evnt->eventType == EVENT_CH)
 		{
-			if(codeLength > 1 && strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)   // #2# COMMENT
+			if(codeLength > 1 && IS_BUILD_IN_ELEM(strm->gStack->grammar->props))   // #2# COMMENT
 			{
 				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, getEventDefType(EVENT_CH), *nonTermID_out, SIZE_MAX, UINT16_MAX);
 				if(tmp_err_code != ERR_OK)
@@ -639,10 +638,9 @@ errorCode createFragmentGrammar(EXIGrammar* fragGrammar, EXIStream* strm, const 
 	unsigned int tmp_code2 = 0; // the number of productions with event codes with length 2
 
 	fragGrammar->rulesDimension = DEF_FRAG_GRAMMAR_RULE_NUMBER;
-	fragGrammar->grammarType = GR_TYPE_BUILD_IN_FRAG;
+	fragGrammar->props = 0;
+	SET_AUGMENTED(fragGrammar->props);
 	fragGrammar->contentIndex = 0;
-	fragGrammar->isNillable = FALSE;
-	fragGrammar->isAugmented = TRUE;
 	fragGrammar->ruleArray = (GrammarRule*) memManagedAllocate(&strm->memList, sizeof(GrammarRule)*DEF_FRAG_GRAMMAR_RULE_NUMBER);
 	if(fragGrammar->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -679,7 +677,7 @@ errorCode createFragmentGrammar(EXIGrammar* fragGrammar, EXIStream* strm, const 
 	{
 		unsigned int e = 0;
 
-		fragGrammar->grammarType = GR_TYPE_SCHEMA_FRAG;
+		SET_SCHEMA(fragGrammar->props);
 		tmp_code1 = schema->globalElemGrammarsCount + 2;
 
 		tmp_rule->part[0].prodArray = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code1);
