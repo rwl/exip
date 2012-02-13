@@ -81,7 +81,7 @@ static struct element* createElement(char* name);
 static void destroyElement(struct element* el);
 
 // returns != 0 if error
-static char lookupPrefix(struct appData* aData, String namespace, unsigned char* prxHit, unsigned char* prefixIndex);
+static char lookupPrefix(struct appData* aData, String ns, unsigned char* prxHit, unsigned char* prefixIndex);
 
 // ******************************************
 
@@ -659,12 +659,12 @@ static void parseSchema(char* fileName, EXIPSchema* schema)
 	}
 }
 
-static char lookupPrefix(struct appData* aData, String namespace, unsigned char* prxHit, unsigned char* prefixIndex)
+static char lookupPrefix(struct appData* aData, String ns, unsigned char* prxHit, unsigned char* prefixIndex)
 {
 	int i;
 	for(i = 0; i < aData->prefixesCount; i++)
 	{
-		if(stringEqualToAscii(namespace, aData->prefixes[i]))
+		if(stringEqualToAscii(ns, aData->prefixes[i]))
 		{
 			*prefixIndex = i;
 			*prxHit = 1;
@@ -676,8 +676,8 @@ static char lookupPrefix(struct appData* aData, String namespace, unsigned char*
 		return 1;
 	else
 	{
-		memcpy(aData->prefixes[aData->prefixesCount], namespace.str, namespace.length);
-		aData->prefixes[aData->prefixesCount][namespace.length] = '\0';
+		memcpy(aData->prefixes[aData->prefixesCount], ns.str, ns.length);
+		aData->prefixes[aData->prefixesCount][ns.length] = '\0';
 		*prefixIndex = aData->prefixesCount;
 		aData->prefixesCount += 1;
 		*prxHit = 0;

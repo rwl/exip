@@ -69,7 +69,7 @@ struct EXISerializer
 
 	// Miscellaneous
 	errorCode (*processingInstruction)(EXIStream* strm); // TODO: define the parameters!
-	errorCode (*namespaceDeclaration)(EXIStream* strm, const String namespace, const String prefix, unsigned char isLocalElementNS);
+	errorCode (*namespaceDeclaration)(EXIStream* strm, const String ns, const String prefix, unsigned char isLocalElementNS);
 
 	// EXI specific
 	errorCode (*exiHeader)(EXIStream* strm);
@@ -103,7 +103,7 @@ errorCode decimalData(EXIStream* strm, Decimal dec_val);
 
 // Miscellaneous
 errorCode processingInstruction(EXIStream* strm); // TODO: define the parameters!
-errorCode namespaceDeclaration(EXIStream* strm, const String namespace, const String prefix, unsigned char isLocalElementNS);
+errorCode namespaceDeclaration(EXIStream* strm, const String ns, const String prefix, unsigned char isLocalElementNS);
 
 // EXI specific
 errorCode selfContained(EXIStream* strm);  // Used for indexing independent elements for random access
