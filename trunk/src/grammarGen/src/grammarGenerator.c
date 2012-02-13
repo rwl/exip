@@ -187,7 +187,7 @@ static char xsd_startElement(QName qname, void* app_data);
 static char xsd_endElement(void* app_data);
 static char xsd_attribute(QName qname, void* app_data);
 static char xsd_stringData(const String value, void* app_data);
-static char xsd_namespaceDeclaration(const String namespace, const String prefix, unsigned char isLocalElementNS, void* app_data);
+static char xsd_namespaceDeclaration(const String ns, const String prefix, unsigned char isLocalElementNS, void* app_data);
 
 static void initElemContext(ElementDescription* elem);
 
@@ -951,7 +951,7 @@ static char xsd_stringData(const String value, void* app_data)
 	return EXIP_HANDLER_OK;
 }
 
-static char xsd_namespaceDeclaration(const String namespace, const String prefix, unsigned char isLocalElementNS, void* app_data)
+static char xsd_namespaceDeclaration(const String ns, const String prefix, unsigned char isLocalElementNS, void* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	struct xsdAppData* appD = (struct xsdAppData*) app_data;
@@ -959,8 +959,8 @@ static char xsd_namespaceDeclaration(const String namespace, const String prefix
 	size_t elID;
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Namespace declaration\n"));
 
-	prNS.ns.length = namespace.length;
-	prNS.ns.str = namespace.str;
+	prNS.ns.length = ns.length;
+	prNS.ns.str = ns.str;
 
 	prNS.prefix.length = prefix.length;
 	prNS.prefix.str = prefix.str;

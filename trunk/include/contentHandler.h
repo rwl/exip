@@ -73,7 +73,7 @@ struct ContentHandler
 
 	// Miscellaneous
 	char (*processingInstruction)(void* app_data); // TODO: define the parameters!
-	char (*namespaceDeclaration)(const String namespace, const String prefix, unsigned char isLocalElementNS, void* app_data);
+	char (*namespaceDeclaration)(const String ns, const String prefix, unsigned char isLocalElementNS, void* app_data);
 
 	// For error handling
 	char (*warning)(const char code, const char* msg, void* app_data);

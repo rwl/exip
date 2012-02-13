@@ -478,7 +478,7 @@ errorCode processingInstruction(EXIStream* strm)
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode namespaceDeclaration(EXIStream* strm, const String namespace, const String prefix, unsigned char isLocalElementNS)
+errorCode namespaceDeclaration(EXIStream* strm, const String ns, const String prefix, unsigned char isLocalElementNS)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char codeLength;
@@ -494,7 +494,7 @@ errorCode namespaceDeclaration(EXIStream* strm, const String namespace, const St
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = encodeURI(strm, (String*) &namespace, &uriID);
+	tmp_err_code = encodeURI(strm, (String*) &ns, &uriID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
