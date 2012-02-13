@@ -284,7 +284,7 @@ errorCode decodeEventContent(EXIStream* strm, EXIEvent evnt, ContentHandler* han
 					return HANDLER_STOP_RECEIVED;
 			}
 
-			if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)  // If the current grammar is build-in Element grammar ...
+			if(IS_BUILD_IN_ELEM(strm->gStack->grammar->props))  // If the current grammar is build-in Element grammar ...
 			{
 				tmp_err_code = insertZeroProduction((DynGrammarRule*) currRule, getEventDefType(EVENT_SE_QNAME), *nonTermID_out, lnID, uriID);
 				if(tmp_err_code != ERR_OK)
@@ -553,7 +553,7 @@ errorCode decodeValueItem(EXIStream* strm, ValueType type, ContentHandler* handl
 			}
 
 			// handle xsi:nil attribute
-			if(strm->gStack->grammar->grammarType >= GR_TYPE_SCHEMA_DOC && local_uriID == 2 && local_lnID == 0) // Schema-enabled grammar and http://www.w3.org/2001/XMLSchema-instance:nil
+			if(IS_SCHEMA(strm->gStack->grammar->props) && local_uriID == 2 && local_lnID == 0) // Schema-enabled grammar and http://www.w3.org/2001/XMLSchema-instance:nil
 			{
 				if(bool_val == TRUE)
 				{

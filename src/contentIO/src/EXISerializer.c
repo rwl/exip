@@ -377,7 +377,7 @@ errorCode booleanData(EXIStream* strm, unsigned char bool_val)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	if(strm->gStack->grammar->grammarType >= GR_TYPE_SCHEMA_DOC && isXsiNilAttr && bool_val)
+	if(IS_SCHEMA(strm->gStack->grammar->props) && isXsiNilAttr && bool_val)
 	{
 		// In a schema-informed grammar && xsi:nil == TRUE
 		EXIGrammar* tmpGrammar;
@@ -588,7 +588,7 @@ errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, size_t lastC
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM && codeLength > 1
+	if(IS_BUILD_IN_ELEM(strm->gStack->grammar->props) && codeLength > 1
 		&& (prodHit->evnt.eventType == EVENT_CH || prodHit->evnt.eventType == EVENT_EE))  // If the current grammar is build-in Element grammar and the event code size is bigger than 1 and the event is CH or EE...
 	{
 		// #1# COMMENT and #2# COMMENT
@@ -609,7 +609,7 @@ errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, size_t lastC
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)  // If the current grammar is build-in Element grammar ...
+			if(IS_BUILD_IN_ELEM(strm->gStack->grammar->props))  // If the current grammar is build-in Element grammar ...
 			{
 				EXIEvent newEvent;
 
@@ -633,7 +633,7 @@ errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, size_t lastC
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			if(strm->gStack->grammar->grammarType == GR_TYPE_BUILD_IN_ELEM)  // If the current grammar is build-in Element grammar ...
+			if(IS_BUILD_IN_ELEM(strm->gStack->grammar->props))  // If the current grammar is build-in Element grammar ...
 			{
 				EXIEvent newEvent;
 

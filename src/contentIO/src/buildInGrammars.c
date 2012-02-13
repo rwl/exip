@@ -120,9 +120,8 @@ errorCode generateBuildInTypesGrammars(URITable* sTables, AllocList* memList)
 		return MEMORY_ALLOCATION_ERROR;
 
 	typeEmptyGrammar->contentIndex = 0;
-	typeEmptyGrammar->isNillable = FALSE;
-	typeEmptyGrammar->isAugmented = FALSE;
-	typeEmptyGrammar->grammarType = GR_TYPE_SCHEMA_EMPTY_TYPE;
+	typeEmptyGrammar->props = 0;
+	SET_SCHEMA(typeEmptyGrammar->props);
 	typeEmptyGrammar->rulesDimension = 1;
 
 	// One more rule slot for grammar augmentation when strict == FASLE
@@ -165,9 +164,8 @@ errorCode generateBuildInTypesGrammars(URITable* sTables, AllocList* memList)
 			return MEMORY_ALLOCATION_ERROR;
 
 		grammar->contentIndex = 0;
-		grammar->grammarType = GR_TYPE_SCHEMA_TYPE;
-		grammar->isNillable = FALSE;
-		grammar->isAugmented = FALSE;
+		grammar->props = 0;
+		SET_SCHEMA(grammar->props);
 		grammar->rulesDimension = 2;
 
 		// One more rule slot for grammar augmentation when strict == FASLE

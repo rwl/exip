@@ -408,11 +408,7 @@ int main(int argc, char *argv[])
 
 							sprintf(printfBuf, "grammar_%d_%d->contentIndex = %d;\n\t", i, j, tmpGrammar->contentIndex);
 							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-							sprintf(printfBuf, "grammar_%d_%d->grammarType = %d;\n\t", i, j, tmpGrammar->grammarType);
-							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-							sprintf(printfBuf, "grammar_%d_%d->isNillable = %d;\n\t", i, j, tmpGrammar->isNillable);
-							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-							sprintf(printfBuf, "grammar_%d_%d->isAugmented = %d;\n\t", i, j, tmpGrammar->isAugmented);
+							sprintf(printfBuf, "grammar_%d_%d->props = %d;\n\t", i, j, tmpGrammar->props);
 							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 							sprintf(printfBuf, "grammar_%d_%d->rulesDimension = %d;\n\t", i, j, tmpGrammar->rulesDimension);
 							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
@@ -526,11 +522,7 @@ int main(int argc, char *argv[])
 
 							sprintf(printfBuf, "grammar_empty_%d_%d->contentIndex = %d;\n\t", i, j, tmpGrammar->contentIndex);
 							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-							sprintf(printfBuf, "grammar_empty_%d_%d->grammarType = %d;\n\t", i, j, tmpGrammar->grammarType);
-							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-							sprintf(printfBuf, "grammar_empty_%d_%d->isNillable = %d;\n\t", i, j, tmpGrammar->isNillable);
-							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
-							sprintf(printfBuf, "grammar_empty_%d_%d->isAugmented = %d;\n\t", i, j, tmpGrammar->isAugmented);
+							sprintf(printfBuf, "grammar_empty_%d_%d->props = %d;\n\t", i, j, tmpGrammar->props);
 							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 							sprintf(printfBuf, "grammar_empty_%d_%d->rulesDimension = %d;\n\t", i, j, tmpGrammar->rulesDimension);
 							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
@@ -827,8 +819,8 @@ int main(int argc, char *argv[])
 
 							fwrite("};\n\n", 1, strlen("};\n\n"), outfile);
 
-							sprintf(printfBuf, "EXIGrammar %sgrammar_%d_%d = {%sruleArray_%d_%d, %d, %d, %d, %d, %d};\n\n",
-									prefix, i, j, prefix, i, j, tmpGrammar->rulesDimension, tmpGrammar->grammarType, tmpGrammar->isNillable, tmpGrammar->isAugmented, tmpGrammar->contentIndex);
+							sprintf(printfBuf, "EXIGrammar %sgrammar_%d_%d = {%sruleArray_%d_%d, %d, %d, %d};\n\n",
+									prefix, i, j, prefix, i, j, tmpGrammar->rulesDimension, tmpGrammar->props, tmpGrammar->contentIndex);
 							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 
 							if(tgCount >= MAX_GRAMMARS_COUNT)
@@ -915,8 +907,8 @@ int main(int argc, char *argv[])
 
 							fwrite("};\n\n", 1, strlen("};\n\n"), outfile);
 
-							sprintf(printfBuf, "EXIGrammar %sgrammar_empty_%d_%d = {%sruleArray_empty_%d_%d, %d, %d, %d, %d, %d};\n\n",
-									prefix, i, j, prefix, i, j, tmpGrammar->rulesDimension, tmpGrammar->grammarType, tmpGrammar->isNillable, tmpGrammar->isAugmented, tmpGrammar->contentIndex);
+							sprintf(printfBuf, "EXIGrammar %sgrammar_empty_%d_%d = {%sruleArray_empty_%d_%d, %d, %d, %d};\n\n",
+									prefix, i, j, prefix, i, j, tmpGrammar->rulesDimension, tmpGrammar->props, tmpGrammar->contentIndex);
 							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 
 							if(tegCount >= MAX_GRAMMARS_COUNT)

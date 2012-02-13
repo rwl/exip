@@ -425,10 +425,7 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 	}
 	else // strict == TRUE
 	{
-		unsigned char isNillable;
 		unsigned char subTypeFound = FALSE;
-
-		isNillable = grammar->isNillable;
 
 		// If Tk either has named sub-types
 		// TODO: This only works for simple types now
@@ -441,12 +438,12 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 					if(grammar->ruleArray[i].part[0].prodArray[j].evnt.valueType.simpleTypeID < sTypeArraySize &&
 							(simpleTypeArray[grammar->ruleArray[i].part[0].prodArray[j].evnt.valueType.simpleTypeID].facetPresenceMask & TYPE_FACET_NAMED_SUBTYPE) > 0)
 					{
-						grammar->ruleArray[0].part[1].prodArray = (Production*) memManagedAllocate(memList, sizeof(Production) * (1 + isNillable));
+						grammar->ruleArray[0].part[1].prodArray = (Production*) memManagedAllocate(memList, sizeof(Production) * (1 + IS_NILLABLE(grammar->props)));
 						if(grammar->ruleArray[0].part[1].prodArray == NULL)
 							return MEMORY_ALLOCATION_ERROR;
 
-						grammar->ruleArray[0].part[1].prodArraySize = 1 + isNillable;
-						grammar->ruleArray[0].part[1].bits = isNillable;
+						grammar->ruleArray[0].part[1].prodArraySize = 1 + IS_NILLABLE(grammar->props);
+						grammar->ruleArray[0].part[1].bits = IS_NILLABLE(grammar->props);
 						grammar->ruleArray[0].part[0].bits = getBitsNumber(grammar->ruleArray[0].part[0].prodArraySize);
 
 						grammar->ruleArray[0].part[1].prodArray[0].evnt.eventType = EVENT_AT_QNAME;
@@ -470,7 +467,7 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 		// TODO: or is a simple type definition of which {variety} is union,
 		//       add the following production to Element_i)
 
-		if(isNillable == TRUE)
+		if(IS_NILLABLE(grammar->props))
 		{
 			unsigned char prodIndex = 0;
 			if(subTypeFound)
@@ -500,7 +497,7 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 		}
 	}
 
-	grammar->isAugmented = TRUE;
+	SET_AUGMENTED(grammar->props);
 
 	return ERR_OK;
 }
@@ -518,14 +515,14 @@ errorCode addUndeclaredProductionsToAll(AllocList* memList, URITable* stringTabl
 		for (j = 0; j < stringTables->rows[i].lTable->rowCount; j++)
 		{
 			tmpGrammar = stringTables->rows[i].lTable->rows[j].typeGrammar;
-			if(tmpGrammar != NULL && tmpGrammar->isAugmented == FALSE)
+			if(tmpGrammar != NULL && IS_AUGMENTED(tmpGrammar->props) == FALSE)
 			{
 				tmp_err_code = addUndeclaredProductions(memList, WITH_STRICT(opts->enumOpt), WITH_SELF_CONTAINED(opts->enumOpt), opts->preserve, tmpGrammar, simpleTypeArray, sTypeArraySize);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			}
 			tmpEmptyGrammar = stringTables->rows[i].lTable->rows[j].typeEmptyGrammar;
-			if(tmpEmptyGrammar != NULL && tmpEmptyGrammar->isAugmented == FALSE)
+			if(tmpEmptyGrammar != NULL && IS_AUGMENTED(tmpEmptyGrammar->props) == FALSE)
 			{
 				tmp_err_code = addUndeclaredProductions(memList, WITH_STRICT(opts->enumOpt), WITH_SELF_CONTAINED(opts->enumOpt), opts->preserve, tmpEmptyGrammar, simpleTypeArray, sTypeArraySize);
 				if(tmp_err_code != ERR_OK)

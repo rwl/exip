@@ -1338,7 +1338,8 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			exiTypeGrammar->isNillable = isNillable;
+			if(isNillable)
+				SET_NILLABLE(exiTypeGrammar->props);
 
 #if DEBUG_GRAMMAR_GEN == ON
 			{
@@ -1363,7 +1364,8 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 
-				exiTypeEmptyGrammar->isNillable = isNillable;
+				if(isNillable)
+					SET_NILLABLE(exiTypeEmptyGrammar->props);
 			}
 			else
 			{
