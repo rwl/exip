@@ -239,7 +239,7 @@ int main(int argc, char *argv[])
 			unsigned int tgCount = 0;
 			QNameID typeEmptyGrammars[MAX_GRAMMARS_COUNT];
 			unsigned int tegCount = 0;
-			unsigned int grammarPointer = 0;
+			uintptr_t grammarPointer = 0;
 
 			if(ERR_OK != initAllocList(&memList))
 			{
@@ -318,9 +318,9 @@ int main(int argc, char *argv[])
 					for(j = 0; j < schema.initialStringTables->rows[i].lTable->rowCount; j++)
 					{
 						tmpGrammar = schema.initialStringTables->rows[i].lTable->rows[j].typeGrammar;
-						grammarPointer = (unsigned int) tmpGrammar;
-						hashKey.str = (char*) &grammarPointer;
-						hashKey.length = sizeof(grammarPointer);
+						grammarPointer = (uintptr_t) tmpGrammar;
+						hashKey.str = (CharType*) &grammarPointer;
+						hashKey.length = sizeof(grammarPointer)/sizeof(CharType);
 						typeGrammarID = hashtable_search(typeGrammrarsHash, &hashKey);
 						if(tmpGrammar != NULL && typeGrammarID == SIZE_MAX)
 						{
@@ -436,9 +436,9 @@ int main(int argc, char *argv[])
 						}
 
 						tmpGrammar = schema.initialStringTables->rows[i].lTable->rows[j].typeEmptyGrammar;
-						grammarPointer = (unsigned int) tmpGrammar;
-						hashKey.str = (char*) &grammarPointer;
-						hashKey.length = sizeof(grammarPointer);
+						grammarPointer = (uintptr_t) tmpGrammar;
+						hashKey.str = (CharType*) &grammarPointer;
+						hashKey.length = sizeof(grammarPointer)/sizeof(CharType);
 						typeEmptyGrammarID = hashtable_search(typeEmptyGrammrarsHash, &hashKey);
 						if(tmpGrammar != NULL && typeEmptyGrammarID == SIZE_MAX)
 						{
@@ -568,9 +568,9 @@ int main(int argc, char *argv[])
 						}
 
 						tmpGrammar = schema.initialStringTables->rows[i].lTable->rows[j].typeGrammar;
-						grammarPointer = (unsigned int) tmpGrammar;
-						hashKey.str = (char*) &grammarPointer;
-						hashKey.length = sizeof(grammarPointer);
+						grammarPointer = (uintptr_t) tmpGrammar;
+						hashKey.str = (CharType*) &grammarPointer;
+						hashKey.length = sizeof(grammarPointer)/sizeof(CharType);
 						typeGrammarID = hashtable_search(typeGrammrarsHash, &hashKey);
 
 						if(tmpGrammar != NULL)
@@ -585,9 +585,9 @@ int main(int argc, char *argv[])
 						}
 
 						tmpGrammar = schema.initialStringTables->rows[i].lTable->rows[j].typeEmptyGrammar;
-						grammarPointer = (unsigned int) tmpGrammar;
-						hashKey.str = (char*) &grammarPointer;
-						hashKey.length = sizeof(grammarPointer);
+						grammarPointer = (uintptr_t) tmpGrammar;
+						hashKey.str = (CharType*) &grammarPointer;
+						hashKey.length = sizeof(grammarPointer)/sizeof(CharType);
 						typeEmptyGrammarID = hashtable_search(typeEmptyGrammrarsHash, &hashKey);
 
 						if(tmpGrammar != NULL)
@@ -759,9 +759,9 @@ int main(int argc, char *argv[])
 					for(j = 0; j < schema.initialStringTables->rows[i].lTable->rowCount; j++)
 					{
 						tmpGrammar = schema.initialStringTables->rows[i].lTable->rows[j].typeGrammar;
-						grammarPointer = (unsigned int) tmpGrammar;
-						hashKey.str = (char*) &grammarPointer;
-						hashKey.length = sizeof(grammarPointer);
+						grammarPointer = (uintptr_t) tmpGrammar;
+						hashKey.str = (CharType*) &grammarPointer;
+						hashKey.length = sizeof(grammarPointer)/sizeof(CharType);
 						typeGrammarID = hashtable_search(typeGrammrarsHash, &hashKey);
 
 						if(tmpGrammar != NULL && typeGrammarID == SIZE_MAX)
@@ -848,9 +848,9 @@ int main(int argc, char *argv[])
 						}
 
 						tmpGrammar = schema.initialStringTables->rows[i].lTable->rows[j].typeEmptyGrammar;
-						grammarPointer = (unsigned int) tmpGrammar;
-						hashKey.str = (char*) &grammarPointer;
-						hashKey.length = sizeof(grammarPointer);
+						grammarPointer = (uintptr_t) tmpGrammar;
+						hashKey.str = (CharType*) &grammarPointer;
+						hashKey.length = sizeof(grammarPointer)/sizeof(CharType);
 						typeEmptyGrammarID = hashtable_search(typeEmptyGrammrarsHash, &hashKey);
 
 						if(tmpGrammar != NULL && typeEmptyGrammarID == SIZE_MAX)
@@ -950,9 +950,9 @@ int main(int argc, char *argv[])
 							}
 
 							tmpGrammar = schema.initialStringTables->rows[i].lTable->rows[j].typeGrammar;
-							grammarPointer = (unsigned int) tmpGrammar;
-							hashKey.str = (char*) &grammarPointer;
-							hashKey.length = sizeof(grammarPointer);
+							grammarPointer = (uintptr_t) tmpGrammar;
+							hashKey.str = (CharType*) &grammarPointer;
+							hashKey.length = sizeof(grammarPointer)/sizeof(CharType);
 							typeGrammarID = hashtable_search(typeGrammrarsHash, &hashKey);
 
 							if(tmpGrammar != NULL)
@@ -968,9 +968,9 @@ int main(int argc, char *argv[])
 							fwrite(printfBuf, 1, strlen(printfBuf), outfile);
 
 							tmpGrammar = schema.initialStringTables->rows[i].lTable->rows[j].typeEmptyGrammar;
-							grammarPointer = (unsigned int) tmpGrammar;
-							hashKey.str = (char*) &grammarPointer;
-							hashKey.length = sizeof(grammarPointer);
+							grammarPointer = (uintptr_t) tmpGrammar;
+							hashKey.str = (CharType*) &grammarPointer;
+							hashKey.length = sizeof(grammarPointer)/sizeof(CharType);
 							typeEmptyGrammarID = hashtable_search(typeEmptyGrammrarsHash, &hashKey);
 
 							if(tmpGrammar != NULL)
