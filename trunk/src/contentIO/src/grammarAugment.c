@@ -428,44 +428,29 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 		unsigned char subTypeFound = FALSE;
 
 		// If Tk either has named sub-types
-		// TODO: This only works for simple types now
-		for(i = 0; i < grammar->rulesDimension; i++)
-		{
-			for(j = 0; j < grammar->ruleArray[i].part[0].prodArraySize; j++)
-			{
-				if(grammar->ruleArray[i].part[0].prodArray[j].evnt.eventType == EVENT_CH)
-				{
-					if(grammar->ruleArray[i].part[0].prodArray[j].evnt.valueType.simpleTypeID < sTypeArraySize &&
-							(simpleTypeArray[grammar->ruleArray[i].part[0].prodArray[j].evnt.valueType.simpleTypeID].facetPresenceMask & TYPE_FACET_NAMED_SUBTYPE) > 0)
-					{
-						grammar->ruleArray[0].part[1].prodArray = (Production*) memManagedAllocate(memList, sizeof(Production) * (1 + IS_NILLABLE(grammar->props)));
-						if(grammar->ruleArray[0].part[1].prodArray == NULL)
-							return MEMORY_ALLOCATION_ERROR;
-
-						grammar->ruleArray[0].part[1].prodArraySize = 1 + IS_NILLABLE(grammar->props);
-						grammar->ruleArray[0].part[1].bits = IS_NILLABLE(grammar->props);
-						grammar->ruleArray[0].part[0].bits = getBitsNumber(grammar->ruleArray[0].part[0].prodArraySize);
-
-						grammar->ruleArray[0].part[1].prodArray[0].evnt.eventType = EVENT_AT_QNAME;
-						grammar->ruleArray[0].part[1].prodArray[0].evnt.valueType.exiType = VALUE_TYPE_NONE;
-						grammar->ruleArray[0].part[1].prodArray[0].evnt.valueType.simpleTypeID = UINT16_MAX;
-						grammar->ruleArray[0].part[1].prodArray[0].nonTermID = 0;
-
-						// "http://www.w3.org/2001/XMLSchema-instance" = 2
-						grammar->ruleArray[0].part[1].prodArray[0].qname.uriRowId = 2;
-						// type = 1
-						grammar->ruleArray[0].part[1].prodArray[0].qname.lnRowId = 1;
-						subTypeFound = TRUE;
-						break;
-					}
-				}
-			}
-			if(subTypeFound)
-				break;
-		}
-
 		// TODO: or is a simple type definition of which {variety} is union,
 		//       add the following production to Element_i)
+		if(HAS_NAMED_SUB_TYPE(grammar->props))
+		{
+			grammar->ruleArray[0].part[1].prodArray = (Production*) memManagedAllocate(memList, sizeof(Production) * (1 + IS_NILLABLE(grammar->props)));
+			if(grammar->ruleArray[0].part[1].prodArray == NULL)
+				return MEMORY_ALLOCATION_ERROR;
+
+			grammar->ruleArray[0].part[1].prodArraySize = 1 + IS_NILLABLE(grammar->props);
+			grammar->ruleArray[0].part[1].bits = IS_NILLABLE(grammar->props);
+			grammar->ruleArray[0].part[0].bits = getBitsNumber(grammar->ruleArray[0].part[0].prodArraySize);
+
+			grammar->ruleArray[0].part[1].prodArray[0].evnt.eventType = EVENT_AT_QNAME;
+			grammar->ruleArray[0].part[1].prodArray[0].evnt.valueType.exiType = VALUE_TYPE_NONE;
+			grammar->ruleArray[0].part[1].prodArray[0].evnt.valueType.simpleTypeID = UINT16_MAX;
+			grammar->ruleArray[0].part[1].prodArray[0].nonTermID = 0;
+
+			// "http://www.w3.org/2001/XMLSchema-instance" = 2
+			grammar->ruleArray[0].part[1].prodArray[0].qname.uriRowId = 2;
+			// type = 1
+			grammar->ruleArray[0].part[1].prodArray[0].qname.lnRowId = 1;
+			subTypeFound = TRUE;
+		}
 
 		if(IS_NILLABLE(grammar->props))
 		{

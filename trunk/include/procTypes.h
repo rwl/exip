@@ -433,21 +433,23 @@ struct DynGrammarRule
 typedef struct DynGrammarRule DynGrammarRule;
 
 
-#define IS_NILLABLE(p) 		((p & GR_PROP_NILLABLE) != 0)
-#define IS_AUGMENTED(p) 	((p & GR_PROP_AUGMENTED) != 0)
-#define IS_BUILD_IN_ELEM(p) ((p & GR_PROP_TYPE_BUILD_IN_ELEMENT) != 0)
-#define IS_SCHEMA(p) 		((p & GR_PROP_TYPE_SCHEMA) != 0)
+#define IS_NILLABLE(p) 			((p & GR_PROP_NILLABLE) != 0)
+#define IS_AUGMENTED(p) 		((p & GR_PROP_AUGMENTED) != 0)
+#define IS_BUILD_IN_ELEM(p) 	((p & GR_PROP_TYPE_BUILD_IN_ELEMENT) != 0)
+#define IS_SCHEMA(p) 			((p & GR_PROP_TYPE_SCHEMA) != 0)
+#define HAS_NAMED_SUB_TYPE(p) 	((p & GR_PROP_NAMED_SUB_TYPE) != 0)
 
 #define SET_NILLABLE(p)    		((p) = (p) | GR_PROP_NILLABLE)
 #define SET_AUGMENTED(p)    	((p) = (p) | GR_PROP_AUGMENTED)
 #define SET_BUILD_IN_ELEM(p)    ((p) = (p) | GR_PROP_TYPE_BUILD_IN_ELEMENT)
 #define SET_SCHEMA(p)    		((p) = (p) | GR_PROP_TYPE_SCHEMA)
+#define SET_NAMED_SUB_TYPE(p)  	((p) = (p) | GR_PROP_NAMED_SUB_TYPE)
 
 #define GR_PROP_TYPE_BUILD_IN_ELEMENT 0x01 // 0b00000001
 #define GR_PROP_TYPE_SCHEMA           0x02 // 0b00000010
 #define GR_PROP_NILLABLE              0x04 // 0b00000100
 #define GR_PROP_AUGMENTED             0x08 // 0b00001000
-#define GR_PROP_HAS_NAMED_SUB_TYPE    0x10 // 0b00010000
+#define GR_PROP_NAMED_SUB_TYPE        0x10 // 0b00010000
 
 /**
  * The rule index in the ruleArray is the left hand side nonTermID of the particular grammar Rule
@@ -458,8 +460,9 @@ struct EXIGrammar
 	size_t rulesDimension; // The size of the array
 	/**
 	 * Use the macros IS_NILLABLE(p), IS_AUGMENTED(p), IS_BUILD_IN_ELEM(p),
-	 * IS_SCHEMA(p) to extract the properties:
-	 * nillable, augmented, build-in element grammar or schema-informed grammar
+	 * IS_SCHEMA(p), HAS_NAMED_SUB_TYPE(p) to extract the properties:
+	 * nillable, augmented, build-in element grammar or schema-informed grammar,
+	 * the type of this grammar has named sub-types
 	 */
 	unsigned char props;
 	size_t contentIndex;

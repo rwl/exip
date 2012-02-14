@@ -71,11 +71,10 @@ errorCode generateSchemaBuildInGrammars(EXIPSchema* schema);
  * no user defined schema information is used for processing the EXI body; however, the built-in XML schema
  * types are available for use in the EXI body.
  *
- * @param[in, out] sTables string tables holding the references to the grammars
- * @param[in, out] memList A list storing the memory allocations
+ * @param[in, out] schema schema for which the grammars are generated
  * @return Error handling code
  */
-errorCode generateBuildInTypesGrammars(URITable* sTables, AllocList* memList);
+errorCode generateBuildInTypesGrammars(EXIPSchema* schema);
 
 
 /**
