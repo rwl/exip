@@ -73,10 +73,6 @@ errorCode generateSchemaBuildInGrammars(EXIPSchema* schema)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = generateBuildInTypesGrammars(schema->initialStringTables, &schema->memList);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
 	tmp_err_code = createDynArray(&simpleTypesArray, sizeof(SimpleType), 50, &tmpMemList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -98,6 +94,10 @@ errorCode generateSchemaBuildInGrammars(EXIPSchema* schema)
 		schema->simpleTypeArray[i].maxLength = ((SimpleType*) simpleTypesArray->elements)[i].maxLength;
 	}
 
+	tmp_err_code = generateBuildInTypesGrammars(schema);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
 	freeAllocList(&tmpMemList);
 
 	schema->globalElemGrammarsCount = 0;
@@ -106,7 +106,7 @@ errorCode generateSchemaBuildInGrammars(EXIPSchema* schema)
 	return ERR_OK;
 }
 
-errorCode generateBuildInTypesGrammars(URITable* sTables, AllocList* memList)
+errorCode generateBuildInTypesGrammars(EXIPSchema* schema)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int i;
@@ -115,7 +115,7 @@ errorCode generateBuildInTypesGrammars(URITable* sTables, AllocList* memList)
 	EXIGrammar* grammar;
 	EXIGrammar* typeEmptyGrammar;
 
-	typeEmptyGrammar = memManagedAllocate(memList, sizeof(EXIGrammar));
+	typeEmptyGrammar = memManagedAllocate(&schema->memList, sizeof(EXIGrammar));
 	if(typeEmptyGrammar == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -125,7 +125,7 @@ errorCode generateBuildInTypesGrammars(URITable* sTables, AllocList* memList)
 	typeEmptyGrammar->rulesDimension = 1;
 
 	// One more rule slot for grammar augmentation when strict == FASLE
-	typeEmptyGrammar->ruleArray = memManagedAllocate(memList, sizeof(GrammarRule)*2);
+	typeEmptyGrammar->ruleArray = memManagedAllocate(&schema->memList, sizeof(GrammarRule)*2);
 	if(typeEmptyGrammar->ruleArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -137,7 +137,7 @@ errorCode generateBuildInTypesGrammars(URITable* sTables, AllocList* memList)
 	typeEmptyGrammar->ruleArray->part[1].prodArraySize = 0;
 	typeEmptyGrammar->ruleArray->part[2].prodArraySize = 0;
 
-	typeEmptyGrammar->ruleArray->part[0].prodArray = memManagedAllocate(memList, sizeof(Production));
+	typeEmptyGrammar->ruleArray->part[0].prodArray = memManagedAllocate(&schema->memList, sizeof(Production));
 	if(typeEmptyGrammar->ruleArray->part[0].prodArray == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -152,24 +152,27 @@ errorCode generateBuildInTypesGrammars(URITable* sTables, AllocList* memList)
 	// URI id 3 -> http://www.w3.org/2001/XMLSchema
 	typeQnameID.uriRowId = 3;
 
-	for(i = 0; i < sTables->rows[3].lTable->rowCount; i++)
+	for(i = 0; i < schema->initialStringTables->rows[3].lTable->rowCount; i++)
 	{
 		typeQnameID.lnRowId = i;
 		tmp_err_code = getEXIDataTypeFromSimpleType(typeQnameID, &vType);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		grammar = memManagedAllocate(memList, sizeof(EXIGrammar));
+		grammar = memManagedAllocate(&schema->memList, sizeof(EXIGrammar));
 		if(grammar == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
 		grammar->contentIndex = 0;
 		grammar->props = 0;
 		SET_SCHEMA(grammar->props);
+
+		if((schema->simpleTypeArray[vType.simpleTypeID].facetPresenceMask & TYPE_FACET_NAMED_SUBTYPE) > 0)
+			SET_NAMED_SUB_TYPE(grammar->props);
 		grammar->rulesDimension = 2;
 
 		// One more rule slot for grammar augmentation when strict == FASLE
-		grammar->ruleArray = memManagedAllocate(memList, sizeof(GrammarRule)*(grammar->rulesDimension + 1));
+		grammar->ruleArray = memManagedAllocate(&schema->memList, sizeof(GrammarRule)*(grammar->rulesDimension + 1));
 		if(grammar->ruleArray == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
@@ -180,7 +183,7 @@ errorCode generateBuildInTypesGrammars(URITable* sTables, AllocList* memList)
 		grammar->ruleArray[0].part[1].prodArraySize = 0;
 		grammar->ruleArray[0].part[2].prodArraySize = 0;
 
-		grammar->ruleArray[0].part[0].prodArray = memManagedAllocate(memList, sizeof(Production));
+		grammar->ruleArray[0].part[0].prodArray = memManagedAllocate(&schema->memList, sizeof(Production));
 		if(grammar->ruleArray[0].part[0].prodArray == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
@@ -200,7 +203,7 @@ errorCode generateBuildInTypesGrammars(URITable* sTables, AllocList* memList)
 		grammar->ruleArray[1].part[1].prodArraySize = 0;
 		grammar->ruleArray[1].part[2].prodArraySize = 0;
 
-		grammar->ruleArray[1].part[0].prodArray = memManagedAllocate(memList, sizeof(Production));
+		grammar->ruleArray[1].part[0].prodArray = memManagedAllocate(&schema->memList, sizeof(Production));
 		if(grammar->ruleArray[1].part[0].prodArray == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
@@ -214,8 +217,8 @@ errorCode generateBuildInTypesGrammars(URITable* sTables, AllocList* memList)
 		grammar->ruleArray[1].part[0].prodArray[0].qname.uriRowId = UINT16_MAX;
 		grammar->ruleArray[1].part[0].prodArray[0].qname.lnRowId = SIZE_MAX;
 
-		sTables->rows[3].lTable->rows[i].typeGrammar = grammar;
-		sTables->rows[3].lTable->rows[i].typeEmptyGrammar = typeEmptyGrammar;
+		schema->initialStringTables->rows[3].lTable->rows[i].typeGrammar = grammar;
+		schema->initialStringTables->rows[3].lTable->rows[i].typeEmptyGrammar = typeEmptyGrammar;
 	}
 
 	return ERR_OK;

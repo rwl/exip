@@ -325,7 +325,10 @@ errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t 
 
 	parsing_data.schema = schema;
 
-	tmp_err_code = generateBuildInTypesGrammars(schema->initialStringTables, &schema->memList);
+	schema->sTypeArraySize = parsing_data.simpleTypesArray->elementCount;
+	schema->simpleTypeArray = (SimpleType*) parsing_data.simpleTypesArray->elements;
+
+	tmp_err_code = generateBuildInTypesGrammars(schema);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1670,11 +1673,17 @@ static errorCode handleRestrictionEl(struct xsdAppData* app_data)
 	ValueType vType;
 	size_t elID;
 
+	// TODO: this implementation works on simple types only. Extend that to complex types
+
 	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
 
 	tmp_err_code = getTypeQName(app_data, elemDesc->attributePointers[ATTRIBUTE_BASE], &baseTypeID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
+
+	// TODO: Check that the new type is named - if yes base type has derived named type and must be set
+	// The check can be written when the parent element is parsed and marked the existence of the name attribute
+	// SET_NAMED_SUB_TYPE(app_data->schema->initialStringTables->rows[baseTypeID.uriRowId].lTable->rows[baseTypeID.lnRowId].typeGrammar->props);
 
 	tmp_err_code = getEXIDataTypeFromSimpleType(baseTypeID, &vType);
 	if(tmp_err_code != ERR_OK)
