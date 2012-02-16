@@ -54,6 +54,7 @@
 extern URITable* comparison_ptr;
 
 #define XML_SCHEMA_NAMESPACE "http://www.w3.org/2001/XMLSchema"
+#define XML_SCHEMA_INSTANCE "http://www.w3.org/2001/XMLSchema-instance"
 
 /** Form Choice values */
 #define FORM_CHOICE_UNQUALIFIED           0
@@ -159,13 +160,27 @@ struct elementNotResolved {
 	QNameID type;
 };
 
+/**
+ * Represents a type declaration with xs:extension or xs:restriction
+ * and base type that cannot be found in the TypeGrammar pool.
+ * That is, the definition of the type is still not reached.
+ * These type declarations are put in a dynamic array
+ * */
+struct baseTypeNotResolved {
+	QNameID type;
+	QNameID base;
+	ProtoGrammar* content;
+	DynArray* attributeUses;
+};
+
 struct xsdAppData
 {
 	struct globalSchemaProps props;
 	AllocList tmpMemList;   			// Temporary allocations during the schema creation
 	GenericStack* contextStack; // Stack of ElementDescriptions
 	DynArray* elNotResolvedArray; // An array of struct elementNotResolved elements
-	URITable* metaStringTables;
+	DynArray* baseTypeNotResolvedArray; // An array of struct baseTypeNotResolved elements
+	URITable* metaStringTables;  // The typeGrammar and typeEmptyGrammar points to the protoGrammar and AttrbuteUseArray respectively
 	DynArray* globalElemGrammars; // QNameID* of globalElemGrammars
 	DynArray* simpleTypesArray; // A temporary array of simple type definitions
 	EXIPSchema* schema;
@@ -281,7 +296,7 @@ errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t 
 	parsing_data.props.attributeFormDefault = FORM_DEF_INITIAL_STATE;
 	parsing_data.props.elementFormDefault = FORM_DEF_INITIAL_STATE;
 	parsing_data.props.charDataPointer = NULL;
-	parsing_data.props.targetNSMetaID = 0;
+	parsing_data.props.targetNSMetaID = 0; // Default URI	0	"" [empty string]
 	getEmptyString(&parsing_data.props.emptyString);
 	getEmptyString(&parsing_data.props.targetNamespace);
 
@@ -292,6 +307,10 @@ errorCode generateSchemaInformedGrammars(char* binaryBuf, size_t bufLen, size_t 
 		return tmp_err_code;
 
 	tmp_err_code = createDynArray(&parsing_data.elNotResolvedArray, sizeof(struct elementNotResolved), 50, &parsing_data.tmpMemList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = createDynArray(&parsing_data.baseTypeNotResolvedArray, sizeof(struct baseTypeNotResolved), 20, &parsing_data.tmpMemList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1017,7 +1036,6 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char required = 0;
-	String* target_ns;
 	QNameID simpleTypeID;
 	QName scope;
 	ProtoGrammar* attrUseGrammar;
@@ -1035,17 +1053,9 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 		required = 1;
 	}
 	if(app_data->props.attributeFormDefault == FORM_DEF_QUALIFIED || stringEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_FORM], "qualified"))
-	{
-		//TODO: must take into account the parent element target namespace - might be different from the global target namespace
-
-		target_ns = &(app_data->props.targetNamespace); // it is the globally defined target namespace
 		uriRowID = app_data->props.targetNSMetaID;
-	}
 	else
-	{
-		target_ns = &app_data->props.emptyString;
-		uriRowID = 0;
-	}
+		uriRowID = 0; // URI	0	"" [empty string]
 
 	attrName = &(elemDesc->attributePointers[ATTRIBUTE_NAME]);
 	tmp_err_code = addLocalName(uriRowID, app_data, attrName, &lnRowID);
@@ -1089,36 +1099,76 @@ static errorCode handleExtentionEl(struct xsdAppData* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	QNameID baseTypeID;
-	String* typeName;
-	String* target_ns;
-	ProtoGrammar* simpleTypeGrammar;
+	ProtoGrammar* contentTypeGrammar;
 	ElementDescription* elemDesc;
 	ProtoGrammar* resultComplexGrammar;
-	ValueType vType;
 
 	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
-
-	typeName = &app_data->props.emptyString;
-	target_ns = &app_data->props.emptyString;
 
 	tmp_err_code = getTypeQName(app_data, elemDesc->attributePointers[ATTRIBUTE_BASE], &baseTypeID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = getEXIDataTypeFromSimpleType(baseTypeID, &vType);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	tmp_err_code = createSimpleTypeGrammar(&app_data->tmpMemList, vType, &simpleTypeGrammar);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
+	popFromStack(&(elemDesc->pGrammarStack), (void**) &contentTypeGrammar);
 	sortAttributeUseGrammars((ProtoGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount), app_data->metaStringTables);
 
-	tmp_err_code = createComplexTypeGrammar(&app_data->tmpMemList, (ProtoGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount),
-									   NULL, 0, simpleTypeGrammar, &resultComplexGrammar);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	if(baseTypeID.uriRowId == 3) // == http://www.w3.org/2001/XMLSchema
+	{
+		ProtoGrammar* simpleTypeGrammar;
+		ValueType vType;
+
+		// Extension from a simple type
+		tmp_err_code = getEXIDataTypeFromSimpleType(baseTypeID, &vType);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = createSimpleTypeGrammar(&app_data->tmpMemList, vType, &simpleTypeGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = createComplexTypeGrammar(&app_data->tmpMemList, (ProtoGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount),
+										   NULL, 0, simpleTypeGrammar, &resultComplexGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else
+	{
+		// Extension from a complex type or non-build-in simple types
+		if(app_data->metaStringTables->rows[baseTypeID.uriRowId].lTable->rows[baseTypeID.lnRowId].typeGrammar != NULL
+			|| app_data->metaStringTables->rows[baseTypeID.uriRowId].lTable->rows[baseTypeID.lnRowId].typeEmptyGrammar != NULL)
+		{
+			// This complex/simple type was already parsed
+			return NOT_IMPLEMENTED_YET;
+
+		}
+		else // This complex/simple type has not been parsed yet
+		{
+			struct baseTypeNotResolved typeContext;
+			ElementDescription* parentComplexTypeDefinition;
+			size_t elID;
+
+			typeContext.attributeUses = elemDesc->attributeUses;
+			typeContext.base.uriRowId = baseTypeID.uriRowId;
+			typeContext.base.lnRowId = baseTypeID.lnRowId;
+			typeContext.content = contentTypeGrammar;
+
+			parentComplexTypeDefinition = (ElementDescription*) app_data->contextStack->nextInStack;
+			if(parentComplexTypeDefinition == NULL)
+				return NULL_POINTER_REF;
+
+			typeContext.type.uriRowId = app_data->props.targetNSMetaID;
+
+			tmp_err_code = addLocalName(app_data->props.targetNSMetaID, app_data, &parentComplexTypeDefinition->attributePointers[ATTRIBUTE_NAME], &typeContext.type.lnRowId);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			tmp_err_code = addDynElement(app_data->baseTypeNotResolvedArray, &typeContext, &elID, &app_data->tmpMemList);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			return ERR_OK;
+		}
+	}
 
 #if DEBUG_GRAMMAR_GEN == ON
 	{
@@ -1162,46 +1212,24 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	String* typeName;
-	String* target_ns;
 	ProtoGrammar* contentTypeGrammar;
 	ProtoGrammar* resultComplexGrammar;
 	ProtoGrammar* resultComplexEmptyGrammar;
 	ElementDescription* elemDesc;
-	size_t lnRowID;
-	uint16_t uriRowID;
 
 	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
-
 	typeName = &(elemDesc->attributePointers[ATTRIBUTE_NAME]);
 
-	if(app_data->props.elementFormDefault == FORM_DEF_QUALIFIED || stringEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_FORM], "qualified"))
-	{
-		//TODO: must take into account the parent element target namespace
-		target_ns = &(app_data->props.targetNamespace);
-		uriRowID = app_data->props.targetNSMetaID;
-	}
-	else
-	{
-		target_ns = &app_data->props.emptyString;
-		uriRowID = 0; // ""
-	}
-
-	if(!isStringEmpty(typeName))
-	{
-		tmp_err_code = addLocalName(uriRowID, app_data, typeName, &lnRowID);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-
-
 	popFromStack(&(elemDesc->pGrammarStack), (void**) &contentTypeGrammar);
+	sortAttributeUseGrammars((ProtoGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount), app_data->metaStringTables);
 
-	if(contentTypeGrammar == NULL) // An empty element: <xsd:complexType />
+	if(contentTypeGrammar == NULL && elemDesc->attributeUses->elementCount == 0) // An empty element: <xsd:complexType />
+	{
 		resultComplexGrammar = NULL;
+		resultComplexEmptyGrammar = NULL;
+	}
 	else
 	{
-		sortAttributeUseGrammars((ProtoGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount), app_data->metaStringTables);
-
 		tmp_err_code = createComplexTypeGrammar(&app_data->tmpMemList, (ProtoGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount),
 										   NULL, 0, contentTypeGrammar, &resultComplexGrammar);
 		if(tmp_err_code != ERR_OK)
@@ -1209,6 +1237,8 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 
 		tmp_err_code = createComplexEmptyTypeGrammar(&app_data->tmpMemList, (ProtoGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount),
 				NULL, 0, &resultComplexEmptyGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 
 #if DEBUG_GRAMMAR_GEN == ON
 		{
@@ -1238,10 +1268,21 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
-	else // Named complex type - put it directly in the typeGrammars list
+	else if(resultComplexGrammar != NULL) // Named complex type that is resolved - put it directly in the typeGrammars list
 	{
 		EXIGrammar* complexEXIGrammar;
 		EXIGrammar* complexEXIEmptyGrammar;
+		QNameID typeNameId;
+
+		typeNameId.uriRowId = app_data->props.targetNSMetaID;
+
+		tmp_err_code = addLocalName(typeNameId.uriRowId, app_data, typeName, &typeNameId.lnRowId);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		// Store a reference to the protoGrammar and AttrUses in case there is a derived type with base this one
+		app_data->metaStringTables->rows[typeNameId.uriRowId].lTable->rows[typeNameId.lnRowId].typeGrammar = (EXIGrammar*) contentTypeGrammar;
+		app_data->metaStringTables->rows[typeNameId.uriRowId].lTable->rows[typeNameId.lnRowId].typeEmptyGrammar = (EXIGrammar*) elemDesc->attributeUses;
 
 		tmp_err_code = assignCodes(resultComplexGrammar, app_data->metaStringTables);
 		if(tmp_err_code != ERR_OK)
@@ -1272,8 +1313,8 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		app_data->schema->initialStringTables->rows[uriRowID].lTable->rows[lnRowID].typeGrammar = complexEXIGrammar;
-		app_data->schema->initialStringTables->rows[uriRowID].lTable->rows[lnRowID].typeEmptyGrammar = complexEXIEmptyGrammar;
+		app_data->schema->initialStringTables->rows[typeNameId.uriRowId].lTable->rows[typeNameId.lnRowId].typeGrammar = complexEXIGrammar;
+		app_data->schema->initialStringTables->rows[typeNameId.uriRowId].lTable->rows[typeNameId.lnRowId].typeEmptyGrammar = complexEXIEmptyGrammar;
 	}
 
 	return ERR_OK;
@@ -1287,7 +1328,6 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 	ProtoGrammar* typeGrammar;
 	ProtoGrammar* typeEmptyGrammar;
 	String* elName;
-	String* target_ns;
 	unsigned char isGlobal = 0;
 	uint16_t uriRowId;
 	size_t lnRowId;
@@ -1303,16 +1343,9 @@ static errorCode handleElementEl(struct xsdAppData* app_data)
 		isGlobal = TRUE;
 
 	if(isGlobal || app_data->props.elementFormDefault == FORM_DEF_QUALIFIED || stringEqualToAscii(elemDesc->attributePointers[ATTRIBUTE_FORM], "qualified"))
-	{
-		//TODO: must take into account the parent element target namespace
-		target_ns = &(app_data->props.targetNamespace);
 		uriRowId = app_data->props.targetNSMetaID;
-	}
 	else
-	{
-		target_ns = &app_data->props.emptyString;
 		uriRowId = 0;
-	}
 
 	elName = &(elemDesc->attributePointers[ATTRIBUTE_NAME]);
 
@@ -1764,7 +1797,13 @@ static errorCode handleSimpleTypeEl(struct xsdAppData* app_data)
 	}
 	else
 	{
-		size_t lnRowID = 0;
+		QNameID typeName;
+
+		typeName.uriRowId = app_data->props.targetNSMetaID;
+
+		tmp_err_code = addLocalName(typeName.uriRowId, app_data, &elemDesc->attributePointers[ATTRIBUTE_NAME], &typeName.lnRowId);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 
 		tmp_err_code = assignCodes(simpleTypeGr, app_data->metaStringTables);
 		if(tmp_err_code != ERR_OK)
@@ -1774,12 +1813,8 @@ static errorCode handleSimpleTypeEl(struct xsdAppData* app_data)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = addLocalName(app_data->props.targetNSMetaID, app_data, &elemDesc->attributePointers[ATTRIBUTE_NAME], &lnRowID);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		app_data->schema->initialStringTables->rows[app_data->props.targetNSMetaID].lTable->rows[lnRowID].typeGrammar = exiTypeGrammar;
-		app_data->schema->initialStringTables->rows[app_data->props.targetNSMetaID].lTable->rows[lnRowID].typeEmptyGrammar = app_data->schema->initialStringTables->rows[3].lTable->rows[0].typeEmptyGrammar;
+		app_data->schema->initialStringTables->rows[typeName.uriRowId].lTable->rows[typeName.lnRowId].typeGrammar = exiTypeGrammar;
+		app_data->schema->initialStringTables->rows[typeName.uriRowId].lTable->rows[typeName.lnRowId].typeEmptyGrammar = app_data->schema->initialStringTables->rows[3].lTable->rows[0].typeEmptyGrammar;
 
 		return ERR_OK;
 	}
@@ -2068,6 +2103,7 @@ static errorCode getTypeQName(struct xsdAppData* app_data, const String typeLite
 		ln->str = typeLiteral.str;
 	}
 
+	// http://www.w3.org/TR/xmlschema11-1/#sec-src-resolve
 	// Validation checks:
 	//	The appropriate case among the following must be true:
 	//		4.1 If the ·namespace name· of the ·QName· is ·absent·, then one of the following must be true:
@@ -2076,6 +2112,8 @@ static errorCode getTypeQName(struct xsdAppData* app_data, const String typeLite
 	//		4.2 otherwise the ·namespace name· of the ·QName· is the same as one of the following:
 	//		4.2.1 The ·actual value· of the targetNamespace [attribute] of the <schema> element information item of the schema document containing the ·QName·.
 	//		4.2.2 The ·actual value· of the namespace [attribute] of some <import> element information item contained in the <schema> element information item of that schema document.
+	//		4.2.3 http://www.w3.org/2001/XMLSchema.
+	//		4.2.4 http://www.w3.org/2001/XMLSchema-instance.
 
 	if(isStringEmpty(uri)) // 4.1
 	{
@@ -2085,7 +2123,7 @@ static errorCode getTypeQName(struct xsdAppData* app_data, const String typeLite
 			return INVALID_EXI_INPUT;
 		}
 	}
-	else if(!stringEqualToAscii(*uri, XML_SCHEMA_NAMESPACE)) // 4.2 - there must be a hole in this definition, the schema namespace should be also valid
+	else if(!stringEqualToAscii(*uri, XML_SCHEMA_NAMESPACE) && !stringEqualToAscii(*uri, XML_SCHEMA_INSTANCE)) // 4.2
 	{
 		// TODO: instead of this TRUE below should be the check in 4.2.2
 		if(!stringEqual(app_data->props.targetNamespace, *uri) && TRUE)
