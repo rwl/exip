@@ -84,3 +84,19 @@ errorCode addDynElement(DynArray* dArray, void* elem, size_t* elID, AllocList* m
 	dArray->elementCount += 1;
 	return ERR_OK;
 }
+
+errorCode delDynElement(DynArray* dArray, size_t elID)
+{
+	if(dArray == NULL)
+		return NULL_POINTER_REF;
+
+	if(dArray->elementCount - 1 - elID >= 0)
+	{
+		memcpy(((unsigned char *) dArray->elements) + elID*dArray->elSize, ((unsigned char *) dArray->elements) + elID*dArray->elSize + dArray->elSize, (dArray->elementCount - 1 - elID)*dArray->elSize);
+		dArray->elementCount -= 1;
+	}
+	else
+		return OUT_OF_BOUND_BUFFER;
+
+	return ERR_OK;
+}

@@ -204,8 +204,6 @@ static char xsd_attribute(QName qname, void* app_data);
 static char xsd_stringData(const String value, void* app_data);
 static char xsd_namespaceDeclaration(const String ns, const String prefix, unsigned char isLocalElementNS, void* app_data);
 
-static void initElemContext(ElementDescription* elem);
-
 // Handling of schema elements
 
 static errorCode handleAttributeEl(struct xsdAppData* app_data);
@@ -213,6 +211,8 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data);
 static errorCode handleExtentionEl(struct xsdAppData* app_data);
 
 static errorCode handleSimpleContentEl(struct xsdAppData* app_data);
+
+static errorCode handleComplexContentEl(struct xsdAppData* app_data);
 
 static errorCode handleComplexTypeEl(struct xsdAppData* app_data);
 
@@ -234,6 +234,8 @@ static errorCode handleMaxLengthEl(struct xsdAppData* app_data);
 
 //////////// Helper functions
 
+static void initElemContext(ElementDescription* elem);
+
 static errorCode addURIString(struct xsdAppData* app_data, String* uri, uint16_t* uriRowId);
 
 static errorCode addLocalName(uint16_t uriId, struct xsdAppData* app_data, String* ln, size_t* lnRowId);
@@ -247,6 +249,10 @@ static int compareURI(const void* uriRow1, const void* uriRow2);
 static int compareAttrUse(const void* attrPG1, const void* attrPG2);
 
 static errorCode parseOccuranceAttribute(const String occurance, int* outInt);
+
+static errorCode resolveDerivedTypes(struct xsdAppData* appD);
+
+static errorCode resolveElementTypes(struct xsdAppData* appD);
 
 /**
  * From a string encoded QName derives the "namespace" part and the "local name" part.
@@ -410,7 +416,6 @@ static char xsd_endDocument(void* app_data)
 	Production* tmpProd;
 	size_t t = 0;
 	size_t p = 0;
-	struct elementNotResolved* unResEl;
 
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End XML Schema parsing\n"));
 
@@ -439,23 +444,18 @@ static char xsd_endDocument(void* app_data)
 	}
 #endif
 
-	// Resolve the element types that were left for the end.
-
-	for(i = 0; i < appD->elNotResolvedArray->elementCount; i++)
+	// Resolve the derived types that were left for the end.
+	if(resolveDerivedTypes(appD) != ERR_OK)
 	{
-		unResEl = ((struct elementNotResolved*) appD->elNotResolvedArray->elements) + i;
-		if(appD->schema->initialStringTables->rows[unResEl->type.uriRowId].lTable->rows[unResEl->type.lnRowId].typeGrammar != NULL
-						&& appD->schema->initialStringTables->rows[unResEl->type.uriRowId].lTable->rows[unResEl->type.lnRowId].typeEmptyGrammar != NULL)
-		{
-			// The grammars for this type are already created
-			appD->schema->initialStringTables->rows[unResEl->element.uriRowId].lTable->rows[unResEl->element.lnRowId].typeGrammar = appD->schema->initialStringTables->rows[unResEl->type.uriRowId].lTable->rows[unResEl->type.lnRowId].typeGrammar;
-			appD->schema->initialStringTables->rows[unResEl->element.uriRowId].lTable->rows[unResEl->element.lnRowId].typeEmptyGrammar = appD->schema->initialStringTables->rows[unResEl->type.uriRowId].lTable->rows[unResEl->type.lnRowId].typeEmptyGrammar;
-		}
-		else // the type definition is missing
-		{
-			DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Some element types are left unresolved\n"));
-			return EXIP_HANDLER_STOP;
-		}
+		DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Error resolving derived types\n"));
+		return EXIP_HANDLER_STOP;
+	}
+
+	// Resolve the element types that were left for the end.
+	if(resolveElementTypes(appD) != ERR_OK)
+	{
+		DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Error resolving element types\n"));
+		return EXIP_HANDLER_STOP;
 	}
 
 	sortInitialStringTables(appD->schema->initialStringTables);
@@ -624,9 +624,6 @@ static char xsd_startElement(QName qname, void* app_data)
 		{
 			element->element = ELEMENT_COMPLEX_TYPE;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <complexType> element\n"));
-			tmp_err_code = createDynArray(&element->attributeUses, sizeof(ProtoGrammar), 5, &appD->tmpMemList);
-			if(tmp_err_code != ERR_OK)
-				return EXIP_HANDLER_STOP;
 		}
 		else if(stringEqualToAscii(*qname.localName, "complexContent"))
 		{
@@ -657,9 +654,6 @@ static char xsd_startElement(QName qname, void* app_data)
 		{
 			element->element = ELEMENT_EXTENSION;
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Starting <extension> element\n"));
-			tmp_err_code = createDynArray(&element->attributeUses, sizeof(ProtoGrammar), 5, &appD->tmpMemList);
-			if(tmp_err_code != ERR_OK)
-				return EXIP_HANDLER_STOP;
 		}
 		else if(stringEqualToAscii(*qname.localName, "restriction"))
 		{
@@ -800,6 +794,11 @@ static char xsd_endElement(void* app_data)
 		{
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End </maxLength> element\n"));
 			tmp_err_code = handleMaxLengthEl(appD);
+		}
+		else if(element->element == ELEMENT_COMPLEX_CONTENT)
+		{
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End </complexContent> element\n"));
+			tmp_err_code = handleComplexContentEl(appD);
 		}
 		else
 		{
@@ -1044,6 +1043,7 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 	size_t lnRowID;
 	uint16_t uriRowID;
 	String* attrName;
+	DynArray* attrUseArray;
 
 	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
 
@@ -1088,7 +1088,17 @@ static errorCode handleAttributeEl(struct xsdAppData* app_data)
 	}
 #endif
 
-	tmp_err_code = addDynElement(((ElementDescription*) app_data->contextStack->element)->attributeUses, attrUseGrammar, &attrUseGrammarID, &app_data->tmpMemList);
+	attrUseArray = ((ElementDescription*) app_data->contextStack->element)->attributeUses;
+
+	if(attrUseArray == NULL)
+	{
+		tmp_err_code = createDynArray(&attrUseArray, sizeof(ProtoGrammar), 10, &app_data->tmpMemList);
+		if(tmp_err_code != ERR_OK)
+			return EXIP_HANDLER_STOP;
+		((ElementDescription*) app_data->contextStack->element)->attributeUses = attrUseArray;
+	}
+
+	tmp_err_code = addDynElement(attrUseArray, attrUseGrammar, &attrUseGrammarID, &app_data->tmpMemList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1102,6 +1112,8 @@ static errorCode handleExtentionEl(struct xsdAppData* app_data)
 	ProtoGrammar* contentTypeGrammar;
 	ElementDescription* elemDesc;
 	ProtoGrammar* resultComplexGrammar;
+	ProtoGrammar* attrUsesArray = NULL;
+	unsigned int attrUsesCount = 0;
 
 	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
 
@@ -1110,7 +1122,12 @@ static errorCode handleExtentionEl(struct xsdAppData* app_data)
 		return tmp_err_code;
 
 	popFromStack(&(elemDesc->pGrammarStack), (void**) &contentTypeGrammar);
-	sortAttributeUseGrammars((ProtoGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount), app_data->metaStringTables);
+	if(elemDesc->attributeUses != NULL)
+	{
+		attrUsesArray = (ProtoGrammar*) elemDesc->attributeUses->elements;
+		attrUsesCount = (unsigned int)(elemDesc->attributeUses->elementCount);
+		sortAttributeUseGrammars(attrUsesArray, attrUsesCount, app_data->metaStringTables);
+	}
 
 	if(baseTypeID.uriRowId == 3) // == http://www.w3.org/2001/XMLSchema
 	{
@@ -1126,7 +1143,7 @@ static errorCode handleExtentionEl(struct xsdAppData* app_data)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = createComplexTypeGrammar(&app_data->tmpMemList, (ProtoGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount),
+		tmp_err_code = createComplexTypeGrammar(&app_data->tmpMemList, attrUsesArray, attrUsesCount,
 										   NULL, 0, simpleTypeGrammar, &resultComplexGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -1152,7 +1169,7 @@ static errorCode handleExtentionEl(struct xsdAppData* app_data)
 			typeContext.base.lnRowId = baseTypeID.lnRowId;
 			typeContext.content = contentTypeGrammar;
 
-			parentComplexTypeDefinition = (ElementDescription*) app_data->contextStack->nextInStack;
+			parentComplexTypeDefinition = (ElementDescription*) app_data->contextStack->nextInStack->element;
 			if(parentComplexTypeDefinition == NULL)
 				return NULL_POINTER_REF;
 
@@ -1208,6 +1225,24 @@ static errorCode handleSimpleContentEl(struct xsdAppData* app_data)
 	return ERR_OK;
 }
 
+static errorCode handleComplexContentEl(struct xsdAppData* app_data)
+{
+	ElementDescription* elemDesc;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	ProtoGrammar* contentGr;
+
+	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
+	popFromStack(&elemDesc->pGrammarStack, (void**) &contentGr);
+
+	tmp_err_code = pushOnStack(&(((ElementDescription*) app_data->contextStack->element)->pGrammarStack), contentGr);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	((ElementDescription*) app_data->contextStack->element)->attributeUses = elemDesc->attributeUses;
+
+	return ERR_OK;
+}
+
 static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -1215,28 +1250,35 @@ static errorCode handleComplexTypeEl(struct xsdAppData* app_data)
 	ProtoGrammar* contentTypeGrammar;
 	ProtoGrammar* resultComplexGrammar;
 	ProtoGrammar* resultComplexEmptyGrammar;
+	ProtoGrammar* attrUsesArray = NULL;
+	unsigned int attrUsesCount = 0;
 	ElementDescription* elemDesc;
 
 	popFromStack(&(app_data->contextStack), (void**) &elemDesc);
 	typeName = &(elemDesc->attributePointers[ATTRIBUTE_NAME]);
 
 	popFromStack(&(elemDesc->pGrammarStack), (void**) &contentTypeGrammar);
-	sortAttributeUseGrammars((ProtoGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount), app_data->metaStringTables);
+	if(elemDesc->attributeUses != NULL)
+	{
+		attrUsesArray = (ProtoGrammar*) elemDesc->attributeUses->elements;
+		attrUsesCount = (unsigned int)(elemDesc->attributeUses->elementCount);
+		sortAttributeUseGrammars(attrUsesArray, attrUsesCount, app_data->metaStringTables);
+	}
 
-	if(contentTypeGrammar == NULL && elemDesc->attributeUses->elementCount == 0) // An empty element: <xsd:complexType />
+	if(contentTypeGrammar == NULL && attrUsesCount == 0) // An empty element: <xsd:complexType />
 	{
 		resultComplexGrammar = NULL;
 		resultComplexEmptyGrammar = NULL;
 	}
 	else
 	{
-		tmp_err_code = createComplexTypeGrammar(&app_data->tmpMemList, (ProtoGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount),
+		tmp_err_code = createComplexTypeGrammar(&app_data->tmpMemList, attrUsesArray, attrUsesCount,
 										   NULL, 0, contentTypeGrammar, &resultComplexGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = createComplexEmptyTypeGrammar(&app_data->tmpMemList, (ProtoGrammar*) elemDesc->attributeUses->elements, (unsigned int)(elemDesc->attributeUses->elementCount),
-				NULL, 0, &resultComplexEmptyGrammar);
+		tmp_err_code = createComplexEmptyTypeGrammar(&app_data->tmpMemList, attrUsesArray, attrUsesCount,
+											NULL, 0, &resultComplexEmptyGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -2147,4 +2189,141 @@ static void sortAttributeUseGrammars(ProtoGrammar* attrProtoGrammars, unsigned i
 {
 	comparison_ptr = metaSTable;
 	qsort(attrProtoGrammars, elementCount, sizeof(ProtoGrammar), compareAttrUse);
+}
+
+static errorCode resolveDerivedTypes(struct xsdAppData* appD)
+{
+	unsigned int i = 0;
+	unsigned int j = 0;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	struct baseTypeNotResolved* unResType;
+	ProtoGrammar* baseContent;
+	DynArray* baseAttrUses;
+	size_t elID;
+	GenericStack* tmpGrammarStack = NULL;
+	ProtoGrammar* tmpProtoGrammar;
+	ProtoGrammar* resultComplexGrammar;
+	ProtoGrammar* resultComplexEmptyGrammar;
+	EXIGrammar* complexEXIGrammar;
+	EXIGrammar* complexEXIEmptyGrammar;
+	QNameID typeNameId;
+	unsigned char smthResolved = FALSE;
+
+	while(appD->baseTypeNotResolvedArray->elementCount > 0)
+	{
+		for(i = 0; i < appD->baseTypeNotResolvedArray->elementCount; i++)
+		{
+			unResType = ((struct baseTypeNotResolved*) appD->baseTypeNotResolvedArray->elements) + i;
+			baseContent = (ProtoGrammar*) appD->metaStringTables->rows[unResType->base.uriRowId].lTable->rows[unResType->base.lnRowId].typeGrammar;
+			baseAttrUses = (DynArray*) appD->metaStringTables->rows[unResType->base.uriRowId].lTable->rows[unResType->base.lnRowId].typeEmptyGrammar;
+			if(baseContent != NULL)
+			{
+				smthResolved = TRUE;
+				// The base type is now resolved
+				// Merge the attribute uses
+				for (j = 0; j < baseAttrUses->elementCount; j++)
+				{
+					tmp_err_code = addDynElement(unResType->attributeUses, baseAttrUses->elements + j, &elID, &appD->tmpMemList);
+					if(tmp_err_code != ERR_OK)
+						return tmp_err_code;
+				}
+
+				// Merge the contents
+				tmp_err_code = pushOnStack(&tmpGrammarStack, baseContent);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				tmp_err_code = pushOnStack(&tmpGrammarStack, unResType->content);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				tmp_err_code = createSequenceModelGroupsGrammar(&appD->tmpMemList, tmpGrammarStack, &tmpProtoGrammar);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				sortAttributeUseGrammars((ProtoGrammar*) unResType->attributeUses->elements, unResType->attributeUses->elementCount, appD->metaStringTables);
+
+				tmp_err_code = createComplexTypeGrammar(&appD->tmpMemList, (ProtoGrammar*) unResType->attributeUses->elements, (unsigned int)(unResType->attributeUses->elementCount),
+												   NULL, 0, tmpProtoGrammar, &resultComplexGrammar);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				tmp_err_code = createComplexEmptyTypeGrammar(&appD->tmpMemList, (ProtoGrammar*) unResType->attributeUses->elements, (unsigned int)(unResType->attributeUses->elementCount),
+						NULL, 0, &resultComplexEmptyGrammar);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				typeNameId.uriRowId = unResType->type.uriRowId;
+				typeNameId.lnRowId = unResType->type.lnRowId;
+
+				// Store a reference to the protoGrammar and AttrUses in case there is a derived type with base this one
+				appD->metaStringTables->rows[typeNameId.uriRowId].lTable->rows[typeNameId.lnRowId].typeGrammar = (EXIGrammar*) tmpProtoGrammar;
+				appD->metaStringTables->rows[typeNameId.uriRowId].lTable->rows[typeNameId.lnRowId].typeEmptyGrammar = (EXIGrammar*) unResType->attributeUses;
+
+				tmp_err_code = assignCodes(resultComplexGrammar, appD->metaStringTables);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				tmp_err_code = convertProtoGrammar(&appD->schema->memList, resultComplexGrammar, &complexEXIGrammar);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+		#if DEBUG_GRAMMAR_GEN == ON
+			{
+				uint16_t t = 0;
+				DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Complex type grammar:\n"));
+				for(t = 0; t < complexEXIGrammar->rulesDimension; t++)
+				{
+					tmp_err_code = printGrammarRule(t, &(complexEXIGrammar->ruleArray[t]));
+					if(tmp_err_code != ERR_OK)
+						return tmp_err_code;
+				}
+			}
+		#endif
+
+				tmp_err_code = assignCodes(resultComplexEmptyGrammar, appD->metaStringTables);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				tmp_err_code = convertProtoGrammar(&appD->schema->memList, resultComplexEmptyGrammar, &complexEXIEmptyGrammar);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				appD->schema->initialStringTables->rows[typeNameId.uriRowId].lTable->rows[typeNameId.lnRowId].typeGrammar = complexEXIGrammar;
+				appD->schema->initialStringTables->rows[typeNameId.uriRowId].lTable->rows[typeNameId.lnRowId].typeEmptyGrammar = complexEXIEmptyGrammar;
+
+				tmp_err_code = delDynElement(appD->baseTypeNotResolvedArray, i);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
+		}
+		if(smthResolved == TRUE)
+			smthResolved = FALSE;
+		else
+			return UNEXPECTED_ERROR;
+	}
+
+	return ERR_OK;
+}
+
+static errorCode resolveElementTypes(struct xsdAppData* appD)
+{
+	unsigned int i = 0;
+	struct elementNotResolved* unResEl;
+
+	for(i = 0; i < appD->elNotResolvedArray->elementCount; i++)
+	{
+		unResEl = ((struct elementNotResolved*) appD->elNotResolvedArray->elements) + i;
+		if(appD->schema->initialStringTables->rows[unResEl->type.uriRowId].lTable->rows[unResEl->type.lnRowId].typeGrammar != NULL
+						&& appD->schema->initialStringTables->rows[unResEl->type.uriRowId].lTable->rows[unResEl->type.lnRowId].typeEmptyGrammar != NULL)
+		{
+			// The grammars for this type are already created
+			appD->schema->initialStringTables->rows[unResEl->element.uriRowId].lTable->rows[unResEl->element.lnRowId].typeGrammar = appD->schema->initialStringTables->rows[unResEl->type.uriRowId].lTable->rows[unResEl->type.lnRowId].typeGrammar;
+			appD->schema->initialStringTables->rows[unResEl->element.uriRowId].lTable->rows[unResEl->element.lnRowId].typeEmptyGrammar = appD->schema->initialStringTables->rows[unResEl->type.uriRowId].lTable->rows[unResEl->type.lnRowId].typeEmptyGrammar;
+		}
+		else // the type definition is missing
+			return UNEXPECTED_ERROR;
+	}
+
+	return ERR_OK;
 }
