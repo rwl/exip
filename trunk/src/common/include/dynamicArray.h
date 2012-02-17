@@ -82,4 +82,14 @@ errorCode createDynArray(DynArray** dArray, size_t elSize, uint16_t defaultSize,
  */
 errorCode addDynElement(DynArray* dArray, void* elem, size_t* elID, AllocList* memList);
 
+/**
+ * @brief Removes an element from the dynamic array with index elID
+ *
+ * @param[in, out] dArray Untyped Dynamic Array
+ * @param[in] elID the ID of the element to be deleted
+ * @return Error handling code - NULL_POINTER_REF if dArray is NULL; OUT_OF_BOUND_BUFFER if the index is
+ * bigger than the array size or the array size is 0
+ */
+errorCode delDynElement(DynArray* dArray, size_t elID);
+
 #endif /* DYNAMICARRAY_H_ */
