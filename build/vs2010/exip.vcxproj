@@ -14,7 +14,6 @@
     <ClInclude Include="..\..\include\contentHandler.h" />
     <ClInclude Include="..\..\include\errorHandle.h" />
     <ClInclude Include="..\..\include\EXIParser.h" />
-    <ClInclude Include="..\..\include\exipConfig.h" />
     <ClInclude Include="..\..\include\EXISerializer.h" />
     <ClInclude Include="..\..\include\grammarGenerator.h" />
     <ClInclude Include="..\..\include\procTypes.h" />
@@ -41,6 +40,7 @@
     <ClInclude Include="..\..\src\streamIO\include\streamRead.h" />
     <ClInclude Include="..\..\src\streamIO\include\streamWrite.h" />
     <ClInclude Include="..\..\src\stringTables\include\sTables.h" />
+    <ClInclude Include="exipConfig.h" />
     <ClInclude Include="stdint.h" />
   </ItemGroup>
   <ItemGroup>
