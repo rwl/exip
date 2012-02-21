@@ -6,7 +6,7 @@
 #include "hashtable_private.h"
 #include "procTypes.h"
 
-#define CEIL(VARIABLE) ( (VARIABLE - (unsigned int)VARIABLE)==0 ? (unsigned int)VARIABLE : (unsigned int) VARIABLE+1 )
+#define CEIL(VARIABLE) ( ((VARIABLE) - (unsigned int)(VARIABLE))==0 ? (unsigned int)(VARIABLE) : (unsigned int) (VARIABLE)+1 )
 
 /*
 Credit for primes table: Aaron Krowne
