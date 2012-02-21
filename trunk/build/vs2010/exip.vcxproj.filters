@@ -54,9 +54,6 @@
     <ClInclude Include="..\..\include\EXIParser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\exipConfig.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\EXISerializer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -137,6 +134,9 @@
     </ClInclude>
     <ClInclude Include="..\..\src\grammarGen\include\protoGrammars.h">
       <Filter>Header Files\grammarGen</Filter>
+    </ClInclude>
+    <ClInclude Include="exipConfig.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
