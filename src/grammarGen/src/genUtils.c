@@ -421,7 +421,7 @@ errorCode createParticleGrammar(AllocList* memList, int minOccurs, int maxOccurs
 								ProtoGrammar* termGrammar, ProtoGrammar** result)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned int i = 0;
+	int i = 0;
 
 	tmp_err_code = createProtoGrammar(memList, minOccurs + 10, 5, result);
 	if(tmp_err_code != ERR_OK)
@@ -446,7 +446,7 @@ errorCode createParticleGrammar(AllocList* memList, int minOccurs, int maxOccurs
 	if(maxOccurs - minOccurs > 0 || maxOccurs < 0) // Only if maxOccurs is unbounded or maxOccurs > minOccurs
 	{
 		unsigned char prodEEFound = FALSE;
-		for(i = 0; i < termGrammar->prodCount[0]; i++)
+		for(i = 0; i < (int)termGrammar->prodCount[0]; i++)
 		{
 			if(termGrammar->prods[0][i].evnt.eventType == EVENT_EE)
 			{
@@ -463,7 +463,7 @@ errorCode createParticleGrammar(AllocList* memList, int minOccurs, int maxOccurs
 
 		if(maxOccurs >= 0) // {max occurs} is not unbounded
 		{
-			for(i = 0; i < maxOccurs - (int)minOccurs; i++)
+			for(i = 0; i < maxOccurs - minOccurs; i++)
 			{
 				tmp_err_code = concatenateGrammars(memList, *result, termGrammar);
 				if(tmp_err_code != ERR_OK)
@@ -478,7 +478,7 @@ errorCode createParticleGrammar(AllocList* memList, int minOccurs, int maxOccurs
 			unsigned int currRuleIndex = termGrammar->rulesCount;
 
 			// Excluding the first rule
-			for(i = 1; i < termGrammar->rulesCount; i++)
+			for(i = 1; i < (int)termGrammar->rulesCount; i++)
 			{
 				for(j = 0; j < termGrammar->prodCount[i]; j++)
 				{
