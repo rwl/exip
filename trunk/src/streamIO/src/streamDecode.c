@@ -231,7 +231,7 @@ errorCode decodeDecimalValue(EXIStream* strm, Decimal* dec_val)
 		fract_part = fract_part/10;
 		fraction_digits = fraction_digits*10;
 	}
-	*dec_val = fract_part_rev;
+	*dec_val = (Decimal)fract_part_rev;
 
 	if(sign == 1) // negative number
 		*dec_val = -*dec_val;
