@@ -2223,7 +2223,7 @@ static errorCode resolveDerivedTypes(struct xsdAppData* appD)
 				// Merge the attribute uses
 				for (j = 0; j < baseAttrUses->elementCount; j++)
 				{
-					tmp_err_code = addDynElement(unResType->attributeUses, baseAttrUses->elements + j, &elID, &appD->tmpMemList);
+					tmp_err_code = addDynElement(unResType->attributeUses, (struct elementNotResolved *)(baseAttrUses->elements) + j, &elID, &appD->tmpMemList);
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
 				}
