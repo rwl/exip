@@ -42,7 +42,7 @@
  */
 
 #define RULE_EXTENSION_FACTOR 20
-#define PRODUTION_EXTENSION_FACTOR 20
+#define PRODUTION_EXTENSION_FACTOR 10
 
 #include "protoGrammars.h"
 #include "memManagement.h"
@@ -120,6 +120,14 @@ errorCode addProtoRule(AllocList* memlist, ProtoGrammar* pg)
 			pg->prodCount[i] = oldProdCount[i];
 			pg->prodDim[i] = oldProdDim[i];
 			pg->prodMemPair[i] = oldProdMemPair[i];
+		}
+		for(; i < pg->rulesDim; i++)
+		{
+			pg->prodCount[i] = 0;
+			pg->prodDim[i] = PRODUTION_EXTENSION_FACTOR;
+			pg->prods[i] = (Production*) memManagedAllocatePtr(memlist, sizeof(Production)*PRODUTION_EXTENSION_FACTOR, &(pg->prodMemPair[i]));
+			if(pg->prods[i] == NULL)
+				return MEMORY_ALLOCATION_ERROR;
 		}
 	}
 
