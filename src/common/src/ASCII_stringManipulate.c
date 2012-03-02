@@ -143,32 +143,35 @@ char stringEqualToAscii(const String str1, const char* str2)
 
 int stringCompare(const String str1, const String str2)
 {
+	int diff;
+	size_t i;
+
+	/* Check for NULL string pointers */
 	if(str1.str == NULL)
 	{
 		if(str2.str == NULL)
 			return 0;
-		else
-			return -1;
+		return -1;
 	}
 	else if(str2.str == NULL)
 		return 1;
-	else
+	/* Check for length difference */
+	if(str1.length < str2.length)
+		return -1;
+	if(str1.length > str2.length)
+		return 1;
+	/*
+ 	 * If we got here, neither string pointer is NULL 
+	 * and they are the same length.
+	 * Check character by character
+	 */
+	for(i = 0; i < str1.length; i++)
 	{
-		int diff;
-		size_t i = 0;
-		for(i = 0; i < str1.length; i++)
-		{
-			if(i < str2.length)
-			{
-				diff = str1.str[i] - str2.str[i];
-				if(diff)
-					return diff;
-			}
-			else
-				return 1;
-		}
-		return 0;
+		diff = str1.str[i] - str2.str[i];
+		if(diff)
+			return diff;
 	}
+	return 0;
 }
 
 // TODO: consider removing the OUT_OF_BOUND_BUFFER check: the length of the string must be valid
