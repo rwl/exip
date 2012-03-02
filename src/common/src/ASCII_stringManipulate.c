@@ -108,20 +108,15 @@ char stringEqual(const String str1, const String str2)
 {
 	if(str1.length != str2.length)
 		return 0;
-	else
+	else // The strings have the same length
 	{
-		if(str1.length == 0)
-			return 1;
-		else
+		size_t i;
+		for(i = 0; i < str1.length; i++)
 		{
-			size_t i = 0;
-			for(i = 0; i < str1.length; i++)
-			{
-				if(str1.str[i] != str2.str[i])
-					return 0;
-			}
-			return 1;
+			if(str1.str[i] != str2.str[i])
+				return 0;
 		}
+		return 1;
 	}
 }
 
@@ -129,9 +124,9 @@ char stringEqualToAscii(const String str1, const char* str2)
 {
 	if(str1.length != strlen(str2))
 		return 0;
-	else
+	else // The strings have the same length
 	{
-		size_t i = 0;
+		size_t i;
 		for(i = 0; i < str1.length; i++)
 		{
 			if(str1.str[i] != str2[i])
@@ -143,9 +138,6 @@ char stringEqualToAscii(const String str1, const char* str2)
 
 int stringCompare(const String str1, const String str2)
 {
-	int diff;
-	size_t i;
-
 	/* Check for NULL string pointers */
 	if(str1.str == NULL)
 	{
@@ -155,23 +147,19 @@ int stringCompare(const String str1, const String str2)
 	}
 	else if(str2.str == NULL)
 		return 1;
-	/* Check for length difference */
-	if(str1.length < str2.length)
-		return -1;
-	if(str1.length > str2.length)
-		return 1;
-	/*
- 	 * If we got here, neither string pointer is NULL 
-	 * and they are the same length.
-	 * Check character by character
-	 */
-	for(i = 0; i < str1.length; i++)
+	else // None of the strings is NULL
 	{
-		diff = str1.str[i] - str2.str[i];
-		if(diff)
-			return diff;
+		int diff;
+		size_t i;
+		for(i = 0; i < str1.length && i < str2.length; i++)
+		{
+			diff = str1.str[i] - str2.str[i];
+			if(diff)
+				return diff; // There is a difference in the characters at index i
+		}
+		/* Up to index i the strings have the same characters and might differ only in length*/
+		return str1.length - str2.length;
 	}
-	return 0;
 }
 
 // TODO: consider removing the OUT_OF_BOUND_BUFFER check: the length of the string must be valid
