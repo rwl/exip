@@ -69,7 +69,7 @@ static errorCode addProductionsToARule(AllocList* memList, ProtoGrammar* left, u
 static errorCode resolveCollisionsInGrammar(AllocList* memList, struct collisionInfo* collisions,
 											unsigned int* collisionCount, ProtoGrammar* left, unsigned int* currRuleIndex);
 
-static errorCode recursiveGrammarConcat(AllocList* memList, GenericStack* protoGrammars, ProtoGrammar** result);
+static errorCode recursiveGrammarConcat(AllocList* memList, GenericStack** protoGrammars, ProtoGrammar** result);
 
 static int compareProductions(const void* prod1, const void* prod2);
 
@@ -575,10 +575,10 @@ errorCode createWildcardTermGrammar(AllocList* memList, String* wildcardArray, s
 	return ERR_OK;
 }
 
-errorCode createSequenceModelGroupsGrammar(AllocList* memList, GenericStack* protoGrammars, ProtoGrammar** result)
+errorCode createSequenceModelGroupsGrammar(AllocList* memList, GenericStack** protoGrammars, ProtoGrammar** result)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	if(protoGrammars == NULL)
+	if(*protoGrammars == NULL)
 	{
 		tmp_err_code = createSimpleEmptyTypeGrammar(memList, result);
 		if(tmp_err_code != ERR_OK)
@@ -605,14 +605,14 @@ errorCode createSequenceModelGroupsGrammar(AllocList* memList, GenericStack* pro
 	return ERR_OK;
 }
 
-static errorCode recursiveGrammarConcat(AllocList* memList, GenericStack* protoGrammars, ProtoGrammar** result)
+static errorCode recursiveGrammarConcat(AllocList* memList, GenericStack** protoGrammars, ProtoGrammar** result)
 {
 	ProtoGrammar* tmpGrammar;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
-	popFromStack(&protoGrammars, (void**) &tmpGrammar);
+	popFromStack(protoGrammars, (void**) &tmpGrammar);
 
-	if(protoGrammars == NULL)
+	if(*protoGrammars == NULL)
 	{
 		tmp_err_code = concatenateGrammars(memList, *result, tmpGrammar);
 		if(tmp_err_code != ERR_OK)
@@ -632,7 +632,7 @@ static errorCode recursiveGrammarConcat(AllocList* memList, GenericStack* protoG
 	return ERR_OK;
 }
 
-errorCode createChoiceModelGroupsGrammar(AllocList* memList, GenericStack* protoGrammars, ProtoGrammar** result)
+errorCode createChoiceModelGroupsGrammar(AllocList* memList, GenericStack** protoGrammars, ProtoGrammar** result)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
@@ -649,7 +649,7 @@ errorCode createChoiceModelGroupsGrammar(AllocList* memList, GenericStack* proto
 	(*result)->prodCount[0] = 1;
 	(*result)->rulesCount = 1;
 
-	if(protoGrammars != NULL)
+	if(*protoGrammars != NULL)
 	{
 		unsigned int ruleIterTerm = 0;
 		unsigned int prodIterTerm = 0;
@@ -659,7 +659,7 @@ errorCode createChoiceModelGroupsGrammar(AllocList* memList, GenericStack* proto
 		unsigned int initialResultRulesCount;
 		ProtoGrammar* tmpGrammar;
 
-		popFromStack(&protoGrammars, (void**) &tmpGrammar);
+		popFromStack(protoGrammars, (void**) &tmpGrammar);
 
 		if(tmpGrammar == NULL)
 			return NULL_POINTER_REF;
@@ -668,9 +668,9 @@ errorCode createChoiceModelGroupsGrammar(AllocList* memList, GenericStack* proto
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		while(protoGrammars != NULL)
+		while(*protoGrammars != NULL)
 		{
-			popFromStack(&protoGrammars, (void**) &tmpGrammar);
+			popFromStack(protoGrammars, (void**) &tmpGrammar);
 
 			if(tmpGrammar == NULL)
 				return NULL_POINTER_REF;

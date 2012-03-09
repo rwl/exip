@@ -1657,7 +1657,7 @@ static errorCode handleElementSequence(struct xsdAppData* app_data)
 	if(minOccurs < 0 || maxOccurs < -1)
 		return UNEXPECTED_ERROR;
 
-	tmp_err_code = createSequenceModelGroupsGrammar(&app_data->tmpMemList, elemDesc->pGrammarStack, &seqGrammar);
+	tmp_err_code = createSequenceModelGroupsGrammar(&app_data->tmpMemList, &elemDesc->pGrammarStack, &seqGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1706,7 +1706,7 @@ static errorCode handleChoiceEl(struct xsdAppData* app_data)
 	if(minOccurs < 0 || maxOccurs < -1)
 		return UNEXPECTED_ERROR;
 
-	tmp_err_code = createChoiceModelGroupsGrammar(&app_data->tmpMemList, elemDesc->pGrammarStack, &choiceGrammar);
+	tmp_err_code = createChoiceModelGroupsGrammar(&app_data->tmpMemList, &elemDesc->pGrammarStack, &choiceGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -2237,7 +2237,7 @@ static errorCode resolveDerivedTypes(struct xsdAppData* appD)
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 
-				tmp_err_code = createSequenceModelGroupsGrammar(&appD->tmpMemList, tmpGrammarStack, &tmpProtoGrammar);
+				tmp_err_code = createSequenceModelGroupsGrammar(&appD->tmpMemList, &tmpGrammarStack, &tmpProtoGrammar);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 
