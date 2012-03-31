@@ -19,3 +19,7 @@ $(TESTS_BIN_DIR)/test_$(CONTENT_IO): $(COMMON_OBJ) $(STREAM_IO_OBJ) $(STRING_TAB
 $(TESTS_BIN_DIR)/test_exip: $(COMMON_OBJ) $(STREAM_IO_OBJ) $(STRING_TABLES_OBJ) $(GRAMMAR_OBJ) $(CONTENT_IO_OBJ) $(TESTS_SRC_DIR)/check_exip.c
 		$(CC) $(CFLAGS) $(LDFLAGS) $(TESTS_SRC_DIR)/check_exip.c $(COMMON_OBJ) $(STREAM_IO_OBJ) \
 		$(STRING_TABLES_OBJ) $(GRAMMAR_OBJ) $(CONTENT_IO_OBJ) -lcheck -o $(TESTS_BIN_DIR)/test_exip
+
+$(TESTS_BIN_DIR)/test_builtin_grammar: $(COMMON_OBJ) $(STREAM_IO_OBJ) $(STRING_TABLES_OBJ) $(GRAMMAR_OBJ) $(CONTENT_IO_OBJ) $(TESTS_SRC_DIR)/check_builtin_grammar.c
+		$(CC) $(CFLAGS) $(LDFLAGS) $(TESTS_SRC_DIR)/check_builtin_grammar.c $(COMMON_OBJ) $(STREAM_IO_OBJ) \
+		$(STRING_TABLES_OBJ) $(GRAMMAR_OBJ) $(CONTENT_IO_OBJ) -lcheck -o $(TESTS_BIN_DIR)/test_builtin_grammar
