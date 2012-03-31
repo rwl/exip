@@ -94,6 +94,9 @@ GRAMMAR_GEN_SRC = $(SOURCE_DIR)/$(GRAMMAR_GEN)
 # Unit tests src root directory
 TESTS_SRC_DIR = $(PROJECT_ROOT)/tests
 
+# Unit tests test data directory
+TESTS_DATA_DIR = $(PROJECT_ROOT)/tests/test-set
+
 # Unit tests bin directory
 TESTS_BIN_DIR = $(BIN_DIR)/tests
 
@@ -117,7 +120,7 @@ FIRST_GOAL = $(word 1,$(MAKECMDGOALS))
 
 # If the first goal is check then the target for checking is the whole project
 ifeq ($(FIRST_GOAL), check)
-   CHECK_TARGET=$(TESTS_BIN_DIR)/test_streamIO $(TESTS_BIN_DIR)/test_stringTables $(TESTS_BIN_DIR)/test_grammar $(TESTS_BIN_DIR)/test_contentIO $(TESTS_BIN_DIR)/test_exip
+   CHECK_TARGET=$(TESTS_BIN_DIR)/test_streamIO $(TESTS_BIN_DIR)/test_stringTables $(TESTS_BIN_DIR)/test_grammar $(TESTS_BIN_DIR)/test_contentIO $(TESTS_BIN_DIR)/test_exip $(TESTS_BIN_DIR)/test_builtin_grammar
 else
    CHECK_TARGET=$(TESTS_BIN_DIR)/test_$(FIRST_GOAL)
 endif
@@ -174,7 +177,7 @@ $(BIN_DIR)/libexip.a: $(OBJECT_ALL)
 			
 check: mk_tests $(CHECK_TARGET)
 		for i in $(CHECK_TARGET); do \
-                 $$i; \
+                 $$i $(TESTS_DATA_DIR); \
              done
 
 examples: mk_examples lib $(EXAMPLES_BIN_DIR)/$(EXAMPLE_1) $(EXAMPLES_BIN_DIR)/$(EXAMPLE_2) test_sets_copy_examples
@@ -195,7 +198,7 @@ mk_utils:
 		
 mk_tests:
 		mkdir -p $(TESTS_BIN_DIR)
-		
+
 test_sets_copy_examples:
 		cp $(EXAMPLES_SRC_DIR)/simpleEncoding/exipe-test-xsd.exi $(EXAMPLES_BIN_DIR)/exipe-test-xsd.exi
 		cp $(EXAMPLES_SRC_DIR)/simpleDecoding/exipd-test-xsd.exi $(EXAMPLES_BIN_DIR)/exipd-test-xsd.exi
