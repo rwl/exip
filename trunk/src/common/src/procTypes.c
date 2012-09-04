@@ -1,36 +1,9 @@
-/*==================================================================================*\
-|                                                                                    |
-|                    EXIP - Efficient XML Interchange Processor                      |
-|                                                                                    |
-|------------------------------------------------------------------------------------|
-| Copyright (c) 2010, EISLAB - Luleå University of Technology                        |
-| All rights reserved.                                                               |
-|                                                                                    |
-| Redistribution and use in source and binary forms, with or without                 |
-| modification, are permitted provided that the following conditions are met:        |
-|     * Redistributions of source code must retain the above copyright               |
-|       notice, this list of conditions and the following disclaimer.                |
-|     * Redistributions in binary form must reproduce the above copyright            |
-|       notice, this list of conditions and the following disclaimer in the          |
-|       documentation and/or other materials provided with the distribution.         |
-|     * Neither the name of the EISLAB - Luleå University of Technology nor the      |
-|       names of its contributors may be used to endorse or promote products         |
-|       derived from this software without specific prior written permission.        |
-|                                                                                    |
-| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND    |
-| ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED      |
-| WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE             |
-| DISCLAIMED. IN NO EVENT SHALL EISLAB - LULEÅ UNIVERSITY OF TECHNOLOGY BE LIABLE    |
-| FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES |
-| (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;       |
-| LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND        |
-| ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT         |
-| (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS      |
-| SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                       |
-|                                                                                    |
-|                                                                                    |
-|                                                                                    |
-\===================================================================================*/
+/*==================================================================*\
+|                EXIP - Embeddable EXI Processor in C                |
+|--------------------------------------------------------------------|
+|          This work is licensed under BSD 3-Clause License          |
+|  The full license terms and conditions are located in LICENSE.txt  |
+\===================================================================*/
 
 /**
  * @file procTypes.c
@@ -38,7 +11,7 @@
  *
  * @date Sep 6, 2010
  * @author Rumen Kyusakov
- * @version 0.1
+ * @version 0.4
  * @par[Revision] $Id$
  */
 
@@ -50,67 +23,80 @@ void makeDefaultOpts(EXIOptions* opts)
 	opts->enumOpt = 0;
 	opts->preserve = 0; // all preserve flags are false by default
 	opts->blockSize = 1000000;
-	opts->valueMaxLength = SIZE_MAX;
-	opts->valuePartitionCapacity = SIZE_MAX;
+	opts->valueMaxLength = INDEX_MAX;
+	opts->valuePartitionCapacity = INDEX_MAX;
 	opts->user_defined_data = NULL;
 	opts->schemaID.str = NULL;
 	opts->schemaID.length = 0;
 	opts->drMap = NULL;
 }
 
-errorCode pushOnStack(GenericStack** stack, void* element)
+errorCode pushOnStack(GenericStack** stack, void* item)
 {
-	struct stackNode* node = EXIP_MALLOC(sizeof(struct stackNode));
+	struct stackNode* node = (struct stackNode*)EXIP_MALLOC(sizeof(struct stackNode));
 	if(node == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	node->element = element;
+	node->item = item;
 	node->nextInStack = *stack;
 	*stack = node;
 	return ERR_OK;
 }
 
-void popFromStack(GenericStack** stack, void** element)
+void popFromStack(GenericStack** stack, void** item)
 {
 	struct stackNode* node;
 	if((*stack) == NULL)
 	{
-		(*element) = NULL;
+		(*item) = NULL;
 	}
 	else
 	{
 		node = *stack;
 		*stack = (*stack)->nextInStack;
 
-		(*element) = node->element;
+		(*item) = node->item;
 		EXIP_MFREE(node);
 	}
 }
 
-errorCode pushOnStackPersistent(GenericStack** stack, void* element, AllocList* memList)
+int compareEnumDefs(const void* enum1, const void* enum2)
 {
-	struct stackNode* node = memManagedAllocate(memList, sizeof(struct stackNode));
+	EnumDefinition* e1 = (EnumDefinition*) enum1;
+	EnumDefinition* e2 = (EnumDefinition*) enum2;
+
+	if(e1->typeId < e2->typeId)
+		return -1;
+	else if(e1->typeId > e2->typeId)
+		return 1;
+
+	return 0;
+}
+
+errorCode pushOnStackPersistent(GenericStack** stack, void* item, AllocList* memList)
+{
+	struct stackNode* node = (struct stackNode*)memManagedAllocate(memList, sizeof(struct stackNode));
 	if(node == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	node->element = element;
+	node->item = item;
 	node->nextInStack = *stack;
 	*stack = node;
 	return ERR_OK;
 }
 
-void popFromStackPersistent(GenericStack** stack, void** element)
+void popFromStackPersistent(GenericStack** stack, void** item)
 {
 	struct stackNode* node;
 	if((*stack) == NULL)
 	{
-		(*element) = NULL;
+		(*item) = NULL;
 	}
 	else
 	{
 		node = *stack;
 		*stack = (*stack)->nextInStack;
 
-		(*element) = node->element;
+		(*item) = node->item;
 	}
 }

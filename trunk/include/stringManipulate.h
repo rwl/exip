@@ -1,43 +1,16 @@
-/*==================================================================================*\
-|                                                                                    |
-|                    EXIP - Efficient XML Interchange Processor                      |
-|                                                                                    |
-|------------------------------------------------------------------------------------|
-| Copyright (c) 2010, EISLAB - Luleå University of Technology                        |
-| All rights reserved.                                                               |
-|                                                                                    |
-| Redistribution and use in source and binary forms, with or without                 |
-| modification, are permitted provided that the following conditions are met:        |
-|     * Redistributions of source code must retain the above copyright               |
-|       notice, this list of conditions and the following disclaimer.                |
-|     * Redistributions in binary form must reproduce the above copyright            |
-|       notice, this list of conditions and the following disclaimer in the          |
-|       documentation and/or other materials provided with the distribution.         |
-|     * Neither the name of the EISLAB - Luleå University of Technology nor the      |
-|       names of its contributors may be used to endorse or promote products         |
-|       derived from this software without specific prior written permission.        |
-|                                                                                    |
-| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND    |
-| ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED      |
-| WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE             |
-| DISCLAIMED. IN NO EVENT SHALL EISLAB - LULEÅ UNIVERSITY OF TECHNOLOGY BE LIABLE    |
-| FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES |
-| (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;       |
-| LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND        |
-| ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT         |
-| (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS      |
-| SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                       |
-|                                                                                    |
-|                                                                                    |
-|                                                                                    |
-\===================================================================================*/
+/*==================================================================*\
+|                EXIP - Embeddable EXI Processor in C                |
+|--------------------------------------------------------------------|
+|          This work is licensed under BSD 3-Clause License          |
+|  The full license terms and conditions are located in LICENSE.txt  |
+\===================================================================*/
 
 /**
  * @file stringManipulate.h
  * @brief String manipulation functions
  * @date Sep 3, 2010
  * @author Rumen Kyusakov
- * @version 0.1
+ * @version 0.4
  * @par[Revision] $Id$
  */
 
@@ -56,7 +29,7 @@
  * @param[in, out] memList A list storing the memory allocations
  * @return Error handling code
  */
-errorCode allocateStringMemory(CharType** str, size_t UCSchars, AllocList* memList);
+errorCode allocateStringMemory(CharType** str, Index UCSchars, AllocList* memList);
 
 /**
  * @brief Writes a UCS [ISO/IEC 10646] code point to a string
@@ -73,7 +46,7 @@ errorCode allocateStringMemory(CharType** str, size_t UCSchars, AllocList* memLi
  * 					[out] the next writerPosition used for any subsequent call to writeCharToString
  * @return Error handling code
  */
-errorCode writeCharToString(String* str, uint32_t code_point, size_t* writerPosition);
+errorCode writeCharToString(String* str, uint32_t code_point, Index* writerPosition);
 
 /**
  * @brief Returns the UCS [ISO/IEC 10646] code point at particular index from a String
@@ -84,7 +57,7 @@ errorCode writeCharToString(String* str, uint32_t code_point, size_t* writerPosi
  * @param[out] UCScp the returned UCS code point
  * @return 1 if the strings are equal, 0 - otherwise
  */
-errorCode readCharFromString(const String* str, size_t* readerPosition, uint32_t* UCScp);
+errorCode readCharFromString(const String* str, Index* readerPosition, uint32_t* UCScp);
 
 /**
  * @brief Creates an empty string
@@ -145,12 +118,32 @@ char stringEqualToAscii(const String str1, const char* str2);
 errorCode cloneString(const String* src, String* newStr, AllocList* memList);
 
 /**
+ * @brief Concatenates two strings
+ * @param[in] str1 the first string
+ * @param[in] str2 the second string
+ * @param[in] newStr will point to the newly created string
+ * @param[in, out] memList A list storing the memory allocations
+ * @return Error handling code
+ */
+errorCode concatString(const String* str1, const String* str2, String* newStr, AllocList* memList);
+
+/**
+ * @brief Concatenates an ASCII string with an exip string
+ * @param[in] str1 the first string
+ * @param[in] str2 the second string
+ * @param[in] newStr will point to the newly created string
+ * @param[in, out] memList A list storing the memory allocations
+ * @return Error handling code
+ */
+errorCode concatAsciiToString(const char* str1, const String* str2, String* newStr, AllocList* memList);
+
+/**
  * @brief Returns the index of the first occurrence of a character in a string
  * @param[in] src the source string
  * @param[in] sCh a character that is searched
- * @return the index of first occurrence; SIZE_MAX if not found
+ * @return the index of first occurrence; INDEX_MAX if not found
  */
-size_t getIndexOfChar(const String* src, CharType sCh);
+Index getIndexOfChar(const String* src, CharType sCh);
 
 /**
  * @brief Converts a string to int representation. Only 10-base representation
@@ -160,6 +153,13 @@ size_t getIndexOfChar(const String* src, CharType sCh);
  */
 errorCode stringToInteger(const String* src, int* number);
 
+/**
+ * @brief Converts a string to int64 representation. Only 10-base representation
+ * @param[in] src the source string
+ * @param[out] number the int64 representation of the string
+ * @return Error handling code
+ */
+errorCode stringToInt64(const String* src, int64_t* number);
 
 #if EXIP_DEBUG == ON
 

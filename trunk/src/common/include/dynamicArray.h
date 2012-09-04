@@ -1,36 +1,9 @@
-/*==================================================================================*\
-|                                                                                    |
-|                    EXIP - Efficient XML Interchange Processor                      |
-|                                                                                    |
-|------------------------------------------------------------------------------------|
-| Copyright (c) 2010, EISLAB - Luleå University of Technology                        |
-| All rights reserved.                                                               |
-|                                                                                    |
-| Redistribution and use in source and binary forms, with or without                 |
-| modification, are permitted provided that the following conditions are met:        |
-|     * Redistributions of source code must retain the above copyright               |
-|       notice, this list of conditions and the following disclaimer.                |
-|     * Redistributions in binary form must reproduce the above copyright            |
-|       notice, this list of conditions and the following disclaimer in the          |
-|       documentation and/or other materials provided with the distribution.         |
-|     * Neither the name of the EISLAB - Luleå University of Technology nor the      |
-|       names of its contributors may be used to endorse or promote products         |
-|       derived from this software without specific prior written permission.        |
-|                                                                                    |
-| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND    |
-| ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED      |
-| WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE             |
-| DISCLAIMED. IN NO EVENT SHALL EISLAB - LULEÅ UNIVERSITY OF TECHNOLOGY BE LIABLE    |
-| FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES |
-| (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;       |
-| LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND        |
-| ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT         |
-| (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS      |
-| SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                       |
-|                                                                                    |
-|                                                                                    |
-|                                                                                    |
-\===================================================================================*/
+/*==================================================================*\
+|                EXIP - Embeddable EXI Processor in C                |
+|--------------------------------------------------------------------|
+|          This work is licensed under BSD 3-Clause License          |
+|  The full license terms and conditions are located in LICENSE.txt  |
+\===================================================================*/
 
 /**
  * @file dynamicArray.h
@@ -38,7 +11,7 @@
  *
  * @date Jan 25, 2011
  * @author Rumen Kyusakov
- * @version 0.1
+ * @version 0.4
  * @par[Revision] $Id$
  */
 
@@ -48,48 +21,62 @@
 
 #include "procTypes.h"
 
-struct dynArray {
-	void* elements; // Dynamic array elements
-	size_t elSize;	// The size of a single array element in bytes
-	uint16_t defaultSize; // Initial number of elements and the number of elements to be added each expansion time
-	size_t elementCount; // The actual number of elements
-	size_t arrayDimension; // The size of the Dynamic array
-	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
-};
-
-typedef struct dynArray DynArray;
+/**
+ * The size of a basic DynArray-derived structure:
+ * @code
+ *   struct [DerivedStructType]
+ *   {
+ *     DynArray dynArray;
+ *     [DerivedStructEntryType]* base;
+ *     Index count;
+ *   };
+ * @endcode
+ */
+#define DYN_ARRAY_SIZE (sizeof(DynArray) + sizeof(void*) + sizeof(Index))
 
 /**
  * @brief Creates fresh empty Untyped Dynamic Array
  * This operation includes allocation of memory for DEFAULT_VALUE_ROWS_NUMBER number of value rows
- * @param[out] dArray Untyped Dynamic Array
- * @param[in] elSize The size of a single array element in bytes
- * @param[in] defaultSize Initial number of elements and the number of elements to be added each expansion time
+ * @param[in, out] dynArray Untyped Dynamic Array
+ * @param[in] entrySize The size of a single array entry in bytes
+ * @param[in] chunkSize Initial number of entries and the number of entries to be added each expansion time
  * @param[in, out] memList A list storing the memory allocations
  * @return Error handling code
  */
-errorCode createDynArray(DynArray** dArray, size_t elSize, uint16_t defaultSize, AllocList* memList);
+errorCode createDynArray(DynArray* dynArray, size_t entrySize, uint16_t chunkSize, AllocList* memList);
 
 /**
- * @brief Add new element into the dynamic array
- * NOTE that the new element is shallow copied!
+ * @brief Add new empty entry into the dynamic array
+ * The pointer to the entry is passed back to be filled in
  *
- * @param[in, out] dArray Untyped Dynamic Array
- * @param[in] elem the inserted element
- * @param[out] elID the ID of the element inserted
+ * @param[in, out] dynArray Untyped Dynamic Array
+ * @param[out] entry the empty inserted entry to be filled in
+ * @param[out] entryID the ID of the entry inserted
  * @param[in, out] memList A list storing the memory allocations
  * @return Error handling code
  */
-errorCode addDynElement(DynArray* dArray, void* elem, size_t* elID, AllocList* memList);
+errorCode addEmptyDynEntry(DynArray* dynArray, void** entry, Index* entryID, AllocList* memList);
 
 /**
- * @brief Removes an element from the dynamic array with index elID
+ * @brief Add new entry into the dynamic array
+ * NOTE that the new entry is shallow copied!
  *
- * @param[in, out] dArray Untyped Dynamic Array
- * @param[in] elID the ID of the element to be deleted
+ * @param[in, out] dynArray Untyped Dynamic Array
+ * @param[in] entry the inserted entry
+ * @param[out] entryID the ID of the entry inserted
+ * @param[in, out] memList A list storing the memory allocations
+ * @return Error handling code
+ */
+errorCode addDynEntry(DynArray* dynArray, void* entry, Index* entryID, AllocList* memList);
+
+/**
+ * @brief Removes an entry from the dynamic array with index elID
+ *
+ * @param[in, out] dynArray Untyped Dynamic Array
+ * @param[in] entryID the ID of the entry to be deleted
  * @return Error handling code - NULL_POINTER_REF if dArray is NULL; OUT_OF_BOUND_BUFFER if the index is
  * bigger than the array size or the array size is 0
  */
-errorCode delDynElement(DynArray* dArray, size_t elID);
+errorCode delDynEntry(DynArray* dynArray, Index entryID);
 
 #endif /* DYNAMICARRAY_H_ */

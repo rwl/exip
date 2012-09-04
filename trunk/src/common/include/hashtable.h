@@ -101,7 +101,7 @@ create_hashtable(unsigned int minsize,
  * @param   h   the hashtable to insert into
  * @param   k   the key - hashtable claims ownership and will free on removal
  * @param   v   the value - does not claim ownership
- * @return      non-zero for successful insertion
+ * @return      ERR_OK for successful insertion
  *
  * This function will cause the table to expand if the insertion would take
  * the ratio of entries to table size over the maximum load factor.
@@ -113,7 +113,7 @@ create_hashtable(unsigned int minsize,
  * If in doubt, remove before insert.
  */
 
-errorCode hashtable_insert(struct hashtable *h, String* key, size_t value);
+errorCode hashtable_insert(struct hashtable *h, String* key, Index value);
 
 /*
 //#define DEFINE_HASHTABLE_INSERT(fnname, keytype, valuetype) \
@@ -129,10 +129,10 @@ errorCode hashtable_insert(struct hashtable *h, String* key, size_t value);
  * @name        hashtable_search
  * @param   h   the hashtable to search
  * @param   k   the key to search for  - does not claim ownership
- * @return      the value associated with the key, or SIZE_MAX if none found
+ * @return      the value associated with the key, or INDEX_MAX if none found
  */
 
-size_t hashtable_search(struct hashtable *h, String* key);
+Index hashtable_search(struct hashtable *h, String* key);
 
 /*
 //#define DEFINE_HASHTABLE_SEARCH(fnname, keytype, valuetype) \
@@ -148,10 +148,10 @@ size_t hashtable_search(struct hashtable *h, String* key);
  * @name        hashtable_remove
  * @param   h   the hashtable to remove the item from
  * @param   k   the key to search for  - does not claim ownership
- * @return      the value associated with the key, or SIZE_MAX if none found
+ * @return      the value associated with the key, or INDEX_MAX if none found
  */
 
-size_t hashtable_remove(struct hashtable *h, String* key);
+Index hashtable_remove(struct hashtable *h, String* key);
 
 /*
 //#define DEFINE_HASHTABLE_REMOVE(fnname, keytype, valuetype) \

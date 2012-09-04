@@ -1,36 +1,9 @@
-/*==================================================================================*\
-|                                                                                    |
-|                    EXIP - Efficient XML Interchange Processor                      |
-|                                                                                    |
-|------------------------------------------------------------------------------------|
-| Copyright (c) 2010, EISLAB - Luleå University of Technology                        |
-| All rights reserved.                                                               |
-|                                                                                    |
-| Redistribution and use in source and binary forms, with or without                 |
-| modification, are permitted provided that the following conditions are met:        |
-|     * Redistributions of source code must retain the above copyright               |
-|       notice, this list of conditions and the following disclaimer.                |
-|     * Redistributions in binary form must reproduce the above copyright            |
-|       notice, this list of conditions and the following disclaimer in the          |
-|       documentation and/or other materials provided with the distribution.         |
-|     * Neither the name of the EISLAB - Luleå University of Technology nor the      |
-|       names of its contributors may be used to endorse or promote products         |
-|       derived from this software without specific prior written permission.        |
-|                                                                                    |
-| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND    |
-| ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED      |
-| WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE             |
-| DISCLAIMED. IN NO EVENT SHALL EISLAB - LULEÅ UNIVERSITY OF TECHNOLOGY BE LIABLE    |
-| FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES |
-| (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;       |
-| LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND        |
-| ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT         |
-| (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS      |
-| SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                       |
-|                                                                                    |
-|                                                                                    |
-|                                                                                    |
-\===================================================================================*/
+/*==================================================================*\
+|                EXIP - Embeddable EXI Processor in C                |
+|--------------------------------------------------------------------|
+|          This work is licensed under BSD 3-Clause License          |
+|  The full license terms and conditions are located in LICENSE.txt  |
+\===================================================================*/
 
 /**
  * @file headerEncode.c
@@ -38,7 +11,7 @@
  *
  * @date Aug 23, 2010
  * @author Rumen Kyusakov
- * @version 0.1
+ * @version 0.4
  * @par[Revision] $Id$
  */
 
@@ -54,8 +27,6 @@
 /** This is the statically generated EXIP schema definition for the EXI Options document*/
 extern const EXIPSchema ops_schema;
 
-extern const EXISerializer serialize;
-
 static void closeOptionsStream(EXIStream* strm);
 
 errorCode encodeHeader(EXIStream* strm)
@@ -63,6 +34,7 @@ errorCode encodeHeader(EXIStream* strm)
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start EXI header encoding\n"));
+
 	if(strm->header.has_cookie)
 	{
 		tmp_err_code = writeNBits(strm, 8, 36); // ASCII code for $ = 00100100  (36)
@@ -114,7 +86,6 @@ errorCode encodeHeader(EXIStream* strm)
 	if(strm->header.has_options)
 	{
 		EXIStream options_strm;
-		EXIGrammar docGr;
 		unsigned char hasUncommon = FALSE;
 		unsigned char hasLesscommon = FALSE;
 		unsigned char hasCommon = FALSE;
@@ -128,34 +99,24 @@ errorCode encodeHeader(EXIStream* strm)
 		options_strm.buffer = strm->buffer;
 		options_strm.context.bitPointer = strm->context.bitPointer;
 		options_strm.context.bufferIndx = strm->context.bufferIndx;
-		options_strm.bufLen = strm->bufLen;
-		options_strm.context.nonTermID = GR_DOCUMENT;
-		options_strm.context.currElem.lnRowId = 0;
-		options_strm.context.currElem.uriRowId = 0;
-		options_strm.context.currAttr.lnRowId = 0;
-		options_strm.context.currAttr.uriRowId = 0;
+		options_strm.context.currNonTermID = GR_DOCUMENT;
+		options_strm.context.currElem.lnId = LN_MAX;
+		options_strm.context.currElem.uriId = URI_MAX;
+		options_strm.context.currAttr.lnId = LN_MAX;
+		options_strm.context.currAttr.uriId = URI_MAX;
 		options_strm.context.expectATData = 0;
-		options_strm.bufContent = strm->bufContent;
-		options_strm.ioStrm = strm->ioStrm;
+		options_strm.context.attrTypeId = 0;
 		options_strm.gStack = NULL;
 		options_strm.schema = (EXIPSchema*) &ops_schema;
 
-		options_strm.uriTable = ops_schema.initialStringTables;
-		tmp_err_code = createValueTable(&(options_strm.vTable), &(options_strm.memList));
+		tmp_err_code = createValueTable(&options_strm.valueTable, &options_strm.memList);
 		if(tmp_err_code != ERR_OK)
 		{
 			closeOptionsStream(&options_strm);
 			return tmp_err_code;
 		}
 
-		tmp_err_code = createDocGrammar(&docGr, &options_strm, &ops_schema);
-		if(tmp_err_code != ERR_OK)
-		{
-			closeOptionsStream(&options_strm);
-			return tmp_err_code;
-		}
-
-		tmp_err_code = pushGrammar(&options_strm.gStack, &docGr);
+		tmp_err_code = pushGrammar(&options_strm.gStack, (EXIGrammar*) &ops_schema.docGrammar);
 		if(tmp_err_code != ERR_OK)
 		{
 			closeOptionsStream(&options_strm);
@@ -170,8 +131,8 @@ errorCode encodeHeader(EXIStream* strm)
 		// uncommon options
 		if(GET_ALIGNMENT(strm->header.opts.enumOpt) != BIT_PACKED ||
 				WITH_SELF_CONTAINED(strm->header.opts.enumOpt) ||
-				strm->header.opts.valueMaxLength != SIZE_MAX ||
-				strm->header.opts.valuePartitionCapacity != SIZE_MAX ||
+				strm->header.opts.valueMaxLength != INDEX_MAX ||
+				strm->header.opts.valuePartitionCapacity != INDEX_MAX ||
 				strm->header.opts.drMap != NULL)
 		{
 			hasUncommon = TRUE;
@@ -206,24 +167,24 @@ errorCode encodeHeader(EXIStream* strm)
 				}
 				if(WITH_SELF_CONTAINED(strm->header.opts.enumOpt))
 				{
-					nonTermAdj = options_strm.context.nonTermID - 1;
+					nonTermAdj = options_strm.context.currNonTermID - 1;
 					if(nonTermAdj < 0)
 						nonTermAdj = 0;
 					tmp_err_code += serializeEvent(&options_strm, 1, 1 - nonTermAdj, NULL); // serialize.startElement <selfContained>
 					tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endElement <selfContained>
 				}
-				if(strm->header.opts.valueMaxLength != SIZE_MAX)
+				if(strm->header.opts.valueMaxLength != INDEX_MAX)
 				{
-					nonTermAdj = options_strm.context.nonTermID - 1;
+					nonTermAdj = options_strm.context.currNonTermID - 1;
 					if(nonTermAdj < 0)
 						nonTermAdj = 0;
 					tmp_err_code += serializeEvent(&options_strm, 1, 2 - nonTermAdj, NULL); // serialize.startElement <valueMaxLength>
 					tmp_err_code += serialize.intData(&options_strm, strm->header.opts.valueMaxLength);
 					tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endElement <valueMaxLength>
 				}
-				if(strm->header.opts.valuePartitionCapacity != SIZE_MAX)
+				if(strm->header.opts.valuePartitionCapacity != INDEX_MAX)
 				{
-					nonTermAdj = options_strm.context.nonTermID - 1;
+					nonTermAdj = options_strm.context.currNonTermID - 1;
 					if(nonTermAdj < 0)
 						nonTermAdj = 0;
 					tmp_err_code += serializeEvent(&options_strm, 1, 3 - nonTermAdj, NULL); // serialize.startElement <valuePartitionCapacity>
@@ -232,18 +193,18 @@ errorCode encodeHeader(EXIStream* strm)
 				}
 				if(strm->header.opts.drMap != NULL)
 				{
-					nonTermAdj = options_strm.context.nonTermID - 1;
+					nonTermAdj = options_strm.context.currNonTermID - 1;
 					if(nonTermAdj < 0)
 						nonTermAdj = 0;
 					tmp_err_code += serializeEvent(&options_strm, 1, 4 - nonTermAdj, NULL); // serialize.startElement <datatypeRepresentationMap>
 					// TODO: not ready yet!
 					return NOT_IMPLEMENTED_YET;
 				}
-				tmp_err_code += serializeEvent(&options_strm, 1, 6 - options_strm.context.nonTermID, NULL); // serialize.endElement <uncommon>
+				tmp_err_code += serializeEvent(&options_strm, 1, 6 - options_strm.context.currNonTermID, NULL); // serialize.endElement <uncommon>
 			}
 			if(strm->header.opts.preserve != 0)
 			{
-				tmp_err_code += serializeEvent(&options_strm, 1, 1 - options_strm.context.nonTermID, NULL); // serialize.startElement <preserve>
+				tmp_err_code += serializeEvent(&options_strm, 1, 1 - options_strm.context.currNonTermID, NULL); // serialize.startElement <preserve>
 				if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
 				{
 					tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.startElement <dtd>
@@ -251,33 +212,33 @@ errorCode encodeHeader(EXIStream* strm)
 				}
 				if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES))
 				{
-					tmp_err_code += serializeEvent(&options_strm, 1, 1 - options_strm.context.nonTermID, NULL); // serialize.startElement <prefixes>
+					tmp_err_code += serializeEvent(&options_strm, 1, 1 - options_strm.context.currNonTermID, NULL); // serialize.startElement <prefixes>
 					tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endElement <prefixes>
 				}
 				if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_LEXVALUES))
 				{
-					tmp_err_code += serializeEvent(&options_strm, 1, 2 - options_strm.context.nonTermID, NULL); // serialize.startElement <lexicalValues>
+					tmp_err_code += serializeEvent(&options_strm, 1, 2 - options_strm.context.currNonTermID, NULL); // serialize.startElement <lexicalValues>
 					tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endElement <lexicalValues>
 				}
 				if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
 				{
-					tmp_err_code += serializeEvent(&options_strm, 1, 3 - options_strm.context.nonTermID, NULL); // serialize.startElement <comments>
+					tmp_err_code += serializeEvent(&options_strm, 1, 3 - options_strm.context.currNonTermID, NULL); // serialize.startElement <comments>
 					tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endElement <comments>
 				}
 				if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 				{
-					tmp_err_code += serializeEvent(&options_strm, 1, 4 - options_strm.context.nonTermID, NULL); // serialize.startElement <pis>
+					tmp_err_code += serializeEvent(&options_strm, 1, 4 - options_strm.context.currNonTermID, NULL); // serialize.startElement <pis>
 					tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endElement <pis>
 				}
-				tmp_err_code += serializeEvent(&options_strm, 1, 5 - options_strm.context.nonTermID, NULL); // serialize.endElement <preserve>
+				tmp_err_code += serializeEvent(&options_strm, 1, 5 - options_strm.context.currNonTermID, NULL); // serialize.endElement <preserve>
 			}
 			if(strm->header.opts.blockSize != 1000000)
 			{
-				tmp_err_code += serializeEvent(&options_strm, 1, 2 - options_strm.context.nonTermID, NULL); // serialize.startElement <blockSize>
+				tmp_err_code += serializeEvent(&options_strm, 1, 2 - options_strm.context.currNonTermID, NULL); // serialize.startElement <blockSize>
 				tmp_err_code += serialize.intData(&options_strm, strm->header.opts.blockSize);
 				tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endElement <blockSize>
 			}
-			tmp_err_code += serializeEvent(&options_strm, 1, 3 - options_strm.context.nonTermID, NULL); // serialize.endElement <lesscommon>
+			tmp_err_code += serializeEvent(&options_strm, 1, 3 - options_strm.context.currNonTermID, NULL); // serialize.endElement <lesscommon>
 		}
 
 		// common options if any...
@@ -288,7 +249,7 @@ errorCode encodeHeader(EXIStream* strm)
 
 		if(hasCommon)
 		{
-			tmp_err_code += serializeEvent(&options_strm, 1, 1 - options_strm.context.nonTermID, NULL); // serialize.startElement <common>
+			tmp_err_code += serializeEvent(&options_strm, 1, 1 - options_strm.context.currNonTermID, NULL); // serialize.startElement <common>
 			if(WITH_COMPRESSION(strm->header.opts.enumOpt))
 			{
 				tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.startElement <compression>
@@ -296,12 +257,12 @@ errorCode encodeHeader(EXIStream* strm)
 			}
 			if(WITH_FRAGMENT(strm->header.opts.enumOpt))
 			{
-				tmp_err_code += serializeEvent(&options_strm, 1, 1 - options_strm.context.nonTermID, NULL); // serialize.startElement <fragment>
+				tmp_err_code += serializeEvent(&options_strm, 1, 1 - options_strm.context.currNonTermID, NULL); // serialize.startElement <fragment>
 				tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endElement <fragment>
 			}
 			if(strm->header.opts.schemaID.length != 0) // SchemaID modes are encoded in the length part
 			{
-				tmp_err_code += serializeEvent(&options_strm, 1, 2 - options_strm.context.nonTermID, NULL); // serialize.startElement <schemaId>
+				tmp_err_code += serializeEvent(&options_strm, 1, 2 - options_strm.context.currNonTermID, NULL); // serialize.startElement <schemaId>
 				if(strm->header.opts.schemaID.str != NULL)
 				{
 					tmp_err_code += serialize.stringData(&options_strm, strm->header.opts.schemaID);
@@ -309,9 +270,9 @@ errorCode encodeHeader(EXIStream* strm)
 				else if(strm->header.opts.schemaID.length == SCHEMA_ID_NIL)
 				{
 					QName nil;
-					nil.uri = &strm->uriTable->rows[2].string_val;
-					nil.localName = &strm->uriTable->rows[2].lTable->rows[0].string_val;
-					nil.prefix = &strm->uriTable->rows[2].pTable->string_val[0];
+					nil.uri = &strm->schema->uriTable.uri[2].uriStr;
+					nil.localName = &strm->schema->uriTable.uri[2].lnTable.ln[0].lnStr;
+					nil.prefix = &strm->schema->uriTable.uri[2].pfxTable->pfxStr[0];
 					tmp_err_code += serializeEvent(&options_strm, 2, 0, &nil); // serialize.attribute nil="true"
 					tmp_err_code += serialize.booleanData(&options_strm, TRUE);
 				}
@@ -324,20 +285,20 @@ errorCode encodeHeader(EXIStream* strm)
 
 				tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endElement <schemaId>
 			}
-			tmp_err_code += serializeEvent(&options_strm, 1, 3 - options_strm.context.nonTermID, NULL); // serialize.endElement <common>
+			tmp_err_code += serializeEvent(&options_strm, 1, 3 - options_strm.context.currNonTermID, NULL); // serialize.endElement <common>
 		}
 
 		if(WITH_STRICT(strm->header.opts.enumOpt))
 		{
-			tmp_err_code += serializeEvent(&options_strm, 1, 2 - options_strm.context.nonTermID, NULL); // serialize.startElement <strict>
+			tmp_err_code += serializeEvent(&options_strm, 1, 2 - options_strm.context.currNonTermID, NULL); // serialize.startElement <strict>
 			tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endElement <strict>
 		}
 
-		tmp_err_code += serializeEvent(&options_strm, 1, 3 - options_strm.context.nonTermID, NULL); // serialize.endElement <header>
+		tmp_err_code += serializeEvent(&options_strm, 1, 3 - options_strm.context.currNonTermID, NULL); // serialize.endElement <header>
 
 		tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endDocument
 
-		strm->bufContent = options_strm.bufContent;
+		strm->buffer.bufContent = options_strm.buffer.bufContent;
 		strm->context.bitPointer = options_strm.context.bitPointer;
 		strm->context.bufferIndx = options_strm.context.bufferIndx;
 

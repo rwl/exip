@@ -1,36 +1,9 @@
-/*==================================================================================*\
-|                                                                                    |
-|                    EXIP - Efficient XML Interchange Processor                      |
-|                                                                                    |
-|------------------------------------------------------------------------------------|
-| Copyright (c) 2010, EISLAB - Luleå University of Technology                        |
-| All rights reserved.                                                               |
-|                                                                                    |
-| Redistribution and use in source and binary forms, with or without                 |
-| modification, are permitted provided that the following conditions are met:        |
-|     * Redistributions of source code must retain the above copyright               |
-|       notice, this list of conditions and the following disclaimer.                |
-|     * Redistributions in binary form must reproduce the above copyright            |
-|       notice, this list of conditions and the following disclaimer in the          |
-|       documentation and/or other materials provided with the distribution.         |
-|     * Neither the name of the EISLAB - Luleå University of Technology nor the      |
-|       names of its contributors may be used to endorse or promote products         |
-|       derived from this software without specific prior written permission.        |
-|                                                                                    |
-| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND    |
-| ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED      |
-| WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE             |
-| DISCLAIMED. IN NO EVENT SHALL EISLAB - LULEÅ UNIVERSITY OF TECHNOLOGY BE LIABLE    |
-| FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES |
-| (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;       |
-| LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND        |
-| ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT         |
-| (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS      |
-| SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                       |
-|                                                                                    |
-|                                                                                    |
-|                                                                                    |
-\===================================================================================*/
+/*==================================================================*\
+|                EXIP - Embeddable EXI Processor in C                |
+|--------------------------------------------------------------------|
+|          This work is licensed under BSD 3-Clause License          |
+|  The full license terms and conditions are located in LICENSE.txt  |
+\===================================================================*/
 
 /**
  * @file errorHandle.h
@@ -38,7 +11,7 @@
  *
  * @date Jul 7, 2010
  * @author Rumen Kyusakov
- * @version 0.1
+ * @version 0.4
  * @par[Revision] $Id$
  */
 
@@ -51,21 +24,101 @@
 #define WARNING 2
 #define ERROR 3
 
-#if EXIP_DEBUG == ON // TODO: document this macro #DOCUMENT#
+/**
+ * @page debugging How to debug
+ *
+ * Turning the debugging is done by setting EXIP_DEBUG to ON.
+ * You have control over the level of verbosity (INFO, WARNING or ERROR)
+ * and the source of debugging information. All these parameters
+ * can be configured in the exipConfig.h header that is defined
+ * per target platform in build/gcc/[target platform].
+ * When turned on, the debugging information is by default
+ * printed on the standard output.
+ *
+ * @section configuration Debug configuration
+ * The following macro definitions are used to customize the debugging:
+ * <dl>
+ *     <dt>EXIP_DEBUG</dt>
+ *     		<dd>Switch ON/OFF the debugging</dd>
+ *     <dt>DEBUG_CHAR_OUTPUT(ch)</dt>
+ *     		<dd>Defines a function to print a single character ch</dd>
+ *     <dt>DEBUG_OUTPUT(str)</dt>
+ *     		<dd>Defines a function to print a NULL terminated string str</dd>
+ *     <dt>EXIP_DEBUG_LEVEL</dt>
+ *     		<dd>Verbosity level: one of INFO, WARNING or ERROR</dd>
+ *     <dt>DEBUG_MSG(level, module, msg)</dt>
+ *     		<dd>Used to print a debug message</dd>
+ * </dl>
+ *
+ * @section error_codes Error codes
+ * Most of the functions in the exip library return a 8 bit integer that
+ * indicates the status of the execution with 0 being success and
+ * non-zero value indication an error condition.
+ * <p>
+ *  The error codes are defined in errorHandle.h
+ * </p>
+ *
+ * @section debug_output Debug output
+ * DEBUG_STREAM_IO provides a detailed stream output and position debug messages. It shows byte-level
+ * output on a new line, beginning with '>>'. It indicates position of next write
+ * in the form \@B:b, where B is the byte offset and b is the bit offset within
+ * the byte.
+ *
+ * <div>
+ *   Below is an example encoding for the EXI equivalent of "<description>new</description>". First,
+ *   you see the local name for each production in the rule. Below the rule, the ">> 0x0 (3 bits)"
+ *   tells exactly what was written to select the 'description' production at index 0.
+ *   Then the "@8:4" shows the position at which the next output occurs. Just above the
+ *   output below was "@8:1", where the present output was placed.
+ *
+ *   To see this sort of output, use DEBUG_STREAM_IO and DEBUG_CONTENT_IO.
+ *
+ *
+ *   <pre>
+ *	>RULE
+ *	NT-1:
+ *		SE (qname: 4:34)    NT-2    0   description
+ *		SE (qname: 4:75)    NT-3    1   notes
+ *		SE (qname: 4:3)     NT-4    2   activateAt
+ *		SE (qname: 4:44)    NT-5    3   expireAt
+ *		SE (qname: 4:80)    NT-6    4   panId
+ *		SE (qname: 4:111)   NT-7    5   timezoneId
+ *		SE (qname: 4:33)    NT-8    6   deploymentDevices
+ *		EE      7
+ *	>> 0x0 (3 bits)  \@8:4
+ *
+ *	>Start string data serialization
+ *
+ *	>RULE
+ *	NT-0:
+ *		CH [2]  NT-1    0
+ *		AT (qname 2:1) [1]  NT-0    1.0
+ *	>> 0x0 (1 bits)  \@8:5
+ *	>> 0x05  \@8:6  \@9:5
+ *
+ *	 Write string, len 3: new
+ *	>> 0x6E  \@9:6  \@10:5
+ *	>> 0x65  \@10:6  \@11:5
+ *	>> 0x77  \@11:6  \@12:5
+ *	>End element serialization
+ *    </pre>
+ * </div>
+ */
+#if EXIP_DEBUG == ON
 
 #  include <stdio.h>
 
 /* Platform specific debugging character output */
-#ifndef DEBUG_CHAR_OUTPUT	// TODO: document this macro #DOCUMENT#
+#ifndef DEBUG_CHAR_OUTPUT
 #  define DEBUG_CHAR_OUTPUT(character)	do {putchar (character);} while(0)
 #endif
 
 /* Platform specific debugging output */
-#  ifndef DEBUG_OUTPUT	// TODO: document this macro #DOCUMENT#
+#  ifndef DEBUG_OUTPUT
 #    define DEBUG_OUTPUT(msg)	do {printf msg;} while(0)
 #  endif
 
-#  ifndef EXIP_DEBUG_LEVEL // TODO: document this macro #DOCUMENT#
+#  ifndef EXIP_DEBUG_LEVEL
 #    define EXIP_DEBUG_LEVEL INFO
 #  endif
 
@@ -76,10 +129,9 @@
 
 typedef char errorCode;
 
-//TODO: define the rest of the error codes
-
 /* Definitions for error constants. */
-/** No error, everything OK. */
+
+/** No error, everything is OK. */
 #define ERR_OK    0
 
 #define INVALID_STRING_OPERATION 19
