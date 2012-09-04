@@ -1,11 +1,13 @@
 /**
- * @file README.txt
+ * @defgroup contentIO Content I/O module
+ *
+ * @brief High level encoding/decoding
+ *
+ * Reading and writing a XML Information Set content i.e. elements, attributes, values
+ * 
  * @date Jul 7, 2010
  * @author Rumen Kyusakov
- * @version 0.1
+ * @version 0.4
  * @par[Revision] $Id$
- */
-
-Module name: Content I/O
-
-Purpose:     Reading and writing a XML Information Set content i.e. elements, attributes, values
+ * 
+ */  

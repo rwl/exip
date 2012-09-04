@@ -1,36 +1,9 @@
-/*==================================================================================*\
-|                                                                                    |
-|                    EXIP - Efficient XML Interchange Processor                      |
-|                                                                                    |
-|------------------------------------------------------------------------------------|
-| Copyright (c) 2010, EISLAB - Luleå University of Technology                        |
-| All rights reserved.                                                               |
-|                                                                                    |
-| Redistribution and use in source and binary forms, with or without                 |
-| modification, are permitted provided that the following conditions are met:        |
-|     * Redistributions of source code must retain the above copyright               |
-|       notice, this list of conditions and the following disclaimer.                |
-|     * Redistributions in binary form must reproduce the above copyright            |
-|       notice, this list of conditions and the following disclaimer in the          |
-|       documentation and/or other materials provided with the distribution.         |
-|     * Neither the name of the EISLAB - Luleå University of Technology nor the      |
-|       names of its contributors may be used to endorse or promote products         |
-|       derived from this software without specific prior written permission.        |
-|                                                                                    |
-| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND    |
-| ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED      |
-| WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE             |
-| DISCLAIMED. IN NO EVENT SHALL EISLAB - LULEÅ UNIVERSITY OF TECHNOLOGY BE LIABLE    |
-| FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES |
-| (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;       |
-| LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND        |
-| ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT         |
-| (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS      |
-| SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                       |
-|                                                                                    |
-|                                                                                    |
-|                                                                                    |
-\===================================================================================*/
+/*==================================================================*\
+|                EXIP - Embeddable EXI Processor in C                |
+|--------------------------------------------------------------------|
+|          This work is licensed under BSD 3-Clause License          |
+|  The full license terms and conditions are located in LICENSE.txt  |
+\===================================================================*/
 
 /**
  * @file check_contentIO.c
@@ -38,7 +11,7 @@
  *
  * @date Sep 28, 2010
  * @author Rumen Kyusakov
- * @version 0.1
+ * @version 0.4
  * @par[Revision] $Id$
  */
 
@@ -62,12 +35,12 @@ START_TEST (test_decodeHeader)
 	buf[0] = (char) 0x80;
 	buf[1] = (char) 0x60;
 	buf[2] = (char) 0x7C;
-	testStream.buffer = buf;
+	testStream.buffer.buf = buf;
 	testStream.context.bufferIndx = 0;
-	testStream.bufLen = 3;
-	testStream.bufContent = 3;
-	testStream.ioStrm.readWriteToStream = NULL;
-	testStream.ioStrm.stream = NULL;
+	testStream.buffer.bufLen = 3;
+	testStream.buffer.bufContent = 3;
+	testStream.buffer.ioStrm.readWriteToStream = NULL;
+	testStream.buffer.ioStrm.stream = NULL;
 	initAllocList(&testStream.memList);
 
 	err = decodeHeader(&testStream);
@@ -91,12 +64,12 @@ START_TEST (test_decodeHeader)
 	buf2[5] = (char) 0x60;
 	buf2[6] = (char) 0x7C;
 
-	testStream2.buffer = buf2;
+	testStream2.buffer.buf = buf2;
 	testStream2.context.bufferIndx = 0;
-	testStream2.bufLen = 7;
-	testStream2.bufContent = 7;
-	testStream2.ioStrm.readWriteToStream = NULL;
-	testStream2.ioStrm.stream = NULL;
+	testStream2.buffer.bufLen = 7;
+	testStream2.buffer.bufContent = 7;
+	testStream2.buffer.ioStrm.readWriteToStream = NULL;
+	testStream2.buffer.ioStrm.stream = NULL;
 
 	err = decodeHeader(&testStream2);
 	fail_unless (err == ERR_OK, "decodeHeader returns error code %d", err);

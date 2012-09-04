@@ -1,42 +1,15 @@
-#/*==================================================================================*\
-#|                                                                                    |
-#|                    EXIP - Efficient XML Interchange Processor                      |
-#|                                                                                    |
-#|------------------------------------------------------------------------------------|
-#| Copyright (c) 2010, EISLAB - Luleå University of Technology                        |
-#| All rights reserved.                                                               |
-#|                                                                                    |
-#| Redistribution and use in source and binary forms, with or without                 |
-#| modification, are permitted provided that the following conditions are met:        |
-#|     * Redistributions of source code must retain the above copyright               |
-#|       notice, this list of conditions and the following disclaimer.                |
-#|     * Redistributions in binary form must reproduce the above copyright            |
-#|       notice, this list of conditions and the following disclaimer in the          |
-#|       documentation and/or other materials provided with the distribution.         |
-#|     * Neither the name of the EISLAB - Luleå University of Technology nor the      |
-#|       names of its contributors may be used to endorse or promote products         |
-#|       derived from this software without specific prior written permission.        |
-#|                                                                                    |
-#| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND    |
-#| ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED      |
-#| WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE             |
-#| DISCLAIMED. IN NO EVENT SHALL EISLAB - LULEÅ UNIVERSITY OF TECHNOLOGY BE LIABLE    |
-#| FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES |
-#| (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;       |
-#| LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND        |
-#| ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT         |
-#| (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS      |
-#| SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                       |
-#|                                                                                    |
-#|                                                                                    |
-#|                                                                                    |
-#\===================================================================================*/
+#/*==================================================================*\
+#|                EXIP - Embeddable EXI Processor in C                |
+#|--------------------------------------------------------------------|
+#|          This work is licensed under BSD 3-Clause License          |
+#|  The full license terms and conditions are located in LICENSE.txt  |
+#\===================================================================*/
 #
 #/**
-# * Makefile for EXIP library
+# * Makefile for the EXIP library
 # * @date Oct 8, 2010
 # * @author Rumen Kyusakov
-# * @version 0.1
+# * @version 0.4
 # * @par[Revision] $Id$
 # */
 
@@ -52,11 +25,11 @@ CFLAGS += $(WARNING)
 CFLAGS += $(DEBUGGING)
 CFLAGS += $(ADDITIONAL_CFLAGS)
 
+# Library version
+EXIP_VERSION = 0.4
+
 # The project root directory
 PROJECT_ROOT = ../..
-
-# Check Unit Test installation directory
-CHECK_DIR = $(CHECK_UNIT_TEST_DIR)
 
 # The src folder of the project 
 SOURCE_DIR = $(PROJECT_ROOT)/src
@@ -64,8 +37,8 @@ SOURCE_DIR = $(PROJECT_ROOT)/src
 # The bin folder of the project 
 BIN_DIR = $(PROJECT_ROOT)/bin
 
-# The documentation folder of the project
-DOC_DIR = $(PROJECT_ROOT)/doc
+# The development documentation folder of the project
+DEV_DOC_DIR = $(PROJECT_ROOT)/doc/dev
 
 # Common module
 COMMON = common
@@ -100,35 +73,38 @@ TESTS_DATA_DIR = $(PROJECT_ROOT)/tests/test-set
 # Unit tests bin directory
 TESTS_BIN_DIR = $(BIN_DIR)/tests
 
+# Static and dynamic library output directory
+LIB_BIN_DIR = $(BIN_DIR)/lib
+
 # Public include directory
 PUBLIC_INCLUDE_DIR = $(PROJECT_ROOT)/include
 
 # Compiler include flags
-CFLAGS += -I$(COMMON_SRC)/include
-CFLAGS += -I$(GRAMMAR_SRC)/include
-CFLAGS += -I$(STRING_TABLES_SRC)/include
-CFLAGS += -I$(CONTENT_IO_SRC)/include
-CFLAGS += -I$(STREAM_IO_SRC)/include
-CFLAGS += -I$(GRAMMAR_GEN_SRC)/include
-CFLAGS += -I$(PUBLIC_INCLUDE_DIR)
-CFLAGS += -I$(target)
+INCDIRS += -I$(COMMON_SRC)/include
+INCDIRS += -I$(GRAMMAR_SRC)/include
+INCDIRS += -I$(STRING_TABLES_SRC)/include
+INCDIRS += -I$(CONTENT_IO_SRC)/include
+INCDIRS += -I$(STREAM_IO_SRC)/include
+INCDIRS += -I$(GRAMMAR_GEN_SRC)/include
+INCDIRS += -I$(PUBLIC_INCLUDE_DIR)
+INCDIRS += -I$(target)
 
-LDFLAGS += -L$(BIN_DIR) 
+LDFLAGS += -L$(LIB_BIN_DIR) 
 
-# Gets the first goal set on the command line - it is used if the next goal is check. Defines which module to test
-FIRST_GOAL = $(word 1,$(MAKECMDGOALS))
+# Used by included Makefiles to compile; hides implementation.
+COMPILE = $(CC) $(CFLAGS) $(INCDIRS)
 
-# If the first goal is check then the target for checking is the whole project
-ifeq ($(FIRST_GOAL), check)
-   CHECK_TARGET=$(TESTS_BIN_DIR)/test_streamIO $(TESTS_BIN_DIR)/test_stringTables $(TESTS_BIN_DIR)/test_grammar $(TESTS_BIN_DIR)/test_contentIO $(TESTS_BIN_DIR)/test_exip $(TESTS_BIN_DIR)/test_builtin_grammar
-else
-   CHECK_TARGET=$(TESTS_BIN_DIR)/test_$(FIRST_GOAL)
-endif
+# Tests all targets by default. May override in environment to specify checks to run, for example:
+#   $make check CHECK_TARGETS="streamio strict_grammar"
+CHECK_TARGETS ?= $(STREAM_IO) $(STRING_TABLES) $(GRAMMAR) $(CONTENT_IO) exip builtin_grammar strict_grammar emptyType
+CHECK_BINS := $(foreach acheck, $(CHECK_TARGETS), $(TESTS_BIN_DIR)/test_$(acheck))
 
 # List of all example binary names
 EXAMPLE_1 = exipd
 
 EXAMPLE_2 = exipe
+
+EXAMPLE_3 = exipsep2
 
 # Examples directories
 EXAMPLES_SRC_DIR = $(PROJECT_ROOT)/examples
@@ -165,30 +141,40 @@ ifeq ($(INCLUDE_GRAMMAR_GENERATION), true)
    OBJECT_ALL += $(GRAMMAR_GEN_OBJ)
 endif
 
-.PHONY : clean all lib check examples exipd mk_bin mk_examples \
-		 mk_tests mk_utils test_sets_copy_examples utils test_sets_copy_utils doc
+.PHONY : clean all lib dynlib check examples exipd mk_bin mk_examples mk_lib \
+		 mk_tests mk_utils test_sets_copy_examples utils test_sets_copy_utils doc dist
 
 all: mk_bin $(OBJECT_ALL)
 
-lib: mk_bin $(BIN_DIR)/libexip.a
+lib: mk_bin mk_lib $(LIB_BIN_DIR)/libexip.a
 
-$(BIN_DIR)/libexip.a: $(OBJECT_ALL)
-		ar rcs $(BIN_DIR)/libexip.a $(OBJECT_ALL)
-			
-check: mk_tests $(CHECK_TARGET)
-		for i in $(CHECK_TARGET); do \
-                 $$i $(TESTS_DATA_DIR); \
+$(LIB_BIN_DIR)/libexip.a: $(OBJECT_ALL)
+		ar rcs $(LIB_BIN_DIR)/libexip.a $(OBJECT_ALL)
+
+dynlib: COMPILE += -fPIC
+dynlib: clean all mk_lib $(LIB_BIN_DIR)/libexip.so
+
+$(LIB_BIN_DIR)/libexip.so: $(OBJECT_ALL)
+		$(CC) -shared -Wl,-soname,libexip.so.$(EXIP_VERSION) -o $(LIB_BIN_DIR)/libexip.so.$(EXIP_VERSION) $(OBJECT_ALL)
+		ln -sf $(LIB_BIN_DIR)/libexip.so.$(EXIP_VERSION) $(LIB_BIN_DIR)/libexip.so
+
+check: mk_tests $(CHECK_BINS)
+		for i in $(CHECK_BINS); do \
+                   $$i $(TESTS_DATA_DIR); \
              done
 
-examples: mk_examples lib $(EXAMPLES_BIN_DIR)/$(EXAMPLE_1) $(EXAMPLES_BIN_DIR)/$(EXAMPLE_2) test_sets_copy_examples
+examples: mk_examples lib $(EXAMPLES_BIN_DIR)/$(EXAMPLE_1) $(EXAMPLES_BIN_DIR)/$(EXAMPLE_2) $(EXAMPLES_BIN_DIR)/$(EXAMPLE_3) test_sets_copy_examples
 
 utils: mk_utils lib $(UTILS_BIN_DIR)/$(UTILS_1) test_sets_copy_utils
 
 doc:
-		cd $(DOC_DIR); doxygen Doxyfile
+		cd $(DEV_DOC_DIR); doxygen Doxyfile
 
 mk_bin:
 		mkdir -p $(BIN_DIR)
+		
+mk_lib:
+		mkdir -p $(LIB_BIN_DIR)
 		
 mk_examples:
 		mkdir -p $(EXAMPLES_BIN_DIR)
@@ -210,3 +196,9 @@ test_sets_copy_utils:
 		
 clean:
 		rm -f -r $(BIN_DIR)
+
+# Builds a library distribution/release		
+dist:
+		svn export $(PROJECT_ROOT) $(PROJECT_ROOT)/../../files/exip-$(EXIP_VERSION)
+		cd $(PROJECT_ROOT)/../../files && tar cvf - exip-$(EXIP_VERSION) | gzip > exip-$(EXIP_VERSION).tar.gz
+		cd $(PROJECT_ROOT)/../../files && zip -lvr exip-$(EXIP_VERSION).zip exip-$(EXIP_VERSION)		

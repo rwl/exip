@@ -1,36 +1,9 @@
-/*==================================================================================*\
-|                                                                                    |
-|                    EXIP - Efficient XML Interchange Processor                      |
-|                                                                                    |
-|------------------------------------------------------------------------------------|
-| Copyright (c) 2010, EISLAB - Luleå University of Technology                        |
-| All rights reserved.                                                               |
-|                                                                                    |
-| Redistribution and use in source and binary forms, with or without                 |
-| modification, are permitted provided that the following conditions are met:        |
-|     * Redistributions of source code must retain the above copyright               |
-|       notice, this list of conditions and the following disclaimer.                |
-|     * Redistributions in binary form must reproduce the above copyright            |
-|       notice, this list of conditions and the following disclaimer in the          |
-|       documentation and/or other materials provided with the distribution.         |
-|     * Neither the name of the EISLAB - Luleå University of Technology nor the      |
-|       names of its contributors may be used to endorse or promote products         |
-|       derived from this software without specific prior written permission.        |
-|                                                                                    |
-| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND    |
-| ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED      |
-| WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE             |
-| DISCLAIMED. IN NO EVENT SHALL EISLAB - LULEÅ UNIVERSITY OF TECHNOLOGY BE LIABLE    |
-| FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES |
-| (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;       |
-| LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND        |
-| ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT         |
-| (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS      |
-| SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                       |
-|                                                                                    |
-|                                                                                    |
-|                                                                                    |
-\===================================================================================*/
+/*==================================================================*\
+|                EXIP - Embeddable EXI Processor in C                |
+|--------------------------------------------------------------------|
+|          This work is licensed under BSD 3-Clause License          |
+|  The full license terms and conditions are located in LICENSE.txt  |
+\===================================================================*/
 
 /**
  * @file decodeTestEXI.c
@@ -38,23 +11,23 @@
  *
  * @date Oct 13, 2010
  * @author Rumen Kyusakov
- * @version 0.1
+ * @version 0.4
  * @par[Revision] $Id$
  */
 #include "EXIParser.h"
-#include "procTypes.h"
 #include "stringManipulate.h"
 #include "grammarGenerator.h"
 #include <stdio.h>
 #include <string.h>
 
 static void printfHelp();
-static void parseSchema(char* fileName, EXIPSchema* schema);
+static void parseSchema(char** fileNames, unsigned int schemaFilesCount, EXIPSchema* schema);
 
 #define OUT_EXI 0
 #define OUT_XML 1
 #define INPUT_BUFFER_SIZE 200
 #define MAX_PREFIXES 10
+#define MAX_XSD_FILES_COUNT 10 // up to 10 XSD files
 
 struct appData
 {
@@ -96,6 +69,9 @@ static char sample_stringData(const String value, void* app_data);
 static char sample_decimalData(Decimal value, void* app_data);
 static char sample_intData(Integer int_val, void* app_data);
 static char sample_floatData(Float fl_val, void* app_data);
+static char sample_booleanData(unsigned char bool_val, void* app_data);
+static char sample_dateTimeData(EXIPDateTime dt_val, void* app_data);
+static char sample_binaryData(const char* binary_val, Index nbytes, void* app_data);
 
 size_t readFileInputStream(void* buf, size_t readSize, void* stream);
 
@@ -106,17 +82,18 @@ int main(int argc, char *argv[])
 	EXIPSchema schema;
 	EXIPSchema* schemaPtr = NULL;
 	struct appData parsingData;
+	unsigned int argIndex = 1;
 
 	parsingData.outputFormat = OUT_EXI; // Default output option
 
 	if(argc > 1)
 	{
-		if(strcmp(argv[1], "-help") == 0)
+		if(strcmp(argv[argIndex], "-help") == 0)
 		{
 			printfHelp();
 			return 0;
 		}
-		else if(strcmp(argv[1], "-exi") == 0)
+		else if(strcmp(argv[argIndex], "-exi") == 0)
 		{
 			parsingData.outputFormat = OUT_EXI;
 			if(argc == 2)
@@ -124,22 +101,10 @@ int main(int argc, char *argv[])
 				printfHelp();
 				return 0;
 			}
-			else if(strcmp(argv[2], "-schema") == 0)
-			{
-				if(argc <= 4)
-				{
-					printfHelp();
-					return 0;
-				}
 
-				parseSchema(argv[3], &schema);
-				schemaPtr = &schema;
-				strcpy(sourceFileName, argv[4]);
-			}
-			else
-				strcpy(sourceFileName, argv[2]);
+			argIndex = 2;
 		}
-		else if(strcmp(argv[1], "-xml") == 0)
+		else if(strcmp(argv[argIndex], "-xml") == 0)
 		{
 			parsingData.outputFormat = OUT_XML;
 			if(argc == 2)
@@ -147,39 +112,33 @@ int main(int argc, char *argv[])
 				printfHelp();
 				return 0;
 			}
-			else if(strcmp(argv[2], "-schema") == 0)
-			{
-				if(argc <= 4)
-				{
-					printfHelp();
-					return 0;
-				}
 
-				parseSchema(argv[3], &schema);
-				schemaPtr = &schema;
-				strcpy(sourceFileName, argv[4]);
-			}
-			else
-				strcpy(sourceFileName, argv[2]);
+			argIndex = 2;
 		}
-		else if(strcmp(argv[1], "-schema") == 0)
+
+		if(strcmp(argv[argIndex], "-schema") == 0)
 		{
-			if(argc <= 3)
+			if(argc <= argIndex + 2)
 			{
 				printfHelp();
 				return 0;
 			}
 			else
 			{
-				parseSchema(argv[2], &schema);
+				unsigned int schemaFilesCount = 0;
+
+				schemaFilesCount = argc - argIndex - 2;
+
+				argIndex++;
+
+				parseSchema(argv + argIndex, schemaFilesCount, &schema);
 				schemaPtr = &schema;
-				strcpy(sourceFileName, argv[3]);
+
+				argIndex += schemaFilesCount;
 			}
 		}
-		else
-		{
-			strcpy(sourceFileName, argv[1]);
-		}
+
+		strcpy(sourceFileName, argv[argIndex]);
 
 		infile = fopen(sourceFileName, "rb" );
 		if(!infile)
@@ -190,18 +149,21 @@ int main(int argc, char *argv[])
 		else
 		{
 			Parser testParser;
-			char buffer[INPUT_BUFFER_SIZE];
-			IOStream ioStrm;
+			char buf[INPUT_BUFFER_SIZE];
+			BinaryBuffer buffer;
 			errorCode tmp_err_code = UNEXPECTED_ERROR;
 
+			buffer.buf = buf;
+			buffer.bufLen = INPUT_BUFFER_SIZE;
+			buffer.bufContent = 0;
 			// Parsing steps:
 
 			// I: First, define an external stream for the input to the parser if any
-			ioStrm.readWriteToStream = readFileInputStream;
-			ioStrm.stream = infile;
+			buffer.ioStrm.readWriteToStream = readFileInputStream;
+			buffer.ioStrm.stream = infile;
 
 			// II: Second, initialize the parser object
-			tmp_err_code = initParser(&testParser, buffer, INPUT_BUFFER_SIZE, 0, &ioStrm, schemaPtr, &parsingData);
+			tmp_err_code = initParser(&testParser, buffer, schemaPtr, &parsingData);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
@@ -223,6 +185,9 @@ int main(int argc, char *argv[])
 			testParser.handler.decimalData = sample_decimalData;
 			testParser.handler.intData = sample_intData;
 			testParser.handler.floatData = sample_floatData;
+			testParser.handler.booleanData = sample_booleanData;
+			testParser.handler.dateTimeData = sample_dateTimeData;
+			testParser.handler.binaryData = sample_binaryData;
 
 			// IV: Parse the header of the stream
 
@@ -260,11 +225,11 @@ int main(int argc, char *argv[])
 static void printfHelp()
 {
     printf("\n" );
-    printf("  EXIP     Efficient XML Interchange Processor, Rumen Kyusakov, 2011 \n");
-    printf("           Copyright (c) 2010 - 2011, EISLAB - Luleå University of Technology Version 0.2 \n");
+    printf("  EXIP     Copyright (c) 2010 - 2012, EISLAB - Luleå University of Technology Version 0.4 \n");
+    printf("           Authors: Rumen Kyusakov\n");
     printf("  Usage:   exipd [options] <EXI_FileIn>\n\n");
-    printf("           Options: [-help | [ -xml | -exi ] -schema <schema_file_in>] \n");
-    printf("           -schema :   uses schema defined in <schema_file_in> for decoding\n");
+    printf("           Options: [-help | [ -xml | -exi ] -schema <schema_files_in>] \n");
+    printf("           -schema :   uses schema defined in <schema_files_in> for decoding\n");
     printf("           -exi    :   EXI formated output [default]\n");
     printf("           -xml    :   XML formated output\n");
     printf("           -help   :   Prints this help message\n\n");
@@ -481,7 +446,7 @@ static char sample_intData(Integer int_val, void* app_data)
 	{
 		if(appD->expectAttributeData)
 		{
-			sprintf(tmp_buf, "%d", (int) int_val);
+			sprintf(tmp_buf, "%lld", (long long int) int_val);
 			printf("%s", tmp_buf);
 			printf("\"\n");
 			appD->expectAttributeData = 0;
@@ -489,7 +454,7 @@ static char sample_intData(Integer int_val, void* app_data)
 		else
 		{
 			printf("CH ");
-			sprintf(tmp_buf, "%d", (int) int_val);
+			sprintf(tmp_buf, "%lld", (long long int) int_val);
 			printf("%s", tmp_buf);
 			printf("\n");
 		}
@@ -498,7 +463,7 @@ static char sample_intData(Integer int_val, void* app_data)
 	{
 		if(appD->expectAttributeData)
 		{
-			sprintf(tmp_buf, "%d", (int) int_val);
+			sprintf(tmp_buf, "%lld", (long long int) int_val);
 			printf("%s", tmp_buf);
 			printf("\"");
 			appD->expectAttributeData = 0;
@@ -508,9 +473,59 @@ static char sample_intData(Integer int_val, void* app_data)
 			if(appD->unclosedElement)
 				printf(">\n");
 			appD->unclosedElement = 0;
-			sprintf(tmp_buf, "%d", (int) int_val);
+			sprintf(tmp_buf, "%lld", (long long int) int_val);
 			printf("%s", tmp_buf);
 			printf("\n");
+		}
+	}
+
+	return EXIP_HANDLER_OK;
+}
+
+static char sample_booleanData(unsigned char bool_val, void* app_data)
+{
+	struct appData* appD = (struct appData*) app_data;
+
+	if(appD->outputFormat == OUT_EXI)
+	{
+		if(appD->expectAttributeData)
+		{
+			if(bool_val)
+				printf("true\"\n");
+			else
+				printf("false\"\n");
+
+			appD->expectAttributeData = 0;
+		}
+		else
+		{
+			printf("CH ");
+			if(bool_val)
+				printf("true\n");
+			else
+				printf("false\n");
+		}
+	}
+	else if(appD->outputFormat == OUT_XML)
+	{
+		if(appD->expectAttributeData)
+		{
+			if(bool_val)
+				printf("true\"");
+			else
+				printf("false\"");
+			appD->expectAttributeData = 0;
+		}
+		else
+		{
+			if(appD->unclosedElement)
+				printf(">\n");
+			appD->unclosedElement = 0;
+
+			if(bool_val)
+				printf("true\n");
+			else
+				printf("false\n");
 		}
 	}
 
@@ -525,7 +540,7 @@ static char sample_floatData(Float fl_val, void* app_data)
 	{
 		if(appD->expectAttributeData)
 		{
-			sprintf(tmp_buf, "%lldE%d", fl_val.mantissa, fl_val.exponent);
+			sprintf(tmp_buf, "%lldE%d", (long long int) fl_val.mantissa, fl_val.exponent);
 			printf("%s", tmp_buf);
 			printf("\"\n");
 			appD->expectAttributeData = 0;
@@ -533,7 +548,7 @@ static char sample_floatData(Float fl_val, void* app_data)
 		else
 		{
 			printf("CH ");
-			sprintf(tmp_buf, "%lldE%d", fl_val.mantissa, fl_val.exponent);
+			sprintf(tmp_buf, "%lldE%d", (long long int) fl_val.mantissa, fl_val.exponent);
 			printf("%s", tmp_buf);
 			printf("\n");
 		}
@@ -542,7 +557,7 @@ static char sample_floatData(Float fl_val, void* app_data)
 	{
 		if(appD->expectAttributeData)
 		{
-			sprintf(tmp_buf, "%lldE%d", fl_val.mantissa, fl_val.exponent);
+			sprintf(tmp_buf, "%lldE%d", (long long int) fl_val.mantissa, fl_val.exponent);
 			printf("%s", tmp_buf);
 			printf("\"");
 			appD->expectAttributeData = 0;
@@ -552,8 +567,124 @@ static char sample_floatData(Float fl_val, void* app_data)
 			if(appD->unclosedElement)
 				printf(">\n");
 			appD->unclosedElement = 0;
-			sprintf(tmp_buf, "%lldE%d", fl_val.mantissa, fl_val.exponent);
+			sprintf(tmp_buf, "%lldE%d", (long long int) fl_val.mantissa, fl_val.exponent);
 			printf("%s", tmp_buf);
+			printf("\n");
+		}
+	}
+
+	return EXIP_HANDLER_OK;
+}
+
+static char sample_dateTimeData(EXIPDateTime dt_val, void* app_data)
+{
+	struct appData* appD = (struct appData*) app_data;
+	char fsecBuf[30];
+	int i;
+
+	if(IS_PRESENT(dt_val.presenceMask, FRACT_PRESENCE))
+	{
+		unsigned int tmpfValue = dt_val.fSecs.value;
+		int digitNum = 0;
+
+		fsecBuf[0] = '.';
+
+		while(tmpfValue)
+		{
+			digitNum++;
+			tmpfValue = tmpfValue / 10;
+		}
+		for(i = 0; i < dt_val.fSecs.offset + 1 - digitNum; i++)
+			fsecBuf[1+i] = '0';
+
+		sprintf(fsecBuf + 1 + i, "%d", dt_val.fSecs.value);
+	}
+	else
+	{
+		fsecBuf[0] = '\0';
+	}
+
+	if(appD->outputFormat == OUT_EXI)
+	{
+		if(appD->expectAttributeData)
+		{
+			printf("%04d-%02d-%02dT%02d:%02d:%02d%s", dt_val.dateTime.tm_year + 1900,
+					dt_val.dateTime.tm_mon + 1, dt_val.dateTime.tm_mday,
+					dt_val.dateTime.tm_hour, dt_val.dateTime.tm_min,
+					dt_val.dateTime.tm_sec, fsecBuf);
+			printf("\"\n");
+			appD->expectAttributeData = 0;
+		}
+		else
+		{
+			printf("CH ");
+			printf("%04d-%02d-%02dT%02d:%02d:%02d%s", dt_val.dateTime.tm_year + 1900,
+					dt_val.dateTime.tm_mon + 1, dt_val.dateTime.tm_mday,
+					dt_val.dateTime.tm_hour, dt_val.dateTime.tm_min,
+					dt_val.dateTime.tm_sec, fsecBuf);
+			printf("\n");
+		}
+	}
+	else if(appD->outputFormat == OUT_XML)
+	{
+		if(appD->expectAttributeData)
+		{
+			printf("%04d-%02d-%02dT%02d:%02d:%02d%s", dt_val.dateTime.tm_year + 1900,
+					dt_val.dateTime.tm_mon + 1, dt_val.dateTime.tm_mday,
+					dt_val.dateTime.tm_hour, dt_val.dateTime.tm_min,
+					dt_val.dateTime.tm_sec, fsecBuf);
+			printf("\"");
+			appD->expectAttributeData = 0;
+		}
+		else
+		{
+			if(appD->unclosedElement)
+				printf(">\n");
+			appD->unclosedElement = 0;
+			printf("%04d-%02d-%02dT%02d:%02d:%02d%s", dt_val.dateTime.tm_year + 1900,
+					dt_val.dateTime.tm_mon + 1, dt_val.dateTime.tm_mday,
+					dt_val.dateTime.tm_hour, dt_val.dateTime.tm_min,
+					dt_val.dateTime.tm_sec, fsecBuf);
+			printf("\n");
+		}
+	}
+
+	return EXIP_HANDLER_OK;
+}
+
+static char sample_binaryData(const char* binary_val, Index nbytes, void* app_data)
+{
+	struct appData* appD = (struct appData*) app_data;
+
+	if(appD->outputFormat == OUT_EXI)
+	{
+		if(appD->expectAttributeData)
+		{
+			printf("[binary: %d bytes]", (int) nbytes);
+			printf("\"\n");
+			appD->expectAttributeData = 0;
+		}
+		else
+		{
+			printf("CH ");
+			printf("[binary: %d bytes]", (int) nbytes);
+			printf("\n");
+		}
+	}
+	else if(appD->outputFormat == OUT_XML)
+	{
+		if(appD->expectAttributeData)
+		{
+			printf("[binary: %d bytes]", (int) nbytes);
+			printf("\"");
+			appD->expectAttributeData = 0;
+		}
+		else
+		{
+			if(appD->unclosedElement)
+				printf(">\n");
+			appD->unclosedElement = 0;
+			printf("[binary: %d bytes]", (int) nbytes);
 			printf("\n");
 		}
 	}
@@ -614,48 +745,63 @@ size_t readFileInputStream(void* buf, size_t readSize, void* stream)
 	return fread(buf, 1, readSize, infile);
 }
 
-static void parseSchema(char* fileName, EXIPSchema* schema)
+static void parseSchema(char** fileNames, unsigned int schemaFilesCount, EXIPSchema* schema)
 {
 	FILE *schemaFile;
-	unsigned long schemaLen;
-	char *schemaBuffer;
+	BinaryBuffer buffer[MAX_XSD_FILES_COUNT];
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	unsigned int i;
 
-	schemaFile = fopen(fileName, "rb" );
-	if(!schemaFile)
+	if(schemaFilesCount > MAX_XSD_FILES_COUNT)
 	{
-		fprintf(stderr, "Unable to open file %s", fileName);
+		fprintf(stderr, "Too many xsd files given as an input: %d", schemaFilesCount);
 		exit(1);
 	}
-	else
+
+	for(i = 0; i < schemaFilesCount; i++)
 	{
-		//Get file length
-		fseek(schemaFile, 0, SEEK_END);
-		schemaLen=ftell(schemaFile);
-		fseek(schemaFile, 0, SEEK_SET);
-
-		//Allocate memory
-		schemaBuffer=(char *)malloc(schemaLen+1);
-		if (!schemaBuffer)
+		schemaFile = fopen(fileNames[i], "rb" );
+		if(!schemaFile)
 		{
-			fprintf(stderr, "Memory allocation error!");
+			fprintf(stderr, "Unable to open file %s", fileNames[i]);
+			exit(1);
+		}
+		else
+		{
+			//Get file length
+			fseek(schemaFile, 0, SEEK_END);
+			buffer[i].bufLen = ftell(schemaFile) + 1;
+			fseek(schemaFile, 0, SEEK_SET);
+
+			//Allocate memory
+			buffer[i].buf = (char *) malloc(buffer[i].bufLen);
+			if (!buffer[i].buf)
+			{
+				fprintf(stderr, "Memory allocation error!");
+				fclose(schemaFile);
+				exit(1);
+			}
+
+			//Read file contents into buffer
+			fread(buffer[i].buf, buffer[i].bufLen, 1, schemaFile);
 			fclose(schemaFile);
-			exit(1);
+
+			buffer[i].bufContent = buffer[i].bufLen;
+			buffer[i].ioStrm.readWriteToStream = NULL;
+			buffer[i].ioStrm.stream = NULL;
 		}
+	}
 
-		//Read file contents into buffer
-		fread(schemaBuffer, schemaLen, 1, schemaFile);
-		fclose(schemaFile);
+	tmp_err_code = generateSchemaInformedGrammars(buffer, schemaFilesCount, SCHEMA_FORMAT_XSD_EXI, schema);
+	if(tmp_err_code != ERR_OK)
+	{
+		printf("\n Error occured: %d", tmp_err_code);
+		exit(1);
+	}
 
-		tmp_err_code = generateSchemaInformedGrammars(schemaBuffer, schemaLen, schemaLen, NULL, SCHEMA_FORMAT_XSD_EXI, schema);
-
-		if(tmp_err_code != ERR_OK)
-		{
-			printf("\n Error occured: %d", tmp_err_code);
-			exit(1);
-		}
-
-		free(schemaBuffer);
+	for(i = 0; i < schemaFilesCount; i++)
+	{
+		free(buffer[i].buf);
 	}
 }
 
@@ -683,5 +829,4 @@ static char lookupPrefix(struct appData* aData, String ns, unsigned char* prxHit
 		*prxHit = 0;
 		return 0;
 	}
-
 }

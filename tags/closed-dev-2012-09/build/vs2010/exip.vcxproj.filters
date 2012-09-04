@@ -138,6 +138,15 @@
     <ClInclude Include="exipConfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\contentIO\include\builtInGrammars.h">
+      <Filter>Header Files\contentIO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\grammarGen\include\treeTableSchema.h">
+      <Filter>Header Files\grammarGen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\common\include\dbgMalloc.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\common\src\contentHandler.c">
@@ -197,19 +206,10 @@
     <ClCompile Include="..\..\src\stringTables\src\sTables.c">
       <Filter>Source Files\stringTables</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\grammarGen\src\grammarGenerator.c">
-      <Filter>Source Files\grammarGen</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\grammarGen\src\genUtils.c">
       <Filter>Source Files\grammarGen</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\contentIO\src\grammarAugment.c">
-      <Filter>Source Files\contentIO</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\contentIO\src\bodyEncode.c">
-      <Filter>Source Files\contentIO</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\contentIO\src\buildInGrammars.c">
       <Filter>Source Files\contentIO</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\grammarGen\src\protoGrammars.c">
@@ -220,6 +220,30 @@
     </ClCompile>
     <ClCompile Include="..\..\src\contentIO\src\staticEXIOptions.c">
       <Filter>Source Files\contentIO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\grammarGen\src\grammarGenerator.c">
+      <Filter>Source Files\grammarGen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\grammarGen\src\treeTableBuild.c">
+      <Filter>Source Files\grammarGen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\grammarGen\src\treeTableManipulate.c">
+      <Filter>Source Files\grammarGen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\grammarGen\src\treeTableToGrammars.c">
+      <Filter>Source Files\grammarGen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\contentIO\src\initSchemaInstance.c">
+      <Filter>Source Files\contentIO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\grammar\src\emptyTypeGrammarGen.c">
+      <Filter>Source Files\grammar</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\grammar\src\grammarAugment.c">
+      <Filter>Source Files\grammar</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\grammar\src\staticGrammarDefs.c">
+      <Filter>Source Files\grammar</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

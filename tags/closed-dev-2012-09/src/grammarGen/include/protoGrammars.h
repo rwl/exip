@@ -1,43 +1,16 @@
-/*==================================================================================*\
-|                                                                                    |
-|                    EXIP - Efficient XML Interchange Processor                      |
-|                                                                                    |
-|------------------------------------------------------------------------------------|
-| Copyright (c) 2010, EISLAB - Luleå University of Technology                        |
-| All rights reserved.                                                               |
-|                                                                                    |
-| Redistribution and use in source and binary forms, with or without                 |
-| modification, are permitted provided that the following conditions are met:        |
-|     * Redistributions of source code must retain the above copyright               |
-|       notice, this list of conditions and the following disclaimer.                |
-|     * Redistributions in binary form must reproduce the above copyright            |
-|       notice, this list of conditions and the following disclaimer in the          |
-|       documentation and/or other materials provided with the distribution.         |
-|     * Neither the name of the EISLAB - Luleå University of Technology nor the      |
-|       names of its contributors may be used to endorse or promote products         |
-|       derived from this software without specific prior written permission.        |
-|                                                                                    |
-| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND    |
-| ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED      |
-| WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE             |
-| DISCLAIMED. IN NO EVENT SHALL EISLAB - LULEÅ UNIVERSITY OF TECHNOLOGY BE LIABLE    |
-| FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES |
-| (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;       |
-| LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND        |
-| ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT         |
-| (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS      |
-| SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                       |
-|                                                                                    |
-|                                                                                    |
-|                                                                                    |
-\===================================================================================*/
+/*==================================================================*\
+|                EXIP - Embeddable EXI Processor in C                |
+|--------------------------------------------------------------------|
+|          This work is licensed under BSD 3-Clause License          |
+|  The full license terms and conditions are located in LICENSE.txt  |
+\===================================================================*/
 
 /**
  * @file protoGrammars.h
  * @brief Definitions and utility functions for EXI Proto-Grammars
  * @date May 11, 2011
  * @author Rumen Kyusakov
- * @version 0.1
+ * @version 0.4
  * @par[Revision] $Id$
  */
 
@@ -47,64 +20,87 @@
 #include "procTypes.h"
 
 /**
- * The proto-grammars are consisting of n rules (prods[0], prods[1] ... prods[n])
- * and k productions in each rule (prods[0][0] ... prods[0][k]) */
-struct protoGrammar
+ * Productions in a rule with the same number of parts in their event codes
+ */
+struct ProtoRuleEntry
 {
-	Production** prods;
-	unsigned int rulesCount;
-	unsigned int rulesDim;
-	unsigned int* prodCount;
-	unsigned int* prodDim;
-	unsigned int contentIndex;
-	struct reAllocPair rulesMemPair; // Used by the memoryManager when there is a reallocation for prods
-	struct reAllocPair* prodMemPair; // Used by the memoryManager when there is a reallocation for prods[n]
+#if DYN_ARRAY_USE == ON
+	DynArray dynArray;
+#endif
+	Production* prod;
+	Index count;
 };
 
-typedef struct protoGrammar ProtoGrammar;
+typedef struct ProtoRuleEntry ProtoRuleEntry;
+
+struct ProtoGrammar
+{
+#if DYN_ARRAY_USE == ON
+	DynArray dynArray;
+#endif
+	/**
+	 * Each proto rule has a set of productions
+	 */
+	ProtoRuleEntry* rule;
+	SmallIndex count;
+	unsigned int contentIndex;
+};
+
+typedef struct ProtoGrammar ProtoGrammar;
+
+struct ProtoGrammarArray
+{
+#if DYN_ARRAY_USE == ON
+	DynArray dynArray;
+#endif
+	ProtoGrammar* pg;
+	uint16_t count;
+};
+
+typedef struct ProtoGrammarArray ProtoGrammarArray;
 
 /**
  * @brief Creates and allocates memory for new proto grammar
  *
- * @param[in, out] memlist A list storing the memory allocations
+ * @param[in, out] memList A list storing the memory allocations
  * @param[in] rulesDim initial dimension of the rule
  * @param[in] prodDim initial dimension of the productions in the rules
- * @param[out] result an empty proto-grammar
+ * @param[out] pg an empty proto-grammar
  * @return Error handling code
  */
-errorCode createProtoGrammar(AllocList* memlist, unsigned int rulesDim, unsigned int prodDim, ProtoGrammar** result);
-
-/**
- * @brief Add an empty rule to a ProtoGrammar
- *
- * @param[in, out] memlist A list storing the memory allocations
- * @param[in, out] pg the proto-grammar
- * @return Error handling code
- */
-errorCode addProtoRule(AllocList* memlist, ProtoGrammar* pg);
+errorCode createProtoGrammar(AllocList* memList, Index rulesDim, Index prodDim, ProtoGrammar* pg);
 
 /**
  * @brief Add a production to a particular proto rule
  *
- * @param[in, out] memlist A list storing the memory allocations
- * @param[in, out] pg the proto-grammar
- * @param[in] ruleIndex the index of the rule in which the production is inserted
- * @param[in] evnt of the production
- * @param[in] uriRowID of the production
- * @param[in] lnRowID of the production
+ * @param[in, out] memList A list storing the memory allocations
+ * @param[in, out] ruleEntry the rule to which the production is added
+ * @param[in] eventType event type of the production
+ * @param[in] typeId index of the type of the production in the simple type table
+ * @param[in] qnameID qnameId of the production
  * @param[in] nonTermID of the production
  * @return Error handling code
  */
-errorCode addProductionToAProtoRule(AllocList* memlist, ProtoGrammar* pg, unsigned int ruleIndex, EXIEvent evnt, uint16_t uriRowID, size_t lnRowID, size_t nonTermID);
+errorCode addProduction(AllocList* memList, ProtoRuleEntry* ruleEntry, EventType eventType, Index typeId, QNameID qnameID, SmallIndex nonTermID);
 
 /**
  * @brief Create a new EXI grammar from existing proto grammar
  *
  * @param[in, out] memlist A list storing the memory allocations for the new EXI grammar
  * @param[in] pg the source proto-grammar
- * @param[out] result a pointer to the newly created EXI grammar
+ * @param[out] exiGrammar a pointer to the newly created EXI grammar
  * @return Error handling code
  */
-errorCode convertProtoGrammar(AllocList* memlist, ProtoGrammar* pg, EXIGrammar** result);
+errorCode convertProtoGrammar(AllocList* memlist, ProtoGrammar* pg, EXIGrammar* exiGrammar);
+
+/**
+ * @brief Clones a proto grammar instance
+ *
+ * @param[in, out] memList A list storing the memory allocations for the new proto grammar
+ * @param[in] src the source proto-grammar
+ * @param[out] dest a pointer to the newly created proto grammar
+ * @return Error handling code
+ */
+errorCode cloneProtoGrammar(AllocList* memList, ProtoGrammar* src, ProtoGrammar* dest);
 
 #endif /* PROTOGRAMMARS_H_ */

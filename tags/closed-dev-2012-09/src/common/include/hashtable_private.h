@@ -11,7 +11,7 @@
 struct entry
 {
     String* key;
-    size_t value;
+    Index value;
     uint32_t hash;
     struct entry *next;
 };

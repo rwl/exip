@@ -23,23 +23,52 @@ Similarly to the serialization, the parsing consists of 7 simple steps:
 Parser parser;
 \end{lstlisting}
 
- \item (Optional) Define an external input stream for receiving the EXI document. If an input stream
-is not defined the whole EXI document must be stored in a memory buffer before the start of the
-parsing process:
+ \item Define a binary input buffer for reading the EXI stream.
+The buffer can optionally include an external input stream for fetching the
+serialized EXI data. If an input stream is not defined the whole EXI
+document must be stored in memory before starting the
+parsing process. The following code declares and initializes an input memory buffer:
 \begin{lstlisting}
-IOStream in; /* Declare an input stream container */
-FILE *exifile; /* Using a file for retrieving the EXI document */
-exifile = fopen(sourceEXIFile, "rb" ); /* open the file before use */
-in.readWriteToStream = readFromFileInputStream; /* readFromFileInputStream
-is a function implementing the actual reading from the stream */
-in.stream = exifile; /* Sets the input stream to the file */
+BinaryBuffer buffer;
+char buf[INPUT_BUFFER_SIZE];
+
+buffer.buf = buf;
+buffer.bufLen = INPUT_BUFFER_SIZE;
+buffer.bufContent = 0;
+\end{lstlisting}
+Beside these definitions, when a file is used to fetch the
+EXI data the following steps are also required: 
+\begin{lstlisting}
+/* IN CASE OF FILE INPUT STREAM */
+/* Define a function implementing the actual reading from a file */
+size_t readFromFileInputStream(void* buf, size_t readSize, void* stream)
+{
+	FILE *infile = (FILE*) stream;
+	return fread(buf, 1, readSize, infile);
+}
+
+FILE *infile; /* Using a file for fetching the EXI data */
+infile = fopen(sourceEXIFile, "rb" ); /* open the file before use */
+buffer.ioStrm.readWriteToStream = readFromFileInputStream;
+buffer.ioStrm.stream = infile; /* Sets the input stream to the file */
+\end{lstlisting}
+If no file or other input streams are being used (e.i. the whole EXI message is
+stored in \texttt{buffer.buf}), the input function and the stream
+of the \texttt{BinaryBuffer} must be initialized with NULL values:
+\begin{lstlisting}
+/* IN CASE OF IN-MEMORY ONLY INPUT*/
+buffer.ioStrm.readWriteToStream = NULL;
+buffer.ioStrm.stream = NULL;
 \end{lstlisting}
 
- \item Define an intermediate buffer, application data structure and initialize the parser object:
-\begin{lstlisting}
-#define INPUT_BUFFER_SIZE 200 /* The size of the buffer in bytes */
-char buffer[INPUT_BUFFER_SIZE];
+The size of the \texttt{INPUT\_BUFFER\_SIZE} macro depends on the
+use case. When in in-memory input mode or sufficient RAM on the
+platform the buffer size should be kept high. Note that even if
+an input stream is used such as a file, a non-zero length buffer
+for temporary storing parts of the EXI data is still needed.
 
+ \item Define application data and initialize the parser object:
+\begin{lstlisting}
 /** The application data that is passed to the callback handlers*/
 struct applicationData
 {
@@ -47,20 +76,14 @@ struct applicationData
   unsigned int nestingLevel;
 } appData;
 
-
-initParser(&parser, buffer, INPUT_BUFFER_SIZE, 0, &in, NULL, &appData);
-
 /**
  * @param[in, out] parser EXIP parser container
- * @param[in, out] buffer binary buffer for fetching EXI encoded data
- * @param[in] INPUT_BUFFER_SIZE the size of the buffer in bytes
- * @param[in] 0 the number of bytes that are pre-fetched in the buffer
- * @param[in] in input stream to be used to fill the binary buffer when
-		      empty if any; NULL otherwise
+ * @param[in] buffer binary buffer for fetching EXI encoded data
  * @param[in] NULL a compiled schema information to be used for schema
 		      enabled processing; NULL if no schema is available
- * @param[in] appData application data to be passed to the callback handlers
- */      
+ * @param[in, out] appData application data to be passed to the callback handlers
+ */  
+initParser(&parser, buffer, NULL, &appData);    
 \end{lstlisting}
 
  \item Initialize the application data and register the callback handlers with the parser object:
@@ -111,7 +134,7 @@ while(error_code == ERR_OK)
 streams are left open close them as well:
 \begin{lstlisting}
 destroyParser(&parser);
-fclose(exifile);
+fclose(infile);
 \end{lstlisting}
 
 \end{enumerate}

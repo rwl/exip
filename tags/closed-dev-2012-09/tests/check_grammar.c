@@ -1,36 +1,9 @@
-/*==================================================================================*\
-|                                                                                    |
-|                    EXIP - Efficient XML Interchange Processor                      |
-|                                                                                    |
-|------------------------------------------------------------------------------------|
-| Copyright (c) 2010, EISLAB - Luleå University of Technology                        |
-| All rights reserved.                                                               |
-|                                                                                    |
-| Redistribution and use in source and binary forms, with or without                 |
-| modification, are permitted provided that the following conditions are met:        |
-|     * Redistributions of source code must retain the above copyright               |
-|       notice, this list of conditions and the following disclaimer.                |
-|     * Redistributions in binary form must reproduce the above copyright            |
-|       notice, this list of conditions and the following disclaimer in the          |
-|       documentation and/or other materials provided with the distribution.         |
-|     * Neither the name of the EISLAB - Luleå University of Technology nor the      |
-|       names of its contributors may be used to endorse or promote products         |
-|       derived from this software without specific prior written permission.        |
-|                                                                                    |
-| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND    |
-| ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED      |
-| WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE             |
-| DISCLAIMED. IN NO EVENT SHALL EISLAB - LULEÅ UNIVERSITY OF TECHNOLOGY BE LIABLE    |
-| FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES |
-| (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;       |
-| LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND        |
-| ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT         |
-| (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS      |
-| SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                       |
-|                                                                                    |
-|                                                                                    |
-|                                                                                    |
-\===================================================================================*/
+/*==================================================================*\
+|                EXIP - Embeddable EXI Processor in C                |
+|--------------------------------------------------------------------|
+|          This work is licensed under BSD 3-Clause License          |
+|  The full license terms and conditions are located in LICENSE.txt  |
+\===================================================================*/
 
 /**
  * @file check_grammar.c
@@ -38,7 +11,7 @@
  *
  * @date Sep 13, 2010
  * @author Rumen Kyusakov
- * @version 0.1
+ * @version 0.4
  * @par[Revision] $Id$
  */
 
@@ -52,27 +25,29 @@
 START_TEST (test_createDocGrammar)
 {
 	errorCode err = UNEXPECTED_ERROR;
+	EXIPSchema schema;
 	EXIStream testStream;
-	EXIGrammar testGrammar;
 	char buf[2];
 	buf[0] = (char) 0xD4; /* 0b11010100 */
 	buf[1] = (char) 0x60; /* 0b01100000 */
 
+	initAllocList(&schema.memList);
+
 	testStream.context.bitPointer = 0;
 	makeDefaultOpts(&testStream.header.opts);
-	testStream.buffer = buf;
-	testStream.bufLen = 2;
-	testStream.bufContent = 2;
-	testStream.ioStrm.readWriteToStream = NULL;
-	testStream.ioStrm.stream = NULL;
+	testStream.buffer.buf = buf;
+	testStream.buffer.bufLen = 2;
+	testStream.buffer.bufContent = 2;
+	testStream.buffer.ioStrm.readWriteToStream = NULL;
+	testStream.buffer.ioStrm.stream = NULL;
 	testStream.context.bufferIndx = 0;
 	initAllocList(&testStream.memList);
 
-	err = createDocGrammar(&testGrammar, &testStream, NULL);
+	err = createDocGrammar(&schema, NULL, 0);
 
 	fail_unless (err == ERR_OK, "createDocGrammar returns an error code %d", err);
 
-	//TODO: add more tests!
+	freeAllocList(&schema.memList);
 }
 END_TEST
 
@@ -80,22 +55,25 @@ START_TEST (test_processNextProduction)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	EXIStream strm;
-	EXIEvent evnt;
-	size_t nonTermID_out;
+	SmallIndex nonTermID_out;
 	ContentHandler handler;
-	EXIGrammar testGrammar;
+	EXIPSchema schema;
 
 	initAllocList(&strm.memList);
+	initAllocList(&schema.memList);
 
-	err = createDocGrammar(&testGrammar, &strm, NULL);
+	err = createDocGrammar(&schema, NULL, 0);
 	fail_unless (err == ERR_OK, "createDocGrammar returns an error code %d", err);
 
-	err = pushGrammar(&strm.gStack, &testGrammar);
+	err = pushGrammar(&strm.gStack, &schema.docGrammar);
 	fail_unless (err == ERR_OK, "pushGrammar returns an error code %d", err);
 
-	strm.context.nonTermID = 4;
-	err = processNextProduction(&strm, &evnt, &nonTermID_out, &handler, NULL);
+	strm.context.currNonTermID = 4;
+	err = processNextProduction(&strm, &nonTermID_out, &handler, NULL);
 	fail_unless (err == INCONSISTENT_PROC_STATE, "processNextProduction does not return the correct error code");
+
+	freeAllocList(&strm.memList);
+	freeAllocList(&schema.memList);
 }
 END_TEST
 
@@ -103,26 +81,29 @@ START_TEST (test_pushGrammar)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	EXIGrammarStack* testGrStack = NULL;
-	EXIGrammar docGr;
 	EXIStream strm;
 	EXIGrammar testElementGrammar;
+	EXIGrammar testElementGrammar1;
 
 	makeDefaultOpts(&strm.header.opts);
 	initAllocList(&strm.memList);
 
-	err = createDocGrammar(&docGr, &strm, NULL);
+	err = createBuiltInElementGrammar(&testElementGrammar1, &strm);
 	fail_if(err != ERR_OK);
 
-	err = pushGrammar(&testGrStack, &docGr);
+	err = pushGrammar(&testGrStack, &testElementGrammar1);
 	fail_unless (err == ERR_OK, "pushGrammar returns error code %d", err);
+	fail_if(testGrStack->nextInStack != NULL);
 
-	err = createBuildInElementGrammar(&testElementGrammar, &strm);
+	err = createBuiltInElementGrammar(&testElementGrammar, &strm);
 	fail_if(err != ERR_OK);
 
 	err = pushGrammar(&testGrStack, &testElementGrammar);
 	fail_unless (err == ERR_OK, "pushGrammar returns error code %d", err);
 	fail_if(testGrStack->nextInStack == NULL);
-	fail_if(testGrStack->nextInStack->grammar != &docGr);
+	fail_if(testGrStack->nextInStack->grammar != &testElementGrammar1);
+
+	freeAllocList(&strm.memList);
 }
 END_TEST
 
@@ -130,7 +111,7 @@ START_TEST (test_popGrammar)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	EXIGrammarStack* testGrStack = NULL;
-	EXIGrammar docGr;
+	EXIGrammar testElementGrammar1;
 	EXIStream strm;
 	EXIGrammar testElementGrammar;
 	EXIGrammar* testGR;
@@ -138,13 +119,13 @@ START_TEST (test_popGrammar)
 	makeDefaultOpts(&strm.header.opts);
 	initAllocList(&strm.memList);
 
-	err = createDocGrammar(&docGr, &strm, NULL);
+	err = createBuiltInElementGrammar(&testElementGrammar1, &strm);
 	fail_if(err != ERR_OK);
 
-	err = pushGrammar(&testGrStack, &docGr);
+	err = pushGrammar(&testGrStack, &testElementGrammar1);
 	fail_unless (err == ERR_OK, "pushGrammar returns error code %d", err);
 
-	err = createBuildInElementGrammar(&testElementGrammar, &strm);
+	err = createBuiltInElementGrammar(&testElementGrammar, &strm);
 	fail_if(err != ERR_OK);
 
 	err = pushGrammar(&testGrStack, &testElementGrammar);
@@ -158,7 +139,7 @@ START_TEST (test_popGrammar)
 }
 END_TEST
 
-START_TEST (test_createBuildInElementGrammar)
+START_TEST (test_createBuiltInElementGrammar)
 {
 	errorCode err = UNEXPECTED_ERROR;
 	EXIGrammar testElementGrammar;
@@ -167,10 +148,9 @@ START_TEST (test_createBuildInElementGrammar)
 	makeDefaultOpts(&strm.header.opts);
 	initAllocList(&strm.memList);
 
-	err = createBuildInElementGrammar(&testElementGrammar, &strm);
+	err = createBuiltInElementGrammar(&testElementGrammar, &strm);
 	fail_unless (err == ERR_OK, "createBuildInElementGrammar returns error code %d", err);
 
-	//TODO: add more tests!
 }
 END_TEST
 
@@ -189,15 +169,15 @@ START_TEST (test_insertZeroProduction)
 	DynGrammarRule rule;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	Production prod0Arr[2];
-	EXIEvent evnt = {EVENT_CH, {VALUE_TYPE_BOOLEAN, UINT16_MAX}};
+	QNameID qname = {0,0};
 
-	rule.part[0].prodArraySize = 0;
+	rule.part[0].count = 0;
 	rule.part0Dimension = 1;
-	rule.part[0].prodArray = prod0Arr;
+	rule.part[0].prod = prod0Arr;
 
-	tmp_err_code = insertZeroProduction(&rule, evnt, 5, 0, 0);
+	tmp_err_code = insertZeroProduction(&rule, EVENT_CH, 5, &qname);
 	fail_unless (tmp_err_code == ERR_OK, "insertZeroProduction returns an error code %d", tmp_err_code);
-	fail_unless (rule.part[0].prodArraySize == 1);
+	fail_unless (rule.part[0].count == 1);
 }
 END_TEST
 
@@ -215,7 +195,7 @@ Suite * grammar_suite (void)
 	  tcase_add_test (tc_gGrammars, test_processNextProduction);
 	  tcase_add_test (tc_gGrammars, test_pushGrammar);
 	  tcase_add_test (tc_gGrammars, test_popGrammar);
-	  tcase_add_test (tc_gGrammars, test_createBuildInElementGrammar);
+	  tcase_add_test (tc_gGrammars, test_createBuiltInElementGrammar);
 	  suite_add_tcase (s, tc_gGrammars);
   }
 

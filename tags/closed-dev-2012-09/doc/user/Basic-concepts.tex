@@ -56,34 +56,41 @@ citing information from this guide or other EXIP documentation).
 \subsection{Project structure}
 \label{sec:project-structure}
 
-The EXIP library is an Eclipse C project structured in the following subdirectories:
+The EXIP library is an Eclipse C project (and MS Visual Studio 2010 solution)
+structured in the following subdirectories:
 \begin{itemize}
  \item \texttt{bin/} - this is the build output directory. It is automatically created/removed when
 doing builds of the project. The library binaries are located directly into the \texttt{bin/} folder
 while the examples and other utils are compiled in separate subfolders
 
  \item \texttt{build/} - this folder contains the build scripts of the project. The current release
-provides only gcc toolchain builds under \texttt{build/gcc/}. The platform-dependent parameters and
-headers are located in subfolders - \texttt{build/gcc/mulle} for the Mulle sensor platform and
-\texttt{build/gcc/pc} for PCs. The build is started from \texttt{build/gcc/} with the following
+provides a MS VS 2010 build under \texttt{build/vs2010/} and \emph{GCC} toolchain builds under \texttt{build/gcc/}.
+The \texttt{build/gcc/} folder further contains platform-dependent parameters and
+headers located in subfolders - \texttt{build/gcc/mulle} for the Mulle sensor platform,
+\texttt{build/gcc/oe-armv5te} for OpenEmbedded Linux on ARMv5te and the default
+\texttt{build/gcc/pc} for descktop PCs. The build is started from \texttt{build/gcc/} with the following
 \texttt{make} build targets available:
 \begin{description}
  \item[all] compiles the EXIP library. The default target platform is PC. To change the target
-platform to Mulle add \texttt{target=mulle} as an argument of \texttt{make}
+platform to Mulle for example, add \texttt{target=mulle} as an argument of \texttt{make}
  \item[check] invokes the Check unit tests
  \item[clean] removes the \texttt{bin/} folder
- \item[doc] generates the project Doxygen documentation. The output directory is set to \texttt{doc/doxygen/}
+ \item[doc] generates the project Doxygen documentation. The output directory is set to \texttt{doc/dev/doxygen/}
  \item[examples] compiles and builds the example executables
  \item[utils] compiles and builds the utils executables
+ \item[lib] generates a static library libexip.a in \texttt{bin/lib}
+ \item[dynlib] generates a dynamic library libexip.so in \texttt{bin/lib}
  \end{description}
 
  \item \texttt{doc/} - the project documentation: \texttt{doc/user/} contains the source of this user guide;
-    \texttt{doc/doxygen/} is the output directory of the Doxygen source code documentation; 
+    \texttt{doc/dev/} is the development documentation; 
   \texttt{doc/www/} contains the information available on the project web page
 
- \item \texttt{examples/} - the root of the example applications shipped with the EXIP library
+ \item \texttt{examples/} - the root of the example applications shipped with EXIP
 
- \item \texttt{include/} - this folder contains the public header files of EXIP
+ \item \texttt{include/} - this folder contains the public header files of the EXIP library.
+			  Together with the \texttt{exipConfig.h} defined per target platform, these files
+			  define the public interface of the library.
 
  \item \texttt{src/} - here are all internal definitions and \texttt{.c} files divided into
 	      subfolders according to the modules in which they belong
@@ -133,7 +140,8 @@ EXIP library functions return a numeric error codes that are defined in \texttt{
 More fine-grained error messages can be acquired by turning on the debugging routines.
 You have control over the level of verbosity (INFO, WARNING or ERROR) and the source of
 debugging information. All these parameters can be configured in the \texttt{exipConfig.h} header
-that is defined per target platform in \texttt{build/gcc/<target\_platform>}.
+that is defined per target platform in \texttt{build/gcc/<target\_platform>} or
+\texttt{build/vs2010} for Windows.
 When turned on the debugging information is by default printed on the standard output.
 
 EXIP has an internal memory management infrastructure and you are not required to

@@ -1,36 +1,9 @@
-/*==================================================================================*\
-|                                                                                    |
-|                    EXIP - Efficient XML Interchange Processor                      |
-|                                                                                    |
-|------------------------------------------------------------------------------------|
-| Copyright (c) 2010, EISLAB - Luleå University of Technology                        |
-| All rights reserved.                                                               |
-|                                                                                    |
-| Redistribution and use in source and binary forms, with or without                 |
-| modification, are permitted provided that the following conditions are met:        |
-|     * Redistributions of source code must retain the above copyright               |
-|       notice, this list of conditions and the following disclaimer.                |
-|     * Redistributions in binary form must reproduce the above copyright            |
-|       notice, this list of conditions and the following disclaimer in the          |
-|       documentation and/or other materials provided with the distribution.         |
-|     * Neither the name of the EISLAB - Luleå University of Technology nor the      |
-|       names of its contributors may be used to endorse or promote products         |
-|       derived from this software without specific prior written permission.        |
-|                                                                                    |
-| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND    |
-| ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED      |
-| WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE             |
-| DISCLAIMED. IN NO EVENT SHALL EISLAB - LULEÅ UNIVERSITY OF TECHNOLOGY BE LIABLE    |
-| FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES |
-| (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;       |
-| LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND        |
-| ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT         |
-| (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS      |
-| SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                       |
-|                                                                                    |
-|                                                                                    |
-|                                                                                    |
-\===================================================================================*/
+/*==================================================================*\
+|                EXIP - Embeddable EXI Processor in C                |
+|--------------------------------------------------------------------|
+|          This work is licensed under BSD 3-Clause License          |
+|  The full license terms and conditions are located in LICENSE.txt  |
+\===================================================================*/
 
 /**
  * @file check_builtin_grammar.c
@@ -38,7 +11,7 @@
  *
  * @date Mar 29, 2012
  * @author Ken Bannister
- * @version 0.1
+ * @version 0.4
  * @par[Revision] $Id$
  */
 
@@ -53,8 +26,6 @@
 
 #define INPUT_BUFFER_SIZE 200
 #define MAX_PATH_LEN 200
-
-extern const EXISerializer serialize;
 
 /* Location for external test data */
 static char *dataDir;
@@ -102,9 +73,13 @@ START_TEST (test_decode_ant_example01)
 	char buf[INPUT_BUFFER_SIZE];
 	const char *exifname = "Ant/build-build.bitPacked";
 	char exipath[MAX_PATH_LEN + strlen(exifname)];
-	IOStream ioStrm;
 	struct appData parsingData;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	BinaryBuffer buffer;
+
+	buffer.buf = buf;
+	buffer.bufContent = 0;
+	buffer.bufLen = INPUT_BUFFER_SIZE;
 
 	// Parsing steps:
 
@@ -118,11 +93,11 @@ START_TEST (test_decode_ant_example01)
 	if(!infile)
 		fail("Unable to open file %s", exipath);
 	
-	ioStrm.readWriteToStream = readFileInputStream;
-	ioStrm.stream = infile;
+	buffer.ioStrm.readWriteToStream = readFileInputStream;
+	buffer.ioStrm.stream = infile;
 
 	// II: Second, initialize the parser object
-	tmp_err_code = initParser(&testParser, buf, INPUT_BUFFER_SIZE, 0, &ioStrm, NULL, &parsingData);
+	tmp_err_code = initParser(&testParser, buffer, NULL, &parsingData);
 	fail_unless (tmp_err_code == ERR_OK, "initParser returns an error code %d", tmp_err_code);
 
 	// III: Initialize the parsing data and hook the callback handlers to the parser object
@@ -182,7 +157,7 @@ int main (int argc, char *argv[])
 	}
 	if (strlen(argv[1]) > MAX_PATH_LEN)
 	{
-		printf("ERR: Test data pathname too long: %u", strlen(argv[1]));
+		printf("ERR: Test data pathname too long: %u", (unsigned int) strlen(argv[1]));
 		exit(1);
 	}
 	dataDir = argv[1];
