@@ -51,7 +51,7 @@ struct hashtable * create_hashtable(unsigned int minsize,
     if (minsize > MAX_HASH_TABLE_SIZE) return NULL;
     /* Enforce size as prime */
     for (pindex=0; pindex < prime_table_length; pindex++) {
-        if (primes[pindex] > minsize) { size = primes[pindex]; break; }
+        if (primes[pindex] >= minsize) { size = primes[pindex]; break; }
     }
     h = (struct hashtable *)EXIP_MALLOC(sizeof(struct hashtable));
     if (NULL == h) return NULL; /*oom*/
@@ -147,7 +147,7 @@ unsigned int hashtable_count(struct hashtable *h)
 }
 
 /*****************************************************************************/
-errorCode hashtable_insert(struct hashtable *h, String* key, size_t value)
+errorCode hashtable_insert(struct hashtable *h, String* key, Index value)
 {
     /* This method allows duplicate keys - but they shouldn't be used */
     unsigned int index;
@@ -172,7 +172,7 @@ errorCode hashtable_insert(struct hashtable *h, String* key, size_t value)
 }
 
 /*****************************************************************************/
-size_t hashtable_search(struct hashtable *h, String* key)
+Index hashtable_search(struct hashtable *h, String* key)
 {
     struct entry *e;
     uint32_t hashvalue;
@@ -186,18 +186,18 @@ size_t hashtable_search(struct hashtable *h, String* key)
         if ((hashvalue == e->hash) && h->eqfn(*key, *(e->key))) return e->value;
         e = e->next;
     }
-    return SIZE_MAX;
+    return INDEX_MAX;
 }
 
 /*****************************************************************************/
-size_t hashtable_remove(struct hashtable *h, String* key)
+Index hashtable_remove(struct hashtable *h, String* key)
 {
     /* TODO: consider compacting the table when the load factor drops enough,
      *       or provide a 'compact' method. */
 
     struct entry *e;
     struct entry **pE;
-    size_t value;
+    Index value;
     uint32_t hashvalue;
     unsigned int index;
 
@@ -220,7 +220,7 @@ size_t hashtable_remove(struct hashtable *h, String* key)
         pE = &(e->next);
         e = e->next;
     }
-    return SIZE_MAX;
+    return INDEX_MAX;
 }
 
 /*****************************************************************************/

@@ -1,36 +1,9 @@
-/*==================================================================================*\
-|                                                                                    |
-|                    EXIP - Efficient XML Interchange Processor                      |
-|                                                                                    |
-|------------------------------------------------------------------------------------|
-| Copyright (c) 2010, EISLAB - Luleå University of Technology                        |
-| All rights reserved.                                                               |
-|                                                                                    |
-| Redistribution and use in source and binary forms, with or without                 |
-| modification, are permitted provided that the following conditions are met:        |
-|     * Redistributions of source code must retain the above copyright               |
-|       notice, this list of conditions and the following disclaimer.                |
-|     * Redistributions in binary form must reproduce the above copyright            |
-|       notice, this list of conditions and the following disclaimer in the          |
-|       documentation and/or other materials provided with the distribution.         |
-|     * Neither the name of the EISLAB - Luleå University of Technology nor the      |
-|       names of its contributors may be used to endorse or promote products         |
-|       derived from this software without specific prior written permission.        |
-|                                                                                    |
-| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND    |
-| ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED      |
-| WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE             |
-| DISCLAIMED. IN NO EVENT SHALL EISLAB - LULEÅ UNIVERSITY OF TECHNOLOGY BE LIABLE    |
-| FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES |
-| (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;       |
-| LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND        |
-| ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT         |
-| (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS      |
-| SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                       |
-|                                                                                    |
-|                                                                                    |
-|                                                                                    |
-\===================================================================================*/
+/*==================================================================*\
+|                EXIP - Embeddable EXI Processor in C                |
+|--------------------------------------------------------------------|
+|          This work is licensed under BSD 3-Clause License          |
+|  The full license terms and conditions are located in LICENSE.txt  |
+\===================================================================*/
 
 /**
  * @file procTypes.h
@@ -38,7 +11,7 @@
  *
  * @date Jul 7, 2010
  * @author Rumen Kyusakov
- * @version 0.1
+ * @version 0.4
  * @par[Revision] $Id$
  */
 
@@ -59,19 +32,31 @@
 #define NULL ((void *)0)
 #endif
 
+/** An item in a Generic Stack structure */
 struct stackNode
 {
-	void* element;
+	void* item;
 	struct stackNode* nextInStack;
 };
 
 typedef struct stackNode GenericStack;
 
+/**
+ * @def REVERSE_BIT_POSITION(p)
+ * Given a bit position inside an octet (0-7)
+ * returns the reversed position index.
+ */
 #define REVERSE_BIT_POSITION(p) (7 - p)
 
 /**
- * EXI options related macros
+ * @name EXI options related macros
+ * Example usage:
+ * @code
+ *   	SET_ALIGNMENT(enumOpt, BYTE_ALIGNMENT)
+ * @endcode
  */
+
+/**@{*/
 #define BIT_PACKED      0x00 // 0b00000000
 #define BYTE_ALIGNMENT  0x40 // 0b01000000
 #define PRE_COMPRESSION 0x80 // 0b10000000
@@ -94,26 +79,42 @@ typedef struct stackNode GenericStack;
 #define SET_FRAGMENT(p)               ((p) = (p) | FRAGMENT)
 #define SET_SELF_CONTAINED(p)         ((p) = (p) | SELF_CONTAINED)
 
-// SchemaID option modes (http://www.w3.org/TR/2011/REC-exi-20110310/#key-schemaIdOption):
-// SCHEMA_ID_ABSENT - default,  no statement is made about the schema information
-// SCHEMA_ID_SET - some sting identification of the schema is given
-// SCHEMA_ID_NIL - no schema information is used for processing the EXI body (i.e. a schema-less EXI stream)
-// SCHEMA_ID_EMPTY - no user defined schema information is used for processing the EXI body; however, the built-in XML schema types are available for use in the EXI body
+/**@}*/
+
+/**
+ * @name Handling of SchemaID header field
+ *
+ * SchemaID option modes:
+ * @def SCHEMA_ID_ABSENT
+ * 		default,  no statement is made about the schema information
+ * @def SCHEMA_ID_SET
+ * 		some sting identification of the schema is given
+ * @def SCHEMA_ID_NIL
+ * 		no schema information is used for processing the EXI body (i.e. a schema-less EXI stream)
+ * @def SCHEMA_ID_EMPTY
+ * 		no user defined schema information is used for processing the EXI body; however, the built-in XML schema types are available for use in the EXI body
+ *
+ * @see http://www.w3.org/TR/2011/REC-exi-20110310/#key-schemaIdOption
+ */
+/**@{*/
 #define SCHEMA_ID_ABSENT 0
 #define SCHEMA_ID_SET    1
 #define SCHEMA_ID_NIL    2
 #define SCHEMA_ID_EMPTY  3
+/**@}*/
 
 /**
- *	Fidelity option	Effect
- *---------------------------------------------
- *	Preserve.comments	CM events are preserved
- *	Preserve.pis	PI events are preserved
- *	Preserve.dtd	DOCTYPE and ER events are preserved
- *	Preserve.prefixes	NS events and namespace prefixes are preserved
- *	Preserve.lexicalValues	Lexical form of element and attribute values is preserved in value content items
+ *	@name Fidelity options handling
  *
+ *	Example usage:
+ *	@code
+ *	  SET_PRESERVED(preserve, PRESERVE_PREFIXES)
+ *	@endcode
+ *
+ *	@see http://www.w3.org/TR/2011/REC-exi-20110310/#fidelityOptions
  **/
+
+/**@{*/
 #define PRESERVE_COMMENTS  0x01 // 0b00000001
 #define PRESERVE_PIS       0x02 // 0b00000010
 #define PRESERVE_DTD       0x04 // 0b00000100
@@ -122,16 +123,64 @@ typedef struct stackNode GenericStack;
 
 #define IS_PRESERVED(p, mask) (((p) & (mask)) != 0)
 #define SET_PRESERVED(p, preserve_const) ((p) = (p) | (preserve_const))
+/**@}*/
 
-// #DOCUMENT# If there is a possibility that a document defines more than 4 prefixes per namespace i.e. something insane, this should be increased
-// Note that will require many changes - for example statically generated grammars from XML schemas needs to be rebuilt
+/**
+ * The maximum allowed prefixes per namespace.
+ * If there is a possibility that a document defines more than 4 prefixes per namespace
+ * i.e. weird XML, MAXIMUM_NUMBER_OF_PREFIXES_PER_URI should be increased
+ * @note This will require many changes - for example statically generated grammars from XML schemas needs to be rebuilt
+ */
 #ifndef MAXIMUM_NUMBER_OF_PREFIXES_PER_URI
 # define MAXIMUM_NUMBER_OF_PREFIXES_PER_URI 4
 #endif
 
 /**
- * For handling the DATE-TIME type (structure tm from time.h)
+ * Fractional seconds = value * 10^-(offset+1) seconds;
+ * Example:
+ * offset = 4
+ * value = 123
+ * Fractional seconds = 123×10^−5 = 0.00123 seconds = 1.23 milliseconds
+ * @note (offset+1) must be greater or equal than the number of digits in value
  */
+struct fractionalSecs
+{
+	unsigned char offset;
+	unsigned int value;
+};
+
+typedef struct fractionalSecs FractionalSecs;
+
+/** DateTime type in EXIP.
+ * Contains a standard "struct tm" combined with
+ * fractional seconds and presence mask. */
+struct EXIPDateTime
+{
+	/**
+	 * As defined in time.h
+	 */
+	struct tm dateTime;
+	FractionalSecs fSecs;
+
+	/**
+	 * Defines which fields of the DateTime are included.
+	 * Use SEC_PRESENCE, MIN_PRESENCE etc. (*_PRESENCE) masks
+	 * and IS_PRESENT() macro
+	 */
+	uint16_t presenceMask;
+};
+
+typedef struct EXIPDateTime EXIPDateTime;
+
+/**
+ * @name Presence of fields in the EXIPDateTime type
+ *
+ * Example usage:
+ * @code
+ *   IS_PRESENT(presenceMask, YEAR_PRESENCE)
+ * @endcode
+ */
+/**@{*/
 #define SEC_PRESENCE       0x0001 // 0b0000000000000001
 #define MIN_PRESENCE       0x0002 // 0b0000000000000010
 #define HOUR_PRESENCE      0x0004 // 0b0000000000000100
@@ -142,8 +191,10 @@ typedef struct stackNode GenericStack;
 #define YDAY_PRESENCE      0x0080 // 0b0000000010000000
 #define DST_PRESENCE       0x0100 // 0b0000000100000000
 #define TZONE_PRESENCE     0x0200 // 0b0000001000000000
+#define FRACT_PRESENCE     0x0400 // 0b0000010000000000
 
 #define IS_PRESENT(p, mask) (((p) & (mask)) != 0)
+/**@}*/
 
 #ifndef EXIP_UNSIGNED_INTEGER
 # define EXIP_UNSIGNED_INTEGER uint64_t
@@ -158,14 +209,10 @@ typedef EXIP_UNSIGNED_INTEGER UnsignedInteger;
 typedef EXIP_INTEGER Integer;
 
 /**
- * The EXI Float datatype representation is two consecutive Integers (see 7.1.5 Integer).
- * The first Integer represents the mantissa of the floating point number and the second
- * Integer represents the base-10 exponent of the floating point number.
- * The range of the mantissa is - (263) to 263-1 and the range of the exponent is - (214-1) to 214-1.
- * The exponent value -(214) is used to indicate one of the special values: infinity,
- * negative infinity and not-a-number (NaN). An exponent value -(214) with mantissa
- * values 1 and -1 represents positive infinity (INF) and negative infinity (-INF) respectively.
- * An exponent value -(214) with any other mantissa value represents NaN.
+ * The default Float representation in EXIP.
+ * Maps directly to the EXI Float datatype
+ *
+ * @see http://www.w3.org/TR/2011/REC-exi-20110310/#encodingFloat
  */
 struct EXIFloat
 {
@@ -179,12 +226,12 @@ struct EXIFloat
 
 typedef EXIP_FLOAT Float;
 
-/*
- * Used for the content handler interface for decimal values
+/**
+ * Used for the content handler interface for decimal values.
  * Application which require support for different type of decimal values can
  * override this macro.
- * Refs: http://gcc.gnu.org/onlinedocs/gcc/Decimal-Float.html#Decimal-Float
- * http://speleotrove.com/decimal/
+ * @see http://gcc.gnu.org/onlinedocs/gcc/Decimal-Float.html#Decimal-Float
+ * @see http://speleotrove.com/decimal/
  */
 #ifndef EXIP_DECIMAL
 # define EXIP_DECIMAL _Decimal64
@@ -192,53 +239,110 @@ typedef EXIP_FLOAT Float;
 
 typedef EXIP_DECIMAL Decimal;
 
+#ifndef EXIP_INDEX
+# define EXIP_INDEX size_t
+#endif
+
+typedef EXIP_INDEX Index;
+
+#ifndef EXIP_INDEX_MAX
+# define EXIP_INDEX_MAX SIZE_MAX
+#endif
+
+#define INDEX_MAX EXIP_INDEX_MAX
+
+#ifndef EXIP_SMALL_INDEX
+# define EXIP_SMALL_INDEX size_t
+#endif
+
+typedef EXIP_SMALL_INDEX SmallIndex;
+
+#ifndef EXIP_SMALL_INDEX_MAX
+# define EXIP_SMALL_INDEX_MAX SIZE_MAX
+#endif
+
+#define SMALL_INDEX_MAX EXIP_SMALL_INDEX_MAX
+
 /**
  * Defines the encoding used for characters.
  * It is dependent on the implementation of the stringManipulate.h functions
+ * The default is ASCII characters (ASCII_stringManipulate.c)
  */
-#ifndef CHAR_TYPE  // #DOCUMENT#
+#ifndef CHAR_TYPE
 # define CHAR_TYPE char
 #endif
-// TODO: document this macro - it must be set during source build to overwrite the default behavior
 
 typedef CHAR_TYPE CharType;
 
+
+#ifndef EXIP_STRTOLL
+/** strtoll() function */
+# define EXIP_STRTOLL strtoll
+#endif
+
+/**
+ * Represents the length prefixed strings in EXIP
+ */
 struct StringType
 {
 	CharType* str;
-	size_t length;
+	Index length;
 };
 
 typedef struct StringType String;
 
+/**
+ * Represent a fully qualified name
+ */
 struct QName {
-	const String* uri;       // Pointer to a String value in the URI string table. It is not allowed to modify the string table content from this pointer.
-	const String* localName; // Pointer to a String value in the LN sting table. It is not allowed to modify the string table content from this pointer.
-	const String* prefix; 	 // Pointer to a String value in the Prefix string table if Preserve.prefixes == TRUE. NULL otherwise. It is not allowed to modify the string table content from this pointer.
+	/**
+	 * Pointer to a String value in the URI string table.
+	 * @note It is not allowed to modify the string table content from this pointer.*/
+	const String* uri;
+	/**
+	 * Pointer to a String value in the LN sting table.
+	 * @note It is not allowed to modify the string table content from this pointer.
+	 */
+	const String* localName;
+	/**
+	 * Pointer to a String value in the Prefix string table if [Preserve prefixes] is TRUE and NULL otherwise.
+	 * @note It is not allowed to modify the string table content from this pointer.
+	 */
+	const String* prefix;
 };
 
 typedef struct QName QName;
+
+#define URI_MAX SMALL_INDEX_MAX
+#define LN_MAX INDEX_MAX
 
 /**
  * Position of a qname in the string tables
  */
 struct QNameID {
-	uint16_t uriRowId;	// VOID == UINT16_MAX
-	size_t lnRowId;		// VOID == SIZE_MAX
+	SmallIndex uriId;	// VOID == URI_MAX
+	Index lnId;	// VOID == LN_MAX
 };
 
 typedef struct QNameID QNameID;
 
-/********* START: Memory management definitions ***************/
+/**
+ * @name Memory management definitions
+ */
+/**@{*/
 
-#define ALLOCATION_ARRAY_SIZE 100 // #DOCUMENT#
+/** @note Should not be bigger than SMALL_INDEX_MAX - 1 */
+#define ALLOCATION_ARRAY_SIZE 100
 
+/** An array of allocation pointers */
 struct allocBlock {
 	void* allocation[ALLOCATION_ARRAY_SIZE];
-	unsigned int currentAlloc;
+	SmallIndex currentAlloc;
 	struct allocBlock* nextBlock;
 };
 
+/** A list of allocation blocks.
+ * Pass to initAllocList() before use. */
 struct allocList {
 	struct allocBlock* firstBlock;
 	struct allocBlock* lastBlock;
@@ -246,124 +350,228 @@ struct allocList {
 
 typedef struct allocList AllocList;
 
-// Used by the memoryManager when there is reallocation
+/** Used by the memoryManager when reallocation is allowed*/
 struct reAllocPair {
 	struct allocBlock* memBlock;
-	unsigned int allocIndx;
+	SmallIndex allocIndx;
 };
 
-/********* END: Memory management definitions ***************/
-
-
-/********* START: Grammar Types ***************/
 /**
- * This is moved from the grammar module because of the EXIStream grammar element added
+ * Meta-data of generic dynamic array.
+ * A concrete dynamic array is defined as follow:
+ * @code
+ *   struct [ConcreteDynamicArray]
+ *   {
+ *     DynArray dynArray;
+ *     [ArrayEntryType]* base;
+ *     Index count;
+ *   };
+ * @endcode
+ */
+struct dynArray {
+	/**
+	 * The size of an entry in bytes
+	 */
+	size_t entrySize;
+
+	/**
+	 * The initial size of the dynamic array (in number of entries), 
+	 * also the chunk of number of entries to be added each expansion time
+	 */
+	uint16_t chunkEntries;
+
+	/**
+	 * The total number of entries in the array
+	 */
+	uint16_t arrayEntries; 
+
+	/**
+	 * Used by the memoryManager when there is reallocation
+	 */
+	struct reAllocPair memPair; 
+};
+
+typedef struct dynArray DynArray;
+
+/**@}*/ //End Memory management definitions
+
+
+/**
+ * @name Grammar Types
+ */
+/**@{*/
+
+/**
+ * @page grammars Representing the EXI grammars in EXIP
+ *
+ * For a sample grammar G:
+ * @code
+ *   NonTerminal_0 :
+ * 					Terminal_1    NonTerminal_0	0
+ * 					Terminal_2    NonTerminal_1	1.0
+ * 					Terminal_3    NonTerminal_1	1.1.0
+ *
+ * 	 NonTerminal_1 :
+ * 					Terminal_4    NonTerminal_1	0
+ * 					Terminal_5    NonTerminal_1	1
+ * 					EE
+ * @endcode
+ *
+ * A grammar production is for example "NonTerminal_0 : Terminal_1    NonTerminal_0	0".
+ * All grammar productions with the same left-hand side define
+ * a grammar rule.
+ * Therefore, the grammar G has 2 grammar rules and 6 grammar productions.
+ * <p>
+ *   A single grammar production is represented by the struct Production.
+ *   The [Terminal] is represented by the event type, the type of the value
+ *   content if any and a fully qualified name.
+ *   The [NonTerminal] is a non-negative integer value.
+ *   The last part of the production (the event code) is implicitly encoded
+ *   as a position of the production in the grammar rule.
+ * </p>
+ *
+ * @section e_codes Event codes representation
+ * The event codes in a production are represented as follow: <br/>
+ * For every grammar rule there are 3 arrays of grammar productions -
+ * represented with GrammarRulePart type.
+ * The first one is for productions with event codes with length 1 -
+ * they have only one part.
+ * The second one is for productions with events codes with length 2 and
+ * the third for productions with three-part event codes.
+ * The last production in a production array has event code
+ * 0, the production before it 1 etc. - that is in reverse order.<br/>
+ * For example, the third production in the first rule of G with event code
+ * 1.1.0 is the only production in the GrammarRulePart for 3 parts
+ * productions so the last part is 0.
+ * The number of productions in the second GrammarRulePart is also 1
+ * so the second part is 1.
+ * The number of productions in the first GrammarRulePart is also 1
+ * so the first part is 1.
  */
 
-/****************************************
- * Name           |   Notation   | Value
- * -------------------------------------
- * Start Document |      SD      |  0
- * End Document   |      ED      |  1
- * Start Element  |  SE( qname ) |  5
- * Start Element  |  SE( uri:* ) |  6
- * Start Element  |  SE( * )	 |  7
- * End Element	  |      EE      |  8
- * Attribute	  |  AT( qname ) |  2
- * Attribute      |  AT( uri:* ) |  3
- * Attribute      |  AT( * )     |  4
- * Characters	  |      CH      |  9
- * Nm-space Decl  |	     NS	     | 10
- * Comment	      |      CM      | 11
- * Proc. Instr.   |      PI      | 12
- * DOCTYPE	      |      DT      | 13
- * Entity Ref.    |      ER      | 14
- * Self Contained |      SC      | 15
- * Void           |      --      | 16     // Used to indicate lack of Terminal symbol in proto-grammars
- ****************************************/
-typedef unsigned char EventType;
-
-#define EVENT_SD       0
-#define EVENT_ED       1
-#define EVENT_SE_QNAME 5
-#define EVENT_SE_URI   6
-#define EVENT_SE_ALL   7
-#define EVENT_EE       8
-#define EVENT_AT_QNAME 2
-#define EVENT_AT_URI   3
-#define EVENT_AT_ALL   4
-#define EVENT_CH       9
-#define EVENT_NS      10
-#define EVENT_CM      11
-#define EVENT_PI      12
-#define EVENT_DT      13
-#define EVENT_ER      14
-#define EVENT_SC      15
-#define EVENT_VOID    16
-
-/** This is the type of the "value" content of EXI events.
- *  It is used when schema is available.
- * 1 - there is no value content for the event
- * 2 - the type is String
- * 3 - Float
- * 4 - Decimal
- * 5 - Date-Time
- * 6 - Boolean
- * 7 - Binary
- * 8 - List
- * 9 - QName
- * 10 - Untyped
- * 20 - Integer
- * 21 - Small int
- * 22 - Unsigned int
- * */
-typedef unsigned char EXIType;
-
-#define VALUE_TYPE_NONE              1
-#define VALUE_TYPE_STRING            2
-#define VALUE_TYPE_FLOAT             3
-#define VALUE_TYPE_DECIMAL           4
-#define VALUE_TYPE_DATE_TIME         5
-#define VALUE_TYPE_BOOLEAN           6
-#define VALUE_TYPE_BINARY            7
-#define VALUE_TYPE_LIST              8
-#define VALUE_TYPE_QNAME             9
-#define VALUE_TYPE_UNTYPED          10
-
-#define VALUE_TYPE_INTEGER          20
-#define VALUE_TYPE_SMALL_INTEGER    21
-#define VALUE_TYPE_NON_NEGATIVE_INT 22
-
-struct ValueType
+/**
+ * Event types that occur in an EXI stream. This is moved from the grammar module because 
+ * of the added "Void" element.
+ * 
+ * <table>
+ * <tr><th>Name</th><th>Notation</th><th>Value</th></tr>
+ * <tr><td>Start Document</td><td>SD         </td><td> 0</td></tr>
+ * <tr><td>End Document  </td><td>ED         </td><td> 1</td></tr>
+ * <tr><td>Start Element </td><td>SE( qname )</td><td> 5</td></tr>
+ * <tr><td>Start Element </td><td>SE( uri:* )</td><td> 6</td></tr>
+ * <tr><td>Start Element </td><td>SE( * )    </td><td> 7</td></tr>
+ * <tr><td>End Element   </td><td>EE         </td><td> 8</td></tr>
+ * <tr><td>Attribute     </td><td>AT( qname )</td><td> 2</td></tr>
+ * <tr><td>Attribute     </td><td>AT( uri:* )</td><td> 3</td></tr>
+ * <tr><td>Attribute     </td><td>AT( * )    </td><td> 4</td></tr>
+ * <tr><td>Characters    </td><td>CH         </td><td> 9</td></tr>
+ * <tr><td>Namespace Decl</td><td>NS         </td><td>10</td></tr>
+ * <tr><td>Comment       </td><td>CM         </td><td>11</td></tr>
+ * <tr><td>Processng Inst</td><td>PI         </td><td>12</td></tr>
+ * <tr><td>DOCTYPE       </td><td>DT         </td><td>13</td></tr>
+ * <tr><td>Entity Refrnce</td><td>ER         </td><td>14</td></tr>
+ * <tr><td>Self-contained</td><td>SC         </td><td>15</td></tr>
+ * <tr><td>Void          </td><td>--         </td><td>16</td></tr>
+ * </table>
+ */
+enum EventType
 {
-	EXIType exiType;
-	uint16_t simpleTypeID; // An index of the simple type in the schema SimpleTypeArray if any, UINT16_MAX otherwise
+	EVENT_SD       =0,
+	EVENT_ED       =1,
+	EVENT_SE_QNAME =5,
+	EVENT_SE_URI   =6,
+	EVENT_SE_ALL   =7,
+	EVENT_EE       =8,
+	EVENT_AT_QNAME =2,
+	EVENT_AT_URI   =3,
+	EVENT_AT_ALL   =4,
+	EVENT_CH       =9,
+	EVENT_NS      =10,
+	EVENT_CM      =11,
+	EVENT_PI      =12,
+	EVENT_DT      =13,
+	EVENT_ER      =14,
+	EVENT_SC      =15,
+	/** Indicates lack of Terminal symbol in proto-grammars */
+	EVENT_VOID    =16
 };
 
-typedef struct ValueType ValueType;
+#ifdef EXIP_SIZE_OPTIMIZE
+typedef uint8_t EventType;
+#else
+// This is better for debugging as it may allow display of the enum type string
+typedef enum EventType EventType;
+#endif
 
-struct EXIEvent
+/** 
+ * This is the type of the "value" content of EXI events. It is used when schema is available.
+ */
+enum EXIType
 {
-	EventType eventType;
-	ValueType valueType;
+	VALUE_TYPE_NONE              =1,
+	VALUE_TYPE_STRING            =2,
+	VALUE_TYPE_FLOAT             =3,
+	VALUE_TYPE_DECIMAL           =4,
+	VALUE_TYPE_DATE_TIME         =5,
+	VALUE_TYPE_BOOLEAN           =6,
+	VALUE_TYPE_BINARY            =7,
+	VALUE_TYPE_LIST              =8,
+	VALUE_TYPE_QNAME             =9,
+	VALUE_TYPE_UNTYPED          =10,
+
+	VALUE_TYPE_INTEGER          =20,
+	VALUE_TYPE_SMALL_INTEGER    =21,
+	VALUE_TYPE_NON_NEGATIVE_INT =22
 };
 
-typedef struct EXIEvent EXIEvent;
+#ifdef EXIP_SIZE_OPTIMIZE
+typedef uint8_t EXIType;
+#else
+// This is better for debugging as it may allow display of the enum type string
+typedef enum EXIType EXIType;
+#endif
 
+/** Specifies the right-hand side for a production rule.
+ * The left-hand side is implicitly defined by the
+ * parent grammar rule. */
 struct Production
 {
-	EXIEvent evnt;
+	/** EXI event type, like SD, CH, or EE. */
+	EventType eventType;
+
 	/**
-	 * For SE(qname), SE(uri:*), AT(qname) and AT(uri:*). Points to the qname of the element/attribute
+	 * Index of the grammar for the production event, if applicable.
+	 * <ul>
+	 *   <li> AT, CH: index of simple type, in EXIPSchema's simpleTypeTable </li>
+	 *   <li> SE(qname): index of EXI grammar, in EXIPSchema's grammarTable.
+	 *   Processes the content of the SE(qname) event.</li>
+	 *   <li> Otherwise: INDEX_MAX </li>
+	 * </ul>
 	 */
-	QNameID qname;
-	size_t nonTermID; // unique identifier of right-hand side Non-terminal
+	Index typeId;
+	
+	/**
+	 * Identifies the terminal portion, the element/attribute for SE(qname), 
+     * SE(uri:*), AT(qname) or AT(uri:*).
+	 */
+	QNameID qnameId;
+	
+	/** 
+     * Unique identifier of right-hand side non-terminal.
+     */
+	SmallIndex nonTermID;
 };
 
 typedef struct Production Production;
 
-// Define Built-in Grammars non-terminals
-#define GR_VOID_NON_TERMINAL SIZE_MAX // Used to indicate that the production does not have NON_TERMINAL on the right-hand side
+/**
+ * @name Built-in Grammars non-terminals
+ */
+/**@{*/
+/**
+ * Used to indicate that the production does not have NON_TERMINAL on the right-hand side
+ */
+#define GR_VOID_NON_TERMINAL SMALL_INDEX_MAX
 
 #define GR_DOCUMENT          0
 #define GR_DOC_CONTENT       1
@@ -374,213 +582,279 @@ typedef struct Production Production;
 
 #define GR_FRAGMENT          0
 #define GR_FRAGMENT_CONTENT  1
+/**@}*/
 
 /**
- * Productions in a rule with the same number of parts in their event codes
+ * A collection of production rules with a common event code length.
  */
 struct GrammarRulePart
 {
      /**
       * Array of grammar productions
       */
-     Production* prodArray;
+     Production* prod;
      /**
-      * The number of productions in prodArray
+      * The number of productions in prod
       */
-     size_t prodArraySize;
+     Index count;
      /**
-      * The number of bits used for the event code enumerations
-      * prodArraySize <= 2 ^ bits
+      * The number of bits used for the event code enumerations, where 
+      * count <= 2 ^ bits
       */
      unsigned char bits;
 };
 
 typedef struct GrammarRulePart GrammarRulePart;
 
+/** 
+ * A container for production rules for a particular left-hand side non-terminal. 
+ * Organizes the rules by event code length.
+ */
 struct GrammarRule
 {
-     /**
-      * 3 arrays of grammar productions that have event codes of:
-      * - one part (part[0])
-      * - two parts (part[1])
-      * - three parts (part[2])
-      */
+	/**
+	 * An 'inner' container for production rules, grouped by a rule's event code length, 
+     * with a range of 1 to 3 (index 0 to 2). 
+	 */
      GrammarRulePart part[3];
 };
-
 typedef struct GrammarRule GrammarRule;
 
 /**
  * Extension to the GrammarRule. In the DynGrammarRule the first production array i.e. the one holding the
- * productions with event code with length 1 (prodArrays[0]) is dynamic array.
+ * productions with event code with length 1 (prods[0]) is dynamic array.
  * The dynamic GrammarRule is used for Built-in Element Grammar and Built-in Fragment Grammar
  */
 struct DynGrammarRule
 {
-    /**
-     * 3 arrays of grammar productions that have event codes of:
-     * - one part (part[0])
-     * - two parts (part[1])
-     * - three parts (part[2])
-     */
+	/**
+	 * Each part includes all productions with a specific event code length.
+	 * There are three elements, for event code lengths of 1, 2 and 3.
+	 */
     GrammarRulePart part[3];
 
 	// Additional fields
-	size_t part0Dimension; // The size of the part[0] Dynamic production array /allocated space for Productions in it/
+    Index part0Dimension; // The size of the part[0] Dynamic production array /allocated space for Productions in it/
 	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation for part[0]
 };
-
 typedef struct DynGrammarRule DynGrammarRule;
 
+/**
+ * @name EXIGrammar properties handling
+ */
+/**@{*/
+#define IS_NILLABLE(p) 			        ((p & GR_PROP_NILLABLE) != 0)
+#define IS_AUGMENTED(p) 		        ((p & GR_PROP_AUGMENTED) != 0)
+#define IS_BUILT_IN_ELEM(p) 	        ((p & GR_PROP_TYPE_BUILT_IN_ELEMENT) != 0)
+#define IS_SCHEMA(p) 			        ((p & GR_PROP_TYPE_SCHEMA) != 0)
+#define HAS_NAMED_SUB_TYPE_OR_UNION(p) 	((p & GR_PROP_NAMED_SUB_TYPE_OR_UNION) != 0)
 
-#define IS_NILLABLE(p) 			((p & GR_PROP_NILLABLE) != 0)
-#define IS_AUGMENTED(p) 		((p & GR_PROP_AUGMENTED) != 0)
-#define IS_BUILD_IN_ELEM(p) 	((p & GR_PROP_TYPE_BUILD_IN_ELEMENT) != 0)
-#define IS_SCHEMA(p) 			((p & GR_PROP_TYPE_SCHEMA) != 0)
-#define HAS_NAMED_SUB_TYPE(p) 	((p & GR_PROP_NAMED_SUB_TYPE) != 0)
+#define SET_NILLABLE(p)    	            ((p) = (p) | GR_PROP_NILLABLE)
+#define SET_AUGMENTED(p)    	        ((p) = (p) | GR_PROP_AUGMENTED)
+#define SET_BUILT_IN_ELEM(p)            ((p) = (p) | GR_PROP_TYPE_BUILT_IN_ELEMENT)
+#define SET_SCHEMA(p)    		        ((p) = (p) | GR_PROP_TYPE_SCHEMA)
+#define SET_NAMED_SUB_TYPE_OR_UNION(p)  ((p) = (p) | GR_PROP_NAMED_SUB_TYPE_OR_UNION)
 
-#define SET_NILLABLE(p)    		((p) = (p) | GR_PROP_NILLABLE)
-#define SET_AUGMENTED(p)    	((p) = (p) | GR_PROP_AUGMENTED)
-#define SET_BUILD_IN_ELEM(p)    ((p) = (p) | GR_PROP_TYPE_BUILD_IN_ELEMENT)
-#define SET_SCHEMA(p)    		((p) = (p) | GR_PROP_TYPE_SCHEMA)
-#define SET_NAMED_SUB_TYPE(p)  	((p) = (p) | GR_PROP_NAMED_SUB_TYPE)
-
-#define GR_PROP_TYPE_BUILD_IN_ELEMENT 0x01 // 0b00000001
-#define GR_PROP_TYPE_SCHEMA           0x02 // 0b00000010
-#define GR_PROP_NILLABLE              0x04 // 0b00000100
-#define GR_PROP_AUGMENTED             0x08 // 0b00001000
-#define GR_PROP_NAMED_SUB_TYPE        0x10 // 0b00010000
+#define GR_PROP_TYPE_BUILT_IN_ELEMENT    0x01 // 0b00000001
+#define GR_PROP_TYPE_SCHEMA              0x02 // 0b00000010
+#define GR_PROP_NILLABLE                 0x04 // 0b00000100
+#define GR_PROP_AUGMENTED                0x08 // 0b00001000
+#define GR_PROP_NAMED_SUB_TYPE_OR_UNION  0x10 // 0b00010000
+/**@}*/
 
 /**
- * The rule index in the ruleArray is the left hand side nonTermID of the particular grammar Rule
+ * An EXI regular grammar, organized as a collection of containers for production rules, 
+ * and grouped by each rule's left-hand side non-terminal.
  */
 struct EXIGrammar
 {
-	GrammarRule* ruleArray; // Array of grammar rules which constitute that grammar
-	size_t rulesDimension; // The size of the array
+	/** 
+     * Rule container array, where the index of a container is its left-hand side non-terminal ID.
+     */
+	GrammarRule* rule;
+	/** Size of the array */
+	SmallIndex count;
 	/**
-	 * Use the macros IS_NILLABLE(p), IS_AUGMENTED(p), IS_BUILD_IN_ELEM(p),
-	 * IS_SCHEMA(p), HAS_NAMED_SUB_TYPE(p) to extract the properties:
-	 * nillable, augmented, build-in element grammar or schema-informed grammar,
-	 * the type of this grammar has named sub-types
+	 * Bitmap of properties.
+	 * Use parenthesized macro to retrieve, or the "SET" form to update.
+	 * <ul>
+	 *   <li> nillable (IS_NILLABLE(p)) </li>
+	 *   <li> <a href="http://www.w3.org/TR/2011/REC-exi-20110310/#undeclaredProductions">augmented</a>
+	 *   with productions external to the schema (IS_AUGMENTED(p)) </li>
+	 *   <li> built-in grammar (IS_BUILT_IN_ELEM(p)) </li>
+	 *   <li> schema-informed grammar (IS_SCHEMA(p)) </li>
+	 *   <li> does type of this grammar have named sub-types or is it union? (HAS_NAMED_SUB_TYPE_OR_UNION(p)) </li>
+	 * </ul>
 	 */
 	unsigned char props;
-	size_t contentIndex;
+	/** For a type grammar, the index of the first rule that does not contain attribute content. */
+	SmallIndex contentIndex;
 };
 
 typedef struct EXIGrammar EXIGrammar;
 
+/**
+ * Used for the processing grammar stack. */
 struct GrammarStackNode
 {
 	EXIGrammar* grammar;
-	size_t lastNonTermID; // Stores the last NonTermID before another grammar is added on top of the stack
+	SmallIndex lastNonTermID; // Stores the last NonTermID before another grammar is added on top of the stack
 	struct GrammarStackNode* nextInStack;
 };
 
 typedef struct GrammarStackNode EXIGrammarStack;
 
-/*********** END: Grammar Types ***************/
+/**@}*/ // End Grammar Types
 
 
-/********* BEGIN: String Table Types ***************/
+/** @name String Table Types */
+/**@{*/
 
-struct ValueRow {
-	String string_val;
-	size_t* valueLocalCrossTableRowPointer;
+struct VxEntry {
+	Index globalId;
 };
 
-struct ValueTable {
-	struct ValueRow* rows; // Dynamic array
-	size_t rowCount; // The number of rows
-	size_t arrayDimension; // The size of the Dynamic array
-	size_t globalID; // http://www.w3.org/TR/2011/REC-exi-20110310/#key-globalID
-	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
+typedef struct VxEntry VxEntry;
 
-	// #DOCUMENT#
-	// Hashtable for fast look-up of global values in the table.
-	// Only used when:
-	// serializing &&
-	// valuePartitionCapacity > 50  &&   //for small table full-scan will work better
-	// valueMaxLength > 0 // this is essentially equal to valuePartitionCapacity == 0
-	struct hashtable *hashTbl;
+struct ValueEntry {
+	VxEntry* vxEntry;
+	String valueStr;
+};
+
+typedef struct ValueEntry ValueEntry;
+
+struct ValueTable {
+#if DYN_ARRAY_USE == ON
+	DynArray dynArray;
+#endif
+	ValueEntry* value;
+	Index count;
+#if HASH_TABLE_USE == ON
+	/**
+	 * Hashtable for fast look-up of global values in the table.
+	 * Only used when:
+	 * serializing &&
+	 * valuePartitionCapacity > 50  &&   //for small table full-scan will work better
+	 * valueMaxLength > 0 // this is essentially equal to valuePartitionCapacity == 0
+	 *
+	 */
+	struct hashtable* hashTbl;
+#endif
+	/** @see http://www.w3.org/TR/2011/REC-exi-20110310/#key-globalID */
+	Index globalId;
 };
 
 typedef struct ValueTable ValueTable;
 
-struct ValueLocalCrossTable {
-	size_t* valueRowIds; // Dynamic array; If the value of an element is SIZE_MAX, then this compact identifier is permanently unassigned
-	uint16_t rowCount; // The number of rows
-	uint16_t arrayDimension; // The size of the Dynamic array
-	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
+struct VxTable {
+#if DYN_ARRAY_USE == ON
+	DynArray dynArray;
+#endif
+	VxEntry* vx;
+	Index count;
 };
 
-typedef struct ValueLocalCrossTable ValueLocalCrossTable;
+typedef struct VxTable VxTable;
 
-struct PrefixTable {
-	String string_val[MAXIMUM_NUMBER_OF_PREFIXES_PER_URI];
-	unsigned char rowCount; // The number of rows
+struct PfxTable {
+	/** The number of entries */
+	SmallIndex count;
+	String pfxStr[MAXIMUM_NUMBER_OF_PREFIXES_PER_URI];
 };
 
-typedef struct PrefixTable PrefixTable;
+typedef struct PfxTable PfxTable;
 
-struct LocalNamesRow {
-	ValueLocalCrossTable* vCrossTable;
-	String string_val;
-	EXIGrammar* typeGrammar;
-	EXIGrammar* typeEmptyGrammar;
+struct LnEntry {
+	VxTable vxTable;
+	String lnStr;
+	/** Global element grammar with uriStr:lnStr qname.
+	 *  Either Index of a global element grammar in the SchemaGrammarTable OR
+	 *  INDEX_MAX if a global element grammar with that qname does not exist
+	 */
+	Index elemGrammar;
+	/** Global type grammar with uriStr:lnStr qname.
+	 *  Either Index of a global type grammar in the SchemaGrammarTable OR
+	 *  INDEX_MAX if a global type grammar with that qname does not exist
+	 */
+	Index typeGrammar;
 };
 
-struct LocalNamesTable {
-	struct LocalNamesRow* rows; // Dynamic array
-	size_t rowCount; // The number of rows
-	size_t arrayDimension; // The size of the Dynamic array
-	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
+typedef struct LnEntry LnEntry;
+
+struct LnTable {
+#if DYN_ARRAY_USE == ON
+	DynArray dynArray;
+#endif
+	LnEntry* ln;
+	Index count;
 };
 
-typedef struct LocalNamesTable LocalNamesTable;
+typedef struct LnTable LnTable;
 
-struct URIRow {
-	PrefixTable* pTable;
-	LocalNamesTable* lTable;
-	String string_val;
+struct UriEntry {
+	LnTable lnTable;
+	PfxTable* pfxTable;
+	String uriStr;
 };
 
-struct URITable {
-	struct URIRow* rows; // Dynamic array
-	uint16_t rowCount; // The number of rows
-	uint16_t arrayDimension; // The size of the Dynamic array
-	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation
+typedef struct UriEntry UriEntry;
+
+struct UriTable {
+#if DYN_ARRAY_USE == ON
+	DynArray dynArray;
+#endif
+	UriEntry* uri;
+	SmallIndex count;
 };
 
-typedef struct URITable URITable;
+typedef struct UriTable UriTable;
 
-/********* END: String Table Types ***************/
+/**@}*/ // End String Table Types
 
-// Constraining Facets IDs. Used for fine-grained schema validation
-#define TYPE_FACET_LENGTH             0x0001 // 0b0000000000000001
-#define TYPE_FACET_MIN_LENGTH         0x0002 // 0b0000000000000010
-#define TYPE_FACET_MAX_LENGTH         0x0004 // 0b0000000000000100
-#define TYPE_FACET_PATTERN            0x0008 // 0b0000000000001000
-#define TYPE_FACET_ENUMERATION        0x0010 // 0b0000000000010000
-#define TYPE_FACET_WHITE_SPACE        0x0020 // 0b0000000000100000
-#define TYPE_FACET_MAX_INCLUSIVE      0x0040 // 0b0000000001000000
-#define TYPE_FACET_MAX_EXCLUSIVE      0x0080 // 0b0000000010000000
-#define TYPE_FACET_MIN_EXCLUSIVE      0x0100 // 0b0000000100000000
-#define TYPE_FACET_MIN_INCLUSIVE      0x0200 // 0b0000001000000000
-#define TYPE_FACET_TOTAL_DIGITS       0x0400 // 0b0000010000000000
-#define TYPE_FACET_FRACTION_DIGITS    0x0800 // 0b0000100000000000
-#define TYPE_FACET_NAMED_SUBTYPE      0x1000 // 0b0001000000000000
-#define TYPE_FACET_SIMPLE_UNION_TYPE  0x2000 // 0b0010000000000000
+/** @name Constraining Facets IDs
+ * Used for fine-grained schema validation */
+/**@{*/
+#define TYPE_FACET_LENGTH               0x0001 // 0b0000000000000001
+#define TYPE_FACET_MIN_LENGTH           0x0002 // 0b0000000000000010
+#define TYPE_FACET_MAX_LENGTH           0x0004 // 0b0000000000000100
+#define TYPE_FACET_PATTERN              0x0008 // 0b0000000000001000
+#define TYPE_FACET_ENUMERATION          0x0010 // 0b0000000000010000
+#define TYPE_FACET_WHITE_SPACE          0x0020 // 0b0000000000100000
+#define TYPE_FACET_MAX_INCLUSIVE        0x0040 // 0b0000000001000000
+#define TYPE_FACET_MAX_EXCLUSIVE        0x0080 // 0b0000000010000000
+#define TYPE_FACET_MIN_EXCLUSIVE        0x0100 // 0b0000000100000000
+#define TYPE_FACET_MIN_INCLUSIVE        0x0200 // 0b0000001000000000
+#define TYPE_FACET_TOTAL_DIGITS         0x0400 // 0b0000010000000000
+#define TYPE_FACET_FRACTION_DIGITS      0x0800 // 0b0000100000000000
+#define TYPE_FACET_NAMED_SUBTYPE_UNION  0x1000 // 0b0001000000000000
+/**@}*/
 
+/**
+ * Attributes of a schema simple type, including EXI datatype for the simple content. 
+ */
 struct SimpleType {
+	EXIType exiType;
 	uint16_t facetPresenceMask;
-	int maxInclusive;
+	int64_t maxInclusive;
 	int minInclusive;
 	unsigned int maxLength;
 };
 
 typedef struct SimpleType SimpleType;
 
+/** Holds all simple types defined for particular EXI processing (build-in + schema-defined) */
+struct SimpleTypeTable {
+#if DYN_ARRAY_USE == ON
+	DynArray dynArray;
+#endif
+	SimpleType* sType;
+	Index count;
+};
+
+typedef struct SimpleTypeTable SimpleTypeTable;
+
+/** @name Simple types IDs */
+/**@{*/
 #define SIMPLE_TYPE_STRING                0
 #define SIMPLE_TYPE_NORMALIZED_STRING     1
 #define SIMPLE_TYPE_TOKEN                 2
@@ -629,17 +903,84 @@ typedef struct SimpleType SimpleType;
 #define SIMPLE_TYPE_ANY_TYPE             45
 
 #define SIMPLE_TYPE_COUNT                46
+/**@}*/
 
+/** Holds all EXI grammars defined for particular EXI processing (build-in + schema-defined) */
+struct SchemaGrammarTable {
+#if DYN_ARRAY_USE == ON
+	DynArray dynArray;
+#endif
+	EXIGrammar* grammar;
+	Index count;
+};
+
+typedef struct SchemaGrammarTable SchemaGrammarTable;
+
+/**
+ * Stores the enum values for a particular simple type */
+struct enumDefinition
+{
+	/** Index of the simple type grammar in the simpleTypeTable */
+	Index typeId;
+	/** Array of enum values */
+	void *values;
+	/** The number or enum values*/
+	SmallIndex count;
+};
+
+typedef struct enumDefinition EnumDefinition;
+
+/** All the enumerations defined in the schema.
+ * The entries are sorted by qnameid */
+struct EnumTable {
+#if DYN_ARRAY_USE == ON
+	DynArray dynArray;
+#endif
+	EnumDefinition* enumDef;
+	Index count;
+};
+
+typedef struct EnumTable EnumTable;
+
+/**
+ * EXIP representation of XML Schema.
+ * @todo If the simple types are included in the grammarTable's EXIGrammar structure,
+ * the simpleTypeTable and grammarTable can be merged.
+ */
 struct EXIPSchema
 {
-	URITable* initialStringTables;
-	QNameID* globalElemGrammars;  // Sorted
-	unsigned int globalElemGrammarsCount;
-	SimpleType* simpleTypeArray;
-	uint16_t sTypeArraySize;
-	unsigned char isStatic;
+	/**
+	 * Keep track of allocations within this structure when the
+	 * schema object is dynamically created.
+	 */
+	AllocList memList;
 
-	AllocList memList; // Stores the information for all memory allocations for that schema
+	/**
+	 * Initial string tables
+	 */
+	UriTable uriTable;
+
+	/**
+	 * The document/fragment grammar for that schema instance.
+	 */
+	EXIGrammar docGrammar;
+
+	/**
+	 * Array of simple types for this schema
+	 */
+	SimpleTypeTable	simpleTypeTable;
+
+	/**
+	 * Array of all the grammars in the schema.
+	 */
+	SchemaGrammarTable grammarTable;
+
+	EnumTable enumTable;
+
+	/**
+	 * Indicates whether the schema is created in dynamic memory or not
+	 */
+	unsigned char isStatic;
 };
 
 typedef struct EXIPSchema EXIPSchema;
@@ -649,27 +990,31 @@ struct StreamContext
 	/**
 	 * Current position in the buffer - bytewise
 	 */
-	size_t bufferIndx;
+	Index bufferIndx;
 
 	/**
-	 * Value between 0 and 7; shows the current position within the current byte
-	 * 7 is the least significant bit position in the byte
+	 * Value between 0 and 7; shows the current position within the current byte.
+	 * 7 is the least significant bit position in the byte.
 	 */
 	unsigned char bitPointer;
 
 	/**
-	 * Current (Left-hand side) Non terminal ID (Define the context/processor state)
+	 * Current (left-hand side) non-terminal ID that identifies the current grammar rule. 
+	 * Defines the context/processor state.
 	 */
-	size_t nonTermID;
+	SmallIndex currNonTermID;
 
 	/** The qname of the current element being parsed/serialized */
 	QNameID currElem;
 
-
-	/** The qname of the current attribute*/
+	/** The qname of the current attribute */
 	QNameID currAttr;
 
-	unsigned char expectATData; // 0 - FALSE, otherwise the ValueType of the expected data
+	/** Non-zero if expecting attribute data */
+	unsigned char expectATData;
+
+	/** Value type of the expected attribute */
+	Index attrTypeId; //TODO: will NOT be needed after grammar refactoring
 };
 
 typedef struct StreamContext StreamContext;
@@ -706,6 +1051,8 @@ struct EXIOptions
 	 * Use the macros GET_ALIGNMENT(p), WITH_COMPRESSION(p), WITH_STRICT,
 	 * WITH_FRAGMENT(p), WITH_SELF_CONTAINED(p) to extract the options:
 	 * alignment, compression, strict, fragment and selfContained
+	 *
+	 * @see options_defs
 	 */
 	unsigned char enumOpt;
 
@@ -732,15 +1079,15 @@ struct EXIOptions
 
 	/**
 	 * Specifies the maximum string length of value content items to be considered for addition to the string table.
-	 * SIZE_MAX - unbounded
+	 * INDEX_MAX - unbounded
 	 */
-	size_t valueMaxLength;
+	Index valueMaxLength;
 
 	/**
 	 * Specifies the total capacity of value partitions in a string table
-	 * SIZE_MAX - unbounded
+	 * INDEX_MAX - unbounded
 	 */
-	size_t valuePartitionCapacity;
+	Index valuePartitionCapacity;
 
 	/**
 	 * User defined meta-data may be added
@@ -778,30 +1125,37 @@ struct EXIheader
 
 typedef struct EXIheader EXIheader;
 
+struct BinaryBuffer
+{
+	/**
+	 * Read/write memory buffer
+	 */
+	char* buf;
+
+	/**
+	 * The size of the buffer
+	 */
+	Index bufLen;
+
+	/**
+	 * The size of the data stored in the buffer - number of bytes
+	 */
+	Index bufContent;
+
+	/**
+	 * Input/Output Stream used to fill/flush the buffer during processing
+	 */
+	IOStream ioStrm;
+};
+
+typedef struct BinaryBuffer BinaryBuffer;
+
 /**
  * Represents an EXI stream
  */
 struct EXIStream
 {
-	/**
-	 * Read/write buffer
-	 */
-	char* buffer;
-
-	/**
-	 * The size of the buffer
-	 */
-	size_t bufLen;
-
-	/**
-	 * The size of the data stored in the buffer - number of bytes
-	 */
-	size_t bufContent;
-
-	/**
-	 * Input/Output Stream used to fill/flush the buffer when parsed
-	 */
-	IOStream ioStrm;
+	BinaryBuffer buffer;
 
 	/**
 	 * EXI Header - the most important field is the EXI Options. They control the
@@ -809,18 +1163,13 @@ struct EXIStream
 	 */
 	EXIheader header;
 
-	/** Holds the current state of the stream*/
+	/** Holds the current state of the stream. */
 	StreamContext context;
 
 	/**
 	 * The value string table
 	 */
-	ValueTable* vTable;
-
-	/**
-	 * The URI string table
-	 */
-	URITable* uriTable;
+	ValueTable valueTable;
 
 	/**
 	 * The grammar stack used during processing
@@ -833,7 +1182,8 @@ struct EXIStream
 	AllocList memList;
 
 	/**
-	 * Schema information for that stream if any; NULL otherwise
+	 * Schema information for that stream.
+	 * It contains the string tables and possibly schema-informed EXI grammars.
 	 */
 	EXIPSchema* schema;
 };
@@ -850,12 +1200,10 @@ typedef struct EXIStream EXIStream;
  */
 void makeDefaultOpts(EXIOptions* opts);
 
-errorCode pushOnStack(GenericStack** stack, void* element);
+errorCode pushOnStack(GenericStack** stack, void* item);
 
-void popFromStack(GenericStack** stack, void** element);
+void popFromStack(GenericStack** stack, void** item);
 
-errorCode pushOnStackPersistent(GenericStack** stack, void* element, AllocList* memList);
-
-void popFromStackPersistent(GenericStack** stack, void** element);
+int compareEnumDefs(const void* enum1, const void* enum2);
 
 #endif /* PROCTYPES_H_ */

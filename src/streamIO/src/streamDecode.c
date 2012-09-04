@@ -1,36 +1,9 @@
-/*==================================================================================*\
-|                                                                                    |
-|                    EXIP - Efficient XML Interchange Processor                      |
-|                                                                                    |
-|------------------------------------------------------------------------------------|
-| Copyright (c) 2010, EISLAB - Luleå University of Technology                        |
-| All rights reserved.                                                               |
-|                                                                                    |
-| Redistribution and use in source and binary forms, with or without                 |
-| modification, are permitted provided that the following conditions are met:        |
-|     * Redistributions of source code must retain the above copyright               |
-|       notice, this list of conditions and the following disclaimer.                |
-|     * Redistributions in binary form must reproduce the above copyright            |
-|       notice, this list of conditions and the following disclaimer in the          |
-|       documentation and/or other materials provided with the distribution.         |
-|     * Neither the name of the EISLAB - Luleå University of Technology nor the      |
-|       names of its contributors may be used to endorse or promote products         |
-|       derived from this software without specific prior written permission.        |
-|                                                                                    |
-| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND    |
-| ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED      |
-| WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE             |
-| DISCLAIMED. IN NO EVENT SHALL EISLAB - LULEÅ UNIVERSITY OF TECHNOLOGY BE LIABLE    |
-| FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES |
-| (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;       |
-| LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND        |
-| ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT         |
-| (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS      |
-| SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                       |
-|                                                                                    |
-|                                                                                    |
-|                                                                                    |
-\===================================================================================*/
+/*==================================================================*\
+|                EXIP - Embeddable EXI Processor in C                |
+|--------------------------------------------------------------------|
+|          This work is licensed under BSD 3-Clause License          |
+|  The full license terms and conditions are located in LICENSE.txt  |
+\===================================================================*/
 
 /**
  * @file streamDecode.c
@@ -38,7 +11,7 @@
  *
  * @date Aug 18, 2010
  * @author Rumen Kyusakov
- * @version 0.1
+ * @version 0.4
  * @par[Revision] $Id$
  */
 
@@ -113,7 +86,7 @@ errorCode decodeString(EXIStream* strm, String* string_val)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	string_val->length = (size_t) string_length;
+	string_val->length = (Index) string_length;
 
 	tmp_err_code = decodeStringOnly(strm, string_val->length, string_val);
 	if(tmp_err_code != ERR_OK)
@@ -121,7 +94,7 @@ errorCode decodeString(EXIStream* strm, String* string_val)
 	return ERR_OK;
 }
 
-errorCode decodeStringOnly(EXIStream* strm, size_t str_length, String* string_val)
+errorCode decodeStringOnly(EXIStream* strm, Index str_length, String* string_val)
 {
 	// Assume no Restricted Character Set is defined
 	//TODO: Handle the case when Restricted Character Set is defined
@@ -129,8 +102,8 @@ errorCode decodeStringOnly(EXIStream* strm, size_t str_length, String* string_va
 	// The exact size of the string is known at this point. This means that
 	// this is the place to allocate the memory for the  { CharType* str; }!!!
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	size_t i = 0;
-	size_t writerPosition = 0;
+	Index i = 0;
+	Index writerPosition = 0;
 	UnsignedInteger tmp_code_point = 0;
 	tmp_err_code = allocateStringMemory(&(string_val->str), str_length, &strm->memList);
 	if(tmp_err_code != ERR_OK)
@@ -149,7 +122,7 @@ errorCode decodeStringOnly(EXIStream* strm, size_t str_length, String* string_va
 	return ERR_OK;
 }
 
-errorCode decodeBinary(EXIStream* strm, char** binary_val, size_t* nbytes)
+errorCode decodeBinary(EXIStream* strm, char** binary_val, Index* nbytes)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	UnsignedInteger length = 0;
@@ -159,7 +132,7 @@ errorCode decodeBinary(EXIStream* strm, char** binary_val, size_t* nbytes)
 	tmp_err_code = decodeUnsignedInteger(strm, &length);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-	*nbytes = (size_t) length;
+	*nbytes = (Index) length;
 	(*binary_val) = (char*) EXIP_MALLOC(length); // This memory should be manually freed after the content handler is invoked
 	if((*binary_val) == NULL)
 		return MEMORY_ALLOCATION_ERROR;
@@ -168,7 +141,10 @@ errorCode decodeBinary(EXIStream* strm, char** binary_val, size_t* nbytes)
 	{
 		tmp_err_code = readBits(strm, 8, &int_val);
 		if(tmp_err_code != ERR_OK)
+		{
+			EXIP_MFREE(*binary_val);
 			return tmp_err_code;
+		}
 		(*binary_val)[i]=(char) int_val;
 	}
 	return ERR_OK;
@@ -257,7 +233,7 @@ errorCode decodeFloatValue(EXIStream* strm, Float* fl_val)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	DEBUG_MSG(ERROR, DEBUG_STREAM_IO, (">Float value: %lld E %lld\n", mantissa, exponent));
+	DEBUG_MSG(ERROR, DEBUG_STREAM_IO, (">Float value: %ldE%ld\n", (long int)mantissa, (long int)exponent));
 
 //  TODO: Improve the below validation: it should be independent of how the Float is defined
 //
@@ -271,7 +247,102 @@ errorCode decodeFloatValue(EXIStream* strm, Float* fl_val)
 //	}
 
 	fl_val->mantissa = mantissa;
-	fl_val->exponent = exponent;
+	fl_val->exponent = (int16_t)exponent; /* TODO not using exip_config.h */
+
+	return ERR_OK;
+}
+
+errorCode decodeDateTimeValue(EXIStream* strm, EXIPDateTime* dt_val)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	Integer year;
+	unsigned int monDay = 0;
+	unsigned int timeVal = 0;
+	unsigned char presence = FALSE;
+
+	dt_val->presenceMask = 0;
+
+
+	// TODO: currently only the xs:dateTime is implemented.
+	//       The other types (gYear, gYearMonth, date, dateTime etc.)
+	//       must be known here for correct encoding.
+
+	/* Year component */
+	tmp_err_code = decodeIntegerValue(strm, &year);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	dt_val->presenceMask = dt_val->presenceMask | YEAR_PRESENCE;
+	dt_val->dateTime.tm_year = (int)year - 100;
+
+	/* MonthDay component */
+	tmp_err_code = decodeNBitUnsignedInteger(strm, 9, &monDay);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	dt_val->presenceMask = dt_val->presenceMask | MON_PRESENCE;
+	dt_val->dateTime.tm_mon = monDay / 32 - 1;
+
+	dt_val->presenceMask = dt_val->presenceMask | MDAY_PRESENCE;
+	dt_val->dateTime.tm_mday = monDay % 32;
+
+	/* Time component */
+	tmp_err_code = decodeNBitUnsignedInteger(strm, 17, &timeVal);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	dt_val->presenceMask = dt_val->presenceMask | HOUR_PRESENCE;
+	dt_val->dateTime.tm_hour = (timeVal / 64) / 64;
+
+	dt_val->presenceMask = dt_val->presenceMask | MIN_PRESENCE;
+	dt_val->dateTime.tm_min = (timeVal / 64) % 64;
+
+	dt_val->presenceMask = dt_val->presenceMask | SEC_PRESENCE;
+	dt_val->dateTime.tm_sec = timeVal % 64;
+
+	/* FractionalSecs presence component */
+	tmp_err_code = decodeBoolean(strm, &presence);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	if(presence)
+	{
+		UnsignedInteger fSecs = 0;
+		unsigned int tmp = 0;
+
+		dt_val->presenceMask = dt_val->presenceMask | FRACT_PRESENCE;
+		dt_val->fSecs.offset = 0;
+		dt_val->fSecs.value = 0;
+
+		/* FractionalSecs component */
+		tmp_err_code = decodeUnsignedInteger(strm, &fSecs);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		while(fSecs != 0)
+		{
+			tmp = fSecs % 10;
+			dt_val->fSecs.offset++;
+
+			if(tmp != 0)
+			{
+				dt_val->fSecs.value = dt_val->fSecs.value*10 + tmp;
+			}
+
+			fSecs = fSecs / 10;
+		}
+		dt_val->fSecs.offset -= 1;
+	}
+
+	/* TimeZone presence component */
+	tmp_err_code = decodeBoolean(strm, &presence);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	if(presence)
+	{
+		return NOT_IMPLEMENTED_YET;
+	}
 
 	return ERR_OK;
 }

@@ -10,5 +10,17 @@
     <ClCompile Include="..\..\utils\schemaHandling\createGrammars.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\utils\schemaHandling\utils\src\dynOutputUtils.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\utils\schemaHandling\utils\src\exipOutputUtils.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\utils\schemaHandling\utils\src\staticOutputUtils.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\utils\schemaHandling\utils\src\textOutputUtils.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

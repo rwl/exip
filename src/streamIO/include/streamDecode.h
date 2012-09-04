@@ -1,36 +1,9 @@
-/*==================================================================================*\
-|                                                                                    |
-|                    EXIP - Efficient XML Interchange Processor                      |
-|                                                                                    |
-|------------------------------------------------------------------------------------|
-| Copyright (c) 2010, EISLAB - Luleå University of Technology                        |
-| All rights reserved.                                                               |
-|                                                                                    |
-| Redistribution and use in source and binary forms, with or without                 |
-| modification, are permitted provided that the following conditions are met:        |
-|     * Redistributions of source code must retain the above copyright               |
-|       notice, this list of conditions and the following disclaimer.                |
-|     * Redistributions in binary form must reproduce the above copyright            |
-|       notice, this list of conditions and the following disclaimer in the          |
-|       documentation and/or other materials provided with the distribution.         |
-|     * Neither the name of the EISLAB - Luleå University of Technology nor the      |
-|       names of its contributors may be used to endorse or promote products         |
-|       derived from this software without specific prior written permission.        |
-|                                                                                    |
-| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND    |
-| ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED      |
-| WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE             |
-| DISCLAIMED. IN NO EVENT SHALL EISLAB - LULEÅ UNIVERSITY OF TECHNOLOGY BE LIABLE    |
-| FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES |
-| (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;       |
-| LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND        |
-| ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT         |
-| (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS      |
-| SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                       |
-|                                                                                    |
-|                                                                                    |
-|                                                                                    |
-\===================================================================================*/
+/*==================================================================*\
+|                EXIP - Embeddable EXI Processor in C                |
+|--------------------------------------------------------------------|
+|          This work is licensed under BSD 3-Clause License          |
+|  The full license terms and conditions are located in LICENSE.txt  |
+\===================================================================*/
 
 /**
  * @file streamDecode.h
@@ -38,7 +11,7 @@
  *
  * @date Jul 7, 2010
  * @author Rumen Kyusakov
- * @version 0.1
+ * @version 0.4
  * @par[Revision] $Id$
  */
 
@@ -104,7 +77,7 @@ errorCode decodeString(EXIStream* strm, String* string_val);
  * @param[out] string_val decoded string
  * @return Error handling code
  */
-errorCode decodeStringOnly(EXIStream* strm, size_t str_length, String* string_val);
+errorCode decodeStringOnly(EXIStream* strm, Index str_length, String* string_val);
 
 /**
  * @brief Decode EXI Binary type
@@ -116,7 +89,7 @@ errorCode decodeStringOnly(EXIStream* strm, size_t str_length, String* string_va
  * @param[out] nbytes length of decoded binary content
  * @return Error handling code
  */
-errorCode decodeBinary(EXIStream* strm, char** binary_val, size_t* nbytes);
+errorCode decodeBinary(EXIStream* strm, char** binary_val, Index* nbytes);
 
 /**
  * @brief Decode EXI (signed) Integer type
@@ -157,5 +130,15 @@ errorCode decodeDecimalValue(EXIStream* strm, Decimal* dec_val);
  * @return Error handling code.
  */
 errorCode decodeFloatValue(EXIStream* strm, Float* fl_val);
+
+/**
+ * @brief Decode DateTime type
+ * Included Components: Year, MonthDay, Time, presence, [FractionalSecs], presence, [TimeZone]
+ *
+ * @param[in] strm EXI stream of bits
+ * @param[out] dt_val decoded dateTime value as EXIPDateTime
+ * @return Error handling code.
+ */
+errorCode decodeDateTimeValue(EXIStream* strm, EXIPDateTime* dt_val);
 
 #endif /* STREAMDECODE_H_ */

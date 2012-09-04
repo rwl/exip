@@ -1,36 +1,9 @@
-/*==================================================================================*\
-|                                                                                    |
-|                    EXIP - Efficient XML Interchange Processor                      |
-|                                                                                    |
-|------------------------------------------------------------------------------------|
-| Copyright (c) 2010, EISLAB - Luleå University of Technology                        |
-| All rights reserved.                                                               |
-|                                                                                    |
-| Redistribution and use in source and binary forms, with or without                 |
-| modification, are permitted provided that the following conditions are met:        |
-|     * Redistributions of source code must retain the above copyright               |
-|       notice, this list of conditions and the following disclaimer.                |
-|     * Redistributions in binary form must reproduce the above copyright            |
-|       notice, this list of conditions and the following disclaimer in the          |
-|       documentation and/or other materials provided with the distribution.         |
-|     * Neither the name of the EISLAB - Luleå University of Technology nor the      |
-|       names of its contributors may be used to endorse or promote products         |
-|       derived from this software without specific prior written permission.        |
-|                                                                                    |
-| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND    |
-| ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED      |
-| WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE             |
-| DISCLAIMED. IN NO EVENT SHALL EISLAB - LULEÅ UNIVERSITY OF TECHNOLOGY BE LIABLE    |
-| FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES |
-| (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;       |
-| LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND        |
-| ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT         |
-| (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS      |
-| SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                       |
-|                                                                                    |
-|                                                                                    |
-|                                                                                    |
-\===================================================================================*/
+/*==================================================================*\
+|                EXIP - Embeddable EXI Processor in C                |
+|--------------------------------------------------------------------|
+|          This work is licensed under BSD 3-Clause License          |
+|  The full license terms and conditions are located in LICENSE.txt  |
+\===================================================================*/
 
 /**
  * @file streamRead.c
@@ -38,7 +11,7 @@
  *
  * @date Aug 18, 2010
  * @author Rumen Kyusakov
- * @version 0.1
+ * @version 0.4
  * @par[Revision] $Id$
  */
 
@@ -58,18 +31,18 @@ const unsigned char BIT_MASK[] = {	(char) 0x00,	// 0b00000000
 
 errorCode readNextBit(EXIStream* strm, unsigned char* bit_val)
 {
-	if(strm->bufContent <= strm->context.bufferIndx) // the whole buffer is parsed! read another portion
+	if(strm->buffer.bufContent <= strm->context.bufferIndx) // the whole buffer is parsed! read another portion
 	{
-		if(strm->ioStrm.readWriteToStream == NULL)
+		if(strm->buffer.ioStrm.readWriteToStream == NULL)
 			return BUFFER_END_REACHED;
-		strm->bufContent = strm->ioStrm.readWriteToStream(strm->buffer, strm->bufLen, strm->ioStrm.stream);
-		if(strm->bufContent == 0)
+		strm->buffer.bufContent = strm->buffer.ioStrm.readWriteToStream(strm->buffer.buf, strm->buffer.bufLen, strm->buffer.ioStrm.stream);
+		if(strm->buffer.bufContent == 0)
 			return BUFFER_END_REACHED;
 		strm->context.bitPointer = 0;
 		strm->context.bufferIndx = 0;
 	}
 	*bit_val = 0;
-	*bit_val = (strm->buffer[strm->context.bufferIndx] & (1<<REVERSE_BIT_POSITION(strm->context.bitPointer))) != 0;
+	*bit_val = (strm->buffer.buf[strm->context.bufferIndx] & (1<<REVERSE_BIT_POSITION(strm->context.bitPointer))) != 0;
 
 	moveBitPointer(strm, 1);
 	return ERR_OK;
@@ -83,23 +56,23 @@ errorCode readBits(EXIStream* strm, unsigned char n, unsigned int* bits_val)
 	unsigned int numBytesToBeRead = ((unsigned int) n) / 8 + (8 - strm->context.bitPointer < n % 8 );
 	*bits_val = 0;
 
-	if(strm->bufContent <= strm->context.bufferIndx + numBytesToBeRead)
+	if(strm->buffer.bufContent <= strm->context.bufferIndx + numBytesToBeRead)
 	{
 		// The buffer end is reached: there are fewer than n bits left unparsed
 		char leftOverBits[16];
-		size_t bytesCopied = strm->bufContent - strm->context.bufferIndx;
-		size_t bytesRead = 0;
-		if(strm->ioStrm.readWriteToStream == NULL)
+		Index bytesCopied = strm->buffer.bufContent - strm->context.bufferIndx;
+		Index bytesRead = 0;
+		if(strm->buffer.ioStrm.readWriteToStream == NULL)
 			return BUFFER_END_REACHED;
 
-		memcpy(leftOverBits, strm->buffer + strm->context.bufferIndx, bytesCopied);
+		memcpy(leftOverBits, strm->buffer.buf + strm->context.bufferIndx, bytesCopied);
 
-		bytesRead = strm->ioStrm.readWriteToStream(strm->buffer + bytesCopied, strm->bufLen - bytesCopied, strm->ioStrm.stream);
-		strm->bufContent = bytesRead + bytesCopied;
-		if(strm->bufContent < numBytesToBeRead)
+		bytesRead = strm->buffer.ioStrm.readWriteToStream(strm->buffer.buf + bytesCopied, strm->buffer.bufLen - bytesCopied, strm->buffer.ioStrm.stream);
+		strm->buffer.bufContent = bytesRead + bytesCopied;
+		if(strm->buffer.bufContent < numBytesToBeRead)
 			return BUFFER_END_REACHED;
 
-		memcpy(strm->buffer, leftOverBits, bytesCopied);
+		memcpy(strm->buffer.buf, leftOverBits, bytesCopied);
 		strm->context.bufferIndx = 0;
 	}
 
@@ -111,12 +84,12 @@ errorCode readBits(EXIStream* strm, unsigned char n, unsigned int* bits_val)
 			int tmp_shift;
 			bits_in_byte = n - numBitsRead;
 			tmp_shift = 8 - strm->context.bitPointer - bits_in_byte;
-			tmp = (strm->buffer[strm->context.bufferIndx] >> tmp_shift) & BIT_MASK[bits_in_byte];
+			tmp = (strm->buffer.buf[strm->context.bufferIndx] >> tmp_shift) & BIT_MASK[bits_in_byte];
 		}
 		else // The rest of the unread bits are located in multiple bytes from the stream
 		{
 			bits_in_byte = 8 - strm->context.bitPointer;
-			tmp = strm->buffer[strm->context.bufferIndx] & BIT_MASK[bits_in_byte];
+			tmp = strm->buffer.buf[strm->context.bufferIndx] & BIT_MASK[bits_in_byte];
 		}
 		numBitsRead += bits_in_byte;
 		tmp = tmp << (n - numBitsRead);

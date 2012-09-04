@@ -1,36 +1,9 @@
-/*==================================================================================*\
-|                                                                                    |
-|                    EXIP - Efficient XML Interchange Processor                      |
-|                                                                                    |
-|------------------------------------------------------------------------------------|
-| Copyright (c) 2010, EISLAB - Luleå University of Technology                        |
-| All rights reserved.                                                               |
-|                                                                                    |
-| Redistribution and use in source and binary forms, with or without                 |
-| modification, are permitted provided that the following conditions are met:        |
-|     * Redistributions of source code must retain the above copyright               |
-|       notice, this list of conditions and the following disclaimer.                |
-|     * Redistributions in binary form must reproduce the above copyright            |
-|       notice, this list of conditions and the following disclaimer in the          |
-|       documentation and/or other materials provided with the distribution.         |
-|     * Neither the name of the EISLAB - Luleå University of Technology nor the      |
-|       names of its contributors may be used to endorse or promote products         |
-|       derived from this software without specific prior written permission.        |
-|                                                                                    |
-| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND    |
-| ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED      |
-| WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE             |
-| DISCLAIMED. IN NO EVENT SHALL EISLAB - LULEÅ UNIVERSITY OF TECHNOLOGY BE LIABLE    |
-| FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES |
-| (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;       |
-| LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND        |
-| ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT         |
-| (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS      |
-| SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                       |
-|                                                                                    |
-|                                                                                    |
-|                                                                                    |
-\===================================================================================*/
+/*==================================================================*\
+|                EXIP - Embeddable EXI Processor in C                |
+|--------------------------------------------------------------------|
+|          This work is licensed under BSD 3-Clause License          |
+|  The full license terms and conditions are located in LICENSE.txt  |
+\===================================================================*/
 
 /**
  * @file dynamicArray.c
@@ -38,62 +11,92 @@
  *
  * @date Jan 25, 2011
  * @author Rumen Kyusakov
- * @version 0.1
+ * @version 0.4
  * @par[Revision] $Id$
  */
 
 #include "dynamicArray.h"
 #include "memManagement.h"
 
-errorCode createDynArray(DynArray** dArray, size_t elSize, uint16_t defaultSize, AllocList* memList)
+errorCode createDynArray(DynArray* dynArray, size_t entrySize, uint16_t chunkEntries, AllocList* memList)
 {
-	(*dArray) = (DynArray*) memManagedAllocate(memList, sizeof(DynArray));
-	if(*dArray == NULL)
+	void** base = (void **)(dynArray + 1);
+	Index* count = (Index*)(base + 1);
+
+	*base = memManagedAllocatePtr(memList, entrySize*chunkEntries, &dynArray->memPair);
+	if(*base == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*dArray)->elements = memManagedAllocatePtr(memList, elSize*defaultSize, &(*dArray)->memPair);
-	if((*dArray)->elements == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	(*dArray)->arrayDimension = defaultSize;
-	(*dArray)->elementCount = 0;
-	(*dArray)->defaultSize = defaultSize;
-	(*dArray)->elSize = elSize;
+	dynArray->entrySize = entrySize;
+	*count = 0;
+	dynArray->chunkEntries = chunkEntries;
+	dynArray->arrayEntries = chunkEntries;
 
 	return ERR_OK;
 }
 
-errorCode addDynElement(DynArray* dArray, void* elem, size_t* elID, AllocList* memList)
+errorCode addEmptyDynEntry(DynArray* dynArray, void** entry, Index* entryID, AllocList* memList)
 {
+	void** base;
+	Index* count;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
-	if(dArray == NULL)
+	if(dynArray == NULL)
 		return NULL_POINTER_REF;
-	if(dArray->arrayDimension == dArray->elementCount)   // The dynamic array must be extended first
+
+	base = (void **)(dynArray + 1);
+	count = (Index*)(base + 1);
+	if(dynArray->arrayEntries == *count)   // The dynamic array must be extended first
 	{
-		tmp_err_code = memManagedReAllocate(&dArray->elements, dArray->elSize*(dArray->elementCount + dArray->defaultSize), dArray->memPair);
+		tmp_err_code = memManagedReAllocate(base, dynArray->entrySize * (*count + dynArray->chunkEntries), dynArray->memPair);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		dArray->arrayDimension = dArray->arrayDimension + dArray->defaultSize;
+		dynArray->arrayEntries = dynArray->arrayEntries + dynArray->chunkEntries;
 	}
 
-	memcpy(((unsigned char *) dArray->elements) + dArray->elementCount*dArray->elSize, elem, dArray->elSize);
+	*entry = (void*)((unsigned char *)(*base) + (*count * dynArray->entrySize));
 
-	*elID = dArray->elementCount;
+	*entryID = *count;
 
-	dArray->elementCount += 1;
+	*count += 1;
 	return ERR_OK;
 }
 
-errorCode delDynElement(DynArray* dArray, size_t elID)
+errorCode addDynEntry(DynArray* dynArray, void* entry, Index* entryID, AllocList* memList)
 {
-	if(dArray == NULL)
+	errorCode tmp_err_code;
+	void *emptyEntry;
+
+	tmp_err_code = addEmptyDynEntry(dynArray, &emptyEntry, entryID, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	memcpy(emptyEntry, entry, dynArray->entrySize);
+	return ERR_OK;
+}
+
+errorCode delDynEntry(DynArray* dynArray, Index entryID)
+{
+	void** base;
+	Index* count;
+
+	if(dynArray == NULL)
 		return NULL_POINTER_REF;
 
-	if(dArray->elementCount - 1 - elID >= 0)
+	base = (void **)(dynArray + 1);
+	count = (Index*)(base + 1);
+
+	if(entryID == *count - 1)
 	{
-		memcpy(((unsigned char *) dArray->elements) + elID*dArray->elSize, ((unsigned char *) dArray->elements) + elID*dArray->elSize + dArray->elSize, (dArray->elementCount - 1 - elID)*dArray->elSize);
-		dArray->elementCount -= 1;
+		*count -= 1;
+	}
+	else if(*count - 1 - entryID >= 0)
+	{
+		/* Shuffle the array down to fill the removed entry */
+		memcpy(((unsigned char *)*base) + entryID * dynArray->entrySize,
+			   ((unsigned char *)*base) + entryID * dynArray->entrySize + dynArray->entrySize,
+			   (*count - 1 - entryID) * dynArray->entrySize);
+		*count -= 1;
 	}
 	else
 		return OUT_OF_BOUND_BUFFER;

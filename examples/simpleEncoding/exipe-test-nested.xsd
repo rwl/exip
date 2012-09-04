@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="http://www.ltu.se/EISLAB/nested-xsd"
+	elementFormDefault="qualified" xmlns="http://www.w3.org/2001/XMLSchema">
+
+    <element name="testSetup">
+    	<complexType>
+    		<simpleContent>
+    			<extension base="string">
+    				<attribute name="goal" type="string"></attribute>
+    			</extension>
+    		</simpleContent>
+    	</complexType>
+    </element>
+    
+    <complexType name="basicType">
+    	<choice>
+    		<element name="bool" type="boolean"/>
+    		<element name="int" type="int"/>
+    	</choice>
+    	<attribute name="id" type="int"></attribute>
+    </complexType>
+</schema>
