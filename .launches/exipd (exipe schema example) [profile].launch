@@ -4,15 +4,18 @@
 <stringAttribute key="org.eclipse.cdt.launch.COREFILE_PATH" value=""/>
 <stringAttribute key="org.eclipse.cdt.launch.PROGRAM_ARGUMENTS" value="-xml -schema examples/simpleEncoding/exipe-test-xsd.exi examples/simpleEncoding/exipe-test-nested-xsd.exi examples/simpleEncoding/exipe-test-types-xsd.exi examples/simpleEncoding/exipe-test.exi"/>
 <stringAttribute key="org.eclipse.cdt.launch.PROGRAM_NAME" value="bin/examples/exipd"/>
-<stringAttribute key="org.eclipse.cdt.launch.PROJECT_ATTR" value="exip-local"/>
+<stringAttribute key="org.eclipse.cdt.launch.PROJECT_ATTR" value="exip"/>
 <booleanAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_AUTO_ATTR" value="true"/>
-<stringAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_ID_ATTR" value=""/>
+<stringAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_ID_ATTR" value="cdt.managedbuild.config.gnu.exe.debug.491677807"/>
 <booleanAttribute key="org.eclipse.cdt.launch.use_terminal" value="true"/>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-<listEntry value="/exip-local"/>
+<listEntry value="/exip"/>
 </listAttribute>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
 <listEntry value="4"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.ui.favoriteGroups">
+<listEntry value="org.eclipse.debug.ui.launchGroup.profile"/>
 </listAttribute>
 <booleanAttribute key="org.eclipse.linuxtools.valgrind.launch.GENERAL_BELOWMAIN" value="false"/>
 <booleanAttribute key="org.eclipse.linuxtools.valgrind.launch.GENERAL_DEMANGLE" value="true"/>
