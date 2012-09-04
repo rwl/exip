@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" 
+		targetNamespace="http://www.ltu.se/EISLAB/types"
+		xmlns:tns="http://www.ltu.se/EISLAB/types"
+		elementFormDefault="unqualified">
+		
+	<complexType name="typesTest">
+		<annotation>
+			<documentation>Testing of different XSD types processing.</documentation>
+		</annotation>
+		<sequence>
+			<element name="byteTest" type="byte"/>
+			<element name="dateTimeTest" type="dateTime"/>
+			<element name="binaryTest" type="base64Binary" minOccurs="0"/>
+			<element name="enumTest" type="tns:enumType" minOccurs="0"/>
+		</sequence>
+	</complexType>
+	
+	<simpleType name="enumType">
+		<restriction base="string">
+			<enumeration value="hello"/>
+			<enumeration value="hi"/>
+			<enumeration value="hey"/>
+			<enumeration value="hej"/>
+		</restriction>
+	</simpleType>
+</schema>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:rootElem basis="Ahaa" xmlns:tns="http://www.example.org/emptyTypeSchema"
+				xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <tns:nilabElem bass="fooBass" foo="11" xsi:nil="true"/>
+</tns:rootElem>

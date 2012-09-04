@@ -1,36 +1,9 @@
-/*==================================================================================*\
-|                                                                                    |
-|                    EXIP - Efficient XML Interchange Processor                      |
-|                                                                                    |
-|------------------------------------------------------------------------------------|
-| Copyright (c) 2010, EISLAB - Luleå University of Technology                        |
-| All rights reserved.                                                               |
-|                                                                                    |
-| Redistribution and use in source and binary forms, with or without                 |
-| modification, are permitted provided that the following conditions are met:        |
-|     * Redistributions of source code must retain the above copyright               |
-|       notice, this list of conditions and the following disclaimer.                |
-|     * Redistributions in binary form must reproduce the above copyright            |
-|       notice, this list of conditions and the following disclaimer in the          |
-|       documentation and/or other materials provided with the distribution.         |
-|     * Neither the name of the EISLAB - Luleå University of Technology nor the      |
-|       names of its contributors may be used to endorse or promote products         |
-|       derived from this software without specific prior written permission.        |
-|                                                                                    |
-| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND    |
-| ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED      |
-| WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE             |
-| DISCLAIMED. IN NO EVENT SHALL EISLAB - LULEÅ UNIVERSITY OF TECHNOLOGY BE LIABLE    |
-| FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES |
-| (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;       |
-| LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND        |
-| ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT         |
-| (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS      |
-| SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                       |
-|                                                                                    |
-|                                                                                    |
-|                                                                                    |
-\===================================================================================*/
+/*==================================================================*\
+|                EXIP - Embeddable EXI Processor in C                |
+|--------------------------------------------------------------------|
+|          This work is licensed under BSD 3-Clause License          |
+|  The full license terms and conditions are located in LICENSE.txt  |
+\===================================================================*/
 
 /**
  * @file check_streamIO.c
@@ -39,7 +12,7 @@
  * @date Aug 18, 2010
  * @author Rumen Kyusakov
  * @author Ashok Gowtham
- * @version 0.1
+ * @version 0.4
  * @par[Revision] $Id$
  */
 
@@ -68,11 +41,11 @@ START_TEST (test_readNextBit)
   testStream.context.bitPointer = 0;
   buf[0] = (char) 0xD4; /* 0b11010100 */
   buf[1] = (char) 0x60; /* 0b01100000 */
-  testStream.buffer = buf;
-  testStream.bufLen = 2;
-  testStream.bufContent = 2;
-  testStream.ioStrm.readWriteToStream = NULL;
-  testStream.ioStrm.stream = NULL;
+  testStream.buffer.buf = buf;
+  testStream.buffer.bufLen = 2;
+  testStream.buffer.bufContent = 2;
+  testStream.buffer.ioStrm.readWriteToStream = NULL;
+  testStream.buffer.ioStrm.stream = NULL;
   testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
@@ -123,11 +96,11 @@ START_TEST (test_readBits)
   testStream.context.bitPointer = 0;
   buf[0] = (char) 0xD4; /* 0b11010100 */
   buf[1] = (char) 0x60; /* 0b01100000 */
-  testStream.buffer = buf;
-  testStream.bufLen = 2;
-  testStream.bufContent = 2;
-  testStream.ioStrm.readWriteToStream = NULL;
-  testStream.ioStrm.stream = NULL;
+  testStream.buffer.buf = buf;
+  testStream.buffer.bufLen = 2;
+  testStream.buffer.bufContent = 2;
+  testStream.buffer.ioStrm.readWriteToStream = NULL;
+  testStream.buffer.ioStrm.stream = NULL;
   testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
@@ -171,11 +144,11 @@ START_TEST (test_writeNextBit)
   testStream.context.bitPointer = 0;
   buf[0] = (char) 0x01; /* 0b00000001 */
   buf[1] = (char) 0x00; /* 0b00000000 */
-  testStream.buffer = buf;
-  testStream.bufLen = 2;
-  testStream.bufContent = 2;
-  testStream.ioStrm.readWriteToStream = NULL;
-  testStream.ioStrm.stream = NULL;
+  testStream.buffer.buf = buf;
+  testStream.buffer.bufLen = 2;
+  testStream.buffer.bufContent = 2;
+  testStream.buffer.ioStrm.readWriteToStream = NULL;
+  testStream.buffer.ioStrm.stream = NULL;
   testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
@@ -223,11 +196,11 @@ START_TEST (test_writeBits)
   testStream.context.bitPointer = 0;
   buf[0] = (char) 0x00; /* 0b00000000 */
   buf[1] = (char) 0xE0;	/* 0b11100000 */
-  testStream.buffer = buf;
-  testStream.bufLen = 2;
-  testStream.bufContent = 2;
-  testStream.ioStrm.readWriteToStream = NULL;
-  testStream.ioStrm.stream = NULL;
+  testStream.buffer.buf = buf;
+  testStream.buffer.bufLen = 2;
+  testStream.buffer.bufContent = 2;
+  testStream.buffer.ioStrm.readWriteToStream = NULL;
+  testStream.buffer.ioStrm.stream = NULL;
   testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
@@ -273,11 +246,11 @@ START_TEST (test_writeNBits)
   testStream.context.bitPointer = 0;
   buf[0] = (char) 0xA0; /* 0b10100000 */
   buf[1] = (char) 0xE0; /* 0b11100000 */
-  testStream.buffer = buf;
-  testStream.bufLen = 2;
-  testStream.ioStrm.readWriteToStream = NULL;
-  testStream.ioStrm.stream = NULL;
-  testStream.bufContent = 2;
+  testStream.buffer.buf = buf;
+  testStream.buffer.bufLen = 2;
+  testStream.buffer.ioStrm.readWriteToStream = NULL;
+  testStream.buffer.ioStrm.stream = NULL;
+  testStream.buffer.bufContent = 2;
   testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
@@ -330,11 +303,11 @@ START_TEST (test_decodeNBitUnsignedInteger)
 
   buf[0] = (char) 0xD4; /* 0b11010100 */
   buf[1] = (char) 0x60; /* 0b01100000 */
-  testStream.buffer = buf;
-  testStream.bufLen = 2;
-  testStream.bufContent = 2;
-  testStream.ioStrm.readWriteToStream = NULL;
-  testStream.ioStrm.stream = NULL;
+  testStream.buffer.buf = buf;
+  testStream.buffer.bufLen = 2;
+  testStream.buffer.bufContent = 2;
+  testStream.buffer.ioStrm.readWriteToStream = NULL;
+  testStream.buffer.ioStrm.stream = NULL;
   testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
@@ -346,8 +319,6 @@ START_TEST (test_decodeNBitUnsignedInteger)
 	       "decodeNBitUnsignedInteger returns error code %d", err);
   fail_unless (testStream.context.bitPointer == 6,
     	       "The decodeNBitUnsignedInteger function did not move the bit Pointer of the stream correctly");
-
-  // TODO: write more extensive tests: in particular handle the situation of non-bit-packed streams
 
 }
 END_TEST
@@ -364,11 +335,11 @@ START_TEST (test_decodeBoolean)
 
   buf[0] = (char) 0xD4; /* 0b11010100 */
   buf[1] = (char) 0x60; /* 0b01100000 */
-  testStream.buffer = buf;
-  testStream.bufLen = 2;
-  testStream.bufContent = 2;
-  testStream.ioStrm.readWriteToStream = NULL;
-  testStream.ioStrm.stream = NULL;
+  testStream.buffer.buf = buf;
+  testStream.buffer.bufLen = 2;
+  testStream.buffer.bufContent = 2;
+  testStream.buffer.ioStrm.readWriteToStream = NULL;
+  testStream.buffer.ioStrm.stream = NULL;
   testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
@@ -396,11 +367,11 @@ START_TEST (test_decodeUnsignedInteger)
   buf[0] = (char) 0xD4; /* 0b11010100 */
   buf[1] = (char) 0x60; /* 0b01100000 */
   buf[2] = (char) 0x48; /* 0b01001000 */
-  testStream.buffer = buf;
-  testStream.bufLen = 3;
-  testStream.bufContent = 3;
-  testStream.ioStrm.readWriteToStream = NULL;
-  testStream.ioStrm.stream = NULL;
+  testStream.buffer.buf = buf;
+  testStream.buffer.bufLen = 3;
+  testStream.buffer.bufContent = 3;
+  testStream.buffer.ioStrm.readWriteToStream = NULL;
+  testStream.buffer.ioStrm.stream = NULL;
   testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
@@ -414,8 +385,6 @@ START_TEST (test_decodeUnsignedInteger)
     	       "The decodeUnsignedInteger function did not move the bit Pointer of the stream correctly");
   fail_unless (testStream.context.bufferIndx == 2,
       	       "The decodeUnsignedInteger function did not move the byte Pointer of the stream correctly");
-
-  // TODO: write more extensive tests
 
 }
 END_TEST
@@ -436,11 +405,11 @@ START_TEST (test_decodeString)
   buf[1] = (char) 0x65; /* 0b01100101 */ // e - ASCII
   buf[2] = (char) 0x54; /* 0b01010100 */ // T - ASCII
   buf[3] = (char) 0x52; /* 0b01010010 */
-  testStream.buffer = buf;
-  testStream.bufLen = 4;
-  testStream.bufContent = 4;
-  testStream.ioStrm.readWriteToStream = NULL;
-  testStream.ioStrm.stream = NULL;
+  testStream.buffer.buf = buf;
+  testStream.buffer.bufLen = 4;
+  testStream.buffer.bufContent = 4;
+  testStream.buffer.ioStrm.readWriteToStream = NULL;
+  testStream.buffer.ioStrm.stream = NULL;
   testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
   bit_val.length = 0;
@@ -459,8 +428,6 @@ START_TEST (test_decodeString)
   fail_unless (testStream.context.bufferIndx == 3,
       	       "The decodeString function did not move the byte Pointer of the stream correctly");
 
-  // TODO: write more extensive tests
-
 }
 END_TEST
 
@@ -471,7 +438,7 @@ START_TEST (test_decodeBinary)
   char testbuf[20];
   int i;
   char* res;
-  size_t bytes = 0;
+  Index bytes = 0;
   errorCode err = UNEXPECTED_ERROR;
   int same=1;
 
@@ -494,11 +461,11 @@ START_TEST (test_decodeBinary)
   buf[13] = (char) 0x6C; /* 0b01101100 */
   buf[14] = (char) 0xD8; /* 0b11011000 */
   buf[15] = (char) 0x07; /* 0b00000111 */
-  testStream.buffer = buf;
-  testStream.bufLen = 20;
-  testStream.bufContent = 20;
-  testStream.ioStrm.readWriteToStream = NULL;
-  testStream.ioStrm.stream = NULL;
+  testStream.buffer.buf = buf;
+  testStream.buffer.bufLen = 20;
+  testStream.buffer.bufContent = 20;
+  testStream.buffer.ioStrm.readWriteToStream = NULL;
+  testStream.buffer.ioStrm.stream = NULL;
   initAllocList(&testStream.memList);
   for(i=0;i<20;i++) testbuf[i]=buf[i];
 
@@ -554,8 +521,6 @@ START_TEST (test_decodeBinary)
   fail_unless (testStream.context.bufferIndx == 15,
       	       "The decodeBinary function did not move the byte Pointer of the stream correctly");
 
-  // TODO: write more extensive tests
-
 }
 END_TEST
 
@@ -575,11 +540,11 @@ START_TEST (test_decodeFloat)
 	buf[0] = (char) 0x02; /* 0b00000010 */
 	buf[1] = (char) 0x80; /* 0b10000000 */
 	buf[2] = (char) 0x92; /* 0b10010010 */
-	testStream.buffer = buf;
-	testStream.bufLen = 3;
-	testStream.bufContent = 3;
-	testStream.ioStrm.readWriteToStream = NULL;
-	testStream.ioStrm.stream = NULL;
+	testStream.buffer.buf = buf;
+	testStream.buffer.bufLen = 3;
+	testStream.buffer.bufContent = 3;
+	testStream.buffer.ioStrm.readWriteToStream = NULL;
+	testStream.buffer.ioStrm.stream = NULL;
 	testStream.context.bufferIndx = 0;
 	testStream.context.bitPointer = 0;
 	initAllocList(&testStream.memList);
@@ -609,8 +574,6 @@ START_TEST (test_decodeFloat)
 	fail_unless (testStream.context.bufferIndx == 2,
 			   "The decodeBinary function did not move the byte Pointer of the stream correctly");
 
-  // TODO: write more extensive tests
-
 }
 END_TEST
 
@@ -627,11 +590,11 @@ START_TEST (test_decodeIntegerValue)
   buf[0] = (char) 0x94; /* 0b10010100 */
   buf[1] = (char) 0x60; /* 0b01100000 */
   buf[2] = (char) 0x48; /* 0b01001000 */
-  testStream.buffer = buf;
-  testStream.bufLen = 3;
-  testStream.bufContent = 3;
-  testStream.ioStrm.readWriteToStream = NULL;
-  testStream.ioStrm.stream = NULL;
+  testStream.buffer.buf = buf;
+  testStream.buffer.bufLen = 3;
+  testStream.buffer.bufContent = 3;
+  testStream.buffer.ioStrm.readWriteToStream = NULL;
+  testStream.buffer.ioStrm.stream = NULL;
   testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
@@ -669,19 +632,19 @@ START_TEST (test_decodeDecimalValue)
 	EXIStream testStream;
 	char buf[3];
 	errorCode err = UNEXPECTED_ERROR;
-	Decimal dec_val = 0;
-	Decimal res	= 5.001dd;
+	Decimal dec_val = (Decimal)0;
+	Decimal res	= (Decimal)5.001;
 
 	makeDefaultOpts(&testStream.header.opts);
 
 	buf[0] = (char) 0x02; /* 0b00000010 */
 	buf[1] = (char) 0xB2; /* 0b10110010 */
 	buf[2] = (char) 0x12; /* 0b00010010 */
-	testStream.buffer = buf;
-	testStream.bufLen = 3;
-	testStream.bufContent = 3;
-	testStream.ioStrm.readWriteToStream = NULL;
-	testStream.ioStrm.stream = NULL;
+	testStream.buffer.buf = buf;
+	testStream.buffer.bufLen = 3;
+	testStream.buffer.bufContent = 3;
+	testStream.buffer.ioStrm.readWriteToStream = NULL;
+	testStream.buffer.ioStrm.stream = NULL;
 	testStream.context.bufferIndx = 0;
 	testStream.context.bitPointer = 0;
 	initAllocList(&testStream.memList);
@@ -715,11 +678,11 @@ START_TEST (test_encodeNBitUnsignedInteger)
 
   buf[0] = (char) 0xCE; /* 0b11001110 */
   buf[1] = (char) 0xE0; /* 0b11100000 */
-  testStream.buffer = buf;
-  testStream.bufLen = 2;
-  testStream.bufContent = 2;
-  testStream.ioStrm.readWriteToStream = NULL;
-  testStream.ioStrm.stream = NULL;
+  testStream.buffer.buf = buf;
+  testStream.buffer.bufLen = 2;
+  testStream.buffer.bufContent = 2;
+  testStream.buffer.ioStrm.readWriteToStream = NULL;
+  testStream.buffer.ioStrm.stream = NULL;
   testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
@@ -734,8 +697,6 @@ START_TEST (test_encodeNBitUnsignedInteger)
 	       "encodeNBitUnsignedInteger does not encode correctly");
   fail_unless (testStream.context.bitPointer == 1 && testStream.context.bufferIndx == 1,
     	       "The encodeNBitUnsignedInteger function did not move the bit Pointer of the stream correctly");
-
-  // TODO: write more extensive tests: in particular handle the situation of non-bit-packed streams
 
 }
 END_TEST
@@ -752,11 +713,11 @@ START_TEST (test_encodeBoolean)
 
   buf[0] = (char) 0x54; /* 0b01010100 */
   buf[1] = (char) 0x60; /* 0b01100000 */
-  testStream.buffer = buf;
-  testStream.bufLen = 2;
-  testStream.bufContent = 2;
-  testStream.ioStrm.readWriteToStream = NULL;
-  testStream.ioStrm.stream = NULL;
+  testStream.buffer.buf = buf;
+  testStream.buffer.bufLen = 2;
+  testStream.buffer.bufContent = 2;
+  testStream.buffer.ioStrm.readWriteToStream = NULL;
+  testStream.buffer.ioStrm.stream = NULL;
   testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
@@ -797,11 +758,11 @@ START_TEST (test_encodeUnsignedInteger)
   buf[0] = (char) 0xD4; /* 0b11010100 */
   buf[1] = (char) 0x00;	/* 0b00000000 */
   buf[2] = (char) 0x00;	/* 0b00000000 */
-  testStream.buffer = buf;
-  testStream.bufLen = 3;
-  testStream.bufContent = 3;
-  testStream.ioStrm.readWriteToStream = NULL;
-  testStream.ioStrm.stream = NULL;
+  testStream.buffer.buf = buf;
+  testStream.buffer.bufLen = 3;
+  testStream.buffer.bufContent = 3;
+  testStream.buffer.ioStrm.readWriteToStream = NULL;
+  testStream.buffer.ioStrm.stream = NULL;
   testStream.context.bufferIndx = 0;
   initAllocList(&testStream.memList);
 
@@ -860,11 +821,11 @@ START_TEST (test_encodeString)
   buf[2] = (char) 0x64; /* 0b01010100 */
   buf[3] = (char) 0x62; /* 0b01010010 */
   initAllocList(&testStream.memList);
-  testStream.buffer = buf;
-  testStream.bufLen = 50;
-  testStream.bufContent = 50;
-  testStream.ioStrm.readWriteToStream = NULL;
-  testStream.ioStrm.stream = NULL;
+  testStream.buffer.buf = buf;
+  testStream.buffer.bufLen = 50;
+  testStream.buffer.bufContent = 50;
+  testStream.buffer.ioStrm.readWriteToStream = NULL;
+  testStream.buffer.ioStrm.stream = NULL;
   testStream.context.bufferIndx = 0;
   asciiToString("TEST encodeString()", &testStr, &testStream.memList, FALSE);
 
@@ -882,8 +843,6 @@ START_TEST (test_encodeString)
     	       "The encodeString function did not move the bit Pointer of the stream correctly");
   fail_unless (testStream.context.bufferIndx == 20,
       	       "The encodeString function did not move the byte Pointer of the stream correctly");
-
-  // TODO: write more extensive tests
 
 }
 END_TEST
@@ -903,11 +862,11 @@ START_TEST (test_encodeBinary)
 	bin_data[3] = (char) 0x5A; /* 0b01011010 */
 	bin_data[4] = (char) 0xD7; /* 0b11010111 */
 	initAllocList(&testStream.memList);
-	testStream.buffer = buf;
-	testStream.bufLen = 50;
-	testStream.bufContent = 50;
-	testStream.ioStrm.readWriteToStream = NULL;
-	testStream.ioStrm.stream = NULL;
+	testStream.buffer.buf = buf;
+	testStream.buffer.bufLen = 50;
+	testStream.buffer.bufContent = 50;
+	testStream.buffer.ioStrm.readWriteToStream = NULL;
+	testStream.buffer.ioStrm.stream = NULL;
 	testStream.context.bufferIndx = 0;
 	testStream.context.bitPointer = 0;
 
@@ -920,12 +879,12 @@ START_TEST (test_encodeBinary)
 	fail_unless (testStream.context.bufferIndx == 6,
 			   "The encodeBinary function did not move the byte Pointer of the stream correctly");
 
-	fail_unless(testStream.buffer[0] == 5, "Incorrect encoding during encodeBinary 1");
-	fail_unless(testStream.buffer[1] == (signed char) 0x22, "Incorrect encoding during encodeBinary 2");
-	fail_unless(testStream.buffer[2] == (signed char) 0x65, "Incorrect encoding during encodeBinary 3");
-	fail_unless(testStream.buffer[3] == (signed char) 0xD4, "Incorrect encoding during encodeBinary 4");
-	fail_unless(testStream.buffer[4] == (signed char) 0x5A, "Incorrect encoding during encodeBinary 5");
-	fail_unless(testStream.buffer[5] == (signed char) 0xD7, "Incorrect encoding during encodeBinary 6");
+	fail_unless(testStream.buffer.buf[0] == 5, "Incorrect encoding during encodeBinary 1");
+	fail_unless(testStream.buffer.buf[1] == (signed char) 0x22, "Incorrect encoding during encodeBinary 2");
+	fail_unless(testStream.buffer.buf[2] == (signed char) 0x65, "Incorrect encoding during encodeBinary 3");
+	fail_unless(testStream.buffer.buf[3] == (signed char) 0xD4, "Incorrect encoding during encodeBinary 4");
+	fail_unless(testStream.buffer.buf[4] == (signed char) 0x5A, "Incorrect encoding during encodeBinary 5");
+	fail_unless(testStream.buffer.buf[5] == (signed char) 0xD7, "Incorrect encoding during encodeBinary 6");
 }
 END_TEST
 
@@ -943,11 +902,11 @@ START_TEST (test_encodeFloatValue)
 
 	makeDefaultOpts(&testStream.header.opts);
 
-	testStream.buffer = buf;
-	testStream.bufLen = 10;
-	testStream.bufContent = 10;
-	testStream.ioStrm.readWriteToStream = NULL;
-	testStream.ioStrm.stream = NULL;
+	testStream.buffer.buf = buf;
+	testStream.buffer.bufLen = 10;
+	testStream.buffer.bufContent = 10;
+	testStream.buffer.ioStrm.readWriteToStream = NULL;
+	testStream.buffer.ioStrm.stream = NULL;
 	testStream.context.bufferIndx = 0;
 	testStream.context.bitPointer = 0;
 	initAllocList(&testStream.memList);
@@ -984,11 +943,11 @@ START_TEST (test_encodeIntegerValue)
 
 	makeDefaultOpts(&testStream.header.opts);
 
-	testStream.buffer = buf;
-	testStream.bufLen = 5;
-	testStream.bufContent = 5;
-	testStream.ioStrm.readWriteToStream = NULL;
-	testStream.ioStrm.stream = NULL;
+	testStream.buffer.buf = buf;
+	testStream.buffer.bufLen = 5;
+	testStream.buffer.bufContent = 5;
+	testStream.buffer.ioStrm.readWriteToStream = NULL;
+	testStream.buffer.ioStrm.stream = NULL;
 	testStream.context.bufferIndx = 0;
 	testStream.context.bitPointer = 0;
 	initAllocList(&testStream.memList);
@@ -1017,16 +976,16 @@ START_TEST (test_encodeDecimalValue)
 	EXIStream testStream;
 	char buf[30];
 	errorCode err = UNEXPECTED_ERROR;
-	Decimal dec_val = 0;
-	Decimal res	= 5.001dd;
+	Decimal dec_val = (Decimal)0;
+	Decimal res	= (Decimal)5.001;
 
 	makeDefaultOpts(&testStream.header.opts);
 
-	testStream.buffer = buf;
-	testStream.bufLen = 30;
-	testStream.bufContent = 30;
-	testStream.ioStrm.readWriteToStream = NULL;
-	testStream.ioStrm.stream = NULL;
+	testStream.buffer.buf = buf;
+	testStream.buffer.bufLen = 30;
+	testStream.buffer.bufContent = 30;
+	testStream.buffer.ioStrm.readWriteToStream = NULL;
+	testStream.buffer.ioStrm.stream = NULL;
 	testStream.context.bufferIndx = 0;
 	testStream.context.bitPointer = 0;
 	initAllocList(&testStream.memList);

@@ -17,6 +17,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "check_stringTables", "check
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "exipg", "exipg.vcxproj", "{9A0CA3D2-2F8A-402B-A994-CA55DA17AA12}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "exipsep", "exipsep2.vcxproj", "{823F9831-7A1A-4963-9A57-F76E0D099EA8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -55,6 +57,10 @@ Global
 		{9A0CA3D2-2F8A-402B-A994-CA55DA17AA12}.Debug|Win32.Build.0 = Debug|Win32
 		{9A0CA3D2-2F8A-402B-A994-CA55DA17AA12}.Release|Win32.ActiveCfg = Release|Win32
 		{9A0CA3D2-2F8A-402B-A994-CA55DA17AA12}.Release|Win32.Build.0 = Release|Win32
+		{823F9831-7A1A-4963-9A57-F76E0D099EA8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{823F9831-7A1A-4963-9A57-F76E0D099EA8}.Debug|Win32.Build.0 = Debug|Win32
+		{823F9831-7A1A-4963-9A57-F76E0D099EA8}.Release|Win32.ActiveCfg = Release|Win32
+		{823F9831-7A1A-4963-9A57-F76E0D099EA8}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

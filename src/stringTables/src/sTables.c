@@ -1,43 +1,16 @@
-/*==================================================================================*\
-|                                                                                    |
-|                    EXIP - Efficient XML Interchange Processor                      |
-|                                                                                    |
-|------------------------------------------------------------------------------------|
-| Copyright (c) 2010, EISLAB - Luleå University of Technology                        |
-| All rights reserved.                                                               |
-|                                                                                    |
-| Redistribution and use in source and binary forms, with or without                 |
-| modification, are permitted provided that the following conditions are met:        |
-|     * Redistributions of source code must retain the above copyright               |
-|       notice, this list of conditions and the following disclaimer.                |
-|     * Redistributions in binary form must reproduce the above copyright            |
-|       notice, this list of conditions and the following disclaimer in the          |
-|       documentation and/or other materials provided with the distribution.         |
-|     * Neither the name of the EISLAB - Luleå University of Technology nor the      |
-|       names of its contributors may be used to endorse or promote products         |
-|       derived from this software without specific prior written permission.        |
-|                                                                                    |
-| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND    |
-| ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED      |
-| WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE             |
-| DISCLAIMED. IN NO EVENT SHALL EISLAB - LULEÅ UNIVERSITY OF TECHNOLOGY BE LIABLE    |
-| FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES |
-| (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;       |
-| LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND        |
-| ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT         |
-| (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS      |
-| SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                       |
-|                                                                                    |
-|                                                                                    |
-|                                                                                    |
-\===================================================================================*/
+/*==================================================================*\
+|                EXIP - Embeddable EXI Processor in C                |
+|--------------------------------------------------------------------|
+|          This work is licensed under BSD 3-Clause License          |
+|  The full license terms and conditions are located in LICENSE.txt  |
+\===================================================================*/
 
 /**
  * @file sTables.c
  * @brief Implementation of functions describing EXI sting tables operations
  * @date Sep 21, 2010
  * @author Rumen Kyusakov
- * @version 0.1
+ * @version 0.4
  * @par[Revision] $Id$
  */
 
@@ -45,26 +18,27 @@
 #include "stringManipulate.h"
 #include "memManagement.h"
 #include "hashtable.h"
+#include "dynamicArray.h"
 
 /********* BEGIN: String table default entries ***************/
 
 static const char URI_1[] = "http://www.w3.org/XML/1998/namespace";
-static const char URI_2[] = "http://www.w3.org/2001/XMLSchema-instance";
-static const char URI_3[] = "http://www.w3.org/2001/XMLSchema";
+static const char URI_2[] = XML_SCHEMA_INSTANCE;
+static const char URI_3[] = XML_SCHEMA_NAMESPACE;
 
-static const char URI_1_PREFIX[] = "xml";
-static const char URI_2_PREFIX[] = "xsi";
+static const char URI_1_PFX[] = "xml";
+static const char URI_2_PFX[] = "xsi";
 
-#define URI_1_LOCALNAME_SIZE 4
-static const char* URI_1_LOCALNAME[] = {"base", "id", "lang", "space"};
+#define URI_1_LN_SIZE 4
+static const char* URI_1_LN[] = {"base", "id", "lang", "space"};
 
-#define URI_2_LOCALNAME_SIZE 2
-static const char* URI_2_LOCALNAME[] = {"nil", "type"};
+#define URI_2_LN_SIZE 2
+static const char* URI_2_LN[] = {"nil", "type"};
 
 /* ONLY USED WHEN SCHEMA IS DEFINED.
  * Make it conditional and document it*/
-#define URI_3_LOCALNAME_SIZE 46 // #DOCUMENT#
-static const char* URI_3_LOCALNAME[] = {  // #DOCUMENT#
+#define URI_3_LN_SIZE 46 // #DOCUMENT#
+static const char* URI_3_LN[] = {  // #DOCUMENT#
 			"ENTITIES",
 			"ENTITY",
 			"ID",
@@ -115,420 +89,402 @@ static const char* URI_3_LOCALNAME[] = {  // #DOCUMENT#
 
 /********* END: String table default entries ***************/
 
-errorCode createValueTable(ValueTable** vTable, AllocList* memList)
+errorCode createValueTable(ValueTable* valueTable, AllocList* memList)
 {
-	*vTable = (ValueTable*) memManagedAllocate(memList, sizeof(ValueTable));
-	if(*vTable == NULL)
+	errorCode tmp_err_code;
+
+	tmp_err_code = createDynArray(&valueTable->dynArray, sizeof(ValueEntry), DEFAULT_VALUE_ENTRIES_NUMBER, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	valueTable->globalId = 0;
+#if HASH_TABLE_USE == ON
+	valueTable->hashTbl = NULL;
+#endif
+	return ERR_OK;
+}
+
+errorCode createPfxTable(PfxTable** pfxTable, AllocList* memList)
+{
+	// Due to the small size of the prefix table, there is no need to 
+	// use a DynArray
+	(*pfxTable) = (PfxTable*) memManagedAllocate(memList, sizeof(PfxTable));
+	if(*pfxTable == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	(*vTable)->rows = (struct ValueRow*) memManagedAllocatePtr(memList, sizeof(struct ValueRow)*DEFAULT_VALUE_ROWS_NUMBER, &(*vTable)->memPair);
-	if((*vTable)->rows == NULL)
-		return MEMORY_ALLOCATION_ERROR;
+	(*pfxTable)->count = 0;
+	return ERR_OK;
+}
 
-	(*vTable)->arrayDimension = DEFAULT_VALUE_ROWS_NUMBER;
-	(*vTable)->rowCount = 0;
-	(*vTable)->globalID = 0;
-	(*vTable)->hashTbl = NULL;
+errorCode addUriEntry(UriTable* uriTable, String uriStr, SmallIndex* uriEntryId, AllocList* memList)
+{
+	errorCode tmp_err_code;
+	UriEntry* uriEntry;
+	Index uriLEntryId;
+
+	tmp_err_code = addEmptyDynEntry(&uriTable->dynArray, (void**)&uriEntry, &uriLEntryId, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// Fill in URI entry
+	uriEntry->uriStr = uriStr;
+	// Prefix table is created independently
+	uriEntry->pfxTable = NULL;
+	// Create local names table for this URI
+	// TODO RCC 20120201: Should this be separate (empty string URI has no local names)?
+	tmp_err_code = createDynArray(&uriEntry->lnTable.dynArray, sizeof(LnEntry), DEFAULT_LN_ENTRIES_NUMBER, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	*uriEntryId = (SmallIndex)uriLEntryId;
+	return ERR_OK;
+}
+
+errorCode addLnEntry(LnTable* lnTable, String lnStr, Index* lnEntryId, AllocList* memList)
+{
+	errorCode tmp_err_code;
+	LnEntry* lnEntry;
+
+	tmp_err_code = addEmptyDynEntry(&lnTable->dynArray, (void**)&lnEntry, lnEntryId, memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// Fill in local names entry
+	lnEntry->lnStr = lnStr;
+	lnEntry->elemGrammar = INDEX_MAX;
+	lnEntry->typeGrammar = INDEX_MAX;
+	// Additions to value cross table are done when a value is inserted in the value table
+	lnEntry->vxTable.vx = NULL;
+	lnEntry->vxTable.count = 0;
 
 	return ERR_OK;
 }
 
-errorCode createURITable(URITable** uTable, AllocList* memList)
-{
-	*uTable = (URITable*) memManagedAllocate(memList, sizeof(URITable));
-	if(*uTable == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	(*uTable)->rows = (struct URIRow*) memManagedAllocatePtr(memList, sizeof(struct URIRow)*DEFAULT_URI_ROWS_NUMBER, &(*uTable)->memPair);
-	if((*uTable)->rows == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	(*uTable)->arrayDimension = DEFAULT_URI_ROWS_NUMBER;
-	(*uTable)->rowCount = 0;
-	return ERR_OK;
-}
-
-errorCode createPrefixTable(PrefixTable** pTable, AllocList* memList)
-{
-	(*pTable) = (PrefixTable*) memManagedAllocate(memList, sizeof(PrefixTable));
-	if(*pTable == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	(*pTable)->rowCount = 0;
-	return ERR_OK;
-}
-
-errorCode createLocalNamesTable(LocalNamesTable** lTable, AllocList* memList)
-{
-	*lTable = (LocalNamesTable*) memManagedAllocate(memList, sizeof(LocalNamesTable));
-	if(*lTable == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	(*lTable)->rows = (struct LocalNamesRow*) memManagedAllocatePtr(memList, sizeof(struct LocalNamesRow)*DEFAULT_LOCALNAMES_ROWS_NUMBER, &(*lTable)->memPair);
-	if((*lTable)->rows == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	(*lTable)->arrayDimension = DEFAULT_LOCALNAMES_ROWS_NUMBER;
-	(*lTable)->rowCount = 0;
-	return ERR_OK;
-}
-
-errorCode createValueLocalCrossTable(ValueLocalCrossTable** vlTable, AllocList* memList)
-{
-	*vlTable = (ValueLocalCrossTable*) memManagedAllocate(memList, sizeof(ValueLocalCrossTable));
-	if(*vlTable == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	(*vlTable)->valueRowIds = (size_t*) memManagedAllocatePtr(memList, sizeof(size_t)*DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER, &(*vlTable)->memPair);
-	if((*vlTable)->valueRowIds == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-
-	(*vlTable)->arrayDimension = DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER;
-	(*vlTable)->rowCount = 0;
-	return ERR_OK;
-}
-
-errorCode addURIRow(URITable* uTable, String uri, uint16_t* rowID, AllocList* memList)
+errorCode addValueEntry(EXIStream* strm, String* valueStr, QNameID qnameID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	if(uTable == NULL)
-		return NULL_POINTER_REF;
+	VxEntry* vxEntry = NULL;
+	ValueEntry* valueEntry = NULL;
+	Index vxEntryId;
+	Index valueEntryId;
+	struct LnEntry* lnEntry;
 
-	if(uTable->arrayDimension == uTable->rowCount)   // The dynamic array must be extended first
+	// Find the local name entry from QNameID
+	lnEntry = &GET_LN_URI_QNAME(strm->schema->uriTable, qnameID);
+
+	// Add entry to the local name entry's value cross table (vxTable)
+	if(lnEntry->vxTable.vx == NULL)
 	{
-		tmp_err_code = memManagedReAllocate((void **) &uTable->rows, sizeof(struct URIRow)*(uTable->rowCount + DEFAULT_URI_ROWS_NUMBER), uTable->memPair);
+		// First value entry - create the vxTable
+		tmp_err_code = createDynArray(&lnEntry->vxTable.dynArray, sizeof(VxEntry), DEFAULT_VX_ENTRIES_NUMBER, &strm->memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		uTable->arrayDimension = uTable->arrayDimension + DEFAULT_URI_ROWS_NUMBER;
 	}
-	uTable->rows[uTable->rowCount].string_val.length = uri.length;
-	uTable->rows[uTable->rowCount].string_val.str = uri.str;
 
-	tmp_err_code = createLocalNamesTable(&(uTable->rows[uTable->rowCount].lTable), memList);
+	// Add an entry - will fill in later
+	tmp_err_code = addEmptyDynEntry(&lnEntry->vxTable.dynArray, (void**)&vxEntry, &vxEntryId, &strm->memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	uTable->rows[uTable->rowCount].pTable = NULL;
-
-	*rowID = uTable->rowCount;
-
-	uTable->rowCount += 1;
-	return ERR_OK;
-}
-
-errorCode addLNRow(LocalNamesTable* lTable, String local_name, size_t* rowID)
-{
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	if(lTable->arrayDimension == lTable->rowCount)   // The dynamic array must be extended first
+	// If the global ID is less than the actual array size, we must have wrapped around
+	// In this case, we must reuse an existing entry
+	if(strm->valueTable.globalId < strm->valueTable.count)
 	{
-		tmp_err_code = memManagedReAllocate((void **) &lTable->rows, sizeof(struct LocalNamesRow)*(lTable->rowCount + DEFAULT_LOCALNAMES_ROWS_NUMBER), lTable->memPair);
+		// Get the existing value entry
+		valueEntry = &strm->valueTable.value[strm->valueTable.globalId];
+
+		// Null out the existing cross table entry
+		valueEntry->vxEntry->globalId = INDEX_MAX;
+
+#if HASH_TABLE_USE == ON
+		// Remove existing value string from hash table (if present)
+		if(strm->valueTable.hashTbl != NULL)
+		{
+			hashtable_remove(strm->valueTable.hashTbl, &valueEntry->valueStr);
+		}
+#endif
+	}
+	else
+	{
+		// We are filling up the array and have not wrapped round yet
+		// See http://www.w3.org/TR/exi/#encodingOptimizedForMisses
+		tmp_err_code = addEmptyDynEntry(&strm->valueTable.dynArray, (void**)&valueEntry, &valueEntryId, &strm->memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
-		lTable->arrayDimension = lTable->arrayDimension + DEFAULT_LOCALNAMES_ROWS_NUMBER;
+
 	}
 
-	lTable->rows[lTable->rowCount].string_val.length = local_name.length;
-	lTable->rows[lTable->rowCount].string_val.str = local_name.str;
-	lTable->rows[lTable->rowCount].typeGrammar = NULL;
-	lTable->rows[lTable->rowCount].typeEmptyGrammar = NULL;
+	// Set the global ID in the value cross table entry
+	vxEntry->globalId = strm->valueTable.globalId;
 
-	/* Additions to value cross table are done when a value is inserted
-	 * in the value string table*/
-	lTable->rows[lTable->rowCount].vCrossTable = NULL;
+	// Set the value entry fields
+	valueEntry->valueStr = *valueStr;
+	valueEntry->vxEntry = vxEntry;
 
-	*rowID = lTable->rowCount;
-	lTable->rowCount += 1;
+#if HASH_TABLE_USE == ON
+	// Add value string to hash table (if present)
+	if(strm->valueTable.hashTbl != NULL)
+	{
+		tmp_err_code = hashtable_insert(strm->valueTable.hashTbl, valueStr, strm->valueTable.globalId);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+#endif
+
+	// Increment global ID
+	strm->valueTable.globalId++;
+
+	// The value table is limited by valuePartitionCapacity. If we have exceeded, we wrap around
+	// to the beginning of the value table and null out existing IDs in the corresponding
+	// cross table IDs
+	if(strm->valueTable.globalId == strm->header.opts.valuePartitionCapacity)
+		strm->valueTable.globalId = 0;
+
 	return ERR_OK;
 }
 
-errorCode createInitialStringTables(EXIStream* strm)
+errorCode addPfxEntry(PfxTable* pfxTable, String pfxStr, SmallIndex* pfxEntryId)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	if(pfxTable->count >= MAXIMUM_NUMBER_OF_PREFIXES_PER_URI)
+		return TOO_MUCH_PREFIXES_PER_URI;
 
-	tmp_err_code = createValueTable(&(strm->vTable), &strm->memList);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	pfxTable->pfxStr[pfxTable->count].length = pfxStr.length;
+	pfxTable->pfxStr[pfxTable->count].str = pfxStr.str;
+	*pfxEntryId = pfxTable->count++;
 
-	tmp_err_code = createURITable(&(strm->uriTable), &strm->memList);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-    return createInitialEntries(&(strm->memList), strm->uriTable, FALSE);
+	return ERR_OK;
 }
 
-errorCode createInitialEntries(AllocList* memList, URITable* uTable, unsigned char withSchema)
+errorCode createUriTableEntry(UriTable* uriTable, const char* uri, int createPfx, const char* pfx, const char** lnBase, Index lnSize, AllocList* memList)
 {
-	unsigned int i = 0;
-	uint16_t uriID = 0;
-	size_t lnID = 0;
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code;
+	Index i;
+	SmallIndex pfxEntryId;
+	SmallIndex uriEntryId;
+	Index lnEntryId;
 	String emptyStr;
-	String tmp_str;
-	unsigned int prfxID;
+	String tmpStr;
+	UriEntry* uriEntry;
 
 	// Insert initial entries in the URI partition
 	getEmptyString(&emptyStr);
 
-	/**** URI	0	"" [empty string] */
-	tmp_err_code = addURIRow(uTable, emptyStr, &uriID, memList);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-	if(uTable->rows[uriID].pTable == NULL)
+	if(uri != NULL)
 	{
-		tmp_err_code = createPrefixTable(&uTable->rows[uriID].pTable, memList);
+		// Convert char* to String
+		tmp_err_code = asciiToString(uri, &tmpStr, memList, FALSE);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
-	tmp_err_code = addPrefixRow(uTable->rows[uriID].pTable, emptyStr, &prfxID);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	/**** URI	1	"http://www.w3.org/XML/1998/namespace" */
-	tmp_err_code = asciiToString(URI_1, &tmp_str, memList, FALSE);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-	tmp_err_code = addURIRow(uTable, tmp_str, &uriID, memList);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	tmp_err_code = asciiToString(URI_1_PREFIX, &tmp_str, memList, FALSE);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-	if(uTable->rows[uriID].pTable == NULL)
+	else
 	{
-		tmp_err_code = createPrefixTable(&uTable->rows[uriID].pTable, memList);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-	tmp_err_code = addPrefixRow(uTable->rows[uriID].pTable, tmp_str, &prfxID);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	for(i = 0; i < URI_1_LOCALNAME_SIZE; i++)
-	{
-		tmp_err_code = asciiToString(URI_1_LOCALNAME[i], &tmp_str, memList, FALSE);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = addLNRow(uTable->rows[uriID].lTable, tmp_str, &lnID);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		tmpStr = emptyStr;
 	}
 
-	/**** URI	2	"http://www.w3.org/2001/XMLSchema-instance" */
-	tmp_err_code = asciiToString(URI_2, &tmp_str, memList, FALSE);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-	tmp_err_code = addURIRow(uTable, tmp_str, &uriID, memList);
+	// Add resulting String to URI table (creates lnTable as well)
+	tmp_err_code = addUriEntry(uriTable, tmpStr, &uriEntryId, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = asciiToString(URI_2_PREFIX, &tmp_str, memList, FALSE);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-	if(uTable->rows[uriID].pTable == NULL)
+	// Get ptr. to URI Entry
+	uriEntry = &uriTable->uri[uriEntryId];
+
+	if(createPfx)
 	{
-		tmp_err_code = createPrefixTable(&uTable->rows[uriID].pTable, memList);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-	tmp_err_code = addPrefixRow(uTable->rows[uriID].pTable, tmp_str, &prfxID);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	for(i = 0; i < URI_2_LOCALNAME_SIZE; i++)
-	{
-		tmp_err_code = asciiToString(URI_2_LOCALNAME[i], &tmp_str, memList, FALSE);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		addLNRow(uTable->rows[uriID].lTable, tmp_str, &lnID);
-	}
-
-	/**** URI	3	"http://www.w3.org/2001/XMLSchema"  */
-	if(withSchema == TRUE)
-	{
-		tmp_err_code = asciiToString(URI_3, &tmp_str, memList, FALSE);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		addURIRow(uTable, tmp_str, &uriID, memList);
-
-		for(i = 0; i < URI_3_LOCALNAME_SIZE; i++)
+		if(pfx != NULL)
 		{
-			tmp_err_code = asciiToString(URI_3_LOCALNAME[i], &tmp_str, memList, FALSE);
+			tmp_err_code = asciiToString(pfx, &tmpStr, memList, FALSE);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
-
-			addLNRow(uTable->rows[uriID].lTable, tmp_str, &lnID);
 		}
+		else
+		{
+			tmpStr = emptyStr;
+		}
+
+		// Create the URI's prefix table and add the default prefix
+		tmp_err_code = createPfxTable(&uriEntry->pfxTable, memList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = addPfxEntry(uriEntry->pfxTable, tmpStr, &pfxEntryId);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 	}
 
+	for(i = 0; i < lnSize; i++)
+	{
+		tmp_err_code = asciiToString(lnBase[i], &tmpStr, memList, FALSE);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = addLnEntry(&uriEntry->lnTable, tmpStr, &lnEntryId, memList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
 	return ERR_OK;
 }
 
-errorCode addValueRows(EXIStream* strm, String* value, uint16_t uriID, size_t lnID)
+errorCode createUriTableEntries(UriTable* uriTable, unsigned char withSchema, AllocList* memList)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	size_t* vLocalCrossTablePtr = NULL;
-	struct LocalNamesRow* lnRow = &(strm->uriTable->rows[uriID].lTable->rows[lnID]);
 
-	// Add entry to the local value table
-	if(lnRow->vCrossTable == NULL)
+	// See http://www.w3.org/TR/exi/#initialUriValues
+
+	// URI 0: "" (empty string)
+	tmp_err_code = createUriTableEntry(uriTable,
+									   NULL,   // Namespace - empty string
+									   TRUE, // Create prefix entry
+									   NULL,   // Prefix entry - empty string
+									   NULL, // No local names
+									   0,
+									   memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// URI 1: "http://www.w3.org/XML/1998/namespace"
+	tmp_err_code = createUriTableEntry(uriTable,
+									   URI_1,     // URI: "http://www.w3.org/XML/1998/namespace"
+									   TRUE,      // Create prefix entry
+									   URI_1_PFX, // Prefix: "xml"
+									   URI_1_LN,  // Add local names
+									   URI_1_LN_SIZE,
+									   memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	// URI 2: "http://www.w3.org/2001/XMLSchema-instance"
+	tmp_err_code = createUriTableEntry(uriTable,
+									   URI_2,     // URI: "http://www.w3.org/2001/XMLSchema-instance"
+									   TRUE,		// Create prefix entry
+									   URI_2_PFX, // Prefix: "xsi"
+									   URI_2_LN,  // Add local names
+									   URI_2_LN_SIZE,
+									   memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	if(withSchema == TRUE)
 	{
-		tmp_err_code = createValueLocalCrossTable(&(lnRow->vCrossTable), &strm->memList);
+		// URI 3: "http://www.w3.org/2001/XMLSchema"
+		tmp_err_code = createUriTableEntry(uriTable,
+										   URI_3,    // URI: "http://www.w3.org/2001/XMLSchema"
+										   FALSE,    // No prefix entry (see http://www.w3.org/TR/exi/#initialPrefixValues) 
+										   NULL,     // (no prefix)
+										   URI_3_LN, // Add local names
+										   URI_3_LN_SIZE,
+										   memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
-	else if(lnRow->vCrossTable->rowCount == lnRow->vCrossTable->arrayDimension)   // The dynamic array must be extended first
-	{
-		tmp_err_code = memManagedReAllocate((void **) &lnRow->vCrossTable->valueRowIds, sizeof(size_t)*(lnRow->vCrossTable->rowCount + DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER), lnRow->vCrossTable->memPair);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		lnRow->vCrossTable->arrayDimension += DEFAULT_VALUE_LOCAL_CROSS_ROWS_NUMBER;
-	}
-
-	vLocalCrossTablePtr = &(lnRow->vCrossTable->valueRowIds[lnRow->vCrossTable->rowCount]);
-	lnRow->vCrossTable->rowCount += 1;
-
-	// Add entry to the global value table
-	if(strm->vTable->arrayDimension == strm->vTable->globalID)   // The dynamic array must be extended first
-	{
-		tmp_err_code = memManagedReAllocate((void **) &strm->vTable->rows, sizeof(struct ValueRow)*(strm->vTable->rowCount + DEFAULT_VALUE_ROWS_NUMBER), strm->vTable->memPair);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		strm->vTable->arrayDimension += DEFAULT_VALUE_ROWS_NUMBER;
-	}
-
-	if(strm->vTable->globalID < strm->vTable->rowCount)
-	{
-		if(strm->vTable->rows[strm->vTable->globalID].valueLocalCrossTableRowPointer != NULL)
-			*(strm->vTable->rows[strm->vTable->globalID].valueLocalCrossTableRowPointer) = SIZE_MAX;
-
-		if(strm->vTable->hashTbl != NULL)
-			hashtable_remove(strm->vTable->hashTbl, &strm->vTable->rows[strm->vTable->globalID].string_val);
-	}
-	else
-		strm->vTable->rowCount += 1;
-
-	strm->vTable->rows[strm->vTable->globalID].string_val.length = value->length;
-	strm->vTable->rows[strm->vTable->globalID].string_val.str = value->str;
-	strm->vTable->rows[strm->vTable->globalID].valueLocalCrossTableRowPointer = vLocalCrossTablePtr;
-	*vLocalCrossTablePtr = strm->vTable->globalID;
-
-	if(strm->vTable->hashTbl != NULL)
-	{
-		tmp_err_code = hashtable_insert(strm->vTable->hashTbl, value, strm->vTable->globalID);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-
-	strm->vTable->globalID += 1;
-
-	if(strm->vTable->globalID == strm->header.opts.valuePartitionCapacity)
-		strm->vTable->globalID = 0;
 
 	return ERR_OK;
 }
 
-errorCode addPrefixRow(PrefixTable* pTable, String px_value, unsigned int* prfxID)
+char lookupUri(UriTable* uriTable, String uriStr, SmallIndex* uriEntryId)
 {
-	if(pTable->rowCount >= MAXIMUM_NUMBER_OF_PREFIXES_PER_URI)
-		return TOO_MUCH_PREFIXES_PER_URI;
+	SmallIndex i;
 
-	pTable->string_val[pTable->rowCount].length = px_value.length;
-	pTable->string_val[pTable->rowCount].str = px_value.str;
-	*prfxID = pTable->rowCount;
-	pTable->rowCount += 1;
+	if(uriTable == NULL)
+		return 0;
 
-	return ERR_OK;
-}
-
-char lookupURI(URITable* uTable, String value, uint16_t* rowID)
-{
-	uint16_t i = 0;
-	if(uTable == NULL)
-			return 0;
-	for(i = 0; i < uTable->rowCount; i++)
+	for(i = 0; i < uriTable->count; i++)
 	{
-		if(stringEqual(uTable->rows[i].string_val, value))
+		if(stringEqual(uriTable->uri[i].uriStr, uriStr))
 		{
-			*rowID = i;
+			*uriEntryId = i;
 			return 1;
 		}
 	}
 	return 0;
 }
 
-char lookupLN(LocalNamesTable* lTable, String value, size_t* rowID)
+char lookupLn(LnTable* lnTable, String lnStr, Index* lnEntryId)
 {
-	size_t i = 0;
-	if(lTable == NULL)
+	Index i;
+
+	if(lnTable == NULL)
 		return 0;
-	for(i = 0; i < lTable->rowCount; i++)
+	for(i = 0; i < lnTable->count; i++)
 	{
-		if(stringEqual(lTable->rows[i].string_val, value))
+		if(stringEqual(lnTable->ln[i].lnStr, lnStr))
 		{
-			*rowID = i;
+			*lnEntryId = i;
 			return 1;
 		}
 	}
 	return 0;
 }
 
-char lookupPrefix(PrefixTable* pTable, String value, unsigned int* rowID)
+char lookupPfx(PfxTable* pfxTable, String pfxStr, SmallIndex* pfxEntryId)
 {
-	unsigned int i = 0;
-	if(pTable == NULL)
+	SmallIndex i;
+
+	if(pfxTable == NULL)
 		return 0;
-	for(i = 0; i < pTable->rowCount; i++)
+
+	for(i = 0; i < pfxTable->count; i++)
 	{
-		if(stringEqual(pTable->string_val[i], value))
+		if(stringEqual(pfxTable->pfxStr[i], pfxStr))
 		{
-			*rowID = i;
+			*pfxEntryId = i;
 			return 1;
 		}
 	}
 	return 0;
 }
 
-char lookupLV(ValueTable* vTable, ValueLocalCrossTable* lvTable, String value, uint16_t* rowID)
+char lookupVx(ValueTable* valueTable, VxTable* vxTable, String valueStr, Index* vxEntryId)
 {
-	uint16_t i = 0;
-	if(lvTable == NULL)
+	Index i;
+	VxEntry* vxEntry;
+	ValueEntry* valueEntry;
+
+	if((vxTable == NULL) || (vxTable->vx == NULL))
 		return 0;
-	for(i = 0; i < lvTable->rowCount; i++)
+
+	for(i = 0; i < vxTable->count; i++)
 	{
-		if(stringEqual(vTable->rows[lvTable->valueRowIds[i]].string_val, value))
+		vxEntry = vxTable->vx + i;
+		valueEntry = valueTable->value + vxEntry->globalId;
+		if(stringEqual(valueEntry->valueStr, valueStr))
 		{
-			*rowID = i;
+			*vxEntryId = i;
 			return 1;
 		}
 	}
 	return 0;
 }
 
-char lookupVal(ValueTable* vTable, String value, size_t* rowID)
+char lookupValue(ValueTable* valueTable, String valueStr, Index* valueEntryId)
 {
-	size_t i = 0;
-	if(vTable == NULL)
+	Index i;
+	ValueEntry* valueEntry;
+
+	if(valueTable == NULL)
 		return 0;
 
-	if(vTable->hashTbl != NULL)
+#if HASH_TABLE_USE == ON
+	if(valueTable->hashTbl != NULL)
 	{
-		i = hashtable_search(vTable->hashTbl, &value);
-		if(i != SIZE_MAX)
+		// Use hash table search
+		i = hashtable_search(valueTable->hashTbl, &valueStr);
+		if(i != INDEX_MAX)
 		{
-			*rowID = i;
+			*valueEntryId = i;
 			return 1;
 		}
 	}
 	else
+#endif
 	{
-		for(i = 0; i < vTable->rowCount; i++)
+		// No hash table - linear search
+		for(i = 0; i < valueTable->count; i++)
 		{
-			if(stringEqual(vTable->rows[i].string_val, value))
+			valueEntry = valueTable->value + i;
+			if(stringEqual(valueEntry->valueStr, valueStr))
 			{
-				*rowID = i;
+				*valueEntryId = i;
 				return 1;
 			}
 		}
