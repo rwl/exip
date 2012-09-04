@@ -1,0 +1,62 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual C++ Express 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "exip", "exip.vcxproj", "{D8E683D8-ABEB-4CCC-92CF-A24EC1BF01F6}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "exipe", "exipe.vcxproj", "{0C4DADDA-6D4C-452F-B2C1-11F40ADC1EBD}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "exipd", "exipd.vcxproj", "{65680E14-219D-4427-A069-5BA04615B10B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "check_contentio", "check_contentio.vcxproj", "{E6C9207D-CC65-4896-A8F9-75ED6A1F36E0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "check_grammar", "check_grammar.vcxproj", "{D01F2A99-D5F4-49B5-BFD9-9A53D1850891}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "check_streamIO", "check_streamIO.vcxproj", "{CF8A01A9-E189-423B-9CC7-F6CBEE49F77D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "check_stringTables", "check_stringTables.vcxproj", "{ED4F1811-C332-4380-AC58-F09C7C0A7F6A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "exipg", "exipg.vcxproj", "{9A0CA3D2-2F8A-402B-A994-CA55DA17AA12}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D8E683D8-ABEB-4CCC-92CF-A24EC1BF01F6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D8E683D8-ABEB-4CCC-92CF-A24EC1BF01F6}.Debug|Win32.Build.0 = Debug|Win32
+		{D8E683D8-ABEB-4CCC-92CF-A24EC1BF01F6}.Release|Win32.ActiveCfg = Release|Win32
+		{D8E683D8-ABEB-4CCC-92CF-A24EC1BF01F6}.Release|Win32.Build.0 = Release|Win32
+		{0C4DADDA-6D4C-452F-B2C1-11F40ADC1EBD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{0C4DADDA-6D4C-452F-B2C1-11F40ADC1EBD}.Debug|Win32.Build.0 = Debug|Win32
+		{0C4DADDA-6D4C-452F-B2C1-11F40ADC1EBD}.Release|Win32.ActiveCfg = Release|Win32
+		{0C4DADDA-6D4C-452F-B2C1-11F40ADC1EBD}.Release|Win32.Build.0 = Release|Win32
+		{65680E14-219D-4427-A069-5BA04615B10B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{65680E14-219D-4427-A069-5BA04615B10B}.Debug|Win32.Build.0 = Debug|Win32
+		{65680E14-219D-4427-A069-5BA04615B10B}.Release|Win32.ActiveCfg = Release|Win32
+		{65680E14-219D-4427-A069-5BA04615B10B}.Release|Win32.Build.0 = Release|Win32
+		{E6C9207D-CC65-4896-A8F9-75ED6A1F36E0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E6C9207D-CC65-4896-A8F9-75ED6A1F36E0}.Debug|Win32.Build.0 = Debug|Win32
+		{E6C9207D-CC65-4896-A8F9-75ED6A1F36E0}.Release|Win32.ActiveCfg = Release|Win32
+		{E6C9207D-CC65-4896-A8F9-75ED6A1F36E0}.Release|Win32.Build.0 = Release|Win32
+		{D01F2A99-D5F4-49B5-BFD9-9A53D1850891}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D01F2A99-D5F4-49B5-BFD9-9A53D1850891}.Debug|Win32.Build.0 = Debug|Win32
+		{D01F2A99-D5F4-49B5-BFD9-9A53D1850891}.Release|Win32.ActiveCfg = Release|Win32
+		{D01F2A99-D5F4-49B5-BFD9-9A53D1850891}.Release|Win32.Build.0 = Release|Win32
+		{CF8A01A9-E189-423B-9CC7-F6CBEE49F77D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CF8A01A9-E189-423B-9CC7-F6CBEE49F77D}.Debug|Win32.Build.0 = Debug|Win32
+		{CF8A01A9-E189-423B-9CC7-F6CBEE49F77D}.Release|Win32.ActiveCfg = Release|Win32
+		{CF8A01A9-E189-423B-9CC7-F6CBEE49F77D}.Release|Win32.Build.0 = Release|Win32
+		{ED4F1811-C332-4380-AC58-F09C7C0A7F6A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{ED4F1811-C332-4380-AC58-F09C7C0A7F6A}.Debug|Win32.Build.0 = Debug|Win32
+		{ED4F1811-C332-4380-AC58-F09C7C0A7F6A}.Release|Win32.ActiveCfg = Release|Win32
+		{ED4F1811-C332-4380-AC58-F09C7C0A7F6A}.Release|Win32.Build.0 = Release|Win32
+		{9A0CA3D2-2F8A-402B-A994-CA55DA17AA12}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9A0CA3D2-2F8A-402B-A994-CA55DA17AA12}.Debug|Win32.Build.0 = Debug|Win32
+		{9A0CA3D2-2F8A-402B-A994-CA55DA17AA12}.Release|Win32.ActiveCfg = Release|Win32
+		{9A0CA3D2-2F8A-402B-A994-CA55DA17AA12}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
