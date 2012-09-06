@@ -87,6 +87,25 @@ void freeLastManagedAlloc(AllocList* list)
 
 void freeAllMem(EXIStream* strm)
 {
+	if(strm->schema != NULL)
+	{
+		if(strm->schema->isStatic == TRUE)
+		{
+			// Reseting the value cross table links to NULL
+			Index i;
+			Index j;
+			for(i = 0; i < strm->schema->uriTable.count; i++)
+			{
+				for(j = 0; j < strm->schema->uriTable.uri[i].lnTable.count; j++)
+				{
+					strm->schema->uriTable.uri[i].lnTable.ln[j].vxTable.vx = NULL;
+					strm->schema->uriTable.uri[i].lnTable.ln[j].vxTable.count = 0;
+				}
+			}
+		}
+		else
+			freeAllocList(&strm->schema->memList);
+	}
 	// Hash tables are freed separately
 	// #DOCUMENT#
 #if HASH_TABLE_USE == ON

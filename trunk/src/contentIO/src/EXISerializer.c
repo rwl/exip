@@ -563,24 +563,7 @@ errorCode closeEXIStream(EXIStream* strm)
 		if((Index)strm->buffer.ioStrm.readWriteToStream(strm->buffer.buf, strm->context.bufferIndx + 1, strm->buffer.ioStrm.stream) < strm->context.bufferIndx + 1)
 			tmp_err_code = BUFFER_END_REACHED;
 	}
-	if(strm->schema != NULL)
-	{
-		if(strm->schema->isStatic == TRUE)
-		{
-			// Reseting the value cross table links to NULL
-			Index i;
-			Index j;
-			for(i = 0; i < strm->schema->uriTable.count; i++)
-			{
-				for(j = 0; j < strm->schema->uriTable.uri[i].lnTable.count; j++)
-				{
-					strm->schema->uriTable.uri[i].lnTable.ln[j].vxTable.vx = NULL;
-				}
-			}
-		}
-		else
-			freeAllocList(&strm->schema->memList);
-	}
+
 	freeAllMem(strm);
 	return tmp_err_code;
 }
