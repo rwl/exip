@@ -44,6 +44,7 @@ errorCode initParser(Parser* parser, BinaryBuffer buffer, EXIPSchema* schema, vo
 	parser->strm.context.attrTypeId = INDEX_MAX;
 	parser->strm.gStack = NULL;
 	parser->strm.valueTable.value = NULL;
+	parser->strm.valueTable.hashTbl = NULL;
 	parser->app_data = app_data;
 	parser->strm.schema = schema;
 
@@ -166,24 +167,5 @@ void destroyParser(Parser* parser)
 		popGrammar(&parser->strm.gStack, &tmp);
 	}
 
-	if(parser->strm.schema != NULL)
-	{
-		if(parser->strm.schema->isStatic == TRUE)
-		{
-			// Reseting the value cross table links to NULL
-			Index i;
-			Index j;
-			for(i = 0; i < parser->strm.schema->uriTable.count; i++)
-			{
-				for(j = 0; j < parser->strm.schema->uriTable.uri[i].lnTable.count; j++)
-				{
-					parser->strm.schema->uriTable.uri[i].lnTable.ln[j].vxTable.vx = NULL;
-					parser->strm.schema->uriTable.uri[i].lnTable.ln[j].vxTable.count = 0;
-				}
-			}
-		}
-		else
-			freeAllocList(&parser->strm.schema->memList);
-	}
 	freeAllMem(&parser->strm);
 }
