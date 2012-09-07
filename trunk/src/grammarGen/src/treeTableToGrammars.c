@@ -171,16 +171,28 @@ static errorCode getAnyProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTab
 static errorCode getChoiceProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* chEntry, ProtoGrammar** choice);
 
 /**
- * Given a Extension entry this function builds the corresponding
+ * Given a ComplexContent Extension entry this function builds the corresponding
  * Extension proto grammar.
  */
-static errorCode getExtensionProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* extEntry, ProtoGrammar** ext);
+static errorCode getExtensionComplexProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* extEntry, ProtoGrammar** ext);
 
 /**
- * Given a Restriction entry this function builds the corresponding
+ * Given a SimpleContent Extension entry this function builds the corresponding
+ * Extension proto grammar.
+ */
+static errorCode getExtensionSimpleProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* extEntry, ProtoGrammar** ext);
+
+/**
+ * Given a SimpleContent Restriction entry this function builds the corresponding
  * Restriction proto grammar.
  */
-static errorCode getRestrictionProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* resEntry, ProtoGrammar** restr);
+static errorCode getRestrictionSimpleProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* resEntry, ProtoGrammar** restr);
+
+/**
+ * Given a ComplexContent Restriction entry this function builds the corresponding
+ * Restriction proto grammar.
+ */
+static errorCode getRestrictionComplexProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* resEntry, ProtoGrammar** restr);
 
 // END - converting schema definitions to protogrammars
 
@@ -197,6 +209,12 @@ static int compareAttrUse(const void* attrPG1, const void* attrPG2);
  * the "unbounded" value is encoded as -1
  * */
 static errorCode parseOccuranceAttribute(const String occurance, int* outInt);
+
+/** Given a simple type QName and TreeTable entry determine the
+ * corresponding typeId.
+ * For build-in types the typeEntry can be NULL
+ * */
+static errorCode getTypeId(BuildContext* ctx, const QNameID typeQnameId, TreeTableEntry* typeEntry, TreeTable* treeT, Index* typeId);
 
 /**
  * Given a ProtoGrammar this function assigns the event codes and
@@ -588,38 +606,9 @@ static errorCode getAttributeProtoGrammar(BuildContext* ctx, TreeTable* treeT, T
 	scope.localName = &ctx->emptyString;
 	scope.uri = &ctx->emptyString;
 
-	if(stQNameID.uriId == 3) // == "http://www.w3.org/2001/XMLSchema" i.e. built-in simple type
-	{
-		tmp_err_code = getEXIDataTypeFromSimpleType(stQNameID, &typeId);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-	else
-	{
-		if(GET_LN_URI_QNAME(ctx->schema->uriTable, stQNameID).typeGrammar == INDEX_MAX)
-		{
-			TreeTableEntry* typeEntry = attrEntry->child.entry;
-			if(typeEntry == NULL)
-				return UNEXPECTED_ERROR;
-			else if(typeEntry->element == ELEMENT_SIMPLE_TYPE)
-			{
-				tmp_err_code = handleSimpleTypeEl(ctx, attrEntry->child.treeT, typeEntry);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
-			}
-			else if(typeEntry->element == ELEMENT_COMPLEX_TYPE)
-			{
-				tmp_err_code = handleComplexTypeEl(ctx, attrEntry->child.treeT, typeEntry);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
-			}
-			else
-			{
-				return UNEXPECTED_ERROR;
-			}
-		}
-		typeId = (GET_TYPE_GRAMMAR_QNAMEID(ctx->schema, stQNameID))->rule[0].part[0].prod[0].typeId;
-	}
+	tmp_err_code = getTypeId(ctx, stQNameID, attrEntry->child.entry, attrEntry->child.treeT, &typeId);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	tmp_err_code = createAttributeUseGrammar(&ctx->tmpMemList, required, typeId, scope, *attr, atQnameID);
 	if(tmp_err_code != ERR_OK)
@@ -639,7 +628,7 @@ static errorCode getSimpleTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT, 
 	}
 	else if(simpleEntry->child.entry->element == ELEMENT_RESTRICTION)
 	{
-		tmp_err_code = getRestrictionProtoGrammar(ctx, treeT, simpleEntry->child.entry, simplType);
+		tmp_err_code = getRestrictionSimpleProtoGrammar(ctx, treeT, simpleEntry->child.entry, simplType);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -724,11 +713,11 @@ static errorCode getSimpleContentProtoGrammar(BuildContext* ctx, TreeTable* tree
 		return UNEXPECTED_ERROR;
 	else if(sContEntry->child.entry->element == ELEMENT_RESTRICTION)
 	{
-		tmp_err_code = getRestrictionProtoGrammar(ctx, treeT, sContEntry->child.entry, sCont);
+		tmp_err_code = getRestrictionSimpleProtoGrammar(ctx, treeT, sContEntry->child.entry, sCont);
 	}
 	else if(sContEntry->child.entry->element == ELEMENT_EXTENSION)
 	{
-		tmp_err_code = getExtensionProtoGrammar(ctx, sContEntry->child.treeT, sContEntry->child.entry, sCont);
+		tmp_err_code = getExtensionSimpleProtoGrammar(ctx, sContEntry->child.treeT, sContEntry->child.entry, sCont);
 	}
 	else
 		tmp_err_code = UNEXPECTED_ERROR;
@@ -957,11 +946,11 @@ static errorCode getComplexContentProtoGrammar(BuildContext* ctx, TreeTable* tre
 		return UNEXPECTED_ERROR;
 	else if(cConEntry->child.entry->element == ELEMENT_RESTRICTION)
 	{
-		tmp_err_code = getRestrictionProtoGrammar(ctx, treeT, cConEntry->child.entry, cCont);
+		tmp_err_code = getRestrictionComplexProtoGrammar(ctx, treeT, cConEntry->child.entry, cCont);
 	}
 	else if(cConEntry->child.entry->element == ELEMENT_EXTENSION)
 	{
-		tmp_err_code = getExtensionProtoGrammar(ctx, treeT, cConEntry->child.entry, cCont);
+		tmp_err_code = getExtensionComplexProtoGrammar(ctx, treeT, cConEntry->child.entry, cCont);
 	}
 	else
 		tmp_err_code = UNEXPECTED_ERROR;
@@ -1219,21 +1208,17 @@ static errorCode getChoiceProtoGrammar(BuildContext* ctx, TreeTable* treeT, Tree
 	return ERR_OK;
 }
 
-static errorCode getExtensionProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* extEntry, ProtoGrammar** ext)
+static errorCode getExtensionSimpleProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* extEntry, ProtoGrammar** ext)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	QNameID baseTypeId;
-	ProtoGrammar* contentTypeGrammarBase;
-	ProtoGrammar* contentTypeGrammarExt;
 	ProtoGrammar* resultProtoGrammar = NULL;
-	GenericStack* pStack = NULL;
+	Index typeId;
 
 #if DEBUG_GRAMMAR_GEN == ON
-	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Handle Extension: "));
+	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Handle SimpleContent Extension: "));
 	printString(&extEntry->attributePointers[ATTRIBUTE_BASE]);
 #endif
-
-	// TODO: add support for empty grammars
 
 	tmp_err_code = getTypeQName(ctx->schema, treeT, extEntry->attributePointers[ATTRIBUTE_BASE], &baseTypeId);
 	if(tmp_err_code != ERR_OK)
@@ -1243,69 +1228,84 @@ static errorCode getExtensionProtoGrammar(BuildContext* ctx, TreeTable* treeT, T
 	if(resultProtoGrammar == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	if(baseTypeId.uriId == 3) // == http://www.w3.org/2001/XMLSchema
-	{
-		Index typeId;
+	tmp_err_code = getTypeId(ctx, baseTypeId, extEntry->supertype.entry, extEntry->supertype.treeT, &typeId);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
-		// Extension from a simple type
-		tmp_err_code = getEXIDataTypeFromSimpleType(baseTypeId, &typeId);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = createSimpleTypeGrammar(&ctx->tmpMemList, typeId, resultProtoGrammar);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		*ext = resultProtoGrammar;
-	}
-	else
-	{
-		TreeTableEntry* base = extEntry->supertype.entry;
-		if(base == NULL)
-			return UNEXPECTED_ERROR;
-		else if(base->element == ELEMENT_SIMPLE_TYPE)
-		{
-			tmp_err_code = handleSimpleTypeEl(ctx, extEntry->supertype.treeT, base);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-
-			tmp_err_code = getSimpleTypeProtoGrammar(ctx, extEntry->supertype.treeT, base, &contentTypeGrammarBase);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-		}
-		else if(base->element == ELEMENT_COMPLEX_TYPE)
-		{
-			tmp_err_code = handleComplexTypeEl(ctx, extEntry->supertype.treeT, base);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-
-			tmp_err_code = getContentTypeProtoGrammar(ctx, extEntry->supertype.treeT, base, &contentTypeGrammarBase);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-		}
-		else
-		{
-			return UNEXPECTED_ERROR;
-		}
-
-		tmp_err_code = getContentTypeProtoGrammar(ctx, treeT, extEntry, &contentTypeGrammarExt);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		pushOnStack(&pStack, contentTypeGrammarBase);
-		pushOnStack(&pStack, contentTypeGrammarExt);
-
-		tmp_err_code = createSequenceModelGroupsGrammar(&ctx->tmpMemList, &pStack, resultProtoGrammar);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
+	// Extension from a simple type only
+	tmp_err_code = createSimpleTypeGrammar(&ctx->tmpMemList, typeId, resultProtoGrammar);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	*ext = resultProtoGrammar;
 
 	return ERR_OK;
 }
 
-static errorCode getRestrictionProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* resEntry, ProtoGrammar** restr)
+static errorCode getExtensionComplexProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* extEntry, ProtoGrammar** ext)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	QNameID baseTypeId;
+	ProtoGrammar* contentTypeGrammarBase;
+	ProtoGrammar* contentTypeGrammarExt;
+	ProtoGrammar* resultProtoGrammar = NULL;
+	GenericStack* pStack = NULL;
+
+#if DEBUG_GRAMMAR_GEN == ON
+	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Handle ComplexContent Extension: "));
+	printString(&extEntry->attributePointers[ATTRIBUTE_BASE]);
+#endif
+
+	tmp_err_code = getTypeQName(ctx->schema, treeT, extEntry->attributePointers[ATTRIBUTE_BASE], &baseTypeId);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	resultProtoGrammar = (ProtoGrammar*) memManagedAllocate(&ctx->tmpMemList, sizeof(ProtoGrammar));
+	if(resultProtoGrammar == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	// Extension from a complex type only
+
+	TreeTableEntry* base = extEntry->supertype.entry;
+	if(base == NULL)
+		return UNEXPECTED_ERROR;
+	else if(base->element == ELEMENT_COMPLEX_TYPE)
+	{
+		tmp_err_code = handleComplexTypeEl(ctx, extEntry->supertype.treeT, base);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = getContentTypeProtoGrammar(ctx, extEntry->supertype.treeT, base, &contentTypeGrammarBase);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else if(base->element == ELEMENT_SIMPLE_TYPE)
+	{
+		// When <complexContent> is used, the base type must be a complexType. Base simpleType is an error.
+		return UNEXPECTED_ERROR;
+	}
+	else
+	{
+		return UNEXPECTED_ERROR;
+	}
+
+	tmp_err_code = getContentTypeProtoGrammar(ctx, treeT, extEntry, &contentTypeGrammarExt);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	pushOnStack(&pStack, contentTypeGrammarBase);
+	pushOnStack(&pStack, contentTypeGrammarExt);
+
+	tmp_err_code = createSequenceModelGroupsGrammar(&ctx->tmpMemList, &pStack, resultProtoGrammar);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	*ext = resultProtoGrammar;
+
+	return ERR_OK;
+}
+
+static errorCode getRestrictionSimpleProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* resEntry, ProtoGrammar** restr)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	ProtoGrammar* simpleRestrictedGrammar;
@@ -1318,46 +1318,9 @@ static errorCode getRestrictionProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	// TODO: this implementation works on simple types only. Extend that to complex types
-
-	if(baseTypeID.uriId == 3) // == http://www.w3.org/2001/XMLSchema i.e. build-in type
-	{
-		tmp_err_code = getEXIDataTypeFromSimpleType(baseTypeID, &typeId);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-	else
-	{
-		if(GET_LN_URI_QNAME(ctx->schema->uriTable, baseTypeID).typeGrammar == INDEX_MAX)
-		{
-			// The EXIP grammars are not yet created for that base type
-			TreeTableEntry* base = resEntry->supertype.entry;
-			if(base == NULL)
-				return UNEXPECTED_ERROR;
-			else if(base->element == ELEMENT_SIMPLE_TYPE)
-			{
-				tmp_err_code = handleSimpleTypeEl(ctx, resEntry->supertype.treeT, base);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
-			}
-			else if(base->element == ELEMENT_COMPLEX_TYPE)
-			{
-				tmp_err_code = handleComplexTypeEl(ctx, resEntry->supertype.treeT, base);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
-			}
-			else
-			{
-				return UNEXPECTED_ERROR;
-			}
-
-		}
-
-		typeId = (GET_TYPE_GRAMMAR_QNAMEID(ctx->schema, baseTypeID))->rule[0].part[0].prod[0].typeId;
-	}
-
-	if(typeId == INDEX_MAX)
-		return UNEXPECTED_ERROR;
+	tmp_err_code = getTypeId(ctx, baseTypeID, resEntry->supertype.entry, resEntry->supertype.treeT, &typeId);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	// TODO: check if there are cases when the EXI type changes after restriction
 	newSimpleType.exiType = ctx->schema->simpleTypeTable.sType[typeId].exiType;
@@ -1514,6 +1477,67 @@ static errorCode getRestrictionProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 		return tmp_err_code;
 
 	*restr = simpleRestrictedGrammar;
+
+	return ERR_OK;
+}
+
+static errorCode getRestrictionComplexProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* resEntry, ProtoGrammar** restr)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	QNameID baseTypeID;
+
+	tmp_err_code = getTypeQName(ctx->schema, treeT, resEntry->attributePointers[ATTRIBUTE_BASE], &baseTypeID);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	/* When <complexContent> is used, the base type must
+	 be a complexType. Base simpleType is an error.*/
+
+	// TODO: this implementation works on simple types only. Extend that to complex types
+
+
+	return ERR_OK;
+}
+
+static errorCode getTypeId(BuildContext* ctx, const QNameID typeQnameId, TreeTableEntry* typeEntry, TreeTable* treeT, Index* typeId)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+
+	if(typeQnameId.uriId == 3) // == http://www.w3.org/2001/XMLSchema i.e. build-in type
+	{
+		tmp_err_code = getEXIDataTypeFromSimpleType(typeQnameId, typeId);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else
+	{
+		if(GET_LN_URI_QNAME(ctx->schema->uriTable, typeQnameId).typeGrammar == INDEX_MAX)
+		{
+			// The EXIP grammars are not yet created for that simple type
+			if(typeEntry == NULL)
+				return UNEXPECTED_ERROR;
+			else if(typeEntry->element == ELEMENT_SIMPLE_TYPE)
+			{
+				tmp_err_code = handleSimpleTypeEl(ctx, treeT, typeEntry);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
+			else if(typeEntry->element == ELEMENT_COMPLEX_TYPE)
+			{
+				// Only simple types should be passed and have a valid typeId
+				return UNEXPECTED_ERROR;
+			}
+			else
+			{
+				return UNEXPECTED_ERROR;
+			}
+
+		}
+
+		*typeId = (GET_TYPE_GRAMMAR_QNAMEID(ctx->schema, typeQnameId))->rule[0].part[0].prod[0].typeId;
+		if(*typeId == INDEX_MAX)
+			return UNEXPECTED_ERROR;
+	}
 
 	return ERR_OK;
 }
