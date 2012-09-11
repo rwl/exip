@@ -386,6 +386,7 @@ static char xsd_endElement(void* app_data)
 	{
 		TreeTableEntry* entry;
 		String* elName;
+		String clonedName;
 
 		/* Pop the stream element from the stack*/
 		popFromStack(&ttpd->contextStack, (void**) &entry);
@@ -419,8 +420,6 @@ static char xsd_endElement(void* app_data)
 
 			if(!lookupLn(&ttpd->schema->uriTable.uri[uriId].lnTable, *elName, &lnId))
 			{
-				String clonedName;
-
 				tmp_err_code = cloneString(elName, &clonedName, &ttpd->schema->memList);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
@@ -429,6 +428,34 @@ static char xsd_endElement(void* app_data)
 				tmp_err_code = addLnEntry(&ttpd->schema->uriTable.uri[uriId].lnTable, clonedName, &lnId, &ttpd->schema->memList);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
+			}
+
+			if(entry->element == ELEMENT_ANY || entry->element == ELEMENT_ANY_ATTRIBUTE)
+			{
+				NsTable nsTable;
+				size_t i;
+
+				tmp_err_code = createDynArray(&nsTable.dynArray, sizeof(String), 5, &ttpd->treeT->memList);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				if(ERR_OK != getNsList(&ttpd->treeT->memList, ttpd->treeT, entry->attributePointers[ATTRIBUTE_NAMESPACE], &nsTable))
+					return	EXIP_HANDLER_STOP;
+
+				for(i = 0; i < nsTable.count; i++)
+				{
+					if(!lookupUri(&ttpd->schema->uriTable, nsTable.base[i], &uriId))
+					{
+						tmp_err_code = cloneString(&nsTable.base[i], &clonedName, &ttpd->schema->memList);
+						if(tmp_err_code != ERR_OK)
+							return tmp_err_code;
+
+						/* Add the namespace to the schema URI string table. Note this table persists beyond the tree table */
+						tmp_err_code = addUriEntry(&ttpd->schema->uriTable, clonedName, &uriId, &ttpd->schema->memList);
+						if(tmp_err_code != ERR_OK)
+							return tmp_err_code;
+					}
+				}
 			}
 
 #if HASH_TABLE_USE == ON

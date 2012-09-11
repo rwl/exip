@@ -397,3 +397,51 @@ static unsigned char checkForImportWithNs(TreeTable* treeT, String ns)
 
 	return FALSE;
 }
+
+errorCode getNsList(AllocList* memList, TreeTable* treeT, String nsList, NsTable* nsTable)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	Index dummy_elemID;
+
+	if(isStringEmpty(&nsList))
+		return ERR_OK;
+	else
+	{
+		Index sChIndex;
+		String attrNamespece;
+
+		attrNamespece.length = nsList.length;
+		attrNamespece.str = nsList.str;
+		sChIndex = getIndexOfChar(&attrNamespece, ' ');
+
+		while(sChIndex != INDEX_MAX)
+		{
+			String tmpNS;
+			tmpNS.length = sChIndex;
+			tmpNS.str = attrNamespece.str;
+
+			if(stringEqualToAscii(tmpNS, "##targetNamespace"))
+			{
+				tmpNS = treeT->globalDefs.targetNs;
+			}
+			if(stringEqualToAscii(tmpNS, "##local"))
+			{
+				getEmptyString(&tmpNS);
+			}
+
+			tmp_err_code = addDynEntry(&nsTable->dynArray, &tmpNS, &dummy_elemID, memList);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			attrNamespece.length = attrNamespece.length - sChIndex - 1;
+			attrNamespece.str = attrNamespece.str + sChIndex + 1;
+
+			sChIndex = getIndexOfChar(&attrNamespece, ' ');
+		}
+
+		tmp_err_code = addDynEntry(&nsTable->dynArray, &attrNamespece, &dummy_elemID, memList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	return ERR_OK;
+}

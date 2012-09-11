@@ -46,8 +46,6 @@ static errorCode recursiveGrammarConcat(AllocList* memList, GenericStack** proto
  * The productions are ordered with the largest event code first. */
 static int compareProductions(const void* prod1, const void* prod2);
 
-static errorCode addEEProduction(AllocList* memList, ProtoRuleEntry* rule);
-
 errorCode concatenateGrammars(AllocList* memList, ProtoGrammar* left, ProtoGrammar* right)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -310,11 +308,8 @@ errorCode createSimpleTypeGrammar(AllocList* memList, Index typeId, ProtoGrammar
 }
 
 errorCode createComplexTypeGrammar(AllocList* memList, ProtoGrammarArray* attrUseArray,
-		                           String* wildcardArray, unsigned int wildcardArraySize,
-		                           ProtoGrammar* contentTypeGrammar,
-		                           ProtoGrammar* complexGrammar)
+		                           ProtoGrammar* contentTypeGrammar, ProtoGrammar* complexGrammar)
 {
-	//TODO: Implement the case when there are wildcards i.e. wildcardArray is not empty
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int i;
 
@@ -367,8 +362,7 @@ errorCode createComplexUrTypeGrammar(AllocList* memList, ProtoGrammar* result)
 	return NOT_IMPLEMENTED_YET;
 }
 
-// TODO: do we really need the QName scope parameter?
-errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, Index typeId, QName scope,
+errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, Index typeId,
 									ProtoGrammar* attrGrammar, QNameID qnameID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -507,25 +501,43 @@ errorCode createElementTermGrammar(AllocList* memList, ProtoGrammar* elemGrammar
 	return ERR_OK;
 }
 
-errorCode createWildcardTermGrammar(AllocList* memList, String* wildcardArray, Index wildcardArraySize, ProtoGrammar* wildcardGrammar)
+errorCode createWildcardTermGrammar(AllocList* memList, String* wildcardArray, Index wildcardArraySize, UriTable* uriT, ProtoGrammar* wildcardGrammar)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	QNameID qnameID;
 
 	tmp_err_code = createProtoGrammar(memList, 2, wildcardArraySize + 1, wildcardGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	if(stringEqualToAscii(wildcardArray[0], "##any") || stringEqualToAscii(wildcardArray[0], "##other"))
+	if(wildcardArraySize == 0 ||		// default is "##any"
+		(wildcardArraySize == 1 &&
+				(stringEqualToAscii(wildcardArray[0], "##any") || stringEqualToAscii(wildcardArray[0], "##other"))
+		)
+	  )
 	{
-		QNameID qnameID = {URI_MAX, LN_MAX};
+		qnameID.uriId = URI_MAX;
+		qnameID.lnId = LN_MAX;
 		tmp_err_code = addProduction(memList, &wildcardGrammar->rule[0], EVENT_SE_ALL, INDEX_MAX, qnameID, 1);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
-	else
+	else if(wildcardArraySize >= 1)
 	{
-		return NOT_IMPLEMENTED_YET;
+		Index i;
+
+		qnameID.lnId = LN_MAX;
+		for(i = 0; i < wildcardArraySize; i++)
+		{
+			if(!lookupUri(uriT, wildcardArray[i], &qnameID.uriId))
+			 	return UNEXPECTED_ERROR;
+			tmp_err_code = addProduction(memList, &wildcardGrammar->rule[0], EVENT_SE_URI, INDEX_MAX, qnameID, 1);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
 	}
+	else
+		return UNEXPECTED_ERROR;
 
 	tmp_err_code = addEEProduction(memList, &wildcardGrammar->rule[1]);
 	if(tmp_err_code != ERR_OK)
@@ -743,7 +755,7 @@ static int compareProductions(const void* prod1, const void* prod2)
 	}
 }
 
-static errorCode addEEProduction(AllocList* memList, ProtoRuleEntry* rule)
+errorCode addEEProduction(AllocList* memList, ProtoRuleEntry* rule)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	Production *prod;
