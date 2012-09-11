@@ -208,6 +208,24 @@ struct TreeTable
 typedef struct TreeTable TreeTable;
 
 /**
+ * Some schema attributes (e.g. namespace="...")
+ * define a list of namespaces that are stored as a string.
+ * The string needs to be parsed and each namespace added
+ * as an entry in the NsTable dynamic array.
+ * The entries are then used to fill the URI partition
+ * of the string table and by the createWildcardTermGrammar()
+ * and createComplexGrammar()
+ * */
+struct NsTable
+{
+	DynArray dynArray;
+	String *base;
+	size_t count;
+};
+
+typedef struct NsTable NsTable;
+
+/**
  * @brief Initialize a TreeTable object
  *
  * @param[in, out] treeT a tree table container
@@ -284,6 +302,19 @@ errorCode convertTreeTablesToExipSchema(TreeTable* treeT, unsigned int count, EX
  * @return Error handling code
  */
 errorCode getTypeQName(EXIPSchema* schema, TreeTable* treeT, const String typeLiteral, QNameID* qname);
+
+/**
+ * @brief Given a namespace="..." attribute containing a list of namespaces as a sting, returns an array of these namespaces
+ *
+ * This function also resolves the special values "##targetNamespace" and "##local"
+ *
+ * @param[in, out] memList the memlist used for allocations
+ * @param[in] treeT the tree table object
+ * @param[in] nsList a sting containing the space separated namespaces
+ * @param[out] nsTable an array of namespaces
+ * @return Error handling code
+ */
+errorCode getNsList(AllocList* memList, TreeTable* treeT, String nsList, NsTable* nsTable);
 
 #if DEBUG_GRAMMAR_GEN == ON
 /**

@@ -1,4 +1,4 @@
-/** AUTO-GENERATED: Tue Aug 21 12:33:42 2012
+/** AUTO-GENERATED: Tue Sep 11 17:28:26 2012
   * Copyright (c) 2010 - 2011, Rumen Kyusakov, EISLAB, LTU
   * $Id$ */
 
@@ -13412,7 +13412,7 @@ static CONST GrammarRule sep2v51_rule_79[3] =
 static CONST Production sep2v51_prod_80_0_part0[1] =
 {
     {
-        9, 50,
+        9, 49,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -13487,7 +13487,7 @@ static CONST Production sep2v51_prod_80_1_part1[2] =
 static CONST Production sep2v51_prod_80_2_part0[1] =
 {
     {
-        9, 50,
+        9, 49,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -13858,7 +13858,7 @@ static CONST GrammarRule sep2v51_rule_82[3] =
 static CONST Production sep2v51_prod_83_0_part0[1] =
 {
     {
-        9, 51,
+        9, 50,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -13933,7 +13933,7 @@ static CONST Production sep2v51_prod_83_1_part1[2] =
 static CONST Production sep2v51_prod_83_2_part0[1] =
 {
     {
-        9, 51,
+        9, 50,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -13980,7 +13980,7 @@ static CONST GrammarRule sep2v51_rule_83[3] =
 static CONST Production sep2v51_prod_84_0_part0[1] =
 {
     {
-        9, 52,
+        9, 50,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -14055,7 +14055,7 @@ static CONST Production sep2v51_prod_84_1_part1[2] =
 static CONST Production sep2v51_prod_84_2_part0[1] =
 {
     {
-        9, 52,
+        9, 50,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -15427,7 +15427,7 @@ static CONST GrammarRule sep2v51_rule_85[18] =
 static CONST Production sep2v51_prod_86_0_part0[1] =
 {
     {
-        9, 53,
+        9, 51,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -15502,7 +15502,7 @@ static CONST Production sep2v51_prod_86_1_part1[2] =
 static CONST Production sep2v51_prod_86_2_part0[1] =
 {
     {
-        9, 53,
+        9, 51,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -15549,7 +15549,7 @@ static CONST GrammarRule sep2v51_rule_86[3] =
 static CONST Production sep2v51_prod_87_0_part0[1] =
 {
     {
-        9, 54,
+        9, 51,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -15624,7 +15624,7 @@ static CONST Production sep2v51_prod_87_1_part1[2] =
 static CONST Production sep2v51_prod_87_2_part0[1] =
 {
     {
-        9, 54,
+        9, 51,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -15671,7 +15671,7 @@ static CONST GrammarRule sep2v51_rule_87[3] =
 static CONST Production sep2v51_prod_88_0_part0[1] =
 {
     {
-        9, 55,
+        9, 52,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -15746,7 +15746,7 @@ static CONST Production sep2v51_prod_88_1_part1[2] =
 static CONST Production sep2v51_prod_88_2_part0[1] =
 {
     {
-        9, 55,
+        9, 52,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -15793,7 +15793,7 @@ static CONST GrammarRule sep2v51_rule_88[3] =
 static CONST Production sep2v51_prod_89_0_part0[1] =
 {
     {
-        9, 56,
+        9, 53,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -15868,7 +15868,7 @@ static CONST Production sep2v51_prod_89_1_part1[2] =
 static CONST Production sep2v51_prod_89_2_part0[1] =
 {
     {
-        9, 56,
+        9, 53,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -15915,7 +15915,7 @@ static CONST GrammarRule sep2v51_rule_89[3] =
 static CONST Production sep2v51_prod_90_0_part0[1] =
 {
     {
-        9, 57,
+        9, 53,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -15990,7 +15990,7 @@ static CONST Production sep2v51_prod_90_1_part1[2] =
 static CONST Production sep2v51_prod_90_2_part0[1] =
 {
     {
-        9, 57,
+        9, 53,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -16037,7 +16037,7 @@ static CONST GrammarRule sep2v51_rule_90[3] =
 static CONST Production sep2v51_prod_91_0_part0[1] =
 {
     {
-        9, 58,
+        9, 54,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -16112,7 +16112,7 @@ static CONST Production sep2v51_prod_91_1_part1[2] =
 static CONST Production sep2v51_prod_91_2_part0[1] =
 {
     {
-        9, 58,
+        9, 54,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -19638,7 +19638,7 @@ static CONST GrammarRule sep2v51_rule_100[7] =
 static CONST Production sep2v51_prod_101_0_part0[1] =
 {
     {
-        9, 59,
+        9, 52,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -19713,7 +19713,7 @@ static CONST Production sep2v51_prod_101_1_part1[2] =
 static CONST Production sep2v51_prod_101_2_part0[1] =
 {
     {
-        9, 59,
+        9, 52,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -21264,7 +21264,7 @@ static CONST GrammarRule sep2v51_rule_103[18] =
 static CONST Production sep2v51_prod_104_0_part0[1] =
 {
     {
-        9, 60,
+        9, 55,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -21339,7 +21339,7 @@ static CONST Production sep2v51_prod_104_1_part1[2] =
 static CONST Production sep2v51_prod_104_2_part0[1] =
 {
     {
-        9, 60,
+        9, 55,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -21386,7 +21386,7 @@ static CONST GrammarRule sep2v51_rule_104[3] =
 static CONST Production sep2v51_prod_105_0_part0[1] =
 {
     {
-        9, 61,
+        9, 55,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -21461,7 +21461,7 @@ static CONST Production sep2v51_prod_105_1_part1[2] =
 static CONST Production sep2v51_prod_105_2_part0[1] =
 {
     {
-        9, 61,
+        9, 55,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -21508,7 +21508,7 @@ static CONST GrammarRule sep2v51_rule_105[3] =
 static CONST Production sep2v51_prod_106_0_part0[1] =
 {
     {
-        9, 62,
+        9, 56,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -21583,7 +21583,7 @@ static CONST Production sep2v51_prod_106_1_part1[2] =
 static CONST Production sep2v51_prod_106_2_part0[1] =
 {
     {
-        9, 62,
+        9, 56,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -23014,7 +23014,7 @@ static CONST GrammarRule sep2v51_rule_108[7] =
 static CONST Production sep2v51_prod_109_0_part0[1] =
 {
     {
-        9, 63,
+        9, 57,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -23089,7 +23089,7 @@ static CONST Production sep2v51_prod_109_1_part1[2] =
 static CONST Production sep2v51_prod_109_2_part0[1] =
 {
     {
-        9, 63,
+        9, 57,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -23503,7 +23503,7 @@ static CONST GrammarRule sep2v51_rule_111[4] =
 static CONST Production sep2v51_prod_112_0_part0[1] =
 {
     {
-        9, 64,
+        9, 58,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -23578,7 +23578,7 @@ static CONST Production sep2v51_prod_112_1_part1[2] =
 static CONST Production sep2v51_prod_112_2_part0[1] =
 {
     {
-        9, 64,
+        9, 58,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -25136,7 +25136,7 @@ static CONST GrammarRule sep2v51_rule_117[6] =
 static CONST Production sep2v51_prod_118_0_part0[1] =
 {
     {
-        9, 65,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -25211,7 +25211,7 @@ static CONST Production sep2v51_prod_118_1_part1[2] =
 static CONST Production sep2v51_prod_118_2_part0[1] =
 {
     {
-        9, 65,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -25413,7 +25413,7 @@ static CONST GrammarRule sep2v51_rule_119[4] =
 static CONST Production sep2v51_prod_120_0_part0[1] =
 {
     {
-        9, 66,
+        9, 59,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -25488,7 +25488,7 @@ static CONST Production sep2v51_prod_120_1_part1[2] =
 static CONST Production sep2v51_prod_120_2_part0[1] =
 {
     {
-        9, 66,
+        9, 59,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -25535,7 +25535,7 @@ static CONST GrammarRule sep2v51_rule_120[3] =
 static CONST Production sep2v51_prod_121_0_part0[1] =
 {
     {
-        9, 67,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -25610,7 +25610,7 @@ static CONST Production sep2v51_prod_121_1_part1[2] =
 static CONST Production sep2v51_prod_121_2_part0[1] =
 {
     {
-        9, 67,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -25955,7 +25955,7 @@ static CONST GrammarRule sep2v51_rule_122[7] =
 static CONST Production sep2v51_prod_123_0_part0[1] =
 {
     {
-        9, 68,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -26030,7 +26030,7 @@ static CONST Production sep2v51_prod_123_1_part1[2] =
 static CONST Production sep2v51_prod_123_2_part0[1] =
 {
     {
-        9, 68,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -27270,7 +27270,7 @@ static CONST GrammarRule sep2v51_rule_128[13] =
 static CONST Production sep2v51_prod_129_0_part0[1] =
 {
     {
-        9, 69,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -27345,7 +27345,7 @@ static CONST Production sep2v51_prod_129_1_part1[2] =
 static CONST Production sep2v51_prod_129_2_part0[1] =
 {
     {
-        9, 69,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -27392,7 +27392,7 @@ static CONST GrammarRule sep2v51_rule_129[3] =
 static CONST Production sep2v51_prod_130_0_part0[1] =
 {
     {
-        9, 70,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -27467,7 +27467,7 @@ static CONST Production sep2v51_prod_130_1_part1[2] =
 static CONST Production sep2v51_prod_130_2_part0[1] =
 {
     {
-        9, 70,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -29710,7 +29710,7 @@ static CONST GrammarRule sep2v51_rule_138[7] =
 static CONST Production sep2v51_prod_139_0_part0[1] =
 {
     {
-        9, 71,
+        9, 60,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -29785,7 +29785,7 @@ static CONST Production sep2v51_prod_139_1_part1[2] =
 static CONST Production sep2v51_prod_139_2_part0[1] =
 {
     {
-        9, 71,
+        9, 60,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -29832,7 +29832,7 @@ static CONST GrammarRule sep2v51_rule_139[3] =
 static CONST Production sep2v51_prod_140_0_part0[1] =
 {
     {
-        9, 72,
+        9, 60,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -29907,7 +29907,7 @@ static CONST Production sep2v51_prod_140_1_part1[2] =
 static CONST Production sep2v51_prod_140_2_part0[1] =
 {
     {
-        9, 72,
+        9, 60,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -30336,7 +30336,7 @@ static CONST GrammarRule sep2v51_rule_141[10] =
 static CONST Production sep2v51_prod_142_0_part0[1] =
 {
     {
-        9, 73,
+        9, 61,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -30411,7 +30411,7 @@ static CONST Production sep2v51_prod_142_1_part1[2] =
 static CONST Production sep2v51_prod_142_2_part0[1] =
 {
     {
-        9, 73,
+        9, 61,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -30956,7 +30956,7 @@ static CONST GrammarRule sep2v51_rule_145[5] =
 static CONST Production sep2v51_prod_146_0_part0[1] =
 {
     {
-        9, 74,
+        9, 62,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -31031,7 +31031,7 @@ static CONST Production sep2v51_prod_146_1_part1[2] =
 static CONST Production sep2v51_prod_146_2_part0[1] =
 {
     {
-        9, 74,
+        9, 62,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -31078,7 +31078,7 @@ static CONST GrammarRule sep2v51_rule_146[3] =
 static CONST Production sep2v51_prod_147_0_part0[1] =
 {
     {
-        9, 75,
+        9, 52,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -31153,7 +31153,7 @@ static CONST Production sep2v51_prod_147_1_part1[2] =
 static CONST Production sep2v51_prod_147_2_part0[1] =
 {
     {
-        9, 75,
+        9, 52,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -31200,7 +31200,7 @@ static CONST GrammarRule sep2v51_rule_147[3] =
 static CONST Production sep2v51_prod_148_0_part0[1] =
 {
     {
-        9, 76,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -31275,7 +31275,7 @@ static CONST Production sep2v51_prod_148_1_part1[2] =
 static CONST Production sep2v51_prod_148_2_part0[1] =
 {
     {
-        9, 76,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -32163,7 +32163,7 @@ static CONST GrammarRule sep2v51_rule_150[17] =
 static CONST Production sep2v51_prod_151_0_part0[1] =
 {
     {
-        9, 77,
+        9, 63,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -32238,7 +32238,7 @@ static CONST Production sep2v51_prod_151_1_part1[2] =
 static CONST Production sep2v51_prod_151_2_part0[1] =
 {
     {
-        9, 77,
+        9, 63,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -32285,7 +32285,7 @@ static CONST GrammarRule sep2v51_rule_151[3] =
 static CONST Production sep2v51_prod_152_0_part0[1] =
 {
     {
-        9, 78,
+        9, 63,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -32360,7 +32360,7 @@ static CONST Production sep2v51_prod_152_1_part1[2] =
 static CONST Production sep2v51_prod_152_2_part0[1] =
 {
     {
-        9, 78,
+        9, 63,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -32879,7 +32879,7 @@ static CONST GrammarRule sep2v51_rule_154[6] =
 static CONST Production sep2v51_prod_155_0_part0[1] =
 {
     {
-        9, 79,
+        9, 46,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -32954,7 +32954,7 @@ static CONST Production sep2v51_prod_155_1_part1[2] =
 static CONST Production sep2v51_prod_155_2_part0[1] =
 {
     {
-        9, 79,
+        9, 46,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -33428,7 +33428,7 @@ static CONST GrammarRule sep2v51_rule_156[10] =
 static CONST Production sep2v51_prod_157_0_part0[1] =
 {
     {
-        9, 80,
+        9, 64,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -33503,7 +33503,7 @@ static CONST Production sep2v51_prod_157_1_part1[2] =
 static CONST Production sep2v51_prod_157_2_part0[1] =
 {
     {
-        9, 80,
+        9, 64,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -34624,7 +34624,7 @@ static CONST GrammarRule sep2v51_rule_162[6] =
 static CONST Production sep2v51_prod_163_0_part0[1] =
 {
     {
-        9, 81,
+        9, 65,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -34699,7 +34699,7 @@ static CONST Production sep2v51_prod_163_1_part1[2] =
 static CONST Production sep2v51_prod_163_2_part0[1] =
 {
     {
-        9, 81,
+        9, 65,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -41107,7 +41107,7 @@ static CONST GrammarRule sep2v51_rule_181[4] =
 static CONST Production sep2v51_prod_182_0_part0[1] =
 {
     {
-        9, 82,
+        9, 49,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -41182,7 +41182,7 @@ static CONST Production sep2v51_prod_182_1_part1[2] =
 static CONST Production sep2v51_prod_182_2_part0[1] =
 {
     {
-        9, 82,
+        9, 49,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -42532,7 +42532,7 @@ static CONST GrammarRule sep2v51_rule_187[6] =
 static CONST Production sep2v51_prod_188_0_part0[1] =
 {
     {
-        9, 83,
+        9, 66,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -42607,7 +42607,7 @@ static CONST Production sep2v51_prod_188_1_part1[2] =
 static CONST Production sep2v51_prod_188_2_part0[1] =
 {
     {
-        9, 83,
+        9, 66,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -44272,7 +44272,7 @@ static CONST GrammarRule sep2v51_rule_194[4] =
 static CONST Production sep2v51_prod_195_0_part0[1] =
 {
     {
-        9, 84,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -44347,7 +44347,7 @@ static CONST Production sep2v51_prod_195_1_part1[2] =
 static CONST Production sep2v51_prod_195_2_part0[1] =
 {
     {
-        9, 84,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -45201,7 +45201,7 @@ static CONST Production sep2v51_prod_198_0_part0[4] =
         SMALL_INDEX_MAX
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     },
@@ -45278,7 +45278,7 @@ static CONST Production sep2v51_prod_198_1_part0[3] =
         SMALL_INDEX_MAX
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     },
@@ -45335,7 +45335,7 @@ static CONST Production sep2v51_prod_198_2_part0[2] =
         SMALL_INDEX_MAX
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     }
@@ -45476,7 +45476,7 @@ static CONST Production sep2v51_prod_199_0_part0[5] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     },
@@ -45568,7 +45568,7 @@ static CONST Production sep2v51_prod_199_1_part0[4] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     },
@@ -45640,7 +45640,7 @@ static CONST Production sep2v51_prod_199_2_part0[3] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     }
@@ -46343,7 +46343,7 @@ static CONST Production sep2v51_prod_202_0_part0[5] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     },
@@ -46435,7 +46435,7 @@ static CONST Production sep2v51_prod_202_1_part0[4] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     },
@@ -46507,7 +46507,7 @@ static CONST Production sep2v51_prod_202_2_part0[3] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     }
@@ -46880,7 +46880,7 @@ static CONST GrammarRule sep2v51_rule_202[11] =
 static CONST Production sep2v51_prod_203_0_part0[1] =
 {
     {
-        9, 85,
+        9, 54,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -46955,7 +46955,7 @@ static CONST Production sep2v51_prod_203_1_part1[2] =
 static CONST Production sep2v51_prod_203_2_part0[1] =
 {
     {
-        9, 85,
+        9, 54,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -47012,7 +47012,7 @@ static CONST Production sep2v51_prod_204_0_part0[5] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     },
@@ -47104,7 +47104,7 @@ static CONST Production sep2v51_prod_204_1_part0[4] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     },
@@ -47176,7 +47176,7 @@ static CONST Production sep2v51_prod_204_2_part0[3] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     }
@@ -47780,7 +47780,7 @@ static CONST Production sep2v51_prod_206_0_part0[5] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     },
@@ -47872,7 +47872,7 @@ static CONST Production sep2v51_prod_206_1_part0[4] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     },
@@ -47944,7 +47944,7 @@ static CONST Production sep2v51_prod_206_2_part0[3] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     }
@@ -51148,7 +51148,7 @@ static CONST GrammarRule sep2v51_rule_216[7] =
 static CONST Production sep2v51_prod_217_0_part0[1] =
 {
     {
-        9, 86,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -51223,7 +51223,7 @@ static CONST Production sep2v51_prod_217_1_part1[2] =
 static CONST Production sep2v51_prod_217_2_part0[1] =
 {
     {
-        9, 86,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -51270,7 +51270,7 @@ static CONST GrammarRule sep2v51_rule_217[3] =
 static CONST Production sep2v51_prod_218_0_part0[1] =
 {
     {
-        9, 87,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -51345,7 +51345,7 @@ static CONST Production sep2v51_prod_218_1_part1[2] =
 static CONST Production sep2v51_prod_218_2_part0[1] =
 {
     {
-        9, 87,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -53775,7 +53775,7 @@ static CONST GrammarRule sep2v51_rule_225[7] =
 static CONST Production sep2v51_prod_226_0_part0[1] =
 {
     {
-        9, 88,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -53850,7 +53850,7 @@ static CONST Production sep2v51_prod_226_1_part1[2] =
 static CONST Production sep2v51_prod_226_2_part0[1] =
 {
     {
-        9, 88,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -55100,7 +55100,7 @@ static CONST GrammarRule sep2v51_rule_230[7] =
 static CONST Production sep2v51_prod_231_0_part0[1] =
 {
     {
-        9, 89,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -55175,7 +55175,7 @@ static CONST Production sep2v51_prod_231_1_part1[2] =
 static CONST Production sep2v51_prod_231_2_part0[1] =
 {
     {
-        9, 89,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -56255,7 +56255,7 @@ static CONST GrammarRule sep2v51_rule_235[4] =
 static CONST Production sep2v51_prod_236_0_part0[1] =
 {
     {
-        9, 90,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -56330,7 +56330,7 @@ static CONST Production sep2v51_prod_236_1_part1[2] =
 static CONST Production sep2v51_prod_236_2_part0[1] =
 {
     {
-        9, 90,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -57506,7 +57506,7 @@ static CONST GrammarRule sep2v51_rule_240[6] =
 static CONST Production sep2v51_prod_241_0_part0[1] =
 {
     {
-        9, 91,
+        9, 46,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -57581,7 +57581,7 @@ static CONST Production sep2v51_prod_241_1_part1[2] =
 static CONST Production sep2v51_prod_241_2_part0[1] =
 {
     {
-        9, 91,
+        9, 46,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -57628,7 +57628,7 @@ static CONST GrammarRule sep2v51_rule_241[3] =
 static CONST Production sep2v51_prod_242_0_part0[1] =
 {
     {
-        9, 92,
+        9, 67,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -57703,7 +57703,7 @@ static CONST Production sep2v51_prod_242_1_part1[2] =
 static CONST Production sep2v51_prod_242_2_part0[1] =
 {
     {
-        9, 92,
+        9, 67,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -58753,7 +58753,7 @@ static CONST Production sep2v51_prod_246_0_part0[5] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     },
@@ -58845,7 +58845,7 @@ static CONST Production sep2v51_prod_246_1_part0[4] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     },
@@ -58917,7 +58917,7 @@ static CONST Production sep2v51_prod_246_2_part0[3] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     }
@@ -61208,7 +61208,7 @@ static CONST GrammarRule sep2v51_rule_252[7] =
 static CONST Production sep2v51_prod_253_0_part0[1] =
 {
     {
-        9, 93,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -61283,7 +61283,7 @@ static CONST Production sep2v51_prod_253_1_part1[2] =
 static CONST Production sep2v51_prod_253_2_part0[1] =
 {
     {
-        9, 93,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -61340,7 +61340,7 @@ static CONST Production sep2v51_prod_254_0_part0[5] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     },
@@ -61432,7 +61432,7 @@ static CONST Production sep2v51_prod_254_1_part0[4] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     },
@@ -61504,7 +61504,7 @@ static CONST Production sep2v51_prod_254_2_part0[3] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     }
@@ -62392,7 +62392,7 @@ static CONST GrammarRule sep2v51_rule_255[7] =
 static CONST Production sep2v51_prod_256_0_part0[1] =
 {
     {
-        9, 94,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -62467,7 +62467,7 @@ static CONST Production sep2v51_prod_256_1_part1[2] =
 static CONST Production sep2v51_prod_256_2_part0[1] =
 {
     {
-        9, 94,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -72326,7 +72326,7 @@ static CONST GrammarRule sep2v51_rule_291[6] =
 static CONST Production sep2v51_prod_292_0_part0[1] =
 {
     {
-        9, 95,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -72401,7 +72401,7 @@ static CONST Production sep2v51_prod_292_1_part1[2] =
 static CONST Production sep2v51_prod_292_2_part0[1] =
 {
     {
-        9, 95,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -74243,7 +74243,7 @@ static CONST GrammarRule sep2v51_rule_300[4] =
 static CONST Production sep2v51_prod_301_0_part0[1] =
 {
     {
-        9, 96,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -74318,7 +74318,7 @@ static CONST Production sep2v51_prod_301_1_part1[2] =
 static CONST Production sep2v51_prod_301_2_part0[1] =
 {
     {
-        9, 96,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -75882,7 +75882,7 @@ static CONST Production sep2v51_prod_307_0_part0[7] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     },
@@ -75979,7 +75979,7 @@ static CONST Production sep2v51_prod_307_1_part0[6] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     },
@@ -76056,7 +76056,7 @@ static CONST Production sep2v51_prod_307_2_part0[5] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     }
@@ -76904,7 +76904,7 @@ static CONST Production sep2v51_prod_310_0_part0[5] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     },
@@ -76996,7 +76996,7 @@ static CONST Production sep2v51_prod_310_1_part0[4] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     },
@@ -77068,7 +77068,7 @@ static CONST Production sep2v51_prod_310_2_part0[3] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     }
@@ -77484,7 +77484,7 @@ static CONST Production sep2v51_prod_311_0_part0[5] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     },
@@ -77576,7 +77576,7 @@ static CONST Production sep2v51_prod_311_1_part0[4] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     },
@@ -77648,7 +77648,7 @@ static CONST Production sep2v51_prod_311_2_part0[3] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     }
@@ -78518,7 +78518,7 @@ static CONST GrammarRule sep2v51_rule_312[7] =
 static CONST Production sep2v51_prod_313_0_part0[1] =
 {
     {
-        9, 97,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -78593,7 +78593,7 @@ static CONST Production sep2v51_prod_313_1_part1[2] =
 static CONST Production sep2v51_prod_313_2_part0[1] =
 {
     {
-        9, 97,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -78650,7 +78650,7 @@ static CONST Production sep2v51_prod_314_0_part0[5] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     },
@@ -78742,7 +78742,7 @@ static CONST Production sep2v51_prod_314_1_part0[4] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     },
@@ -78814,7 +78814,7 @@ static CONST Production sep2v51_prod_314_2_part0[3] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     }
@@ -81611,7 +81611,7 @@ static CONST GrammarRule sep2v51_rule_322[6] =
 static CONST Production sep2v51_prod_323_0_part0[1] =
 {
     {
-        9, 98,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -81686,7 +81686,7 @@ static CONST Production sep2v51_prod_323_1_part1[2] =
 static CONST Production sep2v51_prod_323_2_part0[1] =
 {
     {
-        9, 98,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -82270,7 +82270,7 @@ static CONST GrammarRule sep2v51_rule_325[8] =
 static CONST Production sep2v51_prod_326_0_part0[1] =
 {
     {
-        9, 99,
+        9, 49,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -82345,7 +82345,7 @@ static CONST Production sep2v51_prod_326_1_part1[2] =
 static CONST Production sep2v51_prod_326_2_part0[1] =
 {
     {
-        9, 99,
+        9, 49,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -83550,7 +83550,7 @@ static CONST GrammarRule sep2v51_rule_330[17] =
 static CONST Production sep2v51_prod_331_0_part0[1] =
 {
     {
-        9, 100,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -83625,7 +83625,7 @@ static CONST Production sep2v51_prod_331_1_part1[2] =
 static CONST Production sep2v51_prod_331_2_part0[1] =
 {
     {
-        9, 100,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -84335,7 +84335,7 @@ static CONST Production sep2v51_prod_336_0_part0[5] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     },
@@ -84427,7 +84427,7 @@ static CONST Production sep2v51_prod_336_1_part0[4] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     },
@@ -84499,7 +84499,7 @@ static CONST Production sep2v51_prod_336_2_part0[3] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     }
@@ -86978,7 +86978,7 @@ static CONST GrammarRule sep2v51_rule_339[6] =
 static CONST Production sep2v51_prod_340_0_part0[1] =
 {
     {
-        9, 101,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -87053,7 +87053,7 @@ static CONST Production sep2v51_prod_340_1_part1[2] =
 static CONST Production sep2v51_prod_340_2_part0[1] =
 {
     {
-        9, 101,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -89115,7 +89115,7 @@ static CONST GrammarRule sep2v51_rule_348[6] =
 static CONST Production sep2v51_prod_349_0_part0[1] =
 {
     {
-        9, 102,
+        9, 68,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -89190,7 +89190,7 @@ static CONST Production sep2v51_prod_349_1_part1[2] =
 static CONST Production sep2v51_prod_349_2_part0[1] =
 {
     {
-        9, 102,
+        9, 68,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -92645,7 +92645,7 @@ static CONST Production sep2v51_prod_366_0_part0[4] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     },
@@ -92727,7 +92727,7 @@ static CONST Production sep2v51_prod_366_1_part0[3] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     },
@@ -92789,7 +92789,7 @@ static CONST Production sep2v51_prod_366_2_part0[2] =
         4
     },
     {
-        2, 80,
+        2, 64,
         {0, 3},
         3
     }
@@ -93161,7 +93161,7 @@ static CONST GrammarRule sep2v51_rule_367[4] =
 static CONST Production sep2v51_prod_368_0_part0[1] =
 {
     {
-        9, 103,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -93236,7 +93236,7 @@ static CONST Production sep2v51_prod_368_1_part1[2] =
 static CONST Production sep2v51_prod_368_2_part0[1] =
 {
     {
-        9, 103,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -93283,7 +93283,7 @@ static CONST GrammarRule sep2v51_rule_368[3] =
 static CONST Production sep2v51_prod_369_0_part0[1] =
 {
     {
-        9, 104,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -93358,7 +93358,7 @@ static CONST Production sep2v51_prod_369_1_part1[2] =
 static CONST Production sep2v51_prod_369_2_part0[1] =
 {
     {
-        9, 104,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -93405,7 +93405,7 @@ static CONST GrammarRule sep2v51_rule_369[3] =
 static CONST Production sep2v51_prod_370_0_part0[1] =
 {
     {
-        9, 105,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -93480,7 +93480,7 @@ static CONST Production sep2v51_prod_370_1_part1[2] =
 static CONST Production sep2v51_prod_370_2_part0[1] =
 {
     {
-        9, 105,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -93527,7 +93527,7 @@ static CONST GrammarRule sep2v51_rule_370[3] =
 static CONST Production sep2v51_prod_371_0_part0[1] =
 {
     {
-        9, 106,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -93602,7 +93602,7 @@ static CONST Production sep2v51_prod_371_1_part1[2] =
 static CONST Production sep2v51_prod_371_2_part0[1] =
 {
     {
-        9, 106,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -93649,7 +93649,7 @@ static CONST GrammarRule sep2v51_rule_371[3] =
 static CONST Production sep2v51_prod_372_0_part0[1] =
 {
     {
-        9, 107,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -93724,7 +93724,7 @@ static CONST Production sep2v51_prod_372_1_part1[2] =
 static CONST Production sep2v51_prod_372_2_part0[1] =
 {
     {
-        9, 107,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -93771,7 +93771,7 @@ static CONST GrammarRule sep2v51_rule_372[3] =
 static CONST Production sep2v51_prod_373_0_part0[1] =
 {
     {
-        9, 108,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -93846,7 +93846,7 @@ static CONST Production sep2v51_prod_373_1_part1[2] =
 static CONST Production sep2v51_prod_373_2_part0[1] =
 {
     {
-        9, 108,
+        9, 47,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -95610,7 +95610,7 @@ static CONST GrammarRule sep2v51_rule_375[6] =
 static CONST Production sep2v51_prod_376_0_part0[1] =
 {
     {
-        9, 109,
+        9, 69,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -95685,7 +95685,7 @@ static CONST Production sep2v51_prod_376_1_part1[2] =
 static CONST Production sep2v51_prod_376_2_part0[1] =
 {
     {
-        9, 109,
+        9, 69,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -95732,7 +95732,7 @@ static CONST GrammarRule sep2v51_rule_376[3] =
 static CONST Production sep2v51_prod_377_0_part0[1] =
 {
     {
-        9, 110,
+        9, 70,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -95807,7 +95807,7 @@ static CONST Production sep2v51_prod_377_1_part1[2] =
 static CONST Production sep2v51_prod_377_2_part0[1] =
 {
     {
-        9, 110,
+        9, 70,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -103161,7 +103161,7 @@ static CONST GrammarRule sep2v51_docGrammarRule[3] =
     }}
 };
 
-static CONST SimpleType sep2v51_simpleTypes[111] =
+static CONST SimpleType sep2v51_simpleTypes[71] =
 {
     {2, 0x1000, 0x0000000000000000, 0, 0},
     {2, 0x1000, 0x0000000000000000, 0, 0},
@@ -103213,65 +103213,25 @@ static CONST SimpleType sep2v51_simpleTypes[111] =
     {21, 0x0240, 0x00000000000000ff, 0, 0},
     {21, 0x0240, 0x00000000000000ff, 0, 0},
     {7, 0x0004, 0x0000000000000000, 0, 4},
-    {7, 0x0004, 0x0000000000000000, 0, 4},
     {22, 0x0240, 0x0000ffffffffffff, 0, 0},
-    {22, 0x0240, 0x0000ffffffffffff, 0, 0},
-    {20, 0x0000, 0x0000000000000000, 0, 0},
     {20, 0x0000, 0x0000000000000000, 0, 0},
     {22, 0x0200, 0x0000000000000000, 0, 0},
-    {21, 0x0240, 0x000000000000007f, -128, 0},
     {21, 0x0240, 0x000000000000007f, -128, 0},
     {20, 0x0240, 0x0000000000007fff, -32768, 0},
-    {22, 0x0200, 0x0000000000000000, 0, 0},
-    {7, 0x0004, 0x0000000000000000, 0, 16},
     {7, 0x0004, 0x0000000000000000, 0, 16},
     {2, 0x0004, 0x0000000000000000, 0, 32},
     {20, 0x0040, 0x0000800000000000, 0, 0},
     {2, 0x0004, 0x0000000000000000, 0, 16},
-    {21, 0x0240, 0x00000000000000ff, 0, 0},
     {7, 0x0004, 0x0000000000000000, 0, 20},
-    {21, 0x0240, 0x00000000000000ff, 0, 0},
-    {21, 0x0240, 0x00000000000000ff, 0, 0},
-    {21, 0x0240, 0x00000000000000ff, 0, 0},
-    {21, 0x0240, 0x00000000000000ff, 0, 0},
-    {20, 0x0000, 0x0000000000000000, 0, 0},
     {20, 0x0000, 0x0000000000000000, 0, 0},
     {22, 0x0240, 0x0000ffffffffffff, 0, 0},
     {7, 0x0004, 0x0000000000000000, 0, 8},
-    {22, 0x0200, 0x0000000000000000, 0, 0},
-    {21, 0x0240, 0x00000000000000ff, 0, 0},
     {2, 0x0004, 0x0000000000000000, 0, 42},
-    {2, 0x0004, 0x0000000000000000, 0, 42},
-    {22, 0x0240, 0x000000000000ffff, 0, 0},
     {7, 0x0004, 0x0000000000000000, 0, 1},
     {2, 0x0004, 0x0000000000000000, 0, 192},
-    {7, 0x0004, 0x0000000000000000, 0, 4},
     {7, 0x0004, 0x0000000000000000, 0, 2},
-    {21, 0x0240, 0x00000000000000ff, 0, 0},
-    {20, 0x0240, 0x0000000000007fff, -32768, 0},
-    {21, 0x0240, 0x00000000000000ff, 0, 0},
-    {21, 0x0240, 0x00000000000000ff, 0, 0},
-    {21, 0x0240, 0x00000000000000ff, 0, 0},
-    {21, 0x0240, 0x00000000000000ff, 0, 0},
-    {21, 0x0240, 0x00000000000000ff, 0, 0},
-    {22, 0x0240, 0x000000000000ffff, 0, 0},
     {2, 0x0004, 0x0000000000000000, 0, 20},
-    {21, 0x0240, 0x00000000000000ff, 0, 0},
-    {21, 0x0240, 0x00000000000000ff, 0, 0},
-    {21, 0x0240, 0x00000000000000ff, 0, 0},
-    {21, 0x0240, 0x00000000000000ff, 0, 0},
-    {21, 0x0240, 0x00000000000000ff, 0, 0},
-    {21, 0x0240, 0x00000000000000ff, 0, 0},
-    {7, 0x0004, 0x0000000000000000, 0, 4},
-    {21, 0x0240, 0x00000000000000ff, 0, 0},
-    {21, 0x0240, 0x00000000000000ff, 0, 0},
     {2, 0x0004, 0x0000000000000000, 0, 6},
-    {21, 0x0240, 0x00000000000000ff, 0, 0},
-    {21, 0x0240, 0x00000000000000ff, 0, 0},
-    {21, 0x0240, 0x00000000000000ff, 0, 0},
-    {21, 0x0240, 0x00000000000000ff, 0, 0},
-    {21, 0x0240, 0x00000000000000ff, 0, 0},
-    {21, 0x0240, 0x00000000000000ff, 0, 0},
     {7, 0x0004, 0x0000000000000000, 0, 6},
     {22, 0x0200, 0x0000000000000000, 0, 0}
 };
@@ -103281,7 +103241,7 @@ CONST EXIPSchema sep2v51_schema =
     {NULL, NULL},
     {{sizeof(UriEntry), 5, 5, {NULL, 0}}, sep2v51_uriEntry, 5},
     {sep2v51_docGrammarRule, 3, 10, 0},
-    {{sizeof(SimpleType), 111, 111, {NULL, 0}}, sep2v51_simpleTypes, 111},
+    {{sizeof(SimpleType), 71, 71, {NULL, 0}}, sep2v51_simpleTypes, 71},
     {{sizeof(EXIGrammar), 383, 383, {NULL, 0}}, sep2v51_grammarTable, 383},
     {{sizeof(EnumDefinition), 0, 0, {NULL, 0}}, NULL, 0},
     1

@@ -27,22 +27,6 @@
 
 extern EXIGrammar static_grammar_empty;
 
-/**
- * Some schema attributes (e.g. namespace="...")
- * define a list of namespaces that are stored as a string.
- * The string needs to be parsed and each namespace added
- * as an entry in the NsTable dynamic array.
- * The entries are then used by the createWildcardTermGrammar()
- * */
-struct NsTable
-{
-	DynArray dynArray;
-	String *base;
-	size_t count;
-};
-
-typedef struct NsTable NsTable;
-
 struct GlobalElemQNameTable
 {
 	DynArray dynArray;
@@ -113,7 +97,7 @@ static errorCode getContentTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
  *    local elements within model groups (sequences, choices, groups etc.)
  * -# attribute uses
  */
-static errorCode getAttributeUseProtoGrammars(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* entry, ProtoGrammarArray* attrUseArray);
+static errorCode getAttributeUseProtoGrammars(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* entry, ProtoGrammarArray* attrUseArray, String** attrWildcardNS);
 
 /**
  * For local scope elements, this function builds the Particle Grammar of the element definition
@@ -579,7 +563,6 @@ static errorCode getAttributeProtoGrammar(BuildContext* ctx, TreeTable* treeT, T
 	unsigned char required = 0;
 	QNameID stQNameID;
 	Index typeId;
-	QName scope;
 	QNameID atQnameID;
 
 	if (!isStringEmpty(&(attrEntry->attributePointers[ATTRIBUTE_USE])) &&
@@ -603,14 +586,11 @@ static errorCode getAttributeProtoGrammar(BuildContext* ctx, TreeTable* treeT, T
 	if(*attr == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	scope.localName = &ctx->emptyString;
-	scope.uri = &ctx->emptyString;
-
 	tmp_err_code = getTypeId(ctx, stQNameID, attrEntry->child.entry, attrEntry->child.treeT, &typeId);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = createAttributeUseGrammar(&ctx->tmpMemList, required, typeId, scope, *attr, atQnameID);
+	tmp_err_code = createAttributeUseGrammar(&ctx->tmpMemList, required, typeId, *attr, atQnameID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -761,7 +741,9 @@ static errorCode getContentTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 	{
 		tmp_err_code = getChoiceProtoGrammar(ctx, entry->child.treeT, entry->child.entry, content);
 	}
-	else if(entry->child.entry->element == ELEMENT_ATTRIBUTE)
+	else if(entry->child.entry->element == ELEMENT_ATTRIBUTE ||
+			entry->child.entry->element == ELEMENT_ATTRIBUTE_GROUP ||
+			entry->child.entry->element == ELEMENT_ANY_ATTRIBUTE)
 	{
 		// Ignored -> attributes are handles by getAttributeUseProtoGrammars()
 		tmp_err_code = ERR_OK;
@@ -772,69 +754,93 @@ static errorCode getContentTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 	return tmp_err_code;
 }
 
-/** entry should be a complex_type or extension element */
-static errorCode getAttributeUseProtoGrammars(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* entry, ProtoGrammarArray* attrUseArray)
+/* entry should be a complex_type or extension or restriction element */
+static errorCode getAttributeUseProtoGrammars(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* entry, ProtoGrammarArray* attrUseArray, String** attrWildcardNS)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	TreeTableEntry* attrUse = NULL;
 
+	if(entry->child.entry != NULL)
+	{
+		if(entry->child.entry->element == ELEMENT_ATTRIBUTE)
+			attrUse = entry->child.entry;
+		else if(entry->child.entry->next != NULL && entry->child.entry->next->element == ELEMENT_ATTRIBUTE)
+			attrUse = entry->child.entry->next;
+		else if(entry->child.entry->element == ELEMENT_SIMPLE_CONTENT && entry->child.entry->child.entry != NULL && entry->child.entry->child.entry->element == ELEMENT_EXTENSION)
+		{
+			 if(entry->child.entry->child.entry->child.entry != NULL)
+			 {
+				 if(entry->child.entry->child.entry->child.entry->element == ELEMENT_ATTRIBUTE)
+					 attrUse = entry->child.entry->child.entry->child.entry;
+				 else if(entry->child.entry->child.entry->child.entry->next != NULL && entry->child.entry->child.entry->child.entry->next->element == ELEMENT_ATTRIBUTE)
+					 attrUse = entry->child.entry->child.entry->child.entry->next;
+			 }
+		}
+
+		if(attrUse != NULL)
+		{
+			ProtoGrammar* attrPG;
+			Index entryId;
+			do
+			{
+				if(attrUse->element == ELEMENT_ATTRIBUTE)
+				{
+					tmp_err_code = getAttributeProtoGrammar(ctx, treeT, attrUse, &attrPG);
+					if(tmp_err_code != ERR_OK)
+						return tmp_err_code;
+
+					tmp_err_code = addDynEntry(&attrUseArray->dynArray, attrPG, &entryId, &ctx->tmpMemList);
+					if(tmp_err_code != ERR_OK)
+						return tmp_err_code;
+				}
+				else if(attrUse->element == ELEMENT_ATTRIBUTE_GROUP)
+				{
+					return NOT_IMPLEMENTED_YET;
+				}
+				else if(attrUse->element == ELEMENT_ANY_ATTRIBUTE)
+				{
+					*attrWildcardNS = &attrUse->attributePointers[ATTRIBUTE_NAMESPACE];
+				}
+				else
+					return UNEXPECTED_ERROR;
+
+				attrUse = attrUse->next;
+			}
+			while(attrUse != NULL);
+		}
+
+		if(entry->element == ELEMENT_COMPLEX_TYPE)
+		{
+			if((entry->child.entry->element == ELEMENT_COMPLEX_CONTENT) &&
+			   (entry->child.entry->child.entry != NULL))
+			{
+				// Follow the extensions and restrictions.
+				// entry->child.entry->child.entry->element is either ELEMENT_EXTENSION or ELEMENT_RESTRICTION
+				tmp_err_code = getAttributeUseProtoGrammars(ctx, entry->child.entry->child.treeT, entry->child.entry->child.entry, attrUseArray, attrWildcardNS);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
+		}
+	}
+
 	if(entry->element == ELEMENT_EXTENSION)
 	{
+		/**
+		 * @page deriving_complex_restriction Deriving complex types through restriction
+		 * When deriving complex types through restriction you should repeat all the
+		 * inherited attributes, although the XSD spec does not require that for some reason.
+		 * This is yet another quirk in the XSD spec - all content elements should be repeated
+		 * during restriction but not the attribute uses!?!?
+		 * In any way, the schema code is much more comprehensible when the attribute uses are
+		 * repeated but still this deviation might be revised in the future releases of the library.
+		 */
+
 		if(entry->supertype.entry->element == ELEMENT_COMPLEX_TYPE)
 		{
-			tmp_err_code = getAttributeUseProtoGrammars(ctx, entry->supertype.treeT, entry->supertype.entry, attrUseArray);
+			tmp_err_code = getAttributeUseProtoGrammars(ctx, entry->supertype.treeT, entry->supertype.entry, attrUseArray, attrWildcardNS);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
-	}
-
-	if(entry->child.entry == NULL)
-		return ERR_OK;
-
-	if(entry->element == ELEMENT_COMPLEX_TYPE)
-	{
-		if((entry->child.entry != NULL) &&
-		   (entry->child.entry->element == ELEMENT_COMPLEX_CONTENT) &&
-		   (entry->child.entry->child.entry->element == ELEMENT_EXTENSION))
-		{
-			tmp_err_code = getAttributeUseProtoGrammars(ctx, entry->child.entry->child.treeT, entry->child.entry->child.entry, attrUseArray);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-		}
-	}
-
-	if(entry->child.entry->element == ELEMENT_ATTRIBUTE)
-		attrUse = entry->child.entry;
-	else if(entry->child.entry->next != NULL && entry->child.entry->next->element == ELEMENT_ATTRIBUTE)
-		attrUse = entry->child.entry->next;
-	else if(entry->child.entry->element == ELEMENT_SIMPLE_CONTENT && entry->child.entry->child.entry != NULL && entry->child.entry->child.entry->element == ELEMENT_EXTENSION)
-	{
-		 if(entry->child.entry->child.entry->child.entry != NULL)
-		 {
-			 if(entry->child.entry->child.entry->child.entry->element == ELEMENT_ATTRIBUTE)
-				 attrUse = entry->child.entry->child.entry->child.entry;
-			 else if(entry->child.entry->child.entry->child.entry->next != NULL && entry->child.entry->child.entry->child.entry->next->element == ELEMENT_ATTRIBUTE)
-				 attrUse = entry->child.entry->child.entry->child.entry->next;
-		 }
-	}
-
-	if(attrUse != NULL)
-	{
-		ProtoGrammar* attrPG;
-		Index entryId;
-		do
-		{
-			tmp_err_code = getAttributeProtoGrammar(ctx, treeT, attrUse, &attrPG);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-
-			tmp_err_code = addDynEntry(&attrUseArray->dynArray, attrPG, &entryId, &ctx->tmpMemList);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-
-			attrUse = attrUse->next;
-		}
-		while(attrUse != NULL);
 	}
 
 	return ERR_OK;
@@ -845,6 +851,7 @@ static errorCode getComplexTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	ProtoGrammarArray attrUseArray;
 	ProtoGrammar* contentTypeGrammar = NULL;
+	String* attrWildcardNS = NULL;
 
 	tmp_err_code = getContentTypeProtoGrammar(ctx, treeT, complEntry, &contentTypeGrammar);
 	if(tmp_err_code != ERR_OK)
@@ -854,11 +861,80 @@ static errorCode getComplexTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = getAttributeUseProtoGrammars(ctx, treeT, complEntry, &attrUseArray);
+	tmp_err_code = getAttributeUseProtoGrammars(ctx, treeT, complEntry, &attrUseArray, &attrWildcardNS);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
 	sortAttributeUseGrammars(&attrUseArray);
+
+	if(attrWildcardNS != NULL)
+	{
+		// There is an {attribute wildcard} ANY_ATTRIBUTE
+		NsTable nsTable;
+		ProtoGrammar attrWildGrammar;
+		Index dummyEntryId;
+		Index i;
+		QNameID qnameID;
+
+		tmp_err_code = createDynArray(&nsTable.dynArray, sizeof(String), 5, &ctx->tmpMemList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = getNsList(&ctx->tmpMemList, treeT, *attrWildcardNS, &nsTable);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = createProtoGrammar(&ctx->tmpMemList, 2, 5, &attrWildGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = addEEProduction(&ctx->tmpMemList, &attrWildGrammar.rule[0]);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		attrWildGrammar.count = 1;
+
+		tmp_err_code = addDynEntry(&attrUseArray.dynArray, &attrWildGrammar, &dummyEntryId, &ctx->tmpMemList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		if(nsTable.count == 0 ||		// default is "##any"
+			(nsTable.count == 1 &&
+					(stringEqualToAscii(nsTable.base[0], "##any") || stringEqualToAscii(nsTable.base[0], "##other"))
+			)
+		  )
+		{
+			for(i = 0; i < attrUseArray.count; i++)
+			{
+				qnameID.uriId = URI_MAX;
+				qnameID.lnId = LN_MAX;
+				tmp_err_code = addProduction(&ctx->tmpMemList, &attrUseArray.pg[i].rule[0], EVENT_AT_ALL, INDEX_MAX, qnameID, 0);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
+		}
+		else if(nsTable.count >= 1)
+		{
+			Index j;
+
+			qnameID.lnId = LN_MAX;
+
+			for(j = 0; j < nsTable.count; j++)
+			{
+				if(!lookupUri(&ctx->schema->uriTable, nsTable.base[j], &qnameID.uriId))
+				 	return UNEXPECTED_ERROR;
+
+				for(i = 0; i < attrUseArray.count; i++)
+				{
+					tmp_err_code = addProduction(&ctx->tmpMemList, &attrUseArray.pg[i].rule[0], EVENT_AT_URI, INDEX_MAX, qnameID, 0);
+					if(tmp_err_code != ERR_OK)
+						return tmp_err_code;
+				}
+			}
+		}
+		else
+			return UNEXPECTED_ERROR;
+	}
 
 	if(contentTypeGrammar == NULL && attrUseArray.count == 0) // An empty element: <xsd:complexType />
 	{
@@ -871,7 +947,7 @@ static errorCode getComplexTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 			return MEMORY_ALLOCATION_ERROR;
 
 		tmp_err_code = createComplexTypeGrammar(&ctx->tmpMemList, &attrUseArray,
-										   NULL, 0, contentTypeGrammar, *complType);
+										        contentTypeGrammar, *complType);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -1046,61 +1122,14 @@ static errorCode getAnyProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTab
 	int minOccurs = 1;
 	int maxOccurs = 1;
 	NsTable nsTable;
-	Index dummy_elemID;
 
 	tmp_err_code = createDynArray(&nsTable.dynArray, sizeof(String), 5, &ctx->tmpMemList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-
-	if(isStringEmpty(&anyEntry->attributePointers[ATTRIBUTE_NAMESPACE]))
-	{
-		String anyString;
-		tmp_err_code = asciiToString("##any", &anyString, &ctx->tmpMemList, TRUE);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = addDynEntry(&nsTable.dynArray, &anyString, &dummy_elemID, &ctx->tmpMemList);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-	else
-	{
-		Index sChIndex;
-		String attrNamespece;
-
-		attrNamespece.length = anyEntry->attributePointers[ATTRIBUTE_NAMESPACE].length;
-		attrNamespece.str = anyEntry->attributePointers[ATTRIBUTE_NAMESPACE].str;
-		sChIndex = getIndexOfChar(&attrNamespece, ' ');
-
-		while(sChIndex != INDEX_MAX)
-		{
-			String tmpNS;
-			tmpNS.length = sChIndex;
-			tmpNS.str = attrNamespece.str;
-
-			if(!stringEqualToAscii(tmpNS, "##any") &&
-					!stringEqualToAscii(tmpNS, "##other") &&
-					!stringEqualToAscii(tmpNS, "##targetNamespace") &&
-					!stringEqualToAscii(tmpNS, "##local"))
-			{
-				return NOT_IMPLEMENTED_YET;
-			}
-
-			tmp_err_code = addDynEntry(&nsTable.dynArray, &tmpNS, &dummy_elemID, &ctx->tmpMemList);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-
-			attrNamespece.length = attrNamespece.length - sChIndex - 1;
-			attrNamespece.str = attrNamespece.str + sChIndex + 1;
-
-			sChIndex = getIndexOfChar(&attrNamespece, ' ');
-		}
-
-		tmp_err_code = addDynEntry(&nsTable.dynArray, &attrNamespece, &dummy_elemID, &ctx->tmpMemList);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
+	tmp_err_code = getNsList(&ctx->tmpMemList, treeT, anyEntry->attributePointers[ATTRIBUTE_NAMESPACE], &nsTable);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	tmp_err_code = parseOccuranceAttribute(anyEntry->attributePointers[ATTRIBUTE_MIN_OCCURS], &minOccurs);
 	tmp_err_code += parseOccuranceAttribute(anyEntry->attributePointers[ATTRIBUTE_MAX_OCCURS], &maxOccurs);
@@ -1110,7 +1139,7 @@ static errorCode getAnyProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTab
 	if(minOccurs < 0 || maxOccurs < -1)
 		return UNEXPECTED_ERROR;
 
-	tmp_err_code = createWildcardTermGrammar(&ctx->tmpMemList, nsTable.base, nsTable.count, &wildTermGrammar);
+	tmp_err_code = createWildcardTermGrammar(&ctx->tmpMemList, nsTable.base, nsTable.count, &ctx->schema->uriTable, &wildTermGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1484,17 +1513,32 @@ static errorCode getRestrictionSimpleProtoGrammar(BuildContext* ctx, TreeTable* 
 static errorCode getRestrictionComplexProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* resEntry, ProtoGrammar** restr)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	QNameID baseTypeID;
+	QNameID baseTypeId;
 
-	tmp_err_code = getTypeQName(ctx->schema, treeT, resEntry->attributePointers[ATTRIBUTE_BASE], &baseTypeID);
+#if DEBUG_GRAMMAR_GEN == ON
+	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Handle ComplexContent Restriction: "));
+	printString(&resEntry->attributePointers[ATTRIBUTE_BASE]);
+#endif
+
+	tmp_err_code = getTypeQName(ctx->schema, treeT, resEntry->attributePointers[ATTRIBUTE_BASE], &baseTypeId);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	/* When <complexContent> is used, the base type must
-	 be a complexType. Base simpleType is an error.*/
+	// Restriction from a complex type only
 
-	// TODO: this implementation works on simple types only. Extend that to complex types
-
+	if((baseTypeId.uriId == 3 && baseTypeId.lnId == 12) || // "xs:anyType"
+			(resEntry->supertype.entry != NULL && resEntry->supertype.entry->element == ELEMENT_COMPLEX_TYPE))
+	{
+		tmp_err_code = getContentTypeProtoGrammar(ctx, treeT, resEntry, restr);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else
+	{
+		/* When <complexContent> is used, the base type must
+		 be a complexType. Base simpleType is an error.*/
+		return UNEXPECTED_ERROR;
+	}
 
 	return ERR_OK;
 }

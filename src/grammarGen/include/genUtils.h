@@ -60,18 +60,13 @@ errorCode createSimpleTypeGrammar(AllocList* memList, Index typeId, ProtoGrammar
  * @param[in, out] memList A list storing the memory allocations
  * @param[in] attrUseArray array of attribute uses grammars included in this complex type
  *            It should be lexicographically sorted
- * @param[in] wildcardArray array of strings. Possible values: "any" or a set of namespace names and "absent"
- * or 'not' and a namespace name or "not" and "absent"
- * @param[in] wildcardArraySize the size of the wildcard array
  * @param[in] contentTypeGrammar the proto-grammar of the complex type content: either Simple Type Grammar,
  * or Particle grammar or empty
  * @param[in, out] complexGrammar the resulted proto-grammar
  * @return Error handling code
  */
 errorCode createComplexTypeGrammar(AllocList* memList, ProtoGrammarArray* attrUseArray,
-		                           String* wildcardArray, unsigned int wildcardArraySize,
-		                           ProtoGrammar* contentTypeGrammar,
-		                           ProtoGrammar* complexGrammar);
+		                           ProtoGrammar* contentTypeGrammar, ProtoGrammar* complexGrammar);
 
 /**
  * @brief Creates Complex Ur-Type Grammar from XML Schema complex ur-type
@@ -88,12 +83,11 @@ errorCode createComplexUrTypeGrammar(AllocList* memList, ProtoGrammar* result);
  * @param[in, out] memList A list storing the memory allocations during schema parsing
  * @param[in] required 0 - false; otherwise true
  * @param[in] typeId the id of the attribute type in the simpleTypeTable
- * @param[in] scope attribute scope - if NULL then the scope is global otherwise the QName of the complex type which is the scope
  * @param[out] attrGrammar the resulted proto-grammar
  * @param[in] qnameID uri/ln indices in the unsorted string tables
  * @return Error handling code
  */
-errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, Index typeId, QName scope,
+errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, Index typeId,
 									ProtoGrammar* attrGrammar, QNameID qnameID);
 
 /**
@@ -127,10 +121,11 @@ errorCode createElementTermGrammar(AllocList* memList, ProtoGrammar* elemGrammar
  * @param[in] wildcardArray array of strings. Possible values: "any" or a set of namespace names and "absent"
  * or 'not' and a namespace name or "not" and "absent"
  * @param[in] wildcardArraySize the size of the wildcard array
+ * @param[in] uriT the URI string table
  * @param[out] wildcardGrammar the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createWildcardTermGrammar(AllocList* memList, String* wildcardArray, Index wildcardArraySize, ProtoGrammar* wildcardGrammar);
+errorCode createWildcardTermGrammar(AllocList* memList, String* wildcardArray, Index wildcardArraySize, UriTable* uriT, ProtoGrammar* wildcardGrammar);
 
 /**
  * @brief Creates Sequence Model Group Proto-Grammar from Particle term that is XML Schema Model Group with {compositor} equal to "sequence"
@@ -180,5 +175,14 @@ errorCode assignCodes(ProtoGrammar* grammar);
  * @return 0 when the qnames are equal; negative int when qnameID1<qnameID2; positive when qnameID1>qnameID2
  */
 int compareQNameID(const void* qnameID1, const void* qnameID2);
+
+/**
+ * @brief Adds a EE production to a proto grammar rule
+ *
+ * @param[in, out] memList A list storing the memory allocations
+ * @param[in] rule proto grammar rule
+ * @return Error handling code
+ */
+errorCode addEEProduction(AllocList* memList, ProtoRuleEntry* rule);
 
 #endif /* GENUTILS_H_ */
