@@ -22,9 +22,9 @@
 
 #define TREE_TABLE_ENTRY_COUNT 200
 
-#define LOOKUP_ELEMENT_TYPE_TYPE       0
-#define LOOKUP_ELEMENT_TYPE_ELEMENT    1
-#define LOOKUP_ELEMENT_TYPE_SUPER_TYPE 2
+#define LOOKUP_TYPE       0
+#define LOOKUP_REF        1
+#define LOOKUP_SUPER_TYPE 2
 
 /**
  * Finds a global TreeEntry corresponding to a entry-name eName and links it to the entry child or supertype
@@ -82,6 +82,18 @@ errorCode initTreeTable(TreeTable* treeT)
 	treeT->elemTbl = create_hashtable(INITIAL_HASH_TABLE_SIZE, djbHash, stringEqual);
 	if(treeT->elemTbl == NULL)
 		return HASH_TABLE_ERROR;
+
+	treeT->attrTbl = create_hashtable(INITIAL_HASH_TABLE_SIZE, djbHash, stringEqual);
+	if(treeT->attrTbl == NULL)
+		return HASH_TABLE_ERROR;
+
+	treeT->groupTbl = create_hashtable(INITIAL_HASH_TABLE_SIZE, djbHash, stringEqual);
+	if(treeT->groupTbl == NULL)
+		return HASH_TABLE_ERROR;
+
+	treeT->attrGroupTbl = create_hashtable(INITIAL_HASH_TABLE_SIZE, djbHash, stringEqual);
+	if(treeT->attrGroupTbl == NULL)
+		return HASH_TABLE_ERROR;
 #endif
 
 	return ERR_OK;
@@ -96,6 +108,15 @@ void destroyTreeTable(TreeTable* treeT)
 
 	if(treeT->elemTbl != NULL)
 		hashtable_destroy(treeT->elemTbl);
+
+	if(treeT->attrTbl != NULL)
+		hashtable_destroy(treeT->attrTbl);
+
+	if(treeT->groupTbl != NULL)
+		hashtable_destroy(treeT->groupTbl);
+
+	if(treeT->attrGroupTbl != NULL)
+		hashtable_destroy(treeT->attrGroupTbl);
 #endif
 	freeAllocList(&treeT->memList);
 }
@@ -140,15 +161,18 @@ static errorCode resolveEntry(EXIPSchema* schema, TreeTable* treeT, unsigned int
 			return tmp_err_code;
 	}
 
-	/* If elements or attributes have a type, link that in as a child */
-	if((entry->element == ELEMENT_ELEMENT) || (entry->element == ELEMENT_ATTRIBUTE))
+	/* If elements, attributes, groups or attributeGroups -> link type to global types or link ref to global definitions */
+	if((entry->element == ELEMENT_ELEMENT) ||
+		(entry->element == ELEMENT_ATTRIBUTE) ||
+		(entry->element == ELEMENT_GROUP) ||
+		(entry->element == ELEMENT_ATTRIBUTE_GROUP))
 	{
 		if(!isStringEmpty(&entry->attributePointers[ATTRIBUTE_TYPE]))
 		{
 			if(entry->child.entry != NULL) // TODO: add debug info
 				return UNEXPECTED_ERROR;
 
-			tmp_err_code = lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_TYPE], LOOKUP_ELEMENT_TYPE_TYPE, entry);
+			tmp_err_code = lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_TYPE], LOOKUP_TYPE, entry);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -157,7 +181,7 @@ static errorCode resolveEntry(EXIPSchema* schema, TreeTable* treeT, unsigned int
 			if(entry->child.entry != NULL) // TODO: add debug info
 				return UNEXPECTED_ERROR;
 
-			tmp_err_code = lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_REF], LOOKUP_ELEMENT_TYPE_ELEMENT, entry);
+			tmp_err_code = lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_REF], LOOKUP_REF, entry);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -170,7 +194,7 @@ static errorCode resolveEntry(EXIPSchema* schema, TreeTable* treeT, unsigned int
 			if(entry->supertype.entry != NULL) // TODO: add debug info
 				return UNEXPECTED_ERROR;
 
-			tmp_err_code = lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_BASE], LOOKUP_ELEMENT_TYPE_SUPER_TYPE, entry);
+			tmp_err_code = lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_BASE], LOOKUP_SUPER_TYPE, entry);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -212,12 +236,20 @@ static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, un
 	{
 #if HASH_TABLE_USE == ON
 		/* Use the hash table to do a fast lookup of the tree table index matching the global name */
-		if(treeT[i].typeTbl != NULL && treeT[i].elemTbl != NULL)
+		if(treeT[i].typeTbl != NULL && treeT[i].elemTbl != NULL && treeT[i].attrTbl != NULL &&
+				treeT[i].groupTbl != NULL && treeT[i].attrGroupTbl != NULL)
 		{
-			if(elType == LOOKUP_ELEMENT_TYPE_ELEMENT)
-				globalIndex = hashtable_search(treeT[i].elemTbl, &GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
-			else
+			if(elType == LOOKUP_TYPE || elType == LOOKUP_SUPER_TYPE)
 				globalIndex = hashtable_search(treeT[i].typeTbl, &GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
+			else if(entry->element == ELEMENT_ELEMENT) // LOOKUP_REF ELEMENT
+				globalIndex = hashtable_search(treeT[i].elemTbl, &GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
+			else if(entry->element == ELEMENT_ATTRIBUTE) // LOOKUP_REF ATTRIBUTE
+				globalIndex = hashtable_search(treeT[i].attrTbl, &GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
+			else if(entry->element == ELEMENT_GROUP) // LOOKUP_REF GROUP
+				globalIndex = hashtable_search(treeT[i].groupTbl, &GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
+			else if(entry->element == ELEMENT_ATTRIBUTE_GROUP) // LOOKUP_REF ATTRIBUTE_GROUP
+				globalIndex = hashtable_search(treeT[i].attrGroupTbl, &GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
+
 		}
 		else
 #endif
@@ -225,7 +257,9 @@ static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, un
 			/* Do a linear search through the tree table entry until we find it */
 			for(j = 0; j < treeT[i].count; j++)
 			{
-				if(stringEqual(treeT[i].tree[j].attributePointers[ATTRIBUTE_NAME], GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr))
+				if(stringEqual(treeT[i].tree[j].attributePointers[ATTRIBUTE_NAME], GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr) &&
+						((elType == LOOKUP_REF && treeT[i].tree[j].element == entry->element) ||
+						(elType != LOOKUP_REF && (treeT[i].tree[j].element == ELEMENT_SIMPLE_TYPE || treeT[i].tree[j].element == ELEMENT_COMPLEX_TYPE))))
 				{
 					globalIndex = j;
 					break;
@@ -237,12 +271,12 @@ static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, un
 	if(globalIndex == INDEX_MAX)
 	{
 		// The type must be build-in or the schema is buggy - do nothing here; it will be checked later
-		if(elType == LOOKUP_ELEMENT_TYPE_ELEMENT)
+		if(elType == LOOKUP_REF)
 			return UNEXPECTED_ERROR; // TODO: add debug info
 	}
 	else
 	{
-		if(elType == LOOKUP_ELEMENT_TYPE_SUPER_TYPE)
+		if(elType == LOOKUP_SUPER_TYPE)
 		{
 			entry->supertype.treeT = &treeT[i];
 			entry->supertype.entry = &treeT[i].tree[globalIndex];

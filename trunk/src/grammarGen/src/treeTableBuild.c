@@ -398,24 +398,25 @@ static char xsd_endElement(void* app_data)
 			Index lnId;
 			Index uriId = 0; // URI	0	"" [empty string]
 
-			if(entry->element == ELEMENT_ELEMENT)
+			if(ttpd->contextStack == NULL) // If the schema definition is global
 			{
-				if(ttpd->treeT->globalDefs.elemFormDefault == QUALIFIED || stringEqualToAscii(entry->attributePointers[ATTRIBUTE_FORM], "qualified"))
-					uriId = ttpd->targetNsId;
+				// it is always in the target namespace
+				uriId = ttpd->targetNsId;
+			}
+			else
+			{
+				// local scope so look for form attribute value
+				if(entry->element == ELEMENT_ELEMENT)
+				{
+					if(ttpd->treeT->globalDefs.elemFormDefault == QUALIFIED || stringEqualToAscii(entry->attributePointers[ATTRIBUTE_FORM], "qualified"))
+						uriId = ttpd->targetNsId;
 
-			}
-			else if(entry->element == ELEMENT_ATTRIBUTE)
-			{
-				if(ttpd->treeT->globalDefs.attrFormDefault == QUALIFIED || stringEqualToAscii(entry->attributePointers[ATTRIBUTE_FORM], "qualified"))
-					uriId = ttpd->targetNsId;
-			}
-			else if(entry->element == ELEMENT_SIMPLE_TYPE)
-			{
-				uriId = ttpd->targetNsId;
-			}
-			else if(entry->element == ELEMENT_COMPLEX_TYPE)
-			{
-				uriId = ttpd->targetNsId;
+				}
+				else if(entry->element == ELEMENT_ATTRIBUTE)
+				{
+					if(ttpd->treeT->globalDefs.attrFormDefault == QUALIFIED || stringEqualToAscii(entry->attributePointers[ATTRIBUTE_FORM], "qualified"))
+						uriId = ttpd->targetNsId;
+				}
 			}
 
 			if(!lookupLn(&ttpd->schema->uriTable.uri[uriId].lnTable, *elName, &lnId))
@@ -460,20 +461,21 @@ static char xsd_endElement(void* app_data)
 
 #if HASH_TABLE_USE == ON
 			/*
-			 * The hash table is used to look up global definitions easily when it comes to resolving the tree table
+			 * The hash tables are used to look up global definitions easily when it comes to resolving the tree table
 			 * For example, an element local to another element may be declared with a type definition which is global.
 			 * When it comes to linking that type in as a child or supertype, then the hash table can easily look up the
 			 * appropriate tree table entry
 			 */
 
-			elName = memManagedAllocate(&ttpd->treeT->memList, sizeof(String));
-			if(elName == NULL)
-				return MEMORY_ALLOCATION_ERROR;
-
-			*elName = GET_LN_URI_IDS(ttpd->schema->uriTable, uriId, lnId).lnStr;
-
 			if(ttpd->contextStack == NULL) // If the schema definition is global
 			{
+				elName = memManagedAllocate(&ttpd->treeT->memList, sizeof(String));
+				if(elName == NULL)
+					return MEMORY_ALLOCATION_ERROR;
+
+
+				*elName = GET_LN_URI_IDS(ttpd->schema->uriTable, uriId, lnId).lnStr;
+
 				if(entry->element == ELEMENT_ELEMENT)
 				{
 					if(ttpd->treeT->elemTbl != NULL)
@@ -499,6 +501,48 @@ static char xsd_endElement(void* app_data)
 						}
 
 						if(hashtable_insert(ttpd->treeT->typeTbl, elName, ttpd->treeT->count - 1) != ERR_OK)
+							return EXIP_HANDLER_STOP;
+					}
+				}
+				else if(entry->element == ELEMENT_ATTRIBUTE)
+				{
+					if(ttpd->treeT->attrTbl != NULL)
+					{
+						if(hashtable_search(ttpd->treeT->attrTbl, elName) != INDEX_MAX)
+						{
+							DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, ("ERROR: Duplicate global attribute name definition\n"));
+							return EXIP_HANDLER_STOP;
+						}
+
+						if(hashtable_insert(ttpd->treeT->attrTbl, elName, ttpd->treeT->count - 1) != ERR_OK)
+							return EXIP_HANDLER_STOP;
+					}
+				}
+				else if(entry->element == ELEMENT_GROUP)
+				{
+					if(ttpd->treeT->groupTbl != NULL)
+					{
+						if(hashtable_search(ttpd->treeT->groupTbl, elName) != INDEX_MAX)
+						{
+							DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, ("ERROR: Duplicate global group name definition\n"));
+							return EXIP_HANDLER_STOP;
+						}
+
+						if(hashtable_insert(ttpd->treeT->groupTbl, elName, ttpd->treeT->count - 1) != ERR_OK)
+							return EXIP_HANDLER_STOP;
+					}
+				}
+				else if(entry->element == ELEMENT_ATTRIBUTE_GROUP)
+				{
+					if(ttpd->treeT->attrGroupTbl != NULL)
+					{
+						if(hashtable_search(ttpd->treeT->attrGroupTbl, elName) != INDEX_MAX)
+						{
+							DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, ("ERROR: Duplicate global attribute group name definition\n"));
+							return EXIP_HANDLER_STOP;
+						}
+
+						if(hashtable_insert(ttpd->treeT->attrGroupTbl, elName, ttpd->treeT->count - 1) != ERR_OK)
 							return EXIP_HANDLER_STOP;
 					}
 				}
