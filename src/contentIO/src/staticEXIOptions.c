@@ -1,4 +1,4 @@
-/** AUTO-GENERATED: Wed Aug  8 18:03:07 2012
+/** AUTO-GENERATED: Wed Sep 12 16:29:02 2012
   * Copyright (c) 2010 - 2011, Rumen Kyusakov, EISLAB, LTU
   * $Id$ */
 
@@ -517,6 +517,15 @@ static CONST Production ops_prod_11_0_part0[1] =
     }
 };
 
+static CONST Production ops_prod_11_0_part1[1] =
+{
+    {
+        2, INDEX_MAX,
+        {2, 1},
+        0
+    }
+};
+
 static CONST Production ops_prod_11_1_part0[1] =
 {
     {
@@ -529,8 +538,8 @@ static CONST Production ops_prod_11_1_part0[1] =
 static CONST GrammarRule ops_rule_11[2] =
 {
     {{
-       {ops_prod_11_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
+       {ops_prod_11_0_part0, 1, 1}, 
+       {ops_prod_11_0_part1, 1, 0}, 
        {NULL, 0, 0},
     }},
     {{
@@ -540,33 +549,67 @@ static CONST GrammarRule ops_rule_11[2] =
     }}
 };
 
-static CONST Production ops_prod_12_0_part0[1] =
+static CONST Production ops_prod_12_0_part0[4] =
 {
     {
-        9, 45,
+        9, INDEX_MAX,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
-    }
-};
-
-static CONST Production ops_prod_12_1_part0[1] =
-{
+    },
     {
         8, INDEX_MAX,
         {SMALL_INDEX_MAX, INDEX_MAX},
         SMALL_INDEX_MAX
+    },
+    {
+        7, INDEX_MAX,
+        {SMALL_INDEX_MAX, INDEX_MAX},
+        1
+    },
+    {
+        4, INDEX_MAX,
+        {SMALL_INDEX_MAX, INDEX_MAX},
+        0
+    }
+};
+
+static CONST Production ops_prod_12_0_part1[1] =
+{
+    {
+        2, INDEX_MAX,
+        {2, 1},
+        0
+    }
+};
+
+static CONST Production ops_prod_12_1_part0[3] =
+{
+    {
+        9, INDEX_MAX,
+        {SMALL_INDEX_MAX, INDEX_MAX},
+        1
+    },
+    {
+        8, INDEX_MAX,
+        {SMALL_INDEX_MAX, INDEX_MAX},
+        SMALL_INDEX_MAX
+    },
+    {
+        7, INDEX_MAX,
+        {SMALL_INDEX_MAX, INDEX_MAX},
+        1
     }
 };
 
 static CONST GrammarRule ops_rule_12[2] =
 {
     {{
-       {ops_prod_12_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
+       {ops_prod_12_0_part0, 4, 3}, 
+       {ops_prod_12_0_part1, 1, 0}, 
        {NULL, 0, 0},
     }},
     {{
-       {ops_prod_12_1_part0, 1, 0}, 
+       {ops_prod_12_1_part0, 3, 2}, 
        {NULL, 0, 0}, 
        {NULL, 0, 0}
     }}
@@ -3321,8 +3364,8 @@ static CONST EXIGrammar ops_grammarTable[75] =
    {ops_rule_8, 2, 0x0a, 0},
    {ops_rule_9, 2, 0x1a, 0},
    {ops_rule_10, 2, 0x0a, 0},
-   {ops_rule_11, 2, 0x0a, 0},
-   {ops_rule_12, 2, 0x0a, 0},
+   {ops_rule_11, 2, 0x1a, 0},
+   {ops_rule_12, 2, 0x1a, 1},
    {ops_rule_13, 2, 0x0a, 0},
    {ops_rule_14, 2, 0x1a, 0},
    {ops_rule_15, 2, 0x1a, 0},
@@ -3924,7 +3967,7 @@ static CONST Production ops_prod_doc_content[2] =
 {
     {
         7, INDEX_MAX,
-        {0, 0},
+        {SMALL_INDEX_MAX, INDEX_MAX},
         2
     },
     {
@@ -3999,8 +4042,8 @@ static CONST SimpleType ops_simpleTypes[67] =
     {5, 0x0000, 0x0000000000000000, 0, 0},
     {5, 0x0000, 0x0000000000000000, 0, 0},
     {5, 0x0000, 0x0000000000000000, 0, 0},
-    {2, 0x0000, 0x0000000000000000, 0, 0},
-    {1, 0x0000, 0x0000000000000000, 0, 0},
+    {2, 0x1000, 0x0000000000000000, 0, 0},
+    {1, 0x1000, 0x0000000000000000, 0, 0},
     {22, 0x0200, 0x0000000000000000, 0, 0},
     {22, 0x0200, 0x0000000000000000, 0, 0},
     {22, 0x0200, 0x0000000000000000, 1, 0},

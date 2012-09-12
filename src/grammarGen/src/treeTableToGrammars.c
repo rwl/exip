@@ -155,6 +155,18 @@ static errorCode getAnyProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTab
 static errorCode getChoiceProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* chEntry, ProtoGrammar** choice);
 
 /**
+ * Given a All entry this function builds the corresponding
+ * All proto grammar.
+ */
+static errorCode getAllProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* allEntry, ProtoGrammar** all);
+
+/**
+ * Given a group entry this function builds the corresponding
+ * group particle proto grammar.
+ */
+static errorCode getGroupProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* grEntry, ProtoGrammar** group);
+
+/**
  * Given a ComplexContent Extension entry this function builds the corresponding
  * Extension proto grammar.
  */
@@ -252,13 +264,21 @@ errorCode convertTreeTablesToExipSchema(TreeTable* treeT, unsigned int count, EX
 					tmp_err_code = handleComplexTypeEl(&ctx, &treeT[i], entry);
 					break;
 				case ELEMENT_GROUP:
-					tmp_err_code = NOT_IMPLEMENTED_YET;
+					// The model groups are only needing when referenced within a complex type definition
+					tmp_err_code = ERR_OK;
 					break;
 				case ELEMENT_ATTRIBUTE_GROUP:
-					tmp_err_code = NOT_IMPLEMENTED_YET;
+					// The attribute groups are only needing when referenced within a complex type definition
+					tmp_err_code = ERR_OK;
 					break;
 				case ELEMENT_ATTRIBUTE:
-					tmp_err_code = NOT_IMPLEMENTED_YET;
+					// AT (*) in schema-informed grammars bears an untyped value unless there is a
+					// global attribute definition available for the qname of the attribute.
+					// When a global attribute definition is available the attribute value is
+					// represented according to the datatype of the global attribute.
+					// TODO: There is a need for array of global attributes in the EXIPSchema object.
+					//       This array must be sorted according to qname
+					tmp_err_code = ERR_OK;
 					break;
 				case ELEMENT_IMPORT:
 					//TODO: implement validation checks
@@ -618,8 +638,13 @@ static errorCode getSimpleTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT, 
 	}
 	else if(simpleEntry->child.entry->element == ELEMENT_UNION)
 	{
-		// TODO: If T k either has named sub-types or is a simple type definition of which {variety} is union...
-		return NOT_IMPLEMENTED_YET;
+		*simplType = (ProtoGrammar*) memManagedAllocate(&ctx->tmpMemList, sizeof(ProtoGrammar));
+		if(*simplType == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+
+		tmp_err_code = createSimpleTypeGrammar(&ctx->tmpMemList, SIMPLE_TYPE_STRING, *simplType);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 	}
 	else
 		return UNEXPECTED_ERROR;
@@ -673,6 +698,10 @@ static errorCode handleSimpleTypeEl(BuildContext* ctx, TreeTable* treeT, TreeTab
 					return tmp_err_code;
 
 				SET_NAMED_SUB_TYPE_OR_UNION((GET_TYPE_GRAMMAR_QNAMEID(ctx->schema, baseTypeQnameId))->props);
+			}
+			else if(entry->child.entry->element == ELEMENT_UNION)
+			{
+				SET_NAMED_SUB_TYPE_OR_UNION((GET_TYPE_GRAMMAR_QNAMEID(ctx->schema, stQNameID))->props);
 			}
 		}
 	}
@@ -731,11 +760,11 @@ static errorCode getContentTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 	}
 	else if(entry->child.entry->element == ELEMENT_GROUP)
 	{
-		return NOT_IMPLEMENTED_YET;
+		tmp_err_code = getGroupProtoGrammar(ctx, entry->child.treeT, entry->child.entry, content);
 	}
 	else if(entry->child.entry->element == ELEMENT_ALL)
 	{
-		return NOT_IMPLEMENTED_YET;
+		tmp_err_code = getAllProtoGrammar(ctx, entry->child.treeT, entry->child.entry, content);
 	}
 	else if(entry->child.entry->element == ELEMENT_CHOICE)
 	{
@@ -991,16 +1020,26 @@ static errorCode handleComplexTypeEl(BuildContext* ctx, TreeTable* treeT, TreeTa
 			GET_LN_URI_QNAME(ctx->schema->uriTable, ctQNameID).typeGrammar = grIndex;
 
 			// When Strict is True: If Tk either has named sub-types or is a simple type definition of which {variety} is union...
-			if(entry->child.entry->element == ELEMENT_SIMPLE_CONTENT ||
-					entry->child.entry->element == ELEMENT_COMPLEX_CONTENT)
+			if(entry->child.entry != NULL && entry->child.entry->child.entry != NULL)
 			{
-				QNameID baseTypeQnameId;
+				if(entry->child.entry->element == ELEMENT_SIMPLE_CONTENT ||
+						entry->child.entry->element == ELEMENT_COMPLEX_CONTENT)
+				{
+					if(entry->child.entry->child.entry->element == ELEMENT_RESTRICTION)
+					{
+						QNameID baseTypeQnameId;
 
-				tmp_err_code = getTypeQName(ctx->schema, entry->child.entry->child.treeT, entry->child.entry->child.entry->attributePointers[ATTRIBUTE_BASE], &baseTypeQnameId);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
+						tmp_err_code = getTypeQName(ctx->schema, entry->child.entry->child.treeT, entry->child.entry->child.entry->attributePointers[ATTRIBUTE_BASE], &baseTypeQnameId);
+						if(tmp_err_code != ERR_OK)
+							return tmp_err_code;
 
-				SET_NAMED_SUB_TYPE_OR_UNION((GET_TYPE_GRAMMAR_QNAMEID(ctx->schema, baseTypeQnameId))->props);
+						SET_NAMED_SUB_TYPE_OR_UNION((GET_TYPE_GRAMMAR_QNAMEID(ctx->schema, baseTypeQnameId))->props);
+					}
+					else if(entry->child.entry->child.entry->element == ELEMENT_EXTENSION)
+					{
+						SET_NAMED_SUB_TYPE_OR_UNION((GET_TYPE_GRAMMAR_QNAMEID(ctx->schema, ctQNameID))->props);
+					}
+				}
 			}
 		}
 
@@ -1072,7 +1111,9 @@ static errorCode getSequenceProtoGrammar(BuildContext* ctx, TreeTable* treeT, Tr
 		}
 		else if(nextIterator->element == ELEMENT_GROUP)
 		{
-			return NOT_IMPLEMENTED_YET;
+			tmp_err_code = getGroupProtoGrammar(ctx, treeT, nextIterator, &particleGrammar);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
 		}
 		else if(nextIterator->element == ELEMENT_CHOICE)
 		{
@@ -1082,7 +1123,9 @@ static errorCode getSequenceProtoGrammar(BuildContext* ctx, TreeTable* treeT, Tr
 		}
 		else if(nextIterator->element == ELEMENT_SEQUENCE)
 		{
-			return NOT_IMPLEMENTED_YET;
+			tmp_err_code = getSequenceProtoGrammar(ctx, treeT, nextIterator, &particleGrammar);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
 		}
 		else if(nextIterator->element == ELEMENT_ANY)
 		{
@@ -1195,15 +1238,21 @@ static errorCode getChoiceProtoGrammar(BuildContext* ctx, TreeTable* treeT, Tree
 		}
 		else if(nextIterator->element == ELEMENT_GROUP)
 		{
-			return NOT_IMPLEMENTED_YET;
+			tmp_err_code = getGroupProtoGrammar(ctx, treeT, nextIterator, &particleGrammar);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
 		}
 		else if(nextIterator->element == ELEMENT_CHOICE)
 		{
-			return NOT_IMPLEMENTED_YET;
+			tmp_err_code = getChoiceProtoGrammar(ctx, treeT, nextIterator, &particleGrammar);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
 		}
 		else if(nextIterator->element == ELEMENT_SEQUENCE)
 		{
-			return NOT_IMPLEMENTED_YET;
+			tmp_err_code = getSequenceProtoGrammar(ctx, treeT, nextIterator, &particleGrammar);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
 		}
 		else if(nextIterator->element == ELEMENT_ANY)
 		{
@@ -1233,6 +1282,74 @@ static errorCode getChoiceProtoGrammar(BuildContext* ctx, TreeTable* treeT, Tree
 		return tmp_err_code;
 
 	*choice = choicePartGrammar;
+
+	return ERR_OK;
+}
+
+static errorCode getAllProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* allEntry, ProtoGrammar** all)
+{
+	return NOT_IMPLEMENTED_YET;
+}
+
+static errorCode getGroupProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* grEntry, ProtoGrammar** group)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	ProtoGrammar* particleGrammar = NULL;
+	ProtoGrammar* grPartGrammar;
+	int minOccurs = 1;
+	int maxOccurs = 1;
+
+	tmp_err_code = parseOccuranceAttribute(grEntry->attributePointers[ATTRIBUTE_MIN_OCCURS], &minOccurs);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+	tmp_err_code = parseOccuranceAttribute(grEntry->attributePointers[ATTRIBUTE_MAX_OCCURS], &maxOccurs);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	if(minOccurs < 0 || maxOccurs < -1)
+		return UNEXPECTED_ERROR;
+
+	// There should be a global group definition referenced through ref attribute
+	if(grEntry->child.entry == NULL)
+		return UNEXPECTED_ERROR;
+
+	if(grEntry->child.entry->child.entry == NULL)
+	{
+		// empty group.
+		// The content of 'group (global)' must match (annotation?, (all | choice | sequence)). Not enough
+		// elements were found.
+		return UNEXPECTED_ERROR;
+	}
+	else if(grEntry->child.entry->child.entry->element == ELEMENT_SEQUENCE)
+	{
+		tmp_err_code = getSequenceProtoGrammar(ctx, grEntry->child.entry->child.treeT, grEntry->child.entry->child.entry, &particleGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else if(grEntry->child.entry->child.entry->element == ELEMENT_CHOICE)
+	{
+		tmp_err_code = getChoiceProtoGrammar(ctx, grEntry->child.entry->child.treeT, grEntry->child.entry->child.entry, &particleGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else if(grEntry->child.entry->child.entry->element == ELEMENT_ALL)
+	{
+		tmp_err_code = getAllProtoGrammar(ctx, grEntry->child.entry->child.treeT, grEntry->child.entry->child.entry, &particleGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else
+		return UNEXPECTED_ERROR;
+
+	grPartGrammar = (ProtoGrammar*)memManagedAllocate(&ctx->tmpMemList, sizeof(ProtoGrammar));
+	if(grPartGrammar == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	tmp_err_code = createParticleGrammar(&ctx->tmpMemList, minOccurs, maxOccurs, particleGrammar, grPartGrammar);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	*group = grPartGrammar;
 
 	return ERR_OK;
 }

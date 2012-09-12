@@ -202,6 +202,21 @@ struct TreeTable
 	 * referred with the ref schema attribute.
 	 */
 	struct hashtable* elemTbl;
+
+	/**
+	 * Used for fast lookups of global attributes when linking references to global attributes
+	 */
+	struct hashtable* attrTbl;
+
+	/**
+	 * Used for fast lookups of global model groups during linking references to them
+	 */
+	struct hashtable* groupTbl;
+
+	/**
+	 * Used for fast lookups of global attribute groups when linking references to global attribute groups
+	 */
+	struct hashtable* attrGroupTbl;
 #endif
 };
 
