@@ -53,7 +53,7 @@ struct ProtoGrammarArray
 #if DYN_ARRAY_USE == ON
 	DynArray dynArray;
 #endif
-	ProtoGrammar* pg;
+	ProtoGrammar** pg;
 	uint16_t count;
 };
 

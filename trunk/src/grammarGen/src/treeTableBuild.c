@@ -111,7 +111,15 @@ static const char* elemStrings[] =
 	"field",
 	"notation",
 	"include",
-	"redefine"
+	"redefine",
+	"minExclusive",
+	"maxExclusive",
+	"totalDigits",
+	"fractionDigits",
+	"length",
+	"minLength",
+	"whiteSpace",
+	"pattern"
 };
 
 static const char* attrStrings[] =
