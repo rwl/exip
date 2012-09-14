@@ -835,9 +835,18 @@ typedef struct UriTable UriTable;
 struct SimpleType {
 	EXIType exiType;
 	uint16_t facetPresenceMask;
-	int64_t maxInclusive;
-	int minInclusive;
-	unsigned int maxLength;
+	/**
+	 * either maxInclusive or maxExclusive or maxLength (they are mutually exclusive) */
+	int64_t max;
+	/**
+	 * either minInclusive or minExclusive or minLength (they are mutually exclusive) */
+	int64_t min;
+	/**
+	 * either length or (totalDigits and fractionDigits) or typeId, when exiType is LIST (they are mutually exclusive)
+	 * The totalDigits (if available) are encoded in the most significant 16 bits as unsigned integer
+	 * and fractionDigits (if available) are encoded in the least significant 16 bits as unsigned integer
+	 */
+	uint32_t length;
 };
 
 typedef struct SimpleType SimpleType;

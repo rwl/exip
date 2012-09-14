@@ -548,12 +548,12 @@ errorCode encodeIntData(EXIStream* strm, Integer int_val, Index typeId)
 		unsigned int encoded_val;
 		unsigned char numberOfBits;
 
-		if(int_val > strm->schema->simpleTypeTable.sType[typeId].maxInclusive ||
-				int_val < strm->schema->simpleTypeTable.sType[typeId].minInclusive)
+		if(int_val > strm->schema->simpleTypeTable.sType[typeId].max ||
+				int_val < strm->schema->simpleTypeTable.sType[typeId].min)
 			return INVALID_EXI_INPUT;
 
-		encoded_val = (unsigned int) (int_val - strm->schema->simpleTypeTable.sType[typeId].minInclusive);
-		numberOfBits = getBitsNumber(strm->schema->simpleTypeTable.sType[typeId].maxInclusive - strm->schema->simpleTypeTable.sType[typeId].minInclusive);
+		encoded_val = (unsigned int) (int_val - strm->schema->simpleTypeTable.sType[typeId].min);
+		numberOfBits = getBitsNumber(strm->schema->simpleTypeTable.sType[typeId].max - strm->schema->simpleTypeTable.sType[typeId].min);
 
 		return encodeNBitUnsignedInteger(strm, numberOfBits, encoded_val);
 	}

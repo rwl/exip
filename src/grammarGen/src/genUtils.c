@@ -40,8 +40,6 @@ static errorCode addProductionsToARule(AllocList* memList, ProtoRuleEntry* leftR
 static errorCode resolveCollisionsInGrammar(AllocList* memList, struct collisionInfo* collisions,
 											unsigned int* collisionCount, ProtoGrammar* left, unsigned int* currRuleIndex);
 
-static errorCode recursiveGrammarConcat(AllocList* memList, GenericStack** protoGrammars, ProtoGrammar* seqGrammar);
-
 /** Descending order comparison.
  * The productions are ordered with the largest event code first. */
 static int compareProductions(const void* prod1, const void* prod2);
@@ -328,7 +326,7 @@ errorCode createComplexTypeGrammar(AllocList* memList, ProtoGrammarArray* attrUs
 
 		for(i = 0; i < attrUseArray->count; i++)
 		{
-			tmp_err_code = concatenateGrammars(memList, complexGrammar, &attrUseArray->pg[i]);
+			tmp_err_code = concatenateGrammars(memList, complexGrammar, attrUseArray->pg[i]);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -547,13 +545,11 @@ errorCode createWildcardTermGrammar(AllocList* memList, String* wildcardArray, I
 	return ERR_OK;
 }
 
-errorCode createSequenceModelGroupsGrammar(AllocList* memList, GenericStack** protoGrammars, ProtoGrammar* seqGrammar)
+errorCode createSequenceModelGroupsGrammar(AllocList* memList, ProtoGrammar** grArray, unsigned int arrSize, ProtoGrammar* seqGrammar)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
-	//TODO: use array for the protoGrammars and not a stack - it is easier and clearer
-
-	if(*protoGrammars == NULL)
+	if(arrSize == 0)
 	{
 		tmp_err_code = createProtoGrammar(memList, 1, 3, seqGrammar);
 		if(tmp_err_code != ERR_OK)
@@ -568,6 +564,8 @@ errorCode createSequenceModelGroupsGrammar(AllocList* memList, GenericStack** pr
 	}
 	else
 	{
+		unsigned int i;
+
 		tmp_err_code = createProtoGrammar(memList, 10, 5, seqGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -578,33 +576,12 @@ errorCode createSequenceModelGroupsGrammar(AllocList* memList, GenericStack** pr
 
 		seqGrammar->count = 1;
 
-		tmp_err_code = recursiveGrammarConcat(memList, protoGrammars, seqGrammar);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-	return ERR_OK;
-}
-
-static errorCode recursiveGrammarConcat(AllocList* memList, GenericStack** protoGrammars, ProtoGrammar* seqGrammar)
-{
-	ProtoGrammar* tmpGrammar;
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
-
-	popFromStack(protoGrammars, (void**) &tmpGrammar);
-
-	if(*protoGrammars == NULL)
-	{
-		return concatenateGrammars(memList, seqGrammar, tmpGrammar);
-	}
-	else
-	{
-		tmp_err_code = recursiveGrammarConcat(memList, protoGrammars, seqGrammar);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = concatenateGrammars(memList, seqGrammar, tmpGrammar);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		for(i = 0; i < arrSize; i++)
+		{
+			tmp_err_code = concatenateGrammars(memList, seqGrammar, grArray[i]);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
 	}
 	return ERR_OK;
 }
@@ -633,7 +610,7 @@ errorCode createChoiceModelGroupsGrammar(AllocList* memList, ProtoGrammarArray* 
 
 	modGrpGrammar->count = 1;
 
-	tmpGrammar = &pgArray->pg[0];
+	tmpGrammar = pgArray->pg[0];
 	if(tmpGrammar == NULL)
 		return NULL_POINTER_REF;
 
@@ -644,7 +621,7 @@ errorCode createChoiceModelGroupsGrammar(AllocList* memList, ProtoGrammarArray* 
 	for(i = 1; i < pgArray->count; i++)
 	{
 
-		tmpGrammar = &pgArray->pg[i];
+		tmpGrammar = pgArray->pg[i];
 
 		if(tmpGrammar == NULL)
 			return NULL_POINTER_REF;

@@ -300,7 +300,10 @@ errorCode convertTreeTablesToExipSchema(TreeTable* treeT, unsigned int count, EX
 			}
 
 			if(tmp_err_code != ERR_OK)
-				break;
+			{
+				freeAllocList(&ctx.tmpMemList);
+				return tmp_err_code;
+			}
 		}
 	}
 
@@ -333,15 +336,15 @@ static errorCode parseOccuranceAttribute(const String occurance, int* outInt)
 
 static int compareAttrUse(const void* attrPG1, const void* attrPG2)
 {
-	ProtoGrammar* a1 = (ProtoGrammar*) attrPG1;
-	ProtoGrammar* a2 = (ProtoGrammar*) attrPG2;
+	ProtoGrammar** a1 = (ProtoGrammar**) attrPG1;
+	ProtoGrammar** a2 = (ProtoGrammar**) attrPG2;
 
-	return compareQNameID(&(a1->rule[0].prod[0].qnameId), &(a2->rule[0].prod[0].qnameId));
+	return compareQNameID(&((*a1)->rule[0].prod[0].qnameId), &((*a2)->rule[0].prod[0].qnameId));
 }
 
 static void sortAttributeUseGrammars(ProtoGrammarArray* attrUseArray)
 {
-	qsort(attrUseArray->pg, attrUseArray->count, sizeof(ProtoGrammar), compareAttrUse);
+	qsort(attrUseArray->pg, attrUseArray->count, sizeof(ProtoGrammar*), compareAttrUse);
 }
 
 static errorCode getElementTermProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* elementEntry, Index grIndex, ProtoGrammar** elTerm)
@@ -783,7 +786,7 @@ static errorCode getContentTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 	return tmp_err_code;
 }
 
-/* entry should be a complex_type or extension or restriction element */
+/* entry should be a complex_type or extension or restriction or attributeGroup element */
 static errorCode getAttributeUseProtoGrammars(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* entry, ProtoGrammarArray* attrUseArray, String** attrWildcardNS)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -791,18 +794,38 @@ static errorCode getAttributeUseProtoGrammars(BuildContext* ctx, TreeTable* tree
 
 	if(entry->child.entry != NULL)
 	{
-		if(entry->child.entry->element == ELEMENT_ATTRIBUTE)
+		if(entry->child.entry->element == ELEMENT_ATTRIBUTE ||
+			entry->child.entry->element == ELEMENT_ATTRIBUTE_GROUP ||
+			entry->child.entry->element == ELEMENT_ANY_ATTRIBUTE)
+		{	
 			attrUse = entry->child.entry;
-		else if(entry->child.entry->next != NULL && entry->child.entry->next->element == ELEMENT_ATTRIBUTE)
+		}
+		else if(entry->child.entry->next != NULL &&
+				(entry->child.entry->next->element == ELEMENT_ATTRIBUTE ||
+				 entry->child.entry->next->element == ELEMENT_ATTRIBUTE_GROUP ||
+				 entry->child.entry->next->element == ELEMENT_ANY_ATTRIBUTE)
+				)
+		{
 			attrUse = entry->child.entry->next;
+		}
 		else if(entry->child.entry->element == ELEMENT_SIMPLE_CONTENT && entry->child.entry->child.entry != NULL && entry->child.entry->child.entry->element == ELEMENT_EXTENSION)
 		{
 			 if(entry->child.entry->child.entry->child.entry != NULL)
 			 {
-				 if(entry->child.entry->child.entry->child.entry->element == ELEMENT_ATTRIBUTE)
+				 if(entry->child.entry->child.entry->child.entry->element == ELEMENT_ATTRIBUTE ||
+					entry->child.entry->child.entry->child.entry->element == ELEMENT_ATTRIBUTE_GROUP ||
+					entry->child.entry->child.entry->child.entry->element == ELEMENT_ANY_ATTRIBUTE)
+				 {
 					 attrUse = entry->child.entry->child.entry->child.entry;
-				 else if(entry->child.entry->child.entry->child.entry->next != NULL && entry->child.entry->child.entry->child.entry->next->element == ELEMENT_ATTRIBUTE)
+				 }
+				 else if(entry->child.entry->child.entry->child.entry->next != NULL &&
+						(entry->child.entry->child.entry->child.entry->next->element == ELEMENT_ATTRIBUTE ||
+						 entry->child.entry->child.entry->child.entry->next->element == ELEMENT_ATTRIBUTE_GROUP ||
+						 entry->child.entry->child.entry->child.entry->next->element == ELEMENT_ANY_ATTRIBUTE)
+				 	 	)
+				 {
 					 attrUse = entry->child.entry->child.entry->child.entry->next;
+				 }
 			 }
 		}
 
@@ -818,13 +841,20 @@ static errorCode getAttributeUseProtoGrammars(BuildContext* ctx, TreeTable* tree
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
 
-					tmp_err_code = addDynEntry(&attrUseArray->dynArray, attrPG, &entryId, &ctx->tmpMemList);
+					tmp_err_code = addDynEntry(&attrUseArray->dynArray, &attrPG, &entryId, &ctx->tmpMemList);
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
 				}
 				else if(attrUse->element == ELEMENT_ATTRIBUTE_GROUP)
 				{
-					return NOT_IMPLEMENTED_YET;
+					if(attrUse->child.entry != NULL)
+					{
+						tmp_err_code = getAttributeUseProtoGrammars(ctx, attrUse->child.treeT,  attrUse->child.entry, attrUseArray, attrWildcardNS);
+						if(tmp_err_code != ERR_OK)
+							return tmp_err_code;
+					}
+					else
+						return UNEXPECTED_ERROR;
 				}
 				else if(attrUse->element == ELEMENT_ANY_ATTRIBUTE)
 				{
@@ -886,7 +916,7 @@ static errorCode getComplexTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = createDynArray(&attrUseArray.dynArray, sizeof(ProtoGrammar), 10, &ctx->tmpMemList);
+	tmp_err_code = createDynArray(&attrUseArray.dynArray, sizeof(ProtoGrammar*), 10, &ctx->tmpMemList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -937,7 +967,7 @@ static errorCode getComplexTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 			{
 				qnameID.uriId = URI_MAX;
 				qnameID.lnId = LN_MAX;
-				tmp_err_code = addProduction(&ctx->tmpMemList, &attrUseArray.pg[i].rule[0], EVENT_AT_ALL, INDEX_MAX, qnameID, 0);
+				tmp_err_code = addProduction(&ctx->tmpMemList, &attrUseArray.pg[i]->rule[0], EVENT_AT_ALL, INDEX_MAX, qnameID, 0);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			}
@@ -955,7 +985,7 @@ static errorCode getComplexTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 
 				for(i = 0; i < attrUseArray.count; i++)
 				{
-					tmp_err_code = addProduction(&ctx->tmpMemList, &attrUseArray.pg[i].rule[0], EVENT_AT_URI, INDEX_MAX, qnameID, 0);
+					tmp_err_code = addProduction(&ctx->tmpMemList, &attrUseArray.pg[i]->rule[0], EVENT_AT_URI, INDEX_MAX, qnameID, 0);
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
 				}
@@ -1082,7 +1112,12 @@ static errorCode getSequenceProtoGrammar(BuildContext* ctx, TreeTable* treeT, Tr
 	int minOccurs = 1;
 	int maxOccurs = 1;
 	TreeTableEntry* nextIterator;
-	GenericStack* pStack = NULL;
+	ProtoGrammarArray partGrammarTbl;
+	Index dummyTblIndx;
+
+	tmp_err_code = createDynArray(&partGrammarTbl.dynArray, sizeof(ProtoGrammar*), 30, &ctx->tmpMemList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	tmp_err_code = parseOccuranceAttribute(seqEntry->attributePointers[ATTRIBUTE_MIN_OCCURS], &minOccurs);
 	if(tmp_err_code != ERR_OK)
@@ -1136,15 +1171,17 @@ static errorCode getSequenceProtoGrammar(BuildContext* ctx, TreeTable* treeT, Tr
 		else
 			return UNEXPECTED_ERROR;
 
-		pushOnStack(&pStack, particleGrammar);
+		tmp_err_code = addDynEntry(&partGrammarTbl.dynArray, &particleGrammar, &dummyTblIndx, &ctx->tmpMemList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 		nextIterator = nextIterator->next;
 	}
 
-	tmp_err_code = createSequenceModelGroupsGrammar(&ctx->tmpMemList, &pStack, &seqGrammar);
+	tmp_err_code = createSequenceModelGroupsGrammar(&ctx->tmpMemList, partGrammarTbl.pg, partGrammarTbl.count, &seqGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	seqPartGrammar = (ProtoGrammar*)memManagedAllocate(&ctx->tmpMemList, sizeof(ProtoGrammar));
+	seqPartGrammar = (ProtoGrammar*) memManagedAllocate(&ctx->tmpMemList, sizeof(ProtoGrammar));
 	if(seqPartGrammar == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -1218,7 +1255,7 @@ static errorCode getChoiceProtoGrammar(BuildContext* ctx, TreeTable* treeT, Tree
 	if(minOccurs < 0 || maxOccurs < -1)
 		return UNEXPECTED_ERROR;
 
-	tmp_err_code = createDynArray(&particleProtoGrammarArray.dynArray, sizeof(ProtoGrammar), 15, &ctx->tmpMemList);
+	tmp_err_code = createDynArray(&particleProtoGrammarArray.dynArray, sizeof(ProtoGrammar*), 15, &ctx->tmpMemList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1263,7 +1300,7 @@ static errorCode getChoiceProtoGrammar(BuildContext* ctx, TreeTable* treeT, Tree
 		else
 			return UNEXPECTED_ERROR;
 
-		tmp_err_code = addDynEntry(&particleProtoGrammarArray.dynArray, particleGrammar, &entryId, &ctx->tmpMemList);
+		tmp_err_code = addDynEntry(&particleProtoGrammarArray.dynArray, &particleGrammar, &entryId, &ctx->tmpMemList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		nextIterator = nextIterator->next;
@@ -1395,7 +1432,7 @@ static errorCode getExtensionComplexProtoGrammar(BuildContext* ctx, TreeTable* t
 	ProtoGrammar* contentTypeGrammarBase;
 	ProtoGrammar* contentTypeGrammarExt;
 	ProtoGrammar* resultProtoGrammar = NULL;
-	GenericStack* pStack = NULL;
+	ProtoGrammar* contGrArr[2];
 
 #if DEBUG_GRAMMAR_GEN == ON
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Handle ComplexContent Extension: "));
@@ -1439,10 +1476,10 @@ static errorCode getExtensionComplexProtoGrammar(BuildContext* ctx, TreeTable* t
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	pushOnStack(&pStack, contentTypeGrammarBase);
-	pushOnStack(&pStack, contentTypeGrammarExt);
+	contGrArr[0] = contentTypeGrammarBase;
+	contGrArr[1] = contentTypeGrammarExt;
 
-	tmp_err_code = createSequenceModelGroupsGrammar(&ctx->tmpMemList, &pStack, resultProtoGrammar);
+	tmp_err_code = createSequenceModelGroupsGrammar(&ctx->tmpMemList, contGrArr, 2, resultProtoGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1459,155 +1496,219 @@ static errorCode getRestrictionSimpleProtoGrammar(BuildContext* ctx, TreeTable* 
 	SimpleType newSimpleType;
 	Index typeId;
 	Index simpleTypeId;
+	TreeTableEntry* tmpEntry;
+	unsigned int enumCount = 0; // the number of <xs:enumeration in the restriction>
 
-	tmp_err_code = getTypeQName(ctx->schema, treeT, resEntry->attributePointers[ATTRIBUTE_BASE], &baseTypeID);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	if(isStringEmpty(&resEntry->attributePointers[ATTRIBUTE_BASE]))
+	{
+		// No base type defined. There should be an anonymous simple type
+		if(resEntry->child.entry != NULL && resEntry->child.entry->element == ELEMENT_SIMPLE_TYPE)
+		{
+			// Very weird use case of the XSD spec. Does not bring any useful features. Ignored for now.
+			return NOT_IMPLEMENTED_YET;
+		}
+		else
+			return UNEXPECTED_ERROR;
+	}
+	else
+	{
+		tmp_err_code = getTypeQName(ctx->schema, treeT, resEntry->attributePointers[ATTRIBUTE_BASE], &baseTypeID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 
-	tmp_err_code = getTypeId(ctx, baseTypeID, resEntry->supertype.entry, resEntry->supertype.treeT, &typeId);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+		tmp_err_code = getTypeId(ctx, baseTypeID, resEntry->supertype.entry, resEntry->supertype.treeT, &typeId);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
 
 	// TODO: check if there are cases when the EXI type changes after restriction
 	newSimpleType.exiType = ctx->schema->simpleTypeTable.sType[typeId].exiType;
 	newSimpleType.facetPresenceMask = ctx->schema->simpleTypeTable.sType[typeId].facetPresenceMask;
 	// remove the presence of named subtype
 	newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask & (~TYPE_FACET_NAMED_SUBTYPE_UNION);
-	newSimpleType.maxInclusive = ctx->schema->simpleTypeTable.sType[typeId].maxInclusive;
-	newSimpleType.minInclusive = ctx->schema->simpleTypeTable.sType[typeId].minInclusive;
-	newSimpleType.maxLength = ctx->schema->simpleTypeTable.sType[typeId].maxLength;
+	newSimpleType.max = ctx->schema->simpleTypeTable.sType[typeId].max;
+	newSimpleType.min = ctx->schema->simpleTypeTable.sType[typeId].min;
+	newSimpleType.length = ctx->schema->simpleTypeTable.sType[typeId].length;
 
-	if(resEntry->child.entry != NULL)
+	tmpEntry = resEntry->child.entry;
+
+	while(tmpEntry != NULL)
 	{
-		if(resEntry->child.entry->element == ELEMENT_MIN_INCLUSIVE)
+		if(tmpEntry->element == ELEMENT_MIN_INCLUSIVE)
 		{
 			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
-			tmp_err_code = stringToInteger(&resEntry->child.entry->attributePointers[ATTRIBUTE_VALUE], &newSimpleType.minInclusive);
+			tmp_err_code = stringToInt64(&resEntry->child.entry->attributePointers[ATTRIBUTE_VALUE], &newSimpleType.min);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
-		else if(resEntry->child.entry->element == ELEMENT_MAX_INCLUSIVE)
+		else if(tmpEntry->element == ELEMENT_MIN_EXCLUSIVE)
+		{
+			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_MIN_EXCLUSIVE;
+			tmp_err_code = stringToInt64(&resEntry->child.entry->attributePointers[ATTRIBUTE_VALUE], &newSimpleType.min);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+		else if(tmpEntry->element == ELEMENT_MIN_LENGTH)
+		{
+			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_MIN_LENGTH;
+			tmp_err_code = stringToInt64(&resEntry->child.entry->attributePointers[ATTRIBUTE_VALUE], &newSimpleType.min);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+		else if(tmpEntry->element == ELEMENT_MAX_INCLUSIVE)
 		{
 			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_MAX_INCLUSIVE;
-			tmp_err_code = stringToInt64(&resEntry->child.entry->attributePointers[ATTRIBUTE_VALUE], &newSimpleType.maxInclusive);
+			tmp_err_code = stringToInt64(&resEntry->child.entry->attributePointers[ATTRIBUTE_VALUE], &newSimpleType.max);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
-		else if(resEntry->child.entry->element == ELEMENT_MAX_LENGTH)
+		else if(tmpEntry->element == ELEMENT_MAX_EXCLUSIVE)
+		{
+			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_MAX_EXCLUSIVE;
+			tmp_err_code = stringToInt64(&resEntry->child.entry->attributePointers[ATTRIBUTE_VALUE], &newSimpleType.max);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+		else if(tmpEntry->element == ELEMENT_MAX_LENGTH)
+		{
+			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_MAX_LENGTH;
+			tmp_err_code = stringToInt64(&resEntry->child.entry->attributePointers[ATTRIBUTE_VALUE], &newSimpleType.max);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+		else if(tmpEntry->element == ELEMENT_LENGTH)
 		{
 			int ml = 0;
-			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_MAX_LENGTH;
+			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_LENGTH;
 			tmp_err_code = stringToInteger(&resEntry->child.entry->attributePointers[ATTRIBUTE_VALUE], &ml);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
-			newSimpleType.maxLength = (unsigned int) ml;
+			newSimpleType.length = (unsigned int) ml;
 		}
-		else if(resEntry->child.entry->element == ELEMENT_ENUMERATION)
+		else if(tmpEntry->element == ELEMENT_TOTAL_DIGITS)
 		{
-			struct TreeTableEntry* enumEntry;
-			unsigned int enumIter = 0;
-			size_t valSize = 0;
-			EnumDefinition eDef;
-			Index elId;
-
-			eDef.count = 0;
-			eDef.values = NULL;
-			/* The next index in the simpleTypeTable will be assigned to the newly created simple type
-			 * containing the enumeration */
-			eDef.typeId = ctx->schema->simpleTypeTable.count;
-
-			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_ENUMERATION;
-
-			switch(ctx->schema->simpleTypeTable.sType[typeId].exiType)
-			{
-				case VALUE_TYPE_STRING:
-					valSize = sizeof(String);
-					break;
-				case VALUE_TYPE_BOOLEAN:
-					valSize = sizeof(char);
-					break;
-				case VALUE_TYPE_DATE_TIME:
-					valSize = sizeof(EXIPDateTime);
-					break;
-				case VALUE_TYPE_DECIMAL:
-					valSize = sizeof(Decimal);
-					break;
-				case VALUE_TYPE_FLOAT:
-					valSize = sizeof(Float);
-					break;
-				case VALUE_TYPE_INTEGER:
-					valSize = sizeof(Integer);
-					break;
-				case VALUE_TYPE_SMALL_INTEGER:
-					valSize = sizeof(uint16_t);
-					break;
-			}
-
-			enumEntry = resEntry->child.entry;
-			while(enumEntry != NULL)
-			{
-				if(enumEntry->element == ELEMENT_ENUMERATION)
-					eDef.count++;
-				enumEntry = enumEntry->next;
-			}
-
-			eDef.values = memManagedAllocate(&ctx->schema->memList, valSize*(eDef.count));
-			if(eDef.values == NULL)
-				return MEMORY_ALLOCATION_ERROR;
-
-			enumEntry = resEntry->child.entry;
-			while(enumEntry != NULL)
-			{
-				if(enumEntry->element == ELEMENT_ENUMERATION)
-				{
-					switch(ctx->schema->simpleTypeTable.sType[typeId].exiType)
-					{
-						case VALUE_TYPE_STRING:
-						{
-							String tmpStr;
-
-							tmp_err_code = cloneString(&enumEntry->attributePointers[ATTRIBUTE_VALUE], &tmpStr, &ctx->schema->memList);
-							if(tmp_err_code != ERR_OK)
-								return tmp_err_code;
-
-							((String*) eDef.values)[enumIter].length = tmpStr.length;
-							((String*) eDef.values)[enumIter].str = tmpStr.str;
-						}
-							break;
-						case VALUE_TYPE_BOOLEAN:
-							return NOT_IMPLEMENTED_YET;
-							break;
-						case VALUE_TYPE_DATE_TIME:
-							return NOT_IMPLEMENTED_YET;
-							break;
-						case VALUE_TYPE_DECIMAL:
-							return NOT_IMPLEMENTED_YET;
-							break;
-						case VALUE_TYPE_FLOAT:
-							return NOT_IMPLEMENTED_YET;
-							break;
-						case VALUE_TYPE_INTEGER:
-							return NOT_IMPLEMENTED_YET;
-							break;
-						case VALUE_TYPE_SMALL_INTEGER:
-							return NOT_IMPLEMENTED_YET;
-							break;
-						default:
-							return NOT_IMPLEMENTED_YET;
-					}
-				}
-				enumEntry = enumEntry->next;
-				enumIter++;
-			}
-
-			tmp_err_code = addDynEntry(&ctx->schema->enumTable.dynArray, &eDef, &elId, &ctx->schema->memList);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-		}
-		else
-		{
+			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_TOTAL_DIGITS;
 			return NOT_IMPLEMENTED_YET;
 		}
+		else if(tmpEntry->element == ELEMENT_FRACTION_DIGITS)
+		{
+			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_FRACTION_DIGITS;
+			return NOT_IMPLEMENTED_YET;
+		}
+		else if(tmpEntry->element == ELEMENT_PATTERN)
+		{
+			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_PATTERN;
+			return NOT_IMPLEMENTED_YET;
+		}
+		else if(tmpEntry->element == ELEMENT_WHITE_SPACE)
+		{
+			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_WHITE_SPACE;
+			return NOT_IMPLEMENTED_YET;
+		}
+		else if(tmpEntry->element == ELEMENT_ENUMERATION)
+		{
+			enumCount += 1;
+		}
+		else
+			return UNEXPECTED_ERROR;
+
+		tmpEntry = tmpEntry->next;
+	}
+
+	// Handling of enumerations
+	if(enumCount > 0) // There are enumerations defined
+	{
+		struct TreeTableEntry* enumEntry;
+		unsigned int enumIter = 0;
+		size_t valSize = 0;
+		EnumDefinition eDef;
+		Index elId;
+
+		eDef.count = enumCount;
+		eDef.values = NULL;
+		/* The next index in the simpleTypeTable will be assigned to the newly created simple type
+		 * containing the enumeration */
+		eDef.typeId = ctx->schema->simpleTypeTable.count;
+
+		newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_ENUMERATION;
+
+		switch(ctx->schema->simpleTypeTable.sType[typeId].exiType)
+		{
+			case VALUE_TYPE_STRING:
+				valSize = sizeof(String);
+				break;
+			case VALUE_TYPE_BOOLEAN:
+				valSize = sizeof(char);
+				break;
+			case VALUE_TYPE_DATE_TIME:
+				valSize = sizeof(EXIPDateTime);
+				break;
+			case VALUE_TYPE_DECIMAL:
+				valSize = sizeof(Decimal);
+				break;
+			case VALUE_TYPE_FLOAT:
+				valSize = sizeof(Float);
+				break;
+			case VALUE_TYPE_INTEGER:
+				valSize = sizeof(Integer);
+				break;
+			case VALUE_TYPE_SMALL_INTEGER:
+				valSize = sizeof(uint16_t);
+				break;
+		}
+
+		eDef.values = memManagedAllocate(&ctx->schema->memList, valSize*(eDef.count));
+		if(eDef.values == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+
+		enumEntry = resEntry->child.entry;
+		while(enumEntry != NULL)
+		{
+			if(enumEntry->element == ELEMENT_ENUMERATION)
+			{
+				switch(ctx->schema->simpleTypeTable.sType[typeId].exiType)
+				{
+					case VALUE_TYPE_STRING:
+					{
+						String tmpStr;
+
+						tmp_err_code = cloneString(&enumEntry->attributePointers[ATTRIBUTE_VALUE], &tmpStr, &ctx->schema->memList);
+						if(tmp_err_code != ERR_OK)
+							return tmp_err_code;
+
+						((String*) eDef.values)[enumIter].length = tmpStr.length;
+						((String*) eDef.values)[enumIter].str = tmpStr.str;
+					}
+						break;
+					case VALUE_TYPE_BOOLEAN:
+						return NOT_IMPLEMENTED_YET;
+						break;
+					case VALUE_TYPE_DATE_TIME:
+						return NOT_IMPLEMENTED_YET;
+						break;
+					case VALUE_TYPE_DECIMAL:
+						return NOT_IMPLEMENTED_YET;
+						break;
+					case VALUE_TYPE_FLOAT:
+						return NOT_IMPLEMENTED_YET;
+						break;
+					case VALUE_TYPE_INTEGER:
+						return NOT_IMPLEMENTED_YET;
+						break;
+					case VALUE_TYPE_SMALL_INTEGER:
+						return NOT_IMPLEMENTED_YET;
+						break;
+					default:
+						return NOT_IMPLEMENTED_YET;
+				}
+			}
+			enumEntry = enumEntry->next;
+			enumIter++;
+		}
+
+		tmp_err_code = addDynEntry(&ctx->schema->enumTable.dynArray, &eDef, &elId, &ctx->schema->memList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 	}
 
 	tmp_err_code = addDynEntry(&ctx->schema->simpleTypeTable.dynArray, &newSimpleType, &simpleTypeId, &ctx->schema->memList);

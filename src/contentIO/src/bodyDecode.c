@@ -498,12 +498,12 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 				return INVALID_EXI_INPUT;
 
 			if((strm->schema->simpleTypeTable.sType[typeId].facetPresenceMask & TYPE_FACET_MIN_INCLUSIVE) != 0)
-				base = strm->schema->simpleTypeTable.sType[typeId].minInclusive;
+				base = strm->schema->simpleTypeTable.sType[typeId].min;
 			else
 				return NOT_IMPLEMENTED_YET;
 
 			if((strm->schema->simpleTypeTable.sType[typeId].facetPresenceMask & TYPE_FACET_MAX_INCLUSIVE) != 0)
-				upLimit = strm->schema->simpleTypeTable.sType[typeId].maxInclusive;
+				upLimit = strm->schema->simpleTypeTable.sType[typeId].max;
 			else
 				return NOT_IMPLEMENTED_YET;
 

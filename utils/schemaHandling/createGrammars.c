@@ -310,22 +310,23 @@ int main(int argc, char *argv[])
 					stIdMax = schema.simpleTypeTable.count;
 					for(stId = 0; stId < stIdMax; stId++)
 					{
-						uint32_t maxInclusiveMS;
-						uint32_t maxInclusiveLS;
+						uint32_t maxMS, maxLS, minMS, minLS;
 
-						maxInclusiveMS = (uint32_t)(schema.simpleTypeTable.sType[stId].maxInclusive >> 32);
-						maxInclusiveLS = (uint32_t)(schema.simpleTypeTable.sType[stId].maxInclusive & 0xFFFFFFFF);
+						maxMS = (uint32_t)(schema.simpleTypeTable.sType[stId].max >> 32);
+						maxLS = (uint32_t)(schema.simpleTypeTable.sType[stId].max & 0xFFFFFFFF);
+						minMS = (uint32_t)(schema.simpleTypeTable.sType[stId].min >> 32);
+						minLS = (uint32_t)(schema.simpleTypeTable.sType[stId].min & 0xFFFFFFFF);
 
 						fprintf(outfile,
-								"    {%d, 0x%04x, 0x%08x%08x, %d, %d}%s",
+								"    {%d, 0x%04x, 0x%08x%08x, 0x%08x%08x, %d}%s",
 								schema.simpleTypeTable.sType[stId].exiType,
 								schema.simpleTypeTable.sType[stId].facetPresenceMask,
-								maxInclusiveMS,
-								maxInclusiveLS,
-								schema.simpleTypeTable.sType[stId].minInclusive,
-								schema.simpleTypeTable.sType[stId].maxLength,
+								maxMS,
+								maxLS,
+								minMS,
+								minLS,
+								schema.simpleTypeTable.sType[stId].length,
 								stId==(stIdMax-1) ? "\n};\n\n" : ",\n");
-
 					}
 				}
 

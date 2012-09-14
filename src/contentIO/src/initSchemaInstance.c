@@ -286,9 +286,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.exiType = VALUE_TYPE_STRING;
 	sType.facetPresenceMask = 0;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE_UNION;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -297,9 +297,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.exiType = VALUE_TYPE_STRING;
 	sType.facetPresenceMask = 0;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE_UNION;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -308,9 +308,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.exiType = VALUE_TYPE_STRING;
 	sType.facetPresenceMask = 0;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE_UNION;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -319,9 +319,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.exiType = VALUE_TYPE_STRING;
 	sType.facetPresenceMask = 0;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE_UNION;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -329,9 +329,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	// nmtokens
 	sType.exiType = VALUE_TYPE_LIST;
 	sType.facetPresenceMask = 0;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = SIMPLE_TYPE_NMTOKEN;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -340,9 +340,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.exiType = VALUE_TYPE_STRING;
 	sType.facetPresenceMask = 0;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE_UNION;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -350,9 +350,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	// language
 	sType.exiType = VALUE_TYPE_STRING;
 	sType.facetPresenceMask = 0;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -361,9 +361,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.exiType = VALUE_TYPE_STRING;
 	sType.facetPresenceMask = 0;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE_UNION;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -372,9 +372,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.exiType = VALUE_TYPE_STRING;
 	sType.facetPresenceMask = 0;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE_UNION;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -382,9 +382,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	// idrefs
 	sType.exiType = VALUE_TYPE_LIST;
 	sType.facetPresenceMask = 0;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = SIMPLE_TYPE_IDREF;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -393,9 +393,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.exiType = VALUE_TYPE_STRING;
 	sType.facetPresenceMask = 0;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE_UNION;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -403,9 +403,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	// entities
 	sType.exiType = VALUE_TYPE_LIST;
 	sType.facetPresenceMask = 0;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = SIMPLE_TYPE_ENTITY;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -413,9 +413,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	// id
 	sType.exiType = VALUE_TYPE_STRING;
 	sType.facetPresenceMask = 0;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -424,9 +424,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.exiType = VALUE_TYPE_DECIMAL;
 	sType.facetPresenceMask = 0;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE_UNION;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -435,9 +435,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.exiType = VALUE_TYPE_INTEGER;
 	sType.facetPresenceMask = 0;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE_UNION;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -447,9 +447,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.facetPresenceMask = 0;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE_UNION;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MAX_INCLUSIVE;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -458,9 +458,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.exiType = VALUE_TYPE_INTEGER;
 	sType.facetPresenceMask = 0;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MAX_INCLUSIVE;
-	sType.maxInclusive = -1;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = -1;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -469,9 +469,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.exiType = VALUE_TYPE_INTEGER;
 	sType.facetPresenceMask = 0;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE_UNION;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -480,9 +480,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.exiType = VALUE_TYPE_INTEGER;
 	sType.facetPresenceMask = 0;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE_UNION;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -493,9 +493,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE_UNION;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MAX_INCLUSIVE;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
-	sType.maxInclusive = 32767;
-	sType.minInclusive = -32768;
-	sType.maxLength = 0;
+	sType.max = 32767;
+	sType.min = -32768;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -505,9 +505,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.facetPresenceMask = 0;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MAX_INCLUSIVE;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
-	sType.maxInclusive = 127;
-	sType.minInclusive = -128;
-	sType.maxLength = 0;
+	sType.max = 127;
+	sType.min = -128;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -517,9 +517,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.facetPresenceMask = 0;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE_UNION;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -529,9 +529,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.facetPresenceMask = 0;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE_UNION;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -541,9 +541,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.facetPresenceMask = 0;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE_UNION;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -554,9 +554,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE_UNION;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MAX_INCLUSIVE;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
-	sType.maxInclusive = 65535;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 65535;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -566,9 +566,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.facetPresenceMask = 0;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MAX_INCLUSIVE;
-	sType.maxInclusive = 255;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 255;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -577,9 +577,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.exiType = VALUE_TYPE_NON_NEGATIVE_INT;
 	sType.facetPresenceMask = 0;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 1;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 1;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -587,9 +587,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	// boolean
 	sType.exiType = VALUE_TYPE_BOOLEAN;
 	sType.facetPresenceMask = 0;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -597,9 +597,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	// base64 binary
 	sType.exiType = VALUE_TYPE_BINARY;
 	sType.facetPresenceMask = 0;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -607,9 +607,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	// hex binary
 	sType.exiType = VALUE_TYPE_BINARY;
 	sType.facetPresenceMask = 0;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -617,9 +617,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	// float
 	sType.exiType = VALUE_TYPE_FLOAT;
 	sType.facetPresenceMask = 0;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -627,9 +627,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	// double
 	sType.exiType = VALUE_TYPE_FLOAT;
 	sType.facetPresenceMask = 0;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -637,9 +637,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	// any uri
 	sType.exiType = VALUE_TYPE_STRING;
 	sType.facetPresenceMask = 0;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -647,9 +647,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	// qname
 	sType.exiType = VALUE_TYPE_STRING;
 	sType.facetPresenceMask = 0;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -657,9 +657,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	// notation
 	sType.exiType = VALUE_TYPE_STRING;
 	sType.facetPresenceMask = 0;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -667,9 +667,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	// duration
 	sType.exiType = VALUE_TYPE_STRING;
 	sType.facetPresenceMask = 0;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -677,9 +677,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	// date time
 	sType.exiType = VALUE_TYPE_DATE_TIME;
 	sType.facetPresenceMask = 0;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -687,9 +687,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	// time
 	sType.exiType = VALUE_TYPE_DATE_TIME;
 	sType.facetPresenceMask = 0;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -697,9 +697,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	// date
 	sType.exiType = VALUE_TYPE_DATE_TIME;
 	sType.facetPresenceMask = 0;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -707,9 +707,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	// gYearMonth
 	sType.exiType = VALUE_TYPE_DATE_TIME;
 	sType.facetPresenceMask = 0;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -717,9 +717,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	// gYear
 	sType.exiType = VALUE_TYPE_DATE_TIME;
 	sType.facetPresenceMask = 0;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -727,9 +727,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	// gMonthDay
 	sType.exiType = VALUE_TYPE_DATE_TIME;
 	sType.facetPresenceMask = 0;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -737,9 +737,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	// gDay
 	sType.exiType = VALUE_TYPE_DATE_TIME;
 	sType.facetPresenceMask = 0;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -747,9 +747,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	// gMonth
 	sType.exiType = VALUE_TYPE_DATE_TIME;
 	sType.facetPresenceMask = 0;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -758,9 +758,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.exiType = VALUE_TYPE_STRING;
 	sType.facetPresenceMask = 0;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE_UNION;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -769,9 +769,9 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.exiType = VALUE_TYPE_NONE;
 	sType.facetPresenceMask = 0;
 	sType.facetPresenceMask = sType.facetPresenceMask | TYPE_FACET_NAMED_SUBTYPE_UNION;
-	sType.maxInclusive = 0;
-	sType.minInclusive = 0;
-	sType.maxLength = 0;
+	sType.max = 0;
+	sType.min = 0;
+	sType.length = 0;
 	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
