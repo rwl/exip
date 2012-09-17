@@ -104,8 +104,6 @@ EXAMPLE_1 = exipd
 
 EXAMPLE_2 = exipe
 
-EXAMPLE_3 = exipsep2
-
 # Examples directories
 EXAMPLES_SRC_DIR = $(PROJECT_ROOT)/examples
 EXAMPLES_BIN_DIR = $(BIN_DIR)/examples
@@ -163,7 +161,7 @@ check: mk_tests $(CHECK_BINS)
                    $$i $(TESTS_DATA_DIR); \
              done
 
-examples: mk_examples lib $(EXAMPLES_BIN_DIR)/$(EXAMPLE_1) $(EXAMPLES_BIN_DIR)/$(EXAMPLE_2) $(EXAMPLES_BIN_DIR)/$(EXAMPLE_3) test_sets_copy_examples
+examples: mk_examples lib $(EXAMPLES_BIN_DIR)/$(EXAMPLE_1) $(EXAMPLES_BIN_DIR)/$(EXAMPLE_2) test_sets_copy_examples
 
 utils: mk_utils lib $(UTILS_BIN_DIR)/$(UTILS_1) test_sets_copy_utils
 
@@ -199,6 +197,7 @@ clean:
 
 # Builds a library distribution/release		
 dist:
+		rm -f -r $(PROJECT_ROOT)/../../files/exip-$(EXIP_VERSION)
 		svn export $(PROJECT_ROOT) $(PROJECT_ROOT)/../../files/exip-$(EXIP_VERSION)
 		cd $(PROJECT_ROOT)/../../files && tar cvf - exip-$(EXIP_VERSION) | gzip > exip-$(EXIP_VERSION).tar.gz
 		cd $(PROJECT_ROOT)/../../files && zip -lvr exip-$(EXIP_VERSION).zip exip-$(EXIP_VERSION)		
