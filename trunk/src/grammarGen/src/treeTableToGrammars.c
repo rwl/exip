@@ -190,6 +190,12 @@ static errorCode getRestrictionSimpleProtoGrammar(BuildContext* ctx, TreeTable* 
  */
 static errorCode getRestrictionComplexProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* resEntry, ProtoGrammar** restr);
 
+/**
+ * Given a List entry this function builds the corresponding
+ * simple type proto grammar.
+ */
+static errorCode getListProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* listEntry, ProtoGrammar** list);
+
 // END - converting schema definitions to protogrammars
 
 // Helper functions
@@ -207,10 +213,18 @@ static int compareAttrUse(const void* attrPG1, const void* attrPG2);
 static errorCode parseOccuranceAttribute(const String occurance, int* outInt);
 
 /** Given a simple type QName and TreeTable entry determine the
- * corresponding typeId.
+ * corresponding typeId. The simple type must be a global type.
  * For build-in types the typeEntry can be NULL
  * */
 static errorCode getTypeId(BuildContext* ctx, const QNameID typeQnameId, TreeTableEntry* typeEntry, TreeTable* treeT, Index* typeId);
+
+/** Given a simple type TreeTable entry determine the
+ * corresponding typeId. It does not create a simple type grammar.
+ * This function is used for anonymous simple types for attributes,
+ * lists etc.
+ * For build-in types the typeEntry can be NULL
+ * */
+static errorCode getAnonymousTypeId(BuildContext* ctx, TreeTableEntry* typeEntry, TreeTable* treeT, Index* typeId);
 
 /**
  * Given a ProtoGrammar this function assigns the event codes and
@@ -584,7 +598,6 @@ static errorCode getAttributeProtoGrammar(BuildContext* ctx, TreeTable* treeT, T
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char required = 0;
-	QNameID stQNameID;
 	Index typeId;
 	QNameID atQnameID;
 
@@ -601,18 +614,30 @@ static errorCode getAttributeProtoGrammar(BuildContext* ctx, TreeTable* treeT, T
 	if(!lookupLn(&ctx->schema->uriTable.uri[atQnameID.uriId].lnTable, attrEntry->attributePointers[ATTRIBUTE_NAME], &atQnameID.lnId))
 		return UNEXPECTED_ERROR;
 
-	tmp_err_code = getTypeQName(ctx->schema, treeT, attrEntry->attributePointers[ATTRIBUTE_TYPE], &stQNameID);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	if(!isStringEmpty(&attrEntry->attributePointers[ATTRIBUTE_TYPE]))
+	{
+		QNameID stQNameID;
+		// global type for the attribute
+		tmp_err_code = getTypeQName(ctx->schema, treeT, attrEntry->attributePointers[ATTRIBUTE_TYPE], &stQNameID);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = getTypeId(ctx, stQNameID, attrEntry->child.entry, attrEntry->child.treeT, &typeId);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else
+	{
+		// anonymous type for the attribute
+		tmp_err_code = getAnonymousTypeId(ctx, attrEntry->child.entry, attrEntry->child.treeT, &typeId);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
 
 	*attr = (ProtoGrammar*) memManagedAllocate(&ctx->tmpMemList, sizeof(ProtoGrammar));
 	if(*attr == NULL)
 		return MEMORY_ALLOCATION_ERROR;
-
-	tmp_err_code = getTypeId(ctx, stQNameID, attrEntry->child.entry, attrEntry->child.treeT, &typeId);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
+	
 	tmp_err_code = createAttributeUseGrammar(&ctx->tmpMemList, required, typeId, *attr, atQnameID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
@@ -637,7 +662,9 @@ static errorCode getSimpleTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT, 
 	}
 	else if(simpleEntry->child.entry->element == ELEMENT_LIST)
 	{
-		return NOT_IMPLEMENTED_YET;
+		tmp_err_code = getListProtoGrammar(ctx, treeT, simpleEntry->child.entry, simplType);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 	}
 	else if(simpleEntry->child.entry->element == ELEMENT_UNION)
 	{
@@ -1800,6 +1827,93 @@ static errorCode getTypeId(BuildContext* ctx, const QNameID typeQnameId, TreeTab
 		if(*typeId == INDEX_MAX)
 			return UNEXPECTED_ERROR;
 	}
+
+	return ERR_OK;
+}
+
+static errorCode getAnonymousTypeId(BuildContext* ctx, TreeTableEntry* typeEntry, TreeTable* treeT, Index* typeId)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	ProtoGrammar* tmpGr = NULL;
+
+	if(typeEntry == NULL)
+		return UNEXPECTED_ERROR;
+	else if(typeEntry->element == ELEMENT_SIMPLE_TYPE)
+	{
+		tmp_err_code = getSimpleTypeProtoGrammar(ctx, treeT, typeEntry, &tmpGr);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else
+	{
+		return UNEXPECTED_ERROR;
+	}
+
+	if(tmpGr == NULL)
+		return UNEXPECTED_ERROR;
+
+	*typeId = tmpGr->rule[0].prod[0].typeId;
+
+	return ERR_OK;
+}
+
+static errorCode getListProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* listEntry, ProtoGrammar** list)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	Index itemTypeId = INDEX_MAX;
+	SimpleType listSimpleType;
+	Index listEntrySimplID;
+
+#if DEBUG_GRAMMAR_GEN == ON
+	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Handle list"));
+#endif
+
+	*list = (ProtoGrammar*) memManagedAllocate(&ctx->tmpMemList, sizeof(ProtoGrammar));
+	if(*list == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	listSimpleType.exiType = VALUE_TYPE_LIST;
+	listSimpleType.facetPresenceMask = 0;
+	listSimpleType.max = 0;
+	listSimpleType.min = 0;
+	listSimpleType.length = 0;
+
+	if(!isStringEmpty(&listEntry->attributePointers[ATTRIBUTE_ITEM_TYPE]))
+	{
+		QNameID itemTypeQnameId;
+
+		// The list has item type a global simple type. It should not have child entries
+		if(listEntry->child.entry != NULL)
+			return UNEXPECTED_ERROR;
+
+		tmp_err_code = getTypeQName(ctx->schema, treeT, listEntry->attributePointers[ATTRIBUTE_ITEM_TYPE], &itemTypeQnameId);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		// The type definition (itemType) should be linked already to the supertype.entry
+		if(listEntry->supertype.entry == NULL)
+			return UNEXPECTED_ERROR;
+
+		tmp_err_code = getTypeId(ctx, itemTypeQnameId, listEntry->supertype.entry, listEntry->supertype.treeT, &itemTypeId);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else
+	{
+		tmp_err_code = getAnonymousTypeId(ctx, listEntry->child.entry, listEntry->child.treeT, &itemTypeId);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+
+	listSimpleType.length = itemTypeId;
+
+	tmp_err_code = addDynEntry(&ctx->schema->simpleTypeTable.dynArray, &listSimpleType, &listEntrySimplID, &ctx->schema->memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = createSimpleTypeGrammar(&ctx->tmpMemList, listEntrySimplID, *list);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	return ERR_OK;
 }

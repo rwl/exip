@@ -836,7 +836,10 @@ struct SimpleType {
 	EXIType exiType;
 	uint16_t facetPresenceMask;
 	/**
-	 * either maxInclusive or maxExclusive or maxLength (they are mutually exclusive) */
+	 * either maxInclusive or maxExclusive or maxLength or
+	 * when exiType is LIST and TYPE_FACET_LENGTH is set then the
+	 * TYPE_FACET_LENGTH of the list as length indicates the
+	 * itemType/typeID of the elements(they are mutually exclusive) */
 	int64_t max;
 	/**
 	 * either minInclusive or minExclusive or minLength (they are mutually exclusive) */
@@ -1019,11 +1022,11 @@ struct StreamContext
 	/** The qname of the current attribute */
 	QNameID currAttr;
 
-	/** Non-zero if expecting attribute data */
-	unsigned char expectATData;
+	/** Non-zero if expecting attribute data or list items */
+	unsigned int expectATData;
 
 	/** Value type of the expected attribute */
-	Index attrTypeId; //TODO: will NOT be needed after grammar refactoring
+	Index attrTypeId;
 };
 
 typedef struct StreamContext StreamContext;

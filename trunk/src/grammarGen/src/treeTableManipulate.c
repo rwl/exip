@@ -186,7 +186,7 @@ static errorCode resolveEntry(EXIPSchema* schema, TreeTable* treeT, unsigned int
 				return tmp_err_code;
 		}
 	}
-	/* If there are extensions or restrictions, link in their supertype as a base pointer */
+	/* If there are extensions or restrictions, link their base type to the supertype pointer */
 	else if(entry->element == ELEMENT_EXTENSION || entry->element == ELEMENT_RESTRICTION)
 	{
 		if(!isStringEmpty(&entry->attributePointers[ATTRIBUTE_BASE]))
@@ -195,6 +195,19 @@ static errorCode resolveEntry(EXIPSchema* schema, TreeTable* treeT, unsigned int
 				return UNEXPECTED_ERROR;
 
 			tmp_err_code = lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_BASE], LOOKUP_SUPER_TYPE, entry);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+	}
+	/* If there is a list, link its itemType to the supertype pointer */
+	else if(entry->element == ELEMENT_LIST)
+	{
+		if(!isStringEmpty(&entry->attributePointers[ATTRIBUTE_ITEM_TYPE]))
+		{
+			if(entry->supertype.entry != NULL) // TODO: add debug info
+				return UNEXPECTED_ERROR;
+
+			tmp_err_code = lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_ITEM_TYPE], LOOKUP_SUPER_TYPE, entry);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}

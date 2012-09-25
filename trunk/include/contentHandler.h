@@ -46,6 +46,7 @@ struct ContentHandler
 	char (*binaryData)(const char* binary_val, Index nbytes, void* app_data);
 	char (*dateTimeData)(EXIPDateTime dt_val, void* app_data);
 	char (*decimalData)(Decimal dec_val, void* app_data);
+	char (*listData)(EXIType exiType, unsigned int itemCount, void* app_data);
 
 	// Miscellaneous
 	char (*processingInstruction)(void* app_data); // TODO: define the parameters!

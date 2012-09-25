@@ -43,6 +43,7 @@ const EXISerializer serialize ={startDocument,
 								binaryData,
 								dateTimeData,
 								decimalData,
+								listData,
 								processingInstruction,
 								namespaceDeclaration,
 								encodeHeader,
@@ -298,10 +299,10 @@ errorCode intData(EXIStream* strm, Integer int_val)
 	Index intTypeId;
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Start integer data serialization\n"));
 
-	if(strm->context.expectATData) // Value for an attribute
+	if(strm->context.expectATData > 0) // Value for an attribute or list item
 	{
 		intTypeId = strm->context.attrTypeId;
-		strm->context.expectATData = FALSE;
+		strm->context.expectATData -= 1;
 	}
 	else
 	{
@@ -328,9 +329,9 @@ errorCode booleanData(EXIStream* strm, unsigned char bool_val)
 	unsigned char isXsiNilAttr = FALSE;
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Start boolean data serialization\n"));
 
-	if(strm->context.expectATData) // Value for an attribute
+	if(strm->context.expectATData > 0) // Value for an attribute
 	{
-		strm->context.expectATData = FALSE;
+		strm->context.expectATData -= 1;
 		if(strm->context.currAttr.uriId == 2 && strm->context.currAttr.lnId == 0)
 		{
 			// xsi:nill
@@ -384,9 +385,9 @@ errorCode stringData(EXIStream* strm, const String str_val)
 	Index typeId;
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Start string data serialization\n"));
 
-	if(strm->context.expectATData) // Value for an attribute
+	if(strm->context.expectATData > 0) // Value for an attribute
 	{
-		strm->context.expectATData = FALSE;
+		strm->context.expectATData -= 1;
 		qnameID = strm->context.currAttr;
 		typeId = strm->context.attrTypeId;
 	}
@@ -415,9 +416,9 @@ errorCode floatData(EXIStream* strm, Float float_val)
 {
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Start float data serialization\n"));
 
-	if(strm->context.expectATData) // Value for an attribute
+	if(strm->context.expectATData > 0) // Value for an attribute
 	{
-		strm->context.expectATData = FALSE;
+		strm->context.expectATData -= 1;
 	}
 	else
 	{
@@ -443,9 +444,9 @@ errorCode binaryData(EXIStream* strm, const char* binary_val, Index nbytes)
 {
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Start float data serialization\n"));
 
-	if(strm->context.expectATData) // Value for an attribute
+	if(strm->context.expectATData > 0) // Value for an attribute
 	{
-		strm->context.expectATData = FALSE;
+		strm->context.expectATData -= 1;
 	}
 	else
 	{
@@ -471,9 +472,9 @@ errorCode dateTimeData(EXIStream* strm, EXIPDateTime dt_val)
 {
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Start dateTime data serialization\n"));
 
-	if(strm->context.expectATData) // Value for an attribute
+	if(strm->context.expectATData > 0) // Value for an attribute
 	{
-		strm->context.expectATData = FALSE;
+		strm->context.expectATData -= 1;
 	}
 	else
 	{
@@ -498,6 +499,40 @@ errorCode dateTimeData(EXIStream* strm, EXIPDateTime dt_val)
 errorCode decimalData(EXIStream* strm, Decimal dec_val)
 {
 	return NOT_IMPLEMENTED_YET;
+}
+
+errorCode listData(EXIStream* strm, unsigned int itemCount)
+{
+	Index typeId;
+	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Start list data serialization\n"));
+
+	if(strm->context.expectATData > 0) // Value for an attribute
+	{
+		strm->context.expectATData -= 1;
+		typeId = strm->context.attrTypeId;
+
+		// TODO: is it allowed to have list with elements lists??? To be checked...
+	}
+	else
+	{
+		errorCode tmp_err_code = UNEXPECTED_ERROR;
+		unsigned char codeLength;
+		Index lastCodePart;
+		GrammarRule* currentRule;
+
+		tmp_err_code = lookupProduction(strm, EVENT_CH, VALUE_TYPE_LIST, &currentRule, &typeId, NULL, &codeLength, &lastCodePart);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = encodeProduction(strm, currentRule, codeLength, lastCodePart, NULL);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+
+	strm->context.expectATData = itemCount;
+ 	strm->context.attrTypeId = strm->schema->simpleTypeTable.sType[typeId].length; // The actual type of the list items
+
+	return encodeUnsignedInteger(strm, (UnsignedInteger) itemCount);
 }
 
 errorCode processingInstruction(EXIStream* strm)

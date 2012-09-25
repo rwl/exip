@@ -621,7 +621,30 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 		break;
 		case VALUE_TYPE_LIST:
 		{
-			return NOT_IMPLEMENTED_YET;
+			UnsignedInteger itemCount;
+			Index itemTypeId;
+			unsigned int i;
+
+			tmp_err_code = decodeUnsignedInteger(strm, &itemCount);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			itemTypeId = strm->schema->simpleTypeTable.sType[typeId].length; // The item typeID must be encoded in the length field
+			if(itemTypeId >= strm->schema->simpleTypeTable.count)
+				return UNEXPECTED_ERROR;
+
+			if(handler->listData != NULL)  // Invoke handler method
+			{
+				if(handler->listData(strm->schema->simpleTypeTable.sType[itemTypeId].exiType, (unsigned int) itemCount, app_data) == EXIP_HANDLER_STOP)
+					return HANDLER_STOP_RECEIVED;
+			}
+
+			for(i = 0; i < itemCount; i++)
+			{
+				tmp_err_code = decodeValueItem(strm, itemTypeId, handler, nonTermID_out, localQNameID, app_data);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
 		}
 		break;
 		case VALUE_TYPE_QNAME:

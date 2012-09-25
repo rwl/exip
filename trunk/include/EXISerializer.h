@@ -38,6 +38,7 @@ struct EXISerializer
 	errorCode (*binaryData)(EXIStream* strm, const char* binary_val, Index nbytes);
 	errorCode (*dateTimeData)(EXIStream* strm, EXIPDateTime dt_val);
 	errorCode (*decimalData)(EXIStream* strm, Decimal dec_val);
+	errorCode (*listData)(EXIStream* strm, unsigned int itemCount);
 
 	// Miscellaneous
 	errorCode (*processingInstruction)(EXIStream* strm); // TODO: define the parameters!
@@ -78,6 +79,7 @@ errorCode floatData(EXIStream* strm, Float float_val);
 errorCode binaryData(EXIStream* strm, const char* binary_val, Index nbytes);
 errorCode dateTimeData(EXIStream* strm, EXIPDateTime dt_val);
 errorCode decimalData(EXIStream* strm, Decimal dec_val);
+errorCode listData(EXIStream* strm, unsigned int itemCount);
 
 // Miscellaneous
 errorCode processingInstruction(EXIStream* strm); // TODO: define the parameters!
