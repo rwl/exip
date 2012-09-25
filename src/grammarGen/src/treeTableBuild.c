@@ -135,7 +135,9 @@ static const char* attrStrings[] =
 	"namespace",
 	"processContents",
 	"value",
-	"nillable"
+	"nillable",
+	"itemType",
+	"memberTypes"
 };
 
 errorCode generateTreeTable(BinaryBuffer buffer, unsigned char schemaFormat, TreeTable* treeT, EXIPSchema* schema)
