@@ -10,7 +10,7 @@
 /*****************************************************************************/
 struct entry
 {
-    String* key;
+    String key;
     Index value;
     uint32_t hash;
     struct entry *next;
@@ -22,7 +22,7 @@ struct hashtable {
     unsigned int entrycount;
     unsigned int loadlimit;
     unsigned int primeindex;
-    uint32_t (*hashfn) (String* key);
+    uint32_t (*hashfn) (String key);
     char (*eqfn) (const String str1, const String str2);
 };
 

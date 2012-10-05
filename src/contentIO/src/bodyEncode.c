@@ -97,12 +97,13 @@ errorCode encodeStringData(EXIStream* strm, String strng, QNameID qnameID, Index
 
 			if(strng.length > 0 && strng.length <= strm->header.opts.valueMaxLength && strm->header.opts.valuePartitionCapacity > 0)
 			{
-				String copiedValue;
-				tmp_err_code = cloneString(&strng, &copiedValue, &strm->memList);
+				String clonedValue;
+
+				tmp_err_code = cloneString(&strng, &clonedValue, &strm->memList);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 
-				tmp_err_code = addValueEntry(strm, &copiedValue, qnameID);
+				tmp_err_code = addValueEntry(strm, clonedValue, qnameID);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			}

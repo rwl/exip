@@ -717,7 +717,11 @@ struct VxEntry {
 typedef struct VxEntry VxEntry;
 
 struct ValueEntry {
-	VxEntry* vxEntry;
+	struct
+	{
+		QNameID forQNameId;
+		Index vxEntryId;
+	} locValuePartition; // A reference to the VxEntry for that global value
 	String valueStr;
 };
 

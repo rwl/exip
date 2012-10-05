@@ -479,24 +479,19 @@ static char xsd_endElement(void* app_data)
 
 			if(ttpd->contextStack == NULL) // If the schema definition is global
 			{
-				elName = memManagedAllocate(&ttpd->treeT->memList, sizeof(String));
-				if(elName == NULL)
-					return MEMORY_ALLOCATION_ERROR;
-
-
-				*elName = GET_LN_URI_IDS(ttpd->schema->uriTable, uriId, lnId).lnStr;
+				String lnNameStr = GET_LN_URI_IDS(ttpd->schema->uriTable, uriId, lnId).lnStr;
 
 				if(entry->element == ELEMENT_ELEMENT)
 				{
 					if(ttpd->treeT->elemTbl != NULL)
 					{
-						if(hashtable_search(ttpd->treeT->elemTbl, elName) != INDEX_MAX)
+						if(hashtable_search(ttpd->treeT->elemTbl, lnNameStr) != INDEX_MAX)
 						{
 							DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, ("ERROR: Duplicate global element name definition\n"));
 							return EXIP_HANDLER_STOP;
 						}
 
-						if(hashtable_insert(ttpd->treeT->elemTbl, elName, ttpd->treeT->count - 1) != ERR_OK)
+						if(hashtable_insert(ttpd->treeT->elemTbl, lnNameStr, ttpd->treeT->count - 1) != ERR_OK)
 							return EXIP_HANDLER_STOP;
 					}
 				}
@@ -504,13 +499,13 @@ static char xsd_endElement(void* app_data)
 				{
 					if(ttpd->treeT->typeTbl != NULL)
 					{
-						if(hashtable_search(ttpd->treeT->typeTbl, elName) != INDEX_MAX)
+						if(hashtable_search(ttpd->treeT->typeTbl, lnNameStr) != INDEX_MAX)
 						{
 							DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, ("ERROR: Duplicate global type name definition\n"));
 							return EXIP_HANDLER_STOP;
 						}
 
-						if(hashtable_insert(ttpd->treeT->typeTbl, elName, ttpd->treeT->count - 1) != ERR_OK)
+						if(hashtable_insert(ttpd->treeT->typeTbl, lnNameStr, ttpd->treeT->count - 1) != ERR_OK)
 							return EXIP_HANDLER_STOP;
 					}
 				}
@@ -518,13 +513,13 @@ static char xsd_endElement(void* app_data)
 				{
 					if(ttpd->treeT->attrTbl != NULL)
 					{
-						if(hashtable_search(ttpd->treeT->attrTbl, elName) != INDEX_MAX)
+						if(hashtable_search(ttpd->treeT->attrTbl, lnNameStr) != INDEX_MAX)
 						{
 							DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, ("ERROR: Duplicate global attribute name definition\n"));
 							return EXIP_HANDLER_STOP;
 						}
 
-						if(hashtable_insert(ttpd->treeT->attrTbl, elName, ttpd->treeT->count - 1) != ERR_OK)
+						if(hashtable_insert(ttpd->treeT->attrTbl, lnNameStr, ttpd->treeT->count - 1) != ERR_OK)
 							return EXIP_HANDLER_STOP;
 					}
 				}
@@ -532,13 +527,13 @@ static char xsd_endElement(void* app_data)
 				{
 					if(ttpd->treeT->groupTbl != NULL)
 					{
-						if(hashtable_search(ttpd->treeT->groupTbl, elName) != INDEX_MAX)
+						if(hashtable_search(ttpd->treeT->groupTbl, lnNameStr) != INDEX_MAX)
 						{
 							DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, ("ERROR: Duplicate global group name definition\n"));
 							return EXIP_HANDLER_STOP;
 						}
 
-						if(hashtable_insert(ttpd->treeT->groupTbl, elName, ttpd->treeT->count - 1) != ERR_OK)
+						if(hashtable_insert(ttpd->treeT->groupTbl, lnNameStr, ttpd->treeT->count - 1) != ERR_OK)
 							return EXIP_HANDLER_STOP;
 					}
 				}
@@ -546,13 +541,13 @@ static char xsd_endElement(void* app_data)
 				{
 					if(ttpd->treeT->attrGroupTbl != NULL)
 					{
-						if(hashtable_search(ttpd->treeT->attrGroupTbl, elName) != INDEX_MAX)
+						if(hashtable_search(ttpd->treeT->attrGroupTbl, lnNameStr) != INDEX_MAX)
 						{
 							DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, ("ERROR: Duplicate global attribute group name definition\n"));
 							return EXIP_HANDLER_STOP;
 						}
 
-						if(hashtable_insert(ttpd->treeT->attrGroupTbl, elName, ttpd->treeT->count - 1) != ERR_OK)
+						if(hashtable_insert(ttpd->treeT->attrGroupTbl, lnNameStr, ttpd->treeT->count - 1) != ERR_OK)
 							return EXIP_HANDLER_STOP;
 					}
 				}

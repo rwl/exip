@@ -96,7 +96,7 @@ errorCode addLnEntry(LnTable* lnTable, String lnStr, Index* lnEntryId, AllocList
  * @param[in] qnameID The URI:ln QNameID
  * @return Error handling code
  */
-errorCode addValueEntry(EXIStream* strm, String* valueStr, QNameID qnameID);
+errorCode addValueEntry(EXIStream* strm, String valueStr, QNameID qnameID);
 
 /**
  * @brief Add a new entry into the Prefix string table
