@@ -176,7 +176,7 @@ START_TEST (test_addValueEntry)
 	testStrm.context.currElem.lnId = 2; // lang
 
 	asciiToString("TEST-007", &testStr, &testStrm.memList, FALSE);
-	tmp_err_code = addValueEntry(&testStrm, &testStr, testStrm.context.currElem);
+	tmp_err_code = addValueEntry(&testStrm, testStr, testStrm.context.currElem);
 
 	fail_unless (tmp_err_code == ERR_OK, "addValueEntry returns an error code %d", tmp_err_code);
 	fail_unless (testStrm.schema->uriTable.uri[testStrm.context.currElem.uriId].lnTable.ln[testStrm.context.currElem.lnId].vxTable.vx != NULL, "addValueEntry does not create vxTable");

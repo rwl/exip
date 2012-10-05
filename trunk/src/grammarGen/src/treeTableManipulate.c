@@ -253,15 +253,15 @@ static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, un
 				treeT[i].groupTbl != NULL && treeT[i].attrGroupTbl != NULL)
 		{
 			if(elType == LOOKUP_TYPE || elType == LOOKUP_SUPER_TYPE)
-				globalIndex = hashtable_search(treeT[i].typeTbl, &GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
+				globalIndex = hashtable_search(treeT[i].typeTbl, GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
 			else if(entry->element == ELEMENT_ELEMENT) // LOOKUP_REF ELEMENT
-				globalIndex = hashtable_search(treeT[i].elemTbl, &GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
+				globalIndex = hashtable_search(treeT[i].elemTbl, GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
 			else if(entry->element == ELEMENT_ATTRIBUTE) // LOOKUP_REF ATTRIBUTE
-				globalIndex = hashtable_search(treeT[i].attrTbl, &GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
+				globalIndex = hashtable_search(treeT[i].attrTbl, GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
 			else if(entry->element == ELEMENT_GROUP) // LOOKUP_REF GROUP
-				globalIndex = hashtable_search(treeT[i].groupTbl, &GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
+				globalIndex = hashtable_search(treeT[i].groupTbl, GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
 			else if(entry->element == ELEMENT_ATTRIBUTE_GROUP) // LOOKUP_REF ATTRIBUTE_GROUP
-				globalIndex = hashtable_search(treeT[i].attrGroupTbl, &GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
+				globalIndex = hashtable_search(treeT[i].attrGroupTbl, GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
 
 		}
 		else

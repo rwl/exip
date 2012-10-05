@@ -19,7 +19,7 @@
  * the magic of number 33 (why it works better than many other constants, prime or not) has never
  * been adequately explained.
  **/
-uint32_t djbHash(String* str);
+uint32_t djbHash(String str);
 
 struct hashtable;
 
@@ -91,7 +91,7 @@ struct hashtable;
 
 struct hashtable *
 create_hashtable(unsigned int minsize,
-				 uint32_t (*hashfn) (String* key),
+				 uint32_t (*hashfn) (String key),
 				 char (*eqfn) (const String str1, const String str2));
 
 /*****************************************************************************
@@ -113,7 +113,7 @@ create_hashtable(unsigned int minsize,
  * If in doubt, remove before insert.
  */
 
-errorCode hashtable_insert(struct hashtable *h, String* key, Index value);
+errorCode hashtable_insert(struct hashtable *h, String key, Index value);
 
 /*
 //#define DEFINE_HASHTABLE_INSERT(fnname, keytype, valuetype) \
@@ -132,7 +132,7 @@ errorCode hashtable_insert(struct hashtable *h, String* key, Index value);
  * @return      the value associated with the key, or INDEX_MAX if none found
  */
 
-Index hashtable_search(struct hashtable *h, String* key);
+Index hashtable_search(struct hashtable *h, String key);
 
 /*
 //#define DEFINE_HASHTABLE_SEARCH(fnname, keytype, valuetype) \
@@ -151,7 +151,7 @@ Index hashtable_search(struct hashtable *h, String* key);
  * @return      the value associated with the key, or INDEX_MAX if none found
  */
 
-Index hashtable_remove(struct hashtable *h, String* key);
+Index hashtable_remove(struct hashtable *h, String key);
 
 /*
 //#define DEFINE_HASHTABLE_REMOVE(fnname, keytype, valuetype) \

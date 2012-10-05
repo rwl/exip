@@ -25,13 +25,13 @@ static const uint32_t primes[] = {
 const unsigned int prime_table_length = sizeof(primes)/sizeof(primes[0]);
 const float max_load_factor = 0.65F;
 
-uint32_t djbHash(String* str)
+uint32_t djbHash(String str)
 {
-	char* tmp = (char*) str->str;
+	char* tmp = (char*) str.str;
 	uint32_t hash = 5381;
 	unsigned int i = 0;
 
-	for(i = 0; i < sizeof(CharType)*str->length; tmp++, i++)
+	for(i = 0; i < sizeof(CharType)*str.length; tmp++, i++)
 	{
 		hash = ((hash << 5) + hash) + (*tmp);
 	}
@@ -42,7 +42,7 @@ uint32_t djbHash(String* str)
 /*****************************************************************************/
 
 struct hashtable * create_hashtable(unsigned int minsize,
-						uint32_t (*hashfn) (String* key),
+						uint32_t (*hashfn) (String key),
 						char (*eqfn) (const String str1, const String str2))
 {
     struct hashtable *h;
@@ -147,7 +147,7 @@ unsigned int hashtable_count(struct hashtable *h)
 }
 
 /*****************************************************************************/
-errorCode hashtable_insert(struct hashtable *h, String* key, Index value)
+errorCode hashtable_insert(struct hashtable *h, String key, Index value)
 {
     /* This method allows duplicate keys - but they shouldn't be used */
     unsigned int index;
@@ -172,7 +172,7 @@ errorCode hashtable_insert(struct hashtable *h, String* key, Index value)
 }
 
 /*****************************************************************************/
-Index hashtable_search(struct hashtable *h, String* key)
+Index hashtable_search(struct hashtable *h, String key)
 {
     struct entry *e;
     uint32_t hashvalue;
@@ -183,14 +183,14 @@ Index hashtable_search(struct hashtable *h, String* key)
     while (NULL != e)
     {
         /* Check hash value to short circuit heavier comparison */
-        if ((hashvalue == e->hash) && h->eqfn(*key, *(e->key))) return e->value;
+        if ((hashvalue == e->hash) && h->eqfn(key, e->key)) return e->value;
         e = e->next;
     }
     return INDEX_MAX;
 }
 
 /*****************************************************************************/
-Index hashtable_remove(struct hashtable *h, String* key)
+Index hashtable_remove(struct hashtable *h, String key)
 {
     /* TODO: consider compacting the table when the load factor drops enough,
      *       or provide a 'compact' method. */
@@ -208,7 +208,7 @@ Index hashtable_remove(struct hashtable *h, String* key)
     while (NULL != e)
     {
         /* Check hash value to short circuit heavier comparison */
-        if (hashvalue == e->hash && h->eqfn(*key, *(e->key)))
+        if (hashvalue == e->hash && h->eqfn(key, e->key))
         {
             *pE = e->next;
             h->entrycount--;

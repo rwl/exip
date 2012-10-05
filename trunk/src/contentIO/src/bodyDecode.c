@@ -228,7 +228,7 @@ errorCode decodeStringValue(EXIStream* strm, QNameID qnameID, String* value, uns
 
 		if(value->length > 0 && value->length <= strm->header.opts.valueMaxLength && strm->header.opts.valuePartitionCapacity > 0)
 		{
-			tmp_err_code = addValueEntry(strm, value, qnameID);
+			tmp_err_code = addValueEntry(strm, *value, qnameID);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}

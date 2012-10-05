@@ -160,7 +160,7 @@ errorCode addLnEntry(LnTable* lnTable, String lnStr, Index* lnEntryId, AllocList
 	return ERR_OK;
 }
 
-errorCode addValueEntry(EXIStream* strm, String* valueStr, QNameID qnameID)
+errorCode addValueEntry(EXIStream* strm, String valueStr, QNameID qnameID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	VxEntry* vxEntry = NULL;
@@ -194,13 +194,13 @@ errorCode addValueEntry(EXIStream* strm, String* valueStr, QNameID qnameID)
 		valueEntry = &strm->valueTable.value[strm->valueTable.globalId];
 
 		// Null out the existing cross table entry
-		valueEntry->vxEntry->globalId = INDEX_MAX;
+		GET_LN_URI_QNAME(strm->schema->uriTable, valueEntry->locValuePartition.forQNameId).vxTable.vx[valueEntry->locValuePartition.vxEntryId].globalId = INDEX_MAX;
 
 #if HASH_TABLE_USE == ON
 		// Remove existing value string from hash table (if present)
 		if(strm->valueTable.hashTbl != NULL)
 		{
-			hashtable_remove(strm->valueTable.hashTbl, &valueEntry->valueStr);
+			hashtable_remove(strm->valueTable.hashTbl, valueEntry->valueStr);
 		}
 #endif
 	}
@@ -218,8 +218,9 @@ errorCode addValueEntry(EXIStream* strm, String* valueStr, QNameID qnameID)
 	vxEntry->globalId = strm->valueTable.globalId;
 
 	// Set the value entry fields
-	valueEntry->valueStr = *valueStr;
-	valueEntry->vxEntry = vxEntry;
+	valueEntry->valueStr = valueStr;
+	valueEntry->locValuePartition.forQNameId = qnameID;
+	valueEntry->locValuePartition.vxEntryId = vxEntryId;
 
 #if HASH_TABLE_USE == ON
 	// Add value string to hash table (if present)
@@ -446,6 +447,8 @@ char lookupVx(ValueTable* valueTable, VxTable* vxTable, String valueStr, Index* 
 	for(i = 0; i < vxTable->count; i++)
 	{
 		vxEntry = vxTable->vx + i;
+		if(vxEntry->globalId == INDEX_MAX) // The value was removed from the local value partition
+			continue;
 		valueEntry = valueTable->value + vxEntry->globalId;
 		if(stringEqual(valueEntry->valueStr, valueStr))
 		{
@@ -468,7 +471,7 @@ char lookupValue(ValueTable* valueTable, String valueStr, Index* valueEntryId)
 	if(valueTable->hashTbl != NULL)
 	{
 		// Use hash table search
-		i = hashtable_search(valueTable->hashTbl, &valueStr);
+		i = hashtable_search(valueTable->hashTbl, valueStr);
 		if(i != INDEX_MAX)
 		{
 			*valueEntryId = i;
