@@ -337,7 +337,6 @@ typedef struct QNameID QNameID;
 /** An array of allocation pointers */
 struct allocBlock {
 	void* allocation[ALLOCATION_ARRAY_SIZE];
-	SmallIndex currentAlloc;
 	struct allocBlock* nextBlock;
 };
 
@@ -346,6 +345,8 @@ struct allocBlock {
 struct allocList {
 	struct allocBlock* firstBlock;
 	struct allocBlock* lastBlock;
+	/** The next allocation slot in the allocation array of the lastBlock */
+	SmallIndex currAllocSlot;
 };
 
 typedef struct allocList AllocList;
@@ -1193,7 +1194,8 @@ struct EXIStream
 	EXIGrammarStack* gStack;
 
 	/**
-	 * Stores the information of all the allocated memory for that stream
+	 * Stores the information of all the allocated memory for that stream,
+	 * except the global sting values that are stored in the ValueTable
 	 */
 	AllocList memList;
 

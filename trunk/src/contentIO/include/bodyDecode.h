@@ -74,10 +74,9 @@ errorCode decodePfx(EXIStream* strm, SmallIndex uriID, SmallIndex* pfxId);
  * @param[in, out] strm EXI stream representation
  * @param[in] qnameID The uri/ln ids in the URI string table
  * @param[out] value the string decoded
- * @param[out] freeable if TRUE the value can be freed immediately afterwards using freeLastManagedAlloc()
  * @return Error handling code
  */
-errorCode decodeStringValue(EXIStream* strm, QNameID qnameID, String* value, unsigned char* freeable);
+errorCode decodeStringValue(EXIStream* strm, QNameID qnameID, String* value);
 
 /**
  * @brief Decodes the content of EXI event

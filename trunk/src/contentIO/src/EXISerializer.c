@@ -85,9 +85,12 @@ errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema, u
 	strm->valueTable.value = NULL;
 	strm->schema = schema;
 
-	tmp_err_code = createValueTable(&strm->valueTable, &strm->memList);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	if(strm->header.opts.valuePartitionCapacity > 0)
+	{
+		tmp_err_code = createValueTable(&strm->valueTable, &strm->memList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
 
 	if(schema != NULL) // schema enabled encoding
 	{
@@ -174,7 +177,7 @@ errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema, u
 	{
 		if(schemaID == NULL)
 			return INVALID_EXIP_CONFIGURATION;
-		tmp_err_code = cloneString(schemaID, &strm->header.opts.schemaID, &strm->memList);
+		tmp_err_code = cloneStringManaged(schemaID, &strm->header.opts.schemaID, &strm->memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}

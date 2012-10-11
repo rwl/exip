@@ -119,9 +119,12 @@ errorCode parseHeader(Parser* parser)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = createValueTable(&parser->strm.valueTable, &parser->strm.memList);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	if(parser->strm.header.opts.valuePartitionCapacity > 0)
+	{
+		tmp_err_code = createValueTable(&parser->strm.valueTable, &parser->strm.memList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
 
 	return ERR_OK;
 }

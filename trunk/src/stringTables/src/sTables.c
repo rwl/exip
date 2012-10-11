@@ -203,6 +203,8 @@ errorCode addValueEntry(EXIStream* strm, String valueStr, QNameID qnameID)
 			hashtable_remove(strm->valueTable.hashTbl, valueEntry->valueStr);
 		}
 #endif
+		// Free the memory allocated by the previous string entry
+		EXIP_MFREE(valueEntry->valueStr.str);
 	}
 	else
 	{

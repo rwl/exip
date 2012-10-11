@@ -26,10 +26,20 @@
  *
  * @param[in, out] str a pointer to the uninitialized string
  * @param[in] UCSchars the number of characters (as described by UCS [ISO/IEC 10646])
+ * @return Error handling code
+ */
+errorCode allocateStringMemory(CharType** str, Index UCSchars);
+
+/**
+ * @brief Allocate a memory for a string with UCSchars number of UCS characters
+ * It depends on the representation of the characters
+ *
+ * @param[in, out] str a pointer to the uninitialized string
+ * @param[in] UCSchars the number of characters (as described by UCS [ISO/IEC 10646])
  * @param[in, out] memList A list storing the memory allocations
  * @return Error handling code
  */
-errorCode allocateStringMemory(CharType** str, Index UCSchars, AllocList* memList);
+errorCode allocateStringMemoryManaged(CharType** str, Index UCSchars, AllocList* memList);
 
 /**
  * @brief Writes a UCS [ISO/IEC 10646] code point to a string
@@ -112,30 +122,18 @@ char stringEqualToAscii(const String str1, const char* str2);
  * @brief Makes a copy of the string in a new location
  * @param[in] src the string to be copied
  * @param[in] newStr will point to the newly allocated memory with scr->CharType* copied there
- * @param[in, out] memList A list storing the memory allocations
  * @return Error handling code
  */
-errorCode cloneString(const String* src, String* newStr, AllocList* memList);
+errorCode cloneString(const String* src, String* newStr);
 
 /**
- * @brief Concatenates two strings
- * @param[in] str1 the first string
- * @param[in] str2 the second string
- * @param[in] newStr will point to the newly created string
+ * @brief Makes a copy of the string in a new location
+ * @param[in] src the string to be copied
+ * @param[in] newStr will point to the newly allocated memory with scr->CharType* copied there
  * @param[in, out] memList A list storing the memory allocations
  * @return Error handling code
  */
-errorCode concatString(const String* str1, const String* str2, String* newStr, AllocList* memList);
-
-/**
- * @brief Concatenates an ASCII string with an exip string
- * @param[in] str1 the first string
- * @param[in] str2 the second string
- * @param[in] newStr will point to the newly created string
- * @param[in, out] memList A list storing the memory allocations
- * @return Error handling code
- */
-errorCode concatAsciiToString(const char* str1, const String* str2, String* newStr, AllocList* memList);
+errorCode cloneStringManaged(const String* src, String* newStr, AllocList* memList);
 
 /**
  * @brief Returns the index of the first occurrence of a character in a string

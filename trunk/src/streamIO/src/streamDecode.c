@@ -86,9 +86,11 @@ errorCode decodeString(EXIStream* strm, String* string_val)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	string_val->length = (Index) string_length;
+	tmp_err_code = allocateStringMemoryManaged(&(string_val->str),(Index) string_length, &strm->memList);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
-	tmp_err_code = decodeStringOnly(strm, string_val->length, string_val);
+	tmp_err_code = decodeStringOnly(strm,(Index)  string_length, string_val);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 	return ERR_OK;
@@ -105,9 +107,7 @@ errorCode decodeStringOnly(EXIStream* strm, Index str_length, String* string_val
 	Index i = 0;
 	Index writerPosition = 0;
 	UnsignedInteger tmp_code_point = 0;
-	tmp_err_code = allocateStringMemory(&(string_val->str), str_length, &strm->memList);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+
 	string_val->length = str_length;
 
 	for(i = 0; i < str_length; i++)
