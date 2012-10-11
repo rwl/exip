@@ -67,14 +67,6 @@ void* memManagedAllocatePtr(AllocList* list, size_t size, struct reAllocPair* me
 errorCode memManagedReAllocate(void** ptr, size_t size, struct reAllocPair memPair);
 
 /**
- * @brief Frees the last allocated memory from a memory allocations list
- * Currently used for the content values
- *
- * @param[in, out] list A list storing the memory allocations
- */
-void freeLastManagedAlloc(AllocList* list);
-
-/**
  * @brief Frees all the managed memory for a particular EXI stream.
  * It should be called after an error in the processing occur or at the
  * end of the parsing/serializing if the processing is successful.

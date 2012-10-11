@@ -135,8 +135,8 @@ static char sample_startElement(QName qname, void* app_data)
 {
 	appData* appD = (appData*) app_data;
 	asciiToString("SE", &appD->eventCode, &appD->allocList, TRUE);
-	cloneString(qname.uri, &appD->uri, &appD->allocList);
-	cloneString(qname.localName, &appD->localName, &appD->allocList);
+	cloneStringManaged(qname.uri, &appD->uri, &appD->allocList);
+	cloneStringManaged(qname.localName, &appD->localName, &appD->allocList);
 
 	return EXIP_HANDLER_OK;
 }

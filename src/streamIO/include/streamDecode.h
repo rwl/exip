@@ -70,7 +70,8 @@ errorCode decodeString(EXIStream* strm, String* string_val);
  * @brief Decode String with the length of the String specified
  * This function is used for Partitions Optimized for Frequent use of String Literals
  * when there is a local name miss => the Length part is read first.
- * The memory to hold the string data is allocated dynamically
+ * The memory to hold the string data should be allocated before
+ * calling this function.
  *
  * @param[in] strm EXI stream of bits
  * @param[in] str_length the length of the string

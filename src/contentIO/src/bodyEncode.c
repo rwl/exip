@@ -97,9 +97,10 @@ errorCode encodeStringData(EXIStream* strm, String strng, QNameID qnameID, Index
 
 			if(strng.length > 0 && strng.length <= strm->header.opts.valueMaxLength && strm->header.opts.valuePartitionCapacity > 0)
 			{
+				// The value should be added in the value partitions of the string tables
 				String clonedValue;
 
-				tmp_err_code = cloneString(&strng, &clonedValue, &strm->memList);
+				tmp_err_code = cloneString(&strng, &clonedValue);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 
@@ -406,7 +407,7 @@ errorCode encodeUri(EXIStream* strm, String* uri, SmallIndex* uriId)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = cloneString(uri, &copiedURI, &strm->memList);
+		tmp_err_code = cloneStringManaged(uri, &copiedURI, &strm->memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -452,7 +453,7 @@ errorCode encodeLn(EXIStream* strm, String* ln, QNameID* qnameID)
 				return tmp_err_code;
 		}
 
-		tmp_err_code = cloneString(ln, &copiedLN, &strm->memList);
+		tmp_err_code = cloneStringManaged(ln, &copiedLN, &strm->memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -525,7 +526,7 @@ errorCode encodePfx(EXIStream* strm, SmallIndex uriId, String* prefix)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = cloneString(prefix, &copiedPrefix, &strm->memList);
+		tmp_err_code = cloneStringManaged(prefix, &copiedPrefix, &strm->memList);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 

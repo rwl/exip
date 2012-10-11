@@ -22,9 +22,9 @@ errorCode initAllocList(AllocList* list)
 	list->firstBlock = EXIP_MALLOC(sizeof(struct allocBlock));
 	if(list->firstBlock == NULL)
 		return MEMORY_ALLOCATION_ERROR;
-	list->lastBlock = list->firstBlock;
-	list->firstBlock->currentAlloc = 0;
 	list->firstBlock->nextBlock = NULL;
+	list->lastBlock = list->firstBlock;
+	list->currAllocSlot = 0;
 
 	return ERR_OK;
 }
@@ -34,21 +34,20 @@ void* memManagedAllocate(AllocList* list, size_t size)
 	void* ptr = EXIP_MALLOC(size);
 	if(ptr != NULL)
 	{
-		if(list->lastBlock->currentAlloc == ALLOCATION_ARRAY_SIZE)
+		if(list->currAllocSlot == ALLOCATION_ARRAY_SIZE)
 		{
 			struct allocBlock* newBlock = EXIP_MALLOC(sizeof(struct allocBlock));
 			if(newBlock == NULL)
 				return NULL;
 
-			newBlock->currentAlloc = 0;
 			newBlock->nextBlock = NULL;
-
 			list->lastBlock->nextBlock = newBlock;
 			list->lastBlock = newBlock;
+			list->currAllocSlot = 0;
 		}
 
-		list->lastBlock->allocation[list->lastBlock->currentAlloc] = ptr;
-		list->lastBlock->currentAlloc += 1;
+		list->lastBlock->allocation[list->currAllocSlot] = ptr;
+		list->currAllocSlot += 1;
 	}
 	return ptr;
 }
@@ -59,7 +58,7 @@ void* memManagedAllocatePtr(AllocList* list, size_t size, struct reAllocPair* me
 	if(ptr != NULL)
 	{
 		memPair->memBlock = list->lastBlock;
-		memPair->allocIndx = list->lastBlock->currentAlloc - 1;
+		memPair->allocIndx = list->currAllocSlot - 1;
 	}
 	return ptr;
 }
@@ -74,16 +73,6 @@ errorCode memManagedReAllocate(void** ptr, size_t size, struct reAllocPair memPa
 	memPair.memBlock->allocation[memPair.allocIndx] = new_ptr;
 	return ERR_OK;
 }
-
-void freeLastManagedAlloc(AllocList* list)
-{
-	if(list->lastBlock->currentAlloc > 0)
-	{
-		EXIP_MFREE(list->lastBlock->allocation[list->lastBlock->currentAlloc - 1]);
-		list->lastBlock->currentAlloc -= 1;
-	}
-}
-
 
 void freeAllMem(EXIStream* strm)
 {
@@ -112,6 +101,16 @@ void freeAllMem(EXIStream* strm)
 	if(strm->valueTable.hashTbl != NULL)
 		hashtable_destroy(strm->valueTable.hashTbl);
 #endif
+
+	if(strm->valueTable.value != NULL)
+	{
+		Index i;
+		for(i = 0; i < strm->valueTable.count; i++)
+		{
+			EXIP_MFREE(strm->valueTable.value[i].valueStr.str);
+		}
+	}
+
 	freeAllocList(&(strm->memList));
 }
 
@@ -120,19 +119,16 @@ void freeAllocList(AllocList* list)
 	struct allocBlock* tmpBlock = list->firstBlock;
 	struct allocBlock* rmBl;
 	unsigned int i = 0;
-
-	if(tmpBlock == NULL) // Empty AllocList
-		return;
-
-	for(i = 0; i < tmpBlock->currentAlloc; i++)
-		EXIP_MFREE(tmpBlock->allocation[i]);
-
-	tmpBlock = tmpBlock->nextBlock;
-	EXIP_MFREE(list->firstBlock);
+	unsigned int allocLimitInBlock;
 
 	while(tmpBlock != NULL)
 	{
-		for(i = 0; i < tmpBlock->currentAlloc; i++)
+		if(tmpBlock->nextBlock != NULL)
+			allocLimitInBlock = ALLOCATION_ARRAY_SIZE;
+		else
+			allocLimitInBlock = list->currAllocSlot;
+
+		for(i = 0; i < allocLimitInBlock; i++)
 			EXIP_MFREE(tmpBlock->allocation[i]);
 
 		rmBl = tmpBlock;

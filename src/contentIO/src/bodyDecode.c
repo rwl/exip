@@ -22,6 +22,7 @@
 #include "grammars.h"
 #include "dynamicArray.h"
 #include "emptyTypeGrammarGen.h"
+#include "stringManipulate.h"
 
 errorCode decodeQName(EXIStream* strm, QName* qname, QNameID* qnameID)
 {
@@ -102,9 +103,15 @@ errorCode decodeLn(EXIStream* strm, Index uriId, Index* lnId)
 	{
 		String lnStr;
 		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">local-name table miss\n"));
+
+		tmp_err_code = allocateStringMemoryManaged(&(lnStr.str),(Index) (tmpVar - 1), &strm->memList);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
 		tmp_err_code = decodeStringOnly(strm, (Index)tmpVar - 1, &lnStr);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
+
 		if(strm->schema->uriTable.uri[uriId].lnTable.ln == NULL)
 		{
 			// Create local name table for this URI entry
@@ -184,15 +191,13 @@ errorCode decodePfx(EXIStream* strm, SmallIndex uriId, SmallIndex* pfxId)
 	return ERR_OK;
 }
 
-errorCode decodeStringValue(EXIStream* strm, QNameID qnameID, String* value, unsigned char* freeable)
+errorCode decodeStringValue(EXIStream* strm, QNameID qnameID, String* value)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	UnsignedInteger tmpVar = 0;
 	tmp_err_code = decodeUnsignedInteger(strm, &tmpVar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-
-	*freeable = FALSE;
 
 	if(tmpVar == 0) // "local" value partition table hit
 	{
@@ -222,18 +227,24 @@ errorCode decodeStringValue(EXIStream* strm, QNameID qnameID, String* value, uns
 	}
 	else  // "local" value partition and global value partition table miss
 	{
-		tmp_err_code = decodeStringOnly(strm, (Index)tmpVar - 2, value);
+		Index vStrLen = (Index) tmpVar - 2;
+
+		tmp_err_code = allocateStringMemory(&value->str, vStrLen);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		if(value->length > 0 && value->length <= strm->header.opts.valueMaxLength && strm->header.opts.valuePartitionCapacity > 0)
+		tmp_err_code = decodeStringOnly(strm, vStrLen, value);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		if(vStrLen > 0 && vStrLen <= strm->header.opts.valueMaxLength && strm->header.opts.valuePartitionCapacity > 0)
 		{
+			// The value should be entered in the value partitions of the string tables
+
 			tmp_err_code = addValueEntry(strm, *value, qnameID);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
-		else
-			*freeable = TRUE;
 	}
 	return ERR_OK;
 }
@@ -679,9 +690,12 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 			}
 			else
 			{
-				tmp_err_code = decodeStringValue(strm, localQNameID, &value, &freeable);
+				tmp_err_code = decodeStringValue(strm, localQNameID, &value);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
+
+				if(value.length > strm->header.opts.valueMaxLength || strm->header.opts.valuePartitionCapacity == 0)
+					freeable = TRUE;
 			}
 
 			if(handler->stringData != NULL)  // Invoke handler method
@@ -689,8 +703,9 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 				if(handler->stringData(value, app_data) == EXIP_HANDLER_STOP)
 					return HANDLER_STOP_RECEIVED;
 			}
+
 			if(freeable)
-				freeLastManagedAlloc(&strm->memList);
+				EXIP_MFREE(value.str);
 		} break;
 	}
 

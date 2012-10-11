@@ -405,7 +405,7 @@ static char ops_stringData(const String value, void* app_data)
 			else
 			{
 				o_appD->schemaIDOptions = SCHEMA_ID_EL_STRING;
-				if(cloneString(&value, &o_appD->parsed_ops->schemaID, o_appD->permanentAllocList) != ERR_OK)
+				if(cloneStringManaged(&value, &o_appD->parsed_ops->schemaID, o_appD->permanentAllocList) != ERR_OK)
 				{
 					DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Memory error\n"));
 					return EXIP_HANDLER_STOP;

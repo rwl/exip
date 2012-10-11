@@ -260,7 +260,7 @@ static char xsd_startElement(QName qname, void* app_data)
 			{
 				String clonedTargetNS;
 
-				tmp_err_code = cloneString(&ttpd->treeT->globalDefs.targetNs, &clonedTargetNS, &ttpd->schema->memList);
+				tmp_err_code = cloneStringManaged(&ttpd->treeT->globalDefs.targetNs, &clonedTargetNS, &ttpd->schema->memList);
 				if(tmp_err_code != ERR_OK)
 					return EXIP_HANDLER_STOP;
 
@@ -431,7 +431,7 @@ static char xsd_endElement(void* app_data)
 
 			if(!lookupLn(&ttpd->schema->uriTable.uri[uriId].lnTable, *elName, &lnId))
 			{
-				tmp_err_code = cloneString(elName, &clonedName, &ttpd->schema->memList);
+				tmp_err_code = cloneStringManaged(elName, &clonedName, &ttpd->schema->memList);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 
@@ -457,7 +457,7 @@ static char xsd_endElement(void* app_data)
 				{
 					if(!lookupUri(&ttpd->schema->uriTable, nsTable.base[i], &uriId))
 					{
-						tmp_err_code = cloneString(&nsTable.base[i], &clonedName, &ttpd->schema->memList);
+						tmp_err_code = cloneStringManaged(&nsTable.base[i], &clonedName, &ttpd->schema->memList);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
 
@@ -635,7 +635,7 @@ static char xsd_stringData(const String value, void* app_data)
 	{
 		if(ttpd->charDataPtr != NULL)
 		{
-			tmp_err_code = cloneString(&value, ttpd->charDataPtr, &ttpd->treeT->memList);
+			tmp_err_code = cloneStringManaged(&value, ttpd->charDataPtr, &ttpd->treeT->memList);
 			if(tmp_err_code != ERR_OK)
 			{
 				DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Error cloneString\n"));
@@ -676,8 +676,8 @@ static char xsd_namespaceDeclaration(const String ns, const String pfx, unsigned
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n"));
 #endif
 	
-	tmp_err_code = cloneString(&ns, &pfxNsEntry.ns, &ttpd->treeT->memList);
-	tmp_err_code += cloneString(&pfx, &pfxNsEntry.pfx, &ttpd->treeT->memList);
+	tmp_err_code = cloneStringManaged(&ns, &pfxNsEntry.ns, &ttpd->treeT->memList);
+	tmp_err_code += cloneStringManaged(&pfx, &pfxNsEntry.pfx, &ttpd->treeT->memList);
 	if(tmp_err_code != ERR_OK)
 	{
 		DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Error addDynElement\n"));

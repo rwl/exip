@@ -20,7 +20,15 @@
 
 #define PARSING_STRING_MAX_LENGTH 100
 
-errorCode allocateStringMemory(CharType** str, Index UCSchars, AllocList* memList)
+errorCode allocateStringMemory(CharType** str, Index UCSchars)
+{
+	*str = EXIP_MALLOC(sizeof(CharType)*UCSchars);
+	if((*str) == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+	return ERR_OK;
+}
+
+errorCode allocateStringMemoryManaged(CharType** str, Index UCSchars, AllocList* memList)
 {
 	(*str) = (CharType*) memManagedAllocate(memList, sizeof(CharType)*UCSchars);
 	if((*str) == NULL)
@@ -149,7 +157,19 @@ errorCode readCharFromString(const String* str, Index* readerPosition, uint32_t*
 	return ERR_OK;
 }
 
-errorCode cloneString(const String* src, String* newStr, AllocList* memList)
+errorCode cloneString(const String* src, String* newStr)
+{
+	if(newStr == NULL)
+		return NULL_POINTER_REF;
+	newStr->str = EXIP_MALLOC(sizeof(CharType)*src->length);
+	if(newStr->str == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+	newStr->length = src->length;
+	memcpy(newStr->str, src->str, src->length);
+	return ERR_OK;
+}
+
+errorCode cloneStringManaged(const String* src, String* newStr, AllocList* memList)
 {
 	if(newStr == NULL)
 		return NULL_POINTER_REF;
@@ -158,37 +178,6 @@ errorCode cloneString(const String* src, String* newStr, AllocList* memList)
 		return MEMORY_ALLOCATION_ERROR;
 	newStr->length = src->length;
 	memcpy(newStr->str, src->str, src->length);
-	return ERR_OK;
-}
-
-errorCode concatString(const String* str1, const String* str2, String* newStr, AllocList* memList)
-{
-	if(newStr == NULL)
-		return NULL_POINTER_REF;
-	newStr->str = memManagedAllocate(memList, sizeof(CharType)*(str1->length + str2->length));
-	if(newStr->str == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-	newStr->length = str1->length + str2->length;
-	memcpy(newStr->str, str1->str, str1->length);
-	memcpy(newStr->str + str1->length, str2->str, str2->length);
-	return ERR_OK;
-}
-
-errorCode concatAsciiToString(const char* str1, const String* str2, String* newStr, AllocList* memList)
-{
-	size_t str1Len;
-
-	if(newStr == NULL)
-		return NULL_POINTER_REF;
-
-	str1Len = strlen(str1);
-
-	newStr->str = memManagedAllocate(memList, sizeof(CharType)*(str1Len + str2->length));
-	if(newStr->str == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-	newStr->length = str1Len + str2->length;
-	memcpy(newStr->str, str1, str1Len);
-	memcpy(newStr->str + str1Len, str2->str, str2->length);
 	return ERR_OK;
 }
 

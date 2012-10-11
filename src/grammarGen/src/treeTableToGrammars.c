@@ -1699,7 +1699,7 @@ static errorCode getRestrictionSimpleProtoGrammar(BuildContext* ctx, TreeTable* 
 					{
 						String tmpStr;
 
-						tmp_err_code = cloneString(&enumEntry->attributePointers[ATTRIBUTE_VALUE], &tmpStr, &ctx->schema->memList);
+						tmp_err_code = cloneStringManaged(&enumEntry->attributePointers[ATTRIBUTE_VALUE], &tmpStr, &ctx->schema->memList);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
 
