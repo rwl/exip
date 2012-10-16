@@ -304,7 +304,7 @@ errorCode encodeProduction(EXIStream* strm, GrammarRule* currentRule, unsigned c
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			tmp_err_code = addDynEntry(&strm->schema->grammarTable.dynArray, &newElementGrammar, &dynArrIndx, &strm->memList);
+			tmp_err_code = addDynEntry(&strm->schema->grammarTable.dynArray, &newElementGrammar, &dynArrIndx);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
@@ -411,7 +411,7 @@ errorCode encodeUri(EXIStream* strm, String* uri, SmallIndex* uriId)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = addUriEntry(&strm->schema->uriTable, copiedURI, uriId, &strm->memList);
+		tmp_err_code = addUriEntry(&strm->schema->uriTable, copiedURI, uriId);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -448,7 +448,7 @@ errorCode encodeLn(EXIStream* strm, String* ln, QNameID* qnameID)
 		if(strm->schema->uriTable.uri[qnameID->uriId].lnTable.ln == NULL)
 		{
 			// Create local name table for this URI entry
-			tmp_err_code = createDynArray(&strm->schema->uriTable.uri[qnameID->uriId].lnTable.dynArray, sizeof(LnEntry), DEFAULT_LN_ENTRIES_NUMBER, &strm->memList);
+			tmp_err_code = createDynArray(&strm->schema->uriTable.uri[qnameID->uriId].lnTable.dynArray, sizeof(LnEntry), DEFAULT_LN_ENTRIES_NUMBER);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -457,7 +457,7 @@ errorCode encodeLn(EXIStream* strm, String* ln, QNameID* qnameID)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = addLnEntry(&strm->schema->uriTable.uri[qnameID->uriId].lnTable, copiedLN, &qnameID->lnId, &strm->memList);
+		tmp_err_code = addLnEntry(&strm->schema->uriTable.uri[qnameID->uriId].lnTable, copiedLN, &qnameID->lnId);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}

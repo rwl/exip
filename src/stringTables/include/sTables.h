@@ -20,9 +20,6 @@
 #include "procTypes.h"
 #include "errorHandle.h"
 
-#define XML_SCHEMA_NAMESPACE "http://www.w3.org/2001/XMLSchema"
-#define XML_SCHEMA_INSTANCE "http://www.w3.org/2001/XMLSchema-instance"
-
 #define DEFAULT_VALUE_ENTRIES_NUMBER 50
 #define DEFAULT_URI_ENTRIES_NUMBER   4
 #define DEFAULT_PFX_ENTRIES_NUMBER   2
@@ -52,19 +49,17 @@
  * @brief Creates fresh empty ValueTable (value partition of EXI string table)
  * This operation includes allocation of memory for DEFAULT_VALUE_ENTRIES_NUMBER number of value entries
  * @param[in, out] valueTable ValueTable string table partition
- * @param[in, out] memList A list storing the memory allocations
  * @return Error handling code
  */
-errorCode createValueTable(ValueTable* valueTable, AllocList* memList);
+errorCode createValueTable(ValueTable* valueTable);
 
 /**
  * @brief Creates fresh empty PfxTable (prefix partition of EXI string table)
  * This operation includes allocation of memory for DEFAULT_PFX_ENTRIES_NUMBER number of prefix entries
  * @param[out] pfxTable Prefix string table partition
- * @param[in, out] memList A list storing the memory allocations
  * @return Error handling code
  */
-errorCode createPfxTable(PfxTable** pfxTable, AllocList* memList);
+errorCode createPfxTable(PfxTable** pfxTable);
 
 /**
  * @brief Add new row into the URI string table
@@ -72,10 +67,9 @@ errorCode createPfxTable(PfxTable** pfxTable, AllocList* memList);
  * @param[in, out] uriTable URI string table partition
  * @param[in] uriStr The string representing this URI. The String can be allocated on the stack.
  * @param[out] uriEntryId The ID of the UriEntry added
- * @param[in, out] memList A list storing the memory allocations
  * @return Error handling code
  */
-errorCode addUriEntry(UriTable* uriTable, String uriStr, SmallIndex* uriEntryId, AllocList* memList);
+errorCode addUriEntry(UriTable* uriTable, String uriStr, SmallIndex* uriEntryId);
 
 /**
  * @brief Add new row into the Local-Names string table
@@ -83,10 +77,9 @@ errorCode addUriEntry(UriTable* uriTable, String uriStr, SmallIndex* uriEntryId,
  * @param[out] lnTable Local Names string table partition
  * @param[in] lnStr The string representing this local name. The String can be allocated on the stack.
  * @param[out] lnEntryId the ID of the LnEntry added
- * @param[in, out] memList A list storing the memory allocations
  * @return Error handling code
  */
-errorCode addLnEntry(LnTable* lnTable, String lnStr, Index* lnEntryId, AllocList* memList);
+errorCode addLnEntry(LnTable* lnTable, String lnStr, Index* lnEntryId);
 
 /**
  * @brief Add a new row into the Global ValueTable string table and Local value cross string table
@@ -113,16 +106,16 @@ errorCode addPfxEntry(PfxTable* pfxTable, String pfxStr, SmallIndex* pfxEntryId)
  * Create an initial string table entry, including URI, prefix and local name partitions
  *
  * @param[in, out] uriTable URI string table partition
- * @param[in] uri Character array representing URI, or NULL if not present
+ * @param[in] uri namespace string
  * @param[in] createPfx TRUE if prefix table to be created, FALSE otherwise
- * @param[in] pfx Character array representing prefix, or NULL if not present
+ * @param[in] pfx prefix string
  * @param[in] lnBase Character array representing array of local names, or NULL if not present
  * @param[in] lnSize Number of local names in array at lnBase
  * @param[in, out] memList A list storing the memory allocations
  * @return Error handling code
  */
-errorCode createUriTableEntry(UriTable* uriTable, const char* uri, int createPfx, 
-	const char* pfx, const char** lnBase, Index lnSize, AllocList* memList);
+errorCode createUriTableEntry(UriTable* uriTable, const String uri, int createPfx,
+	const String pfx, const String* lnBase, Index lnSize);
 
 /**
  * @brief Create all string table partitions for a URI table
@@ -134,10 +127,9 @@ errorCode createUriTableEntry(UriTable* uriTable, const char* uri, int createPfx
  * @param[in, out] uriTable An empty UriTable; The memory must be already allocated for it
  * @param[in] withSchema TRUE if there is schema for this stream; FALSE otherwise;
  * Can be retrieved from strm->opts->schemaID != NULL
- * @param[in] memList A list storing the memory allocations
  * @return Error handling code
  */
-errorCode createUriTableEntries(UriTable* uriTable, unsigned char withSchema, AllocList* memList);
+errorCode createUriTableEntries(UriTable* uriTable, unsigned char withSchema);
 
 /**
  * @brief Search the URI table for a particular string value

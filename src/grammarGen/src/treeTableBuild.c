@@ -30,6 +30,8 @@
 #define SCHEMA_ELEMENT_STATE  1
 #define SCHEMA_CONTENT_STATE  2
 
+extern const String XML_SCHEMA_NAMESPACE;
+
 /**
  * State required when parsing a schema to build a TreeTable.
  */
@@ -231,7 +233,7 @@ static char xsd_startElement(QName qname, void* app_data)
 	struct TreeTableParsingData* ttpd = (struct TreeTableParsingData*) app_data;
 	if(ttpd->propsStat == INITIAL_STATE) // This should be the first <schema> element
 	{
-		if(stringEqualToAscii(*qname.uri, XML_SCHEMA_NAMESPACE) &&
+		if(stringEqual(*qname.uri, XML_SCHEMA_NAMESPACE) &&
 				stringEqualToAscii(*qname.localName, "schema"))
 		{
 			ttpd->propsStat = SCHEMA_ELEMENT_STATE;
@@ -265,7 +267,7 @@ static char xsd_startElement(QName qname, void* app_data)
 					return EXIP_HANDLER_STOP;
 
 				// Add the target namespace to the schema string tables
-				tmp_err_code = addUriEntry(&ttpd->schema->uriTable, clonedTargetNS, &ttpd->targetNsId, &ttpd->schema->memList);
+				tmp_err_code = addUriEntry(&ttpd->schema->uriTable, clonedTargetNS, &ttpd->targetNsId);
 				if(tmp_err_code != ERR_OK)
 					return EXIP_HANDLER_STOP;
 			}
@@ -282,7 +284,7 @@ static char xsd_startElement(QName qname, void* app_data)
 
 		/**** Normal element processing starts here ****/
 
-		if(!stringEqualToAscii(*qname.uri, XML_SCHEMA_NAMESPACE))
+		if(!stringEqual(*qname.uri, XML_SCHEMA_NAMESPACE))
 		{
 			DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Invalid namespace of XML Schema element\n"));
 			return EXIP_HANDLER_STOP;
@@ -309,7 +311,7 @@ static char xsd_startElement(QName qname, void* app_data)
 		if(prevEntry == NULL)
 		{
 			/* At the root level, so create an entry */
-			tmp_err_code = addEmptyDynEntry(&ttpd->treeT->dynArray, (void**)&treeTableEntry, &treeTableId, &ttpd->treeT->memList);
+			tmp_err_code = addEmptyDynEntry(&ttpd->treeT->dynArray, (void**)&treeTableEntry, &treeTableId);
 			if(tmp_err_code != ERR_OK)
 				return EXIP_HANDLER_STOP;
 		}
@@ -436,7 +438,7 @@ static char xsd_endElement(void* app_data)
 					return tmp_err_code;
 
 				/* Add the element name to the schema string tables. Note this table persists beyond the tree table */
-				tmp_err_code = addLnEntry(&ttpd->schema->uriTable.uri[uriId].lnTable, clonedName, &lnId, &ttpd->schema->memList);
+				tmp_err_code = addLnEntry(&ttpd->schema->uriTable.uri[uriId].lnTable, clonedName, &lnId);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			}
@@ -446,11 +448,11 @@ static char xsd_endElement(void* app_data)
 				NsTable nsTable;
 				size_t i;
 
-				tmp_err_code = createDynArray(&nsTable.dynArray, sizeof(String), 5, &ttpd->treeT->memList);
+				tmp_err_code = createDynArray(&nsTable.dynArray, sizeof(String), 5);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 
-				if(ERR_OK != getNsList(&ttpd->treeT->memList, ttpd->treeT, entry->attributePointers[ATTRIBUTE_NAMESPACE], &nsTable))
+				if(ERR_OK != getNsList(ttpd->treeT, entry->attributePointers[ATTRIBUTE_NAMESPACE], &nsTable))
 					return	EXIP_HANDLER_STOP;
 
 				for(i = 0; i < nsTable.count; i++)
@@ -462,7 +464,7 @@ static char xsd_endElement(void* app_data)
 							return tmp_err_code;
 
 						/* Add the namespace to the schema URI string table. Note this table persists beyond the tree table */
-						tmp_err_code = addUriEntry(&ttpd->schema->uriTable, clonedName, &uriId, &ttpd->schema->memList);
+						tmp_err_code = addUriEntry(&ttpd->schema->uriTable, clonedName, &uriId);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
 					}
@@ -684,7 +686,7 @@ static char xsd_namespaceDeclaration(const String ns, const String pfx, unsigned
 		return EXIP_HANDLER_STOP;
 	}
 
-	tmp_err_code = addDynEntry(&ttpd->treeT->globalDefs.pfxNsTable.dynArray, &pfxNsEntry, &entryID, &ttpd->treeT->memList);
+	tmp_err_code = addDynEntry(&ttpd->treeT->globalDefs.pfxNsTable.dynArray, &pfxNsEntry, &entryID);
 	if(tmp_err_code != ERR_OK)
 	{
 		DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Error addDynElement\n"));

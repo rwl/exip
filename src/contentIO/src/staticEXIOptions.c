@@ -1,4 +1,4 @@
-/** AUTO-GENERATED: Fri Sep 14 18:07:51 2012
+/** AUTO-GENERATED: Tue Oct 16 09:06:05 2012
   * Copyright (c) 2010 - 2011, Rumen Kyusakov, EISLAB, LTU
   * $Id$ */
 

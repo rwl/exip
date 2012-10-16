@@ -62,7 +62,7 @@ errorCode decodeUri(EXIStream* strm, SmallIndex* uriId)
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = addUriEntry(&strm->schema->uriTable, str, uriId, &strm->memList);
+		tmp_err_code = addUriEntry(&strm->schema->uriTable, str, uriId);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -115,11 +115,11 @@ errorCode decodeLn(EXIStream* strm, Index uriId, Index* lnId)
 		if(strm->schema->uriTable.uri[uriId].lnTable.ln == NULL)
 		{
 			// Create local name table for this URI entry
-			tmp_err_code = createDynArray(&strm->schema->uriTable.uri[uriId].lnTable.dynArray, sizeof(LnEntry), DEFAULT_LN_ENTRIES_NUMBER, &strm->memList);
+			tmp_err_code = createDynArray(&strm->schema->uriTable.uri[uriId].lnTable.dynArray, sizeof(LnEntry), DEFAULT_LN_ENTRIES_NUMBER);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
-		tmp_err_code = addLnEntry(&strm->schema->uriTable.uri[uriId].lnTable, lnStr, lnId, &strm->memList);
+		tmp_err_code = addLnEntry(&strm->schema->uriTable.uri[uriId].lnTable, lnStr, lnId);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -303,7 +303,7 @@ errorCode decodeEventContent(EXIStream* strm, Production* prodHit, ContentHandle
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 
-				tmp_err_code = addDynEntry(&strm->schema->grammarTable.dynArray, &newElementGrammar, &dynArrIndx, &strm->memList);
+				tmp_err_code = addDynEntry(&strm->schema->grammarTable.dynArray, &newElementGrammar, &dynArrIndx);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 
@@ -427,7 +427,7 @@ errorCode decodeEventContent(EXIStream* strm, Production* prodHit, ContentHandle
 
 			if(strm->schema->uriTable.uri[ns_uriId].pfxTable == NULL)
 			{
-				tmp_err_code = createPfxTable(&strm->schema->uriTable.uri[ns_uriId].pfxTable, &strm->memList);
+				tmp_err_code = createPfxTable(&strm->schema->uriTable.uri[ns_uriId].pfxTable);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			}

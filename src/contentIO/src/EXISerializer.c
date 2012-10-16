@@ -87,7 +87,7 @@ errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema, u
 
 	if(strm->header.opts.valuePartitionCapacity > 0)
 	{
-		tmp_err_code = createValueTable(&strm->valueTable, &strm->memList);
+		tmp_err_code = createValueTable(&strm->valueTable);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -568,7 +568,7 @@ errorCode namespaceDeclaration(EXIStream* strm, const String ns, const String pr
 
 	if(strm->schema->uriTable.uri[uriId].pfxTable == NULL)
 	{
-		tmp_err_code = createPfxTable(&strm->schema->uriTable.uri[uriId].pfxTable, &strm->memList);
+		tmp_err_code = createPfxTable(&strm->schema->uriTable.uri[uriId].pfxTable);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}

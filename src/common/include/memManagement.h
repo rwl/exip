@@ -43,30 +43,6 @@ errorCode initAllocList(AllocList* list);
 void* memManagedAllocate(AllocList* list, size_t size);
 
 /**
- * @brief Allocate a memory block with size size and store a copy of
- * the pointer in a linked list for freeing it at the end.
- * It also return the location in the linked list used later
- * during reallocation. Use this function in case the allocated block
- * might need to be reallocated later.
- *
- * @param[in, out] list A list storing the memory allocations
- * @param[in] size the size of the memory block to be allocated
- * @param[out] memPair stores a pointer to the allocation block used for reallocations
- * @return pointer to the allocated memory if successful. NULL otherwise
- */
-void* memManagedAllocatePtr(AllocList* list, size_t size, struct reAllocPair* memPair);
-
-/**
- * @brief Reallocate a memory block with size size
- *
- * @param[in, out] ptr pointer to be reallocated
- * @param[in] size the size of the memory block to be reallocated
- * @param[in] memPair pointer to the allocation block where the initial allocation was done
- * @return pointer to the allocated memory if successful. NULL otherwise
- */
-errorCode memManagedReAllocate(void** ptr, size_t size, struct reAllocPair memPair);
-
-/**
  * @brief Frees all the managed memory for a particular EXI stream.
  * It should be called after an error in the processing occur or at the
  * end of the parsing/serializing if the processing is successful.

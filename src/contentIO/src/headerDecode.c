@@ -185,7 +185,7 @@ errorCode decodeHeader(EXIStream* strm)
 			return tmp_err_code;
 		}
 
-		tmp_err_code = createValueTable(&optionsParser.strm.valueTable, &optionsParser.strm.memList);
+		tmp_err_code = createValueTable(&optionsParser.strm.valueTable);
 		if(tmp_err_code != ERR_OK)
 		{
 			destroyParser(&optionsParser);
@@ -222,14 +222,7 @@ errorCode decodeHeader(EXIStream* strm)
 		// (i.e. a schema-less EXI stream)
 		if(appD.schemaIDOptions == SCHEMA_ID_EL_NIL_TRUE)
 		{
-			if(strm->schema != NULL)
-			{
-				if(strm->schema->isStatic == FALSE)
-				{
-					freeAllocList(&strm->schema->memList);
-				}
-				strm->schema = NULL;
-			}
+			strm->schema = NULL;
 		}
 		else if(appD.schemaIDOptions == SCHEMA_ID_EL_EMPTY)
 		{

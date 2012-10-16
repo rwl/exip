@@ -109,7 +109,7 @@ errorCode encodeHeader(EXIStream* strm)
 		options_strm.gStack = NULL;
 		options_strm.schema = (EXIPSchema*) &ops_schema;
 
-		tmp_err_code = createValueTable(&options_strm.valueTable, &options_strm.memList);
+		tmp_err_code = createValueTable(&options_strm.valueTable);
 		if(tmp_err_code != ERR_OK)
 		{
 			closeOptionsStream(&options_strm);

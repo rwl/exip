@@ -394,6 +394,9 @@ int main(int argc, char *argv[])
 			tmp_err_code = serialize.closeEXIStream(&testStrm);
 
 			fclose(outfile);
+
+			if(schemaPtr != NULL)
+				destroySchema(schemaPtr);
 		}
 	}
 	else

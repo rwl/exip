@@ -36,14 +36,14 @@
 
 /**
  * @brief Creates fresh empty Untyped Dynamic Array
- * This operation includes allocation of memory for DEFAULT_VALUE_ROWS_NUMBER number of value rows
+ * This operation includes allocation of memory for DEFAULT_VALUE_ROWS_NUMBER number of value rows.
+ * For every created array, destroyDynArray() must be invoked to release the allocated memory.
  * @param[in, out] dynArray Untyped Dynamic Array
  * @param[in] entrySize The size of a single array entry in bytes
  * @param[in] chunkSize Initial number of entries and the number of entries to be added each expansion time
- * @param[in, out] memList A list storing the memory allocations
  * @return Error handling code
  */
-errorCode createDynArray(DynArray* dynArray, size_t entrySize, uint16_t chunkSize, AllocList* memList);
+errorCode createDynArray(DynArray* dynArray, size_t entrySize, uint16_t chunkSize);
 
 /**
  * @brief Add new empty entry into the dynamic array
@@ -52,10 +52,9 @@ errorCode createDynArray(DynArray* dynArray, size_t entrySize, uint16_t chunkSiz
  * @param[in, out] dynArray Untyped Dynamic Array
  * @param[out] entry the empty inserted entry to be filled in
  * @param[out] entryID the ID of the entry inserted
- * @param[in, out] memList A list storing the memory allocations
  * @return Error handling code
  */
-errorCode addEmptyDynEntry(DynArray* dynArray, void** entry, Index* entryID, AllocList* memList);
+errorCode addEmptyDynEntry(DynArray* dynArray, void** entry, Index* entryID);
 
 /**
  * @brief Add new entry into the dynamic array
@@ -64,10 +63,9 @@ errorCode addEmptyDynEntry(DynArray* dynArray, void** entry, Index* entryID, All
  * @param[in, out] dynArray Untyped Dynamic Array
  * @param[in] entry the inserted entry
  * @param[out] entryID the ID of the entry inserted
- * @param[in, out] memList A list storing the memory allocations
  * @return Error handling code
  */
-errorCode addDynEntry(DynArray* dynArray, void* entry, Index* entryID, AllocList* memList);
+errorCode addDynEntry(DynArray* dynArray, void* entry, Index* entryID);
 
 /**
  * @brief Removes an entry from the dynamic array with index elID
@@ -78,5 +76,12 @@ errorCode addDynEntry(DynArray* dynArray, void* entry, Index* entryID, AllocList
  * bigger than the array size or the array size is 0
  */
 errorCode delDynEntry(DynArray* dynArray, Index entryID);
+
+/**
+ * @brief Destroy a Dynamic Array
+ * This operation frees the allocated memory
+ * @param[in, out] dynArray Untyped Dynamic Array to be freed
+ */
+void destroyDynArray(DynArray* dynArray);
 
 #endif /* DYNAMICARRAY_H_ */

@@ -23,6 +23,9 @@
 #include "procTypes.h"
 #include "contentHandler.h"
 
+/** The numbers of the grammars corresponding to the build-in XML Schema types */
+#define BUILD_IN_GRAMMARS_COUNT 46
+
 /**
  * Get global element EXIGrammar from the SchemaGrammarTable by given QNameID.
  * Returns NULL if the grammar does not exists in the SchemaGrammarTable

@@ -18,12 +18,12 @@
 #include "dynamicArray.h"
 #include "memManagement.h"
 
-errorCode createDynArray(DynArray* dynArray, size_t entrySize, uint16_t chunkEntries, AllocList* memList)
+errorCode createDynArray(DynArray* dynArray, size_t entrySize, uint16_t chunkEntries)
 {
 	void** base = (void **)(dynArray + 1);
 	Index* count = (Index*)(base + 1);
 
-	*base = memManagedAllocatePtr(memList, entrySize*chunkEntries, &dynArray->memPair);
+	*base = EXIP_MALLOC(entrySize*chunkEntries);
 	if(*base == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -35,11 +35,10 @@ errorCode createDynArray(DynArray* dynArray, size_t entrySize, uint16_t chunkEnt
 	return ERR_OK;
 }
 
-errorCode addEmptyDynEntry(DynArray* dynArray, void** entry, Index* entryID, AllocList* memList)
+errorCode addEmptyDynEntry(DynArray* dynArray, void** entry, Index* entryID)
 {
 	void** base;
 	Index* count;
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
 	if(dynArray == NULL)
 		return NULL_POINTER_REF;
@@ -48,9 +47,11 @@ errorCode addEmptyDynEntry(DynArray* dynArray, void** entry, Index* entryID, All
 	count = (Index*)(base + 1);
 	if(dynArray->arrayEntries == *count)   // The dynamic array must be extended first
 	{
-		tmp_err_code = memManagedReAllocate(base, dynArray->entrySize * (*count + dynArray->chunkEntries), dynArray->memPair);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		void* ptr = EXIP_REALLOC(*base, dynArray->entrySize * (*count + dynArray->chunkEntries));
+		if(ptr == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+
+		*base = ptr;
 		dynArray->arrayEntries = dynArray->arrayEntries + dynArray->chunkEntries;
 	}
 
@@ -62,12 +63,12 @@ errorCode addEmptyDynEntry(DynArray* dynArray, void** entry, Index* entryID, All
 	return ERR_OK;
 }
 
-errorCode addDynEntry(DynArray* dynArray, void* entry, Index* entryID, AllocList* memList)
+errorCode addDynEntry(DynArray* dynArray, void* entry, Index* entryID)
 {
 	errorCode tmp_err_code;
 	void *emptyEntry;
 
-	tmp_err_code = addEmptyDynEntry(dynArray, &emptyEntry, entryID, memList);
+	tmp_err_code = addEmptyDynEntry(dynArray, &emptyEntry, entryID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -102,4 +103,10 @@ errorCode delDynEntry(DynArray* dynArray, Index entryID)
 		return OUT_OF_BOUND_BUFFER;
 
 	return ERR_OK;
+}
+
+void destroyDynArray(DynArray* dynArray)
+{
+	void** base = (void **)(dynArray + 1);
+	EXIP_MFREE(*base);
 }

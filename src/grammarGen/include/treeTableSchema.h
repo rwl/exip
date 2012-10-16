@@ -333,13 +333,12 @@ errorCode getTypeQName(EXIPSchema* schema, TreeTable* treeT, const String typeLi
  *
  * This function also resolves the special values "##targetNamespace" and "##local"
  *
- * @param[in, out] memList the memlist used for allocations
  * @param[in] treeT the tree table object
  * @param[in] nsList a sting containing the space separated namespaces
  * @param[out] nsTable an array of namespaces
  * @return Error handling code
  */
-errorCode getNsList(AllocList* memList, TreeTable* treeT, String nsList, NsTable* nsTable);
+errorCode getNsList(TreeTable* treeT, String nsList, NsTable* nsTable);
 
 #if DEBUG_GRAMMAR_GEN == ON
 /**

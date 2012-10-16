@@ -22,38 +22,32 @@
 #include "ioUtil.h"
 #include "dynamicArray.h"
 
-errorCode createProtoGrammar(AllocList* memList, Index rulesDim, Index prodDim, ProtoGrammar* pg)
+errorCode createProtoGrammar(Index rulesDim, ProtoGrammar* pg)
+{
+	pg->contentIndex = 0;
+
+	return createDynArray(&pg->dynArray, sizeof(ProtoRuleEntry), rulesDim);
+}
+
+errorCode addProtoRule(ProtoGrammar* pg, Index prodDim, ProtoRuleEntry** ruleEntry)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	ProtoRuleEntry* ruleEntry;
 	Index ruleId;
-	Index i;
 
-	tmp_err_code = createDynArray(&pg->dynArray, sizeof(ProtoRuleEntry), rulesDim, memList);
+	tmp_err_code = addEmptyDynEntry(&pg->dynArray, (void **) ruleEntry, &ruleId);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	pg->contentIndex = 0;
-	for (i = 0; i < rulesDim; i++)
-	{
-		tmp_err_code = addEmptyDynEntry(&pg->dynArray, (void **)&ruleEntry, &ruleId, memList);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		tmp_err_code = createDynArray(&ruleEntry->dynArray, sizeof(Production), prodDim, memList);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-
-	return ERR_OK;
+	return createDynArray(&((*ruleEntry)->dynArray), sizeof(Production), prodDim);
 }
 
-errorCode addProduction(AllocList* memList, ProtoRuleEntry* ruleEntry, EventType eventType, Index typeId, QNameID qnameID, SmallIndex nonTermID)
+errorCode addProduction(ProtoRuleEntry* ruleEntry, EventType eventType, Index typeId, QNameID qnameID, SmallIndex nonTermID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	Production *newProd;
 	Index newProdId;
 
-	tmp_err_code = addEmptyDynEntry(&ruleEntry->dynArray, (void**)&newProd, &newProdId, memList);
+	tmp_err_code = addEmptyDynEntry(&ruleEntry->dynArray, (void**)&newProd, &newProdId);
 
 	newProd->eventType = eventType;
 	newProd->typeId = typeId;
@@ -107,29 +101,42 @@ errorCode convertProtoGrammar(AllocList* memlist, ProtoGrammar* pg, EXIGrammar* 
 	return ERR_OK;
 }
 
-errorCode cloneProtoGrammar(AllocList* memList, ProtoGrammar* src, ProtoGrammar* dest)
+errorCode cloneProtoGrammar(ProtoGrammar* src, ProtoGrammar* dest)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	ProtoRuleEntry* ruleEntry;
+	ProtoRuleEntry* pRuleEntry;
 	Index i;
 	Index j;
 
-	tmp_err_code = createProtoGrammar(memList, src->count, src->rule->count, dest);
+	tmp_err_code = createProtoGrammar(src->count, dest);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
 	dest->contentIndex = src->contentIndex;
-	dest->count = src->count;
 	for (i = 0; i < src->count; i++)
 	{
-		ruleEntry = &src->rule[i];
-		for (j = 0; j < ruleEntry->count; j++)
+		tmp_err_code = addProtoRule(dest, src->rule[i].count, &pRuleEntry);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		for (j = 0; j < src->rule[i].count; j++)
 		{
-			tmp_err_code = addProduction(memList, &dest->rule[i], ruleEntry->prod[j].eventType, ruleEntry->prod[j].typeId, ruleEntry->prod[j].qnameId, ruleEntry->prod[j].nonTermID);
+			tmp_err_code = addProduction(pRuleEntry, src->rule[i].prod[j].eventType, src->rule[i].prod[j].typeId, src->rule[i].prod[j].qnameId, src->rule[i].prod[j].nonTermID);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 	}
 
 	return ERR_OK;
+}
+
+
+void destroyProtoGrammar(ProtoGrammar* pg)
+{
+	Index i;
+	for (i = 0; i < pg->count; i++)
+	{
+		destroyDynArray(&pg->rule[i].dynArray);
+	}
+	destroyDynArray(&pg->dynArray);
 }

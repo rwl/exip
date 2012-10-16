@@ -25,10 +25,11 @@ errorCode insertZeroProduction(DynGrammarRule* rule, EventType eventType, SmallI
 {
 	if(rule->part[0].count == rule->part0Dimension) // The dynamic array rule->prods[0] needs to be resized
 	{
-		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		tmp_err_code = memManagedReAllocate((void **) &rule->part[0].prod, sizeof(Production)*(rule->part0Dimension + DEFAULT_PROD_ARRAY_DIM), rule->memPair);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		void* ptr = EXIP_REALLOC(rule->part[0].prod, sizeof(Production)*(rule->part0Dimension + DEFAULT_PROD_ARRAY_DIM));
+		if(ptr == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+
+		rule->part[0].prod = ptr;
 		rule->part0Dimension += DEFAULT_PROD_ARRAY_DIM;
 	}
 
