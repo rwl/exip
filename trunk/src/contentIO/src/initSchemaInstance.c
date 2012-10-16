@@ -18,6 +18,7 @@
 #include "initSchemaInstance.h"
 #include "sTables.h"
 #include "eventsEXI.h"
+#include "grammars.h"
 
 #define DEFAULT_GRAMMAR_TABLE        300
 #define DEFAULT_SIMPLE_GRAMMAR_TABLE  75
@@ -31,7 +32,7 @@ errorCode initSchema(EXIPSchema* schema, unsigned char initializationType)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	schema->isStatic = FALSE;
+	schema->staticGrCount = 0;
 	schema->docGrammar.contentIndex = 0;
 	schema->docGrammar.count = 0;
 	schema->docGrammar.props = 0;
@@ -44,14 +45,14 @@ errorCode initSchema(EXIPSchema* schema, unsigned char initializationType)
 	schema->enumTable.enumDef = NULL;
 
 	/* Create and initialize initial string table entries */
-	tmp_err_code = createDynArray(&schema->uriTable.dynArray, sizeof(UriEntry), DEFAULT_URI_ENTRIES_NUMBER, &schema->memList);
+	tmp_err_code = createDynArray(&schema->uriTable.dynArray, sizeof(UriEntry), DEFAULT_URI_ENTRIES_NUMBER);
 	if(tmp_err_code != ERR_OK)
 	{
 		freeAllocList(&schema->memList);
 		return tmp_err_code;
 	}
 
-	tmp_err_code = createUriTableEntries(&schema->uriTable, initializationType != INIT_SCHEMA_SCHEMA_LESS_MODE, &schema->memList);
+	tmp_err_code = createUriTableEntries(&schema->uriTable, initializationType != INIT_SCHEMA_SCHEMA_LESS_MODE);
 	if(tmp_err_code != ERR_OK)
 	{
 		freeAllocList(&schema->memList);
@@ -61,7 +62,7 @@ errorCode initSchema(EXIPSchema* schema, unsigned char initializationType)
 	if(initializationType == INIT_SCHEMA_SCHEMA_ENABLED)
 	{
 		/* Create and initialize enumDef table */
-		tmp_err_code = createDynArray(&schema->enumTable.dynArray, sizeof(EnumDefinition), DEFAULT_ENUM_TABLE, &schema->memList);
+		tmp_err_code = createDynArray(&schema->enumTable.dynArray, sizeof(EnumDefinition), DEFAULT_ENUM_TABLE);
 		if(tmp_err_code != ERR_OK)
 		{
 			freeAllocList(&schema->memList);
@@ -70,7 +71,7 @@ errorCode initSchema(EXIPSchema* schema, unsigned char initializationType)
 	}
 
 	/* Create the schema grammar table */
-	tmp_err_code = createDynArray(&schema->grammarTable.dynArray, sizeof(EXIGrammar), DEFAULT_GRAMMAR_TABLE, &schema->memList);
+	tmp_err_code = createDynArray(&schema->grammarTable.dynArray, sizeof(EXIGrammar), DEFAULT_GRAMMAR_TABLE);
 	if(tmp_err_code != ERR_OK)
 	{
 		freeAllocList(&schema->memList);
@@ -80,7 +81,7 @@ errorCode initSchema(EXIPSchema* schema, unsigned char initializationType)
 	if(initializationType != INIT_SCHEMA_SCHEMA_LESS_MODE)
 	{
 		/* Create and initialize simple type table */
-		tmp_err_code = createDynArray(&schema->simpleTypeTable.dynArray, sizeof(SimpleType), DEFAULT_SIMPLE_GRAMMAR_TABLE, &schema->memList);
+		tmp_err_code = createDynArray(&schema->simpleTypeTable.dynArray, sizeof(SimpleType), DEFAULT_SIMPLE_GRAMMAR_TABLE);
 		if(tmp_err_code != ERR_OK)
 		{
 			freeAllocList(&schema->memList);
@@ -100,6 +101,8 @@ errorCode initSchema(EXIPSchema* schema, unsigned char initializationType)
 		{
 			freeAllocList(&schema->memList);
 		}
+
+		schema->staticGrCount = BUILD_IN_GRAMMARS_COUNT;
 	}
 
 	return tmp_err_code;
@@ -267,7 +270,7 @@ errorCode generateBuiltInTypesGrammars(EXIPSchema* schema)
 		}
 
 		/** Add the grammar to the schema grammar table */
-		addDynEntry(&schema->grammarTable.dynArray, &grammar, &dynArrId, &schema->memList);
+		addDynEntry(&schema->grammarTable.dynArray, &grammar, &dynArrId);
 		schema->uriTable.uri[3].lnTable.ln[i].typeGrammar = dynArrId;
 	}
 
@@ -289,7 +292,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -300,7 +303,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -311,7 +314,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -322,7 +325,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -332,7 +335,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = SIMPLE_TYPE_NMTOKEN;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -343,7 +346,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -353,7 +356,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -364,7 +367,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -375,7 +378,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -385,7 +388,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = SIMPLE_TYPE_IDREF;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -396,7 +399,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -406,7 +409,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = SIMPLE_TYPE_ENTITY;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -416,7 +419,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -427,7 +430,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -438,7 +441,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -450,7 +453,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -461,7 +464,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = -1;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -472,7 +475,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -483,7 +486,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -496,7 +499,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 32767;
 	sType.min = -32768;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -508,7 +511,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 127;
 	sType.min = -128;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -520,7 +523,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -532,7 +535,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -544,7 +547,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -557,7 +560,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 65535;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -569,7 +572,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 255;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -580,7 +583,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 1;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -590,7 +593,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -600,7 +603,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -610,7 +613,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -620,7 +623,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -630,7 +633,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -640,7 +643,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -650,7 +653,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -660,7 +663,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -670,7 +673,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -680,7 +683,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -690,7 +693,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -700,7 +703,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -710,7 +713,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -720,7 +723,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -730,7 +733,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -740,7 +743,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -750,7 +753,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -761,7 +764,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -772,7 +775,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
-	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID, memList);
+	tmp_err_code = addDynEntry(&simpleTypeTable->dynArray, &sType, &elID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 

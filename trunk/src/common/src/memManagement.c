@@ -16,6 +16,9 @@
 
 #include "memManagement.h"
 #include "hashtable.h"
+#include "dynamicArray.h"
+#include "sTables.h"
+#include "grammars.h"
 
 errorCode initAllocList(AllocList* list)
 {
@@ -52,49 +55,43 @@ void* memManagedAllocate(AllocList* list, size_t size)
 	return ptr;
 }
 
-void* memManagedAllocatePtr(AllocList* list, size_t size, struct reAllocPair* memPair)
-{
-	void* ptr = memManagedAllocate(list, size);
-	if(ptr != NULL)
-	{
-		memPair->memBlock = list->lastBlock;
-		memPair->allocIndx = list->currAllocSlot - 1;
-	}
-	return ptr;
-}
-
-errorCode memManagedReAllocate(void** ptr, size_t size, struct reAllocPair memPair)
-{
-	void* new_ptr = EXIP_REALLOC(*ptr, size);
-	if(new_ptr == NULL)
-		return MEMORY_ALLOCATION_ERROR;
-	*ptr = new_ptr;
-
-	memPair.memBlock->allocation[memPair.allocIndx] = new_ptr;
-	return ERR_OK;
-}
-
 void freeAllMem(EXIStream* strm)
 {
-	if(strm->schema != NULL)
+	Index g, i, j;
+	DynGrammarRule* tmp_rule;
+
+	// Explicitly free the memory for any build-in grammars
+	for(g = strm->schema->staticGrCount; g < strm->schema->grammarTable.count; g++)
 	{
-		if(strm->schema->isStatic == TRUE)
+		for(i = 0; i < strm->schema->grammarTable.grammar[g].count; i++)
 		{
-			// Reseting the value cross table links to NULL
-			Index i;
-			Index j;
-			for(i = 0; i < strm->schema->uriTable.count; i++)
+			tmp_rule = &((DynGrammarRule*) strm->schema->grammarTable.grammar[g].rule)[i];
+			for(j = 0; j < 3; j++)
 			{
-				for(j = 0; j < strm->schema->uriTable.uri[i].lnTable.count; j++)
-				{
-					strm->schema->uriTable.uri[i].lnTable.ln[j].vxTable.vx = NULL;
-					strm->schema->uriTable.uri[i].lnTable.ln[j].vxTable.count = 0;
-				}
+				if(tmp_rule->part[j].prod != NULL) {}
+					EXIP_MFREE(tmp_rule->part[j].prod);
 			}
 		}
-		else
-			freeAllocList(&strm->schema->memList);
+		EXIP_MFREE(strm->schema->grammarTable.grammar[g].rule);
 	}
+
+	strm->schema->grammarTable.count = strm->schema->staticGrCount;
+
+	// Freeing the value cross tables
+
+	for(i = 0; i < strm->schema->uriTable.count; i++)
+	{
+		for(j = 0; j < strm->schema->uriTable.uri[i].lnTable.count; j++)
+		{
+			if(GET_LN_URI_IDS(strm->schema->uriTable, i, j).vxTable.vx != NULL)
+			{
+				destroyDynArray(&GET_LN_URI_IDS(strm->schema->uriTable, i, j).vxTable.dynArray);
+			}
+			strm->schema->uriTable.uri[i].lnTable.ln[j].vxTable.vx = NULL;
+			strm->schema->uriTable.uri[i].lnTable.ln[j].vxTable.count = 0;
+		}
+	}
+
 	// Hash tables are freed separately
 	// #DOCUMENT#
 #if HASH_TABLE_USE == ON
@@ -109,6 +106,28 @@ void freeAllMem(EXIStream* strm)
 		{
 			EXIP_MFREE(strm->valueTable.value[i].valueStr.str);
 		}
+
+		destroyDynArray(&strm->valueTable.dynArray);
+	}
+
+	if(strm->schema->staticGrCount <= BUILD_IN_GRAMMARS_COUNT)
+	{
+		// No schema-informed grammars. This is an empty EXIPSchema container that needs to be freed
+		// Freeing the string tables
+
+		for(i = 0; i < strm->schema->uriTable.count; i++)
+		{
+			if(strm->schema->uriTable.uri[i].pfxTable != NULL)
+				EXIP_MFREE(strm->schema->uriTable.uri[i].pfxTable);
+
+			destroyDynArray(&strm->schema->uriTable.uri[i].lnTable.dynArray);
+		}
+
+		destroyDynArray(&strm->schema->uriTable.dynArray);
+		destroyDynArray(&strm->schema->grammarTable.dynArray);
+		if(strm->schema->simpleTypeTable.sType != NULL)
+			destroyDynArray(&strm->schema->simpleTypeTable.dynArray);
+		freeAllocList(&strm->schema->memList);
 	}
 
 	freeAllocList(&(strm->memList));

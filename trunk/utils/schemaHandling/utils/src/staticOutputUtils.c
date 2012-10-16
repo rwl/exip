@@ -72,7 +72,7 @@ void staticStringDefOutput(String* str, char* varName, FILE* out)
 	charMax = str->length;
 	if(charMax > 0)
 	{
-		fprintf(out, "static CONST CharType %s[] = {", varName);
+		fprintf(out, "CONST CharType %s[] = {", varName);
 		for(charIter = 0; charIter < charMax; charIter++)
 		{
 			fprintf(out, "0x%x", str->str[charIter]);
@@ -276,7 +276,7 @@ void staticLnEntriesOutput(LnTable* lnTbl, char* prefix, Index uriId, FILE* out)
 			else
 				sprintf(typeGrammar, "%d", (int) lnTbl->ln[lnIter].typeGrammar);
 
-			fprintf(out, "    {\n        {{sizeof(VxEntry), 0, 0, {NULL, 0}}, NULL, 0},\n");
+			fprintf(out, "    {\n        {{sizeof(VxEntry), 0, 0}, NULL, 0},\n");
 			if(lnTbl->ln[lnIter].lnStr.length > 0)
 				fprintf(out, "        {%sLN_%d_%d, %d},\n        %s, %s\n", prefix, (int) uriId, (int) lnIter, (int) lnTbl->ln[lnIter].lnStr.length, elemGrammar, typeGrammar);
 			else
@@ -296,7 +296,7 @@ void staticUriTableOutput(UriTable* uriTbl, char* prefix, FILE* out)
 		if(uriTbl->uri[uriIter].lnTable.count > 0)
         {
 			fprintf(out,
-                    "    {\n        {{sizeof(LnEntry), %d, %d, {NULL, 0}}, %sLnEntry_%d, %d},\n",
+                    "    {\n        {{sizeof(LnEntry), %d, %d}, %sLnEntry_%d, %d},\n",
                     (int) uriTbl->uri[uriIter].lnTable.count,
                     (int) uriTbl->uri[uriIter].lnTable.count,
                     prefix,
@@ -305,7 +305,7 @@ void staticUriTableOutput(UriTable* uriTbl, char* prefix, FILE* out)
         }
 		else
         {
-			fprintf(out, "    {\n        {{sizeof(LnEntry), 0, 0, {NULL, 0}}, NULL, 0},\n");
+			fprintf(out, "    {\n        {{sizeof(LnEntry), 0, 0}, NULL, 0},\n");
         }
 
 		if(uriTbl->uri[uriIter].pfxTable != NULL)

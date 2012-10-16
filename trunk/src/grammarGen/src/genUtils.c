@@ -33,18 +33,17 @@ struct collisionInfo
 };
 
 /** Collision aware addition */
-static errorCode addProductionsToARule(AllocList* memList, ProtoRuleEntry* leftRule, ProtoRuleEntry* rightRule,
+static errorCode addProductionsToARule(ProtoRuleEntry* leftRule, ProtoRuleEntry* rightRule,
 									   struct collisionInfo* collisions, unsigned int* collisionCount, unsigned int* currRuleIndex, unsigned int initialLeftRulesCount);
 
 // Creates the new grammar rules based on the collision information
-static errorCode resolveCollisionsInGrammar(AllocList* memList, struct collisionInfo* collisions,
-											unsigned int* collisionCount, ProtoGrammar* left, unsigned int* currRuleIndex);
+static errorCode resolveCollisionsInGrammar(struct collisionInfo* collisions, unsigned int* collisionCount, ProtoGrammar* left, unsigned int* currRuleIndex);
 
 /** Descending order comparison.
  * The productions are ordered with the largest event code first. */
 static int compareProductions(const void* prod1, const void* prod2);
 
-errorCode concatenateGrammars(AllocList* memList, ProtoGrammar* left, ProtoGrammar* right)
+errorCode concatenateGrammars(ProtoGrammar* left, ProtoGrammar* right)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int ruleIterL = 0;
@@ -54,9 +53,8 @@ errorCode concatenateGrammars(AllocList* memList, ProtoGrammar* left, ProtoGramm
 	struct collisionInfo collisions[MAX_COLLISIONS_NUMBER];
 	unsigned int collisionCount = 0;
 	unsigned int currRuleIndex;
-	unsigned int initialLeftRulesCount = left->count;
-	ProtoRuleEntry* ruleEntry;
-	Index ruleId;
+	unsigned int initialLeftRulesCount;
+	ProtoRuleEntry* pRuleEntry;
 
 	if(left == NULL)
 		return NULL_POINTER_REF;
@@ -90,20 +88,14 @@ errorCode concatenateGrammars(AllocList* memList, ProtoGrammar* left, ProtoGramm
 	for(ruleIterR = 1; ruleIterR < right->count; ruleIterR++)
 	{
 		/* Create new rule entry in LHS proto grammar */
-		tmp_err_code = addEmptyDynEntry(&left->dynArray, (void**)&ruleEntry, &ruleId, memList);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		/* Create production array for the new rule entry, size of number of RHS productions to copy over */
-		tmp_err_code = createDynArray(&ruleEntry->dynArray, sizeof(Production), right->rule[ruleIterR].count, memList);
+		tmp_err_code = addProtoRule(left, right->rule[ruleIterR].count, &pRuleEntry);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
 		/* Copy the RHS productions into the new rule entry, adjusting the non terminal ID */
 		for(prodIterR = 0; prodIterR < right->rule[ruleIterR].count; prodIterR++)
 		{
-			tmp_err_code = addProduction(memList,
-				                         ruleEntry,
+			tmp_err_code = addProduction(pRuleEntry,
 										 right->rule[ruleIterR].prod[prodIterR].eventType,
 										 right->rule[ruleIterR].prod[prodIterR].typeId,
 										 right->rule[ruleIterR].prod[prodIterR].qnameId,
@@ -125,8 +117,7 @@ errorCode concatenateGrammars(AllocList* memList, ProtoGrammar* left, ProtoGramm
 				delDynEntry(&left->rule[ruleIterL].dynArray, prodIterL);
 	
 				/* Merge productions from RHS rule 0 into each left rule */
-				tmp_err_code = addProductionsToARule(memList,
-													 &left->rule[ruleIterL],
+				tmp_err_code = addProductionsToARule(&left->rule[ruleIterL],
 													 &right->rule[0],
 													 collisions,
 													 &collisionCount,
@@ -140,10 +131,10 @@ errorCode concatenateGrammars(AllocList* memList, ProtoGrammar* left, ProtoGramm
 	}
 
 	// Create the new grammar rules based on the collision information
-	return resolveCollisionsInGrammar(memList, collisions, &collisionCount, left, &currRuleIndex);
+	return resolveCollisionsInGrammar(collisions, &collisionCount, left, &currRuleIndex);
 }
 
-static errorCode addProductionsToARule(AllocList* memList, ProtoRuleEntry* leftRule, ProtoRuleEntry* rightRule, 
+static errorCode addProductionsToARule(ProtoRuleEntry* leftRule, ProtoRuleEntry* rightRule,
 									   struct collisionInfo* collisions, unsigned int* collisionCount, unsigned int* currRuleIndex, unsigned int initialLeftRulesCount)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -223,8 +214,7 @@ static errorCode addProductionsToARule(AllocList* memList, ProtoRuleEntry* leftR
 			 * We have been through all LHS productions and there were no clashes
 			 * so just add the production
 			 */
-			tmp_err_code = addProduction(memList,
-										 leftRule,
+			tmp_err_code = addProduction(leftRule,
 										 rightRule->prod[prodIterR].eventType,
 										 rightRule->prod[prodIterR].typeId,
 										 rightRule->prod[prodIterR].qnameId,
@@ -236,31 +226,25 @@ static errorCode addProductionsToARule(AllocList* memList, ProtoRuleEntry* leftR
 	return ERR_OK;
 }
 
-static errorCode resolveCollisionsInGrammar(AllocList* memList, struct collisionInfo* collisions,
+static errorCode resolveCollisionsInGrammar(struct collisionInfo* collisions,
 											unsigned int* collisionCount, ProtoGrammar* left, unsigned int* currRuleIndex)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int collisIter = 0;
 	unsigned int prodIterL = 0;
 	Production* tmpProduction;
-	ProtoRuleEntry* ruleEntry;
-	Index ruleId;
+	ProtoRuleEntry* pRuleEntry;
 
 	for(collisIter = 0; collisIter < *collisionCount; collisIter++)
 	{
-		tmp_err_code = addEmptyDynEntry(&left->dynArray, (void**)&ruleEntry, &ruleId, memList);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = createDynArray(&ruleEntry->dynArray, sizeof(Production), left->rule[collisions[collisIter].leftNonTerminal].count, memList);
+		tmp_err_code = addProtoRule(left, 5, &pRuleEntry);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
 		for(prodIterL = 0; prodIterL < left->rule[collisions[collisIter].leftNonTerminal].count; prodIterL++)
 		{
 			tmpProduction = &left->rule[collisions[collisIter].leftNonTerminal].prod[prodIterL];
-			tmp_err_code = addProduction(memList,
-										 ruleEntry,
+			tmp_err_code = addProduction(pRuleEntry,
 										 tmpProduction->eventType,
 										 tmpProduction->typeId,
 										 tmpProduction->qnameId,
@@ -269,8 +253,7 @@ static errorCode resolveCollisionsInGrammar(AllocList* memList, struct collision
 				return tmp_err_code;
 		}
 
-		tmp_err_code = addProductionsToARule(memList,
-											 ruleEntry,
+		tmp_err_code = addProductionsToARule(pRuleEntry,
 											 &left->rule[collisions[collisIter].rightNonTerminal],
 											 collisions,
 											 collisionCount,
@@ -283,50 +266,59 @@ static errorCode resolveCollisionsInGrammar(AllocList* memList, struct collision
 	return ERR_OK;
 }
 
-errorCode createSimpleTypeGrammar(AllocList* memList, Index typeId, ProtoGrammar* simpleGrammar)
+errorCode createSimpleTypeGrammar(Index typeId, ProtoGrammar* simpleGrammar)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	QNameID qnameID = {URI_MAX, LN_MAX};
+	ProtoRuleEntry* pRuleEntry;
 
-	tmp_err_code = createProtoGrammar(memList, 2, 3, simpleGrammar);
+	tmp_err_code = createProtoGrammar(2, simpleGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = addProduction(memList, &simpleGrammar->rule[0], EVENT_CH, typeId, qnameID, 1);
+	tmp_err_code = addProtoRule(simpleGrammar, 3, &pRuleEntry);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = addEEProduction(memList, &simpleGrammar->rule[1]);
+	tmp_err_code = addProduction(pRuleEntry, EVENT_CH, typeId, qnameID, 1);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	// Set the rule array size
-	simpleGrammar->count = 2;
+	tmp_err_code = addProtoRule(simpleGrammar, 2, &pRuleEntry);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = addEEProduction(pRuleEntry);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
 	return ERR_OK;
 }
 
-errorCode createComplexTypeGrammar(AllocList* memList, ProtoGrammarArray* attrUseArray,
-		                           ProtoGrammar* contentTypeGrammar, ProtoGrammar* complexGrammar)
+errorCode createComplexTypeGrammar(ProtoGrammarArray* attrUseArray, ProtoGrammar* contentTypeGrammar, ProtoGrammar* complexGrammar)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int i;
 
 	if(attrUseArray->count > 0)
 	{
-		tmp_err_code = createProtoGrammar(memList, 10, 10, complexGrammar);
+		ProtoRuleEntry* pRuleEntry;
+
+		tmp_err_code = createProtoGrammar(10, complexGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = addEEProduction(memList, &complexGrammar->rule[0]);
+		tmp_err_code = addProtoRule(complexGrammar, 10, &pRuleEntry);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		// Set the rule array size
-		complexGrammar->count = 1;
+		tmp_err_code = addEEProduction(pRuleEntry);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 
 		for(i = 0; i < attrUseArray->count; i++)
 		{
-			tmp_err_code = concatenateGrammars(memList, complexGrammar, attrUseArray->pg[i]);
+			tmp_err_code = concatenateGrammars(complexGrammar, attrUseArray->pg[i]);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -335,8 +327,8 @@ errorCode createComplexTypeGrammar(AllocList* memList, ProtoGrammarArray* attrUs
 
 		if(contentTypeGrammar != NULL)
 		{
-			/* Concatentate in any existing passed-in grammar */
-			tmp_err_code = concatenateGrammars(memList, complexGrammar, contentTypeGrammar);
+			/* Concatenate in any existing passed-in grammar */
+			tmp_err_code = concatenateGrammars(complexGrammar, contentTypeGrammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -345,7 +337,7 @@ errorCode createComplexTypeGrammar(AllocList* memList, ProtoGrammarArray* attrUs
 	{
 		if(contentTypeGrammar != NULL)
 		{
-			tmp_err_code = cloneProtoGrammar(memList, contentTypeGrammar, complexGrammar);
+			tmp_err_code = cloneProtoGrammar(contentTypeGrammar, complexGrammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -355,58 +347,69 @@ errorCode createComplexTypeGrammar(AllocList* memList, ProtoGrammarArray* attrUs
 	return ERR_OK;
 }
 
-errorCode createComplexUrTypeGrammar(AllocList* memList, ProtoGrammar* result)
+errorCode createComplexUrTypeGrammar(ProtoGrammar* result)
 {
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode createAttributeUseGrammar(AllocList* memList, unsigned char required, Index typeId,
+errorCode createAttributeUseGrammar(unsigned char required, Index typeId,
 									ProtoGrammar* attrGrammar, QNameID qnameID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	ProtoRuleEntry* pRuleEntry;
 
-	tmp_err_code = createProtoGrammar(memList, 2, 4, attrGrammar);
+	tmp_err_code = createProtoGrammar(2, attrGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = addProduction(memList, &attrGrammar->rule[0], EVENT_AT_QNAME, typeId, qnameID, 1);
+	tmp_err_code = addProtoRule(attrGrammar, 4, &pRuleEntry);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = addProduction(pRuleEntry, EVENT_AT_QNAME, typeId, qnameID, 1);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
 	if(!required)
 	{
-		tmp_err_code = addEEProduction(memList, &attrGrammar->rule[0]);
+		tmp_err_code = addEEProduction(pRuleEntry);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 
-	tmp_err_code = addEEProduction(memList, &attrGrammar->rule[1]);
+	tmp_err_code = addProtoRule(attrGrammar, 4, &pRuleEntry);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	attrGrammar->count = 2;
+	tmp_err_code = addEEProduction(pRuleEntry);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
 	return ERR_OK;
 }
 
-errorCode createParticleGrammar(AllocList* memList, int minOccurs, int maxOccurs,
+errorCode createParticleGrammar(int minOccurs, int maxOccurs,
 								ProtoGrammar* termGrammar, ProtoGrammar* particleGrammar)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	ProtoRuleEntry* pRuleEntry;
 	int i;
 
-	tmp_err_code = createProtoGrammar(memList, minOccurs + 10, 5, particleGrammar);
+	tmp_err_code = createProtoGrammar(minOccurs + 10, particleGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = addEEProduction(memList, &particleGrammar->rule[0]);
+	tmp_err_code = addProtoRule(particleGrammar, 5, &pRuleEntry);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	particleGrammar->count = 1;
+	tmp_err_code = addEEProduction(pRuleEntry);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	for(i = 0; i < minOccurs; i++)
 	{
-		tmp_err_code = concatenateGrammars(memList, particleGrammar, termGrammar);
+		tmp_err_code = concatenateGrammars(particleGrammar, termGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -424,7 +427,7 @@ errorCode createParticleGrammar(AllocList* memList, int minOccurs, int maxOccurs
 		}
 		if(prodEEFound == FALSE) //	There is no production Gi,0 : EE so add one
 		{
-			tmp_err_code = addEEProduction(memList, &termGrammar->rule[0]);
+			tmp_err_code = addEEProduction(&termGrammar->rule[0]);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -433,7 +436,7 @@ errorCode createParticleGrammar(AllocList* memList, int minOccurs, int maxOccurs
 		{
 			for(i = 0; i < maxOccurs - minOccurs; i++)
 			{
-				tmp_err_code = concatenateGrammars(memList, particleGrammar, termGrammar);
+				tmp_err_code = concatenateGrammars(particleGrammar, termGrammar);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			}
@@ -455,7 +458,7 @@ errorCode createParticleGrammar(AllocList* memList, int minOccurs, int maxOccurs
 						// Remove this production
 						delDynEntry(&termGrammar->rule[i].dynArray, j);
 
-						tmp_err_code = addProductionsToARule(memList, &termGrammar->rule[i], &termGrammar->rule[0], collisions, &collisionCount, &currRuleIndex, 0);
+						tmp_err_code = addProductionsToARule(&termGrammar->rule[i], &termGrammar->rule[0], collisions, &collisionCount, &currRuleIndex, 0);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
 						break;
@@ -464,11 +467,11 @@ errorCode createParticleGrammar(AllocList* memList, int minOccurs, int maxOccurs
 			}
 
 			// Create the new grammar rules based on the collision information
-			tmp_err_code = resolveCollisionsInGrammar(memList, collisions, &collisionCount, termGrammar, &currRuleIndex);
+			tmp_err_code = resolveCollisionsInGrammar(collisions, &collisionCount, termGrammar, &currRuleIndex);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			tmp_err_code = concatenateGrammars(memList, particleGrammar, termGrammar);
+			tmp_err_code = concatenateGrammars(particleGrammar, termGrammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -477,34 +480,46 @@ errorCode createParticleGrammar(AllocList* memList, int minOccurs, int maxOccurs
 	return ERR_OK;
 }
 
-errorCode createElementTermGrammar(AllocList* memList, ProtoGrammar* elemGrammar, QNameID qnameID, Index grIndex)
+errorCode createElementTermGrammar(ProtoGrammar* elemGrammar, QNameID qnameID, Index grIndex)
 {
 	//TODO: enable support for {substitution group affiliation} property of the elements
-
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	ProtoRuleEntry* pRuleEntry;
 
-	tmp_err_code = createProtoGrammar(memList, 2, 3, elemGrammar);
+	tmp_err_code = createProtoGrammar(2, elemGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = addProduction(memList, &elemGrammar->rule[0], EVENT_SE_QNAME, grIndex, qnameID, 1);
+	tmp_err_code = addProtoRule(elemGrammar, 3, &pRuleEntry);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = addEEProduction(memList, &elemGrammar->rule[1]);
+	tmp_err_code = addProduction(pRuleEntry, EVENT_SE_QNAME, grIndex, qnameID, 1);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	elemGrammar->count = 2;
+	tmp_err_code = addProtoRule(elemGrammar, 3, &pRuleEntry);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = addEEProduction(pRuleEntry);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
 	return ERR_OK;
 }
 
-errorCode createWildcardTermGrammar(AllocList* memList, String* wildcardArray, Index wildcardArraySize, UriTable* uriT, ProtoGrammar* wildcardGrammar)
+errorCode createWildcardTermGrammar(String* wildcardArray, Index wildcardArraySize, UriTable* uriT, ProtoGrammar* wildcardGrammar)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	ProtoRuleEntry* pRuleEntry;
 	QNameID qnameID;
 
-	tmp_err_code = createProtoGrammar(memList, 2, wildcardArraySize + 1, wildcardGrammar);
+	tmp_err_code = createProtoGrammar(2, wildcardGrammar);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmp_err_code = addProtoRule(wildcardGrammar, wildcardArraySize + 1, &pRuleEntry);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -516,7 +531,7 @@ errorCode createWildcardTermGrammar(AllocList* memList, String* wildcardArray, I
 	{
 		qnameID.uriId = URI_MAX;
 		qnameID.lnId = LN_MAX;
-		tmp_err_code = addProduction(memList, &wildcardGrammar->rule[0], EVENT_SE_ALL, INDEX_MAX, qnameID, 1);
+		tmp_err_code = addProduction(pRuleEntry, EVENT_SE_ALL, INDEX_MAX, qnameID, 1);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -529,7 +544,7 @@ errorCode createWildcardTermGrammar(AllocList* memList, String* wildcardArray, I
 		{
 			if(!lookupUri(uriT, wildcardArray[i], &qnameID.uriId))
 			 	return UNEXPECTED_ERROR;
-			tmp_err_code = addProduction(memList, &wildcardGrammar->rule[0], EVENT_SE_URI, INDEX_MAX, qnameID, 1);
+			tmp_err_code = addProduction(pRuleEntry, EVENT_SE_URI, INDEX_MAX, qnameID, 1);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -537,48 +552,55 @@ errorCode createWildcardTermGrammar(AllocList* memList, String* wildcardArray, I
 	else
 		return UNEXPECTED_ERROR;
 
-	tmp_err_code = addEEProduction(memList, &wildcardGrammar->rule[1]);
+	tmp_err_code = addProtoRule(wildcardGrammar, 2, &pRuleEntry);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	wildcardGrammar->count = 2;
+	tmp_err_code = addEEProduction(pRuleEntry);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
 	return ERR_OK;
 }
 
-errorCode createSequenceModelGroupsGrammar(AllocList* memList, ProtoGrammar** grArray, unsigned int arrSize, ProtoGrammar* seqGrammar)
+errorCode createSequenceModelGroupsGrammar(ProtoGrammar** grArray, unsigned int arrSize, ProtoGrammar* seqGrammar)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	ProtoRuleEntry* pRuleEntry;
 
 	if(arrSize == 0)
 	{
-		tmp_err_code = createProtoGrammar(memList, 1, 3, seqGrammar);
+		tmp_err_code = createProtoGrammar(3, seqGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = addEEProduction(memList, &seqGrammar->rule[0]);
+		tmp_err_code = addProtoRule(seqGrammar, 3, &pRuleEntry);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		// Set the rule array size
-		seqGrammar->count = 1;
+		tmp_err_code = addEEProduction(pRuleEntry);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 	}
 	else
 	{
 		unsigned int i;
 
-		tmp_err_code = createProtoGrammar(memList, 10, 5, seqGrammar);
+		tmp_err_code = createProtoGrammar(10, seqGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = addEEProduction(memList, &seqGrammar->rule[0]);
+		tmp_err_code = addProtoRule(seqGrammar, 5, &pRuleEntry);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		seqGrammar->count = 1;
+		tmp_err_code = addEEProduction(pRuleEntry);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 
 		for(i = 0; i < arrSize; i++)
 		{
-			tmp_err_code = concatenateGrammars(memList, seqGrammar, grArray[i]);
+			tmp_err_code = concatenateGrammars(seqGrammar, grArray[i]);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -586,7 +608,7 @@ errorCode createSequenceModelGroupsGrammar(AllocList* memList, ProtoGrammar** gr
 	return ERR_OK;
 }
 
-errorCode createChoiceModelGroupsGrammar(AllocList* memList, ProtoGrammarArray* pgArray, ProtoGrammar* modGrpGrammar)
+errorCode createChoiceModelGroupsGrammar(ProtoGrammarArray* pgArray, ProtoGrammar* modGrpGrammar)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	Index i;
@@ -597,24 +619,25 @@ errorCode createChoiceModelGroupsGrammar(AllocList* memList, ProtoGrammarArray* 
 	unsigned int currRuleIndex;
 	unsigned int initialResultRulesCount;
 	ProtoGrammar* tmpGrammar;
-	ProtoRuleEntry* ruleEntry;
-	Index ruleId;
+	ProtoRuleEntry* pRuleEntry;
 
-	tmp_err_code = createProtoGrammar(memList, 10, 5, modGrpGrammar);
+	tmp_err_code = createProtoGrammar(10, modGrpGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = addEEProduction(memList, &modGrpGrammar->rule[0]);
+	tmp_err_code = addProtoRule(modGrpGrammar, 5, &pRuleEntry);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	modGrpGrammar->count = 1;
+	tmp_err_code = addEEProduction(pRuleEntry);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	tmpGrammar = pgArray->pg[0];
 	if(tmpGrammar == NULL)
 		return NULL_POINTER_REF;
 
-	tmp_err_code = concatenateGrammars(memList, modGrpGrammar, tmpGrammar);
+	tmp_err_code = concatenateGrammars(modGrpGrammar, tmpGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -630,18 +653,13 @@ errorCode createChoiceModelGroupsGrammar(AllocList* memList, ProtoGrammarArray* 
 
 		for(ruleIterTerm = 1; ruleIterTerm < tmpGrammar->count; ruleIterTerm++)
 		{
-			tmp_err_code = addEmptyDynEntry(&modGrpGrammar->dynArray, (void**)&ruleEntry, &ruleId, memList);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-
-			tmp_err_code = createDynArray(&ruleEntry->dynArray, sizeof(Production), tmpGrammar->rule[ruleIterTerm].count, memList);
+			tmp_err_code = addProtoRule(modGrpGrammar, 5, &pRuleEntry);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
 			for(prodIterTerm = 0; prodIterTerm < tmpGrammar->rule[ruleIterTerm].count; prodIterTerm++)
 			{
-				tmp_err_code = addProduction(memList,
-											 ruleEntry,
+				tmp_err_code = addProduction(pRuleEntry,
 											 tmpGrammar->rule[ruleIterTerm].prod[prodIterTerm].eventType,
 											 tmpGrammar->rule[ruleIterTerm].prod[prodIterTerm].typeId,
 											 tmpGrammar->rule[ruleIterTerm].prod[prodIterTerm].qnameId,
@@ -653,8 +671,7 @@ errorCode createChoiceModelGroupsGrammar(AllocList* memList, ProtoGrammarArray* 
 
 		currRuleIndex = modGrpGrammar->count;
 
-		tmp_err_code = addProductionsToARule(memList,
-											 &modGrpGrammar->rule[0],
+		tmp_err_code = addProductionsToARule(&modGrpGrammar->rule[0],
 											 &tmpGrammar->rule[0],
 											 collisions,
 											 &collisionCount,
@@ -664,7 +681,7 @@ errorCode createChoiceModelGroupsGrammar(AllocList* memList, ProtoGrammarArray* 
 			return tmp_err_code;
 
 		// Create the new grammar rules based on the collision information
-		tmp_err_code = resolveCollisionsInGrammar(memList, collisions, &collisionCount, modGrpGrammar, &currRuleIndex);
+		tmp_err_code = resolveCollisionsInGrammar(collisions, &collisionCount, modGrpGrammar, &currRuleIndex);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -672,7 +689,7 @@ errorCode createChoiceModelGroupsGrammar(AllocList* memList, ProtoGrammarArray* 
 	return ERR_OK;
 }
 
-errorCode createAllModelGroupsGrammar(AllocList* memList, ProtoGrammar* pTermArray, unsigned int pTermArraySize, ProtoGrammar* modGrpGrammar)
+errorCode createAllModelGroupsGrammar(ProtoGrammar* pTermArray, unsigned int pTermArraySize, ProtoGrammar* modGrpGrammar)
 {
 	return NOT_IMPLEMENTED_YET;
 }
@@ -732,13 +749,13 @@ static int compareProductions(const void* prod1, const void* prod2)
 	}
 }
 
-errorCode addEEProduction(AllocList* memList, ProtoRuleEntry* rule)
+errorCode addEEProduction(ProtoRuleEntry* rule)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	Production *prod;
 	Index prodId;
 
-	tmp_err_code = addEmptyDynEntry(&rule->dynArray, (void**)&prod, &prodId, memList);
+	tmp_err_code = addEmptyDynEntry(&rule->dynArray, (void**)&prod, &prodId);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 

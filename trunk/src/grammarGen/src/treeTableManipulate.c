@@ -26,6 +26,9 @@
 #define LOOKUP_REF        1
 #define LOOKUP_SUPER_TYPE 2
 
+extern const String XML_SCHEMA_INSTANCE;
+extern const String XML_SCHEMA_NAMESPACE;
+
 /**
  * Finds a global TreeEntry corresponding to a entry-name eName and links it to the entry child or supertype
  * depending on the elType (LOOKUP_ELEMENT_TYPE_TYPE, LOOKUP_ELEMENT_TYPE_ELEMENT or LOOKUP_ELEMENT_TYPE_SUPER_TYPE)
@@ -58,11 +61,11 @@ errorCode initTreeTable(TreeTable* treeT)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = createDynArray(&treeT->dynArray, sizeof(TreeTableEntry), TREE_TABLE_ENTRY_COUNT, &treeT->memList);
+	tmp_err_code = createDynArray(&treeT->dynArray, sizeof(TreeTableEntry), TREE_TABLE_ENTRY_COUNT);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = createDynArray(&treeT->globalDefs.pfxNsTable.dynArray, sizeof(PfxNsEntry), 10, &treeT->memList);
+	tmp_err_code = createDynArray(&treeT->globalDefs.pfxNsTable.dynArray, sizeof(PfxNsEntry), 10);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -101,6 +104,8 @@ errorCode initTreeTable(TreeTable* treeT)
 
 void destroyTreeTable(TreeTable* treeT)
 {
+	destroyDynArray(&treeT->dynArray);
+	destroyDynArray(&treeT->globalDefs.pfxNsTable.dynArray);
 
 #if HASH_TABLE_USE == ON
 	if(treeT->typeTbl != NULL)
@@ -405,7 +410,7 @@ errorCode getTypeQName(EXIPSchema* schema, TreeTable* treeT, const String typeLi
 			return INVALID_EXI_INPUT;
 		}
 	}
-	else if(!stringEqualToAscii(uriStr, XML_SCHEMA_NAMESPACE) && !stringEqualToAscii(uriStr, XML_SCHEMA_INSTANCE)) // 4.2
+	else if(!stringEqual(uriStr, XML_SCHEMA_NAMESPACE) && !stringEqual(uriStr, XML_SCHEMA_INSTANCE)) // 4.2
 	{
 		// Check 4.2.1 and 4.2.2
 		if(treeT->globalDefs.targetNsId != qNameID->uriId && !checkForImportWithNs(treeT, uriStr))
@@ -445,7 +450,7 @@ static unsigned char checkForImportWithNs(TreeTable* treeT, String ns)
 	return FALSE;
 }
 
-errorCode getNsList(AllocList* memList, TreeTable* treeT, String nsList, NsTable* nsTable)
+errorCode getNsList(TreeTable* treeT, String nsList, NsTable* nsTable)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	Index dummy_elemID;
@@ -476,7 +481,7 @@ errorCode getNsList(AllocList* memList, TreeTable* treeT, String nsList, NsTable
 				getEmptyString(&tmpNS);
 			}
 
-			tmp_err_code = addDynEntry(&nsTable->dynArray, &tmpNS, &dummy_elemID, memList);
+			tmp_err_code = addDynEntry(&nsTable->dynArray, &tmpNS, &dummy_elemID);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
@@ -486,7 +491,7 @@ errorCode getNsList(AllocList* memList, TreeTable* treeT, String nsList, NsTable
 			sChIndex = getIndexOfChar(&attrNamespece, ' ');
 		}
 
-		tmp_err_code = addDynEntry(&nsTable->dynArray, &attrNamespece, &dummy_elemID, memList);
+		tmp_err_code = addDynEntry(&nsTable->dynArray, &attrNamespece, &dummy_elemID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}

@@ -121,7 +121,7 @@ errorCode parseHeader(Parser* parser)
 
 	if(parser->strm.header.opts.valuePartitionCapacity > 0)
 	{
-		tmp_err_code = createValueTable(&parser->strm.valueTable, &parser->strm.memList);
+		tmp_err_code = createValueTable(&parser->strm.valueTable);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}

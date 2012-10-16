@@ -255,7 +255,7 @@ errorCode convertTreeTablesToExipSchema(TreeTable* treeT, unsigned int count, EX
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = createDynArray(&ctx.gElTbl.dynArray, sizeof(QNameID), DEFAULT_GLOBAL_QNAME_COUNT, &ctx.tmpMemList);
+	tmp_err_code = createDynArray(&ctx.gElTbl.dynArray, sizeof(QNameID), DEFAULT_GLOBAL_QNAME_COUNT);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -327,7 +327,11 @@ errorCode convertTreeTablesToExipSchema(TreeTable* treeT, unsigned int count, EX
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
+	destroyDynArray(&ctx.gElTbl.dynArray);
+
 	sortEnumTable(schema);
+
+	schema->staticGrCount = schema->grammarTable.count;
 
 	freeAllocList(&ctx.tmpMemList);
 
@@ -407,7 +411,7 @@ static errorCode getElementTermProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 	if(minOccurs < 0 || maxOccurs < -1)
 		return UNEXPECTED_ERROR;
 
-	tmp_err_code = createElementTermGrammar(&ctx->tmpMemList, &elTermGrammar, qNameID, grIndex);
+	tmp_err_code = createElementTermGrammar(&elTermGrammar, qNameID, grIndex);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -415,8 +419,11 @@ static errorCode getElementTermProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 	if(elParticleGrammar == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_err_code = createParticleGrammar(&ctx->tmpMemList, minOccurs, maxOccurs,
-										 &elTermGrammar, elParticleGrammar);
+	tmp_err_code = createParticleGrammar(minOccurs, maxOccurs, &elTermGrammar, elParticleGrammar);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	destroyProtoGrammar(&elTermGrammar);
 
 	*elTerm = elParticleGrammar;
 
@@ -586,7 +593,7 @@ static errorCode handleElementEl(BuildContext* ctx, TreeTable* treeT, TreeTableE
 	{
 		Index dynElID;
 
-		tmp_err_code = addDynEntry(&ctx->gElTbl.dynArray, &elQNameID, &dynElID, &ctx->tmpMemList);
+		tmp_err_code = addDynEntry(&ctx->gElTbl.dynArray, &elQNameID, &dynElID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -638,7 +645,7 @@ static errorCode getAttributeProtoGrammar(BuildContext* ctx, TreeTable* treeT, T
 	if(*attr == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 	
-	tmp_err_code = createAttributeUseGrammar(&ctx->tmpMemList, required, typeId, *attr, atQnameID);
+	tmp_err_code = createAttributeUseGrammar(required, typeId, *attr, atQnameID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -672,7 +679,7 @@ static errorCode getSimpleTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT, 
 		if(*simplType == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		tmp_err_code = createSimpleTypeGrammar(&ctx->tmpMemList, SIMPLE_TYPE_STRING, *simplType);
+		tmp_err_code = createSimpleTypeGrammar(SIMPLE_TYPE_STRING, *simplType);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -868,7 +875,7 @@ static errorCode getAttributeUseProtoGrammars(BuildContext* ctx, TreeTable* tree
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
 
-					tmp_err_code = addDynEntry(&attrUseArray->dynArray, &attrPG, &entryId, &ctx->tmpMemList);
+					tmp_err_code = addDynEntry(&attrUseArray->dynArray, &attrPG, &entryId);
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
 				}
@@ -938,12 +945,13 @@ static errorCode getComplexTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 	ProtoGrammarArray attrUseArray;
 	ProtoGrammar* contentTypeGrammar = NULL;
 	String* attrWildcardNS = NULL;
+	Index i;
 
 	tmp_err_code = getContentTypeProtoGrammar(ctx, treeT, complEntry, &contentTypeGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = createDynArray(&attrUseArray.dynArray, sizeof(ProtoGrammar*), 10, &ctx->tmpMemList);
+	tmp_err_code = createDynArray(&attrUseArray.dynArray, sizeof(ProtoGrammar*), 10);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -959,28 +967,30 @@ static errorCode getComplexTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 		NsTable nsTable;
 		ProtoGrammar attrWildGrammar;
 		Index dummyEntryId;
-		Index i;
 		QNameID qnameID;
+		ProtoRuleEntry* pRuleEntry;
 
-		tmp_err_code = createDynArray(&nsTable.dynArray, sizeof(String), 5, &ctx->tmpMemList);
+		tmp_err_code = createDynArray(&nsTable.dynArray, sizeof(String), 5);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = getNsList(&ctx->tmpMemList, treeT, *attrWildcardNS, &nsTable);
+		tmp_err_code = getNsList(treeT, *attrWildcardNS, &nsTable);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = createProtoGrammar(&ctx->tmpMemList, 2, 5, &attrWildGrammar);
+		tmp_err_code = createProtoGrammar(2, &attrWildGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = addEEProduction(&ctx->tmpMemList, &attrWildGrammar.rule[0]);
+		tmp_err_code = addProtoRule(&attrWildGrammar, 5, &pRuleEntry);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		attrWildGrammar.count = 1;
+		tmp_err_code = addEEProduction(pRuleEntry);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 
-		tmp_err_code = addDynEntry(&attrUseArray.dynArray, &attrWildGrammar, &dummyEntryId, &ctx->tmpMemList);
+		tmp_err_code = addDynEntry(&attrUseArray.dynArray, &attrWildGrammar, &dummyEntryId);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -994,7 +1004,7 @@ static errorCode getComplexTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 			{
 				qnameID.uriId = URI_MAX;
 				qnameID.lnId = LN_MAX;
-				tmp_err_code = addProduction(&ctx->tmpMemList, &attrUseArray.pg[i]->rule[0], EVENT_AT_ALL, INDEX_MAX, qnameID, 0);
+				tmp_err_code = addProduction(&attrUseArray.pg[i]->rule[0], EVENT_AT_ALL, INDEX_MAX, qnameID, 0);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			}
@@ -1012,7 +1022,7 @@ static errorCode getComplexTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 
 				for(i = 0; i < attrUseArray.count; i++)
 				{
-					tmp_err_code = addProduction(&ctx->tmpMemList, &attrUseArray.pg[i]->rule[0], EVENT_AT_URI, INDEX_MAX, qnameID, 0);
+					tmp_err_code = addProduction(&attrUseArray.pg[i]->rule[0], EVENT_AT_URI, INDEX_MAX, qnameID, 0);
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
 				}
@@ -1020,6 +1030,8 @@ static errorCode getComplexTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 		}
 		else
 			return UNEXPECTED_ERROR;
+
+		destroyDynArray(&nsTable.dynArray);
 	}
 
 	if(contentTypeGrammar == NULL && attrUseArray.count == 0) // An empty element: <xsd:complexType />
@@ -1032,11 +1044,19 @@ static errorCode getComplexTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 		if(*complType == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		tmp_err_code = createComplexTypeGrammar(&ctx->tmpMemList, &attrUseArray,
-										        contentTypeGrammar, *complType);
+		tmp_err_code = createComplexTypeGrammar(&attrUseArray, contentTypeGrammar, *complType);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
+
+		destroyProtoGrammar(contentTypeGrammar);
 	}
+
+	for(i = 0; i < attrUseArray.count; i++)
+	{
+		destroyProtoGrammar(attrUseArray.pg[i]);
+	}
+
+	destroyDynArray(&attrUseArray.dynArray);
 
 	return ERR_OK;
 }
@@ -1141,8 +1161,9 @@ static errorCode getSequenceProtoGrammar(BuildContext* ctx, TreeTable* treeT, Tr
 	TreeTableEntry* nextIterator;
 	ProtoGrammarArray partGrammarTbl;
 	Index dummyTblIndx;
+	Index i;
 
-	tmp_err_code = createDynArray(&partGrammarTbl.dynArray, sizeof(ProtoGrammar*), 30, &ctx->tmpMemList);
+	tmp_err_code = createDynArray(&partGrammarTbl.dynArray, sizeof(ProtoGrammar*), 30);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1198,23 +1219,32 @@ static errorCode getSequenceProtoGrammar(BuildContext* ctx, TreeTable* treeT, Tr
 		else
 			return UNEXPECTED_ERROR;
 
-		tmp_err_code = addDynEntry(&partGrammarTbl.dynArray, &particleGrammar, &dummyTblIndx, &ctx->tmpMemList);
+		tmp_err_code = addDynEntry(&partGrammarTbl.dynArray, &particleGrammar, &dummyTblIndx);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		nextIterator = nextIterator->next;
 	}
 
-	tmp_err_code = createSequenceModelGroupsGrammar(&ctx->tmpMemList, partGrammarTbl.pg, partGrammarTbl.count, &seqGrammar);
+	tmp_err_code = createSequenceModelGroupsGrammar(partGrammarTbl.pg, partGrammarTbl.count, &seqGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
+
+	for(i = 0; i < partGrammarTbl.count; i++)
+	{
+		destroyProtoGrammar(partGrammarTbl.pg[i]);
+	}
+
+	destroyDynArray(&partGrammarTbl.dynArray);
 
 	seqPartGrammar = (ProtoGrammar*) memManagedAllocate(&ctx->tmpMemList, sizeof(ProtoGrammar));
 	if(seqPartGrammar == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_err_code = createParticleGrammar(&ctx->tmpMemList, minOccurs, maxOccurs, &seqGrammar, seqPartGrammar);
+	tmp_err_code = createParticleGrammar(minOccurs, maxOccurs, &seqGrammar, seqPartGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
+
+	destroyProtoGrammar(&seqGrammar);
 
 	*seq = seqPartGrammar;
 
@@ -1230,11 +1260,11 @@ static errorCode getAnyProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTab
 	int maxOccurs = 1;
 	NsTable nsTable;
 
-	tmp_err_code = createDynArray(&nsTable.dynArray, sizeof(String), 5, &ctx->tmpMemList);
+	tmp_err_code = createDynArray(&nsTable.dynArray, sizeof(String), 5);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = getNsList(&ctx->tmpMemList, treeT, anyEntry->attributePointers[ATTRIBUTE_NAMESPACE], &nsTable);
+	tmp_err_code = getNsList(treeT, anyEntry->attributePointers[ATTRIBUTE_NAMESPACE], &nsTable);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1246,7 +1276,7 @@ static errorCode getAnyProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTab
 	if(minOccurs < 0 || maxOccurs < -1)
 		return UNEXPECTED_ERROR;
 
-	tmp_err_code = createWildcardTermGrammar(&ctx->tmpMemList, nsTable.base, nsTable.count, &ctx->schema->uriTable, &wildTermGrammar);
+	tmp_err_code = createWildcardTermGrammar(nsTable.base, nsTable.count, &ctx->schema->uriTable, &wildTermGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1254,8 +1284,11 @@ static errorCode getAnyProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTab
 	if(wildParticleGrammar == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_err_code = createParticleGrammar(&ctx->tmpMemList, minOccurs, maxOccurs,
-			&wildTermGrammar, wildParticleGrammar);
+	tmp_err_code = createParticleGrammar(minOccurs, maxOccurs, &wildTermGrammar, wildParticleGrammar);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	destroyProtoGrammar(&wildTermGrammar);
 
 	*any = wildParticleGrammar;
 
@@ -1270,7 +1303,7 @@ static errorCode getChoiceProtoGrammar(BuildContext* ctx, TreeTable* treeT, Tree
 	TreeTableEntry* nextIterator;
 	ProtoGrammarArray particleProtoGrammarArray;
 	ProtoGrammar* particleGrammar = NULL;
-	Index entryId;
+	Index entryId, i;
 	int minOccurs = 1;
 	int maxOccurs = 1;
 
@@ -1282,7 +1315,7 @@ static errorCode getChoiceProtoGrammar(BuildContext* ctx, TreeTable* treeT, Tree
 	if(minOccurs < 0 || maxOccurs < -1)
 		return UNEXPECTED_ERROR;
 
-	tmp_err_code = createDynArray(&particleProtoGrammarArray.dynArray, sizeof(ProtoGrammar*), 15, &ctx->tmpMemList);
+	tmp_err_code = createDynArray(&particleProtoGrammarArray.dynArray, sizeof(ProtoGrammar*), 15);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1327,23 +1360,32 @@ static errorCode getChoiceProtoGrammar(BuildContext* ctx, TreeTable* treeT, Tree
 		else
 			return UNEXPECTED_ERROR;
 
-		tmp_err_code = addDynEntry(&particleProtoGrammarArray.dynArray, &particleGrammar, &entryId, &ctx->tmpMemList);
+		tmp_err_code = addDynEntry(&particleProtoGrammarArray.dynArray, &particleGrammar, &entryId);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 		nextIterator = nextIterator->next;
 	}
 
-	tmp_err_code = createChoiceModelGroupsGrammar(&ctx->tmpMemList, &particleProtoGrammarArray, &choiceGrammar);
+	tmp_err_code = createChoiceModelGroupsGrammar(&particleProtoGrammarArray, &choiceGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
+
+	for(i = 0; i < particleProtoGrammarArray.count; i++)
+	{
+		destroyProtoGrammar(particleProtoGrammarArray.pg[i]);
+	}
+
+	destroyDynArray(&particleProtoGrammarArray.dynArray);
 
 	choicePartGrammar = (ProtoGrammar*)memManagedAllocate(&ctx->tmpMemList, sizeof(ProtoGrammar));
 	if(choicePartGrammar == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_err_code = createParticleGrammar(&ctx->tmpMemList, minOccurs, maxOccurs, &choiceGrammar, choicePartGrammar);
+	tmp_err_code = createParticleGrammar(minOccurs, maxOccurs, &choiceGrammar, choicePartGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
+
+	destroyProtoGrammar(&choiceGrammar);
 
 	*choice = choicePartGrammar;
 
@@ -1409,9 +1451,11 @@ static errorCode getGroupProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeT
 	if(grPartGrammar == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_err_code = createParticleGrammar(&ctx->tmpMemList, minOccurs, maxOccurs, particleGrammar, grPartGrammar);
+	tmp_err_code = createParticleGrammar(minOccurs, maxOccurs, particleGrammar, grPartGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
+
+	destroyProtoGrammar(particleGrammar);
 
 	*group = grPartGrammar;
 
@@ -1443,7 +1487,7 @@ static errorCode getExtensionSimpleProtoGrammar(BuildContext* ctx, TreeTable* tr
 		return tmp_err_code;
 
 	// Extension from a simple type only
-	tmp_err_code = createSimpleTypeGrammar(&ctx->tmpMemList, typeId, resultProtoGrammar);
+	tmp_err_code = createSimpleTypeGrammar(typeId, resultProtoGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1506,9 +1550,12 @@ static errorCode getExtensionComplexProtoGrammar(BuildContext* ctx, TreeTable* t
 	contGrArr[0] = contentTypeGrammarBase;
 	contGrArr[1] = contentTypeGrammarExt;
 
-	tmp_err_code = createSequenceModelGroupsGrammar(&ctx->tmpMemList, contGrArr, 2, resultProtoGrammar);
+	tmp_err_code = createSequenceModelGroupsGrammar(contGrArr, 2, resultProtoGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
+
+	destroyProtoGrammar(contentTypeGrammarBase);
+	destroyProtoGrammar(contentTypeGrammarExt);
 
 	*ext = resultProtoGrammar;
 
@@ -1733,12 +1780,12 @@ static errorCode getRestrictionSimpleProtoGrammar(BuildContext* ctx, TreeTable* 
 			enumIter++;
 		}
 
-		tmp_err_code = addDynEntry(&ctx->schema->enumTable.dynArray, &eDef, &elId, &ctx->schema->memList);
+		tmp_err_code = addDynEntry(&ctx->schema->enumTable.dynArray, &eDef, &elId);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 
-	tmp_err_code = addDynEntry(&ctx->schema->simpleTypeTable.dynArray, &newSimpleType, &simpleTypeId, &ctx->schema->memList);
+	tmp_err_code = addDynEntry(&ctx->schema->simpleTypeTable.dynArray, &newSimpleType, &simpleTypeId);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1746,7 +1793,7 @@ static errorCode getRestrictionSimpleProtoGrammar(BuildContext* ctx, TreeTable* 
 	if(simpleRestrictedGrammar == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	tmp_err_code = createSimpleTypeGrammar(&ctx->tmpMemList, simpleTypeId, simpleRestrictedGrammar);
+	tmp_err_code = createSimpleTypeGrammar(simpleTypeId, simpleRestrictedGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1907,11 +1954,11 @@ static errorCode getListProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTa
 
 	listSimpleType.length = itemTypeId;
 
-	tmp_err_code = addDynEntry(&ctx->schema->simpleTypeTable.dynArray, &listSimpleType, &listEntrySimplID, &ctx->schema->memList);
+	tmp_err_code = addDynEntry(&ctx->schema->simpleTypeTable.dynArray, &listSimpleType, &listEntrySimplID);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = createSimpleTypeGrammar(&ctx->tmpMemList, listEntrySimplID, *list);
+	tmp_err_code = createSimpleTypeGrammar(listEntrySimplID, *list);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1928,7 +1975,7 @@ static errorCode storeGrammar(BuildContext* ctx, QNameID qnameID, ProtoGrammar* 
 		exiGr = static_grammar_empty;
 		if(ctx->emptyGrIndex == INDEX_MAX)
 		{
-			tmp_err_code = addDynEntry(&ctx->schema->grammarTable.dynArray, &exiGr, &ctx->emptyGrIndex, &ctx->schema->memList);
+			tmp_err_code = addDynEntry(&ctx->schema->grammarTable.dynArray, &exiGr, &ctx->emptyGrIndex);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -1948,9 +1995,11 @@ static errorCode storeGrammar(BuildContext* ctx, QNameID qnameID, ProtoGrammar* 
 		if(isNillable)
 			SET_NILLABLE(exiGr.props);
 
-		tmp_err_code = addDynEntry(&ctx->schema->grammarTable.dynArray, &exiGr, grIndex, &ctx->schema->memList);
+		tmp_err_code = addDynEntry(&ctx->schema->grammarTable.dynArray, &exiGr, grIndex);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
+
+		destroyProtoGrammar(pGrammar);
 	}
 
 #if DEBUG_GRAMMAR_GEN == ON

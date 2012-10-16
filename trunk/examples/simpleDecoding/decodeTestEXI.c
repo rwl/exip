@@ -200,9 +200,11 @@ int main(int argc, char *argv[])
 				tmp_err_code = parseNext(&testParser);
 			}
 
-			// VI: Free the memory allocated by the parser object
+			// VI: Free the memory allocated by the parser and schema object
 
 			destroyParser(&testParser);
+			if(schemaPtr != NULL)
+				destroySchema(schemaPtr);
 			fclose(infile);
 
 			if(tmp_err_code == PARSING_COMPLETE)

@@ -143,6 +143,28 @@ errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int buf
 	return tmp_err_code;
 }
 
+void destroySchema(EXIPSchema* schema)
+{
+	Index i;
+
+	// Freeing the string tables
+
+	for(i = 0; i < schema->uriTable.count; i++)
+	{
+		if(schema->uriTable.uri[i].pfxTable != NULL)
+			EXIP_MFREE(schema->uriTable.uri[i].pfxTable);
+
+		destroyDynArray(&schema->uriTable.uri[i].lnTable.dynArray);
+	}
+
+	destroyDynArray(&schema->uriTable.dynArray);
+	destroyDynArray(&schema->grammarTable.dynArray);
+	destroyDynArray(&schema->simpleTypeTable.dynArray);
+	destroyDynArray(&schema->enumTable.dynArray);
+	freeAllocList(&schema->memList);
+}
+
+
 static int compareLn(const void* lnRow1, const void* lnRow2)
 {
 	LnEntry* lnEntry1 = (LnEntry*)lnRow1;

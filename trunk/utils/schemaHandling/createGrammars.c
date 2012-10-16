@@ -343,7 +343,7 @@ int main(int argc, char *argv[])
 
                 count = schema.uriTable.count;
 				fprintf(outfile,
-                        "    {{sizeof(UriEntry), %d, %d, {NULL, 0}}, %suriEntry, %d},\n",
+                        "    {{sizeof(UriEntry), %d, %d}, %suriEntry, %d},\n",
                         (int) count,
                         (int) count,
                         prefix,
@@ -358,7 +358,7 @@ int main(int argc, char *argv[])
 
                 count = schema.simpleTypeTable.count;
 				fprintf(outfile,
-                        "    {{sizeof(SimpleType), %d, %d, {NULL, 0}}, %ssimpleTypes, %d},\n",
+                        "    {{sizeof(SimpleType), %d, %d}, %ssimpleTypes, %d},\n",
                         (int) count,
                         (int) count,
                         prefix,
@@ -366,20 +366,21 @@ int main(int argc, char *argv[])
 
                 count = schema.grammarTable.count;
 				fprintf(outfile,
-                        "    {{sizeof(EXIGrammar), %d, %d, {NULL, 0}}, %sgrammarTable, %d},\n",
+                        "    {{sizeof(EXIGrammar), %d, %d}, %sgrammarTable, %d},\n    %d,\n",
                         (int) count,
                         (int) count,
                         prefix,
+                        (int) count,
                         (int) count);
 
                 count = schema.enumTable.count;
 				fprintf(outfile,
-                        "    {{sizeof(EnumDefinition), %d, %d, {NULL, 0}}, %s%s, %d},\n    %d\n};\n\n",
+                        "    {{sizeof(EnumDefinition), %d, %d}, %s%s, %d}\n};\n\n",
+
                         (int) count,
                         (int) count,
                         count == 0?"":prefix, count == 0?"NULL":"enumTable",
-						(int) count,
-                        mask_specified);
+						(int) count);
 
 			}
             

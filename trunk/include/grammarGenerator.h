@@ -46,4 +46,10 @@
  */
 errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int bufCount, unsigned char schemaFormat, EXIPSchema* schema);
 
+/**
+ * @brief Frees all the memory allocated by an EXIPSchema object
+ * @param[in] schema the schema containing the EXI grammars to be freed
+ */
+void destroySchema(EXIPSchema* schema);
+
 #endif /* GRAMMARGENERATOR_H_ */

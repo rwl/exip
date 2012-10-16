@@ -351,12 +351,6 @@ struct allocList {
 
 typedef struct allocList AllocList;
 
-/** Used by the memoryManager when reallocation is allowed*/
-struct reAllocPair {
-	struct allocBlock* memBlock;
-	SmallIndex allocIndx;
-};
-
 /**
  * Meta-data of generic dynamic array.
  * A concrete dynamic array is defined as follow:
@@ -385,11 +379,6 @@ struct dynArray {
 	 * The total number of entries in the array
 	 */
 	uint16_t arrayEntries; 
-
-	/**
-	 * Used by the memoryManager when there is reallocation
-	 */
-	struct reAllocPair memPair; 
 };
 
 typedef struct dynArray DynArray;
@@ -636,7 +625,6 @@ struct DynGrammarRule
 
 	// Additional fields
     Index part0Dimension; // The size of the part[0] Dynamic production array /allocated space for Productions in it/
-	struct reAllocPair memPair; // Used by the memoryManager when there is reallocation for part[0]
 };
 typedef struct DynGrammarRule DynGrammarRule;
 
@@ -992,12 +980,12 @@ struct EXIPSchema
 	 */
 	SchemaGrammarTable grammarTable;
 
-	EnumTable enumTable;
-
 	/**
-	 * Indicates whether the schema is created in dynamic memory or not
+	 * The number of schema-informed grammars in grammarTable
 	 */
-	unsigned char isStatic;
+	Index staticGrCount;
+
+	EnumTable enumTable;
 };
 
 typedef struct EXIPSchema EXIPSchema;

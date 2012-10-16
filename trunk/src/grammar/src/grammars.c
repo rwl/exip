@@ -171,7 +171,7 @@ errorCode createBuiltInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 	SET_BUILT_IN_ELEM(elementGrammar->props);
 	SET_AUGMENTED(elementGrammar->props);
 	elementGrammar->contentIndex = 0;
-	elementGrammar->rule = (GrammarRule*) memManagedAllocate(&strm->memList, sizeof(DynGrammarRule)*DEF_ELEMENT_GRAMMAR_RULE_NUMBER);
+	elementGrammar->rule = (GrammarRule*) EXIP_MALLOC(sizeof(DynGrammarRule)*DEF_ELEMENT_GRAMMAR_RULE_NUMBER);
 	if(elementGrammar->rule == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -205,7 +205,7 @@ errorCode createBuiltInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 	tmp_code3 = 0;
 
 	/* Part 1 */
-	tmp_rule->part[0].prod = (Production*) memManagedAllocatePtr(&strm->memList, sizeof(Production)*DEFAULT_PROD_ARRAY_DIM, &tmp_rule->memPair);
+	tmp_rule->part[0].prod = (Production*) EXIP_MALLOC(sizeof(Production)*DEFAULT_PROD_ARRAY_DIM);
 	if(tmp_rule->part[0].prod == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -226,7 +226,7 @@ errorCode createBuiltInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 		tmp_code3 += 1;
 
 	/* Part 2 */
-	tmp_rule->part[1].prod = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code2);
+	tmp_rule->part[1].prod = (Production*) EXIP_MALLOC(sizeof(Production)*tmp_code2);
 	if(tmp_rule->part[1].prod == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -303,7 +303,7 @@ errorCode createBuiltInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 	{
 		p = 1;
 
-		tmp_rule->part[2].prod = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code3);
+		tmp_rule->part[2].prod = (Production*) EXIP_MALLOC(sizeof(Production)*tmp_code3);
 		if(tmp_rule->part[2].prod == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
@@ -360,7 +360,7 @@ errorCode createBuiltInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 	tmp_code3 = 0;
 
 	/* Part 1 */
-	tmp_rule->part[0].prod = (Production*) memManagedAllocatePtr(&strm->memList, sizeof(Production)*DEFAULT_PROD_ARRAY_DIM, &tmp_rule->memPair);
+	tmp_rule->part[0].prod = (Production*) EXIP_MALLOC(sizeof(Production)*DEFAULT_PROD_ARRAY_DIM);
 	if(tmp_rule->part[0].prod == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -383,7 +383,7 @@ errorCode createBuiltInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 		tmp_code3 += 1;
 
 	/* Part 2 */
-	tmp_rule->part[1].prod = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code2);
+	tmp_rule->part[1].prod = (Production*) EXIP_MALLOC(sizeof(Production)*tmp_code2);
 	if(tmp_rule->part[1].prod == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
@@ -421,7 +421,7 @@ errorCode createBuiltInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 	{
 		p = 1;
 
-		tmp_rule->part[2].prod = (Production*) memManagedAllocate(&strm->memList, sizeof(Production)*tmp_code3);
+		tmp_rule->part[2].prod = (Production*) EXIP_MALLOC(sizeof(Production)*tmp_code3);
 		if(tmp_rule->part[2].prod == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
