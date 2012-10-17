@@ -28,10 +28,8 @@ START_TEST (test_createValueTable)
 {
 	ValueTable valueTable;
 	errorCode err = UNEXPECTED_ERROR;
-	AllocList memList;
 
-	initAllocList(&memList);
-	err = createValueTable(&valueTable, &memList);
+	err = createValueTable(&valueTable);
 
 	fail_unless (err == ERR_OK, "createValueTable returns error code %d", err);
 	fail_unless (valueTable.count == 0,
@@ -39,6 +37,8 @@ START_TEST (test_createValueTable)
 	fail_unless (valueTable.dynArray.arrayEntries == DEFAULT_VALUE_ENTRIES_NUMBER,
 					"createValueTable creates dynamic array with %d rows", valueTable.dynArray.arrayEntries);
 	fail_if(valueTable.value == NULL);
+
+	destroyDynArray(&valueTable.dynArray);
 }
 END_TEST
 
@@ -46,14 +46,15 @@ START_TEST (test_createPfxTable)
 {
 	PfxTable* pfxTable;
 	errorCode err = UNEXPECTED_ERROR;
-	AllocList memList;
-	initAllocList(&memList);
-	err = createPfxTable(&pfxTable, &memList);
+
+	err = createPfxTable(&pfxTable);
 
 	fail_unless (err == ERR_OK, "createPfxTable returns error code %d", err);
 	fail_unless (pfxTable->count == 0,
 				"createPfxTable populates the pfxTable with count: %d", pfxTable->count);
 	fail_if(pfxTable->pfxStr == NULL);
+
+	EXIP_MFREE(pfxTable);
 }
 END_TEST
 
@@ -62,17 +63,13 @@ START_TEST (test_addUriEntry)
 	errorCode err = UNEXPECTED_ERROR;
 	UriTable uriTable;
 	SmallIndex entryId = 55;
-	AllocList memList;
-	String test_uri;
+	String test_uri = {"test_uri_string", 15};
 
-	initAllocList(&memList);
 	// Create the URI table
-	err = createDynArray(&uriTable.dynArray, sizeof(UriEntry), DEFAULT_URI_ENTRIES_NUMBER, &memList);
+	err = createDynArray(&uriTable.dynArray, sizeof(UriEntry), DEFAULT_URI_ENTRIES_NUMBER);
 	fail_if(err != ERR_OK);
 
-	asciiToString("test_uri_string", &test_uri, &memList, FALSE);
-
-	err = addUriEntry(&uriTable, test_uri, &entryId, &memList);
+	err = addUriEntry(&uriTable, test_uri, &entryId);
 
 	fail_unless (err == ERR_OK, "addUriEntry returns error code %d", err);
 	fail_unless (uriTable.dynArray.arrayEntries == DEFAULT_URI_ENTRIES_NUMBER,
@@ -88,7 +85,7 @@ START_TEST (test_addUriEntry)
 
 	uriTable.count = DEFAULT_URI_ENTRIES_NUMBER;
 
-	err = addUriEntry(&uriTable, test_uri, &entryId, &memList);
+	err = addUriEntry(&uriTable, test_uri, &entryId);
 
 	fail_unless (err == ERR_OK, "addUriEntry returns error code %d", err);
 	fail_unless (uriTable.dynArray.arrayEntries == DEFAULT_URI_ENTRIES_NUMBER*2,
@@ -101,6 +98,8 @@ START_TEST (test_addUriEntry)
 				"addUriEntry returned wrong entryId: %d", entryId);
 
 	fail_if(uriTable.uri[DEFAULT_URI_ENTRIES_NUMBER].lnTable.ln == NULL);
+
+	destroyDynArray(&uriTable.dynArray);
 }
 END_TEST
 
@@ -109,16 +108,12 @@ START_TEST (test_addLnEntry)
 	errorCode err = UNEXPECTED_ERROR;
 	LnTable lnTable;
 	Index entryId = 55;
-	AllocList memList;
-	String test_ln;
+	String test_ln = {"test_ln_string", 14};
 
-	initAllocList(&memList);
-	err = createDynArray(&lnTable.dynArray, sizeof(LnEntry), DEFAULT_LN_ENTRIES_NUMBER, &memList);
+	err = createDynArray(&lnTable.dynArray, sizeof(LnEntry), DEFAULT_LN_ENTRIES_NUMBER);
 	fail_if(err != ERR_OK);
 
-	asciiToString("test_ln_string", &test_ln, &memList, FALSE);
-
-	err = addLnEntry(&lnTable, test_ln, &entryId, &memList);
+	err = addLnEntry(&lnTable, test_ln, &entryId);
 
 	fail_unless (err == ERR_OK, "addLnEntry returns error code %d", err);
 	fail_unless (lnTable.dynArray.arrayEntries == DEFAULT_LN_ENTRIES_NUMBER,
@@ -134,7 +129,7 @@ START_TEST (test_addLnEntry)
 
 	lnTable.count = DEFAULT_LN_ENTRIES_NUMBER;
 
-	err = addLnEntry(&lnTable, test_ln, &entryId, &memList);
+	err = addLnEntry(&lnTable, test_ln, &entryId);
 
 	fail_unless (err == ERR_OK, "addLnEntry returns error code %d", err);
 	fail_unless (lnTable.dynArray.arrayEntries == DEFAULT_LN_ENTRIES_NUMBER*2,
@@ -147,6 +142,8 @@ START_TEST (test_addLnEntry)
 				"addLnEntry returned wrong entryId: %d", entryId);
 
 	fail_if(lnTable.ln[DEFAULT_LN_ENTRIES_NUMBER].vxTable.vx != NULL);
+
+	destroyDynArray(&lnTable.dynArray);
 }
 END_TEST
 
@@ -154,7 +151,7 @@ START_TEST (test_addValueEntry)
 {
 	EXIStream testStrm;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	String testStr;
+	String testStr = {"TEST-007", 8};
 
 	// IV: Initialize the stream
 	{
@@ -163,25 +160,28 @@ START_TEST (test_addValueEntry)
 		testStrm.context.bitPointer = 0;
 		testStrm.buffer.bufLen = 0;
 		testStrm.buffer.bufContent = 0;
-		tmp_err_code += createValueTable(&testStrm.valueTable, &testStrm.memList);
+		tmp_err_code += createValueTable(&testStrm.valueTable);
 		testStrm.schema = memManagedAllocate(&testStrm.memList, sizeof(EXIPSchema));
 		fail_unless (testStrm.schema != NULL, "Memory alloc error");
 		/* Create and initialize initial string table entries */
-		tmp_err_code += createDynArray(&testStrm.schema->uriTable.dynArray, sizeof(UriEntry), DEFAULT_URI_ENTRIES_NUMBER, &testStrm.memList);
-		tmp_err_code += createUriTableEntries(&testStrm.schema->uriTable, FALSE, &testStrm.memList);
+		tmp_err_code += createDynArray(&testStrm.schema->uriTable.dynArray, sizeof(UriEntry), DEFAULT_URI_ENTRIES_NUMBER);
+		tmp_err_code += createUriTableEntries(&testStrm.schema->uriTable, FALSE);
 	}
 	fail_unless (tmp_err_code == ERR_OK, "initStream returns an error code %d", tmp_err_code);
 
 	testStrm.context.currElem.uriId = 1; // http://www.w3.org/XML/1998/namespace
 	testStrm.context.currElem.lnId = 2; // lang
 
-	asciiToString("TEST-007", &testStr, &testStrm.memList, FALSE);
 	tmp_err_code = addValueEntry(&testStrm, testStr, testStrm.context.currElem);
 
 	fail_unless (tmp_err_code == ERR_OK, "addValueEntry returns an error code %d", tmp_err_code);
 	fail_unless (testStrm.schema->uriTable.uri[testStrm.context.currElem.uriId].lnTable.ln[testStrm.context.currElem.lnId].vxTable.vx != NULL, "addValueEntry does not create vxTable");
 	fail_unless (testStrm.schema->uriTable.uri[testStrm.context.currElem.uriId].lnTable.ln[testStrm.context.currElem.lnId].vxTable.count == 1, "addValueEntry does not create correct vxTable");
 	fail_unless (testStrm.valueTable.count == 1, "addValueEntry does not create global value entry");
+
+	destroyDynArray(&testStrm.valueTable.dynArray);
+	destroyDynArray(&testStrm.schema->uriTable.dynArray);
+	freeAllocList(&testStrm.memList);
 }
 END_TEST
 

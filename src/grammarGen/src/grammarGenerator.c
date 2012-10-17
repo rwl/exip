@@ -194,15 +194,15 @@ static void sortUriTable(UriTable* uriTable)
 		//	The initialEntries entries in "http://www.w3.org/XML/1998/namespace",
 		//	"http://www.w3.org/2001/XMLSchema-instance" and "http://www.w3.org/2001/XMLSchema"
 		//  are not sorted
-		if(i == 1) // "http://www.w3.org/XML/1998/namespace"
+		if(i == XML_NAMESPACE_ID) // "http://www.w3.org/XML/1998/namespace"
 		{
 			initialEntries = 4;
 		}
-		else if(i == 2) // "http://www.w3.org/2001/XMLSchema-instance"
+		else if(i == XML_SCHEMA_INSTANCE_ID) // "http://www.w3.org/2001/XMLSchema-instance"
 		{
 			initialEntries = 2;
 		}
-		else if(i == 3) // "http://www.w3.org/2001/XMLSchema"
+		else if(i == XML_SCHEMA_NAMESPACE_ID) // "http://www.w3.org/2001/XMLSchema"
 		{
 			initialEntries = 46;
 		}

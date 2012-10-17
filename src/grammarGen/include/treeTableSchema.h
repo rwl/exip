@@ -72,7 +72,8 @@ enum ElemEnum
 	ELEMENT_MIN_LENGTH      =35,
 	ELEMENT_WHITE_SPACE     =36,
 	ELEMENT_PATTERN         =37,
-	ELEMENT_VOID            =38
+	ELEMENT_APPINFO         =38,
+	ELEMENT_VOID            =39
 };
 
 typedef enum ElemEnum ElemEnum;
@@ -94,7 +95,8 @@ enum AttrEnum
 	ATTRIBUTE_NILLABLE       =11,
 	ATTRIBUTE_ITEM_TYPE      =12,
 	ATTRIBUTE_MEMBER_TYPES   =13,
-	ATTRIBUTE_CONTEXT_ARRAY_SIZE =14
+	ATTRIBUTE_MIXED          =14,
+	ATTRIBUTE_CONTEXT_ARRAY_SIZE =15
 };
 
 typedef enum AttrEnum AttrEnum;

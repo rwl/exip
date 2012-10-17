@@ -295,10 +295,26 @@ errorCode createSimpleTypeGrammar(Index typeId, ProtoGrammar* simpleGrammar)
 	return ERR_OK;
 }
 
-errorCode createComplexTypeGrammar(ProtoGrammarArray* attrUseArray, ProtoGrammar* contentTypeGrammar, ProtoGrammar* complexGrammar)
+errorCode createComplexTypeGrammar(ProtoGrammarArray* attrUseArray, ProtoGrammar* contentTypeGrammar,
+							unsigned char isMixedContent, ProtoGrammar* complexGrammar)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int i;
+
+	if(isMixedContent && contentTypeGrammar != NULL)
+	{
+		/* If {content type} is a content model particle with mixed content, add a production for each non-terminal
+		 * Content-i,j  in Content-i  as follows:
+		 *  	Content-i,j  : CH [untyped value] Content-i,j
+		 */
+		QNameID dummyQId = {URI_MAX, LN_MAX};
+		for(i = 0; i < contentTypeGrammar->count; i++)
+		{
+			tmp_err_code = addProduction(&contentTypeGrammar->rule[i], EVENT_CH, INDEX_MAX, dummyQId, i);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+	}
 
 	if(attrUseArray->count > 0)
 	{
@@ -327,7 +343,6 @@ errorCode createComplexTypeGrammar(ProtoGrammarArray* attrUseArray, ProtoGrammar
 
 		if(contentTypeGrammar != NULL)
 		{
-			/* Concatenate in any existing passed-in grammar */
 			tmp_err_code = concatenateGrammars(complexGrammar, contentTypeGrammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;

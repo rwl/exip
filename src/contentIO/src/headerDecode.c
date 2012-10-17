@@ -359,7 +359,7 @@ static char ops_attribute(QName qname, void* app_data)
 		}
 		else
 		{
-			if(o_appD->o_strm->context.currAttr.uriId == 2 && o_appD->o_strm->context.currAttr.lnId == 0) // xsi:nil
+			if(o_appD->o_strm->context.currAttr.uriId == XML_SCHEMA_INSTANCE_ID && o_appD->o_strm->context.currAttr.lnId == XML_SCHEMA_INSTANCE_NIL_ID) // xsi:nil
 			{
 				o_appD->schemaIDOptions = SCHEMA_ID_EL_NIL;
 			}

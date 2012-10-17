@@ -99,6 +99,8 @@ void freeAllMem(EXIStream* strm)
 		hashtable_destroy(strm->valueTable.hashTbl);
 #endif
 
+	// Freeing the value table if present
+
 	if(strm->valueTable.value != NULL)
 	{
 		Index i;
@@ -110,7 +112,8 @@ void freeAllMem(EXIStream* strm)
 		destroyDynArray(&strm->valueTable.dynArray);
 	}
 
-	if(strm->schema->staticGrCount <= BUILD_IN_GRAMMARS_COUNT)
+	// In case a default schema was used for this stream
+	if(strm->schema->staticGrCount <= SIMPLE_TYPE_COUNT)
 	{
 		// No schema-informed grammars. This is an empty EXIPSchema container that needs to be freed
 		// Freeing the string tables

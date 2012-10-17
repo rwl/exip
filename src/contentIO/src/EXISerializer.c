@@ -335,7 +335,7 @@ errorCode booleanData(EXIStream* strm, unsigned char bool_val)
 	if(strm->context.expectATData > 0) // Value for an attribute
 	{
 		strm->context.expectATData -= 1;
-		if(strm->context.currAttr.uriId == 2 && strm->context.currAttr.lnId == 0)
+		if(strm->context.currAttr.uriId == XML_SCHEMA_INSTANCE_ID && strm->context.currAttr.lnId == XML_SCHEMA_INSTANCE_NIL_ID)
 		{
 			// xsi:nill
 			isXsiNilAttr = TRUE;
