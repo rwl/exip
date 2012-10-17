@@ -156,7 +156,7 @@ $(LIB_BIN_DIR)/libexip.so: $(OBJECT_ALL)
 		$(CC) -shared -Wl,-soname,libexip.so.$(EXIP_VERSION) -o $(LIB_BIN_DIR)/libexip.so.$(EXIP_VERSION) $(OBJECT_ALL)
 		ln -sf $(LIB_BIN_DIR)/libexip.so.$(EXIP_VERSION) $(LIB_BIN_DIR)/libexip.so
 
-check: mk_tests $(CHECK_BINS)
+check: all mk_tests $(CHECK_BINS)
 		for i in $(CHECK_BINS); do \
                    $$i $(TESTS_DATA_DIR); \
              done

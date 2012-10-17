@@ -1,4 +1,4 @@
-/** AUTO-GENERATED: Tue Oct 16 09:06:05 2012
+/** AUTO-GENERATED: Wed Oct 17 09:22:59 2012
   * Copyright (c) 2010 - 2011, Rumen Kyusakov, EISLAB, LTU
   * $Id$ */
 
@@ -114,7 +114,7 @@ CONST CharType ops_LN_4_38[] = {0x76, 0x61, 0x6c, 0x75, 0x65, 0x50, 0x61, 0x72, 
 static CONST Production ops_prod_0_0_part0[1] =
 {
     {
-        9, 11,
+        9, 0,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -146,7 +146,7 @@ static CONST GrammarRule ops_rule_0[2] =
 static CONST Production ops_prod_1_0_part0[1] =
 {
     {
-        9, 10,
+        9, 1,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -187,7 +187,7 @@ static CONST GrammarRule ops_rule_1[2] =
 static CONST Production ops_prod_2_0_part0[1] =
 {
     {
-        9, 12,
+        9, 2,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -219,7 +219,7 @@ static CONST GrammarRule ops_rule_2[2] =
 static CONST Production ops_prod_3_0_part0[1] =
 {
     {
-        9, 8,
+        9, 3,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -260,7 +260,7 @@ static CONST GrammarRule ops_rule_3[2] =
 static CONST Production ops_prod_4_0_part0[1] =
 {
     {
-        9, 9,
+        9, 4,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -292,7 +292,7 @@ static CONST GrammarRule ops_rule_4[2] =
 static CONST Production ops_prod_5_0_part0[1] =
 {
     {
-        9, 7,
+        9, 5,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -333,7 +333,7 @@ static CONST GrammarRule ops_rule_5[2] =
 static CONST Production ops_prod_6_0_part0[1] =
 {
     {
-        9, 3,
+        9, 6,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -374,7 +374,7 @@ static CONST GrammarRule ops_rule_6[2] =
 static CONST Production ops_prod_7_0_part0[1] =
 {
     {
-        9, 4,
+        9, 7,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -406,7 +406,7 @@ static CONST GrammarRule ops_rule_7[2] =
 static CONST Production ops_prod_8_0_part0[1] =
 {
     {
-        9, 34,
+        9, 8,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -438,7 +438,7 @@ static CONST GrammarRule ops_rule_8[2] =
 static CONST Production ops_prod_9_0_part0[1] =
 {
     {
-        9, 5,
+        9, 9,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -479,7 +479,7 @@ static CONST GrammarRule ops_rule_9[2] =
 static CONST Production ops_prod_10_0_part0[1] =
 {
     {
-        9, 33,
+        9, 10,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -511,7 +511,7 @@ static CONST GrammarRule ops_rule_10[2] =
 static CONST Production ops_prod_11_0_part0[1] =
 {
     {
-        9, 44,
+        9, 11,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -618,7 +618,7 @@ static CONST GrammarRule ops_rule_12[2] =
 static CONST Production ops_prod_13_0_part0[1] =
 {
     {
-        9, 32,
+        9, 13,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -650,7 +650,7 @@ static CONST GrammarRule ops_rule_13[2] =
 static CONST Production ops_prod_14_0_part0[1] =
 {
     {
-        9, 28,
+        9, 14,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -691,7 +691,7 @@ static CONST GrammarRule ops_rule_14[2] =
 static CONST Production ops_prod_15_0_part0[1] =
 {
     {
-        9, 27,
+        9, 15,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -732,7 +732,7 @@ static CONST GrammarRule ops_rule_15[2] =
 static CONST Production ops_prod_16_0_part0[1] =
 {
     {
-        9, 20,
+        9, 16,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -764,7 +764,7 @@ static CONST GrammarRule ops_rule_16[2] =
 static CONST Production ops_prod_17_0_part0[1] =
 {
     {
-        9, 38,
+        9, 17,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -805,7 +805,7 @@ static CONST GrammarRule ops_rule_17[2] =
 static CONST Production ops_prod_18_0_part0[1] =
 {
     {
-        9, 36,
+        9, 18,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -846,7 +846,7 @@ static CONST GrammarRule ops_rule_18[2] =
 static CONST Production ops_prod_19_0_part0[1] =
 {
     {
-        9, 13,
+        9, 19,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -887,7 +887,7 @@ static CONST GrammarRule ops_rule_19[2] =
 static CONST Production ops_prod_20_0_part0[1] =
 {
     {
-        9, 31,
+        9, 20,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -928,7 +928,7 @@ static CONST GrammarRule ops_rule_20[2] =
 static CONST Production ops_prod_21_0_part0[1] =
 {
     {
-        9, 35,
+        9, 21,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -960,7 +960,7 @@ static CONST GrammarRule ops_rule_21[2] =
 static CONST Production ops_prod_22_0_part0[1] =
 {
     {
-        9, 30,
+        9, 22,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -1001,7 +1001,7 @@ static CONST GrammarRule ops_rule_22[2] =
 static CONST Production ops_prod_23_0_part0[1] =
 {
     {
-        9, 42,
+        9, 23,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -1042,7 +1042,7 @@ static CONST GrammarRule ops_rule_23[2] =
 static CONST Production ops_prod_24_0_part0[1] =
 {
     {
-        9, 43,
+        9, 24,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -1083,7 +1083,7 @@ static CONST GrammarRule ops_rule_24[2] =
 static CONST Production ops_prod_25_0_part0[1] =
 {
     {
-        9, 41,
+        9, 25,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -1124,7 +1124,7 @@ static CONST GrammarRule ops_rule_25[2] =
 static CONST Production ops_prod_26_0_part0[1] =
 {
     {
-        9, 40,
+        9, 26,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -1165,7 +1165,7 @@ static CONST GrammarRule ops_rule_26[2] =
 static CONST Production ops_prod_27_0_part0[1] =
 {
     {
-        9, 39,
+        9, 27,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -1206,7 +1206,7 @@ static CONST GrammarRule ops_rule_27[2] =
 static CONST Production ops_prod_28_0_part0[1] =
 {
     {
-        9, 29,
+        9, 28,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -1247,7 +1247,7 @@ static CONST GrammarRule ops_rule_28[2] =
 static CONST Production ops_prod_29_0_part0[1] =
 {
     {
-        9, 18,
+        9, 29,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -1288,7 +1288,7 @@ static CONST GrammarRule ops_rule_29[2] =
 static CONST Production ops_prod_30_0_part0[1] =
 {
     {
-        9, 14,
+        9, 30,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -1329,7 +1329,7 @@ static CONST GrammarRule ops_rule_30[2] =
 static CONST Production ops_prod_31_0_part0[1] =
 {
     {
-        9, 6,
+        9, 31,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -1361,7 +1361,7 @@ static CONST GrammarRule ops_rule_31[2] =
 static CONST Production ops_prod_32_0_part0[1] =
 {
     {
-        9, 17,
+        9, 32,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -1402,7 +1402,7 @@ static CONST GrammarRule ops_rule_32[2] =
 static CONST Production ops_prod_33_0_part0[1] =
 {
     {
-        9, 16,
+        9, 33,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -1434,7 +1434,7 @@ static CONST GrammarRule ops_rule_33[2] =
 static CONST Production ops_prod_34_0_part0[1] =
 {
     {
-        9, 21,
+        9, 34,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -1475,7 +1475,7 @@ static CONST GrammarRule ops_rule_34[2] =
 static CONST Production ops_prod_35_0_part0[1] =
 {
     {
-        9, 15,
+        9, 35,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -1516,7 +1516,7 @@ static CONST GrammarRule ops_rule_35[2] =
 static CONST Production ops_prod_36_0_part0[1] =
 {
     {
-        9, 1,
+        9, 36,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -1557,7 +1557,7 @@ static CONST GrammarRule ops_rule_36[2] =
 static CONST Production ops_prod_37_0_part0[1] =
 {
     {
-        9, 26,
+        9, 37,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -1589,7 +1589,7 @@ static CONST GrammarRule ops_rule_37[2] =
 static CONST Production ops_prod_38_0_part0[1] =
 {
     {
-        9, 19,
+        9, 38,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -1630,7 +1630,7 @@ static CONST GrammarRule ops_rule_38[2] =
 static CONST Production ops_prod_39_0_part0[1] =
 {
     {
-        9, 0,
+        9, 39,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -1671,7 +1671,7 @@ static CONST GrammarRule ops_rule_39[2] =
 static CONST Production ops_prod_40_0_part0[1] =
 {
     {
-        9, 37,
+        9, 40,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -1712,7 +1712,7 @@ static CONST GrammarRule ops_rule_40[2] =
 static CONST Production ops_prod_41_0_part0[1] =
 {
     {
-        9, 2,
+        9, 41,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -1753,7 +1753,7 @@ static CONST GrammarRule ops_rule_41[2] =
 static CONST Production ops_prod_42_0_part0[1] =
 {
     {
-        9, 25,
+        9, 42,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -1785,7 +1785,7 @@ static CONST GrammarRule ops_rule_42[2] =
 static CONST Production ops_prod_43_0_part0[1] =
 {
     {
-        9, 23,
+        9, 43,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -1826,7 +1826,7 @@ static CONST GrammarRule ops_rule_43[2] =
 static CONST Production ops_prod_44_0_part0[1] =
 {
     {
-        9, 22,
+        9, 44,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -1867,7 +1867,7 @@ static CONST GrammarRule ops_rule_44[2] =
 static CONST Production ops_prod_45_0_part0[1] =
 {
     {
-        9, 24,
+        9, 45,
         {SMALL_INDEX_MAX, INDEX_MAX},
         1
     }
@@ -2598,7 +2598,7 @@ static CONST Production ops_prod_55_0_part0[1] =
 static CONST Production ops_prod_55_0_part1[1] =
 {
     {
-        2, 27,
+        2, 15,
         {2, 0},
         0
     }
@@ -3998,52 +3998,52 @@ static CONST GrammarRule ops_docGrammarRule[3] =
 
 static CONST SimpleType ops_simpleTypes[67] =
 {
+    {8, 0x0000, 0x0000000000000000, 0x0000000000000000, 1},
     {2, 0x1000, 0x0000000000000000, 0x0000000000000000, 0},
-    {2, 0x1000, 0x0000000000000000, 0x0000000000000000, 0},
-    {2, 0x1000, 0x0000000000000000, 0x0000000000000000, 0},
+    {2, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
     {2, 0x1000, 0x0000000000000000, 0x0000000000000000, 0},
     {8, 0x0000, 0x0000000000000000, 0x0000000000000000, 3},
     {2, 0x1000, 0x0000000000000000, 0x0000000000000000, 0},
+    {2, 0x1000, 0x0000000000000000, 0x0000000000000000, 0},
+    {8, 0x0000, 0x0000000000000000, 0x0000000000000000, 6},
     {2, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
     {2, 0x1000, 0x0000000000000000, 0x0000000000000000, 0},
-    {2, 0x1000, 0x0000000000000000, 0x0000000000000000, 0},
-    {8, 0x0000, 0x0000000000000000, 0x0000000000000000, 8},
-    {2, 0x1000, 0x0000000000000000, 0x0000000000000000, 0},
-    {8, 0x0000, 0x0000000000000000, 0x0000000000000000, 10},
     {2, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
-    {4, 0x1000, 0x0000000000000000, 0x0000000000000000, 0},
-    {20, 0x1000, 0x0000000000000000, 0x0000000000000000, 0},
-    {20, 0x1040, 0x0000000000000000, 0x0000000000000000, 0},
-    {20, 0x0040, 0xffffffffffffffff, 0x0000000000000000, 0},
-    {20, 0x1000, 0x0000000000000000, 0x0000000000000000, 0},
-    {20, 0x1000, 0x0000000000000000, 0x0000000000000000, 0},
-    {20, 0x1240, 0x0000000000007fff, 0xffffffffffff8000, 0},
+    {2, 0x1000, 0x0000000000000000, 0x0000000000000000, 0},
+    {1, 0x1000, 0x0000000000000000, 0x0000000000000000, 0},
+    {2, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
+    {7, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
+    {6, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
     {21, 0x0240, 0x000000000000007f, 0xffffffffffffff80, 0},
+    {5, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
+    {5, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
+    {4, 0x1000, 0x0000000000000000, 0x0000000000000000, 0},
+    {3, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
+    {2, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
+    {3, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
+    {5, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
+    {5, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
+    {5, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
+    {5, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
+    {5, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
+    {7, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
+    {20, 0x1000, 0x0000000000000000, 0x0000000000000000, 0},
+    {20, 0x1000, 0x0000000000000000, 0x0000000000000000, 0},
+    {2, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
+    {20, 0x1000, 0x0000000000000000, 0x0000000000000000, 0},
+    {20, 0x0040, 0xffffffffffffffff, 0x0000000000000000, 0},
     {22, 0x1200, 0x0000000000000000, 0x0000000000000000, 0},
+    {20, 0x1040, 0x0000000000000000, 0x0000000000000000, 0},
+    {2, 0x1000, 0x0000000000000000, 0x0000000000000000, 0},
+    {22, 0x0200, 0x0000000000000000, 0x0000000000000001, 0},
+    {20, 0x1240, 0x0000000000007fff, 0xffffffffffff8000, 0},
+    {2, 0x1000, 0x0000000000000000, 0x0000000000000000, 0},
+    {5, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
+    {2, 0x1000, 0x0000000000000000, 0x0000000000000000, 0},
+    {21, 0x0240, 0x00000000000000ff, 0x0000000000000000, 0},
     {22, 0x1200, 0x0000000000000000, 0x0000000000000000, 0},
     {22, 0x1200, 0x0000000000000000, 0x0000000000000000, 0},
     {22, 0x1240, 0x000000000000ffff, 0x0000000000000000, 0},
-    {21, 0x0240, 0x00000000000000ff, 0x0000000000000000, 0},
-    {22, 0x0200, 0x0000000000000000, 0x0000000000000001, 0},
-    {6, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
-    {7, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
-    {7, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
-    {3, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
-    {3, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
-    {2, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
-    {2, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
-    {2, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
-    {2, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
-    {5, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
-    {5, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
-    {5, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
-    {5, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
-    {5, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
-    {5, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
-    {5, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
-    {5, 0x0000, 0x0000000000000000, 0x0000000000000000, 0},
-    {2, 0x1000, 0x0000000000000000, 0x0000000000000000, 0},
-    {1, 0x1000, 0x0000000000000000, 0x0000000000000000, 0},
     {22, 0x0200, 0x0000000000000000, 0x0000000000000000, 0},
     {22, 0x0200, 0x0000000000000000, 0x0000000000000000, 0},
     {22, 0x0200, 0x0000000000000000, 0x0000000000000001, 0},

@@ -557,7 +557,7 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 			}
 
 			// handle xsi:nil attribute
-			if(IS_SCHEMA(strm->gStack->grammar->props) && localQNameID.uriId == 2 && localQNameID.lnId == 0) // Schema-enabled grammar and http://www.w3.org/2001/XMLSchema-instance:nil
+			if(IS_SCHEMA(strm->gStack->grammar->props) && localQNameID.uriId == XML_SCHEMA_INSTANCE_ID && localQNameID.lnId == XML_SCHEMA_INSTANCE_NIL_ID) // Schema-enabled grammar and http://www.w3.org/2001/XMLSchema-instance:nil
 			{
 				if(bool_val == TRUE)
 				{

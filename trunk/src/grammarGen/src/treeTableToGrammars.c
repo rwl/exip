@@ -51,6 +51,14 @@ struct buildContext
 
 typedef struct buildContext BuildContext;
 
+/** Used for the attribute grammar generation. */
+struct localAttrNames
+{
+	DynArray dynArray;
+	String* attrNames;
+	Index count;
+};
+
 // Functions for handling of schema elements (defined in the global scope)
 // START
 /**
@@ -97,7 +105,7 @@ static errorCode getContentTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
  *    local elements within model groups (sequences, choices, groups etc.)
  * -# attribute uses
  */
-static errorCode getAttributeUseProtoGrammars(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* entry, ProtoGrammarArray* attrUseArray, String** attrWildcardNS);
+static errorCode getAttributeUseProtoGrammars(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* entry, ProtoGrammarArray* attrUseArray, String** attrWildcardNS, struct localAttrNames* aNamesTbl);
 
 /**
  * For local scope elements, this function builds the Particle Grammar of the element definition
@@ -237,6 +245,11 @@ static errorCode storeGrammar(BuildContext* ctx, QNameID qnameID, ProtoGrammar* 
 static void sortGlobalElemQnameTable(GlobalElemQNameTable *gElTbl);
 
 static void sortEnumTable(EXIPSchema *schema);
+
+/** Check if an attribute with a string name aName is in the table lAttrTbl
+ * that contains all the attributes already included for certain complex type.
+ * TRUE: present, FASLE not present */
+static char isAttrAlreadyPresent(String aName, struct localAttrNames* lAttrTbl);
 
 errorCode convertTreeTablesToExipSchema(TreeTable* treeT, unsigned int count, EXIPSchema* schema)
 {
@@ -498,9 +511,14 @@ static errorCode handleElementEl(BuildContext* ctx, TreeTable* treeT, TreeTableE
 		ProtoGrammar* pg = NULL;
 
 		/* If the element does not have a type then it should have either ref="..."
-		 * attribute or an anonymous type definition */
+		 * attribute or an anonymous type definition. If both are missing then it is
+		 * an empty element declaration (<xs:element name="unconstrained"/>) that has ·xs:anyType· by default */
 		if(entry->child.entry == NULL)
-			return UNEXPECTED_ERROR;
+		{
+			*grIndex = GET_LN_URI_IDS(ctx->schema->uriTable, XML_SCHEMA_NAMESPACE_ID, SIMPLE_TYPE_ANY_TYPE).typeGrammar;
+			GET_LN_URI_QNAME(ctx->schema->uriTable, elQNameID).elemGrammar = *grIndex;
+			return ERR_OK;
+		}
 		else if(entry->child.entry->element == ELEMENT_SIMPLE_TYPE)
 		{
 			tmp_err_code = getSimpleTypeProtoGrammar(ctx, entry->child.treeT, entry->child.entry, &pg);
@@ -821,7 +839,7 @@ static errorCode getContentTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 }
 
 /* entry should be a complex_type or extension or restriction or attributeGroup element */
-static errorCode getAttributeUseProtoGrammars(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* entry, ProtoGrammarArray* attrUseArray, String** attrWildcardNS)
+static errorCode getAttributeUseProtoGrammars(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* entry, ProtoGrammarArray* attrUseArray, String** attrWildcardNS, struct localAttrNames* aNamesTbl)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	TreeTableEntry* attrUse = NULL;
@@ -871,19 +889,35 @@ static errorCode getAttributeUseProtoGrammars(BuildContext* ctx, TreeTable* tree
 			{
 				if(attrUse->element == ELEMENT_ATTRIBUTE)
 				{
-					tmp_err_code = getAttributeProtoGrammar(ctx, treeT, attrUse, &attrPG);
-					if(tmp_err_code != ERR_OK)
-						return tmp_err_code;
+					String aName;
+					if(!isStringEmpty(&attrUse->attributePointers[ATTRIBUTE_REF]))
+						aName = attrUse->attributePointers[ATTRIBUTE_REF];
+					else
+						aName = attrUse->attributePointers[ATTRIBUTE_NAME];
 
-					tmp_err_code = addDynEntry(&attrUseArray->dynArray, &attrPG, &entryId);
-					if(tmp_err_code != ERR_OK)
-						return tmp_err_code;
+					if(!isAttrAlreadyPresent(aName, aNamesTbl))
+					{
+						tmp_err_code = addDynEntry(&aNamesTbl->dynArray, &aName, &entryId);
+						if(tmp_err_code != ERR_OK)
+							return tmp_err_code;
+
+						if(!stringEqualToAscii(attrUse->attributePointers[ATTRIBUTE_USE], "prohibited"))
+						{
+							tmp_err_code = getAttributeProtoGrammar(ctx, treeT, attrUse, &attrPG);
+							if(tmp_err_code != ERR_OK)
+								return tmp_err_code;
+
+							tmp_err_code = addDynEntry(&attrUseArray->dynArray, &attrPG, &entryId);
+							if(tmp_err_code != ERR_OK)
+								return tmp_err_code;
+						}
+					}
 				}
 				else if(attrUse->element == ELEMENT_ATTRIBUTE_GROUP)
 				{
 					if(attrUse->child.entry != NULL)
 					{
-						tmp_err_code = getAttributeUseProtoGrammars(ctx, attrUse->child.treeT,  attrUse->child.entry, attrUseArray, attrWildcardNS);
+						tmp_err_code = getAttributeUseProtoGrammars(ctx, attrUse->child.treeT,  attrUse->child.entry, attrUseArray, attrWildcardNS, aNamesTbl);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
 					}
@@ -909,32 +943,33 @@ static errorCode getAttributeUseProtoGrammars(BuildContext* ctx, TreeTable* tree
 			{
 				// Follow the extensions and restrictions.
 				// entry->child.entry->child.entry->element is either ELEMENT_EXTENSION or ELEMENT_RESTRICTION
-				tmp_err_code = getAttributeUseProtoGrammars(ctx, entry->child.entry->child.treeT, entry->child.entry->child.entry, attrUseArray, attrWildcardNS);
+				tmp_err_code = getAttributeUseProtoGrammars(ctx, entry->child.entry->child.treeT, entry->child.entry->child.entry, attrUseArray, attrWildcardNS, aNamesTbl);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			}
 		}
 	}
 
-	if(entry->element == ELEMENT_EXTENSION)
+	if(entry->element == ELEMENT_EXTENSION || entry->element == ELEMENT_RESTRICTION)
 	{
-		/**
-		 * @page deriving_complex_restriction Deriving complex types through restriction
-		 * When deriving complex types through restriction you should repeat all the
-		 * inherited attributes, although the XSD spec does not require that for some reason.
-		 * This is yet another quirk in the XSD spec - all content elements should be repeated
-		 * during restriction but not the attribute uses!?!?
-		 * In any way, the schema code is much more comprehensible when the attribute uses are
-		 * repeated but still this deviation might be revised in the future releases of the library.
-		 */
-
 		if(entry->supertype.entry->element == ELEMENT_COMPLEX_TYPE)
 		{
-			tmp_err_code = getAttributeUseProtoGrammars(ctx, entry->supertype.treeT, entry->supertype.entry, attrUseArray, attrWildcardNS);
+			tmp_err_code = getAttributeUseProtoGrammars(ctx, entry->supertype.treeT, entry->supertype.entry, attrUseArray, attrWildcardNS, aNamesTbl);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 	}
+
+	/* NOTE ON:
+	 * === Deriving complex types through restriction ===
+	 * When deriving complex types through restriction it is not required by
+	 * the XSD spec that you repeat all the inherited attributes.
+	 * This is yet another quirk in the XSD spec - all content elements should be repeated
+	 * during restriction but not the attribute uses!?!?
+	 * In any way, the schema code is much more comprehensible when the attribute uses are
+	 * repeated but still this messy code here is needed to keep the compliance with the
+	 * XSD specification.
+	 */
 
 	return ERR_OK;
 }
@@ -945,7 +980,14 @@ static errorCode getComplexTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 	ProtoGrammarArray attrUseArray;
 	ProtoGrammar* contentTypeGrammar = NULL;
 	String* attrWildcardNS = NULL;
+	unsigned char isMixedContent = FALSE;
 	Index i;
+
+	if(!isStringEmpty(&complEntry->attributePointers[ATTRIBUTE_MIXED])
+			&& stringEqualToAscii(complEntry->attributePointers[ATTRIBUTE_MIXED], "true"))
+	{
+		isMixedContent = TRUE;
+	}
 
 	tmp_err_code = getContentTypeProtoGrammar(ctx, treeT, complEntry, &contentTypeGrammar);
 	if(tmp_err_code != ERR_OK)
@@ -955,9 +997,18 @@ static errorCode getComplexTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = getAttributeUseProtoGrammars(ctx, treeT, complEntry, &attrUseArray, &attrWildcardNS);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	{ // get all the attribute uses
+		struct localAttrNames aNamesTbl;
+		tmp_err_code = createDynArray(&aNamesTbl.dynArray, sizeof(String), 20);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		tmp_err_code = getAttributeUseProtoGrammars(ctx, treeT, complEntry, &attrUseArray, &attrWildcardNS, &aNamesTbl);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		destroyDynArray(&aNamesTbl.dynArray);
+	}
 
 	sortAttributeUseGrammars(&attrUseArray);
 
@@ -1044,7 +1095,7 @@ static errorCode getComplexTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 		if(*complType == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		tmp_err_code = createComplexTypeGrammar(&attrUseArray, contentTypeGrammar, *complType);
+		tmp_err_code = createComplexTypeGrammar(&attrUseArray, contentTypeGrammar, isMixedContent, *complType);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -1818,7 +1869,7 @@ static errorCode getRestrictionComplexProtoGrammar(BuildContext* ctx, TreeTable*
 
 	// Restriction from a complex type only
 
-	if((baseTypeId.uriId == 3 && baseTypeId.lnId == 12) || // "xs:anyType"
+	if((baseTypeId.uriId == XML_SCHEMA_NAMESPACE_ID && baseTypeId.lnId == SIMPLE_TYPE_ANY_TYPE) || // "xs:anyType"
 			(resEntry->supertype.entry != NULL && resEntry->supertype.entry->element == ELEMENT_COMPLEX_TYPE))
 	{
 		tmp_err_code = getContentTypeProtoGrammar(ctx, treeT, resEntry, restr);
@@ -1839,11 +1890,9 @@ static errorCode getTypeId(BuildContext* ctx, const QNameID typeQnameId, TreeTab
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
-	if(typeQnameId.uriId == 3) // == http://www.w3.org/2001/XMLSchema i.e. build-in type
+	if(typeQnameId.uriId == XML_SCHEMA_NAMESPACE_ID) // == http://www.w3.org/2001/XMLSchema i.e. build-in type
 	{
-		tmp_err_code = getEXIDataTypeFromSimpleType(typeQnameId, typeId);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		*typeId = typeQnameId.lnId;
 	}
 	else
 	{
@@ -2031,4 +2080,17 @@ static void sortGlobalElemQnameTable(GlobalElemQNameTable *gElTbl)
 static void sortEnumTable(EXIPSchema *schema)
 {
 	qsort(schema->enumTable.enumDef, schema->enumTable.count, sizeof(EnumDefinition), compareEnumDefs);
+}
+
+static char isAttrAlreadyPresent(String aName, struct localAttrNames* lAttrTbl)
+{
+	Index i;
+
+	for(i = 0; i < lAttrTbl->count; i++)
+	{
+		if(stringEqual(aName, lAttrTbl->attrNames[i]))
+			return TRUE;
+	}
+
+	return FALSE;
 }

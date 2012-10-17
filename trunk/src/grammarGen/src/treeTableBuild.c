@@ -121,7 +121,8 @@ static const char* elemStrings[] =
 	"length",
 	"minLength",
 	"whiteSpace",
-	"pattern"
+	"pattern",
+	"appinfo"
 };
 
 static const char* attrStrings[] =
@@ -139,7 +140,8 @@ static const char* attrStrings[] =
 	"value",
 	"nillable",
 	"itemType",
-	"memberTypes"
+	"memberTypes",
+	"mixed"
 };
 
 errorCode generateTreeTable(BinaryBuffer buffer, unsigned char schemaFormat, TreeTable* treeT, EXIPSchema* schema)
@@ -302,6 +304,11 @@ static char xsd_startElement(QName qname, void* app_data)
 			ttpd->ignoredElement += 1;
 			return EXIP_HANDLER_OK;
 		}
+		else if(stringEqualToAscii(*qname.localName, elemStrings[ELEMENT_APPINFO]))
+		{
+			ttpd->ignoredElement += 1;
+			return EXIP_HANDLER_OK;
+		}
 		else
 			ttpd->ignoredElement = FALSE;
 
@@ -369,6 +376,9 @@ static char xsd_startElement(QName qname, void* app_data)
 		if (i == (int) ELEMENT_VOID)
 		{
 			DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, (">Ignored schema element\n"));
+#if EXIP_DEBUG == ON
+			printString(qname.localName);
+#endif
 			return EXIP_HANDLER_STOP;
 		}
 
@@ -589,6 +599,9 @@ static char xsd_attribute(QName qname, void* app_data)
 		else
 		{
 			DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, (">Ignored <schema> attribute\n"));
+#if EXIP_DEBUG == ON
+			printString(qname.localName);
+#endif
 		}
 	}
 	else
@@ -612,6 +625,9 @@ static char xsd_attribute(QName qname, void* app_data)
 		if (i == ATTRIBUTE_CONTEXT_ARRAY_SIZE)
 		{
 			DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, (">Ignored element attribute\n"));
+#if EXIP_DEBUG == ON
+			printString(qname.localName);
+#endif
 		}
 	}
 	ttpd->expectingAttr = TRUE;

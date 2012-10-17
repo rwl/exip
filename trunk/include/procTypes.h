@@ -860,55 +860,63 @@ typedef struct SimpleTypeTable SimpleTypeTable;
 
 /** @name Simple types IDs */
 /**@{*/
-#define SIMPLE_TYPE_STRING                0
-#define SIMPLE_TYPE_NORMALIZED_STRING     1
-#define SIMPLE_TYPE_TOKEN                 2
-#define SIMPLE_TYPE_NMTOKEN               3
-#define SIMPLE_TYPE_NMTOKENS              4
-#define SIMPLE_TYPE_NAME                  5
-#define SIMPLE_TYPE_LANGUAGE              6
-#define SIMPLE_TYPE_NCNAME                7
-#define SIMPLE_TYPE_IDREF                 8
-#define SIMPLE_TYPE_IDREFS                9
-#define SIMPLE_TYPE_ENTITY               10
-#define SIMPLE_TYPE_ENTITIES             11
-#define SIMPLE_TYPE_ID                   12
-#define SIMPLE_TYPE_DECIMAL              13
-#define SIMPLE_TYPE_INTEGER              14
-#define SIMPLE_TYPE_NON_POSITIVE_INTEGER 15
-#define SIMPLE_TYPE_NEGATIVE_INTEGER     16
-#define SIMPLE_TYPE_LONG                 17
-#define SIMPLE_TYPE_INT                  18
-#define SIMPLE_TYPE_SHORT                19
-#define SIMPLE_TYPE_BYTE                 20
-#define SIMPLE_TYPE_NON_NEGATIVE_INTEGER 21
-#define SIMPLE_TYPE_UNSIGNED_LONG        22
-#define SIMPLE_TYPE_UNSIGNED_INT         23
-#define SIMPLE_TYPE_UNSIGNED_SHORT       24
-#define SIMPLE_TYPE_UNSIGNED_BYTE        25
-#define SIMPLE_TYPE_POSITIVE_INTEGER     26
-#define SIMPLE_TYPE_BOOLEAN              27
-#define SIMPLE_TYPE_BASE64_BINARY        28
-#define SIMPLE_TYPE_HEX_BINARY           29
-#define SIMPLE_TYPE_FLOAT                30
-#define SIMPLE_TYPE_DOUBLE               31
-#define SIMPLE_TYPE_ANY_URI              32
-#define SIMPLE_TYPE_QNAME                33
-#define SIMPLE_TYPE_NOTATION             34
-#define SIMPLE_TYPE_DURATION             35
-#define SIMPLE_TYPE_DATE_TIME            36
-#define SIMPLE_TYPE_TIME                 37
-#define SIMPLE_TYPE_DATE                 38
-#define SIMPLE_TYPE_GYEAR_MONTH          39
-#define SIMPLE_TYPE_GYEAR                40
-#define SIMPLE_TYPE_GMONTH_DAY           41
-#define SIMPLE_TYPE_GDAY                 42
-#define SIMPLE_TYPE_GMONTH               43
-#define SIMPLE_TYPE_ANY_SIMPLE_TYPE      44
-#define SIMPLE_TYPE_ANY_TYPE             45
+#define SIMPLE_TYPE_ENTITIES              0
+#define SIMPLE_TYPE_ENTITY                1
+#define SIMPLE_TYPE_ID                    2
+#define SIMPLE_TYPE_IDREF                 3
+#define SIMPLE_TYPE_IDREFS                4
+#define SIMPLE_TYPE_NCNAME                5
+#define SIMPLE_TYPE_NMTOKEN               6
+#define SIMPLE_TYPE_NMTOKENS              7
+#define SIMPLE_TYPE_NOTATION              8
+#define SIMPLE_TYPE_NAME                  9
+#define SIMPLE_TYPE_QNAME                10
+#define SIMPLE_TYPE_ANY_SIMPLE_TYPE      11
+#define SIMPLE_TYPE_ANY_TYPE             12
+#define SIMPLE_TYPE_ANY_URI              13
+#define SIMPLE_TYPE_BASE64_BINARY        14
+#define SIMPLE_TYPE_BOOLEAN              15
+#define SIMPLE_TYPE_BYTE                 16
+#define SIMPLE_TYPE_DATE                 17
+#define SIMPLE_TYPE_DATE_TIME            18
+#define SIMPLE_TYPE_DECIMAL              19
+#define SIMPLE_TYPE_DOUBLE               20
+#define SIMPLE_TYPE_DURATION             21
+#define SIMPLE_TYPE_FLOAT                22
+#define SIMPLE_TYPE_GDAY                 23
+#define SIMPLE_TYPE_GMONTH               24
+#define SIMPLE_TYPE_GMONTH_DAY           25
+#define SIMPLE_TYPE_GYEAR                26
+#define SIMPLE_TYPE_GYEAR_MONTH          27
+#define SIMPLE_TYPE_HEX_BINARY           28
+#define SIMPLE_TYPE_INT                  29
+#define SIMPLE_TYPE_INTEGER              30
+#define SIMPLE_TYPE_LANGUAGE             31
+#define SIMPLE_TYPE_LONG                 32
+#define SIMPLE_TYPE_NEGATIVE_INTEGER     33
+#define SIMPLE_TYPE_NON_NEGATIVE_INTEGER 34
+#define SIMPLE_TYPE_NON_POSITIVE_INTEGER 35
+#define SIMPLE_TYPE_NORMALIZED_STRING    36
+#define SIMPLE_TYPE_POSITIVE_INTEGER     37
+#define SIMPLE_TYPE_SHORT                38
+#define SIMPLE_TYPE_STRING               39
+#define SIMPLE_TYPE_TIME                 40
+#define SIMPLE_TYPE_TOKEN                41
+#define SIMPLE_TYPE_UNSIGNED_BYTE        42
+#define SIMPLE_TYPE_UNSIGNED_INT         43
+#define SIMPLE_TYPE_UNSIGNED_LONG        44
+#define SIMPLE_TYPE_UNSIGNED_SHORT       45
 
 #define SIMPLE_TYPE_COUNT                46
 /**@}*/
+
+#define XML_NAMESPACE_ID                  1
+
+#define XML_SCHEMA_INSTANCE_ID            2
+#define XML_SCHEMA_INSTANCE_NIL_ID        0
+#define XML_SCHEMA_INSTANCE_TYPE_ID       1
+
+#define XML_SCHEMA_NAMESPACE_ID           3
 
 /** Holds all EXI grammars defined for particular EXI processing (build-in + schema-defined) */
 struct SchemaGrammarTable {

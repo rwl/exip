@@ -61,15 +61,6 @@ errorCode generateBuiltInTypesGrammars(EXIPSchema* schema);
 errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocList* memList);
 
 /**
- * @brief Maps a simple XSD type to its EXI datatype representation
- *
- * @param[in] simpleXSDType simple XSD type QName given as string table ids
- * @param[out] typeId index of the type in the SimpleTypeTable
- * @return Error handling code
- */
-errorCode getEXIDataTypeFromSimpleType(QNameID simpleXSDType, Index* typeId);
-
-/**
  * @brief Initialize a EXIPSchema object
  * 
  * Generate all build in Schema-informed Element and Type Grammars when not in

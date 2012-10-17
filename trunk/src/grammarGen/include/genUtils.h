@@ -59,10 +59,12 @@ errorCode createSimpleTypeGrammar(Index typeId, ProtoGrammar* simpleGrammar);
  *            It should be lexicographically sorted
  * @param[in] contentTypeGrammar the proto-grammar of the complex type content: either Simple Type Grammar,
  * or Particle grammar or empty
+ * @param[in] isMixedContent if the complex types has mixed content type (TRUE) or not (FALSE)
  * @param[in, out] complexGrammar the resulted proto-grammar
  * @return Error handling code
  */
-errorCode createComplexTypeGrammar(ProtoGrammarArray* attrUseArray, ProtoGrammar* contentTypeGrammar, ProtoGrammar* complexGrammar);
+errorCode createComplexTypeGrammar(ProtoGrammarArray* attrUseArray, ProtoGrammar* contentTypeGrammar,
+								unsigned char isMixedContent, ProtoGrammar* complexGrammar);
 
 /**
  * @brief Creates Complex Ur-Type Grammar from XML Schema complex ur-type

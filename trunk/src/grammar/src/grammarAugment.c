@@ -261,15 +261,15 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 				grammar->rule[i].part[1].prod[tmp_prod2_indx].eventType = EVENT_AT_QNAME;
 				grammar->rule[i].part[1].prod[tmp_prod2_indx].typeId = SIMPLE_TYPE_QNAME;
 				grammar->rule[i].part[1].prod[tmp_prod2_indx].nonTermID = 0;
-				grammar->rule[i].part[1].prod[tmp_prod2_indx].qnameId.uriId = 2; // "http://www.w3.org/2001/XMLSchema-instance"
-				grammar->rule[i].part[1].prod[tmp_prod2_indx].qnameId.lnId = 1; // type
+				grammar->rule[i].part[1].prod[tmp_prod2_indx].qnameId.uriId = XML_SCHEMA_INSTANCE_ID; // "http://www.w3.org/2001/XMLSchema-instance"
+				grammar->rule[i].part[1].prod[tmp_prod2_indx].qnameId.lnId = XML_SCHEMA_INSTANCE_TYPE_ID; // type
 				tmp_prod2_indx --;
 
 				grammar->rule[i].part[1].prod[tmp_prod2_indx].eventType = EVENT_AT_QNAME;
 				grammar->rule[i].part[1].prod[tmp_prod2_indx].typeId = SIMPLE_TYPE_BOOLEAN;
 				grammar->rule[i].part[1].prod[tmp_prod2_indx].nonTermID = 0;
-				grammar->rule[i].part[1].prod[tmp_prod2_indx].qnameId.uriId = 2; // "http://www.w3.org/2001/XMLSchema-instance"
-				grammar->rule[i].part[1].prod[tmp_prod2_indx].qnameId.lnId = 0; // nil
+				grammar->rule[i].part[1].prod[tmp_prod2_indx].qnameId.uriId = XML_SCHEMA_INSTANCE_ID; // "http://www.w3.org/2001/XMLSchema-instance"
+				grammar->rule[i].part[1].prod[tmp_prod2_indx].qnameId.lnId = XML_SCHEMA_INSTANCE_NIL_ID; // nil
 				tmp_prod2_indx --;
 			}
 
@@ -510,9 +510,9 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 			grammar->rule[0].part[1].prod[0].nonTermID = 0;
 
 			// "http://www.w3.org/2001/XMLSchema-instance" = 2
-			grammar->rule[0].part[1].prod[0].qnameId.uriId = 2;
+			grammar->rule[0].part[1].prod[0].qnameId.uriId = XML_SCHEMA_INSTANCE_ID;
 			// type = 1
-			grammar->rule[0].part[1].prod[0].qnameId.lnId = 1;
+			grammar->rule[0].part[1].prod[0].qnameId.lnId = XML_SCHEMA_INSTANCE_TYPE_ID;
 			subTypeFound = TRUE;
 		}
 
@@ -539,9 +539,9 @@ errorCode addUndeclaredProductions(AllocList* memList, unsigned char strict, uns
 			grammar->rule[0].part[1].prod[prodIndex].nonTermID = 0;
 
 			// "http://www.w3.org/2001/XMLSchema-instance" = 2
-			grammar->rule[0].part[1].prod[prodIndex].qnameId.uriId = 2;
+			grammar->rule[0].part[1].prod[prodIndex].qnameId.uriId = XML_SCHEMA_INSTANCE_ID;
 			// nil = 0
-			grammar->rule[0].part[1].prod[prodIndex].qnameId.lnId = 0;
+			grammar->rule[0].part[1].prod[prodIndex].qnameId.lnId = XML_SCHEMA_INSTANCE_NIL_ID;
 		}
 	}
 

@@ -54,9 +54,9 @@ errorCode getEmptyTypeGrammar(EXIStream* strm, EXIGrammar* src, EXIGrammar** des
 				destProdIndx = 0;
 				for(p = 0; p < src->rule[i].part[partNum].count; p++)
 				{
-					if(src->rule[i].part[partNum].prod[p].qnameId.uriId == 2 &&
-						(src->rule[i].part[partNum].prod[p].qnameId.lnId == 0 ||
-						 src->rule[i].part[partNum].prod[p].qnameId.lnId == 1))
+					if(src->rule[i].part[partNum].prod[p].qnameId.uriId == XML_SCHEMA_INSTANCE_ID &&
+						(src->rule[i].part[partNum].prod[p].qnameId.lnId == XML_SCHEMA_INSTANCE_NIL_ID ||
+						 src->rule[i].part[partNum].prod[p].qnameId.lnId == XML_SCHEMA_INSTANCE_TYPE_ID))
 					{
 						// In case of AT(xsi:type) and AT(xsi:nil) productions, exclude them
 						continue;
