@@ -288,8 +288,18 @@ static char xsd_startElement(QName qname, void* app_data)
 
 		if(!stringEqual(*qname.uri, XML_SCHEMA_NAMESPACE))
 		{
-			DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Invalid namespace of XML Schema element\n"));
-			return EXIP_HANDLER_STOP;
+			if(ttpd->ignoredElement == 0)
+			{
+				// If it is not within an ignored element
+				DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Invalid namespace of XML Schema element\n"));
+				return EXIP_HANDLER_STOP;
+			}
+			else
+			{
+				// If it is within an ignored element - ignore this one as well
+				ttpd->ignoredElement += 1;
+				return EXIP_HANDLER_OK;
+			}
 		}
 
 		/**** Ignore certain elements. These elements will not be part of the resulting tree table. ****/

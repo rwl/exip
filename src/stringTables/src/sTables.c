@@ -84,7 +84,7 @@ const String XML_NAMESPACE = {ops_URI_1, 36};
 const String XML_SCHEMA_INSTANCE = {ops_URI_2, 41};
 const String XML_SCHEMA_NAMESPACE = {ops_URI_3, 32};
 
-static const String URI_1_PFX = {ops_PFX_1_0, 3};
+const String URI_1_PFX = {ops_PFX_1_0, 3};
 static const String URI_2_PFX = {ops_PFX_2_0, 3};
 
 #define URI_1_LN_SIZE 4
