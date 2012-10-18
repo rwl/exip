@@ -118,7 +118,7 @@ static errorCode getElementTermProtoGrammar(BuildContext* ctx, TreeTable* treeT,
  * Given an attribute use entry this function builds the corresponding
  * attribute use proto grammar.
  */
-static errorCode getAttributeProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* attrEntry, ProtoGrammar** attr);
+static errorCode getAttributeProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* attrEntry, unsigned char isGlobal, ProtoGrammar** attr);
 
 /**
  * Given a Simple Type entry this function builds the corresponding
@@ -619,7 +619,7 @@ static errorCode handleElementEl(BuildContext* ctx, TreeTable* treeT, TreeTableE
 	return ERR_OK;
 }
 
-static errorCode getAttributeProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* attrEntry, ProtoGrammar** attr)
+static errorCode getAttributeProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* attrEntry, unsigned char isGlobal, ProtoGrammar** attr)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned char required = 0;
@@ -631,16 +631,32 @@ static errorCode getAttributeProtoGrammar(BuildContext* ctx, TreeTable* treeT, T
 	{
 		required = TRUE;
 	}
-	if(treeT->globalDefs.attrFormDefault == QUALIFIED || stringEqualToAscii(attrEntry->attributePointers[ATTRIBUTE_FORM], "qualified"))
-		atQnameID.uriId = treeT->globalDefs.targetNsId;
-	else
-		atQnameID.uriId = 0; // URI	0	"" [empty string]
 
-	if(!lookupLn(&ctx->schema->uriTable.uri[atQnameID.uriId].lnTable, attrEntry->attributePointers[ATTRIBUTE_NAME], &atQnameID.lnId))
-		return UNEXPECTED_ERROR;
+	// Validation checks
+	if(isStringEmpty(&attrEntry->attributePointers[ATTRIBUTE_NAME]))
+	{
+		// The attribute does not have a name.
+		// Then it should be local and have a ref="..." attribute.
+		// It must not have a type attribute as well.
+		if(isGlobal || isStringEmpty(&attrEntry->attributePointers[ATTRIBUTE_REF]) || !isStringEmpty(&attrEntry->attributePointers[ATTRIBUTE_TYPE]))
+			return UNEXPECTED_ERROR;
+	}
+	else
+	{
+		/* If the attribute form "qualified" then the element attribute is the target namespace */
+		if(isGlobal || treeT->globalDefs.attrFormDefault == QUALIFIED || stringEqualToAscii(attrEntry->attributePointers[ATTRIBUTE_FORM], "qualified"))
+			atQnameID.uriId = treeT->globalDefs.targetNsId;
+		else
+			atQnameID.uriId = 0; // URI	0	"" [empty string]
+
+		/* The attribute qname must be already in the string tables */
+		if(!lookupLn(&ctx->schema->uriTable.uri[atQnameID.uriId].lnTable, attrEntry->attributePointers[ATTRIBUTE_NAME], &atQnameID.lnId))
+			return UNEXPECTED_ERROR;
+	}
 
 	if(!isStringEmpty(&attrEntry->attributePointers[ATTRIBUTE_TYPE]))
 	{
+		// The attribute has defined type
 		QNameID stQNameID;
 		// global type for the attribute
 		tmp_err_code = getTypeQName(ctx->schema, treeT, attrEntry->attributePointers[ATTRIBUTE_TYPE], &stQNameID);
@@ -653,10 +669,20 @@ static errorCode getAttributeProtoGrammar(BuildContext* ctx, TreeTable* treeT, T
 	}
 	else
 	{
-		// anonymous type for the attribute
-		tmp_err_code = getAnonymousTypeId(ctx, attrEntry->child.entry, attrEntry->child.treeT, &typeId);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		if(attrEntry->child.entry == NULL)
+			return UNEXPECTED_ERROR;
+		else if(attrEntry->child.entry->element == ELEMENT_ATTRIBUTE)
+		{
+			// A reference to a global attribute
+			return getAttributeProtoGrammar(ctx, attrEntry->child.treeT, attrEntry->child.entry, TRUE, attr);
+		}
+		else
+		{
+			// an anonymous type for the attribute
+			tmp_err_code = getAnonymousTypeId(ctx, attrEntry->child.entry, attrEntry->child.treeT, &typeId);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
 	}
 
 	*attr = (ProtoGrammar*) memManagedAllocate(&ctx->tmpMemList, sizeof(ProtoGrammar));
@@ -903,7 +929,7 @@ static errorCode getAttributeUseProtoGrammars(BuildContext* ctx, TreeTable* tree
 
 						if(!stringEqualToAscii(attrUse->attributePointers[ATTRIBUTE_USE], "prohibited"))
 						{
-							tmp_err_code = getAttributeProtoGrammar(ctx, treeT, attrUse, &attrPG);
+							tmp_err_code = getAttributeProtoGrammar(ctx, treeT, attrUse, FALSE, &attrPG);
 							if(tmp_err_code != ERR_OK)
 								return tmp_err_code;
 
@@ -952,7 +978,7 @@ static errorCode getAttributeUseProtoGrammars(BuildContext* ctx, TreeTable* tree
 
 	if(entry->element == ELEMENT_EXTENSION || entry->element == ELEMENT_RESTRICTION)
 	{
-		if(entry->supertype.entry->element == ELEMENT_COMPLEX_TYPE)
+		if(entry->supertype.entry != NULL && entry->supertype.entry->element == ELEMENT_COMPLEX_TYPE)
 		{
 			tmp_err_code = getAttributeUseProtoGrammars(ctx, entry->supertype.treeT, entry->supertype.entry, attrUseArray, attrWildcardNS, aNamesTbl);
 			if(tmp_err_code != ERR_OK)
@@ -1016,10 +1042,10 @@ static errorCode getComplexTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 	{
 		// There is an {attribute wildcard} ANY_ATTRIBUTE
 		NsTable nsTable;
-		ProtoGrammar attrWildGrammar;
 		Index dummyEntryId;
 		QNameID qnameID;
 		ProtoRuleEntry* pRuleEntry;
+		ProtoGrammar* pAttrWildGrammar;
 
 		tmp_err_code = createDynArray(&nsTable.dynArray, sizeof(String), 5);
 		if(tmp_err_code != ERR_OK)
@@ -1029,11 +1055,15 @@ static errorCode getComplexTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = createProtoGrammar(2, &attrWildGrammar);
+		pAttrWildGrammar = memManagedAllocate(&ctx->tmpMemList, sizeof(ProtoGrammar));
+		if(pAttrWildGrammar == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+
+		tmp_err_code = createProtoGrammar(2, pAttrWildGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = addProtoRule(&attrWildGrammar, 5, &pRuleEntry);
+		tmp_err_code = addProtoRule(pAttrWildGrammar, 5, &pRuleEntry);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -1041,7 +1071,7 @@ static errorCode getComplexTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = addDynEntry(&attrUseArray.dynArray, &attrWildGrammar, &dummyEntryId);
+		tmp_err_code = addDynEntry(&attrUseArray.dynArray, &pAttrWildGrammar, &dummyEntryId);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -1099,7 +1129,8 @@ static errorCode getComplexTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		destroyProtoGrammar(contentTypeGrammar);
+		if(contentTypeGrammar != NULL)
+			destroyProtoGrammar(contentTypeGrammar);
 	}
 
 	for(i = 0; i < attrUseArray.count; i++)
@@ -1605,8 +1636,10 @@ static errorCode getExtensionComplexProtoGrammar(BuildContext* ctx, TreeTable* t
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	destroyProtoGrammar(contentTypeGrammarBase);
-	destroyProtoGrammar(contentTypeGrammarExt);
+	if(contentTypeGrammarBase != NULL)
+		destroyProtoGrammar(contentTypeGrammarBase);
+	if(contentTypeGrammarExt != NULL)
+		destroyProtoGrammar(contentTypeGrammarExt);
 
 	*ext = resultProtoGrammar;
 
@@ -1890,7 +1923,8 @@ static errorCode getTypeId(BuildContext* ctx, const QNameID typeQnameId, TreeTab
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
-	if(typeQnameId.uriId == XML_SCHEMA_NAMESPACE_ID) // == http://www.w3.org/2001/XMLSchema i.e. build-in type
+	if(typeQnameId.uriId == XML_SCHEMA_NAMESPACE_ID &&
+			typeQnameId.lnId < SIMPLE_TYPE_COUNT) // == http://www.w3.org/2001/XMLSchema i.e. build-in type
 	{
 		*typeId = typeQnameId.lnId;
 	}

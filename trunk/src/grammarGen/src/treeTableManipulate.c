@@ -26,8 +26,11 @@
 #define LOOKUP_REF        1
 #define LOOKUP_SUPER_TYPE 2
 
+extern const String XML_NAMESPACE;
 extern const String XML_SCHEMA_INSTANCE;
 extern const String XML_SCHEMA_NAMESPACE;
+
+extern const String URI_1_PFX; // The 'xml' prefix string
 
 /**
  * Finds a global TreeEntry corresponding to a entry-name eName and links it to the entry child or supertype
@@ -349,8 +352,16 @@ errorCode getTypeQName(EXIPSchema* schema, TreeTable* treeT, const String typeLi
 		}
 		else
 		{
-			DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Invalid schema base type definition\n"));
-			return INVALID_EXI_INPUT;
+			// see http://www.w3.org/XML/1998/namespace
+			if(stringEqual(uriStr, URI_1_PFX))
+			{
+				uriStr = XML_NAMESPACE;
+			}
+			else
+			{
+				DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Invalid schema base type definition\n"));
+				return INVALID_EXI_INPUT;
+			}
 		}
 
 		/* Adjust the length of the remaining type name and assign the string */

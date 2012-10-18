@@ -33,7 +33,7 @@ struct collisionInfo
 };
 
 /** Collision aware addition */
-static errorCode addProductionsToARule(ProtoRuleEntry* leftRule, ProtoRuleEntry* rightRule,
+static errorCode addProductionsToARule(ProtoRuleEntry* leftRule, Index ruleIndxL, ProtoRuleEntry* rightRule,
 									   struct collisionInfo* collisions, unsigned int* collisionCount, unsigned int* currRuleIndex, unsigned int initialLeftRulesCount);
 
 // Creates the new grammar rules based on the collision information
@@ -118,6 +118,7 @@ errorCode concatenateGrammars(ProtoGrammar* left, ProtoGrammar* right)
 	
 				/* Merge productions from RHS rule 0 into each left rule */
 				tmp_err_code = addProductionsToARule(&left->rule[ruleIterL],
+													 ruleIterL,
 													 &right->rule[0],
 													 collisions,
 													 &collisionCount,
@@ -134,7 +135,7 @@ errorCode concatenateGrammars(ProtoGrammar* left, ProtoGrammar* right)
 	return resolveCollisionsInGrammar(collisions, &collisionCount, left, &currRuleIndex);
 }
 
-static errorCode addProductionsToARule(ProtoRuleEntry* leftRule, ProtoRuleEntry* rightRule,
+static errorCode addProductionsToARule(ProtoRuleEntry* leftRule, Index ruleIndxL, ProtoRuleEntry* rightRule,
 									   struct collisionInfo* collisions, unsigned int* collisionCount, unsigned int* currRuleIndex, unsigned int initialLeftRulesCount)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -143,11 +144,17 @@ static errorCode addProductionsToARule(ProtoRuleEntry* leftRule, ProtoRuleEntry*
 	unsigned char terminalCollision = FALSE;
 	unsigned char collisionFound = FALSE;
 	unsigned int collisIter = 0;
+	Index nonTermRight;
 
 	for(prodIterR = 0; prodIterR < rightRule->count; prodIterR++)
 	{
 		/* Check for terminal collisions with existing production. These must be merged */
 		terminalCollision = FALSE;
+		if(rightRule->prod[prodIterR].nonTermID == 0)
+			nonTermRight = ruleIndxL;
+		else
+			nonTermRight = rightRule->prod[prodIterR].nonTermID + ((rightRule->prod[prodIterR].eventType == EVENT_EE)?0:initialLeftRulesCount);
+
 		for(prodIterL = 0; prodIterL < leftRule->count; prodIterL++)
 		{
 			/* Check for the same terminal symbol e.g. SE(qname) */
@@ -158,8 +165,8 @@ static errorCode addProductionsToARule(ProtoRuleEntry* leftRule, ProtoRuleEntry*
 			{
 				/* Now check the non-terminal ID (noting that EE's don't have a non-terminal ID) */
 				collisionFound = FALSE;
-				if((leftRule->prod[prodIterL].eventType == EVENT_EE) ||
-				   (leftRule->prod[prodIterL].nonTermID == rightRule->prod[prodIterR].nonTermID + initialLeftRulesCount))
+				if(leftRule->prod[prodIterL].eventType == EVENT_EE ||
+				   leftRule->prod[prodIterL].nonTermID == nonTermRight)
 				{
 					/*
 					 * If the NonTerminals are the same as well, no need to add
@@ -173,8 +180,8 @@ static errorCode addProductionsToARule(ProtoRuleEntry* leftRule, ProtoRuleEntry*
 
 				for(collisIter = 0; collisIter < *collisionCount; collisIter++)
 				{
-					if((collisions[collisIter].leftNonTerminal == leftRule->prod[prodIterL].nonTermID) && 
-					   (collisions[collisIter].rightNonTerminal == rightRule->prod[prodIterR].nonTermID + initialLeftRulesCount))
+					if(collisions[collisIter].leftNonTerminal == leftRule->prod[prodIterL].nonTermID &&
+					   collisions[collisIter].rightNonTerminal == nonTermRight)
 					{
 						/* Already collided nonTerminals. Modify the existing LHS non-terminal ID */
 						collisionFound = TRUE;
@@ -192,7 +199,7 @@ static errorCode addProductionsToARule(ProtoRuleEntry* leftRule, ProtoRuleEntry*
 
 					/* Store the LHS and RHS non-terminal IDs and the current non-terminal ID for later checking */
 					collisions[*collisionCount].leftNonTerminal = leftRule->prod[prodIterL].nonTermID;
-					collisions[*collisionCount].rightNonTerminal = rightRule->prod[prodIterR].nonTermID + initialLeftRulesCount;
+					collisions[*collisionCount].rightNonTerminal = nonTermRight;
 					collisions[*collisionCount].createdNonTerminal = *currRuleIndex;
 
 					/* Modify the existing LHS non-terminal ID */
@@ -218,7 +225,7 @@ static errorCode addProductionsToARule(ProtoRuleEntry* leftRule, ProtoRuleEntry*
 										 rightRule->prod[prodIterR].eventType,
 										 rightRule->prod[prodIterR].typeId,
 										 rightRule->prod[prodIterR].qnameId,
-										 rightRule->prod[prodIterR].nonTermID + ((rightRule->prod[prodIterR].eventType == EVENT_EE)?0:initialLeftRulesCount));
+										 nonTermRight);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -254,6 +261,7 @@ static errorCode resolveCollisionsInGrammar(struct collisionInfo* collisions,
 		}
 
 		tmp_err_code = addProductionsToARule(pRuleEntry,
+											 left->count - 1,
 											 &left->rule[collisions[collisIter].rightNonTerminal],
 											 collisions,
 											 collisionCount,
@@ -473,7 +481,7 @@ errorCode createParticleGrammar(int minOccurs, int maxOccurs,
 						// Remove this production
 						delDynEntry(&termGrammar->rule[i].dynArray, j);
 
-						tmp_err_code = addProductionsToARule(&termGrammar->rule[i], &termGrammar->rule[0], collisions, &collisionCount, &currRuleIndex, 0);
+						tmp_err_code = addProductionsToARule(&termGrammar->rule[i], i, &termGrammar->rule[0], collisions, &collisionCount, &currRuleIndex, 0);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
 						break;
@@ -687,6 +695,7 @@ errorCode createChoiceModelGroupsGrammar(ProtoGrammarArray* pgArray, ProtoGramma
 		currRuleIndex = modGrpGrammar->count;
 
 		tmp_err_code = addProductionsToARule(&modGrpGrammar->rule[0],
+											 0,
 											 &tmpGrammar->rule[0],
 											 collisions,
 											 &collisionCount,
