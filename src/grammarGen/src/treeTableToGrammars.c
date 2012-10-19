@@ -458,6 +458,21 @@ static errorCode handleElementEl(BuildContext* ctx, TreeTable* treeT, TreeTableE
 	printString(&entry->attributePointers[ATTRIBUTE_TYPE]);
 #endif
 
+	/*======== COMMENT #SCHEMA# ========*/
+	/* Because of the possible recursive loops in the XML schema definitions this needs to be fixed */
+//	if(
+//			stringEqualToAscii(entry->attributePointers[ATTRIBUTE_REF], "xs:restriction") ||
+//			stringEqualToAscii(entry->attributePointers[ATTRIBUTE_REF], "xs:list") ||
+//			stringEqualToAscii(entry->attributePointers[ATTRIBUTE_REF], "xs:union") ||
+//			stringEqualToAscii(entry->attributePointers[ATTRIBUTE_REF], "xs:all") ||
+//			stringEqualToAscii(entry->attributePointers[ATTRIBUTE_REF], "xs:choice") ||
+//			stringEqualToAscii(entry->attributePointers[ATTRIBUTE_REF], "xs:sequence"))
+//	{
+//		*grIndex = INDEX_MAX;
+//		return ERR_OK;
+//	}
+
+
 	type = entry->attributePointers[ATTRIBUTE_TYPE];
 
 	// Validation checks
@@ -670,7 +685,12 @@ static errorCode getAttributeProtoGrammar(BuildContext* ctx, TreeTable* treeT, T
 	else
 	{
 		if(attrEntry->child.entry == NULL)
-			return UNEXPECTED_ERROR;
+		{
+			// The attribute does not have defined type and anonymous simple type definition:
+			// hence ·xs:anySimpleType·
+
+			typeId = SIMPLE_TYPE_ANY_SIMPLE_TYPE;
+		}
 		else if(attrEntry->child.entry->element == ELEMENT_ATTRIBUTE)
 		{
 			// A reference to a global attribute
@@ -1216,6 +1236,8 @@ static errorCode getComplexContentProtoGrammar(BuildContext* ctx, TreeTable* tre
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
+	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Handle Complex Content Proto Grammar"));
+
 	if(cConEntry->child.entry == NULL)
 		return UNEXPECTED_ERROR;
 	else if(cConEntry->child.entry->element == ELEMENT_RESTRICTION)
@@ -1389,6 +1411,8 @@ static errorCode getChoiceProtoGrammar(BuildContext* ctx, TreeTable* treeT, Tree
 	int minOccurs = 1;
 	int maxOccurs = 1;
 
+	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Handle Choice "));
+
 	tmp_err_code = parseOccuranceAttribute(chEntry->attributePointers[ATTRIBUTE_MIN_OCCURS], &minOccurs);
 	tmp_err_code += parseOccuranceAttribute(chEntry->attributePointers[ATTRIBUTE_MAX_OCCURS], &maxOccurs);
 	if(tmp_err_code != ERR_OK)
@@ -1486,6 +1510,11 @@ static errorCode getGroupProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeT
 	ProtoGrammar* grPartGrammar;
 	int minOccurs = 1;
 	int maxOccurs = 1;
+
+#if DEBUG_GRAMMAR_GEN == ON
+	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Handle Group: "));
+	printString(&grEntry->attributePointers[ATTRIBUTE_REF]);
+#endif
 
 	tmp_err_code = parseOccuranceAttribute(grEntry->attributePointers[ATTRIBUTE_MIN_OCCURS], &minOccurs);
 	if(tmp_err_code != ERR_OK)
@@ -1756,7 +1785,9 @@ static errorCode getRestrictionSimpleProtoGrammar(BuildContext* ctx, TreeTable* 
 		else if(tmpEntry->element == ELEMENT_PATTERN)
 		{
 			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_PATTERN;
-			return NOT_IMPLEMENTED_YET;
+			// TODO: needs to be implemented. It is also needed for the XML Schema grammars
+			// COMMENT #SCHEMA#: ignore for now
+//			return NOT_IMPLEMENTED_YET;
 		}
 		else if(tmpEntry->element == ELEMENT_WHITE_SPACE)
 		{
@@ -1813,6 +1844,9 @@ static errorCode getRestrictionSimpleProtoGrammar(BuildContext* ctx, TreeTable* 
 			case VALUE_TYPE_SMALL_INTEGER:
 				valSize = sizeof(uint16_t);
 				break;
+			case VALUE_TYPE_NON_NEGATIVE_INT:
+				valSize = sizeof(UnsignedInteger);
+				break;
 		}
 
 		eDef.values = memManagedAllocate(&ctx->schema->memList, valSize*(eDef.count));
@@ -1855,6 +1889,17 @@ static errorCode getRestrictionSimpleProtoGrammar(BuildContext* ctx, TreeTable* 
 						break;
 					case VALUE_TYPE_SMALL_INTEGER:
 						return NOT_IMPLEMENTED_YET;
+						break;
+					case VALUE_TYPE_NON_NEGATIVE_INT:
+					{
+						 int64_t tmpInt;
+
+						tmp_err_code = stringToInt64(&enumEntry->attributePointers[ATTRIBUTE_VALUE], &tmpInt);
+						if(tmp_err_code != ERR_OK)
+							return tmp_err_code;
+
+						((UnsignedInteger*) eDef.values)[enumIter] = (UnsignedInteger) tmpInt;
+					}
 						break;
 					default:
 						return NOT_IMPLEMENTED_YET;
