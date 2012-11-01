@@ -1,0 +1,236 @@
+<!-- ANT Build Script for the JAKARTA-TAGLIBS Project -->
+<!-- $Id: build-build.xml,v 1.1 2006/03/31 16:15:42 psandoz Exp $ -->
+<project name="jakarta-taglibs" default="dist" basedir=".">
+
+  <!-- ****************** Project Standard Properties ******************* -->
+
+  <!-- cp build.properties.sample build.properties,
+       then set the base.dir property and any needed *.jar properties
+       in build.properties.
+  -->
+
+  <property file="build.properties"/>
+
+  <!-- ********************** Destination Preparation ********************* -->
+
+  <!-- Create the destination directories -->
+  <target name="prepare">
+    <mkdir dir="${build.dir}"/>
+    <mkdir dir="${dist.dir}"/>
+    <available property="bsf.present" 
+               classname="com.ibm.bsf.BSFManager" />
+    <available property="xslt.present" 
+               classpath="${xalan1.jar}"
+               classname="org.apache.xalan.xslt.XSLTProcessor" />
+  </target>
+
+  <!-- Copy the static files that describe the entire project -->
+  <target name="static">
+    <copy file="LICENSE"   tofile="${build.dir}/LICENSE"/>
+    <copy file="README"    tofile="${build.dir}/README"/>
+    <copy file="HOWTO-RELEASE"    tofile="${build.dir}/HOWTO-RELEASE"/>
+    <mkdir dir="${build.dir}/doc"/>
+  </target>
+
+  <!-- BUILD:  Compile documentation application components -->
+  <target name="compile.documentation"
+    depends="prepare,static">
+    <copy      todir="${build.dir}/doc">
+      <fileset   dir="src/doc">
+        <include name="**/*.css"/>
+        <include name="**/*.gif"/>
+        <include name="**/*.html"/>
+        <include name="**/*.jpg"/>
+        <include name="**/*.js"/>
+      </fileset>
+    </copy>
+    <!-- Create dynamically generated documentation -->
+    <style basedir="src/doc" destdir="${build.dir}/doc"
+           extension=".html" style="src/doc/stylesheets/taglibs.xsl"
+           includes="*.xml" excludes="project.xml"/>
+  </target>
+
+  <!-- Create documentation distribution -->
+  <target name="dist.documentation" depends="compile.documentation">
+    <mkdir dir="${dist.dir}/doc"/>
+    <copy todir="${dist.dir}/doc">
+      <fileset dir="${build.dir}/doc"/>
+    </copy>
+  </target>
+
+  <!-- ************************* Subproject Execution ********************* -->
+
+  <!--
+        Add a new target for each defined custom tag library subproject.
+        Be sure you also add each target to the "depends" list for the
+        "dist" target at the bottom of this file.
+
+  -->
+
+  <target name="bsf" if="bsf.present">
+    <ant dir="./bsf" target="dist"/>
+  </target>
+
+   <target name="input" depends="prepare">
+     <ant dir="./input" target="dist"/>
+   </target>
+
+  <target name="utility">
+    <ant dir="./utility" target="dist"/>
+  </target>
+
+  <target name="xsl" if="xslt.present">
+    <ant dir="./xsl" target="dist"/>
+  </target>
+
+  <target name="request">               
+    <ant dir="./request" target="dist"/>
+  </target>
+
+  <target name="session">
+    <ant dir="./session" target="dist"/>
+  </target>
+
+  <target name="response">
+    <ant dir="./response" target="dist"/>
+  </target>
+
+  <target name="application">
+    <ant dir="./application" target="dist"/>
+  </target>
+
+  <target name="page">
+    <ant dir="./page" target="dist"/>
+  </target>
+
+  <target name="datetime">
+    <ant dir="./datetime" target="dist"/> 
+  </target>
+
+  <target name="regexp">
+    <ant dir="./regexp" target="dist"/>
+  </target>
+
+  <target name="jndi">
+    <ant dir="./jndi" target="dist"/>
+  </target>
+
+  <target name="dbtags">
+    <ant dir="./dbtags" target="dist"/>
+  </target>
+
+  <target name="scrape">
+    <ant dir="./scrape" target="dist"/>
+  </target>
+
+  <target name="mailer">
+    <ant dir="./mailer" target="dist"/>
+  </target>
+
+  <target name="i18n">
+    <ant dir="./i18n" target="dist"/>
+  </target>
+
+  <target name="io">
+    <ant dir="./io" target="dist"/>
+  </target>
+
+  <target name="xtags">
+    <ant dir="./xtags" target="dist"/>
+  </target>
+
+  <target name="log">
+    <ant dir="./log" target="dist"/>
+  </target>
+
+  <target name="random">
+    <ant dir="./random" target="dist"/>
+  </target>
+
+  <target name="jsptl">
+    <ant dir="./jsptl" target="dist"/>
+  </target>
+
+  <target name="benchmark">
+    <ant dir="./benchmark" target="dist"/>
+  </target>
+
+  <target name="ultradev4">
+    <ant dir="./tools/UltraDev/4.0/ctlx" target="dist"/>
+  </target>
+
+  <target name="string">
+    <ant dir="./string" target="dist"/>
+  </target>
+
+
+  <!-- *********************** Overall Build Command ********************** -->
+  <target name="dist" depends="prepare,dist.documentation,bsf,input,utility,xsl,request,session,response,application,page,datetime,regexp,jndi,dbtags,scrape,mailer,i18n,io,xtags,log,ultradev4,random,benchmark,jsptl,string"/>
+
+  <!-- *********************** Clean Command ****************************** -->
+
+  <target name="clean">
+    <delete dir="${build.dir}"/>
+    <delete dir="${dist.dir}"/>
+  </target>
+
+  <!-- *********************** Create Taglib ****************************** -->
+
+  <target name="new.taglib" depends="create.taglib">
+    <mkdir dir="${build.dir}"/>
+    <mkdir dir="${dist.dir}"/>
+    <mkdir dir="doc"/>
+    <available file="${taglib.name}" property="taglib.present"/>
+    <antcall target="create.taglib.exists"/>
+    <mkdir dir="${taglib.name}"/>
+    <mkdir dir="${taglib.name}/doc/web"/>
+    <mkdir dir="${taglib.name}/examples/web"/>
+    <mkdir dir="${taglib.name}/src/org/apache/taglibs/${taglib.name}"/>
+    <copy todir="${taglib.name}">
+      <fileset dir="./src/taglib-template" excludes="CVS"/>
+    </copy>
+    <move file="${taglib.name}/xml/taglib-template.xml"
+          tofile="${taglib.name}/xml/${taglib.name}.xml"/>
+  </target>
+
+  <target name="create.taglib.exists" if="taglib.present">
+    <fail message="The taglib or directory '${taglib.name}' already exists."/>
+  </target>
+
+  <target name="create.taglib" unless="taglib.name">
+    <fail message="Specify the name of the new taglib using the property -Dtaglib.name={taglib-name}."/>
+  </target>
+
+  <!-- *********************** Create CTLX ****************************** -->
+
+  <target name="new.ctlx" depends="create.ctlx.name,create.ctlx.path">
+    <mkdir dir="${build.dir}"/>
+    <mkdir dir="${dist.dir}"/>
+    <mkdir dir="doc"/>
+    <available file="${ctlx.name}" property="ctlx.present"/>
+    <available file="${ctlx.path}/${ctlx.name}" property="ctlx.present"/>
+    <antcall target="create.ctlx.exists"/>
+    <mkdir dir="${ctlx.path}/${ctlx.name}"/>
+    <mkdir dir="${ctlx.path}/${ctlx.name}/doc/web"/>
+    <mkdir dir="${ctlx.path}/${ctlx.name}/examples/web"/>
+    <mkdir dir="${ctlx.path}/${ctlx.name}/src/org/apache/taglibs/${taglib.name}"/>
+    <copy todir="${ctlx.path}/${ctlx.name}">
+      <fileset dir="./src/taglib-template" excludes="CVS"/>
+    </copy>
+    <move file="${ctlx.path}/${ctlx.name}/xml/taglib-template.xml"
+          tofile="${ctlx.path}/${ctlx.name}/xml/${ctlx.name}.xml"/>
+  </target>
+
+  <target name="create.ctlx.exists" if="ctlx.present">
+    <fail message="A taglib or ctlx named ${ctlx.name} alread exists or the ctlx directory and name '${ctlx.path}/${taglib.name}' already exists."/>
+  </target>
+
+  <target name="create.ctlx.name" unless="ctlx.name">
+    <fail message="Specify the name of the new CTLX using the property -Dctlx.name={ctlx-name}."/>
+  </target>
+
+  <target name="create.ctlx.path" unless="ctlx.path">
+    <fail message="Specify the path of the new CTLX using the property -Dctlx.name={ctlx-name}."/>
+  </target>
+
+</project>
