@@ -47,6 +47,7 @@ errorCode initParser(Parser* parser, BinaryBuffer buffer, EXIPSchema* schema, vo
 	parser->strm.valueTable.hashTbl = NULL;
 	parser->app_data = app_data;
 	parser->strm.schema = schema;
+    makeDefaultOpts(&parser->strm.header.opts);
 
 	initContentHandler(&parser->handler);
 

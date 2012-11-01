@@ -134,6 +134,19 @@ typedef char errorCode;
 /** No error, everything is OK. */
 #define ERR_OK    0
 
+/** Mismatch in the header options.
+ * This error can be due to:
+ * 1) The "alignment" element MUST NOT appear in an EXI options document when the "compression" element is present;
+ * 2) The "strict" element MUST NOT appear in an EXI options document when one of "dtd", "prefixes",
+ * "comments", "pis" or "selfContained" element is present in the same options document. That is only the
+ * element "lexicalValues", from the fidelity options, is permitted to occur in the presence of "strict" element;
+ * 3) The "selfContained" element MUST NOT appear in an EXI options document when one of "compression",
+ * "pre-compression" or "strict" elements are present in the same options document.
+ * 4) The  datatypeRepresentationMap option does not take effect when the value of the Preserve.lexicalValues
+ * fidelity option is true (see 6.3 Fidelity Options), or when the EXI stream is a schema-less EXI stream.
+ */
+#define HEADER_OPTIONS_MISMATCH 20
+
 #define INVALID_STRING_OPERATION 19
 
 /** When encoding XML Schema in EXI the prefixes must be preserved:

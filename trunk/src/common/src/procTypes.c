@@ -31,6 +31,49 @@ void makeDefaultOpts(EXIOptions* opts)
 	opts->drMap = NULL;
 }
 
+errorCode checkOptionValues(EXIOptions* opts)
+{
+	/** Mismatch in the header options.
+	 * This error can be due to:
+	 * 1) The "alignment" element MUST NOT appear in an EXI options document when the "compression" element is present;
+	 * 2) The "strict" element MUST NOT appear in an EXI options document when one of "dtd", "prefixes",
+	 * "comments", "pis" or "selfContained" element is present in the same options document. That is only the
+	 * element "lexicalValues", from the fidelity options, is permitted to occur in the presence of "strict" element;
+	 * 3) The "selfContained" element MUST NOT appear in an EXI options document when one of "compression",
+	 * "pre-compression" or "strict" elements are present in the same options document.
+	 * 4) The datatypeRepresentationMap option does not take effect when the value of the Preserve.lexicalValues
+	 * fidelity option is true (see 6.3 Fidelity Options), or when the EXI stream is a schema-less EXI stream.
+	 */
+	if(GET_ALIGNMENT(opts->enumOpt) != BIT_PACKED && WITH_COMPRESSION(opts->enumOpt))
+	{
+		DEBUG_MSG(ERROR, DEBUG_COMMON, ("\n>EXI Options mismatch: both \"alignment\" and \"compression\" set"));
+		return HEADER_OPTIONS_MISMATCH;
+	}
+	else if(WITH_STRICT(opts->enumOpt) &&
+			(IS_PRESERVED(opts->preserve, PRESERVE_DTD) ||
+			 IS_PRESERVED(opts->preserve, PRESERVE_PREFIXES) ||
+			 IS_PRESERVED(opts->preserve, PRESERVE_COMMENTS) ||
+			 IS_PRESERVED(opts->preserve, PRESERVE_PIS) ||
+			 WITH_SELF_CONTAINED(opts->enumOpt))
+			)
+	{
+		DEBUG_MSG(ERROR, DEBUG_COMMON, ("\n>EXI Options mismatch: both \"strict\" and one or more of \"dtd\", \"prefixes\", \"comments\", \"pis\" or \"selfContained\" are set"));
+		return HEADER_OPTIONS_MISMATCH;
+	}
+	else if(WITH_SELF_CONTAINED(opts->enumOpt) && (WITH_COMPRESSION(opts->enumOpt) || GET_ALIGNMENT(opts->enumOpt) == PRE_COMPRESSION))
+	{
+		DEBUG_MSG(ERROR, DEBUG_COMMON, ("\n>EXI Options mismatch: both \"selfContained\" and (\"compression\" or \"pre-compression\") are set"));
+		return HEADER_OPTIONS_MISMATCH;
+	}
+
+	if(opts->drMap != NULL && (IS_PRESERVED(opts->preserve, PRESERVE_LEXVALUES)))
+	{
+		DEBUG_MSG(WARNING, DEBUG_COMMON, ("\n>The datatypeRepresentationMap option specified but has no effect"));
+	}
+
+	return ERR_OK;
+}
+
 errorCode pushOnStack(GenericStack** stack, void* item)
 {
 	struct stackNode* node = (struct stackNode*)EXIP_MALLOC(sizeof(struct stackNode));
