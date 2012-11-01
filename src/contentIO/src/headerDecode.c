@@ -113,11 +113,29 @@ errorCode decodeHeader(EXIStream* strm)
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-    makeDefaultOpts(&strm->header.opts);
-
 	if(smallVal == 1) // There are EXI options
+	{
 		strm->header.has_options = 1;
-	else // The default values for EXI options
+		// validation checks. If the options are included then
+		// they cannot be set by an out-of-band mechanism.
+		// If some options are set i.e. different from the
+		// defaults rise a warning and overwrite them -
+		// Only the options from the header will be used
+		if(strm->header.opts.enumOpt != 0 ||
+				strm->header.opts.preserve != 0 ||
+				strm->header.opts.blockSize != 1000000 ||
+				strm->header.opts.valueMaxLength != INDEX_MAX ||
+				strm->header.opts.valuePartitionCapacity != INDEX_MAX ||
+				strm->header.opts.user_defined_data != NULL ||
+				strm->header.opts.schemaID.str != NULL ||
+				strm->header.opts.schemaID.length != 0 ||
+				strm->header.opts.drMap != NULL)
+		{
+			DEBUG_MSG(WARNING, DEBUG_CONTENT_IO, (">Ignored out-of-band set EXI options\n"));
+			makeDefaultOpts(&strm->header.opts);
+		}
+	}
+	else // The default values for EXI options or out-of-band set EXI options
 	{
 		DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">No EXI options field in the header\n"));
 		strm->header.has_options = 0;
@@ -238,7 +256,7 @@ errorCode decodeHeader(EXIStream* strm)
 		}
 	}
 
-	return ERR_OK;
+	return checkOptionValues(&strm->header.opts);
 }
 
 static char ops_fatalError(const char code, const char* msg, void* app_data)

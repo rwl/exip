@@ -2039,9 +2039,7 @@ static errorCode getListProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTa
 	SimpleType listSimpleType;
 	Index listEntrySimplID;
 
-#if DEBUG_GRAMMAR_GEN == ON
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Handle list"));
-#endif
 
 	*list = (ProtoGrammar*) memManagedAllocate(&ctx->tmpMemList, sizeof(ProtoGrammar));
 	if(*list == NULL)

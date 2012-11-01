@@ -67,6 +67,10 @@ errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema, u
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">EXI stream initialization \n"));
 
+	tmp_err_code = checkOptionValues(&strm->header.opts);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
 	tmp_err_code = initAllocList(&(strm->memList));
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;

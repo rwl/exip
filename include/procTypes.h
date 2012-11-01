@@ -1214,6 +1214,14 @@ typedef struct EXIStream EXIStream;
  */
 void makeDefaultOpts(EXIOptions* opts);
 
+/**
+ * @brief Check if the EXI options are set correctly
+ *
+ * @param[in] opts EXI options structure
+ * @returns ERR_OK if the values are correct, otherwise HEADER_OPTIONS_MISMATCH
+ */
+errorCode checkOptionValues(EXIOptions* opts);
+
 errorCode pushOnStack(GenericStack** stack, void* item);
 
 void popFromStack(GenericStack** stack, void** item);
