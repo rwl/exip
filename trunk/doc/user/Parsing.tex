@@ -108,6 +108,11 @@ parser.handler.endElement = sample_endElement;
   */
 \end{lstlisting}
 
+\textbf{NOTE:} If the EXI options are communicated with an out-of-band mechanism and are
+not included in the EXI header of the stream they MUST be set here
+(see Section \ref{sec:Options} for more information on how to set up
+the EXI options).
+
  \item Parse the header of the stream:
 \begin{lstlisting}
 parseHeader(&parser);

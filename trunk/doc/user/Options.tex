@@ -1,0 +1,60 @@
+\section{EXI Options}
+\label{sec:Options}
+
+The EXI specification defines a set of options that can be used to alter the way the
+EXI body is processed. The precise values of the EXI options must be known by the
+EXI processors to correctly interpret the EXI streams. One way to communicate the
+options used for processing is to include them in the EXI Header (Recommended).
+However, the presence of the EXI Options in its entirety in the EXI header is
+optional according to the EXI specification. This means that if the options are not
+included in the EXI header they must be communicated with an out-of-band mechanism.
+
+During encoding, the options are included in the EXI Header if the \texttt{has\_options}
+flag is set to TRUE:
+\begin{lstlisting}
+strm.header.has_options = TRUE;
+\end{lstlisting}
+If the flag is not set to TRUE, the specified options are used for encoding and
+must be known (communicated out-of-band) by the decoder as they are not included
+in the header.
+
+During decoding, if the options are not present in the EXI Header they must be
+known and set before the parsing of the header with \texttt{parseHeader()}. If
+out-of-band options are set for decoding and there are options specified in the
+EXI stream - the out-of-band options will be ignored. If there is no value
+specified for a particular option in the EXI Header or by out-of-band
+mechanism then the default value for that option is assumed
+according to the EXI specifications.
+
+Table \ref{tab:Options} shows how to set the Header fields and each of the EXI
+options before processing EXI stream with EXIP.
+
+\begin{table}[ht]\footnotesize
+\centering
+\begin{tabular}{l p{9.5 cm}}
+\toprule
+\textbf{EXI Option / Header field} & \textbf{Instructions} \\
+\midrule
+\midrule
+EXI Cookie                &  \texttt{strm.header.has\_cookie = TRUE;} (Default is FALSE)\\
+Options Presence Bit      &  \texttt{strm.header.has\_options = TRUE;} (Default is FALSE)\\
+EXI Version               &  \texttt{strm.header.version\_number = 2;} (Default is 1)\\
+\midrule
+alignment                 &  \texttt{SET\_ALIGNMENT(strm.header.opts.enumOpt, V);} (Where V in \{\texttt{BIT\_PACKED, BYTE\_ALIGNMENT, PRE\_COMPRESSION}\})\\
+compression               &  \texttt{SET\_COMPRESSION(strm.header.opts.enumOpt);}\\
+strict                    &  \texttt{SET\_STRICT(strm.header.opts.enumOpt);}\\
+fragment                  &  \texttt{SET\_FRAGMENT(strm.header.opts.enumOpt);}\\
+preserve                  &  \texttt{SET\_PRESERVED(strm.header.opts.preserve, V);} (Where V in \{\texttt{PRESERVE\_COMMENTS, PRESERVE\_PIS, PRESERVE\_DTD, PRESERVE\_PREFIXES, PRESERVE\_LEXVALUES}\})\\
+selfContained             &  \texttt{SET\_SELF\_CONTAINED(strm.header.opts.enumOpt);}\\
+schemaId                  &  \texttt{const String SCHEMA\_ID\_STR = \{"http://www.ltu.se/exip", 22\};}
+\texttt{strm.header.opts.schemaID = SCHEMA\_ID\_STR;}\\
+datatypeRepresentationMap &  Not implemented yet!\\
+blockSize                 &  \texttt{strm.header.opts.blockSize = 1000;}\\
+valueMaxLength            &  \texttt{strm.header.opts.valueMaxLength = 100;}\\
+valuePartitionCapacity    &  \texttt{strm.header.opts.valuePartitionCapacity = 100;}\\
+{[user defined meta-data]}  &  Not implemented yet!\\
+\bottomrule
+\end{tabular}
+\caption{Instructions on how to set each EXI options before processing}
+\label{tab:Options}
+\end{table}
