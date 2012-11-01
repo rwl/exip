@@ -3,10 +3,14 @@
 
 This section examines different ways of constructing \texttt{EXIPSchema} object
 containing the XML schema definitions and constrains. The header file \texttt{grammarGenerator.h}
-defines a single function that takes a XML schema document(s) and converts them to 
+defines a function \texttt{generateSchemaInformedGrammars()} that takes a XML schema document(s) and converts them to 
 \texttt{EXIPSchema} object. This function can be used to dynamically (at run-time)
 parse a schema and generate the EXI grammar constructs for schema-enabled
-parsing and serialization. As mentioned earlier, the EXIP library currently supports
+parsing and serialization. The \texttt{EXIPSchema} object can be used to process
+multiple EXI streams. After the processing is done, the schema object can be destroyed
+to free the allocated memory with the \texttt{destroySchema()} function.
+
+As mentioned earlier, the EXIP library currently supports
 only XML schema definitions represented in EXI format. Moreover, the fidelity option \texttt{Preserve.prefixes} must be
 set in order to decode the QNames in the value items correctly (see the EXI specification for
 more information on that).

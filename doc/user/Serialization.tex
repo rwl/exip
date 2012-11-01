@@ -37,6 +37,8 @@ strm.header.has_options = TRUE; /* Set the options presence bit */
 strm.header.has_cookie = TRUE; /* Include EXI cookie in the header */
 SET_STRICT(strm.header.opts.enumOpt); /* Indicate a STRICT mode encoding */
 \end{lstlisting}
+(see Section \ref{sec:Options} for more information on how to set up
+the EXI options)
 
  \item Define a binary output buffer for storing the serialized EXI data.
 The buffer can optionally include an external stream for sending the
@@ -202,7 +204,7 @@ asciiToString("http://www.ltu.se/schema", &schemaID, &strm.memList, FALSE);
 serialize.initStream(&strm, buffer, OUTPUT_BUFFER_SIZE, &out, NULL, 
 					SCHEMA_ID_SET, schemaID);                           
 \end{lstlisting}
-In this example we defined the state to SCHEMA\_ID\_SET and give an identifier to the schema used - \texttt{http://www.ltu.se/schema}.
+In this example we defined the state to SCHEMA\_ID\_SET and set an identifier for the schema used - \texttt{http://www.ltu.se/schema}.
  \end{description}
 
 The serialization interface defined in \texttt{EXISerializer.h} has a more efficient low level API
