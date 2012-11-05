@@ -2,7 +2,7 @@
 <launchConfiguration type="org.eclipse.linuxtools.valgrind.launch.valgrindLaunch">
 <intAttribute key="org.eclipse.cdt.launch.ATTR_BUILD_BEFORE_LAUNCH_ATTR" value="2"/>
 <stringAttribute key="org.eclipse.cdt.launch.COREFILE_PATH" value=""/>
-<stringAttribute key="org.eclipse.cdt.launch.PROGRAM_ARGUMENTS" value="-xml -schema examples/simpleEncoding/exipe-test-xsd.exi examples/simpleEncoding/exipe-test-nested-xsd.exi examples/simpleEncoding/exipe-test-types-xsd.exi examples/simpleEncoding/exipe-test.exi"/>
+<stringAttribute key="org.eclipse.cdt.launch.PROGRAM_ARGUMENTS" value="-xml -schema=examples/simpleEncoding/exipe-test-xsd.exi,examples/simpleEncoding/exipe-test-nested-xsd.exi,examples/simpleEncoding/exipe-test-types-xsd.exi examples/simpleEncoding/exipe-test.exi"/>
 <stringAttribute key="org.eclipse.cdt.launch.PROGRAM_NAME" value="bin/examples/exipd"/>
 <stringAttribute key="org.eclipse.cdt.launch.PROJECT_ATTR" value="exip"/>
 <booleanAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_AUTO_ATTR" value="true"/>
