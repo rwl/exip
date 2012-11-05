@@ -99,11 +99,6 @@ COMPILE = $(CC) $(CFLAGS) $(INCDIRS)
 CHECK_TARGETS ?= $(STREAM_IO) $(STRING_TABLES) $(GRAMMAR) $(CONTENT_IO) exip builtin_grammar strict_grammar emptyType
 CHECK_BINS := $(foreach acheck, $(CHECK_TARGETS), $(TESTS_BIN_DIR)/test_$(acheck))
 
-# List of all example binary names
-EXAMPLE_1 = exipd
-
-EXAMPLE_2 = exipe
-
 # Examples directories
 EXAMPLES_SRC_DIR = $(PROJECT_ROOT)/examples
 EXAMPLES_BIN_DIR = $(BIN_DIR)/examples
@@ -161,7 +156,7 @@ check: all mk_tests $(CHECK_BINS)
                    $$i $(TESTS_DATA_DIR); \
              done
 
-examples: mk_examples lib $(EXAMPLES_BIN_DIR)/$(EXAMPLE_1) $(EXAMPLES_BIN_DIR)/$(EXAMPLE_2) test_sets_copy_examples
+examples: mk_examples lib $(EXAMPLES_BIN_DIR)/exipd $(EXAMPLES_BIN_DIR)/exipe test_sets_copy_examples
 
 utils: mk_utils lib $(UTILS_BIN_DIR)/$(UTILS_1) test_sets_copy_utils
 
