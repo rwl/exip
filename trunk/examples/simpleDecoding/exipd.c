@@ -21,18 +21,21 @@
 #define MAX_XSD_FILES_COUNT 10 // up to 10 XSD files
 
 static void printfHelp();
-static void parseSchema(char** fileNames, unsigned int schemaFilesCount, EXIPSchema* schema);
+static void parseSchema(char* xsdList, EXIPSchema* schema);
 
 size_t readFileInputStream(void* buf, size_t readSize, void* stream);
 
 int main(int argc, char *argv[])
 {
-	FILE *infile;
+	FILE *infile = stdin;
 	char sourceFileName[100];
 	EXIPSchema schema;
 	EXIPSchema* schemaPtr = NULL;
 	unsigned char outFlag = OUT_EXI; // Default output option
 	unsigned int argIndex = 1;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+
+	strcpy(sourceFileName, "stdin");
 
 	if(argc > 1)
 	{
@@ -50,7 +53,7 @@ int main(int argc, char *argv[])
 				return 0;
 			}
 
-			argIndex = 2;
+			argIndex += 1;
 		}
 		else if(strcmp(argv[argIndex], "-xml") == 0)
 		{
@@ -61,66 +64,48 @@ int main(int argc, char *argv[])
 				return 0;
 			}
 
-			argIndex = 2;
+			argIndex += 1;
 		}
 
-		if(strcmp(argv[argIndex], "-schema") == 0)
+		if(strstr(argv[argIndex], "-schema") != NULL)
 		{
-			if(argc <= argIndex + 2)
-			{
-				printfHelp();
-				return 0;
-			}
-			else
-			{
-				unsigned int schemaFilesCount = 0;
+			char *xsdList = argv[argIndex] + 7;
 
-				schemaFilesCount = argc - argIndex - 2;
+			parseSchema(xsdList, &schema);
+			schemaPtr = &schema;
 
-				argIndex++;
-
-				parseSchema(argv + argIndex, schemaFilesCount, &schema);
-				schemaPtr = &schema;
-
-				argIndex += schemaFilesCount;
-			}
+			argIndex += 1;
 		}
+	}
 
+	if(argIndex < argc)
+	{
 		strcpy(sourceFileName, argv[argIndex]);
 
 		infile = fopen(sourceFileName, "rb" );
 		if(!infile)
 		{
 			fprintf(stderr, "Unable to open file %s", sourceFileName);
-			return 1;
+			exit(1);
 		}
-		else
-		{
-			errorCode tmp_err_code = UNEXPECTED_ERROR;
-			tmp_err_code = decode(schemaPtr, outFlag, infile, readFileInputStream);
+	}
 
-			if(schemaPtr != NULL)
-				destroySchema(schemaPtr);
-			fclose(infile);
+	tmp_err_code = decode(schemaPtr, outFlag, infile, readFileInputStream);
 
-			if(tmp_err_code != ERR_OK)
-			{
-				printf("\nError (code: %d) during parsing of the EXI stream: %s", tmp_err_code, sourceFileName);
-				return 1;
-			}
-			else
-			{
-				printf("\nSuccessful parsing of the EXI stream: %s", sourceFileName);
-				return 0;
-			}
-		}
+	if(schemaPtr != NULL)
+		destroySchema(schemaPtr);
+	fclose(infile);
+
+	if(tmp_err_code != ERR_OK)
+	{
+		printf("\nError (code: %d) during parsing of the EXI stream: %s", tmp_err_code, sourceFileName);
+		return 1;
 	}
 	else
 	{
-		printfHelp();
-		return 1;
+		printf("\nSuccessful parsing of the EXI stream: %s", sourceFileName);
+		return 0;
 	}
-	return 0;
 }
 
 static void printfHelp()
@@ -128,14 +113,15 @@ static void printfHelp()
     printf("\n" );
     printf("  EXIP     Copyright (c) 2010 - 2012, EISLAB - Luleå University of Technology Version 0.4 \n");
     printf("           Authors: Rumen Kyusakov\n");
-    printf("  Usage:   exipd [options] <EXI_FileIn>\n\n");
-    printf("           Options: [-help | [ -xml | -exi ] -schema <schema_files_in>] \n");
-    printf("           -schema :   uses schema defined in <schema_files_in> for decoding\n");
+    printf("  Usage:   exipd [options] [exi_in]\n\n");
+    printf("           Options: [-help | [ -xml | -exi ] -schema=<xsd_in>] \n");
+    printf("           -schema :   uses schema defined in <xsd_in> for decoding. All referenced schema files should be included in <xsd_in>\n");
+    printf("           <xsd_in>:   Comma-separated list of schema documents encoded in EXI with Preserve.prefixes. The first schema is the main one and the rest are schemas that are referenced from the main one through the <xs:import> statement.\n");
     printf("           -exi    :   EXI formated output [default]\n");
     printf("           -xml    :   XML formated output\n");
     printf("           -help   :   Prints this help message\n\n");
-    printf("           <schema_files_in>  :   space separated list of XSD files. The first XSD file should be the primary schema file\n\n");
-    printf("  Purpose: This program tests the EXIP decoding functionality\n");
+    printf("           exi_in  :   input file containing the EXI stream (stdin if none specified)\n\n");
+    printf("  Purpose: This program tests the EXIP decoding functionality. The result is printed on the stdout.\n");
     printf("\n" );
 }
 
@@ -145,25 +131,30 @@ size_t readFileInputStream(void* buf, size_t readSize, void* stream)
 	return fread(buf, 1, readSize, infile);
 }
 
-static void parseSchema(char** fileNames, unsigned int schemaFilesCount, EXIPSchema* schema)
+static void parseSchema(char* xsdList, EXIPSchema* schema)
 {
-	FILE *schemaFile;
-	BinaryBuffer buffer[MAX_XSD_FILES_COUNT];
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	FILE *schemaFile;
+	BinaryBuffer buffer[MAX_XSD_FILES_COUNT]; // up to 10 XSD files
+	char schemaFileName[50];
+	unsigned int schemaFilesCount = 0;
 	unsigned int i;
+	char *token;
 
-	if(schemaFilesCount > MAX_XSD_FILES_COUNT)
+	for (token = strtok(xsdList, "=,"), i = 0; token != NULL; token = strtok(NULL, "=,"), i++)
 	{
-		fprintf(stderr, "Too many xsd files given as an input: %d", schemaFilesCount);
-		exit(1);
-	}
+		schemaFilesCount++;
+		if(schemaFilesCount > MAX_XSD_FILES_COUNT)
+		{
+			fprintf(stderr, "Too many xsd files given as an input: %d", schemaFilesCount);
+			exit(1);
+		}
 
-	for(i = 0; i < schemaFilesCount; i++)
-	{
-		schemaFile = fopen(fileNames[i], "rb" );
+		strcpy(schemaFileName, token);
+		schemaFile = fopen(schemaFileName, "rb" );
 		if(!schemaFile)
 		{
-			fprintf(stderr, "Unable to open file %s", fileNames[i]);
+			fprintf(stderr, "Unable to open file %s", schemaFileName);
 			exit(1);
 		}
 		else
@@ -192,15 +183,17 @@ static void parseSchema(char** fileNames, unsigned int schemaFilesCount, EXIPSch
 		}
 	}
 
+	// Generate the EXI grammars based on the schema information
 	tmp_err_code = generateSchemaInformedGrammars(buffer, schemaFilesCount, SCHEMA_FORMAT_XSD_EXI, schema);
-	if(tmp_err_code != ERR_OK)
-	{
-		printf("\n Error occured: %d", tmp_err_code);
-		exit(1);
-	}
 
 	for(i = 0; i < schemaFilesCount; i++)
 	{
 		free(buffer[i].buf);
+	}
+
+	if(tmp_err_code != ERR_OK)
+	{
+		printf("\nGrammar generation error occurred: %d", tmp_err_code);
+		exit(1);
 	}
 }

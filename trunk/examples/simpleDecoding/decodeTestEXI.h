@@ -15,8 +15,8 @@
  * @par[Revision] $Id$
  */
 
-#ifndef ENCODETESTEXI_H_
-#define ENCODETESTEXI_H_
+#ifndef DECODETESTEXI_H_
+#define DECODETESTEXI_H_
 
 #include "procTypes.h"
 
@@ -25,4 +25,4 @@
 
 errorCode decode(EXIPSchema* schemaPtr, unsigned char outFlag, FILE *infile, size_t (*inputStream)(void* buf, size_t size, void* stream));
 
-#endif /* ENCODETESTEXI_H_ */
+#endif /* DECODETESTEXI_H_ */
