@@ -90,13 +90,14 @@ static void printfHelp()
 {
     printf("\n" );
     printf("  EXIP     Copyright (c) 2010 - 2012, EISLAB - Luleå University of Technology Version 0.4 \n");
-    printf("           Authors: Rumen Kyusakov\n");
+    printf("           Author: Rumen Kyusakov\n");
     printf("  Usage:   exipe [options] [exi_out]\n\n");
     printf("           Options: [-help | -schema=<xsd_in>] \n");
-    printf("           exi_out :   output file for the EXI stream (stdout if none specified)\n");
     printf("           -schema :   uses schema defined in <xsd_in> for encoding. All referenced schema files should be included in <xsd_in>\n");
-    printf("           <xsd_in>:   Comma-separated list of schema documents encoded in EXI with Preserve.prefixes. The first schema is the main one and the rest are schemas that are referenced from the main one through the <xs:import> statement.\n");
+    printf("           <xsd_in>:   Comma-separated list of schema documents encoded in EXI with Preserve.prefixes. The first schema is the\n");
+    printf("                       main one and the rest are schemas that are referenced from the main one through the <xs:import> statement.\n");
     printf("           -help   :   Prints this help message\n\n");
+    printf("           exi_out :   output file for the EXI stream (stdout if none specified)\n\n");
     printf("  Purpose: This program tests the EXIP encoding functionality\n");
     printf("\n" );
 }

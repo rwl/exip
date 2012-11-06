@@ -162,7 +162,7 @@ static void staticProdPartOutput(GrammarRulePart* rulePart, char* varName, FILE*
 	}
 }
 
-void staticRulesOutput(EXIGrammar* gr, char* prefix, Index grId, unsigned char mask_specified, FILE* out)
+void staticRulesOutput(EXIGrammar* gr, char* prefix, Index grId, FILE* out)
 {
 	Index ruleIter;
 	unsigned char partIter;
@@ -172,7 +172,8 @@ void staticRulesOutput(EXIGrammar* gr, char* prefix, Index grId, unsigned char m
 		    "static CONST GrammarRule %srule_%d[%d] =\n{\n    {{",
 			prefix,
 			(int) grId,
-			(int) (gr->count + (mask_specified == FALSE)));
+			(int) gr->count);
+//			(int) (gr->count + (mask_specified == FALSE)));
 
 	for(ruleIter = 0; ruleIter < gr->count; ruleIter++)
 	{

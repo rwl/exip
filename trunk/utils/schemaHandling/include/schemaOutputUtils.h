@@ -85,10 +85,9 @@ void staticProductionsOutput(EXIGrammar* gr, char* prefix, Index grId, FILE* out
  * @param[in] gr EXI grammar containing the productions to be stored
  * @param[in] prefix prefix for the definitions
  * @param[in] grId index of the grammar in the SchemmaGrammarTable
- * @param[in] mask_specified whether options and EXI header parameters are set
  * @param[out] out output stream
  */
-void staticRulesOutput(EXIGrammar* gr, char* prefix, Index grId, unsigned char mask_specified, FILE* out);
+void staticRulesOutput(EXIGrammar* gr, char* prefix, Index grId, FILE* out);
 
 /**
  * @brief Builds the document grammar as a static code representation and stores it in out

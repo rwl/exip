@@ -103,9 +103,6 @@ CHECK_BINS := $(foreach acheck, $(CHECK_TARGETS), $(TESTS_BIN_DIR)/test_$(acheck
 EXAMPLES_SRC_DIR = $(PROJECT_ROOT)/examples
 EXAMPLES_BIN_DIR = $(BIN_DIR)/examples
 
-# List of all utils binary names
-UTILS_1 = exipg
-
 # Utils directories
 UTILS_SRC_DIR = $(PROJECT_ROOT)/utils
 UTILS_BIN_DIR = $(BIN_DIR)/utils
@@ -158,7 +155,7 @@ check: all mk_tests $(CHECK_BINS)
 
 examples: mk_examples lib $(EXAMPLES_BIN_DIR)/exipd $(EXAMPLES_BIN_DIR)/exipe test_sets_copy_examples
 
-utils: mk_utils lib $(UTILS_BIN_DIR)/$(UTILS_1) test_sets_copy_utils
+utils: mk_utils lib $(UTILS_BIN_DIR)/exipg test_sets_copy_utils
 
 doc:
 		cd $(DEV_DOC_DIR); doxygen Doxyfile
