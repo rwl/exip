@@ -1,21 +1,25 @@
 # Utils build
 
-UTILS_INCL_DIR = -I$(UTILS_SRC_DIR)/schemaHandling/utils/include
+# Build exipg:
+EXIPG_INCL_DIR = -I$(UTILS_SRC_DIR)/schemaHandling/include
 
-UTILS_1_OBJ = $(UTILS_BIN_DIR)/dynOutputUtils.o $(UTILS_BIN_DIR)/textOutputUtils.o \
-			$(UTILS_BIN_DIR)/exipOutputUtils.o $(UTILS_BIN_DIR)/staticOutputUtils.o
+EXIPG_OBJ = $(UTILS_BIN_DIR)/dynOutputUtils.o $(UTILS_BIN_DIR)/textOutputUtils.o \
+			$(UTILS_BIN_DIR)/exipOutputUtils.o $(UTILS_BIN_DIR)/staticOutputUtils.o $(UTILS_BIN_DIR)/createGrammars.o
 
-$(UTILS_BIN_DIR)/$(UTILS_1): $(UTILS_SRC_DIR)/schemaHandling/createGrammars.c $(UTILS_1_OBJ)
-		$(COMPILE) $(LDFLAGS) $(UTILS_INCL_DIR) $(UTILS_SRC_DIR)/schemaHandling/createGrammars.c $(UTILS_1_OBJ) -lexip -o $(UTILS_BIN_DIR)/$(UTILS_1)
+$(UTILS_BIN_DIR)/exipg: $(UTILS_SRC_DIR)/schemaHandling/exipg.c $(EXIPG_OBJ) $(UTILS_SRC_DIR)/schemaHandling/include/*.*
+		$(COMPILE) $(LDFLAGS) $(EXIPG_INCL_DIR) $(UTILS_SRC_DIR)/schemaHandling/exipg.c $(EXIPG_OBJ) -lexip -o $(UTILS_BIN_DIR)/exipg
 		
-$(UTILS_BIN_DIR)/dynOutputUtils.o: $(UTILS_SRC_DIR)/schemaHandling/utils/src/dynOutputUtils.c
-		$(COMPILE) $(UTILS_INCL_DIR) -c $(UTILS_SRC_DIR)/schemaHandling/utils/src/dynOutputUtils.c -o $(UTILS_BIN_DIR)/dynOutputUtils.o
+$(UTILS_BIN_DIR)/dynOutputUtils.o: $(UTILS_SRC_DIR)/schemaHandling/output/dynOutputUtils.c
+		$(COMPILE) $(EXIPG_INCL_DIR) -c $(UTILS_SRC_DIR)/schemaHandling/output/dynOutputUtils.c -o $(UTILS_BIN_DIR)/dynOutputUtils.o
 
-$(UTILS_BIN_DIR)/textOutputUtils.o: $(UTILS_SRC_DIR)/schemaHandling/utils/src/textOutputUtils.c
-		$(COMPILE) $(UTILS_INCL_DIR) -c $(UTILS_SRC_DIR)/schemaHandling/utils/src/textOutputUtils.c -o $(UTILS_BIN_DIR)/textOutputUtils.o
+$(UTILS_BIN_DIR)/textOutputUtils.o: $(UTILS_SRC_DIR)/schemaHandling/output/textOutputUtils.c
+		$(COMPILE) $(EXIPG_INCL_DIR) -c $(UTILS_SRC_DIR)/schemaHandling/output/textOutputUtils.c -o $(UTILS_BIN_DIR)/textOutputUtils.o
 
-$(UTILS_BIN_DIR)/exipOutputUtils.o: $(UTILS_SRC_DIR)/schemaHandling/utils/src/exipOutputUtils.c
-		$(COMPILE) $(UTILS_INCL_DIR) -c $(UTILS_SRC_DIR)/schemaHandling/utils/src/exipOutputUtils.c -o $(UTILS_BIN_DIR)/exipOutputUtils.o
+$(UTILS_BIN_DIR)/exipOutputUtils.o: $(UTILS_SRC_DIR)/schemaHandling/output/exipOutputUtils.c
+		$(COMPILE) $(EXIPG_INCL_DIR) -c $(UTILS_SRC_DIR)/schemaHandling/output/exipOutputUtils.c -o $(UTILS_BIN_DIR)/exipOutputUtils.o
 
-$(UTILS_BIN_DIR)/staticOutputUtils.o: $(UTILS_SRC_DIR)/schemaHandling/utils/src/staticOutputUtils.c
-		$(COMPILE) $(UTILS_INCL_DIR) -c $(UTILS_SRC_DIR)/schemaHandling/utils/src/staticOutputUtils.c -o $(UTILS_BIN_DIR)/staticOutputUtils.o
+$(UTILS_BIN_DIR)/staticOutputUtils.o: $(UTILS_SRC_DIR)/schemaHandling/output/staticOutputUtils.c
+		$(COMPILE) $(EXIPG_INCL_DIR) -c $(UTILS_SRC_DIR)/schemaHandling/output/staticOutputUtils.c -o $(UTILS_BIN_DIR)/staticOutputUtils.o
+		
+$(UTILS_BIN_DIR)/createGrammars.o: $(UTILS_SRC_DIR)/schemaHandling/createGrammars.c
+		$(COMPILE) $(EXIPG_INCL_DIR) -c $(UTILS_SRC_DIR)/schemaHandling/createGrammars.c -o $(UTILS_BIN_DIR)/createGrammars.o		
