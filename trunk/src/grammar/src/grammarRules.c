@@ -23,54 +23,58 @@
 
 errorCode insertZeroProduction(DynGrammarRule* rule, EventType eventType, SmallIndex nonTermID, QNameID* qnameId)
 {
-	if(rule->part[0].count == rule->part0Dimension) // The dynamic array rule->prods[0] needs to be resized
+	if(rule->p1Count == rule->prod1Dim) // The dynamic array rule->prod1 needs to be resized
 	{
-		void* ptr = EXIP_REALLOC(rule->part[0].prod, sizeof(Production)*(rule->part0Dimension + DEFAULT_PROD_ARRAY_DIM));
+		void* ptr = EXIP_REALLOC(rule->prod1, sizeof(Production)*(rule->prod1Dim + DEFAULT_PROD_ARRAY_DIM));
 		if(ptr == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		rule->part[0].prod = ptr;
-		rule->part0Dimension += DEFAULT_PROD_ARRAY_DIM;
+		rule->prod1 = ptr;
+		rule->prod1Dim += DEFAULT_PROD_ARRAY_DIM;
 	}
 
-	rule->part[0].prod[rule->part[0].count].eventType = eventType;
-	rule->part[0].prod[rule->part[0].count].typeId = INDEX_MAX;
-	rule->part[0].prod[rule->part[0].count].nonTermID = nonTermID;
-	rule->part[0].prod[rule->part[0].count].qnameId = *qnameId;
+	rule->prod1[rule->p1Count].eventType = eventType;
+	rule->prod1[rule->p1Count].typeId = INDEX_MAX;
+	rule->prod1[rule->p1Count].nonTermID = nonTermID;
+	rule->prod1[rule->p1Count].qnameId = *qnameId;
 
-	rule->part[0].count += 1;
-	rule->part[0].bits = getBitsNumber(rule->part[0].count - 1 + (rule->part[1].count + rule->part[2].count > 0));
+	rule->p1Count += 1;
+	rule->bits1 = getBitsNumber(rule->p1Count - 1 + (rule->p2Count + rule->p3Count > 0));
 	return ERR_OK;
 }
 
 errorCode copyGrammarRule(AllocList* memList, GrammarRule* src, GrammarRule* dest)
 {
-	unsigned char b;
 	Index j = 0;
 
-	for(b = 0; b < 3; b++)
+	dest->bits1 = src->bits1;
+	dest->p1Count = src->p1Count;
+	dest->p2Count = src->p2Count;
+	dest->p3Count = src->p3Count;
+
+	if(dest->p1Count != 0)
 	{
-		dest->part[b].count = src->part[b].count;
-		dest->part[b].bits = src->part[b].bits;
+		dest->prod1 = (Production*) memManagedAllocate(memList, sizeof(Production)*dest->p1Count);
+		if(dest->prod1 == NULL)
+			return MEMORY_ALLOCATION_ERROR;
 
-		if(src->part[b].count != 0)
-		{
-			dest->part[b].prod = (Production*) memManagedAllocate(memList, sizeof(Production)*dest->part[b].count);
-			if(dest->part[b].prod == NULL)
-				return MEMORY_ALLOCATION_ERROR;
-
-			for(j = 0;j < dest->part[b].count; j++)
-			{
-				dest->part[b].prod[j] = src->part[b].prod[j];
-				if(src->part[b].prod[j].nonTermID != GR_VOID_NON_TERMINAL)
-					dest->part[b].prod[j].nonTermID = src->part[b].prod[j].nonTermID;
-			}
-		}
-		else
-		{
-			dest->part[b].prod = NULL;
-		}
+		for(j = 0; j < dest->p1Count; j++)
+			dest->prod1[j] = src->prod1[j];
 	}
+	else
+		dest->prod1 = NULL;
+
+	if(dest->p2Count + dest->p3Count != 0)
+	{
+		dest->prod23 = (Production*) memManagedAllocate(memList, sizeof(Production)*(dest->p2Count + dest->p3Count));
+		if(dest->prod23 == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+
+		for(j = 0; j < (dest->p2Count + dest->p3Count); j++)
+			dest->prod23[j] = src->prod23[j];
+	}
+	else
+		dest->prod23 = NULL;
 
 	return ERR_OK;
 }
@@ -82,6 +86,8 @@ errorCode printGrammarRule(SmallIndex nonTermID, GrammarRule* rule, EXIPSchema *
 	Index j = 0;
 	unsigned char b = 0;
 	Index tmp_prod_indx = 0;
+	Production* tmpProd;
+	Index tmpCount;
 
 	DEBUG_MSG(INFO, EXIP_DEBUG, ("\n>RULE\n"));
 	DEBUG_MSG(INFO, EXIP_DEBUG, ("NT-%u:", (unsigned int) nonTermID));
@@ -90,12 +96,29 @@ errorCode printGrammarRule(SmallIndex nonTermID, GrammarRule* rule, EXIPSchema *
 
 	for(b = 0; b < 3; b++)
 	{
-		for(j = 0; j < rule->part[b].count; j++)
+		if(b == 0)
+		{
+			tmpProd = rule->prod1;
+			tmpCount = rule->p1Count;
+		}
+		else if(b == 1)
+		{
+			tmpProd = rule->prod23;
+			tmpCount = rule->p2Count;
+		}
+		else if(b == 2)
+		{
+			tmpCount = rule->p3Count;
+			if(tmpCount)
+				tmpProd = rule->prod23 + rule->p2Count;
+		}
+
+		for(j = 0; j < tmpCount; j++)
 		{
 			String *localName = NULL;
-			tmp_prod_indx = rule->part[b].count - 1 - j;
+			tmp_prod_indx = tmpCount - 1 - j;
 			DEBUG_MSG(INFO, EXIP_DEBUG, ("\t"));
-			switch(rule->part[b].prod[tmp_prod_indx].eventType)
+			switch(tmpProd[tmp_prod_indx].eventType)
 			{
 				case EVENT_SD:
 					DEBUG_MSG(INFO, EXIP_DEBUG, ("SD "));
@@ -105,7 +128,7 @@ errorCode printGrammarRule(SmallIndex nonTermID, GrammarRule* rule, EXIPSchema *
 					break;
 				case EVENT_SE_QNAME:
 				{
-					QNameID *qname = &rule->part[b].prod[tmp_prod_indx].qnameId;
+					QNameID *qname = &tmpProd[tmp_prod_indx].qnameId;
 					localName = &(GET_LN_URI_P_QNAME(schema->uriTable, qname).lnStr);
 					DEBUG_MSG(INFO, EXIP_DEBUG, ("SE (qname: %u:%u) ", (unsigned int) qname->uriId, (unsigned int) qname->lnId));
 					break;
@@ -121,19 +144,19 @@ errorCode printGrammarRule(SmallIndex nonTermID, GrammarRule* rule, EXIPSchema *
 					break;
 				case EVENT_AT_QNAME:
 				{
-					QNameID *qname = &rule->part[b].prod[tmp_prod_indx].qnameId;
+					QNameID *qname = &tmpProd[tmp_prod_indx].qnameId;
 					localName = &(GET_LN_URI_P_QNAME(schema->uriTable, qname).lnStr);
-					DEBUG_MSG(INFO, EXIP_DEBUG, ("AT (qname %u:%u) [%u]", (unsigned int) rule->part[b].prod[tmp_prod_indx].qnameId.uriId, (unsigned int) rule->part[b].prod[tmp_prod_indx].qnameId.lnId, (unsigned int) rule->part[b].prod[tmp_prod_indx].typeId));
+					DEBUG_MSG(INFO, EXIP_DEBUG, ("AT (qname %u:%u) [%u]", (unsigned int) tmpProd[tmp_prod_indx].qnameId.uriId, (unsigned int) tmpProd[tmp_prod_indx].qnameId.lnId, (unsigned int) tmpProd[tmp_prod_indx].typeId));
 					break;
 				}
 				case EVENT_AT_URI:
 					DEBUG_MSG(INFO, EXIP_DEBUG, ("AT (uri) "));
 					break;
 				case EVENT_AT_ALL:
-					DEBUG_MSG(INFO, EXIP_DEBUG, ("AT (*) [%u]", (unsigned int) rule->part[b].prod[tmp_prod_indx].typeId));
+					DEBUG_MSG(INFO, EXIP_DEBUG, ("AT (*) [%u]", (unsigned int) tmpProd[tmp_prod_indx].typeId));
 					break;
 				case EVENT_CH:
-					DEBUG_MSG(INFO, EXIP_DEBUG, ("CH [%u]", (unsigned int) rule->part[b].prod[tmp_prod_indx].typeId));
+					DEBUG_MSG(INFO, EXIP_DEBUG, ("CH [%u]", (unsigned int) tmpProd[tmp_prod_indx].typeId));
 					break;
 				case EVENT_NS:
 					DEBUG_MSG(INFO, EXIP_DEBUG, ("NS "));
@@ -160,18 +183,18 @@ errorCode printGrammarRule(SmallIndex nonTermID, GrammarRule* rule, EXIPSchema *
 					return UNEXPECTED_ERROR;
 			}
 			DEBUG_MSG(INFO, EXIP_DEBUG, ("\t"));
-			if(rule->part[b].prod[tmp_prod_indx].nonTermID != GR_VOID_NON_TERMINAL)
+			if(tmpProd[tmp_prod_indx].nonTermID != GR_VOID_NON_TERMINAL)
 			{
-				DEBUG_MSG(INFO, EXIP_DEBUG, ("NT-%u", (unsigned int) rule->part[b].prod[tmp_prod_indx].nonTermID));
+				DEBUG_MSG(INFO, EXIP_DEBUG, ("NT-%u", (unsigned int) tmpProd[tmp_prod_indx].nonTermID));
 			}
 			DEBUG_MSG(INFO, EXIP_DEBUG, ("\t"));
 			if(b > 0)
 			{
-				DEBUG_MSG(INFO, EXIP_DEBUG, ("%u", (unsigned int) rule->part[0].count));
+				DEBUG_MSG(INFO, EXIP_DEBUG, ("%u", (unsigned int) rule->p1Count));
 				DEBUG_MSG(INFO, EXIP_DEBUG, ("."));
 				if(b > 1)
 				{
-					DEBUG_MSG(INFO, EXIP_DEBUG, ("%u", (unsigned int) rule->part[1].count));
+					DEBUG_MSG(INFO, EXIP_DEBUG, ("%u", (unsigned int) rule->p2Count));
 					DEBUG_MSG(INFO, EXIP_DEBUG, ("."));
 				}
 			}

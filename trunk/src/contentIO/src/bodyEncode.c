@@ -114,11 +114,10 @@ errorCode encodeStringData(EXIStream* strm, String strng, QNameID qnameID, Index
 	return ERR_OK;
 }
 
-errorCode lookupProduction(EXIStream* strm, EventType eventType, EXIType exiType, GrammarRule** currentRule, Index* typeId, QName* qname, unsigned char* codeLength, Index* lastCodePart)
+errorCode lookupProduction(EXIStream* strm, EventType eventType, EXIType exiType, GrammarRule** currentRule, Index* typeId, QName* qname, unsigned char* codeLength, Index* lastCodePart, Production** prodHit)
 {
 	unsigned char b = 0;
 	Index j = 0;
-	Production* prodHit = NULL;
 	Production* tmpProd = NULL;
 	EXIType prodExiType = VALUE_TYPE_NONE;
 
@@ -130,11 +129,44 @@ errorCode lookupProduction(EXIStream* strm, EventType eventType, EXIType exiType
 	else
 		*currentRule = &strm->gStack->grammar->rule[strm->context.currNonTermID];
 
-	for(b = 0; b < 3; b++)
+	*prodHit = NULL;
+
+	for(j = 0; j < (*currentRule)->p1Count; j++)
 	{
-		for(j = 0; j < (*currentRule)->part[b].count; j++)
+		tmpProd = &(*currentRule)->prod1[(*currentRule)->p1Count - 1 - j];
+
+		if(tmpProd->eventType != EVENT_SE_QNAME && tmpProd->typeId != INDEX_MAX)
+			prodExiType = strm->schema->simpleTypeTable.sType[tmpProd->typeId].exiType;
+		else
+			prodExiType = VALUE_TYPE_NONE;
+		if(IS_BUILT_IN_ELEM(strm->gStack->grammar->props) || valueTypeClassesEqual(prodExiType, exiType))
 		{
-			tmpProd = &(*currentRule)->part[b].prod[(*currentRule)->part[b].count - 1 - j];
+			if(tmpProd->eventType == eventType || // (1)
+					(qname != NULL &&
+					(((tmpProd->eventType == EVENT_AT_URI || tmpProd->eventType == EVENT_SE_URI) &&    // (2)
+					stringEqual(strm->schema->uriTable.uri[tmpProd->qnameId.uriId].uriStr, *(qname->uri))) ||
+					((tmpProd->eventType == EVENT_AT_QNAME || tmpProd->eventType == EVENT_SE_QNAME) && // (3)
+					stringEqual(strm->schema->uriTable.uri[tmpProd->qnameId.uriId].uriStr, *(qname->uri)) &&
+					stringEqual(GET_LN_URI_QNAME(strm->schema->uriTable, tmpProd->qnameId).lnStr, *(qname->localName))))
+					)
+			)
+			{
+				*prodHit = tmpProd;
+				*typeId = tmpProd->typeId;
+				break;
+			}
+		}
+	}
+
+	if(*prodHit == NULL)
+	{
+		// It should be encoded as second or third level production
+		for(j = 0; j < (*currentRule)->p2Count + (*currentRule)->p3Count; j++)
+		{
+			if(j < (*currentRule)->p2Count)
+				tmpProd = &(*currentRule)->prod23[(*currentRule)->p2Count - 1 - j];
+			else
+				tmpProd = &(*currentRule)->prod23[(*currentRule)->p2Count + (*currentRule)->p3Count - 1 - j];
 
 			if(tmpProd->eventType != EVENT_SE_QNAME && tmpProd->typeId != INDEX_MAX)
 				prodExiType = strm->schema->simpleTypeTable.sType[tmpProd->typeId].exiType;
@@ -152,17 +184,15 @@ errorCode lookupProduction(EXIStream* strm, EventType eventType, EXIType exiType
 						)
 				)
 				{
-					prodHit = tmpProd;
+					*prodHit = tmpProd;
 					*typeId = tmpProd->typeId;
 					break;
 				}
 			}
 		}
-		if(prodHit != NULL)
-			break;
 	}
 
-	if(prodHit == NULL)
+	if(*prodHit == NULL)
 		return INCONSISTENT_PROC_STATE;
 
 	*codeLength = b + 1;
@@ -171,10 +201,9 @@ errorCode lookupProduction(EXIStream* strm, EventType eventType, EXIType exiType
 	return ERR_OK;
 }
 
-errorCode encodeProduction(EXIStream* strm, GrammarRule* currentRule, unsigned char codeLength, Index lastCodePart, QName* qname)
+errorCode encodeProduction(EXIStream* strm, GrammarRule* currentRule, unsigned char codeLength, Index lastCodePart, Production* prodHit, QName* qname)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	Production* prodHit = NULL;
 
 #if DEBUG_CONTENT_IO == ON
 	{
@@ -188,11 +217,6 @@ errorCode encodeProduction(EXIStream* strm, GrammarRule* currentRule, unsigned c
 
 	if(codeLength - 1 > 2)
 		return INCONSISTENT_PROC_STATE;
-
-	if(lastCodePart >= currentRule->part[codeLength - 1].count)
-		return INCONSISTENT_PROC_STATE;
-
-	prodHit = &currentRule->part[codeLength - 1].prod[currentRule->part[codeLength - 1].count - 1 - lastCodePart];
 
 	tmp_err_code = writeEventCode(strm, currentRule, codeLength, lastCodePart);
 	if(tmp_err_code != ERR_OK)

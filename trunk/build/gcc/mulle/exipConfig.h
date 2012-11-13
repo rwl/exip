@@ -61,4 +61,12 @@ struct ThinFloat
 
 #define EXIP_FLOAT struct ThinFloat
 
+/* NO support for strtol(), strtoll() and bsearch(),
+ * Not used in our use cases so just ignore them */
+#define EXIP_STRTOLL(buff, endPointer, b) 0
+#define strtol(buff, endPointer, b) 0
+#define LLONG_MAX -1
+#define LLONG_MIN -1
+#define bsearch(key, base, nmemb, size, fn_t) NULL
+
 #endif /* EXIPCONFIG_H_ */

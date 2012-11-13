@@ -17,19 +17,35 @@
 #include "eventsEXI.h"
 #include "streamEncode.h"
 #include "stringManipulate.h"
+#include "ioUtil.h"
 
 errorCode writeEventCode(EXIStream* strm, GrammarRule* currentRule, unsigned char codeLength, Index codeLastPart)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned char i = 0;
-	for(i = 0; i < codeLength - 1; i++)
+	unsigned char lastPartBits = currentRule->bits1;
+
+	if(codeLength > 1)
 	{
-		tmp_err_code = encodeNBitUnsignedInteger(strm, currentRule->part[i].bits, (unsigned int) currentRule->part[i].count);
+		// Encode first part here ...
+		tmp_err_code = encodeNBitUnsignedInteger(strm, currentRule->bits1, (unsigned int) currentRule->p1Count);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
+
+		if(codeLength == 2)
+			lastPartBits = getBitsNumber(currentRule->p2Count - 1);
 	}
 
-	tmp_err_code = encodeNBitUnsignedInteger(strm, currentRule->part[codeLength - 1].bits, (unsigned int) codeLastPart);
+	if(codeLength > 2)
+	{
+		// Encode second part here ...
+		tmp_err_code = encodeNBitUnsignedInteger(strm, getBitsNumber(currentRule->p2Count), (unsigned int) currentRule->p2Count);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		lastPartBits = getBitsNumber(currentRule->p3Count - 1);
+	}
+
+	tmp_err_code = encodeNBitUnsignedInteger(strm, lastPartBits, (unsigned int) codeLastPart);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 

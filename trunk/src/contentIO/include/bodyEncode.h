@@ -30,9 +30,10 @@
  * @param[in] qname element or attribute QName in case of SE or AT events; NULL otherwise
  * @param[out] codeLength 1,2 or 3 is the allowed length of EXI event codes
  * @param[out] lastCodePart the last part of the event code
+ * @param[out] prodHit the matched production
  * @return Error handling code
  */
-errorCode lookupProduction(EXIStream* strm, EventType eventType, EXIType exiType, GrammarRule** currentRule, Index* typeId, QName* qname, unsigned char* codeLength, Index* lastCodePart);
+errorCode lookupProduction(EXIStream* strm, EventType eventType, EXIType exiType, GrammarRule** currentRule, Index* typeId, QName* qname, unsigned char* codeLength, Index* lastCodePart, Production** prodHit);
 
 /**
  * @brief Serializes an EXI event corresponding to a particular grammar production
@@ -40,11 +41,12 @@ errorCode lookupProduction(EXIStream* strm, EventType eventType, EXIType exiType
  * @param[in] currentRule the grammar rule of the production to be encoded
  * @param[in] codeLength 1,2 or 3 is the allowed length of EXI event codes
  * @param[in] lastCodePart the last part of the event code
+ * @param[in] prodHit the production to be encoded
  * @param[in] qname used only for SE(*), AT(*), SE(uri:*), AT(uri:*) and when
  * a new prefix should be serialized in SE(QName) and AT(QName); NULL otherwise
  * @return Error handling code
  */
-errorCode encodeProduction(EXIStream* strm, GrammarRule* currentRule, unsigned char codeLength, Index lastCodePart, QName* qname);
+errorCode encodeProduction(EXIStream* strm, GrammarRule* currentRule, unsigned char codeLength, Index lastCodePart, Production* prodHit, QName* qname);
 
 /**
  * @brief Encodes String value into EXI stream

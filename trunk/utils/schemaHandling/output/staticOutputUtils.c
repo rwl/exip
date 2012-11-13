@@ -122,18 +122,52 @@ void staticStringTblDefsOutput(UriTable* uriTbl, char* prefix, FILE* out)
 void staticProductionsOutput(EXIGrammar* gr, char* prefix, Index grId, FILE* out)
 {
 	Index ruleIter;
-	unsigned char partIter;
 	char varName[VAR_BUFFER_MAX_LENGTH];
 
 	for(ruleIter = 0; ruleIter < gr->count; ruleIter++)
 	{
-		for(partIter = 0; partIter < 3; partIter++)
+		if (gr->rule[ruleIter].part[0].count)
 		{
-			if (gr->rule[ruleIter].part[partIter].count)
+			// Printing of the Production variable string
+			sprintf(varName, "%sprod_%d_%d_part%d", prefix, (int) grId, (int) ruleIter, 1);
+			staticProdPartOutput(&gr->rule[ruleIter].part[0], varName, out);
+		}
+
+		if (gr->rule[ruleIter].part[1].count + gr->rule[ruleIter].part[2].count)
+		{
+			Index prodIter;
+			IndexStrings indexStrings;
+			GrammarRulePart* tmpPart;
+			Index tmpIndex;
+
+			// Printing of the Production variable string
+			sprintf(varName, "%sprod_%d_%d_part%d", prefix, (int) grId, (int) ruleIter, 23);
+
+			fprintf(out, "static CONST Production %s[%d] =\n{\n",
+					varName, (int) gr->rule[ruleIter].part[1].count + gr->rule[ruleIter].part[2].count);
+
+			for(prodIter = 0; prodIter < gr->rule[ruleIter].part[1].count + gr->rule[ruleIter].part[2].count; prodIter++)
 			{
-				// Printing of the Production variable string
-				sprintf(varName, "%sprod_%d_%d_part%d", prefix, (int) grId, (int) ruleIter, (int) partIter);
-				staticProdPartOutput(&gr->rule[ruleIter].part[partIter], varName, out);
+				if(prodIter < gr->rule[ruleIter].part[1].count)
+				{
+					tmpPart = &gr->rule[ruleIter].part[1];
+					tmpIndex = prodIter;
+				}
+				else
+				{
+					tmpPart = &gr->rule[ruleIter].part[2];
+					tmpIndex = prodIter - gr->rule[ruleIter].part[1].count;
+				}
+
+				setProdStrings(&indexStrings, &tmpPart->prod[tmpIndex]);
+				fprintf(out,
+						"    {\n        %d, %s,\n        {%s, %s},\n        %s\n    }%s",
+						tmpPart->prod[tmpIndex].eventType,
+						indexStrings.buf1,
+						indexStrings.buf2,
+						indexStrings.buf3,
+						indexStrings.buf4,
+						prodIter==(gr->rule[ruleIter].part[1].count + gr->rule[ruleIter].part[2].count - 1) ? "\n};\n\n" : ",\n");
 			}
 		}
 	}
@@ -165,11 +199,10 @@ static void staticProdPartOutput(GrammarRulePart* rulePart, char* varName, FILE*
 void staticRulesOutput(EXIGrammar* gr, char* prefix, Index grId, FILE* out)
 {
 	Index ruleIter;
-	unsigned char partIter;
 
 	// #DOCUMENT# IMPORTANT! tmpGrammar->count + (mask_specified == FALSE) because It must be assured that the schema informed grammars have one empty slot for the rule:  Element i, content2
 	fprintf(out,
-		    "static CONST GrammarRule %srule_%d[%d] =\n{\n    {{",
+		    "static CONST GrammarRule %srule_%d[%d] =\n{",
 			prefix,
 			(int) grId,
 			(int) gr->count);
@@ -177,29 +210,39 @@ void staticRulesOutput(EXIGrammar* gr, char* prefix, Index grId, FILE* out)
 
 	for(ruleIter = 0; ruleIter < gr->count; ruleIter++)
 	{
-		for(partIter = 0; partIter < 3; partIter++)
+		fprintf(out, "\n    {");
+		if (gr->rule[ruleIter].part[0].count > 0)
 		{
-			fprintf(out, "\n       {");
-			if (gr->rule[ruleIter].part[partIter].count > 0)
-			{
-				fprintf(out,
-				        "%sprod_%d_%d_part%d, ",
-						prefix,
-						(int) grId,
-						(int) ruleIter,
-						(int) partIter);
-			}
-			else
-				fprintf(out, "NULL, ");
-
-			fprintf(out, "%d, %d%s",
-					(int) gr->rule[ruleIter].part[partIter].count,
-					gr->rule[ruleIter].part[partIter].bits,
-					partIter == 2 ? (ruleIter == (gr->count-1) ? "}\n    }}\n" : "},\n    }},\n    {{") : "}, ");
+			fprintf(out,
+			        "%sprod_%d_%d_part%d, ",
+					prefix,
+					(int) grId,
+					(int) ruleIter,
+					(int) 1);
 		}
+		else
+			fprintf(out, "NULL, ");
+
+		if (gr->rule[ruleIter].part[1].count + gr->rule[ruleIter].part[2].count > 0)
+		{
+			fprintf(out,
+			        "%sprod_%d_%d_part%d, ",
+					prefix,
+					(int) grId,
+					(int) ruleIter,
+					(int) 23);
+		}
+		else
+			fprintf(out, "NULL, ");
+
+		fprintf(out, "%d, ", gr->rule[ruleIter].part[0].count);
+		fprintf(out, "%d, ", gr->rule[ruleIter].part[1].count);
+		fprintf(out, "%d, ", gr->rule[ruleIter].part[2].count);
+		fprintf(out, "%d}%s", gr->rule[ruleIter].part[0].bits, ruleIter != (gr->count-1)?",":"");
+
 	}
 
-	fprintf(out, "};\n\n");
+	fprintf(out, "\n};\n\n");
 }
 
 void staticDocGrammarOutput(EXIGrammar* docGr, char* prefix, FILE* out)
