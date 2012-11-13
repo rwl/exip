@@ -1,4 +1,4 @@
-/** AUTO-GENERATED: Tue Nov  6 17:48:09 2012
+/** AUTO-GENERATED: Mon Nov 12 17:11:30 2012
   * Copyright (c) 2010 - 2011, Rumen Kyusakov, EISLAB, LTU
   * $Id$ */
 
@@ -111,7 +111,7 @@ CONST CharType ops_LN_4_38[] = {0x76, 0x61, 0x6c, 0x75, 0x65, 0x50, 0x61, 0x72, 
 
 /** END_STRINGS_DEFINITONS */
 
-static CONST Production ops_prod_0_0_part0[1] =
+static CONST Production ops_prod_0_0_part1[1] =
 {
     {
         9, 0,
@@ -120,7 +120,7 @@ static CONST Production ops_prod_0_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_0_1_part0[1] =
+static CONST Production ops_prod_0_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -131,19 +131,11 @@ static CONST Production ops_prod_0_1_part0[1] =
 
 static CONST GrammarRule ops_rule_0[2] =
 {
-    {{
-       {ops_prod_0_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_0_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_0_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_0_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_1_0_part0[1] =
+static CONST Production ops_prod_1_0_part1[1] =
 {
     {
         9, 1,
@@ -152,7 +144,7 @@ static CONST Production ops_prod_1_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_1_0_part1[1] =
+static CONST Production ops_prod_1_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -161,7 +153,7 @@ static CONST Production ops_prod_1_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_1_1_part0[1] =
+static CONST Production ops_prod_1_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -172,19 +164,11 @@ static CONST Production ops_prod_1_1_part0[1] =
 
 static CONST GrammarRule ops_rule_1[2] =
 {
-    {{
-       {ops_prod_1_0_part0, 1, 1}, 
-       {ops_prod_1_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_1_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_1_0_part1, ops_prod_1_0_part23, 1, 1, 0, 1},
+    {ops_prod_1_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_2_0_part0[1] =
+static CONST Production ops_prod_2_0_part1[1] =
 {
     {
         9, 2,
@@ -193,7 +177,7 @@ static CONST Production ops_prod_2_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_2_1_part0[1] =
+static CONST Production ops_prod_2_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -204,19 +188,11 @@ static CONST Production ops_prod_2_1_part0[1] =
 
 static CONST GrammarRule ops_rule_2[2] =
 {
-    {{
-       {ops_prod_2_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_2_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_2_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_2_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_3_0_part0[1] =
+static CONST Production ops_prod_3_0_part1[1] =
 {
     {
         9, 3,
@@ -225,7 +201,7 @@ static CONST Production ops_prod_3_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_3_0_part1[1] =
+static CONST Production ops_prod_3_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -234,7 +210,7 @@ static CONST Production ops_prod_3_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_3_1_part0[1] =
+static CONST Production ops_prod_3_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -245,19 +221,11 @@ static CONST Production ops_prod_3_1_part0[1] =
 
 static CONST GrammarRule ops_rule_3[2] =
 {
-    {{
-       {ops_prod_3_0_part0, 1, 1}, 
-       {ops_prod_3_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_3_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_3_0_part1, ops_prod_3_0_part23, 1, 1, 0, 1},
+    {ops_prod_3_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_4_0_part0[1] =
+static CONST Production ops_prod_4_0_part1[1] =
 {
     {
         9, 4,
@@ -266,7 +234,7 @@ static CONST Production ops_prod_4_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_4_1_part0[1] =
+static CONST Production ops_prod_4_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -277,19 +245,11 @@ static CONST Production ops_prod_4_1_part0[1] =
 
 static CONST GrammarRule ops_rule_4[2] =
 {
-    {{
-       {ops_prod_4_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_4_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_4_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_4_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_5_0_part0[1] =
+static CONST Production ops_prod_5_0_part1[1] =
 {
     {
         9, 5,
@@ -298,7 +258,7 @@ static CONST Production ops_prod_5_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_5_0_part1[1] =
+static CONST Production ops_prod_5_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -307,7 +267,7 @@ static CONST Production ops_prod_5_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_5_1_part0[1] =
+static CONST Production ops_prod_5_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -318,19 +278,11 @@ static CONST Production ops_prod_5_1_part0[1] =
 
 static CONST GrammarRule ops_rule_5[2] =
 {
-    {{
-       {ops_prod_5_0_part0, 1, 1}, 
-       {ops_prod_5_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_5_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_5_0_part1, ops_prod_5_0_part23, 1, 1, 0, 1},
+    {ops_prod_5_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_6_0_part0[1] =
+static CONST Production ops_prod_6_0_part1[1] =
 {
     {
         9, 6,
@@ -339,7 +291,7 @@ static CONST Production ops_prod_6_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_6_0_part1[1] =
+static CONST Production ops_prod_6_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -348,7 +300,7 @@ static CONST Production ops_prod_6_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_6_1_part0[1] =
+static CONST Production ops_prod_6_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -359,19 +311,11 @@ static CONST Production ops_prod_6_1_part0[1] =
 
 static CONST GrammarRule ops_rule_6[2] =
 {
-    {{
-       {ops_prod_6_0_part0, 1, 1}, 
-       {ops_prod_6_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_6_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_6_0_part1, ops_prod_6_0_part23, 1, 1, 0, 1},
+    {ops_prod_6_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_7_0_part0[1] =
+static CONST Production ops_prod_7_0_part1[1] =
 {
     {
         9, 7,
@@ -380,7 +324,7 @@ static CONST Production ops_prod_7_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_7_1_part0[1] =
+static CONST Production ops_prod_7_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -391,19 +335,11 @@ static CONST Production ops_prod_7_1_part0[1] =
 
 static CONST GrammarRule ops_rule_7[2] =
 {
-    {{
-       {ops_prod_7_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_7_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_7_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_7_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_8_0_part0[1] =
+static CONST Production ops_prod_8_0_part1[1] =
 {
     {
         9, 8,
@@ -412,7 +348,7 @@ static CONST Production ops_prod_8_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_8_1_part0[1] =
+static CONST Production ops_prod_8_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -423,19 +359,11 @@ static CONST Production ops_prod_8_1_part0[1] =
 
 static CONST GrammarRule ops_rule_8[2] =
 {
-    {{
-       {ops_prod_8_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_8_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_8_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_8_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_9_0_part0[1] =
+static CONST Production ops_prod_9_0_part1[1] =
 {
     {
         9, 9,
@@ -444,7 +372,7 @@ static CONST Production ops_prod_9_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_9_0_part1[1] =
+static CONST Production ops_prod_9_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -453,7 +381,7 @@ static CONST Production ops_prod_9_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_9_1_part0[1] =
+static CONST Production ops_prod_9_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -464,19 +392,11 @@ static CONST Production ops_prod_9_1_part0[1] =
 
 static CONST GrammarRule ops_rule_9[2] =
 {
-    {{
-       {ops_prod_9_0_part0, 1, 1}, 
-       {ops_prod_9_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_9_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_9_0_part1, ops_prod_9_0_part23, 1, 1, 0, 1},
+    {ops_prod_9_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_10_0_part0[1] =
+static CONST Production ops_prod_10_0_part1[1] =
 {
     {
         9, 10,
@@ -485,7 +405,7 @@ static CONST Production ops_prod_10_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_10_1_part0[1] =
+static CONST Production ops_prod_10_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -496,19 +416,11 @@ static CONST Production ops_prod_10_1_part0[1] =
 
 static CONST GrammarRule ops_rule_10[2] =
 {
-    {{
-       {ops_prod_10_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_10_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_10_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_10_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_11_0_part0[1] =
+static CONST Production ops_prod_11_0_part1[1] =
 {
     {
         9, 11,
@@ -517,7 +429,7 @@ static CONST Production ops_prod_11_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_11_0_part1[1] =
+static CONST Production ops_prod_11_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -526,7 +438,7 @@ static CONST Production ops_prod_11_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_11_1_part0[1] =
+static CONST Production ops_prod_11_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -537,19 +449,11 @@ static CONST Production ops_prod_11_1_part0[1] =
 
 static CONST GrammarRule ops_rule_11[2] =
 {
-    {{
-       {ops_prod_11_0_part0, 1, 1}, 
-       {ops_prod_11_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_11_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_11_0_part1, ops_prod_11_0_part23, 1, 1, 0, 1},
+    {ops_prod_11_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_12_0_part0[4] =
+static CONST Production ops_prod_12_0_part1[4] =
 {
     {
         9, INDEX_MAX,
@@ -573,7 +477,7 @@ static CONST Production ops_prod_12_0_part0[4] =
     }
 };
 
-static CONST Production ops_prod_12_0_part1[1] =
+static CONST Production ops_prod_12_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -582,7 +486,7 @@ static CONST Production ops_prod_12_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_12_1_part0[3] =
+static CONST Production ops_prod_12_1_part1[3] =
 {
     {
         9, INDEX_MAX,
@@ -603,19 +507,11 @@ static CONST Production ops_prod_12_1_part0[3] =
 
 static CONST GrammarRule ops_rule_12[2] =
 {
-    {{
-       {ops_prod_12_0_part0, 4, 3}, 
-       {ops_prod_12_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_12_1_part0, 3, 2}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_12_0_part1, ops_prod_12_0_part23, 4, 1, 0, 3},
+    {ops_prod_12_1_part1, NULL, 3, 0, 0, 2}
 };
 
-static CONST Production ops_prod_13_0_part0[1] =
+static CONST Production ops_prod_13_0_part1[1] =
 {
     {
         9, 13,
@@ -624,7 +520,7 @@ static CONST Production ops_prod_13_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_13_1_part0[1] =
+static CONST Production ops_prod_13_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -635,19 +531,11 @@ static CONST Production ops_prod_13_1_part0[1] =
 
 static CONST GrammarRule ops_rule_13[2] =
 {
-    {{
-       {ops_prod_13_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_13_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_13_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_13_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_14_0_part0[1] =
+static CONST Production ops_prod_14_0_part1[1] =
 {
     {
         9, 14,
@@ -656,7 +544,7 @@ static CONST Production ops_prod_14_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_14_0_part1[1] =
+static CONST Production ops_prod_14_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -665,7 +553,7 @@ static CONST Production ops_prod_14_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_14_1_part0[1] =
+static CONST Production ops_prod_14_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -676,19 +564,11 @@ static CONST Production ops_prod_14_1_part0[1] =
 
 static CONST GrammarRule ops_rule_14[2] =
 {
-    {{
-       {ops_prod_14_0_part0, 1, 1}, 
-       {ops_prod_14_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_14_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_14_0_part1, ops_prod_14_0_part23, 1, 1, 0, 1},
+    {ops_prod_14_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_15_0_part0[1] =
+static CONST Production ops_prod_15_0_part1[1] =
 {
     {
         9, 15,
@@ -697,7 +577,7 @@ static CONST Production ops_prod_15_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_15_0_part1[1] =
+static CONST Production ops_prod_15_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -706,7 +586,7 @@ static CONST Production ops_prod_15_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_15_1_part0[1] =
+static CONST Production ops_prod_15_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -717,19 +597,11 @@ static CONST Production ops_prod_15_1_part0[1] =
 
 static CONST GrammarRule ops_rule_15[2] =
 {
-    {{
-       {ops_prod_15_0_part0, 1, 1}, 
-       {ops_prod_15_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_15_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_15_0_part1, ops_prod_15_0_part23, 1, 1, 0, 1},
+    {ops_prod_15_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_16_0_part0[1] =
+static CONST Production ops_prod_16_0_part1[1] =
 {
     {
         9, 16,
@@ -738,7 +610,7 @@ static CONST Production ops_prod_16_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_16_1_part0[1] =
+static CONST Production ops_prod_16_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -749,19 +621,11 @@ static CONST Production ops_prod_16_1_part0[1] =
 
 static CONST GrammarRule ops_rule_16[2] =
 {
-    {{
-       {ops_prod_16_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_16_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_16_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_16_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_17_0_part0[1] =
+static CONST Production ops_prod_17_0_part1[1] =
 {
     {
         9, 17,
@@ -770,7 +634,7 @@ static CONST Production ops_prod_17_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_17_0_part1[1] =
+static CONST Production ops_prod_17_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -779,7 +643,7 @@ static CONST Production ops_prod_17_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_17_1_part0[1] =
+static CONST Production ops_prod_17_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -790,19 +654,11 @@ static CONST Production ops_prod_17_1_part0[1] =
 
 static CONST GrammarRule ops_rule_17[2] =
 {
-    {{
-       {ops_prod_17_0_part0, 1, 1}, 
-       {ops_prod_17_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_17_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_17_0_part1, ops_prod_17_0_part23, 1, 1, 0, 1},
+    {ops_prod_17_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_18_0_part0[1] =
+static CONST Production ops_prod_18_0_part1[1] =
 {
     {
         9, 18,
@@ -811,7 +667,7 @@ static CONST Production ops_prod_18_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_18_0_part1[1] =
+static CONST Production ops_prod_18_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -820,7 +676,7 @@ static CONST Production ops_prod_18_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_18_1_part0[1] =
+static CONST Production ops_prod_18_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -831,19 +687,11 @@ static CONST Production ops_prod_18_1_part0[1] =
 
 static CONST GrammarRule ops_rule_18[2] =
 {
-    {{
-       {ops_prod_18_0_part0, 1, 1}, 
-       {ops_prod_18_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_18_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_18_0_part1, ops_prod_18_0_part23, 1, 1, 0, 1},
+    {ops_prod_18_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_19_0_part0[1] =
+static CONST Production ops_prod_19_0_part1[1] =
 {
     {
         9, 19,
@@ -852,7 +700,7 @@ static CONST Production ops_prod_19_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_19_0_part1[1] =
+static CONST Production ops_prod_19_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -861,7 +709,7 @@ static CONST Production ops_prod_19_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_19_1_part0[1] =
+static CONST Production ops_prod_19_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -872,19 +720,11 @@ static CONST Production ops_prod_19_1_part0[1] =
 
 static CONST GrammarRule ops_rule_19[2] =
 {
-    {{
-       {ops_prod_19_0_part0, 1, 1}, 
-       {ops_prod_19_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_19_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_19_0_part1, ops_prod_19_0_part23, 1, 1, 0, 1},
+    {ops_prod_19_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_20_0_part0[1] =
+static CONST Production ops_prod_20_0_part1[1] =
 {
     {
         9, 20,
@@ -893,7 +733,7 @@ static CONST Production ops_prod_20_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_20_0_part1[1] =
+static CONST Production ops_prod_20_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -902,7 +742,7 @@ static CONST Production ops_prod_20_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_20_1_part0[1] =
+static CONST Production ops_prod_20_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -913,19 +753,11 @@ static CONST Production ops_prod_20_1_part0[1] =
 
 static CONST GrammarRule ops_rule_20[2] =
 {
-    {{
-       {ops_prod_20_0_part0, 1, 1}, 
-       {ops_prod_20_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_20_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_20_0_part1, ops_prod_20_0_part23, 1, 1, 0, 1},
+    {ops_prod_20_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_21_0_part0[1] =
+static CONST Production ops_prod_21_0_part1[1] =
 {
     {
         9, 21,
@@ -934,7 +766,7 @@ static CONST Production ops_prod_21_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_21_1_part0[1] =
+static CONST Production ops_prod_21_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -945,19 +777,11 @@ static CONST Production ops_prod_21_1_part0[1] =
 
 static CONST GrammarRule ops_rule_21[2] =
 {
-    {{
-       {ops_prod_21_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_21_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_21_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_21_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_22_0_part0[1] =
+static CONST Production ops_prod_22_0_part1[1] =
 {
     {
         9, 22,
@@ -966,7 +790,7 @@ static CONST Production ops_prod_22_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_22_0_part1[1] =
+static CONST Production ops_prod_22_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -975,7 +799,7 @@ static CONST Production ops_prod_22_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_22_1_part0[1] =
+static CONST Production ops_prod_22_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -986,19 +810,11 @@ static CONST Production ops_prod_22_1_part0[1] =
 
 static CONST GrammarRule ops_rule_22[2] =
 {
-    {{
-       {ops_prod_22_0_part0, 1, 1}, 
-       {ops_prod_22_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_22_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_22_0_part1, ops_prod_22_0_part23, 1, 1, 0, 1},
+    {ops_prod_22_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_23_0_part0[1] =
+static CONST Production ops_prod_23_0_part1[1] =
 {
     {
         9, 23,
@@ -1007,7 +823,7 @@ static CONST Production ops_prod_23_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_23_0_part1[1] =
+static CONST Production ops_prod_23_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -1016,7 +832,7 @@ static CONST Production ops_prod_23_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_23_1_part0[1] =
+static CONST Production ops_prod_23_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1027,19 +843,11 @@ static CONST Production ops_prod_23_1_part0[1] =
 
 static CONST GrammarRule ops_rule_23[2] =
 {
-    {{
-       {ops_prod_23_0_part0, 1, 1}, 
-       {ops_prod_23_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_23_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_23_0_part1, ops_prod_23_0_part23, 1, 1, 0, 1},
+    {ops_prod_23_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_24_0_part0[1] =
+static CONST Production ops_prod_24_0_part1[1] =
 {
     {
         9, 24,
@@ -1048,7 +856,7 @@ static CONST Production ops_prod_24_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_24_0_part1[1] =
+static CONST Production ops_prod_24_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -1057,7 +865,7 @@ static CONST Production ops_prod_24_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_24_1_part0[1] =
+static CONST Production ops_prod_24_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1068,19 +876,11 @@ static CONST Production ops_prod_24_1_part0[1] =
 
 static CONST GrammarRule ops_rule_24[2] =
 {
-    {{
-       {ops_prod_24_0_part0, 1, 1}, 
-       {ops_prod_24_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_24_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_24_0_part1, ops_prod_24_0_part23, 1, 1, 0, 1},
+    {ops_prod_24_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_25_0_part0[1] =
+static CONST Production ops_prod_25_0_part1[1] =
 {
     {
         9, 25,
@@ -1089,7 +889,7 @@ static CONST Production ops_prod_25_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_25_0_part1[1] =
+static CONST Production ops_prod_25_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -1098,7 +898,7 @@ static CONST Production ops_prod_25_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_25_1_part0[1] =
+static CONST Production ops_prod_25_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1109,19 +909,11 @@ static CONST Production ops_prod_25_1_part0[1] =
 
 static CONST GrammarRule ops_rule_25[2] =
 {
-    {{
-       {ops_prod_25_0_part0, 1, 1}, 
-       {ops_prod_25_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_25_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_25_0_part1, ops_prod_25_0_part23, 1, 1, 0, 1},
+    {ops_prod_25_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_26_0_part0[1] =
+static CONST Production ops_prod_26_0_part1[1] =
 {
     {
         9, 26,
@@ -1130,7 +922,7 @@ static CONST Production ops_prod_26_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_26_0_part1[1] =
+static CONST Production ops_prod_26_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -1139,7 +931,7 @@ static CONST Production ops_prod_26_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_26_1_part0[1] =
+static CONST Production ops_prod_26_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1150,19 +942,11 @@ static CONST Production ops_prod_26_1_part0[1] =
 
 static CONST GrammarRule ops_rule_26[2] =
 {
-    {{
-       {ops_prod_26_0_part0, 1, 1}, 
-       {ops_prod_26_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_26_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_26_0_part1, ops_prod_26_0_part23, 1, 1, 0, 1},
+    {ops_prod_26_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_27_0_part0[1] =
+static CONST Production ops_prod_27_0_part1[1] =
 {
     {
         9, 27,
@@ -1171,7 +955,7 @@ static CONST Production ops_prod_27_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_27_0_part1[1] =
+static CONST Production ops_prod_27_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -1180,7 +964,7 @@ static CONST Production ops_prod_27_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_27_1_part0[1] =
+static CONST Production ops_prod_27_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1191,19 +975,11 @@ static CONST Production ops_prod_27_1_part0[1] =
 
 static CONST GrammarRule ops_rule_27[2] =
 {
-    {{
-       {ops_prod_27_0_part0, 1, 1}, 
-       {ops_prod_27_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_27_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_27_0_part1, ops_prod_27_0_part23, 1, 1, 0, 1},
+    {ops_prod_27_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_28_0_part0[1] =
+static CONST Production ops_prod_28_0_part1[1] =
 {
     {
         9, 28,
@@ -1212,7 +988,7 @@ static CONST Production ops_prod_28_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_28_0_part1[1] =
+static CONST Production ops_prod_28_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -1221,7 +997,7 @@ static CONST Production ops_prod_28_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_28_1_part0[1] =
+static CONST Production ops_prod_28_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1232,19 +1008,11 @@ static CONST Production ops_prod_28_1_part0[1] =
 
 static CONST GrammarRule ops_rule_28[2] =
 {
-    {{
-       {ops_prod_28_0_part0, 1, 1}, 
-       {ops_prod_28_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_28_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_28_0_part1, ops_prod_28_0_part23, 1, 1, 0, 1},
+    {ops_prod_28_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_29_0_part0[1] =
+static CONST Production ops_prod_29_0_part1[1] =
 {
     {
         9, 29,
@@ -1253,7 +1021,7 @@ static CONST Production ops_prod_29_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_29_0_part1[1] =
+static CONST Production ops_prod_29_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -1262,7 +1030,7 @@ static CONST Production ops_prod_29_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_29_1_part0[1] =
+static CONST Production ops_prod_29_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1273,19 +1041,11 @@ static CONST Production ops_prod_29_1_part0[1] =
 
 static CONST GrammarRule ops_rule_29[2] =
 {
-    {{
-       {ops_prod_29_0_part0, 1, 1}, 
-       {ops_prod_29_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_29_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_29_0_part1, ops_prod_29_0_part23, 1, 1, 0, 1},
+    {ops_prod_29_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_30_0_part0[1] =
+static CONST Production ops_prod_30_0_part1[1] =
 {
     {
         9, 30,
@@ -1294,7 +1054,7 @@ static CONST Production ops_prod_30_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_30_0_part1[1] =
+static CONST Production ops_prod_30_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -1303,7 +1063,7 @@ static CONST Production ops_prod_30_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_30_1_part0[1] =
+static CONST Production ops_prod_30_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1314,19 +1074,11 @@ static CONST Production ops_prod_30_1_part0[1] =
 
 static CONST GrammarRule ops_rule_30[2] =
 {
-    {{
-       {ops_prod_30_0_part0, 1, 1}, 
-       {ops_prod_30_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_30_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_30_0_part1, ops_prod_30_0_part23, 1, 1, 0, 1},
+    {ops_prod_30_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_31_0_part0[1] =
+static CONST Production ops_prod_31_0_part1[1] =
 {
     {
         9, 31,
@@ -1335,7 +1087,7 @@ static CONST Production ops_prod_31_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_31_1_part0[1] =
+static CONST Production ops_prod_31_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1346,19 +1098,11 @@ static CONST Production ops_prod_31_1_part0[1] =
 
 static CONST GrammarRule ops_rule_31[2] =
 {
-    {{
-       {ops_prod_31_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_31_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_31_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_31_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_32_0_part0[1] =
+static CONST Production ops_prod_32_0_part1[1] =
 {
     {
         9, 32,
@@ -1367,7 +1111,7 @@ static CONST Production ops_prod_32_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_32_0_part1[1] =
+static CONST Production ops_prod_32_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -1376,7 +1120,7 @@ static CONST Production ops_prod_32_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_32_1_part0[1] =
+static CONST Production ops_prod_32_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1387,19 +1131,11 @@ static CONST Production ops_prod_32_1_part0[1] =
 
 static CONST GrammarRule ops_rule_32[2] =
 {
-    {{
-       {ops_prod_32_0_part0, 1, 1}, 
-       {ops_prod_32_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_32_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_32_0_part1, ops_prod_32_0_part23, 1, 1, 0, 1},
+    {ops_prod_32_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_33_0_part0[1] =
+static CONST Production ops_prod_33_0_part1[1] =
 {
     {
         9, 33,
@@ -1408,7 +1144,7 @@ static CONST Production ops_prod_33_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_33_1_part0[1] =
+static CONST Production ops_prod_33_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1419,19 +1155,11 @@ static CONST Production ops_prod_33_1_part0[1] =
 
 static CONST GrammarRule ops_rule_33[2] =
 {
-    {{
-       {ops_prod_33_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_33_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_33_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_33_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_34_0_part0[1] =
+static CONST Production ops_prod_34_0_part1[1] =
 {
     {
         9, 34,
@@ -1440,7 +1168,7 @@ static CONST Production ops_prod_34_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_34_0_part1[1] =
+static CONST Production ops_prod_34_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -1449,7 +1177,7 @@ static CONST Production ops_prod_34_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_34_1_part0[1] =
+static CONST Production ops_prod_34_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1460,19 +1188,11 @@ static CONST Production ops_prod_34_1_part0[1] =
 
 static CONST GrammarRule ops_rule_34[2] =
 {
-    {{
-       {ops_prod_34_0_part0, 1, 1}, 
-       {ops_prod_34_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_34_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_34_0_part1, ops_prod_34_0_part23, 1, 1, 0, 1},
+    {ops_prod_34_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_35_0_part0[1] =
+static CONST Production ops_prod_35_0_part1[1] =
 {
     {
         9, 35,
@@ -1481,7 +1201,7 @@ static CONST Production ops_prod_35_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_35_0_part1[1] =
+static CONST Production ops_prod_35_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -1490,7 +1210,7 @@ static CONST Production ops_prod_35_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_35_1_part0[1] =
+static CONST Production ops_prod_35_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1501,19 +1221,11 @@ static CONST Production ops_prod_35_1_part0[1] =
 
 static CONST GrammarRule ops_rule_35[2] =
 {
-    {{
-       {ops_prod_35_0_part0, 1, 1}, 
-       {ops_prod_35_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_35_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_35_0_part1, ops_prod_35_0_part23, 1, 1, 0, 1},
+    {ops_prod_35_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_36_0_part0[1] =
+static CONST Production ops_prod_36_0_part1[1] =
 {
     {
         9, 36,
@@ -1522,7 +1234,7 @@ static CONST Production ops_prod_36_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_36_0_part1[1] =
+static CONST Production ops_prod_36_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -1531,7 +1243,7 @@ static CONST Production ops_prod_36_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_36_1_part0[1] =
+static CONST Production ops_prod_36_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1542,19 +1254,11 @@ static CONST Production ops_prod_36_1_part0[1] =
 
 static CONST GrammarRule ops_rule_36[2] =
 {
-    {{
-       {ops_prod_36_0_part0, 1, 1}, 
-       {ops_prod_36_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_36_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_36_0_part1, ops_prod_36_0_part23, 1, 1, 0, 1},
+    {ops_prod_36_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_37_0_part0[1] =
+static CONST Production ops_prod_37_0_part1[1] =
 {
     {
         9, 37,
@@ -1563,7 +1267,7 @@ static CONST Production ops_prod_37_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_37_1_part0[1] =
+static CONST Production ops_prod_37_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1574,19 +1278,11 @@ static CONST Production ops_prod_37_1_part0[1] =
 
 static CONST GrammarRule ops_rule_37[2] =
 {
-    {{
-       {ops_prod_37_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_37_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_37_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_37_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_38_0_part0[1] =
+static CONST Production ops_prod_38_0_part1[1] =
 {
     {
         9, 38,
@@ -1595,7 +1291,7 @@ static CONST Production ops_prod_38_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_38_0_part1[1] =
+static CONST Production ops_prod_38_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -1604,7 +1300,7 @@ static CONST Production ops_prod_38_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_38_1_part0[1] =
+static CONST Production ops_prod_38_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1615,19 +1311,11 @@ static CONST Production ops_prod_38_1_part0[1] =
 
 static CONST GrammarRule ops_rule_38[2] =
 {
-    {{
-       {ops_prod_38_0_part0, 1, 1}, 
-       {ops_prod_38_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_38_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_38_0_part1, ops_prod_38_0_part23, 1, 1, 0, 1},
+    {ops_prod_38_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_39_0_part0[1] =
+static CONST Production ops_prod_39_0_part1[1] =
 {
     {
         9, 39,
@@ -1636,7 +1324,7 @@ static CONST Production ops_prod_39_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_39_0_part1[1] =
+static CONST Production ops_prod_39_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -1645,7 +1333,7 @@ static CONST Production ops_prod_39_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_39_1_part0[1] =
+static CONST Production ops_prod_39_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1656,19 +1344,11 @@ static CONST Production ops_prod_39_1_part0[1] =
 
 static CONST GrammarRule ops_rule_39[2] =
 {
-    {{
-       {ops_prod_39_0_part0, 1, 1}, 
-       {ops_prod_39_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_39_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_39_0_part1, ops_prod_39_0_part23, 1, 1, 0, 1},
+    {ops_prod_39_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_40_0_part0[1] =
+static CONST Production ops_prod_40_0_part1[1] =
 {
     {
         9, 40,
@@ -1677,7 +1357,7 @@ static CONST Production ops_prod_40_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_40_0_part1[1] =
+static CONST Production ops_prod_40_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -1686,7 +1366,7 @@ static CONST Production ops_prod_40_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_40_1_part0[1] =
+static CONST Production ops_prod_40_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1697,19 +1377,11 @@ static CONST Production ops_prod_40_1_part0[1] =
 
 static CONST GrammarRule ops_rule_40[2] =
 {
-    {{
-       {ops_prod_40_0_part0, 1, 1}, 
-       {ops_prod_40_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_40_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_40_0_part1, ops_prod_40_0_part23, 1, 1, 0, 1},
+    {ops_prod_40_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_41_0_part0[1] =
+static CONST Production ops_prod_41_0_part1[1] =
 {
     {
         9, 41,
@@ -1718,7 +1390,7 @@ static CONST Production ops_prod_41_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_41_0_part1[1] =
+static CONST Production ops_prod_41_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -1727,7 +1399,7 @@ static CONST Production ops_prod_41_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_41_1_part0[1] =
+static CONST Production ops_prod_41_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1738,19 +1410,11 @@ static CONST Production ops_prod_41_1_part0[1] =
 
 static CONST GrammarRule ops_rule_41[2] =
 {
-    {{
-       {ops_prod_41_0_part0, 1, 1}, 
-       {ops_prod_41_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_41_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_41_0_part1, ops_prod_41_0_part23, 1, 1, 0, 1},
+    {ops_prod_41_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_42_0_part0[1] =
+static CONST Production ops_prod_42_0_part1[1] =
 {
     {
         9, 42,
@@ -1759,7 +1423,7 @@ static CONST Production ops_prod_42_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_42_1_part0[1] =
+static CONST Production ops_prod_42_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1770,19 +1434,11 @@ static CONST Production ops_prod_42_1_part0[1] =
 
 static CONST GrammarRule ops_rule_42[2] =
 {
-    {{
-       {ops_prod_42_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_42_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_42_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_42_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_43_0_part0[1] =
+static CONST Production ops_prod_43_0_part1[1] =
 {
     {
         9, 43,
@@ -1791,7 +1447,7 @@ static CONST Production ops_prod_43_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_43_0_part1[1] =
+static CONST Production ops_prod_43_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -1800,7 +1456,7 @@ static CONST Production ops_prod_43_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_43_1_part0[1] =
+static CONST Production ops_prod_43_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1811,19 +1467,11 @@ static CONST Production ops_prod_43_1_part0[1] =
 
 static CONST GrammarRule ops_rule_43[2] =
 {
-    {{
-       {ops_prod_43_0_part0, 1, 1}, 
-       {ops_prod_43_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_43_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_43_0_part1, ops_prod_43_0_part23, 1, 1, 0, 1},
+    {ops_prod_43_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_44_0_part0[1] =
+static CONST Production ops_prod_44_0_part1[1] =
 {
     {
         9, 44,
@@ -1832,7 +1480,7 @@ static CONST Production ops_prod_44_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_44_0_part1[1] =
+static CONST Production ops_prod_44_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -1841,7 +1489,7 @@ static CONST Production ops_prod_44_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_44_1_part0[1] =
+static CONST Production ops_prod_44_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1852,19 +1500,11 @@ static CONST Production ops_prod_44_1_part0[1] =
 
 static CONST GrammarRule ops_rule_44[2] =
 {
-    {{
-       {ops_prod_44_0_part0, 1, 1}, 
-       {ops_prod_44_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_44_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_44_0_part1, ops_prod_44_0_part23, 1, 1, 0, 1},
+    {ops_prod_44_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_45_0_part0[1] =
+static CONST Production ops_prod_45_0_part1[1] =
 {
     {
         9, 45,
@@ -1873,7 +1513,7 @@ static CONST Production ops_prod_45_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_45_0_part1[1] =
+static CONST Production ops_prod_45_0_part23[1] =
 {
     {
         2, INDEX_MAX,
@@ -1882,7 +1522,7 @@ static CONST Production ops_prod_45_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_45_1_part0[1] =
+static CONST Production ops_prod_45_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1893,19 +1533,11 @@ static CONST Production ops_prod_45_1_part0[1] =
 
 static CONST GrammarRule ops_rule_45[2] =
 {
-    {{
-       {ops_prod_45_0_part0, 1, 1}, 
-       {ops_prod_45_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_45_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_45_0_part1, ops_prod_45_0_part23, 1, 1, 0, 1},
+    {ops_prod_45_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_46_0_part0[1] =
+static CONST Production ops_prod_46_0_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1916,14 +1548,10 @@ static CONST Production ops_prod_46_0_part0[1] =
 
 static CONST GrammarRule ops_rule_46[1] =
 {
-    {{
-       {ops_prod_46_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_46_0_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_47_0_part0[2] =
+static CONST Production ops_prod_47_0_part1[2] =
 {
     {
         5, 46,
@@ -1937,7 +1565,7 @@ static CONST Production ops_prod_47_0_part0[2] =
     }
 };
 
-static CONST Production ops_prod_47_1_part0[1] =
+static CONST Production ops_prod_47_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1946,7 +1574,7 @@ static CONST Production ops_prod_47_1_part0[1] =
     }
 };
 
-static CONST Production ops_prod_47_2_part0[1] =
+static CONST Production ops_prod_47_2_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1957,24 +1585,12 @@ static CONST Production ops_prod_47_2_part0[1] =
 
 static CONST GrammarRule ops_rule_47[3] =
 {
-    {{
-       {ops_prod_47_0_part0, 2, 1}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_47_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_47_2_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_47_0_part1, NULL, 2, 0, 0, 1},
+    {ops_prod_47_1_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_47_2_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_48_0_part0[1] =
+static CONST Production ops_prod_48_0_part1[1] =
 {
     {
         9, 46,
@@ -1983,7 +1599,7 @@ static CONST Production ops_prod_48_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_48_1_part0[1] =
+static CONST Production ops_prod_48_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -1994,19 +1610,11 @@ static CONST Production ops_prod_48_1_part0[1] =
 
 static CONST GrammarRule ops_rule_48[2] =
 {
-    {{
-       {ops_prod_48_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_48_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_48_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_48_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_49_0_part0[1] =
+static CONST Production ops_prod_49_0_part1[1] =
 {
     {
         9, 47,
@@ -2015,7 +1623,7 @@ static CONST Production ops_prod_49_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_49_1_part0[1] =
+static CONST Production ops_prod_49_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -2026,19 +1634,11 @@ static CONST Production ops_prod_49_1_part0[1] =
 
 static CONST GrammarRule ops_rule_49[2] =
 {
-    {{
-       {ops_prod_49_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_49_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_49_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_49_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_50_0_part0[1] =
+static CONST Production ops_prod_50_0_part1[1] =
 {
     {
         7, INDEX_MAX,
@@ -2047,7 +1647,7 @@ static CONST Production ops_prod_50_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_50_1_part0[1] =
+static CONST Production ops_prod_50_1_part1[1] =
 {
     {
         7, INDEX_MAX,
@@ -2056,7 +1656,7 @@ static CONST Production ops_prod_50_1_part0[1] =
     }
 };
 
-static CONST Production ops_prod_50_2_part0[1] =
+static CONST Production ops_prod_50_2_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -2067,24 +1667,12 @@ static CONST Production ops_prod_50_2_part0[1] =
 
 static CONST GrammarRule ops_rule_50[3] =
 {
-    {{
-       {ops_prod_50_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_50_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_50_2_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_50_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_50_1_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_50_2_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_51_0_part0[7] =
+static CONST Production ops_prod_51_0_part1[7] =
 {
     {
         8, INDEX_MAX,
@@ -2123,7 +1711,7 @@ static CONST Production ops_prod_51_0_part0[7] =
     }
 };
 
-static CONST Production ops_prod_51_1_part0[7] =
+static CONST Production ops_prod_51_1_part1[7] =
 {
     {
         8, INDEX_MAX,
@@ -2162,7 +1750,7 @@ static CONST Production ops_prod_51_1_part0[7] =
     }
 };
 
-static CONST Production ops_prod_51_2_part0[5] =
+static CONST Production ops_prod_51_2_part1[5] =
 {
     {
         8, INDEX_MAX,
@@ -2191,7 +1779,7 @@ static CONST Production ops_prod_51_2_part0[5] =
     }
 };
 
-static CONST Production ops_prod_51_3_part0[4] =
+static CONST Production ops_prod_51_3_part1[4] =
 {
     {
         8, INDEX_MAX,
@@ -2215,7 +1803,7 @@ static CONST Production ops_prod_51_3_part0[4] =
     }
 };
 
-static CONST Production ops_prod_51_4_part0[3] =
+static CONST Production ops_prod_51_4_part1[3] =
 {
     {
         8, INDEX_MAX,
@@ -2234,7 +1822,7 @@ static CONST Production ops_prod_51_4_part0[3] =
     }
 };
 
-static CONST Production ops_prod_51_5_part0[2] =
+static CONST Production ops_prod_51_5_part1[2] =
 {
     {
         8, INDEX_MAX,
@@ -2248,7 +1836,7 @@ static CONST Production ops_prod_51_5_part0[2] =
     }
 };
 
-static CONST Production ops_prod_51_6_part0[2] =
+static CONST Production ops_prod_51_6_part1[2] =
 {
     {
         8, INDEX_MAX,
@@ -2264,44 +1852,16 @@ static CONST Production ops_prod_51_6_part0[2] =
 
 static CONST GrammarRule ops_rule_51[7] =
 {
-    {{
-       {ops_prod_51_0_part0, 7, 3}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_51_1_part0, 7, 3}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_51_2_part0, 5, 3}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_51_3_part0, 4, 2}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_51_4_part0, 3, 2}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_51_5_part0, 2, 1}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_51_6_part0, 2, 1}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_51_0_part1, NULL, 7, 0, 0, 3},
+    {ops_prod_51_1_part1, NULL, 7, 0, 0, 3},
+    {ops_prod_51_2_part1, NULL, 5, 0, 0, 3},
+    {ops_prod_51_3_part1, NULL, 4, 0, 0, 2},
+    {ops_prod_51_4_part1, NULL, 3, 0, 0, 2},
+    {ops_prod_51_5_part1, NULL, 2, 0, 0, 1},
+    {ops_prod_51_6_part1, NULL, 2, 0, 0, 1}
 };
 
-static CONST Production ops_prod_52_0_part0[6] =
+static CONST Production ops_prod_52_0_part1[6] =
 {
     {
         8, INDEX_MAX,
@@ -2335,7 +1895,7 @@ static CONST Production ops_prod_52_0_part0[6] =
     }
 };
 
-static CONST Production ops_prod_52_1_part0[5] =
+static CONST Production ops_prod_52_1_part1[5] =
 {
     {
         8, INDEX_MAX,
@@ -2364,7 +1924,7 @@ static CONST Production ops_prod_52_1_part0[5] =
     }
 };
 
-static CONST Production ops_prod_52_2_part0[4] =
+static CONST Production ops_prod_52_2_part1[4] =
 {
     {
         8, INDEX_MAX,
@@ -2388,7 +1948,7 @@ static CONST Production ops_prod_52_2_part0[4] =
     }
 };
 
-static CONST Production ops_prod_52_3_part0[3] =
+static CONST Production ops_prod_52_3_part1[3] =
 {
     {
         8, INDEX_MAX,
@@ -2407,7 +1967,7 @@ static CONST Production ops_prod_52_3_part0[3] =
     }
 };
 
-static CONST Production ops_prod_52_4_part0[2] =
+static CONST Production ops_prod_52_4_part1[2] =
 {
     {
         8, INDEX_MAX,
@@ -2421,7 +1981,7 @@ static CONST Production ops_prod_52_4_part0[2] =
     }
 };
 
-static CONST Production ops_prod_52_5_part0[1] =
+static CONST Production ops_prod_52_5_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -2432,39 +1992,15 @@ static CONST Production ops_prod_52_5_part0[1] =
 
 static CONST GrammarRule ops_rule_52[6] =
 {
-    {{
-       {ops_prod_52_0_part0, 6, 3}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_52_1_part0, 5, 3}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_52_2_part0, 4, 2}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_52_3_part0, 3, 2}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_52_4_part0, 2, 1}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_52_5_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_52_0_part1, NULL, 6, 0, 0, 3},
+    {ops_prod_52_1_part1, NULL, 5, 0, 0, 3},
+    {ops_prod_52_2_part1, NULL, 4, 0, 0, 2},
+    {ops_prod_52_3_part1, NULL, 3, 0, 0, 2},
+    {ops_prod_52_4_part1, NULL, 2, 0, 0, 1},
+    {ops_prod_52_5_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_53_0_part0[1] =
+static CONST Production ops_prod_53_0_part1[1] =
 {
     {
         9, 48,
@@ -2473,7 +2009,7 @@ static CONST Production ops_prod_53_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_53_1_part0[1] =
+static CONST Production ops_prod_53_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -2484,19 +2020,11 @@ static CONST Production ops_prod_53_1_part0[1] =
 
 static CONST GrammarRule ops_rule_53[2] =
 {
-    {{
-       {ops_prod_53_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_53_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_53_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_53_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_54_0_part0[4] =
+static CONST Production ops_prod_54_0_part1[4] =
 {
     {
         8, INDEX_MAX,
@@ -2520,7 +2048,7 @@ static CONST Production ops_prod_54_0_part0[4] =
     }
 };
 
-static CONST Production ops_prod_54_1_part0[3] =
+static CONST Production ops_prod_54_1_part1[3] =
 {
     {
         8, INDEX_MAX,
@@ -2539,7 +2067,7 @@ static CONST Production ops_prod_54_1_part0[3] =
     }
 };
 
-static CONST Production ops_prod_54_2_part0[2] =
+static CONST Production ops_prod_54_2_part1[2] =
 {
     {
         8, INDEX_MAX,
@@ -2553,7 +2081,7 @@ static CONST Production ops_prod_54_2_part0[2] =
     }
 };
 
-static CONST Production ops_prod_54_3_part0[1] =
+static CONST Production ops_prod_54_3_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -2564,29 +2092,13 @@ static CONST Production ops_prod_54_3_part0[1] =
 
 static CONST GrammarRule ops_rule_54[4] =
 {
-    {{
-       {ops_prod_54_0_part0, 4, 2}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_54_1_part0, 3, 2}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_54_2_part0, 2, 1}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_54_3_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_54_0_part1, NULL, 4, 0, 0, 2},
+    {ops_prod_54_1_part1, NULL, 3, 0, 0, 2},
+    {ops_prod_54_2_part1, NULL, 2, 0, 0, 1},
+    {ops_prod_54_3_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_55_0_part0[1] =
+static CONST Production ops_prod_55_0_part1[1] =
 {
     {
         9, 49,
@@ -2595,7 +2107,7 @@ static CONST Production ops_prod_55_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_55_0_part1[1] =
+static CONST Production ops_prod_55_0_part23[1] =
 {
     {
         2, 15,
@@ -2604,7 +2116,7 @@ static CONST Production ops_prod_55_0_part1[1] =
     }
 };
 
-static CONST Production ops_prod_55_1_part0[1] =
+static CONST Production ops_prod_55_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -2615,19 +2127,11 @@ static CONST Production ops_prod_55_1_part0[1] =
 
 static CONST GrammarRule ops_rule_55[2] =
 {
-    {{
-       {ops_prod_55_0_part0, 1, 1}, 
-       {ops_prod_55_0_part1, 1, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_55_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_55_0_part1, ops_prod_55_0_part23, 1, 1, 0, 1},
+    {ops_prod_55_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_56_0_part0[4] =
+static CONST Production ops_prod_56_0_part1[4] =
 {
     {
         8, INDEX_MAX,
@@ -2651,7 +2155,7 @@ static CONST Production ops_prod_56_0_part0[4] =
     }
 };
 
-static CONST Production ops_prod_56_1_part0[3] =
+static CONST Production ops_prod_56_1_part1[3] =
 {
     {
         8, INDEX_MAX,
@@ -2670,7 +2174,7 @@ static CONST Production ops_prod_56_1_part0[3] =
     }
 };
 
-static CONST Production ops_prod_56_2_part0[2] =
+static CONST Production ops_prod_56_2_part1[2] =
 {
     {
         8, INDEX_MAX,
@@ -2684,7 +2188,7 @@ static CONST Production ops_prod_56_2_part0[2] =
     }
 };
 
-static CONST Production ops_prod_56_3_part0[1] =
+static CONST Production ops_prod_56_3_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -2695,29 +2199,13 @@ static CONST Production ops_prod_56_3_part0[1] =
 
 static CONST GrammarRule ops_rule_56[4] =
 {
-    {{
-       {ops_prod_56_0_part0, 4, 2}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_56_1_part0, 3, 2}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_56_2_part0, 2, 1}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_56_3_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_56_0_part1, NULL, 4, 0, 0, 2},
+    {ops_prod_56_1_part1, NULL, 3, 0, 0, 2},
+    {ops_prod_56_2_part1, NULL, 2, 0, 0, 1},
+    {ops_prod_56_3_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_57_0_part0[4] =
+static CONST Production ops_prod_57_0_part1[4] =
 {
     {
         8, INDEX_MAX,
@@ -2741,7 +2229,7 @@ static CONST Production ops_prod_57_0_part0[4] =
     }
 };
 
-static CONST Production ops_prod_57_1_part0[3] =
+static CONST Production ops_prod_57_1_part1[3] =
 {
     {
         8, INDEX_MAX,
@@ -2760,7 +2248,7 @@ static CONST Production ops_prod_57_1_part0[3] =
     }
 };
 
-static CONST Production ops_prod_57_2_part0[2] =
+static CONST Production ops_prod_57_2_part1[2] =
 {
     {
         8, INDEX_MAX,
@@ -2774,7 +2262,7 @@ static CONST Production ops_prod_57_2_part0[2] =
     }
 };
 
-static CONST Production ops_prod_57_3_part0[1] =
+static CONST Production ops_prod_57_3_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -2785,29 +2273,13 @@ static CONST Production ops_prod_57_3_part0[1] =
 
 static CONST GrammarRule ops_rule_57[4] =
 {
-    {{
-       {ops_prod_57_0_part0, 4, 2}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_57_1_part0, 3, 2}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_57_2_part0, 2, 1}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_57_3_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_57_0_part1, NULL, 4, 0, 0, 2},
+    {ops_prod_57_1_part1, NULL, 3, 0, 0, 2},
+    {ops_prod_57_2_part1, NULL, 2, 0, 0, 1},
+    {ops_prod_57_3_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_58_0_part0[1] =
+static CONST Production ops_prod_58_0_part1[1] =
 {
     {
         9, 50,
@@ -2816,7 +2288,7 @@ static CONST Production ops_prod_58_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_58_1_part0[1] =
+static CONST Production ops_prod_58_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -2827,19 +2299,11 @@ static CONST Production ops_prod_58_1_part0[1] =
 
 static CONST GrammarRule ops_rule_58[2] =
 {
-    {{
-       {ops_prod_58_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_58_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_58_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_58_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_59_0_part0[1] =
+static CONST Production ops_prod_59_0_part1[1] =
 {
     {
         9, 51,
@@ -2848,7 +2312,7 @@ static CONST Production ops_prod_59_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_59_1_part0[1] =
+static CONST Production ops_prod_59_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -2859,19 +2323,11 @@ static CONST Production ops_prod_59_1_part0[1] =
 
 static CONST GrammarRule ops_rule_59[2] =
 {
-    {{
-       {ops_prod_59_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_59_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_59_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_59_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_60_0_part0[1] =
+static CONST Production ops_prod_60_0_part1[1] =
 {
     {
         9, 52,
@@ -2880,7 +2336,7 @@ static CONST Production ops_prod_60_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_60_1_part0[1] =
+static CONST Production ops_prod_60_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -2891,19 +2347,11 @@ static CONST Production ops_prod_60_1_part0[1] =
 
 static CONST GrammarRule ops_rule_60[2] =
 {
-    {{
-       {ops_prod_60_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_60_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_60_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_60_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_61_0_part0[1] =
+static CONST Production ops_prod_61_0_part1[1] =
 {
     {
         9, 53,
@@ -2912,7 +2360,7 @@ static CONST Production ops_prod_61_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_61_1_part0[1] =
+static CONST Production ops_prod_61_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -2923,19 +2371,11 @@ static CONST Production ops_prod_61_1_part0[1] =
 
 static CONST GrammarRule ops_rule_61[2] =
 {
-    {{
-       {ops_prod_61_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_61_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_61_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_61_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_62_0_part0[1] =
+static CONST Production ops_prod_62_0_part1[1] =
 {
     {
         9, 54,
@@ -2944,7 +2384,7 @@ static CONST Production ops_prod_62_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_62_1_part0[1] =
+static CONST Production ops_prod_62_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -2955,19 +2395,11 @@ static CONST Production ops_prod_62_1_part0[1] =
 
 static CONST GrammarRule ops_rule_62[2] =
 {
-    {{
-       {ops_prod_62_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_62_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_62_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_62_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_63_0_part0[1] =
+static CONST Production ops_prod_63_0_part1[1] =
 {
     {
         9, 55,
@@ -2976,7 +2408,7 @@ static CONST Production ops_prod_63_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_63_1_part0[1] =
+static CONST Production ops_prod_63_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -2987,19 +2419,11 @@ static CONST Production ops_prod_63_1_part0[1] =
 
 static CONST GrammarRule ops_rule_63[2] =
 {
-    {{
-       {ops_prod_63_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_63_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_63_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_63_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_64_0_part0[1] =
+static CONST Production ops_prod_64_0_part1[1] =
 {
     {
         9, 56,
@@ -3008,7 +2432,7 @@ static CONST Production ops_prod_64_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_64_1_part0[1] =
+static CONST Production ops_prod_64_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -3019,19 +2443,11 @@ static CONST Production ops_prod_64_1_part0[1] =
 
 static CONST GrammarRule ops_rule_64[2] =
 {
-    {{
-       {ops_prod_64_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_64_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_64_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_64_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_65_0_part0[1] =
+static CONST Production ops_prod_65_0_part1[1] =
 {
     {
         9, 57,
@@ -3040,7 +2456,7 @@ static CONST Production ops_prod_65_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_65_1_part0[1] =
+static CONST Production ops_prod_65_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -3051,19 +2467,11 @@ static CONST Production ops_prod_65_1_part0[1] =
 
 static CONST GrammarRule ops_rule_65[2] =
 {
-    {{
-       {ops_prod_65_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_65_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_65_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_65_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_66_0_part0[1] =
+static CONST Production ops_prod_66_0_part1[1] =
 {
     {
         9, 58,
@@ -3072,7 +2480,7 @@ static CONST Production ops_prod_66_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_66_1_part0[1] =
+static CONST Production ops_prod_66_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -3083,19 +2491,11 @@ static CONST Production ops_prod_66_1_part0[1] =
 
 static CONST GrammarRule ops_rule_66[2] =
 {
-    {{
-       {ops_prod_66_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_66_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_66_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_66_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_67_0_part0[1] =
+static CONST Production ops_prod_67_0_part1[1] =
 {
     {
         9, 59,
@@ -3104,7 +2504,7 @@ static CONST Production ops_prod_67_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_67_1_part0[1] =
+static CONST Production ops_prod_67_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -3115,19 +2515,11 @@ static CONST Production ops_prod_67_1_part0[1] =
 
 static CONST GrammarRule ops_rule_67[2] =
 {
-    {{
-       {ops_prod_67_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_67_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_67_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_67_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_68_0_part0[1] =
+static CONST Production ops_prod_68_0_part1[1] =
 {
     {
         9, 60,
@@ -3136,7 +2528,7 @@ static CONST Production ops_prod_68_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_68_1_part0[1] =
+static CONST Production ops_prod_68_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -3147,19 +2539,11 @@ static CONST Production ops_prod_68_1_part0[1] =
 
 static CONST GrammarRule ops_rule_68[2] =
 {
-    {{
-       {ops_prod_68_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_68_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_68_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_68_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_69_0_part0[1] =
+static CONST Production ops_prod_69_0_part1[1] =
 {
     {
         9, 61,
@@ -3168,7 +2552,7 @@ static CONST Production ops_prod_69_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_69_1_part0[1] =
+static CONST Production ops_prod_69_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -3179,19 +2563,11 @@ static CONST Production ops_prod_69_1_part0[1] =
 
 static CONST GrammarRule ops_rule_69[2] =
 {
-    {{
-       {ops_prod_69_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_69_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_69_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_69_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_70_0_part0[1] =
+static CONST Production ops_prod_70_0_part1[1] =
 {
     {
         9, 62,
@@ -3200,7 +2576,7 @@ static CONST Production ops_prod_70_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_70_1_part0[1] =
+static CONST Production ops_prod_70_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -3211,19 +2587,11 @@ static CONST Production ops_prod_70_1_part0[1] =
 
 static CONST GrammarRule ops_rule_70[2] =
 {
-    {{
-       {ops_prod_70_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_70_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_70_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_70_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_71_0_part0[1] =
+static CONST Production ops_prod_71_0_part1[1] =
 {
     {
         9, 63,
@@ -3232,7 +2600,7 @@ static CONST Production ops_prod_71_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_71_1_part0[1] =
+static CONST Production ops_prod_71_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -3243,19 +2611,11 @@ static CONST Production ops_prod_71_1_part0[1] =
 
 static CONST GrammarRule ops_rule_71[2] =
 {
-    {{
-       {ops_prod_71_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_71_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_71_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_71_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_72_0_part0[1] =
+static CONST Production ops_prod_72_0_part1[1] =
 {
     {
         9, 64,
@@ -3264,7 +2624,7 @@ static CONST Production ops_prod_72_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_72_1_part0[1] =
+static CONST Production ops_prod_72_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -3275,19 +2635,11 @@ static CONST Production ops_prod_72_1_part0[1] =
 
 static CONST GrammarRule ops_rule_72[2] =
 {
-    {{
-       {ops_prod_72_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_72_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_72_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_72_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_73_0_part0[1] =
+static CONST Production ops_prod_73_0_part1[1] =
 {
     {
         9, 65,
@@ -3296,7 +2648,7 @@ static CONST Production ops_prod_73_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_73_1_part0[1] =
+static CONST Production ops_prod_73_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -3307,19 +2659,11 @@ static CONST Production ops_prod_73_1_part0[1] =
 
 static CONST GrammarRule ops_rule_73[2] =
 {
-    {{
-       {ops_prod_73_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_73_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_73_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_73_1_part1, NULL, 1, 0, 0, 0}
 };
 
-static CONST Production ops_prod_74_0_part0[1] =
+static CONST Production ops_prod_74_0_part1[1] =
 {
     {
         9, 66,
@@ -3328,7 +2672,7 @@ static CONST Production ops_prod_74_0_part0[1] =
     }
 };
 
-static CONST Production ops_prod_74_1_part0[1] =
+static CONST Production ops_prod_74_1_part1[1] =
 {
     {
         8, INDEX_MAX,
@@ -3339,16 +2683,8 @@ static CONST Production ops_prod_74_1_part0[1] =
 
 static CONST GrammarRule ops_rule_74[2] =
 {
-    {{
-       {ops_prod_74_0_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0},
-    }},
-    {{
-       {ops_prod_74_1_part0, 1, 0}, 
-       {NULL, 0, 0}, 
-       {NULL, 0, 0}
-    }}
+    {ops_prod_74_0_part1, NULL, 1, 0, 0, 0},
+    {ops_prod_74_1_part1, NULL, 1, 0, 0, 0}
 };
 
 static CONST EXIGrammar ops_grammarTable[75] =
@@ -3979,21 +3315,9 @@ static CONST Production ops_prod_doc_content[2] =
 
 static CONST GrammarRule ops_docGrammarRule[3] =
 {
-    {{
-       {static_prod_start_doc_part0, 1, 0},
-       {NULL, 0, 0},
-       {NULL, 0, 0}
-    }},
-    {{
-       {ops_prod_doc_content, 2, 1},
-       {NULL, 0, 0},
-       {NULL, 0, 0}
-    }},
-    {{
-       {static_prod_doc_end_part0, 1, 0},
-       {NULL, 0, 0},
-       {NULL, 0, 0}
-    }}
+    {static_prod_start_doc_part0, NULL, 1, 0, 0, 0},
+    {ops_prod_doc_content, NULL, 2, 0, 0, 1},
+    {static_prod_doc_end_part0, NULL, 1, 0, 0, 0}
 };
 
 static CONST SimpleType ops_simpleTypes[67] =

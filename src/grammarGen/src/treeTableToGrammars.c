@@ -1998,7 +1998,7 @@ static errorCode getTypeId(BuildContext* ctx, const QNameID typeQnameId, TreeTab
 
 		}
 
-		*typeId = (GET_TYPE_GRAMMAR_QNAMEID(ctx->schema, typeQnameId))->rule[0].part[0].prod[0].typeId;
+		*typeId = (GET_TYPE_GRAMMAR_QNAMEID(ctx->schema, typeQnameId))->rule[0].prod1[0].typeId;
 		if(*typeId == INDEX_MAX)
 			return UNEXPECTED_ERROR;
 	}

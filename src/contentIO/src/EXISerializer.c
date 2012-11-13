@@ -220,17 +220,18 @@ errorCode startDocument(EXIStream* strm)
 	Index lastCodePart;
 	Index typeId;
 	GrammarRule* currentRule;
+	Production* prodHit;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start doc serialization\n"));
 
 	if(strm->context.currNonTermID != GR_DOCUMENT)
 		return INCONSISTENT_PROC_STATE;
 
-	tmp_err_code = lookupProduction(strm, EVENT_SD, VALUE_TYPE_NONE, &currentRule, &typeId, NULL, &codeLength, &lastCodePart);
+	tmp_err_code = lookupProduction(strm, EVENT_SD, VALUE_TYPE_NONE, &currentRule, &typeId, NULL, &codeLength, &lastCodePart, &prodHit);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	return encodeProduction(strm, currentRule, codeLength, lastCodePart, NULL);
+	return encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, NULL);
 }
 
 errorCode endDocument(EXIStream* strm)
@@ -240,14 +241,15 @@ errorCode endDocument(EXIStream* strm)
 	Index lastCodePart;
 	Index typeId;
 	GrammarRule* currentRule;
+	Production* prodHit;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">End doc serialization\n"));
 
-	tmp_err_code = lookupProduction(strm, EVENT_ED, VALUE_TYPE_NONE, &currentRule, &typeId, NULL, &codeLength, &lastCodePart);
+	tmp_err_code = lookupProduction(strm, EVENT_ED, VALUE_TYPE_NONE, &currentRule, &typeId, NULL, &codeLength, &lastCodePart, &prodHit);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	return encodeProduction(strm, currentRule, codeLength, lastCodePart, NULL);
+	return encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, NULL);
 }
 
 errorCode startElement(EXIStream* strm, QName qname)
@@ -257,14 +259,15 @@ errorCode startElement(EXIStream* strm, QName qname)
 	Index lastCodePart;
 	Index typeId;
 	GrammarRule* currentRule;
+	Production* prodHit;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Start element serialization\n"));
 
-	tmp_err_code = lookupProduction(strm, EVENT_SE_ALL, VALUE_TYPE_NONE, &currentRule, &typeId, &qname, &codeLength, &lastCodePart);
+	tmp_err_code = lookupProduction(strm, EVENT_SE_ALL, VALUE_TYPE_NONE, &currentRule, &typeId, &qname, &codeLength, &lastCodePart, &prodHit);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	return encodeProduction(strm, currentRule, codeLength, lastCodePart, &qname);
+	return encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, &qname);
 }
 
 errorCode endElement(EXIStream* strm)
@@ -274,14 +277,15 @@ errorCode endElement(EXIStream* strm)
 	Index lastCodePart;
 	Index typeId;
 	GrammarRule* currentRule;
+	Production* prodHit;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">End element serialization\n"));
 
-	tmp_err_code = lookupProduction(strm, EVENT_EE, VALUE_TYPE_NONE, &currentRule, &typeId, NULL, &codeLength, &lastCodePart);
+	tmp_err_code = lookupProduction(strm, EVENT_EE, VALUE_TYPE_NONE, &currentRule, &typeId, NULL, &codeLength, &lastCodePart, &prodHit);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	return encodeProduction(strm, currentRule, codeLength, lastCodePart, NULL);
+	return encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, NULL);
 }
 
 errorCode attribute(EXIStream* strm, QName qname, EXIType exiType)
@@ -291,14 +295,15 @@ errorCode attribute(EXIStream* strm, QName qname, EXIType exiType)
 	Index lastCodePart;
 	Index typeId;
 	GrammarRule* currentRule;
+	Production* prodHit;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Start attribute serialization\n"));
 
-	tmp_err_code = lookupProduction(strm, EVENT_AT_ALL, exiType, &currentRule, &typeId, &qname, &codeLength, &lastCodePart);
+	tmp_err_code = lookupProduction(strm, EVENT_AT_ALL, exiType, &currentRule, &typeId, &qname, &codeLength, &lastCodePart, &prodHit);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	return encodeProduction(strm, currentRule, codeLength, lastCodePart, &qname);
+	return encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, &qname);
 }
 
 errorCode intData(EXIStream* strm, Integer int_val)
@@ -317,12 +322,13 @@ errorCode intData(EXIStream* strm, Integer int_val)
 		unsigned char codeLength;
 		Index lastCodePart;
 		GrammarRule* currentRule;
+		Production* prodHit;
 
-		tmp_err_code = lookupProduction(strm, EVENT_CH, VALUE_TYPE_INTEGER, &currentRule, &intTypeId, NULL, &codeLength, &lastCodePart);
+		tmp_err_code = lookupProduction(strm, EVENT_CH, VALUE_TYPE_INTEGER, &currentRule, &intTypeId, NULL, &codeLength, &lastCodePart, &prodHit);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = encodeProduction(strm, currentRule, codeLength, lastCodePart, NULL);
+		tmp_err_code = encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, NULL);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -351,12 +357,13 @@ errorCode booleanData(EXIStream* strm, unsigned char bool_val)
 		unsigned char codeLength;
 		Index lastCodePart;
 		GrammarRule* currentRule;
+		Production* prodHit;
 
-		tmp_err_code = lookupProduction(strm, EVENT_CH, VALUE_TYPE_BOOLEAN, &currentRule, &typeId, NULL, &codeLength, &lastCodePart);
+		tmp_err_code = lookupProduction(strm, EVENT_CH, VALUE_TYPE_BOOLEAN, &currentRule, &typeId, NULL, &codeLength, &lastCodePart, &prodHit);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = encodeProduction(strm, currentRule, codeLength, lastCodePart, NULL);
+		tmp_err_code = encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, NULL);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -404,12 +411,13 @@ errorCode stringData(EXIStream* strm, const String str_val)
 		unsigned char codeLength;
 		Index lastCodePart;
 		GrammarRule* currentRule;
+		Production* prodHit;
 
-		tmp_err_code = lookupProduction(strm, EVENT_CH, VALUE_TYPE_STRING, &currentRule, &typeId, NULL, &codeLength, &lastCodePart);
+		tmp_err_code = lookupProduction(strm, EVENT_CH, VALUE_TYPE_STRING, &currentRule, &typeId, NULL, &codeLength, &lastCodePart, &prodHit);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = encodeProduction(strm, currentRule, codeLength, lastCodePart, NULL);
+		tmp_err_code = encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, NULL);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -434,12 +442,13 @@ errorCode floatData(EXIStream* strm, Float float_val)
 		unsigned char codeLength;
 		Index lastCodePart;
 		GrammarRule* currentRule;
+		Production* prodHit;
 
-		tmp_err_code = lookupProduction(strm, EVENT_CH, VALUE_TYPE_FLOAT, &currentRule, &typeId, NULL, &codeLength, &lastCodePart);
+		tmp_err_code = lookupProduction(strm, EVENT_CH, VALUE_TYPE_FLOAT, &currentRule, &typeId, NULL, &codeLength, &lastCodePart, &prodHit);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = encodeProduction(strm, currentRule, codeLength, lastCodePart, NULL);
+		tmp_err_code = encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, NULL);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -462,12 +471,13 @@ errorCode binaryData(EXIStream* strm, const char* binary_val, Index nbytes)
 		unsigned char codeLength;
 		Index lastCodePart;
 		GrammarRule* currentRule;
+		Production* prodHit;
 
-		tmp_err_code = lookupProduction(strm, EVENT_CH, VALUE_TYPE_BINARY, &currentRule, &typeId, NULL, &codeLength, &lastCodePart);
+		tmp_err_code = lookupProduction(strm, EVENT_CH, VALUE_TYPE_BINARY, &currentRule, &typeId, NULL, &codeLength, &lastCodePart, &prodHit);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = encodeProduction(strm, currentRule, codeLength, lastCodePart, NULL);
+		tmp_err_code = encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, NULL);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -490,12 +500,13 @@ errorCode dateTimeData(EXIStream* strm, EXIPDateTime dt_val)
 		unsigned char codeLength;
 		Index lastCodePart;
 		GrammarRule* currentRule;
+		Production* prodHit;
 
-		tmp_err_code = lookupProduction(strm, EVENT_CH, VALUE_TYPE_DATE_TIME, &currentRule, &typeId, NULL, &codeLength, &lastCodePart);
+		tmp_err_code = lookupProduction(strm, EVENT_CH, VALUE_TYPE_DATE_TIME, &currentRule, &typeId, NULL, &codeLength, &lastCodePart, &prodHit);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = encodeProduction(strm, currentRule, codeLength, lastCodePart, NULL);
+		tmp_err_code = encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, NULL);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -526,12 +537,13 @@ errorCode listData(EXIStream* strm, unsigned int itemCount)
 		unsigned char codeLength;
 		Index lastCodePart;
 		GrammarRule* currentRule;
+		Production* prodHit;
 
-		tmp_err_code = lookupProduction(strm, EVENT_CH, VALUE_TYPE_LIST, &currentRule, &typeId, NULL, &codeLength, &lastCodePart);
+		tmp_err_code = lookupProduction(strm, EVENT_CH, VALUE_TYPE_LIST, &currentRule, &typeId, NULL, &codeLength, &lastCodePart, &prodHit);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = encodeProduction(strm, currentRule, codeLength, lastCodePart, NULL);
+		tmp_err_code = encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, NULL);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -555,14 +567,15 @@ errorCode namespaceDeclaration(EXIStream* strm, const String ns, const String pr
 	SmallIndex uriId;
 	Index typeId;
 	GrammarRule* currentRule;
+	Production* prodHit;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start namespace declaration\n"));
 
-	tmp_err_code = lookupProduction(strm, EVENT_NS, VALUE_TYPE_NONE, &currentRule, &typeId, NULL, &codeLength, &lastCodePart);
+	tmp_err_code = lookupProduction(strm, EVENT_NS, VALUE_TYPE_NONE, &currentRule, &typeId, NULL, &codeLength, &lastCodePart, &prodHit);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = encodeProduction(strm, currentRule, codeLength, lastCodePart, NULL);
+	tmp_err_code = encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, NULL);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -613,6 +626,7 @@ errorCode closeEXIStream(EXIStream* strm)
 errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, Index lastCodePart, QName* qname)
 {
 	GrammarRule* currentRule;
+	Production* prodHit;
 
 	if(strm->context.currNonTermID >=  strm->gStack->grammar->count)
 		return INCONSISTENT_PROC_STATE;
@@ -622,5 +636,20 @@ errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, Index lastCo
 	else
 		currentRule = &strm->gStack->grammar->rule[strm->context.currNonTermID];
 
-	return encodeProduction(strm, currentRule, codeLength, lastCodePart, qname);
+	switch(codeLength)
+	{
+		case 1:
+			prodHit = &currentRule->prod1[currentRule->p1Count - 1 - lastCodePart];
+		break;
+		case 2:
+			prodHit = &currentRule->prod23[currentRule->p2Count - 1 - lastCodePart];
+		break;
+		case 3:
+			prodHit = &currentRule->prod23[currentRule->p2Count + currentRule->p3Count - 1 - lastCodePart];
+		break;
+		default:
+			return INCONSISTENT_PROC_STATE;
+	}
+
+	return encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, qname);
 }

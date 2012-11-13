@@ -574,57 +574,59 @@ typedef struct Production Production;
 #define GR_FRAGMENT_CONTENT  1
 /**@}*/
 
-/**
- * A collection of production rules with a common event code length.
- */
-struct GrammarRulePart
-{
-     /**
-      * Array of grammar productions
-      */
-     Production* prod;
-     /**
-      * The number of productions in prod
-      */
-     Index count;
-     /**
-      * The number of bits used for the event code enumerations, where 
-      * count <= 2 ^ bits
-      */
-     unsigned char bits;
-};
-
-typedef struct GrammarRulePart GrammarRulePart;
-
 /** 
- * A container for production rules for a particular left-hand side non-terminal. 
- * Organizes the rules by event code length.
+ * A container for productions for a particular left-hand side non-terminal.
  */
 struct GrammarRule
 {
-	/**
-	 * An 'inner' container for production rules, grouped by a rule's event code length, 
-     * with a range of 1 to 3 (index 0 to 2). 
-	 */
-     GrammarRulePart part[3];
+	/** Array of grammar productions with event code length 1 */
+    Production* prod1;
+
+    /** Array of grammar productions with event code with length 2 and length 3 */
+    Production* prod23;
+
+    /** The number of productions in prod1 */
+    Index p1Count;
+
+    /** The number of productions with event code with length 2 */
+    SmallIndex p2Count;
+
+    /** The number of productions with event code with length 3 */
+    SmallIndex p3Count;
+
+    /** The number of bits for prod1 - used for the event code enumerations */
+    unsigned char bits1;
 };
+
 typedef struct GrammarRule GrammarRule;
 
 /**
  * Extension to the GrammarRule. In the DynGrammarRule the first production array i.e. the one holding the
- * productions with event code with length 1 (prods[0]) is dynamic array.
+ * productions with event code with length 1 (prod1) is dynamic array.
  * The dynamic GrammarRule is used for Built-in Element Grammar and Built-in Fragment Grammar
  */
 struct DynGrammarRule
 {
-	/**
-	 * Each part includes all productions with a specific event code length.
-	 * There are three elements, for event code lengths of 1, 2 and 3.
-	 */
-    GrammarRulePart part[3];
+   /** Array of grammar productions with event code length 1 */
+   Production* prod1;
 
-	// Additional fields
-    Index part0Dimension; // The size of the part[0] Dynamic production array /allocated space for Productions in it/
+   /** Array of grammar productions with event code with length 2 and length 3 */
+   Production* prod23;
+
+   /** The number of productions in prod1 */
+   Index p1Count;
+
+   /** The number of productions with event code with length 2 */
+   SmallIndex p2Count;
+
+   /** The number of productions with event code with length 3 */
+   SmallIndex p3Count;
+
+   /** The number of bits for prod1 - used for the event code enumerations */
+   unsigned char bits1;
+
+   /** Additional field */
+   Index prod1Dim; // The size of the prod1 Dynamic production array /allocated space for Productions in it/
 };
 typedef struct DynGrammarRule DynGrammarRule;
 

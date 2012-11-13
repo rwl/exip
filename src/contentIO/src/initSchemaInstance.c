@@ -142,128 +142,108 @@ errorCode generateBuiltInTypesGrammars(EXIPSchema* schema)
 			// <xs:anyType> - The base complex type; complex ur-type
 			grammar.contentIndex = 1;
 
-			/* Initialize first rule Part 2 */
-			grammar.rule[0].part[1].prod = NULL;
-			grammar.rule[0].part[1].count = 0;
-			grammar.rule[0].part[1].bits = 0;
+			/* Initialize first rule Part 2 and 3 */
+			grammar.rule[0].prod23 = NULL;
+			grammar.rule[0].p2Count = 0;
+			grammar.rule[0].p3Count = 0;
 
-			/* Initialize first rule Part 3 */
-			grammar.rule[0].part[2].prod = NULL;
-			grammar.rule[0].part[2].count = 0;
-			grammar.rule[0].part[2].bits = 0;
+			/* Initialize second rule Part 2 and 3 */
+			grammar.rule[1].prod23 = NULL;
+			grammar.rule[1].p2Count = 0;
+			grammar.rule[1].p3Count = 0;
 
-			/* Initialize second rule Part 2 */
-			grammar.rule[1].part[1].prod = NULL;
-			grammar.rule[1].part[1].count = 0;
-			grammar.rule[1].part[1].bits = 0;
-
-			/* Initialize second rule Part 3 */
-			grammar.rule[1].part[2].prod = NULL;
-			grammar.rule[1].part[2].count = 0;
-			grammar.rule[1].part[2].bits = 0;
-
-			grammar.rule[0].part[0].prod = memManagedAllocate(&schema->memList, sizeof(Production)*4);
-			if(grammar.rule[0].part[0].prod == NULL)
+			grammar.rule[0].prod1 = memManagedAllocate(&schema->memList, sizeof(Production)*4);
+			if(grammar.rule[0].prod1 == NULL)
 				return MEMORY_ALLOCATION_ERROR;
 
-			grammar.rule[0].part[0].prod[3].eventType = EVENT_AT_ALL;
-			grammar.rule[0].part[0].prod[3].typeId = INDEX_MAX;
-			grammar.rule[0].part[0].prod[3].nonTermID = 0;
-			grammar.rule[0].part[0].prod[3].qnameId.uriId = URI_MAX;
-			grammar.rule[0].part[0].prod[3].qnameId.lnId = LN_MAX;
+			grammar.rule[0].prod1[3].eventType = EVENT_AT_ALL;
+			grammar.rule[0].prod1[3].typeId = INDEX_MAX;
+			grammar.rule[0].prod1[3].nonTermID = 0;
+			grammar.rule[0].prod1[3].qnameId.uriId = URI_MAX;
+			grammar.rule[0].prod1[3].qnameId.lnId = LN_MAX;
 
-			grammar.rule[0].part[0].prod[2].eventType = EVENT_SE_ALL;
-			grammar.rule[0].part[0].prod[2].typeId = INDEX_MAX;
-			grammar.rule[0].part[0].prod[2].nonTermID = 1;
-			grammar.rule[0].part[0].prod[2].qnameId.uriId = URI_MAX;
-			grammar.rule[0].part[0].prod[2].qnameId.lnId = LN_MAX;
+			grammar.rule[0].prod1[2].eventType = EVENT_SE_ALL;
+			grammar.rule[0].prod1[2].typeId = INDEX_MAX;
+			grammar.rule[0].prod1[2].nonTermID = 1;
+			grammar.rule[0].prod1[2].qnameId.uriId = URI_MAX;
+			grammar.rule[0].prod1[2].qnameId.lnId = LN_MAX;
 
-			grammar.rule[0].part[0].prod[1].eventType = EVENT_EE;
-			grammar.rule[0].part[0].prod[1].typeId = INDEX_MAX;
-			grammar.rule[0].part[0].prod[1].nonTermID = GR_VOID_NON_TERMINAL;
-			grammar.rule[0].part[0].prod[1].qnameId.uriId = URI_MAX;
-			grammar.rule[0].part[0].prod[1].qnameId.lnId = LN_MAX;
+			grammar.rule[0].prod1[1].eventType = EVENT_EE;
+			grammar.rule[0].prod1[1].typeId = INDEX_MAX;
+			grammar.rule[0].prod1[1].nonTermID = GR_VOID_NON_TERMINAL;
+			grammar.rule[0].prod1[1].qnameId.uriId = URI_MAX;
+			grammar.rule[0].prod1[1].qnameId.lnId = LN_MAX;
 
-			grammar.rule[0].part[0].prod[0].eventType = EVENT_CH;
-			grammar.rule[0].part[0].prod[0].typeId = INDEX_MAX;
-			grammar.rule[0].part[0].prod[0].nonTermID = 1;
-			grammar.rule[0].part[0].prod[0].qnameId.uriId = URI_MAX;
-			grammar.rule[0].part[0].prod[0].qnameId.lnId = LN_MAX;
+			grammar.rule[0].prod1[0].eventType = EVENT_CH;
+			grammar.rule[0].prod1[0].typeId = INDEX_MAX;
+			grammar.rule[0].prod1[0].nonTermID = 1;
+			grammar.rule[0].prod1[0].qnameId.uriId = URI_MAX;
+			grammar.rule[0].prod1[0].qnameId.lnId = LN_MAX;
 
-			grammar.rule[0].part[0].count = 4;
-			grammar.rule[0].part[0].bits = 2;
+			grammar.rule[0].p1Count = 4;
+			grammar.rule[0].bits1 = 2;
 
-			grammar.rule[1].part[0].prod = memManagedAllocate(&schema->memList, sizeof(Production)*3);
-			if(grammar.rule[1].part[0].prod == NULL)
+			grammar.rule[1].prod1 = memManagedAllocate(&schema->memList, sizeof(Production)*3);
+			if(grammar.rule[1].prod1 == NULL)
 				return MEMORY_ALLOCATION_ERROR;
 
-			grammar.rule[1].part[0].prod[2].eventType = EVENT_SE_ALL;
-			grammar.rule[1].part[0].prod[2].typeId = INDEX_MAX;
-			grammar.rule[1].part[0].prod[2].nonTermID = 1;
-			grammar.rule[1].part[0].prod[2].qnameId.uriId = URI_MAX;
-			grammar.rule[1].part[0].prod[2].qnameId.lnId = LN_MAX;
+			grammar.rule[1].prod1[2].eventType = EVENT_SE_ALL;
+			grammar.rule[1].prod1[2].typeId = INDEX_MAX;
+			grammar.rule[1].prod1[2].nonTermID = 1;
+			grammar.rule[1].prod1[2].qnameId.uriId = URI_MAX;
+			grammar.rule[1].prod1[2].qnameId.lnId = LN_MAX;
 
-			grammar.rule[1].part[0].prod[1].eventType = EVENT_EE;
-			grammar.rule[1].part[0].prod[1].typeId = INDEX_MAX;
-			grammar.rule[1].part[0].prod[1].nonTermID = GR_VOID_NON_TERMINAL;
-			grammar.rule[1].part[0].prod[1].qnameId.uriId = URI_MAX;
-			grammar.rule[1].part[0].prod[1].qnameId.lnId = LN_MAX;
+			grammar.rule[1].prod1[1].eventType = EVENT_EE;
+			grammar.rule[1].prod1[1].typeId = INDEX_MAX;
+			grammar.rule[1].prod1[1].nonTermID = GR_VOID_NON_TERMINAL;
+			grammar.rule[1].prod1[1].qnameId.uriId = URI_MAX;
+			grammar.rule[1].prod1[1].qnameId.lnId = LN_MAX;
 
-			grammar.rule[1].part[0].prod[0].eventType = EVENT_CH;
-			grammar.rule[1].part[0].prod[0].typeId = INDEX_MAX;
-			grammar.rule[1].part[0].prod[0].nonTermID = 1;
-			grammar.rule[1].part[0].prod[0].qnameId.uriId = URI_MAX;
-			grammar.rule[1].part[0].prod[0].qnameId.lnId = LN_MAX;
+			grammar.rule[1].prod1[0].eventType = EVENT_CH;
+			grammar.rule[1].prod1[0].typeId = INDEX_MAX;
+			grammar.rule[1].prod1[0].nonTermID = 1;
+			grammar.rule[1].prod1[0].qnameId.uriId = URI_MAX;
+			grammar.rule[1].prod1[0].qnameId.lnId = LN_MAX;
 
-			grammar.rule[1].part[0].count = 3;
-			grammar.rule[1].part[0].bits = 2;
+			grammar.rule[1].p1Count = 3;
+			grammar.rule[1].bits1 = 2;
 
 		}
 		else // a regular simple type
 		{
-			/* Initialize first rule Part 2 */
-			grammar.rule[0].part[1].prod = NULL;
-			grammar.rule[0].part[1].count = 0;
-			grammar.rule[0].part[1].bits = 0;
+			/* Initialize first rule Part 2 and 3 */
+			grammar.rule[0].prod23 = NULL;
+			grammar.rule[0].p2Count = 0;
+			grammar.rule[0].p3Count = 0;
 
-			/* Initialize first rule Part 3 */
-			grammar.rule[0].part[2].prod = NULL;
-			grammar.rule[0].part[2].count = 0;
-			grammar.rule[0].part[2].bits = 0;
+			/* Initialize second rule Part 2 and 3 */
+			grammar.rule[1].prod23 = NULL;
+			grammar.rule[1].p2Count = 0;
+			grammar.rule[1].p3Count = 0;
 
-			/* Initialize second rule Part 2 */
-			grammar.rule[1].part[1].prod = NULL;
-			grammar.rule[1].part[1].count = 0;
-			grammar.rule[1].part[1].bits = 0;
-
-			/* Initialize second rule Part 3 */
-			grammar.rule[1].part[2].prod = NULL;
-			grammar.rule[1].part[2].count = 0;
-			grammar.rule[1].part[2].bits = 0;
-
-			grammar.rule[0].part[0].prod = memManagedAllocate(&schema->memList, sizeof(Production));
-			if(grammar.rule[0].part[0].prod == NULL)
+			grammar.rule[0].prod1 = memManagedAllocate(&schema->memList, sizeof(Production));
+			if(grammar.rule[0].prod1 == NULL)
 				return MEMORY_ALLOCATION_ERROR;
 
-			grammar.rule[0].part[0].prod[0].eventType = EVENT_CH;
-			grammar.rule[0].part[0].prod[0].typeId = typeId;
-			grammar.rule[0].part[0].prod[0].nonTermID = 1;
-			grammar.rule[0].part[0].prod[0].qnameId.uriId = URI_MAX;
-			grammar.rule[0].part[0].prod[0].qnameId.lnId = LN_MAX;
-			grammar.rule[0].part[0].count = 1;
-			grammar.rule[0].part[0].bits = 0;
+			grammar.rule[0].prod1[0].eventType = EVENT_CH;
+			grammar.rule[0].prod1[0].typeId = typeId;
+			grammar.rule[0].prod1[0].nonTermID = 1;
+			grammar.rule[0].prod1[0].qnameId.uriId = URI_MAX;
+			grammar.rule[0].prod1[0].qnameId.lnId = LN_MAX;
+			grammar.rule[0].p1Count = 1;
+			grammar.rule[0].bits1 = 0;
 
-			grammar.rule[1].part[0].prod = memManagedAllocate(&schema->memList, sizeof(Production));
-			if(grammar.rule[1].part[0].prod == NULL)
+			grammar.rule[1].prod1 = memManagedAllocate(&schema->memList, sizeof(Production));
+			if(grammar.rule[1].prod1 == NULL)
 				return MEMORY_ALLOCATION_ERROR;
 
-			grammar.rule[1].part[0].prod[0].eventType = EVENT_EE;
-			grammar.rule[1].part[0].prod[0].typeId = INDEX_MAX;
-			grammar.rule[1].part[0].prod[0].nonTermID = GR_VOID_NON_TERMINAL;
-			grammar.rule[1].part[0].prod[0].qnameId.uriId = URI_MAX;
-			grammar.rule[1].part[0].prod[0].qnameId.lnId = LN_MAX;
-			grammar.rule[1].part[0].count = 1;
-			grammar.rule[1].part[0].bits = 0;
+			grammar.rule[1].prod1[0].eventType = EVENT_EE;
+			grammar.rule[1].prod1[0].typeId = INDEX_MAX;
+			grammar.rule[1].prod1[0].nonTermID = GR_VOID_NON_TERMINAL;
+			grammar.rule[1].prod1[0].qnameId.uriId = URI_MAX;
+			grammar.rule[1].prod1[0].qnameId.lnId = LN_MAX;
+			grammar.rule[1].p1Count = 1;
+			grammar.rule[1].bits1 = 0;
 		}
 
 		/** Add the grammar to the schema grammar table */

@@ -25,7 +25,7 @@ errorCode getEmptyTypeGrammar(EXIStream* strm, EXIGrammar* src, EXIGrammar** des
 {
 	SmallIndex i;
 	Index p;
-	Index destProdIndx, partNum;
+	Index destProdIndx;
 
 	*dest = memManagedAllocate(&strm->memList, sizeof(EXIGrammar));
 	if(*dest == NULL)
@@ -43,96 +43,147 @@ errorCode getEmptyTypeGrammar(EXIStream* strm, EXIGrammar* src, EXIGrammar** des
 	{
 		for(i = 0; i < (*dest)->count - 1; i++)
 		{
-			for(partNum = 0; partNum < 3; partNum++)
+			// Copy all productions in the rules less than contentIndex i.e. (*dest)->count - 1
+			// except the  AT(xsi:type) and AT(xsi:nil)
+
+			(*dest)->rule[i].p1Count = 0;
+
+			if(src->rule[i].p1Count > 0)
 			{
-				// Copy all productions in the rules less than contentIndex i.e. (*dest)->count - 1
-				// except the  AT(xsi:type) and AT(xsi:nil)
-				(*dest)->rule[i].part[partNum].prod = memManagedAllocate(&strm->memList, sizeof(Production)*(src->rule[i].part[partNum].count));
-				if((*dest)->rule[i].part[partNum].prod == NULL)
+				(*dest)->rule[i].prod1 = memManagedAllocate(&strm->memList, sizeof(Production)*(src->rule[i].p1Count));
+				if((*dest)->rule[i].prod1 == NULL)
 					return MEMORY_ALLOCATION_ERROR;
 
 				destProdIndx = 0;
-				for(p = 0; p < src->rule[i].part[partNum].count; p++)
+				for(p = 0; p < src->rule[i].p1Count; p++)
 				{
-					if(src->rule[i].part[partNum].prod[p].qnameId.uriId == XML_SCHEMA_INSTANCE_ID &&
-						(src->rule[i].part[partNum].prod[p].qnameId.lnId == XML_SCHEMA_INSTANCE_NIL_ID ||
-						 src->rule[i].part[partNum].prod[p].qnameId.lnId == XML_SCHEMA_INSTANCE_TYPE_ID))
+					if(src->rule[i].prod1[p].qnameId.uriId == XML_SCHEMA_INSTANCE_ID &&
+						(src->rule[i].prod1[p].qnameId.lnId == XML_SCHEMA_INSTANCE_NIL_ID ||
+						 src->rule[i].prod1[p].qnameId.lnId == XML_SCHEMA_INSTANCE_TYPE_ID))
 					{
 						// In case of AT(xsi:type) and AT(xsi:nil) productions, exclude them
 						continue;
 					}
 					else
 					{
-						(*dest)->rule[i].part[partNum].prod[destProdIndx] = src->rule[i].part[partNum].prod[p];
+						(*dest)->rule[i].prod1[destProdIndx] = src->rule[i].prod1[p];
 						destProdIndx++;
 					}
 				}
 
-				(*dest)->rule[i].part[partNum].count = destProdIndx;
-				(*dest)->rule[i].part[partNum].bits = getBitsNumber(destProdIndx - 1);
+				(*dest)->rule[i].p1Count = destProdIndx;
 			}
+
+			(*dest)->rule[i].p2Count = 0;
+			(*dest)->rule[i].p3Count = 0;
+
+			if(src->rule[i].p2Count + src->rule[i].p3Count > 0)
+			{
+				(*dest)->rule[i].prod23 = memManagedAllocate(&strm->memList, sizeof(Production)*(src->rule[i].p2Count + src->rule[i].p3Count));
+				if((*dest)->rule[i].prod23 == NULL)
+					return MEMORY_ALLOCATION_ERROR;
+
+				for(p = 0; p < src->rule[i].p2Count + src->rule[i].p3Count; p++)
+				{
+					if(src->rule[i].prod23[p].qnameId.uriId == XML_SCHEMA_INSTANCE_ID &&
+						(src->rule[i].prod23[p].qnameId.lnId == XML_SCHEMA_INSTANCE_NIL_ID ||
+						 src->rule[i].prod23[p].qnameId.lnId == XML_SCHEMA_INSTANCE_TYPE_ID))
+					{
+						// In case of AT(xsi:type) and AT(xsi:nil) productions, exclude them
+						continue;
+					}
+					else
+					{
+						(*dest)->rule[i].prod23[destProdIndx] = src->rule[i].prod23[p];
+						if(p < src->rule[i].p2Count)
+							(*dest)->rule[i].p2Count += 1;
+						else
+							(*dest)->rule[i].p3Count += 1;
+					}
+				}
+			}
+
+			(*dest)->rule[i].bits1 = getBitsNumber(destProdIndx - 1 + ((*dest)->rule[i].p2Count > 0));
 		}
 
 		/* The last rule is an empty rule with a single EE production */
-		(*dest)->rule[(*dest)->count - 1].part[0].prod = static_prod_empty_part0;
-		(*dest)->rule[(*dest)->count - 1].part[0].bits = 0;
-		(*dest)->rule[(*dest)->count - 1].part[0].count = 1;
+		(*dest)->rule[(*dest)->count - 1].prod1 = static_prod_empty_part0;
+		(*dest)->rule[(*dest)->count - 1].bits1 = 0;
+		(*dest)->rule[(*dest)->count - 1].p1Count = 1;
 
-		(*dest)->rule[(*dest)->count - 1].part[1].prod = NULL;
-		(*dest)->rule[(*dest)->count - 1].part[1].bits = 0;
-		(*dest)->rule[(*dest)->count - 1].part[1].count = 0;
-
-		(*dest)->rule[(*dest)->count - 1].part[2].prod = NULL;
-		(*dest)->rule[(*dest)->count - 1].part[2].bits = 0;
-		(*dest)->rule[(*dest)->count - 1].part[2].count = 0;
+		(*dest)->rule[(*dest)->count - 1].prod23 = NULL;
+		(*dest)->rule[(*dest)->count - 1].p2Count = 0;
+		(*dest)->rule[(*dest)->count - 1].p3Count = 0;
 	}
 	else
 	{	// STRICT FALSE mode
 		for(i = 0; i < (*dest)->count - 1; i++)
 		{
-			for(partNum = 0; partNum < 3; partNum++)
+			// Copy all productions in the rules less than contentIndex i.e. (*dest)->count - 1
+			// while taking into account that we do not need the Content2 index added during augmentation
+
+			if(src->rule[i].p1Count > 0)
 			{
-				// Copy all productions in the rules less than contentIndex i.e. (*dest)->count - 1
-				// while taking into account that we do not need the Content2 index added during augmentation
-				(*dest)->rule[i].part[partNum].prod = memManagedAllocate(&strm->memList, sizeof(Production)*(src->rule[i].part[partNum].count));
-				if((*dest)->rule[i].part[partNum].prod == NULL)
+				(*dest)->rule[i].prod1 = memManagedAllocate(&strm->memList, sizeof(Production)*(src->rule[i].p1Count));
+				if((*dest)->rule[i].prod1 == NULL)
 					return MEMORY_ALLOCATION_ERROR;
 
 				destProdIndx = 0;
-				for(p = 0; p < src->rule[i].part[partNum].count; p++)
+				for(p = 0; p < src->rule[i].p1Count; p++)
 				{
-					if(src->rule[i].part[partNum].prod[p].eventType == EVENT_AT_ALL ||
-							src->rule[i].part[partNum].prod[p].eventType == EVENT_AT_QNAME ||
-							src->rule[i].part[partNum].prod[p].eventType == EVENT_AT_URI ||
-							src->rule[i].part[partNum].prod[p].eventType == EVENT_EE ||
-							(partNum > 0 &&
-							 (src->rule[i].part[partNum].prod[p].eventType == EVENT_NS ||
-							  src->rule[i].part[partNum].prod[p].eventType == EVENT_SC)
-							)
+					if(src->rule[i].prod1[p].eventType == EVENT_AT_ALL ||
+							src->rule[i].prod1[p].eventType == EVENT_AT_QNAME ||
+							src->rule[i].prod1[p].eventType == EVENT_AT_URI ||
+							src->rule[i].prod1[p].eventType == EVENT_EE
 					  )
 					{
-						(*dest)->rule[i].part[partNum].prod[destProdIndx] = src->rule[i].part[partNum].prod[p];
-						destProdIndx++;
-					}
-					else if(partNum > 0 &&
-							(src->rule[i].part[partNum].prod[p].eventType == EVENT_SE_ALL ||
-							 src->rule[i].part[partNum].prod[p].eventType == EVENT_CH ||
-							 src->rule[i].part[partNum].prod[p].eventType == EVENT_ER ||
-							 src->rule[i].part[partNum].prod[p].eventType == EVENT_CM ||
-							 src->rule[i].part[partNum].prod[p].eventType == EVENT_PI))
-					{
-						(*dest)->rule[i].part[partNum].prod[destProdIndx] = src->rule[i].part[partNum].prod[p];
-						(*dest)->rule[i].part[partNum].prod[destProdIndx].nonTermID = (*dest)->count - 1;
+						(*dest)->rule[i].prod1[destProdIndx] = src->rule[i].prod1[p];
 						destProdIndx++;
 					}
 				}
 
-				(*dest)->rule[i].part[partNum].count = destProdIndx;
+				(*dest)->rule[i].p1Count = destProdIndx;
 			}
 
-			(*dest)->rule[i].part[0].bits = getBitsNumber((*dest)->rule[i].part[0].count - 1 + ((*dest)->rule[i].part[1].count > 0));
-			(*dest)->rule[i].part[1].bits = getBitsNumber((*dest)->rule[i].part[1].count - 1 + ((*dest)->rule[i].part[2].count > 0));
-			(*dest)->rule[i].part[2].bits = getBitsNumber((*dest)->rule[i].part[2].count - 1);
+			if(src->rule[i].p2Count + src->rule[i].p3Count > 0)
+			{
+				(*dest)->rule[i].prod23 = memManagedAllocate(&strm->memList, sizeof(Production)*(src->rule[i].p2Count + src->rule[i].p3Count));
+				if((*dest)->rule[i].prod23 == NULL)
+					return MEMORY_ALLOCATION_ERROR;
+
+				destProdIndx = 0;
+				for(p = 0; p < src->rule[i].p2Count + src->rule[i].p3Count; p++)
+				{
+					if(src->rule[i].prod23[p].eventType == EVENT_AT_ALL ||
+							src->rule[i].prod23[p].eventType == EVENT_AT_QNAME ||
+							src->rule[i].prod23[p].eventType == EVENT_AT_URI ||
+							src->rule[i].prod23[p].eventType == EVENT_EE ||
+							src->rule[i].prod23[p].eventType == EVENT_NS ||
+							src->rule[i].prod23[p].eventType == EVENT_SC
+					  )
+					{
+						(*dest)->rule[i].prod23[destProdIndx] = src->rule[i].prod23[p];
+						destProdIndx++;
+					}
+					else if(src->rule[i].prod23[p].eventType == EVENT_SE_ALL ||
+							 src->rule[i].prod23[p].eventType == EVENT_CH ||
+							 src->rule[i].prod23[p].eventType == EVENT_ER ||
+							 src->rule[i].prod23[p].eventType == EVENT_CM ||
+							 src->rule[i].prod23[p].eventType == EVENT_PI)
+					{
+						(*dest)->rule[i].prod23[destProdIndx] = src->rule[i].prod23[p];
+						(*dest)->rule[i].prod23[destProdIndx].nonTermID = (*dest)->count - 1;
+						destProdIndx++;
+					}
+
+					if(p == src->rule[i].p2Count)
+						(*dest)->rule[i].p2Count = destProdIndx;
+				}
+
+				(*dest)->rule[i].p3Count = destProdIndx - (*dest)->rule[i].p2Count;
+			}
+
+			(*dest)->rule[i].bits1 = getBitsNumber((*dest)->rule[i].p1Count - 1 + ((*dest)->rule[i].p2Count > 0));
 		}
 
 		/* The last rule is:
@@ -146,9 +197,9 @@ errorCode getEmptyTypeGrammar(EXIStream* strm, EXIGrammar* src, EXIGrammar** des
 		 *						PI 					NT-contentIndex-1	1.3.1
 		 *  */
 		/* Part 1 */
-		(*dest)->rule[(*dest)->count - 1].part[0].prod = static_prod_empty_part0;
-		(*dest)->rule[(*dest)->count - 1].part[0].bits = 1;
-		(*dest)->rule[(*dest)->count - 1].part[0].count = 1;
+		(*dest)->rule[(*dest)->count - 1].prod1 = static_prod_empty_part0;
+		(*dest)->rule[(*dest)->count - 1].bits1 = 1;
+		(*dest)->rule[(*dest)->count - 1].p1Count = 1;
 
 		{ /* Part 2 and 3 */
 			int part2count = 2;
@@ -163,56 +214,48 @@ errorCode getEmptyTypeGrammar(EXIStream* strm, EXIGrammar* src, EXIGrammar** des
 			if(IS_PRESENT(strm->header.opts.preserve, PRESERVE_PIS))
 				part3count++;
 
-			(*dest)->rule[(*dest)->count - 1].part[1].prod = memManagedAllocate(&strm->memList, sizeof(Production)*part2count);
-			if((*dest)->rule[(*dest)->count - 1].part[1].prod == NULL)
+			(*dest)->rule[(*dest)->count - 1].prod23 = memManagedAllocate(&strm->memList, sizeof(Production)*(part2count + part3count));
+			if((*dest)->rule[(*dest)->count - 1].prod23 == NULL)
 				return MEMORY_ALLOCATION_ERROR;
 
-			(*dest)->rule[(*dest)->count - 1].part[1].prod[part2count-1].eventType = EVENT_SE_ALL;
-			(*dest)->rule[(*dest)->count - 1].part[1].prod[part2count-1].nonTermID = (*dest)->count - 1;
-			(*dest)->rule[(*dest)->count - 1].part[1].prod[part2count-1].typeId = INDEX_MAX;
+			(*dest)->rule[(*dest)->count - 1].prod23[part2count-1].eventType = EVENT_SE_ALL;
+			(*dest)->rule[(*dest)->count - 1].prod23[part2count-1].nonTermID = (*dest)->count - 1;
+			(*dest)->rule[(*dest)->count - 1].prod23[part2count-1].typeId = INDEX_MAX;
 
-			(*dest)->rule[(*dest)->count - 1].part[1].prod[part2count-2].eventType = EVENT_CH;
-			(*dest)->rule[(*dest)->count - 1].part[1].prod[part2count-2].nonTermID = (*dest)->count - 1;
-			(*dest)->rule[(*dest)->count - 1].part[1].prod[part2count-2].typeId = INDEX_MAX;
+			(*dest)->rule[(*dest)->count - 1].prod23[part2count-2].eventType = EVENT_CH;
+			(*dest)->rule[(*dest)->count - 1].prod23[part2count-2].nonTermID = (*dest)->count - 1;
+			(*dest)->rule[(*dest)->count - 1].prod23[part2count-2].typeId = INDEX_MAX;
 
 			if(IS_PRESENT(strm->header.opts.preserve, PRESERVE_DTD))
 			{
-				(*dest)->rule[(*dest)->count - 1].part[1].prod[0].eventType = EVENT_ER;
-				(*dest)->rule[(*dest)->count - 1].part[1].prod[0].nonTermID = (*dest)->count - 1;
-				(*dest)->rule[(*dest)->count - 1].part[1].prod[0].typeId = INDEX_MAX;
+				(*dest)->rule[(*dest)->count - 1].prod23[0].eventType = EVENT_ER;
+				(*dest)->rule[(*dest)->count - 1].prod23[0].nonTermID = (*dest)->count - 1;
+				(*dest)->rule[(*dest)->count - 1].prod23[0].typeId = INDEX_MAX;
 			}
 
-			(*dest)->rule[(*dest)->count - 1].part[1].bits = getBitsNumber(part2count - 1 + (part3count > 0));
-			(*dest)->rule[(*dest)->count - 1].part[1].count = part2count;
+			(*dest)->rule[(*dest)->count - 1].p2Count = part2count;
 
 			if(part3count > 0)
 			{
-				(*dest)->rule[(*dest)->count - 1].part[2].prod = memManagedAllocate(&strm->memList, sizeof(Production)*part3count);
-				if((*dest)->rule[(*dest)->count - 1].part[2].prod == NULL)
-					return MEMORY_ALLOCATION_ERROR;
-
 				if(IS_PRESENT(strm->header.opts.preserve, PRESERVE_COMMENTS))
 				{
-					(*dest)->rule[(*dest)->count - 1].part[2].prod[part3count - 1].eventType = EVENT_CM;
-					(*dest)->rule[(*dest)->count - 1].part[2].prod[part3count - 1].nonTermID = (*dest)->count - 1;
-					(*dest)->rule[(*dest)->count - 1].part[2].prod[part3count - 1].typeId = INDEX_MAX;
+					(*dest)->rule[(*dest)->count - 1].prod23[part2count+part3count - 1].eventType = EVENT_CM;
+					(*dest)->rule[(*dest)->count - 1].prod23[part2count+part3count - 1].nonTermID = (*dest)->count - 1;
+					(*dest)->rule[(*dest)->count - 1].prod23[part2count+part3count - 1].typeId = INDEX_MAX;
 				}
 
 				if(IS_PRESENT(strm->header.opts.preserve, PRESERVE_PIS))
 				{
-					(*dest)->rule[(*dest)->count - 1].part[2].prod[0].eventType = EVENT_PI;
-					(*dest)->rule[(*dest)->count - 1].part[2].prod[0].nonTermID = (*dest)->count - 1;
-					(*dest)->rule[(*dest)->count - 1].part[2].prod[0].typeId = INDEX_MAX;
+					(*dest)->rule[(*dest)->count - 1].prod23[part2count].eventType = EVENT_PI;
+					(*dest)->rule[(*dest)->count - 1].prod23[part2count].nonTermID = (*dest)->count - 1;
+					(*dest)->rule[(*dest)->count - 1].prod23[part2count].typeId = INDEX_MAX;
 				}
 
-				(*dest)->rule[(*dest)->count - 1].part[2].bits = part3count > 1;
-				(*dest)->rule[(*dest)->count - 1].part[2].count = part3count;
+				(*dest)->rule[(*dest)->count - 1].p3Count = part3count;
 			}
 			else
 			{
-				(*dest)->rule[(*dest)->count - 1].part[2].prod = NULL;
-				(*dest)->rule[(*dest)->count - 1].part[2].bits = 0;
-				(*dest)->rule[(*dest)->count - 1].part[2].count = 0;
+				(*dest)->rule[(*dest)->count - 1].p3Count = 0;
 			}
 		}
 	}

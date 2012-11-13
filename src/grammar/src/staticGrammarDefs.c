@@ -34,11 +34,7 @@ Production static_prod_empty_part0[1] =
  * NonTerm : EE */
 GrammarRule static_rule_empty[1] =
 {
-    {{
-       {static_prod_empty_part0, 1, 0},
-       {NULL, 0, 0},
-       {NULL, 0, 0}
-    }}
+    {static_prod_empty_part0, NULL, 1, 0, 0, 0}
 };
 
 /*
