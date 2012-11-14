@@ -40,11 +40,11 @@
 // align on this number of byte boundarie#s
 #define IP_MALLOC_ALIGN   2
 #define IP_MALLOC_LEN     0x0fff
-#define IP_MALLOC_FLAGS   0x7000
-#define IP_MALLOC_INUSE   0x8000
+#define IP_MALLOC_FLAGS   0x70000000
+#define IP_MALLOC_INUSE   0x80000000
 
 extern uint8_t heap[IP_MALLOC_HEAP_SIZE];
-typedef uint16_t bndrt_t;
+typedef uint32_t bndrt_t;
 
 void ip_malloc_init();
 void *ip_malloc(uint16_t sz);
@@ -52,6 +52,8 @@ void ip_free(void *ptr);
 uint16_t ip_malloc_freespace();
 
 void* ip_realloc(void *ptr, uint16_t size);
+
+uint16_t getMemUsage();
 
 #ifndef PC
 #define malloc(X) ip_malloc(X)
