@@ -23,8 +23,10 @@ errorCode textGrammarOutput(QNameID qnameid, Index grIndex, EXIGrammar* gr, EXIP
 {
 	Index ruleIter, prodIter;
 	unsigned char partIter;
+	Production* tmpProdArr;
 	Production* tmpProd;
 	EXIType exiType = VALUE_TYPE_NONE;
+	Index tmpCount;
 
 	fprintf(out, "Grammar %d [%d:%d] ", (int) grIndex, (int) qnameid.uriId, (int) qnameid.lnId);
 	fwrite(schema->uriTable.uri[qnameid.uriId].uriStr.str, sizeof(CharType), schema->uriTable.uri[qnameid.uriId].uriStr.length, out);
@@ -37,9 +39,26 @@ errorCode textGrammarOutput(QNameID qnameid, Index grIndex, EXIGrammar* gr, EXIP
 		fprintf(out, "NT-%d: \n", (int) ruleIter);
 		for(partIter = 0; partIter < 3; partIter++)
 		{
-			for(prodIter = 0; prodIter < gr->rule[ruleIter].part[partIter].count; prodIter++)
+			if(partIter == 0)
 			{
-				tmpProd = &gr->rule[ruleIter].part[partIter].prod[gr->rule[ruleIter].part[partIter].count - 1 - prodIter];
+				tmpProdArr = gr->rule[ruleIter].prod1;
+				tmpCount = gr->rule[ruleIter].p1Count;
+			}
+			else if(partIter == 1)
+			{
+				tmpProdArr = gr->rule[ruleIter].prod23;
+				tmpCount = gr->rule[ruleIter].p2Count;
+			}
+			else if(partIter == 2)
+			{
+				tmpCount = gr->rule[ruleIter].p3Count;
+				if(tmpCount)
+					tmpProdArr = gr->rule[ruleIter].prod23 + gr->rule[ruleIter].p2Count;
+			}
+
+			for(prodIter = 0; prodIter < tmpCount; prodIter++)
+			{
+				tmpProd = &tmpProdArr[tmpCount - 1 - prodIter];
 				if(tmpProd->eventType != EVENT_SE_QNAME && tmpProd->typeId != INDEX_MAX)
 					exiType = schema->simpleTypeTable.sType[tmpProd->typeId].exiType;
 				else
@@ -117,10 +136,10 @@ errorCode textGrammarOutput(QNameID qnameid, Index grIndex, EXIGrammar* gr, EXIP
 				}
 				if(partIter > 0)
 				{
-					fprintf(out, "%d.", (int) gr->rule[ruleIter].part[0].count);
+					fprintf(out, "%d.", (int) gr->rule[ruleIter].p1Count);
 					if(partIter > 1)
 					{
-						fprintf(out, "%d.", (int) gr->rule[ruleIter].part[1].count);
+						fprintf(out, "%d.", (int) gr->rule[ruleIter].p2Count);
 					}
 				}
 				fprintf(out, "%d\n", (int) prodIter);
