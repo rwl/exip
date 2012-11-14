@@ -6,8 +6,8 @@
 
 #define CONST
 
-extern Production static_prod_start_doc_part0[1];
-extern Production static_prod_doc_end_part0[1];
+extern Production static_prod_start_doc[1];
+extern Production static_prod_doc_end[1];
 
 /** START_STRINGS_DEFINITONS */
 
@@ -3315,9 +3315,9 @@ static CONST Production ops_prod_doc_content[2] =
 
 static CONST GrammarRule ops_docGrammarRule[3] =
 {
-    {static_prod_start_doc_part0, NULL, 1, 0, 0, 0},
+    {static_prod_start_doc, NULL, 1, 0, 0, 0},
 	{ops_prod_doc_content, NULL, 2, 0, 0, 1},
-    {static_prod_doc_end_part0, NULL, 1, 0, 0, 0}
+    {static_prod_doc_end, NULL, 1, 0, 0, 0}
 };
 
 static CONST SimpleType ops_simpleTypes[67] =

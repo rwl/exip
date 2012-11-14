@@ -20,13 +20,9 @@
 /*
  * Single empty production:
  *  : EE */
-Production static_prod_empty_part0[1] =
+Production static_prod_empty[1] =
 {
-    {
-		EVENT_EE, INDEX_MAX,
-        {SMALL_INDEX_MAX, INDEX_MAX},
-        SMALL_INDEX_MAX
-    }
+    {EVENT_EE, INDEX_MAX, {SMALL_INDEX_MAX, INDEX_MAX}, SMALL_INDEX_MAX}
 };
 
 /*
@@ -34,7 +30,7 @@ Production static_prod_empty_part0[1] =
  * NonTerm : EE */
 GrammarRule static_rule_empty[1] =
 {
-    {static_prod_empty_part0, NULL, 1, 0, 0, 0}
+    {static_prod_empty, NULL, 1, 0, 0, 0}
 };
 
 /*
@@ -49,25 +45,17 @@ EXIGrammar static_grammar_empty = {static_rule_empty, 1, 0x0a, 0};
 /*
  * The start document/fragment production:
  *  : SD DocContent */
-Production static_prod_start_doc_part0[1] =
+Production static_prod_start_doc[1] =
 {
-    {
-		EVENT_SD, INDEX_MAX,
-        {SMALL_INDEX_MAX, INDEX_MAX},
-        GR_DOC_CONTENT
-    }
+    {EVENT_SD, INDEX_MAX, {SMALL_INDEX_MAX, INDEX_MAX}, GR_DOC_CONTENT}
 };
 
 /*
  * The DocEnd ED production:
  *  : ED */
-Production static_prod_doc_end_part0[1] =
+Production static_prod_doc_end[1] =
 {
-    {
-		EVENT_ED, INDEX_MAX,
-        {SMALL_INDEX_MAX, INDEX_MAX},
-        SMALL_INDEX_MAX
-    }
+    {EVENT_ED, INDEX_MAX, {SMALL_INDEX_MAX, INDEX_MAX}, SMALL_INDEX_MAX}
 };
 
 /* END: DOCUMENT GRAMMAR DEFS */

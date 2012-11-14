@@ -87,8 +87,8 @@ errorCode toStaticSrc(EXIPSchema* schemaPtr, char* prefix, FILE *outfile)
 	fprintf(outfile, "#include \"procTypes.h\"\n\n");
 	fprintf(outfile, "#define CONST\n\n");
 
-	fprintf(outfile, "extern Production static_prod_start_doc_part0[1];\n");
-	fprintf(outfile, "extern Production static_prod_doc_end_part0[1];\n\n");
+	fprintf(outfile, "extern Production static_prod_start_doc[1];\n");
+	fprintf(outfile, "extern Production static_prod_doc_end[1];\n\n");
 
 	staticStringTblDefsOutput(&schemaPtr->uriTable, prefix, outfile);
 
