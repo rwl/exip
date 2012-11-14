@@ -244,9 +244,9 @@ void staticDocGrammarOutput(EXIGrammar* docGr, char* prefix, FILE* out)
 
 	/* Build the document grammar rules */
 	fprintf(out, "static CONST GrammarRule %sdocGrammarRule[3] =\n{\n", prefix);
-	fprintf(out, "    {static_prod_start_doc_part0, NULL, 1, 0, 0, 0},\n\
+	fprintf(out, "    {static_prod_start_doc, NULL, 1, 0, 0, 0},\n\
 	{%s, NULL, %d, 0, 0, %d},\n\
-    {static_prod_doc_end_part0, NULL, 1, 0, 0, 0}\n};\n\n", varName, (int) docGr->rule[1].p1Count, docGr->rule[1].bits1);
+    {static_prod_doc_end, NULL, 1, 0, 0, 0}\n};\n\n", varName, (int) docGr->rule[1].p1Count, docGr->rule[1].bits1);
 }
 
 void staticPrefixOutput(PfxTable* pfxTbl, char* prefix, Index uriId, FILE* out)

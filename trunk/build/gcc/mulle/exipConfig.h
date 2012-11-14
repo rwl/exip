@@ -15,6 +15,7 @@
  */
 
 #include "ip_malloc.h"
+#include "elib.h"
 
 #ifndef EXIPCONFIG_H_
 #define EXIPCONFIG_H_
@@ -22,18 +23,18 @@
 #define ON  1
 #define OFF 0
 
-#define EXIP_DEBUG  	  OFF
+#define EXIP_DEBUG  	   ON
 #define EXIP_DEBUG_LEVEL INFO
 
 #define DEBUG_STREAM_IO   OFF
 #define DEBUG_COMMON      OFF
-#define DEBUG_CONTENT_IO  OFF
-#define DEBUG_GRAMMAR     OFF
+#define DEBUG_CONTENT_IO   ON
+#define DEBUG_GRAMMAR      ON
 #define DEBUG_GRAMMAR_GEN OFF
 #define DEBUG_STRING_TBLS OFF
 
-#define DEBUG_CHAR_OUTPUT(character)	do {tfp_printf ("%c", character);} while(0)
-#define DEBUG_OUTPUT(msg)	do {tfp_printf msg;} while(0)
+#define DEBUG_CHAR_OUTPUT(character)	do {_printf ("%c", character);} while(0)
+#define DEBUG_OUTPUT(msg)	do {_printf msg;} while(0)
 
 /**
  * Define the memory allocation and freeing functions
@@ -50,7 +51,7 @@
 
 // Some types in procTypes.h
 #define EXIP_DECIMAL float
-#define EXIP_UNSIGNED_INTEGER int32_t
+#define EXIP_UNSIGNED_INTEGER uint32_t
 #define EXIP_INTEGER int32_t
 
 struct ThinFloat

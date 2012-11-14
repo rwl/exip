@@ -29,8 +29,8 @@
 #define DEF_FRAG_GRAMMAR_RULE_NUMBER 2
 #define DEF_ELEMENT_GRAMMAR_RULE_NUMBER 2
 
-extern Production static_prod_start_doc_part0[1];
-extern Production static_prod_doc_end_part0[1];
+extern Production static_prod_start_doc[1];
+extern Production static_prod_doc_end[1];
 
 static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Production* prodHit,
 				SmallIndex* nonTermID_out, ContentHandler* handler, void* app_data, unsigned int codeLength);
@@ -54,7 +54,7 @@ errorCode createDocGrammar(EXIPSchema* schema, QNameID* elQnameArr, Index qnameC
 	tmp_rule = &schema->docGrammar.rule[GR_DOCUMENT];
 
 	/* Part 1 */
-	tmp_rule->prod1 = static_prod_start_doc_part0;
+	tmp_rule->prod1 = static_prod_start_doc;
 	tmp_rule->p1Count = 1;
 	tmp_rule->bits1 = 0;
 
@@ -131,7 +131,7 @@ errorCode createDocGrammar(EXIPSchema* schema, QNameID* elQnameArr, Index qnameC
 	tmp_rule = &schema->docGrammar.rule[GR_DOC_END];
 
 	/* Part 1 */
-	tmp_rule->prod1 = static_prod_doc_end_part0;
+	tmp_rule->prod1 = static_prod_doc_end;
 	tmp_rule->p1Count = 1;
 	tmp_rule->bits1 = 0;
 
@@ -707,7 +707,7 @@ errorCode createFragmentGrammar(EXIPSchema* schema, QNameID* elQnameArr, Index q
 	tmp_rule = &schema->docGrammar.rule[GR_FRAGMENT];
 
 	/* Part 1 */
-	tmp_rule->prod1 = static_prod_start_doc_part0;
+	tmp_rule->prod1 = static_prod_start_doc;
 	tmp_rule->p1Count = 1;
 	tmp_rule->bits1 = 0;
 

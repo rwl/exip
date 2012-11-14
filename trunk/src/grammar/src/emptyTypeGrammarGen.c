@@ -19,7 +19,7 @@
 #include "ioUtil.h"
 #include "grammarRules.h"
 
-extern Production static_prod_empty_part0[1];
+extern Production static_prod_empty[1];
 
 errorCode getEmptyTypeGrammar(EXIStream* strm, EXIGrammar* src, EXIGrammar** dest)
 {
@@ -107,7 +107,7 @@ errorCode getEmptyTypeGrammar(EXIStream* strm, EXIGrammar* src, EXIGrammar** des
 		}
 
 		/* The last rule is an empty rule with a single EE production */
-		(*dest)->rule[(*dest)->count - 1].prod1 = static_prod_empty_part0;
+		(*dest)->rule[(*dest)->count - 1].prod1 = static_prod_empty;
 		(*dest)->rule[(*dest)->count - 1].bits1 = 0;
 		(*dest)->rule[(*dest)->count - 1].p1Count = 1;
 
@@ -197,7 +197,7 @@ errorCode getEmptyTypeGrammar(EXIStream* strm, EXIGrammar* src, EXIGrammar** des
 		 *						PI 					NT-contentIndex-1	1.3.1
 		 *  */
 		/* Part 1 */
-		(*dest)->rule[(*dest)->count - 1].prod1 = static_prod_empty_part0;
+		(*dest)->rule[(*dest)->count - 1].prod1 = static_prod_empty;
 		(*dest)->rule[(*dest)->count - 1].bits1 = 1;
 		(*dest)->rule[(*dest)->count - 1].p1Count = 1;
 
