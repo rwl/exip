@@ -49,7 +49,7 @@
 
 /* buffer sizes are defined here. */
 #if !defined(PLATFORM_MICAZ)
-#define IP_MALLOC_HEAP_SIZE 1500
+#define IP_MALLOC_HEAP_SIZE 0x0fff
 enum {
   IP_NUMBER_FRAGMENTS = 8,
 };

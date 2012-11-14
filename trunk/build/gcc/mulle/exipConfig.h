@@ -23,13 +23,13 @@
 #define ON  1
 #define OFF 0
 
-#define EXIP_DEBUG  	   ON
+#define EXIP_DEBUG  	  OFF
 #define EXIP_DEBUG_LEVEL INFO
 
 #define DEBUG_STREAM_IO   OFF
 #define DEBUG_COMMON      OFF
-#define DEBUG_CONTENT_IO   ON
-#define DEBUG_GRAMMAR      ON
+#define DEBUG_CONTENT_IO  OFF
+#define DEBUG_GRAMMAR     OFF
 #define DEBUG_GRAMMAR_GEN OFF
 #define DEBUG_STRING_TBLS OFF
 
@@ -64,10 +64,12 @@ struct ThinFloat
 
 /* NO support for strtol(), strtoll() and bsearch(),
  * Not used in our use cases so just ignore them */
-#define EXIP_STRTOLL(buff, endPointer, b) 0
-#define strtol(buff, endPointer, b) 0
+//#define EXIP_STRTOLL(buff, endPointer, b) 0
+//#define strtol(buff, endPointer, b) 0
 #define LLONG_MAX -1
 #define LLONG_MIN -1
-#define bsearch(key, base, nmemb, size, fn_t) NULL
+//#define bsearch(key, base, nmemb, size, fn_t) NULL
+
+//#include <stdlib.h>
 
 #endif /* EXIPCONFIG_H_ */
