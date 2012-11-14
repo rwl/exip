@@ -17,14 +17,6 @@
 #include "schemaOutputUtils.h"
 #include "hashtable.h"
 
-/**
- * @brief Builds all productions in a grammar rule part as a static code representation and stores it in out
- * @param[in] rulePart grammar rule part
- * @param[in] varName the Production variable string
- * @param[out] out output stream
- */
-static void staticProdPartOutput(GrammarRulePart* rulePart, char* varName, FILE* out);
-
 static void setProdStrings(IndexStrings *indexStrings, Production *prod)
 {
 	char *indexMaxStr = "INDEX_MAX";
@@ -123,76 +115,53 @@ void staticProductionsOutput(EXIGrammar* gr, char* prefix, Index grId, FILE* out
 {
 	Index ruleIter;
 	char varName[VAR_BUFFER_MAX_LENGTH];
+	Index prodIter;
+	IndexStrings indexStrings;
 
 	for(ruleIter = 0; ruleIter < gr->count; ruleIter++)
 	{
-		if (gr->rule[ruleIter].part[0].count)
+		if (gr->rule[ruleIter].p1Count)
 		{
 			// Printing of the Production variable string
 			sprintf(varName, "%sprod_%d_%d_part%d", prefix, (int) grId, (int) ruleIter, 1);
-			staticProdPartOutput(&gr->rule[ruleIter].part[0], varName, out);
-		}
 
-		if (gr->rule[ruleIter].part[1].count + gr->rule[ruleIter].part[2].count)
-		{
-			Index prodIter;
-			IndexStrings indexStrings;
-			GrammarRulePart* tmpPart;
-			Index tmpIndex;
+			fprintf(out, "static CONST Production %s[%d] =\n{\n", varName, (int) gr->rule[ruleIter].p1Count);
 
-			// Printing of the Production variable string
-			sprintf(varName, "%sprod_%d_%d_part%d", prefix, (int) grId, (int) ruleIter, 23);
-
-			fprintf(out, "static CONST Production %s[%d] =\n{\n",
-					varName, (int) gr->rule[ruleIter].part[1].count + gr->rule[ruleIter].part[2].count);
-
-			for(prodIter = 0; prodIter < gr->rule[ruleIter].part[1].count + gr->rule[ruleIter].part[2].count; prodIter++)
+			for(prodIter = 0; prodIter < gr->rule[ruleIter].p1Count; prodIter++)
 			{
-				if(prodIter < gr->rule[ruleIter].part[1].count)
-				{
-					tmpPart = &gr->rule[ruleIter].part[1];
-					tmpIndex = prodIter;
-				}
-				else
-				{
-					tmpPart = &gr->rule[ruleIter].part[2];
-					tmpIndex = prodIter - gr->rule[ruleIter].part[1].count;
-				}
-
-				setProdStrings(&indexStrings, &tmpPart->prod[tmpIndex]);
+				setProdStrings(&indexStrings, &gr->rule[ruleIter].prod1[prodIter]);
 				fprintf(out,
 						"    {\n        %d, %s,\n        {%s, %s},\n        %s\n    }%s",
-						tmpPart->prod[tmpIndex].eventType,
+						gr->rule[ruleIter].prod1[prodIter].eventType,
 						indexStrings.buf1,
 						indexStrings.buf2,
 						indexStrings.buf3,
 						indexStrings.buf4,
-						prodIter==(gr->rule[ruleIter].part[1].count + gr->rule[ruleIter].part[2].count - 1) ? "\n};\n\n" : ",\n");
+						prodIter==(gr->rule[ruleIter].p1Count - 1) ? "\n};\n\n" : ",\n");
 			}
 		}
-	}
-}
 
-static void staticProdPartOutput(GrammarRulePart* rulePart, char* varName, FILE* out)
-{
-	Index prodIter;
-	IndexStrings indexStrings;
+		if (gr->rule[ruleIter].p2Count + gr->rule[ruleIter].p3Count)
+		{
+			// Printing of the Production variable string
+			sprintf(varName, "%sprod_%d_%d_part%d", prefix, (int) grId, (int) ruleIter, 23);
 
+			fprintf(out, "static CONST Production %s[%d] =\n{\n",
+					varName, (int) gr->rule[ruleIter].p2Count + gr->rule[ruleIter].p3Count);
 
-	fprintf(out, "static CONST Production %s[%d] =\n{\n",
-			varName, (int) rulePart->count);
-
-	for(prodIter = 0; prodIter < rulePart->count; prodIter++)
-	{
-		setProdStrings(&indexStrings, &rulePart->prod[prodIter]);
-		fprintf(out,
-				"    {\n        %d, %s,\n        {%s, %s},\n        %s\n    }%s",
-				rulePart->prod[prodIter].eventType,
-				indexStrings.buf1,
-				indexStrings.buf2,
-				indexStrings.buf3,
-				indexStrings.buf4,
-				prodIter==(rulePart->count-1) ? "\n};\n\n" : ",\n");
+			for(prodIter = 0; prodIter < gr->rule[ruleIter].p2Count + gr->rule[ruleIter].p3Count; prodIter++)
+			{
+				setProdStrings(&indexStrings, &gr->rule[ruleIter].prod23[prodIter]);
+				fprintf(out,
+						"    {\n        %d, %s,\n        {%s, %s},\n        %s\n    }%s",
+						gr->rule[ruleIter].prod23[prodIter].eventType,
+						indexStrings.buf1,
+						indexStrings.buf2,
+						indexStrings.buf3,
+						indexStrings.buf4,
+						prodIter==(gr->rule[ruleIter].p2Count + gr->rule[ruleIter].p3Count - 1) ? "\n};\n\n" : ",\n");
+			}
+		}
 	}
 }
 
@@ -211,7 +180,7 @@ void staticRulesOutput(EXIGrammar* gr, char* prefix, Index grId, FILE* out)
 	for(ruleIter = 0; ruleIter < gr->count; ruleIter++)
 	{
 		fprintf(out, "\n    {");
-		if (gr->rule[ruleIter].part[0].count > 0)
+		if (gr->rule[ruleIter].p1Count > 0)
 		{
 			fprintf(out,
 			        "%sprod_%d_%d_part%d, ",
@@ -223,7 +192,7 @@ void staticRulesOutput(EXIGrammar* gr, char* prefix, Index grId, FILE* out)
 		else
 			fprintf(out, "NULL, ");
 
-		if (gr->rule[ruleIter].part[1].count + gr->rule[ruleIter].part[2].count > 0)
+		if (gr->rule[ruleIter].p2Count + gr->rule[ruleIter].p3Count > 0)
 		{
 			fprintf(out,
 			        "%sprod_%d_%d_part%d, ",
@@ -235,10 +204,10 @@ void staticRulesOutput(EXIGrammar* gr, char* prefix, Index grId, FILE* out)
 		else
 			fprintf(out, "NULL, ");
 
-		fprintf(out, "%d, ", gr->rule[ruleIter].part[0].count);
-		fprintf(out, "%d, ", gr->rule[ruleIter].part[1].count);
-		fprintf(out, "%d, ", gr->rule[ruleIter].part[2].count);
-		fprintf(out, "%d}%s", gr->rule[ruleIter].part[0].bits, ruleIter != (gr->count-1)?",":"");
+		fprintf(out, "%d, ", gr->rule[ruleIter].p1Count);
+		fprintf(out, "%d, ", gr->rule[ruleIter].p2Count);
+		fprintf(out, "%d, ", gr->rule[ruleIter].p3Count);
+		fprintf(out, "%d}%s", gr->rule[ruleIter].bits1, ruleIter != (gr->count-1)?",":"");
 
 	}
 
@@ -248,33 +217,36 @@ void staticRulesOutput(EXIGrammar* gr, char* prefix, Index grId, FILE* out)
 void staticDocGrammarOutput(EXIGrammar* docGr, char* prefix, FILE* out)
 {
 	char varName[VAR_BUFFER_MAX_LENGTH];
+	Index prodIter;
+	IndexStrings indexStrings;
 
 	// Printing of the Production variable string
 	sprintf(varName, "%sprod_doc_content", prefix);
 
 	/* Build the document grammar, DocContent productions */
-	staticProdPartOutput(&docGr->rule[1].part[0], varName, out);
+
+	fprintf(out, "static CONST Production %s[%d] =\n{\n", varName, (int) docGr->rule[1].p1Count);
+
+	for(prodIter = 0; prodIter < docGr->rule[1].p1Count; prodIter++)
+	{
+		setProdStrings(&indexStrings, &docGr->rule[1].prod1[prodIter]);
+		fprintf(out,
+				"    {\n        %d, %s,\n        {%s, %s},\n        %s\n    }%s",
+				docGr->rule[1].prod1[prodIter].eventType,
+				indexStrings.buf1,
+				indexStrings.buf2,
+				indexStrings.buf3,
+				indexStrings.buf4,
+				prodIter==(docGr->rule[1].p1Count - 1) ? "\n};\n\n" : ",\n");
+	}
 
 	// TODO: When mask_specified and DT, CM or PI are preserved, the docGrammarRule must contained these productions
 
 	/* Build the document grammar rules */
-	fprintf(out, "static CONST GrammarRule %sdocGrammarRule[3] =\n{", prefix);
-	fprintf(out, "\n\
-    {{\n\
-       {static_prod_start_doc_part0, 1, 0},\n\
-       {NULL, 0, 0},\n\
-       {NULL, 0, 0}\n\
-    }},\n\
-    {{\n\
-       {%s, %d, %d},\n\
-       {NULL, 0, 0},\n\
-       {NULL, 0, 0}\n\
-    }},\n\
-    {{\n\
-       {static_prod_doc_end_part0, 1, 0},\n\
-       {NULL, 0, 0},\n\
-       {NULL, 0, 0}\n\
-    }}\n};\n\n", varName, (int) docGr->rule[1].part[0].count, docGr->rule[1].part[0].bits);
+	fprintf(out, "static CONST GrammarRule %sdocGrammarRule[3] =\n{\n", prefix);
+	fprintf(out, "    {static_prod_start_doc_part0, NULL, 1, 0, 0, 0},\n\
+	{%s, NULL, %d, 0, 0, %d},\n\
+    {static_prod_doc_end_part0, NULL, 1, 0, 0, 0}\n};\n\n", varName, (int) docGr->rule[1].p1Count, docGr->rule[1].bits1);
 }
 
 void staticPrefixOutput(PfxTable* pfxTbl, char* prefix, Index uriId, FILE* out)
