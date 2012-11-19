@@ -81,7 +81,4 @@
 /** Whether to use dynamic arrays */
 #define DYN_ARRAY_USE ON
 
-/** Optimize the programming memory usage */
-#define EXIP_SIZE_OPTIMIZE
-
 #endif /* EXIPCONFIG_H_ */

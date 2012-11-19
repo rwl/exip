@@ -181,6 +181,8 @@ errorCode generateTreeTable(BinaryBuffer buffer, unsigned char schemaFormat, Tre
 
 	// Parse the EXI stream
 
+	SET_PRESERVED(xsdParser.strm.header.opts.preserve, PRESERVE_PREFIXES);
+
 	tmp_err_code = parseHeader(&xsdParser);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
