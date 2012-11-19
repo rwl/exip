@@ -69,8 +69,6 @@
 #define EXIP_SMALL_INDEX uint8_t
 #define EXIP_SMALL_INDEX_MAX UINT8_MAX
 
-#define EXIP_SIZE_OPTIMIZE
-
 struct ThinFloat
 {
 	int64_t mantissa;
