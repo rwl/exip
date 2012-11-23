@@ -78,7 +78,7 @@ errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema, u
 	strm->buffer = buffer;
 	strm->context.bitPointer = 0;
 	strm->context.bufferIndx = 0;
-	strm->context.currNonTermID = GR_DOCUMENT;
+	strm->context.currNonTermID = GR_DOC_CONTENT;
 	strm->context.currElem.uriId = URI_MAX;
 	strm->context.currElem.lnId = LN_MAX;
 	strm->context.currAttr.uriId = URI_MAX;
@@ -215,95 +215,182 @@ errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema, u
 
 errorCode startDocument(EXIStream* strm)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned char codeLength;
-	Index lastCodePart;
-	Index typeId;
-	GrammarRule* currentRule;
-	Production* prodHit;
-
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start doc serialization\n"));
 
-	if(strm->context.currNonTermID != GR_DOCUMENT)
+	if(strm->context.currNonTermID != GR_DOC_CONTENT)
 		return INCONSISTENT_PROC_STATE;
 
-	tmp_err_code = lookupProduction(strm, EVENT_SD, VALUE_TYPE_NONE, &currentRule, &typeId, NULL, &codeLength, &lastCodePart, &prodHit);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	return encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, NULL);
+	return ERR_OK;
 }
 
 errorCode endDocument(EXIStream* strm)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned char codeLength;
-	Index lastCodePart;
+	Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 	Index typeId;
-	GrammarRule* currentRule;
-	Production* prodHit;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">End doc serialization\n"));
 
-	tmp_err_code = lookupProduction(strm, EVENT_ED, VALUE_TYPE_NONE, &currentRule, &typeId, NULL, &codeLength, &lastCodePart, &prodHit);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	return encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, NULL);
+	return encodeProduction(strm, EVENT_ED_CLASS, VALUE_TYPE_NONE_CLASS, NULL, &prodHit);
 }
 
 errorCode startElement(EXIStream* strm, QName qname)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned char codeLength;
-	Index lastCodePart;
+	Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 	Index typeId;
-	GrammarRule* currentRule;
-	Production* prodHit;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Start element serialization\n"));
 
-	tmp_err_code = lookupProduction(strm, EVENT_SE_ALL, VALUE_TYPE_NONE, &currentRule, &typeId, &qname, &codeLength, &lastCodePart, &prodHit);
+	tmp_err_code = encodeProduction(strm, EVENT_SE_CLASS, VALUE_TYPE_NONE_CLASS, &qname, &prodHit);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	return encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, &qname);
+	if(GET_PROD_EXI_EVENT(prodHit.content) == EVENT_SE_ALL)
+	{
+		EXIGrammar* elemGrammar = NULL;
+
+		if(qname == NULL)
+			return NULL_POINTER_REF;
+
+		tmp_err_code = encodeQName(strm, *qname, EVENT_SE_ALL, &strm->context.currElem);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		strm->gStack->lastNonTermID = strm->context.currNonTermID;
+		// New element grammar is pushed on the stack
+		elemGrammar = GET_ELEM_GRAMMAR_QNAMEID(strm->schema, strm->context.currElem);
+
+		if(elemGrammar != NULL) // The grammar is found
+		{
+			strm->context.currNonTermID = GR_START_TAG_CONTENT;
+			tmp_err_code = pushGrammar(&(strm->gStack), elemGrammar);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+		else
+		{
+			EXIGrammar newElementGrammar;
+			Index dynArrIndx;
+			tmp_err_code = createBuiltInElementGrammar(&newElementGrammar, strm);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			tmp_err_code = addDynEntry(&strm->schema->grammarTable.dynArray, &newElementGrammar, &dynArrIndx);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			GET_LN_URI_QNAME(strm->schema->uriTable, strm->context.currElem).elemGrammar = dynArrIndx;
+
+			strm->context.currNonTermID = GR_START_TAG_CONTENT;
+			tmp_err_code = pushGrammar(&(strm->gStack), &strm->schema->grammarTable.grammar[dynArrIndx]);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+	}
+	else if(GET_PROD_EXI_EVENT(prodHit.content) == EVENT_SE_QNAME)
+	{
+		EXIGrammar* elemGrammar = NULL;
+
+		strm->context.currElem.uriId = prodHit.qnameId.uriId;
+		strm->context.currElem.lnId = prodHit.qnameId.lnId;
+
+		tmp_err_code = encodePfxQName(strm, qname, EVENT_SE_QNAME, prodHit.qnameId.uriId);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		strm->gStack->lastNonTermID = strm->context.currNonTermID;
+
+		// New element grammar is pushed on the stack
+		if(IS_BUILT_IN_ELEM(strm->gStack->grammar->props))  // If the current grammar is build-in Element grammar ...
+		{
+			elemGrammar = GET_ELEM_GRAMMAR_QNAMEID(strm->schema, strm->context.currElem);
+		}
+		else
+		{
+			elemGrammar = &strm->schema->grammarTable.grammar[prodHit->typeId];
+		}
+
+		if(elemGrammar != NULL) // The grammar is found
+		{
+			strm->context.currNonTermID = GR_START_TAG_CONTENT;
+			tmp_err_code = pushGrammar(&(strm->gStack), elemGrammar);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+		else
+		{
+			return INCONSISTENT_PROC_STATE;  // The event require the presence of Element Grammar previously created
+		}
+	}
+	else
+		return NOT_IMPLEMENTED_YET;
+
+	return ERR_OK;
 }
 
 errorCode endElement(EXIStream* strm)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned char codeLength;
-	Index lastCodePart;
+	Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 	Index typeId;
-	GrammarRule* currentRule;
-	Production* prodHit;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">End element serialization\n"));
 
-	tmp_err_code = lookupProduction(strm, EVENT_EE, VALUE_TYPE_NONE, &currentRule, &typeId, NULL, &codeLength, &lastCodePart, &prodHit);
+	tmp_err_code = encodeProduction(strm, EVENT_EE_CLASS, VALUE_TYPE_NONE_CLASS, NULL, &prodHit);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	return encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, NULL);
+	if(strm->context.currNonTermID == GR_VOID_NON_TERMINAL)
+	{
+		EXIGrammar* grammar;
+		popGrammar(&(strm->gStack), &grammar);
+		if(strm->gStack != NULL) // There is more grammars in the stack
+			strm->context.currNonTermID = strm->gStack->lastNonTermID;
+	}
+	else
+		return INCONSISTENT_PROC_STATE;
+
+	return ERR_OK;
 }
 
-errorCode attribute(EXIStream* strm, QName qname, EXIType exiType)
+errorCode attribute(EXIStream* strm, QName qname, EXITypeClass exiType)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned char codeLength;
-	Index lastCodePart;
+	Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 	Index typeId;
-	GrammarRule* currentRule;
-	Production* prodHit;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Start attribute serialization\n"));
 
-	tmp_err_code = lookupProduction(strm, EVENT_AT_ALL, exiType, &currentRule, &typeId, &qname, &codeLength, &lastCodePart, &prodHit);
+	tmp_err_code = encodeProduction(strm, EVENT_AT_CLASS, exiType, &qname, &prodHit);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	return encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, &qname);
+	if(GET_PROD_EXI_EVENT(prodHit.content) == EVENT_AT_ALL)
+	{
+		if(qname == NULL)
+			return NULL_POINTER_REF;
+
+		tmp_err_code = encodeQName(strm, *qname, EVENT_AT_ALL, &strm->context.currAttr);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else if(GET_PROD_EXI_EVENT(prodHit.content) == EVENT_AT_QNAME)
+	{
+		strm->context.currAttr.uriId = prodHit.qnameId.uriId;
+		strm->context.currAttr.lnId = prodHit.qnameId.lnId;
+
+		tmp_err_code = encodePfxQName(strm, qname, EVENT_AT_QNAME, prodHit.qnameId.uriId);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else
+		return NOT_IMPLEMENTED_YET;
+
+	strm->context.expectATData = TRUE;
+	strm->context.attrTypeId = prodHit.typeId;
+
+	return ERR_OK;
 }
 
 errorCode intData(EXIStream* strm, Integer int_val)
@@ -319,18 +406,13 @@ errorCode intData(EXIStream* strm, Integer int_val)
 	else
 	{
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		unsigned char codeLength;
-		Index lastCodePart;
-		GrammarRule* currentRule;
-		Production* prodHit;
+		Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
-		tmp_err_code = lookupProduction(strm, EVENT_CH, VALUE_TYPE_INTEGER, &currentRule, &intTypeId, NULL, &codeLength, &lastCodePart, &prodHit);
+		tmp_err_code = encodeProduction(strm, EVENT_CH_CLASS, VALUE_TYPE_INTEGER_CLASS, NULL, &prodHit);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		tmp_err_code = encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, NULL);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		intTypeId = prodHit.typeId;
 	}
 
 	return encodeIntData(strm, int_val, intTypeId);
@@ -353,17 +435,9 @@ errorCode booleanData(EXIStream* strm, unsigned char bool_val)
 	}
 	else
 	{
-		Index typeId;
-		unsigned char codeLength;
-		Index lastCodePart;
-		GrammarRule* currentRule;
-		Production* prodHit;
+		Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
-		tmp_err_code = lookupProduction(strm, EVENT_CH, VALUE_TYPE_BOOLEAN, &currentRule, &typeId, NULL, &codeLength, &lastCodePart, &prodHit);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, NULL);
+		tmp_err_code = encodeProduction(strm, EVENT_CH_CLASS, VALUE_TYPE_BOOLEAN_CLASS, NULL, &prodHit);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -408,20 +482,14 @@ errorCode stringData(EXIStream* strm, const String str_val)
 	else
 	{
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		unsigned char codeLength;
-		Index lastCodePart;
-		GrammarRule* currentRule;
-		Production* prodHit;
+		Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
-		tmp_err_code = lookupProduction(strm, EVENT_CH, VALUE_TYPE_STRING, &currentRule, &typeId, NULL, &codeLength, &lastCodePart, &prodHit);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, NULL);
+		tmp_err_code = encodeProduction(strm, EVENT_CH_CLASS, VALUE_TYPE_STRING_CLASS, NULL, &prodHit);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
 		qnameID = strm->context.currElem;
+		typeId = prodHit.typeId;
 	}
 
 	return encodeStringData(strm, str_val, qnameID, typeId);
@@ -438,17 +506,9 @@ errorCode floatData(EXIStream* strm, Float float_val)
 	else
 	{
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		Index typeId;
-		unsigned char codeLength;
-		Index lastCodePart;
-		GrammarRule* currentRule;
-		Production* prodHit;
+		Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
-		tmp_err_code = lookupProduction(strm, EVENT_CH, VALUE_TYPE_FLOAT, &currentRule, &typeId, NULL, &codeLength, &lastCodePart, &prodHit);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, NULL);
+		tmp_err_code = encodeProduction(strm, EVENT_CH_CLASS, VALUE_TYPE_FLOAT_CLASS, NULL, &prodHit);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -467,17 +527,9 @@ errorCode binaryData(EXIStream* strm, const char* binary_val, Index nbytes)
 	else
 	{
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		Index typeId;
-		unsigned char codeLength;
-		Index lastCodePart;
-		GrammarRule* currentRule;
-		Production* prodHit;
+		Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
-		tmp_err_code = lookupProduction(strm, EVENT_CH, VALUE_TYPE_BINARY, &currentRule, &typeId, NULL, &codeLength, &lastCodePart, &prodHit);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, NULL);
+		tmp_err_code = encodeProduction(strm, EVENT_CH_CLASS, VALUE_TYPE_BINARY_CLASS, NULL, &prodHit);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -496,17 +548,9 @@ errorCode dateTimeData(EXIStream* strm, EXIPDateTime dt_val)
 	else
 	{
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		Index typeId;
-		unsigned char codeLength;
-		Index lastCodePart;
-		GrammarRule* currentRule;
-		Production* prodHit;
+		Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
-		tmp_err_code = lookupProduction(strm, EVENT_CH, VALUE_TYPE_DATE_TIME, &currentRule, &typeId, NULL, &codeLength, &lastCodePart, &prodHit);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, NULL);
+		tmp_err_code = encodeProduction(strm, EVENT_CH_CLASS, VALUE_TYPE_DATE_TIME_CLASS, NULL, &prodHit);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -534,16 +578,9 @@ errorCode listData(EXIStream* strm, unsigned int itemCount)
 	else
 	{
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		unsigned char codeLength;
-		Index lastCodePart;
-		GrammarRule* currentRule;
-		Production* prodHit;
+		Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
-		tmp_err_code = lookupProduction(strm, EVENT_CH, VALUE_TYPE_LIST, &currentRule, &typeId, NULL, &codeLength, &lastCodePart, &prodHit);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, NULL);
+		tmp_err_code = encodeProduction(strm, EVENT_CH_CLASS, VALUE_TYPE_LIST_CLASS, NULL, &prodHit);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -562,20 +599,13 @@ errorCode processingInstruction(EXIStream* strm)
 errorCode namespaceDeclaration(EXIStream* strm, const String ns, const String prefix, unsigned char isLocalElementNS)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned char codeLength;
-	Index lastCodePart;
 	SmallIndex uriId;
 	Index typeId;
-	GrammarRule* currentRule;
-	Production* prodHit;
+	Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start namespace declaration\n"));
 
-	tmp_err_code = lookupProduction(strm, EVENT_NS, VALUE_TYPE_NONE, &currentRule, &typeId, NULL, &codeLength, &lastCodePart, &prodHit);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	tmp_err_code = encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, NULL);
+	tmp_err_code = encodeProduction(strm, EVENT_NS_CLASS, VALUE_TYPE_NONE_CLASS, NULL, &prodHit);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -623,10 +653,12 @@ errorCode closeEXIStream(EXIStream* strm)
 	return tmp_err_code;
 }
 
-errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, Index lastCodePart, QName* qname)
+errorCode serializeEvent(EXIStream* strm, Index codePart1, QName* qname)
 {
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	GrammarRule* currentRule;
-	Production* prodHit;
+	Production* tmpProd = NULL;
+	EventCode ec;
 
 	if(strm->context.currNonTermID >=  strm->gStack->grammar->count)
 		return INCONSISTENT_PROC_STATE;
@@ -636,20 +668,164 @@ errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, Index lastCo
 	else
 		currentRule = &strm->gStack->grammar->rule[strm->context.currNonTermID];
 
-	switch(codeLength)
+	ec.length = 1;
+	ec.part[0] = codePart1;
+	ec.bits[0] = RULE_GET_BITS(currentRule->meta);
+
+	tmp_err_code = writeEventCode(strm, ec);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	tmpProd = &currentRule->production[currentRule->pCount - 1 - codePart1];
+
+	switch(GET_PROD_EXI_EVENT(tmpProd->content))
 	{
-		case 1:
-			prodHit = &currentRule->prod1[currentRule->p1Count - 1 - lastCodePart];
+		case EVENT_SD:
+			return ERR_OK;
 		break;
-		case 2:
-			prodHit = &currentRule->prod23[currentRule->p2Count - 1 - lastCodePart];
+		case EVENT_ED:
+			return ERR_OK;
 		break;
-		case 3:
-			prodHit = &currentRule->prod23[currentRule->p2Count + currentRule->p3Count - 1 - lastCodePart];
+		case EVENT_AT_QNAME:
+
+			strm->context.currAttr.uriId = tmpProd->qnameId.uriId;
+			strm->context.currAttr.lnId = tmpProd->qnameId.lnId;
+
+			tmp_err_code = encodePfxQName(strm, qname, EVENT_AT_QNAME, tmpProd->qnameId.uriId);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			strm->context.expectATData = TRUE;
+			strm->context.attrTypeId = tmpProd->typeId;
+
+		break;
+		case EVENT_AT_URI:
+			return NOT_IMPLEMENTED_YET;
+		break;
+		case EVENT_AT_ALL:
+			if(qname == NULL)
+				return NULL_POINTER_REF;
+
+			tmp_err_code = encodeQName(strm, *qname, EVENT_AT_ALL, &strm->context.currAttr);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			strm->context.expectATData = TRUE;
+			strm->context.attrTypeId = tmpProd->typeId;
+		break;
+		case EVENT_SE_QNAME:
+			EXIGrammar* elemGrammar = NULL;
+
+			strm->context.currElem.uriId = tmpProd->qnameId.uriId;
+			strm->context.currElem.lnId = tmpProd->qnameId.lnId;
+
+			tmp_err_code = encodePfxQName(strm, qname, EVENT_SE_QNAME, tmpProd->qnameId.uriId);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			strm->gStack->lastNonTermID = strm->context.currNonTermID;
+
+			// New element grammar is pushed on the stack
+			if(IS_BUILT_IN_ELEM(strm->gStack->grammar->props))  // If the current grammar is build-in Element grammar ...
+			{
+				elemGrammar = GET_ELEM_GRAMMAR_QNAMEID(strm->schema, strm->context.currElem);
+			}
+			else
+			{
+				elemGrammar = &strm->schema->grammarTable.grammar[tmpProd->typeId];
+			}
+
+			if(elemGrammar != NULL) // The grammar is found
+			{
+				strm->context.currNonTermID = GR_START_TAG_CONTENT;
+				tmp_err_code = pushGrammar(&(strm->gStack), elemGrammar);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
+			else
+			{
+				return INCONSISTENT_PROC_STATE;  // The event require the presence of Element Grammar previously created
+			}
+		break;
+		case EVENT_SE_URI:
+			return NOT_IMPLEMENTED_YET;
+		break;
+		case EVENT_SE_ALL:
+			EXIGrammar* elemGrammar = NULL;
+
+			if(qname == NULL)
+				return NULL_POINTER_REF;
+
+			tmp_err_code = encodeQName(strm, *qname, EVENT_SE_ALL, &strm->context.currElem);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			strm->gStack->lastNonTermID = strm->context.currNonTermID;
+			// New element grammar is pushed on the stack
+			elemGrammar = GET_ELEM_GRAMMAR_QNAMEID(strm->schema, strm->context.currElem);
+
+			if(elemGrammar != NULL) // The grammar is found
+			{
+				strm->context.currNonTermID = GR_START_TAG_CONTENT;
+				tmp_err_code = pushGrammar(&(strm->gStack), elemGrammar);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
+			else
+			{
+				EXIGrammar newElementGrammar;
+				Index dynArrIndx;
+				tmp_err_code = createBuiltInElementGrammar(&newElementGrammar, strm);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				tmp_err_code = addDynEntry(&strm->schema->grammarTable.dynArray, &newElementGrammar, &dynArrIndx);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				GET_LN_URI_QNAME(strm->schema->uriTable, strm->context.currElem).elemGrammar = dynArrIndx;
+
+				strm->context.currNonTermID = GR_START_TAG_CONTENT;
+				tmp_err_code = pushGrammar(&(strm->gStack), &strm->schema->grammarTable.grammar[dynArrIndx]);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
+		break;
+		case EVENT_EE:
+			if(strm->context.currNonTermID == GR_VOID_NON_TERMINAL)
+			{
+				EXIGrammar* grammar;
+				popGrammar(&(strm->gStack), &grammar);
+				if(strm->gStack != NULL) // There is more grammars in the stack
+					strm->context.currNonTermID = strm->gStack->lastNonTermID;
+			}
+			else
+				return INCONSISTENT_PROC_STATE;
+		break;
+		case EVENT_CH:
+			return NOT_IMPLEMENTED_YET;
+		break;
+		case EVENT_NS:
+			return NOT_IMPLEMENTED_YET;
+		break;
+		case EVENT_CM:
+			return NOT_IMPLEMENTED_YET;
+		break;
+		case EVENT_PI:
+			return NOT_IMPLEMENTED_YET;
+		break;
+		case EVENT_DT:
+			return NOT_IMPLEMENTED_YET;
+		break;
+		case EVENT_ER:
+			return NOT_IMPLEMENTED_YET;
+		break;
+		case EVENT_SC:
+			return NOT_IMPLEMENTED_YET;
 		break;
 		default:
 			return INCONSISTENT_PROC_STATE;
 	}
 
-	return encodeProduction(strm, currentRule, codeLength, lastCodePart, prodHit, qname);
+	return ERR_OK;
 }
