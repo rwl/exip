@@ -352,3 +352,18 @@ errorCode encodeDateTimeValue(EXIStream* strm, EXIPDateTime dt_val)
 
 	return ERR_OK;
 }
+
+errorCode writeEventCode(EXIStream* strm, EventCode ec)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	int i;
+
+	for(i = 0; i < ec.length; i++)
+	{
+		tmp_err_code = encodeNBitUnsignedInteger(strm, ec.bits[i], (unsigned int) ec.part[i]);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+
+	return ERR_OK;
+}

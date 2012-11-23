@@ -17,7 +17,6 @@
 #include "emptyTypeGrammarGen.h"
 #include "memManagement.h"
 #include "ioUtil.h"
-#include "grammarRules.h"
 
 extern Production static_prod_empty[1];
 

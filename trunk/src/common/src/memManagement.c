@@ -66,11 +66,8 @@ void freeAllMem(EXIStream* strm)
 		for(i = 0; i < strm->schema->grammarTable.grammar[g].count; i++)
 		{
 			tmp_rule = &((DynGrammarRule*) strm->schema->grammarTable.grammar[g].rule)[i];
-			if(tmp_rule->prod1 != NULL)
-				EXIP_MFREE(tmp_rule->prod1);
-
-			if(tmp_rule->prod23 != NULL)
-				EXIP_MFREE(tmp_rule->prod23);
+			if(tmp_rule->production != NULL)
+				EXIP_MFREE(tmp_rule->production);
 		}
 		EXIP_MFREE(strm->schema->grammarTable.grammar[g].rule);
 	}
