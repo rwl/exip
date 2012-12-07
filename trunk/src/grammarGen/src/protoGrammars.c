@@ -49,10 +49,10 @@ errorCode addProduction(ProtoRuleEntry* ruleEntry, EventType eventType, Index ty
 
 	tmp_err_code = addEmptyDynEntry(&ruleEntry->dynArray, (void**)&newProd, &newProdId);
 
-	newProd->eventType = eventType;
+	SET_PROD_EXI_EVENT(newProd->content, eventType);
 	newProd->typeId = typeId;
 	newProd->qnameId = qnameID;
-	newProd->nonTermID = nonTermID;
+	SET_PROD_NON_TERM(newProd->content, nonTermID);
 
 	return ERR_OK;
 }
@@ -63,8 +63,8 @@ errorCode convertProtoGrammar(AllocList* memlist, ProtoGrammar* pg, EXIGrammar* 
 	Index prodIter;
 
 	exiGrammar->props = 0;
-	SET_SCHEMA(exiGrammar->props);
-	exiGrammar->contentIndex = pg->contentIndex;
+	SET_SCHEMA_GR(exiGrammar->props);
+	SET_CONTENT_INDEX(exiGrammar->props, pg->contentIndex);
 	exiGrammar->count = pg->count;
 
 	// #DOCUMENT# one more rule slot is created as it can be needed for addUndeclaredProductions
@@ -74,22 +74,16 @@ errorCode convertProtoGrammar(AllocList* memlist, ProtoGrammar* pg, EXIGrammar* 
 
 	for(ruleIter = 0; ruleIter < pg->count; ruleIter++)
 	{
-		/* Initialize Part 2 and 3 */
-		exiGrammar->rule[ruleIter].prod23 = NULL;
-		exiGrammar->rule[ruleIter].p2Count = 0;
-		exiGrammar->rule[ruleIter].p3Count = 0;
-
 		/* Part 1 */
-		exiGrammar->rule[ruleIter].prod1 = (Production*) memManagedAllocate(memlist, sizeof(Production)*pg->rule[ruleIter].count);
-		if(exiGrammar->rule[ruleIter].prod1 == NULL)
+		exiGrammar->rule[ruleIter].production = (Production*) memManagedAllocate(memlist, sizeof(Production)*pg->rule[ruleIter].count);
+		if(exiGrammar->rule[ruleIter].production == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		exiGrammar->rule[ruleIter].p1Count = pg->rule[ruleIter].count;
-		exiGrammar->rule[ruleIter].bits1 = getBitsNumber(pg->rule[ruleIter].count - 1);
+		exiGrammar->rule[ruleIter].pCount = pg->rule[ruleIter].count;
 
 		for(prodIter = 0; prodIter < pg->rule[ruleIter].count; prodIter++)
 		{
-			exiGrammar->rule[ruleIter].prod1[prodIter] = pg->rule[ruleIter].prod[prodIter];
+			exiGrammar->rule[ruleIter].production[prodIter] = pg->rule[ruleIter].prod[prodIter];
 		}
 	}
 
@@ -116,7 +110,7 @@ errorCode cloneProtoGrammar(ProtoGrammar* src, ProtoGrammar* dest)
 
 		for (j = 0; j < src->rule[i].count; j++)
 		{
-			tmp_err_code = addProduction(pRuleEntry, src->rule[i].prod[j].eventType, src->rule[i].prod[j].typeId, src->rule[i].prod[j].qnameId, src->rule[i].prod[j].nonTermID);
+			tmp_err_code = addProduction(pRuleEntry, GET_PROD_EXI_EVENT(src->rule[i].prod[j].content), src->rule[i].prod[j].typeId, src->rule[i].prod[j].qnameId, GET_PROD_NON_TERM(src->rule[i].prod[j].content));
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}

@@ -21,18 +21,16 @@
 #include "streamDecode.h"
 #include "grammars.h"
 #include "dynamicArray.h"
-#include "emptyTypeGrammarGen.h"
 #include "stringManipulate.h"
 
 
-static errorCode stateMachineProdDecode(EXIStream* strm);
-static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Production* prodHit,
-				SmallIndex* nonTermID_out, ContentHandler* handler, void* app_data, unsigned int codeLength);
-
+static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRule, SmallIndex* nonTermID_out, ContentHandler* handler, void* app_data);
+static errorCode handleProduction(EXIStream* strm, Production* prodHit, SmallIndex* nonTermID_out, ContentHandler* handler, void* app_data);
 
 errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, ContentHandler* handler, void* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	unsigned int bitCount;
 	unsigned int tmp_bits_val = 0;
 	GrammarRule* currentRule;
 
@@ -47,50 +45,44 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 		currentRule = &strm->gStack->grammar->rule[strm->context.currNonTermID];
 
 #if DEBUG_GRAMMAR == ON
+	tmp_err_code = printGrammarRule(strm->context.currNonTermID, currentRule, strm->schema);
+	if(tmp_err_code != ERR_OK)
 	{
-		tmp_err_code = printGrammarRule(strm->context.currNonTermID, currentRule, strm->schema);
-		if(tmp_err_code != ERR_OK)
-		{
-			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Error printing grammar rule\n"));
-		}
+		DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Error printing grammar rule\n"));
 	}
 #endif
 
+	bitCount = getBitsFirstPartCode(strm->header.opts, strm->gStack->grammar, currentRule, strm->context.currNonTermID);
+
 	if(currentRule->pCount > 0)
 	{
-		if(RULE_GET_BITS(currentRule->meta) == 0)
+		if(bitCount == 0)
 		{
 			// encoded with zero bits
-			return handleProduction(strm, currentRule, &currentRule->production[0], nonTermID_out, handler, app_data, 1);
+			return handleProduction(strm, &currentRule->production[0], nonTermID_out, handler, app_data);
 		}
 		else
 		{
-			tmp_err_code = decodeNBitUnsignedInteger(strm, RULE_GET_BITS(currentRule->meta), &tmp_bits_val);
+			tmp_err_code = decodeNBitUnsignedInteger(strm, bitCount, &tmp_bits_val);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
 			if(tmp_bits_val < currentRule->pCount)
-			{
-				Production* prodHit = &currentRule->production[currentRule->pCount - 1 - tmp_bits_val];
-				*nonTermID_out = GET_PROD_NON_TERM(prodHit->content);
-				return handleProduction(strm, currentRule, GET_PROD_EXI_EVENT(prodHit->content), nonTermID_out, handler, app_data, 1);
-			}
+				return handleProduction(strm, &currentRule->production[currentRule->pCount - 1 - tmp_bits_val], nonTermID_out, handler, app_data);
 		}
 	}
 
 	// Production with length code 1 not found: search second or third level productions
 	// Invoke state machine
 
-	return stateMachineProdEncode(strm);
+	return stateMachineProdDecode(strm, currentRule, nonTermID_out, handler, app_data);
 }
 
-static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, EventType et,
-				SmallIndex* nonTermID_out, ContentHandler* handler, void* app_data)
+static errorCode handleProduction(EXIStream* strm, Production* prodHit, SmallIndex* nonTermID_out, ContentHandler* handler, void* app_data)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	QNameID qnameID = {URI_MAX, LN_MAX};
+	*nonTermID_out = GET_PROD_NON_TERM(prodHit->content);
 
-	switch(et)
+	switch(GET_PROD_EXI_EVENT(prodHit->content))
 	{
 		case EVENT_SD:
 			if(handler->startDocument != NULL)
@@ -121,9 +113,7 @@ static errorCode handleProduction(EXIStream* strm, GrammarRule* currentRule, Eve
 			}
 		break;
 		default: // The event has content!
-			tmp_err_code = decodeEventContent(strm, prodHit, handler, nonTermID_out, currentRule, app_data);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			return decodeEventContent(strm, prodHit, handler, nonTermID_out, app_data);
 		break;
 	}
 
@@ -135,9 +125,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int prodCnt = 0;
 	unsigned int tmp_bits_val = 0;
-	QName qname;
-	QNameID qnameId = {URI_MAX, LN_MAX};
-	QNameID voidQnameID = {SMALL_INDEX_MAX, INDEX_MAX};
+	QNameID voidQnameID = {URI_MAX, LN_MAX};
 
 	if(IS_BUILT_IN_ELEM(strm->gStack->grammar->props))
 	{
@@ -178,21 +166,20 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 
 					*nonTermID_out = GR_VOID_NON_TERMINAL;
 
-					tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_EE, GR_VOID_NON_TERMINAL, &voidQnameID);
+					tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_EE, GR_VOID_NON_TERMINAL, &voidQnameID, 1);
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
 				break;
 				case 1:
 					// StartTagContent : AT (*)
 
-					tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_AT_QNAME, GR_START_TAG_CONTENT, &qnameId);
-					if(tmp_err_code != ERR_OK)
-						return tmp_err_code;
-
 					tmp_err_code = decodeATWildcardEvent(strm, handler, nonTermID_out, app_data);
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
 
+					tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_AT_QNAME, GR_START_TAG_CONTENT, &strm->context.currAttr, 1);
+					if(tmp_err_code != ERR_OK)
+						return tmp_err_code;
 				break;
 				case 2:
 					// StartTagContent : NS or SC or SE
@@ -211,11 +198,12 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 					else
 					{
 						// SE event
-						tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, *nonTermID_out, &qnameId);
+
+						tmp_err_code = decodeSEWildcardEvent(strm, handler, nonTermID_out, app_data);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
 
-						tmp_err_code = decodeSEWildcardEvent(strm, handler, nonTermID_out, app_data);
+						tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, *nonTermID_out, &strm->context.currElem, 1);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
 					}
@@ -232,11 +220,11 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 						else
 						{
 							// SE event
-							tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, *nonTermID_out, &qnameId);
+							tmp_err_code = decodeSEWildcardEvent(strm, handler, nonTermID_out, app_data);
 							if(tmp_err_code != ERR_OK)
 								return tmp_err_code;
 
-							tmp_err_code = decodeSEWildcardEvent(strm, handler, nonTermID_out, app_data);
+							tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, *nonTermID_out, &strm->context.currElem, 1);
 							if(tmp_err_code != ERR_OK)
 								return tmp_err_code;
 						}
@@ -244,11 +232,11 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 					else if(WITH_SELF_CONTAINED(strm->header.opts.enumOpt))
 					{
 						// SE event
-						tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, *nonTermID_out, &qnameId);
+						tmp_err_code = decodeSEWildcardEvent(strm, handler, nonTermID_out, app_data);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
 
-						tmp_err_code = decodeSEWildcardEvent(strm, handler, nonTermID_out, app_data);
+						tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, *nonTermID_out, &strm->context.currElem, 1);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
 					}
@@ -257,11 +245,11 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 						// CH event
 						DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">CH event\n"));
 
-						tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_CH, *nonTermID_out, &qnameId);
+						tmp_err_code = decodeValueItem(strm, INDEX_MAX, handler, nonTermID_out, strm->context.currElem, app_data);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
 
-						tmp_err_code = decodeValueItem(strm, prodHit->typeId, handler, nonTermID_out, strm->context.currElem, app_data);
+						tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_CH, *nonTermID_out, &voidQnameID, 1);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
 					}
@@ -273,11 +261,11 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 						if(WITH_SELF_CONTAINED(strm->header.opts.enumOpt))
 						{
 							// SE event
-							tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, *nonTermID_out, &qnameId);
+							tmp_err_code = decodeSEWildcardEvent(strm, handler, nonTermID_out, app_data);
 							if(tmp_err_code != ERR_OK)
 								return tmp_err_code;
 
-							tmp_err_code = decodeSEWildcardEvent(strm, handler, nonTermID_out, app_data);
+							tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, *nonTermID_out, &strm->context.currElem, 1);
 							if(tmp_err_code != ERR_OK)
 								return tmp_err_code;
 						}
@@ -286,11 +274,11 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 							// CH event
 							DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">CH event\n"));
 
-							tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_CH, *nonTermID_out, &qnameId);
+							tmp_err_code = decodeValueItem(strm, INDEX_MAX, handler, nonTermID_out, strm->context.currElem, app_data);
 							if(tmp_err_code != ERR_OK)
 								return tmp_err_code;
 
-							tmp_err_code = decodeValueItem(strm, prodHit->typeId, handler, nonTermID_out, strm->context.currElem, app_data);
+							tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_CH, *nonTermID_out, &voidQnameID, 1);
 							if(tmp_err_code != ERR_OK)
 								return tmp_err_code;
 						}
@@ -301,11 +289,11 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 						// CH event
 						DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">CH event\n"));
 
-						tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_CH, *nonTermID_out, &qnameId);
+						tmp_err_code = decodeValueItem(strm, INDEX_MAX, handler, nonTermID_out, strm->context.currElem, app_data);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
 
-						tmp_err_code = decodeValueItem(strm, prodHit->typeId, handler, nonTermID_out, strm->context.currElem, app_data);
+						tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_CH, *nonTermID_out, &voidQnameID, 1);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
 					}
@@ -322,11 +310,11 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 						// CH event
 						DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">CH event\n"));
 
-						tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_CH, *nonTermID_out, &qnameId);
+						tmp_err_code = decodeValueItem(strm, INDEX_MAX, handler, nonTermID_out, strm->context.currElem, app_data);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
 
-						tmp_err_code = decodeValueItem(strm, prodHit->typeId, handler, nonTermID_out, strm->context.currElem, app_data);
+						tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_CH, *nonTermID_out, &voidQnameID, 1);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
 					}
@@ -342,11 +330,11 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 				break;
 				case 7:
 					// ElementContent : SE (*)
-					tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, *nonTermID_out, &qnameId);
+					tmp_err_code = decodeSEWildcardEvent(strm, handler, nonTermID_out, app_data);
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
 
-					tmp_err_code = decodeSEWildcardEvent(strm, handler, nonTermID_out, app_data);
+					tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, *nonTermID_out, &strm->context.currElem, 1);
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
 				break;
@@ -354,11 +342,11 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 					// ElementContent : CH (*)
 					DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">CH event\n"));
 
-					tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_CH, *nonTermID_out, &qnameId);
+					tmp_err_code = decodeValueItem(strm, INDEX_MAX, handler, nonTermID_out, strm->context.currElem, app_data);
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
 
-					tmp_err_code = decodeValueItem(strm, prodHit->typeId, handler, nonTermID_out, strm->context.currElem, app_data);
+					tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_CH, *nonTermID_out, &voidQnameID, 1);
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
 				break;
@@ -717,16 +705,14 @@ errorCode decodeStringValue(EXIStream* strm, QNameID qnameID, String* value)
 }
 
 errorCode decodeEventContent(EXIStream* strm, Production* prodHit, ContentHandler* handler,
-							SmallIndex* nonTermID_out, GrammarRule* currRule,  void* app_data)
+							SmallIndex* nonTermID_out, void* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	QName qname;
-	QNameID qnameID;
-	Index dynArrIndx;
 
 	// TODO: implement all cases of events such as PI, CM etc.
 
-	switch(prodHit->eventType)
+	switch(GET_PROD_EXI_EVENT(prodHit->content))
 	{
 		case EVENT_SE_ALL:
 			tmp_err_code = decodeSEWildcardEvent(strm, handler, nonTermID_out, app_data);
@@ -828,7 +814,7 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 	EXIType exiType = VALUE_TYPE_NONE;
 
 	if(typeId != INDEX_MAX)
-		exiType = strm->schema->simpleTypeTable.sType[typeId].exiType;
+		exiType = GET_EXI_TYPE(strm->schema->simpleTypeTable.sType[typeId].content);
 
 	switch(exiType)
 	{
@@ -869,19 +855,19 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 			if(typeId >= strm->schema->simpleTypeTable.count)
 				return INVALID_EXI_INPUT;
 
-			if((strm->schema->simpleTypeTable.sType[typeId].facetPresenceMask & TYPE_FACET_MIN_INCLUSIVE) == 0
-					&& (strm->schema->simpleTypeTable.sType[typeId].facetPresenceMask & TYPE_FACET_MIN_EXCLUSIVE) == 0)
+			if(!HAS_TYPE_FACET(strm->schema->simpleTypeTable.sType[typeId].content, TYPE_FACET_MIN_INCLUSIVE)
+					&& !HAS_TYPE_FACET(strm->schema->simpleTypeTable.sType[typeId].content, TYPE_FACET_MIN_EXCLUSIVE))
 				return INVALID_EXI_INPUT;
-			if((strm->schema->simpleTypeTable.sType[typeId].facetPresenceMask & TYPE_FACET_MAX_INCLUSIVE) == 0
-					&& (strm->schema->simpleTypeTable.sType[typeId].facetPresenceMask & TYPE_FACET_MAX_EXCLUSIVE) == 0)
+			if(!HAS_TYPE_FACET(strm->schema->simpleTypeTable.sType[typeId].content, TYPE_FACET_MAX_INCLUSIVE)
+					&& !HAS_TYPE_FACET(strm->schema->simpleTypeTable.sType[typeId].content, TYPE_FACET_MAX_EXCLUSIVE))
 				return INVALID_EXI_INPUT;
 
-			if((strm->schema->simpleTypeTable.sType[typeId].facetPresenceMask & TYPE_FACET_MIN_INCLUSIVE) != 0)
+			if(HAS_TYPE_FACET(strm->schema->simpleTypeTable.sType[typeId].content, TYPE_FACET_MIN_INCLUSIVE))
 				base = strm->schema->simpleTypeTable.sType[typeId].min;
 			else
 				return NOT_IMPLEMENTED_YET;
 
-			if((strm->schema->simpleTypeTable.sType[typeId].facetPresenceMask & TYPE_FACET_MAX_INCLUSIVE) != 0)
+			if(HAS_TYPE_FACET(strm->schema->simpleTypeTable.sType[typeId].content, TYPE_FACET_MIN_EXCLUSIVE))
 				upLimit = strm->schema->simpleTypeTable.sType[typeId].max;
 			else
 				return NOT_IMPLEMENTED_YET;
@@ -930,18 +916,7 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 				if(bool_val == TRUE)
 				{
 					// xsi:nil attribute equals to true & schema mode
-					EXIGrammar* currGrammar;
-					EXIGrammar* tmpGrammar;
-					popGrammar(&(strm->gStack), &currGrammar);
-
-					tmp_err_code = getEmptyTypeGrammar(strm, currGrammar, &tmpGrammar);
-					if(tmp_err_code != ERR_OK)
-						return tmp_err_code;
-
-					tmp_err_code = pushGrammar(&(strm->gStack), tmpGrammar);
-					if(tmp_err_code != ERR_OK)
-						return tmp_err_code;
-
+					strm->context.isNilType = TRUE;
 					*nonTermID_out = GR_START_TAG_CONTENT;
 				}
 			}
@@ -1014,7 +989,7 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 
 			if(handler->listData != NULL)  // Invoke handler method
 			{
-				if(handler->listData(strm->schema->simpleTypeTable.sType[itemTypeId].exiType, (unsigned int) itemCount, app_data) == EXIP_HANDLER_STOP)
+				if(handler->listData(GET_EXI_TYPE(strm->schema->simpleTypeTable.sType[itemTypeId].content), (unsigned int) itemCount, app_data) == EXIP_HANDLER_STOP)
 					return HANDLER_STOP_RECEIVED;
 			}
 
@@ -1037,7 +1012,7 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 			unsigned char freeable = FALSE;
 
 			/* ENUMERATION CHECK */
-			if(typeId != INDEX_MAX && (strm->schema->simpleTypeTable.sType[typeId].facetPresenceMask & TYPE_FACET_ENUMERATION) != 0)
+			if(typeId != INDEX_MAX && (HAS_TYPE_FACET(strm->schema->simpleTypeTable.sType[typeId].content, TYPE_FACET_ENUMERATION)))
 			{
 				// There is enumeration defined
 				EnumDefinition eDefSearch;

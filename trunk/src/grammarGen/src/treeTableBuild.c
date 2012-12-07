@@ -22,7 +22,6 @@
 #include "stringManipulate.h"
 #include "memManagement.h"
 #include "grammars.h"
-#include "grammarAugment.h"
 #include "initSchemaInstance.h"
 #include "grammarGenerator.h"
 

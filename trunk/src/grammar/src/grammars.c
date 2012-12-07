@@ -78,7 +78,6 @@ errorCode createDocGrammar(EXIPSchema* schema, QNameID* elQnameArr, Index qnameC
 			tmp_rule->production[qnameCount - e].qnameId = elQnameArr[e];
 		}
 		tmp_rule->pCount = tmp_code1;
-		RULE_SET_BITS(tmp_rule->meta, getBitsNumber(qnameCount));
 	}
 	else
 	{
@@ -174,7 +173,6 @@ errorCode createBuiltInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 	tmp_rule->production[0].qnameId.uriId = SMALL_INDEX_MAX;
 	tmp_rule->production[0].qnameId.lnId = INDEX_MAX;
 	tmp_rule->pCount = 1;
-	RULE_SET_BITS(tmp_rule->meta, 1);
 	tmp_rule->prodDim = DEFAULT_PROD_ARRAY_DIM;
 	/* More part 1 productions get added later... */
 
@@ -259,7 +257,6 @@ errorCode createFragmentGrammar(EXIPSchema* schema, QNameID* elQnameArr, Index q
 			tmp_rule->production[qnameCount - e].qnameId = elQnameArr[e];
 		}
 		tmp_rule->pCount = tmp_code1;
-		RULE_SET_BITS(tmp_rule->meta, getBitsNumber(tmp_code1 - 1));
 	}
 	else
 	{
@@ -269,7 +266,6 @@ errorCode createFragmentGrammar(EXIPSchema* schema, QNameID* elQnameArr, Index q
 
 		/* Productions further on... */
 		tmp_rule->pCount = 2;
-		RULE_SET_BITS(tmp_rule->meta, 1);
 	}
 
 	/*
@@ -311,9 +307,53 @@ errorCode insertZeroProduction(DynGrammarRule* rule, EventType eventType, SmallI
 	rule->production[rule->pCount].qnameId = *qnameId;
 
 	rule->pCount += 1;
-	RULE_SET_BITS(rule->meta, getBitsNumber(rule->pCount - 1 + hasSecondLevelProd));
-
 	return ERR_OK;
+}
+
+unsigned int getBitsFirstPartCode(EXIOptions opts, EXIGrammar* grammar, GrammarRule* currentRule, SmallIndex currentRuleIndx)
+{
+	unsigned char secondLevelExists = 0;
+
+	if(IS_BUILT_IN_ELEM(grammar->props))
+	{
+		// Built-in element grammar
+		// There is always a second level production
+		return getBitsNumber(currentRule->pCount);
+	}
+	else if(IS_DOCUMENT(grammar->props))
+	{
+		// Document grammar
+		if(IS_PRESERVED(opts.preserve, PRESERVE_COMMENTS) || IS_PRESERVED(opts.preserve, PRESERVE_PIS))
+			secondLevelExists = 1;
+		else if(currentRuleIndx == 0 && IS_PRESERVED(opts.preserve, PRESERVE_DTD))
+			secondLevelExists = 1;
+
+		return getBitsNumber(currentRule->pCount - 1 + secondLevelExists);
+	}
+	else if(IS_FRAGMENT(grammar->props))
+	{
+		// Fragment grammar
+		if(IS_PRESERVED(opts.preserve, PRESERVE_COMMENTS) || IS_PRESERVED(opts.preserve, PRESERVE_PIS))
+			secondLevelExists = 1;
+		return getBitsNumber(currentRule->pCount - 1 + secondLevelExists);
+	}
+	else
+	{
+		// Schema-informed element/type grammar
+
+		if(WITH_STRICT(opts.enumOpt))
+		{
+			// Strict mode
+			if(currentRuleIndx == 0 && (HAS_NAMED_SUB_TYPE_OR_UNION(grammar->props) || IS_NILLABLE(grammar->props)))
+				secondLevelExists = 1;
+			return getBitsNumber(currentRule->pCount - 1 + secondLevelExists);
+		}
+		else // Non-strict mode
+		{
+			// There is always a second level production
+			return getBitsNumber(currentRule->pCount);
+		}
+	}
 }
 
 #if EXIP_DEBUG == ON

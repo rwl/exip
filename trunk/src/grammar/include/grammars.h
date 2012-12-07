@@ -106,6 +106,16 @@ errorCode createBuiltInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
  */
 errorCode insertZeroProduction(DynGrammarRule* rule, EventType evnt, SmallIndex nonTermID, QNameID* qname, unsigned char hasSecondLevelProd);
 
+/**
+ * @brief For a given grammar and a rule from it, returns the number of bits needed to encode a production from that rule
+ * @param[in] opts a set of options for the EXI stream
+ * @param[in] grammar a grammar object
+ * @param[in] currentRule the concrete grammar rule
+ * @param[in] currentRuleIndx the index of the concrete grammar rule
+ * @return number of bits needed to encode a production
+ */
+unsigned int getBitsFirstPartCode(EXIOptions opts, EXIGrammar* grammar, GrammarRule* currentRule, SmallIndex currentRuleIndx);
+
 #if EXIP_DEBUG == ON
 /**
  * @brief Prints a grammar rule

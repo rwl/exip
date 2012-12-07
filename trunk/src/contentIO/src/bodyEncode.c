@@ -19,8 +19,6 @@
 #include "sTables.h"
 #include "streamEncode.h"
 #include "ioUtil.h"
-#include "eventsEXI.h"
-#include "grammarRules.h"
 #include "stringManipulate.h"
 #include "grammars.h"
 #include "memManagement.h"
@@ -31,7 +29,7 @@ extern const String XML_SCHEMA_INSTANCE;
 /**
  * @brief Encodes second or third level production based on a state machine  */
 static errorCode stateMachineProdEncode(EXIStream* strm, unsigned char eventClass, unsigned char exiTypeClass, GrammarRule* currentRule,
-										QName* qname, Production* prodHit);
+										QName* qname, EventCode ec, Production* prodHit);
 
 errorCode encodeStringData(EXIStream* strm, String strng, QNameID qnameID, Index typeId)
 {
@@ -41,7 +39,7 @@ errorCode encodeStringData(EXIStream* strm, String strng, QNameID qnameID, Index
 	VxTable* vxTable = &GET_LN_URI_QNAME(strm->schema->uriTable, qnameID).vxTable;
 
 	/* ENUMERATION CHECK */
-	if(typeId != INDEX_MAX && (strm->schema->simpleTypeTable.sType[typeId].facetPresenceMask & TYPE_FACET_ENUMERATION) != 0)
+	if(typeId != INDEX_MAX && HAS_TYPE_FACET(strm->schema->simpleTypeTable.sType[typeId].content,TYPE_FACET_ENUMERATION))
 	{
 		// There is enumeration defined
 		EnumDefinition eDefSearch;
@@ -123,12 +121,13 @@ errorCode encodeStringData(EXIStream* strm, String strng, QNameID qnameID, Index
 
 errorCode encodeProduction(EXIStream* strm, unsigned char eventClass, EXITypeClass exiTypeClass, QName* qname, Production* prodHit)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	GrammarRule* currentRule;
 	EventCode ec;
 	Index j = 0;
 	Production* tmpProd = NULL;
 	EXITypeClass prodExiTypeClass;
+	Index prodCount;
+	unsigned int bitCount;
 
 	if(strm->context.currNonTermID >=  strm->gStack->grammar->count)
 		return INCONSISTENT_PROC_STATE;
@@ -136,10 +135,32 @@ errorCode encodeProduction(EXIStream* strm, unsigned char eventClass, EXITypeCla
 	if(IS_BUILT_IN_ELEM(strm->gStack->grammar->props))  // If the current grammar is build-in Element grammar ...
 		currentRule = (GrammarRule*) &((DynGrammarRule*) strm->gStack->grammar->rule)[strm->context.currNonTermID];
 	else
+	{
 		currentRule = &strm->gStack->grammar->rule[strm->context.currNonTermID];
+
+		if(strm->context.isNilType)
+		{
+			prodCount = RULE_GET_AT_COUNT(currentRule->meta);
+			if(eventClass == EVENT_EE_CLASS)
+			{
+				if(RULE_CONTAIN_EE(currentRule->meta))
+				{
+					ec.length = 1;
+					ec.part[0] = prodCount;
+					ec.bits[0] = getBitsNumber(prodCount);
+					strm->context.currNonTermID = GR_VOID_NON_TERMINAL;
+
+					return writeEventCode(strm, ec);
+				}
+			}
+		}
+		else
+			prodCount = currentRule->pCount;
+	}
 
 #if DEBUG_CONTENT_IO == ON
 	{
+		errorCode tmp_err_code = UNEXPECTED_ERROR;
 		tmp_err_code = printGrammarRule(strm->context.currNonTermID, currentRule, strm->schema);
 		if(tmp_err_code != ERR_OK)
 		{
@@ -149,7 +170,9 @@ errorCode encodeProduction(EXIStream* strm, unsigned char eventClass, EXITypeCla
 	}
 #endif
 
-	for(j = 0; j < currentRule->pCount; j++)
+	bitCount = getBitsFirstPartCode(strm->header.opts, strm->gStack->grammar, currentRule, strm->context.currNonTermID);
+
+	for(j = 0; j < prodCount; j++)
 	{
 		tmpProd = &currentRule->production[currentRule->pCount - 1 - j];
 
@@ -169,7 +192,7 @@ errorCode encodeProduction(EXIStream* strm, unsigned char eventClass, EXITypeCla
 					*prodHit = *tmpProd;
 					ec.length = 1;
 					ec.part[0] = j;
-					ec.bits[0] = RULE_GET_BITS(currentRule->meta);
+					ec.bits[0] = bitCount;
 					strm->context.currNonTermID = GET_PROD_NON_TERM(tmpProd->content);
 
 					return writeEventCode(strm, ec);
@@ -179,19 +202,18 @@ errorCode encodeProduction(EXIStream* strm, unsigned char eventClass, EXITypeCla
 	}
 
 	// Production not found: encoded as second or third level production
+	ec.length = 2;
+	ec.part[0] = prodCount;
+	ec.bits[0] = bitCount;
 
-	return stateMachineProdEncode(strm, eventClass, exiTypeClass, currentRule, qname, prodHit);
+	return stateMachineProdEncode(strm, eventClass, exiTypeClass, currentRule, qname, ec, prodHit);
 }
 
 static errorCode stateMachineProdEncode(EXIStream* strm, unsigned char eventClass, unsigned char exiTypeClass,
-						GrammarRule* currentRule, QName* qname, Production* prodHit)
+						GrammarRule* currentRule, QName* qname, EventCode ec, Production* prodHit)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	QNameID voidQnameID = {SMALL_INDEX_MAX, INDEX_MAX};
-	EventCode ec;
-
-	ec.part[0] = currentRule->pCount;
-	ec.bits[0] = RULE_GET_BITS(currentRule->meta);
 
 	if(IS_BUILT_IN_ELEM(strm->gStack->grammar->props))
 	{
@@ -213,7 +235,7 @@ static errorCode stateMachineProdEncode(EXIStream* strm, unsigned char eventClas
 				strm->context.currNonTermID = GR_VOID_NON_TERMINAL;
 
 				// #1# COMMENT and #2# COMMENT
-				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_EE, GR_VOID_NON_TERMINAL, &voidQnameID);
+				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_EE, GR_VOID_NON_TERMINAL, &voidQnameID, 1);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			break;
@@ -231,7 +253,7 @@ static errorCode stateMachineProdEncode(EXIStream* strm, unsigned char eventClas
 											(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) + IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS) != 0)));
 				strm->context.currNonTermID = GR_START_TAG_CONTENT;
 
-				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_AT_QNAME, GR_START_TAG_CONTENT, &strm->context.currAttr);
+				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_AT_QNAME, GR_START_TAG_CONTENT, &strm->context.currAttr, 1);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			break;
@@ -263,7 +285,7 @@ static errorCode stateMachineProdEncode(EXIStream* strm, unsigned char eventClas
 											(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) + IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS) != 0)));
 				strm->context.currNonTermID = GR_ELEMENT_CONTENT;
 
-				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, GR_ELEMENT_CONTENT, &strm->context.currElem);
+				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, GR_ELEMENT_CONTENT, &strm->context.currElem, 1);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			break;
@@ -279,7 +301,7 @@ static errorCode stateMachineProdEncode(EXIStream* strm, unsigned char eventClas
 				strm->context.currNonTermID = GR_ELEMENT_CONTENT;
 
 				// #1# COMMENT and #2# COMMENT
-				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_CH, GR_ELEMENT_CONTENT, &voidQnameID);
+				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_CH, GR_ELEMENT_CONTENT, &voidQnameID, 1);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			break;
@@ -622,7 +644,7 @@ errorCode encodeIntData(EXIStream* strm, Integer int_val, Index typeId)
 {
 	EXIType exiType;
 
-	exiType = strm->schema->simpleTypeTable.sType[typeId].exiType;
+	exiType = GET_EXI_TYPE(strm->schema->simpleTypeTable.sType[typeId].content);
 
 	if(exiType == VALUE_TYPE_SMALL_INTEGER)
 	{
