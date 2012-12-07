@@ -96,12 +96,10 @@ errorCode decodeStringValue(EXIStream* strm, QNameID qnameID, String* value);
  * @param[in] prodHit the current grammar production
  * @param[in] handler application content handler; stores the callback functions
  * @param[out] nonTermID_out nonTerminal ID after the content decoding
- * @param[in] currRule the current grammar rule in use for the event
  * @param[in] app_data Application data to be passed to the content handler callbacks
  * @return Error handling code
  */
-errorCode decodeEventContent(EXIStream* strm, Production* prodHit, ContentHandler* handler, SmallIndex* nonTermID_out,
-							GrammarRule* currRule, void* app_data);
+errorCode decodeEventContent(EXIStream* strm, Production* prodHit, ContentHandler* handler, SmallIndex* nonTermID_out, void* app_data);
 
 /**
  * @brief Decodes the value content item of an EXI event

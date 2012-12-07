@@ -21,12 +21,10 @@
 #include "sTables.h"
 #include "headerEncode.h"
 #include "bodyEncode.h"
-#include "grammarAugment.h"
 #include "hashtable.h"
 #include "stringManipulate.h"
 #include "streamEncode.h"
 #include "initSchemaInstance.h"
-#include "emptyTypeGrammarGen.h"
 
 /**
  * The handler to be used by the applications to serialize EXI streams
@@ -83,7 +81,8 @@ errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema, u
 	strm->context.currElem.lnId = LN_MAX;
 	strm->context.currAttr.uriId = URI_MAX;
 	strm->context.currAttr.lnId = LN_MAX;
-	strm->context.expectATData = 0;
+	strm->context.expectATData = FALSE;
+	strm->context.isNilType = FALSE;
 	strm->context.attrTypeId = INDEX_MAX;
 	strm->gStack = NULL;
 	strm->valueTable.value = NULL;
@@ -101,21 +100,11 @@ errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema, u
 		if(schemaIdMode == SCHEMA_ID_NIL || schemaIdMode == SCHEMA_ID_EMPTY)
 			return INVALID_EXIP_CONFIGURATION;
 
-		tmp_err_code = addUndeclaredProductionsToAll(&strm->memList, strm->schema, &strm->header.opts);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
 		if(WITH_FRAGMENT(strm->header.opts.enumOpt))
 		{
 			/* Fragment document grammar */
 			// TODO: create a Schema-informed Fragment Grammar from the EXIP schema object
 			return NOT_IMPLEMENTED_YET;
-		}
-		else
-		{
-			tmp_err_code = augmentDocGrammar(&strm->memList, strm->header.opts.preserve, &strm->schema->docGrammar);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
 		}
 	}
 	else
@@ -138,10 +127,6 @@ errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema, u
 			tmp_err_code = initSchema(strm->schema, INIT_SCHEMA_BUILD_IN_TYPES);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
-
-			tmp_err_code = addUndeclaredProductionsToAll(&strm->memList, strm->schema, &strm->header.opts);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
 		}
 
 		if(WITH_FRAGMENT(strm->header.opts.enumOpt))
@@ -149,18 +134,10 @@ errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema, u
 			tmp_err_code = createFragmentGrammar(strm->schema, NULL, 0);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
-
-			tmp_err_code = augmentFragGrammar(&strm->memList, strm->header.opts.preserve, &strm->schema->docGrammar);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
 		}
 		else
 		{
 			tmp_err_code = createDocGrammar(strm->schema, NULL, 0);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-
-			tmp_err_code = augmentDocGrammar(&strm->memList, strm->header.opts.preserve, &strm->schema->docGrammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
@@ -225,10 +202,7 @@ errorCode startDocument(EXIStream* strm)
 
 errorCode endDocument(EXIStream* strm)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
-	Index typeId;
-
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">End doc serialization\n"));
 
 	return encodeProduction(strm, EVENT_ED_CLASS, VALUE_TYPE_NONE_CLASS, NULL, &prodHit);
@@ -238,7 +212,6 @@ errorCode startElement(EXIStream* strm, QName qname)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
-	Index typeId;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Start element serialization\n"));
 
@@ -250,10 +223,7 @@ errorCode startElement(EXIStream* strm, QName qname)
 	{
 		EXIGrammar* elemGrammar = NULL;
 
-		if(qname == NULL)
-			return NULL_POINTER_REF;
-
-		tmp_err_code = encodeQName(strm, *qname, EVENT_SE_ALL, &strm->context.currElem);
+		tmp_err_code = encodeQName(strm, qname, EVENT_SE_ALL, &strm->context.currElem);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -295,7 +265,7 @@ errorCode startElement(EXIStream* strm, QName qname)
 		strm->context.currElem.uriId = prodHit.qnameId.uriId;
 		strm->context.currElem.lnId = prodHit.qnameId.lnId;
 
-		tmp_err_code = encodePfxQName(strm, qname, EVENT_SE_QNAME, prodHit.qnameId.uriId);
+		tmp_err_code = encodePfxQName(strm, &qname, EVENT_SE_QNAME, prodHit.qnameId.uriId);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -308,7 +278,7 @@ errorCode startElement(EXIStream* strm, QName qname)
 		}
 		else
 		{
-			elemGrammar = &strm->schema->grammarTable.grammar[prodHit->typeId];
+			elemGrammar = &strm->schema->grammarTable.grammar[prodHit.typeId];
 		}
 
 		if(elemGrammar != NULL) // The grammar is found
@@ -333,7 +303,6 @@ errorCode endElement(EXIStream* strm)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
-	Index typeId;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">End element serialization\n"));
 
@@ -358,7 +327,6 @@ errorCode attribute(EXIStream* strm, QName qname, EXITypeClass exiType)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
-	Index typeId;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Start attribute serialization\n"));
 
@@ -368,10 +336,7 @@ errorCode attribute(EXIStream* strm, QName qname, EXITypeClass exiType)
 
 	if(GET_PROD_EXI_EVENT(prodHit.content) == EVENT_AT_ALL)
 	{
-		if(qname == NULL)
-			return NULL_POINTER_REF;
-
-		tmp_err_code = encodeQName(strm, *qname, EVENT_AT_ALL, &strm->context.currAttr);
+		tmp_err_code = encodeQName(strm, qname, EVENT_AT_ALL, &strm->context.currAttr);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -380,7 +345,7 @@ errorCode attribute(EXIStream* strm, QName qname, EXITypeClass exiType)
 		strm->context.currAttr.uriId = prodHit.qnameId.uriId;
 		strm->context.currAttr.lnId = prodHit.qnameId.lnId;
 
-		tmp_err_code = encodePfxQName(strm, qname, EVENT_AT_QNAME, prodHit.qnameId.uriId);
+		tmp_err_code = encodePfxQName(strm, &qname, EVENT_AT_QNAME, prodHit.qnameId.uriId);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -449,18 +414,7 @@ errorCode booleanData(EXIStream* strm, unsigned char bool_val)
 	if(IS_SCHEMA(strm->gStack->grammar->props) && isXsiNilAttr && bool_val)
 	{
 		// In a schema-informed grammar && xsi:nil == TRUE
-		EXIGrammar* currGrammar;
-		EXIGrammar* tmpGrammar;
-		popGrammar(&(strm->gStack), &currGrammar);
-
-		tmp_err_code = getEmptyTypeGrammar(strm, currGrammar, &tmpGrammar);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = pushGrammar(&(strm->gStack), tmpGrammar);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
+		strm->context.isNilType = TRUE;
 		strm->context.currNonTermID = GR_START_TAG_CONTENT;
 	}
 
@@ -600,7 +554,6 @@ errorCode namespaceDeclaration(EXIStream* strm, const String ns, const String pr
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	SmallIndex uriId;
-	Index typeId;
 	Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start namespace declaration\n"));
@@ -653,12 +606,11 @@ errorCode closeEXIStream(EXIStream* strm)
 	return tmp_err_code;
 }
 
-errorCode serializeEvent(EXIStream* strm, Index codePart1, QName* qname)
+errorCode serializeEvent(EXIStream* strm, EventCode ec, QName* qname)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	GrammarRule* currentRule;
 	Production* tmpProd = NULL;
-	EventCode ec;
 
 	if(strm->context.currNonTermID >=  strm->gStack->grammar->count)
 		return INCONSISTENT_PROC_STATE;
@@ -668,15 +620,18 @@ errorCode serializeEvent(EXIStream* strm, Index codePart1, QName* qname)
 	else
 		currentRule = &strm->gStack->grammar->rule[strm->context.currNonTermID];
 
-	ec.length = 1;
-	ec.part[0] = codePart1;
-	ec.bits[0] = RULE_GET_BITS(currentRule->meta);
-
 	tmp_err_code = writeEventCode(strm, ec);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmpProd = &currentRule->production[currentRule->pCount - 1 - codePart1];
+	if(ec.length == 1)
+	{
+		tmpProd = &currentRule->production[currentRule->pCount - 1 - ec.part[0]];
+	}
+	else if(ec.length == 2)
+		return NOT_IMPLEMENTED_YET;
+	else // length == 3
+		return NOT_IMPLEMENTED_YET;
 
 	switch(GET_PROD_EXI_EVENT(tmpProd->content))
 	{
@@ -714,6 +669,7 @@ errorCode serializeEvent(EXIStream* strm, Index codePart1, QName* qname)
 			strm->context.attrTypeId = tmpProd->typeId;
 		break;
 		case EVENT_SE_QNAME:
+		{
 			EXIGrammar* elemGrammar = NULL;
 
 			strm->context.currElem.uriId = tmpProd->qnameId.uriId;
@@ -746,11 +702,13 @@ errorCode serializeEvent(EXIStream* strm, Index codePart1, QName* qname)
 			{
 				return INCONSISTENT_PROC_STATE;  // The event require the presence of Element Grammar previously created
 			}
+		}
 		break;
 		case EVENT_SE_URI:
 			return NOT_IMPLEMENTED_YET;
 		break;
 		case EVENT_SE_ALL:
+		{
 			EXIGrammar* elemGrammar = NULL;
 
 			if(qname == NULL)
@@ -790,6 +748,7 @@ errorCode serializeEvent(EXIStream* strm, Index codePart1, QName* qname)
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			}
+		}
 		break;
 		case EVENT_EE:
 			if(strm->context.currNonTermID == GR_VOID_NON_TERMINAL)

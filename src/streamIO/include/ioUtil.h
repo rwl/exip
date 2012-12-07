@@ -30,7 +30,7 @@
 void moveBitPointer(EXIStream* strm, unsigned int bitPositions);
 
 /**
- * @brief Determine the number of bits needed to encode a unsigned integer value
+ * @brief Determine the number of bits needed to encode an unsigned integer value
  * ⌈ log 2 m ⌉ from the spec is equal to getBitsNumber(m - 1)
  *
  * @param[in] val unsigned integer value

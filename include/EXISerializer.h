@@ -117,12 +117,12 @@ errorCode closeEXIStream(EXIStream* strm);
  * and when efficiency is of high importance
  *
  * @param[in, out] strm EXI stream
- * @param[in] codePart1 EXI event code for length 1 production
+ * @param[in] EventCode EXI event code of the production
  * @param[in] qname used only for SE(*), AT(*), SE(uri:*), AT(uri:*) and when
  * a new prefix should be serialized in SE(QName) and AT(QName); NULL otherwise
  * @return Error handling code
  */
-errorCode serializeEvent(EXIStream* strm, Index codePart1, QName* qname);
+errorCode serializeEvent(EXIStream* strm, EventCode ec, QName* qname);
 
 /****  END: Fast, low level API for schema encoding only ****/
 

@@ -18,7 +18,6 @@
 #include "treeTableSchema.h"
 #include "stringManipulate.h"
 #include "genUtils.h"
-#include "grammarRules.h"
 #include "memManagement.h"
 #include "initSchemaInstance.h"
 #include "grammars.h"
@@ -1709,10 +1708,9 @@ static errorCode getRestrictionSimpleProtoGrammar(BuildContext* ctx, TreeTable* 
 	}
 
 	// TODO: check if there are cases when the EXI type changes after restriction
-	newSimpleType.exiType = ctx->schema->simpleTypeTable.sType[typeId].exiType;
-	newSimpleType.facetPresenceMask = ctx->schema->simpleTypeTable.sType[typeId].facetPresenceMask;
+	newSimpleType.content  = ctx->schema->simpleTypeTable.sType[typeId].content;
 	// remove the presence of named subtype
-	newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask & (~TYPE_FACET_NAMED_SUBTYPE_UNION);
+	REMOVE_TYPE_FACET(newSimpleType.content, TYPE_FACET_NAMED_SUBTYPE_UNION);
 	newSimpleType.max = ctx->schema->simpleTypeTable.sType[typeId].max;
 	newSimpleType.min = ctx->schema->simpleTypeTable.sType[typeId].min;
 	newSimpleType.length = ctx->schema->simpleTypeTable.sType[typeId].length;
@@ -1723,42 +1721,42 @@ static errorCode getRestrictionSimpleProtoGrammar(BuildContext* ctx, TreeTable* 
 	{
 		if(tmpEntry->element == ELEMENT_MIN_INCLUSIVE)
 		{
-			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_MIN_INCLUSIVE;
+			SET_TYPE_FACET(newSimpleType.content, TYPE_FACET_MIN_INCLUSIVE);
 			tmp_err_code = stringToInt64(&resEntry->child.entry->attributePointers[ATTRIBUTE_VALUE], &newSimpleType.min);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 		else if(tmpEntry->element == ELEMENT_MIN_EXCLUSIVE)
 		{
-			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_MIN_EXCLUSIVE;
+			SET_TYPE_FACET(newSimpleType.content, TYPE_FACET_MIN_EXCLUSIVE);
 			tmp_err_code = stringToInt64(&resEntry->child.entry->attributePointers[ATTRIBUTE_VALUE], &newSimpleType.min);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 		else if(tmpEntry->element == ELEMENT_MIN_LENGTH)
 		{
-			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_MIN_LENGTH;
+			SET_TYPE_FACET(newSimpleType.content, TYPE_FACET_MIN_LENGTH);
 			tmp_err_code = stringToInt64(&resEntry->child.entry->attributePointers[ATTRIBUTE_VALUE], &newSimpleType.min);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 		else if(tmpEntry->element == ELEMENT_MAX_INCLUSIVE)
 		{
-			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_MAX_INCLUSIVE;
+			SET_TYPE_FACET(newSimpleType.content, TYPE_FACET_MAX_INCLUSIVE);
 			tmp_err_code = stringToInt64(&resEntry->child.entry->attributePointers[ATTRIBUTE_VALUE], &newSimpleType.max);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 		else if(tmpEntry->element == ELEMENT_MAX_EXCLUSIVE)
 		{
-			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_MAX_EXCLUSIVE;
+			SET_TYPE_FACET(newSimpleType.content, TYPE_FACET_MAX_EXCLUSIVE);
 			tmp_err_code = stringToInt64(&resEntry->child.entry->attributePointers[ATTRIBUTE_VALUE], &newSimpleType.max);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 		}
 		else if(tmpEntry->element == ELEMENT_MAX_LENGTH)
 		{
-			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_MAX_LENGTH;
+			SET_TYPE_FACET(newSimpleType.content, TYPE_FACET_MAX_LENGTH);
 			tmp_err_code = stringToInt64(&resEntry->child.entry->attributePointers[ATTRIBUTE_VALUE], &newSimpleType.max);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
@@ -1766,7 +1764,7 @@ static errorCode getRestrictionSimpleProtoGrammar(BuildContext* ctx, TreeTable* 
 		else if(tmpEntry->element == ELEMENT_LENGTH)
 		{
 			int ml = 0;
-			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_LENGTH;
+			SET_TYPE_FACET(newSimpleType.content, TYPE_FACET_LENGTH);
 			tmp_err_code = stringToInteger(&resEntry->child.entry->attributePointers[ATTRIBUTE_VALUE], &ml);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
@@ -1774,24 +1772,24 @@ static errorCode getRestrictionSimpleProtoGrammar(BuildContext* ctx, TreeTable* 
 		}
 		else if(tmpEntry->element == ELEMENT_TOTAL_DIGITS)
 		{
-			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_TOTAL_DIGITS;
+			SET_TYPE_FACET(newSimpleType.content, TYPE_FACET_TOTAL_DIGITS);
 			return NOT_IMPLEMENTED_YET;
 		}
 		else if(tmpEntry->element == ELEMENT_FRACTION_DIGITS)
 		{
-			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_FRACTION_DIGITS;
+			SET_TYPE_FACET(newSimpleType.content, TYPE_FACET_FRACTION_DIGITS);
 			return NOT_IMPLEMENTED_YET;
 		}
 		else if(tmpEntry->element == ELEMENT_PATTERN)
 		{
-			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_PATTERN;
+			SET_TYPE_FACET(newSimpleType.content, TYPE_FACET_PATTERN);
 			// TODO: needs to be implemented. It is also needed for the XML Schema grammars
 			// COMMENT #SCHEMA#: ignore for now
 //			return NOT_IMPLEMENTED_YET;
 		}
 		else if(tmpEntry->element == ELEMENT_WHITE_SPACE)
 		{
-			newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_WHITE_SPACE;
+			SET_TYPE_FACET(newSimpleType.content, TYPE_FACET_WHITE_SPACE);
 			return NOT_IMPLEMENTED_YET;
 		}
 		else if(tmpEntry->element == ELEMENT_ENUMERATION)
@@ -1819,9 +1817,9 @@ static errorCode getRestrictionSimpleProtoGrammar(BuildContext* ctx, TreeTable* 
 		 * containing the enumeration */
 		eDef.typeId = ctx->schema->simpleTypeTable.count;
 
-		newSimpleType.facetPresenceMask = newSimpleType.facetPresenceMask | TYPE_FACET_ENUMERATION;
+		SET_TYPE_FACET(newSimpleType.content, TYPE_FACET_ENUMERATION);
 
-		switch(ctx->schema->simpleTypeTable.sType[typeId].exiType)
+		switch(GET_EXI_TYPE(ctx->schema->simpleTypeTable.sType[typeId].content))
 		{
 			case VALUE_TYPE_STRING:
 				valSize = sizeof(String);
@@ -1858,7 +1856,7 @@ static errorCode getRestrictionSimpleProtoGrammar(BuildContext* ctx, TreeTable* 
 		{
 			if(enumEntry->element == ELEMENT_ENUMERATION)
 			{
-				switch(ctx->schema->simpleTypeTable.sType[typeId].exiType)
+				switch(GET_EXI_TYPE(ctx->schema->simpleTypeTable.sType[typeId].content))
 				{
 					case VALUE_TYPE_STRING:
 					{
@@ -1998,7 +1996,7 @@ static errorCode getTypeId(BuildContext* ctx, const QNameID typeQnameId, TreeTab
 
 		}
 
-		*typeId = (GET_TYPE_GRAMMAR_QNAMEID(ctx->schema, typeQnameId))->rule[0].prod1[0].typeId;
+		*typeId = (GET_TYPE_GRAMMAR_QNAMEID(ctx->schema, typeQnameId))->rule[0].production[0].typeId;
 		if(*typeId == INDEX_MAX)
 			return UNEXPECTED_ERROR;
 	}
@@ -2045,8 +2043,8 @@ static errorCode getListProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTa
 	if(*list == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
-	listSimpleType.exiType = VALUE_TYPE_LIST;
-	listSimpleType.facetPresenceMask = 0;
+	listSimpleType.content = 0;
+	SET_EXI_TYPE(listSimpleType.content, VALUE_TYPE_LIST);
 	listSimpleType.max = 0;
 	listSimpleType.min = 0;
 	listSimpleType.length = 0;
@@ -2119,7 +2117,7 @@ static errorCode storeGrammar(BuildContext* ctx, QNameID qnameID, ProtoGrammar* 
 			return tmp_err_code;
 
 		if(isNillable)
-			SET_NILLABLE(exiGr.props);
+			SET_NILLABLE_GR(exiGr.props);
 
 		tmp_err_code = addDynEntry(&ctx->schema->grammarTable.dynArray, &exiGr, grIndex);
 		if(tmp_err_code != ERR_OK)

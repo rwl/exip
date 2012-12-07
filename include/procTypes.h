@@ -488,37 +488,48 @@ enum EventType
 
 typedef enum EventType EventType;
 
+enum EventTypeClass
+{
+	EVENT_SD_CLASS   =  0,
+	EVENT_ED_CLASS   =  1,
+	EVENT_AT_CLASS   =  2,
+	EVENT_SE_CLASS 	 =  3,
+	EVENT_EE_CLASS   =  4,
+	EVENT_CH_CLASS   =  5,
+	EVENT_NS_CLASS   =  6,
+	EVENT_CM_CLASS   =  7,
+	EVENT_PI_CLASS   =  8,
+	EVENT_DT_CLASS   =  9,
+	EVENT_ER_CLASS   = 10,
+	EVENT_SC_CLASS   = 11,
+	EVENT_VOID_CLASS = 25
+};
+
+typedef enum EventTypeClass EventTypeClass;
+
 #define GET_EVENT_CLASS(evnt) (evnt/10)
-#define EVENT_SD_CLASS    0
-#define EVENT_ED_CLASS    1
-#define EVENT_AT_CLASS    2
-#define EVENT_SE_CLASS 	  3
-#define EVENT_EE_CLASS    4
-#define EVENT_CH_CLASS    5
-#define EVENT_NS_CLASS    6
-#define EVENT_CM_CLASS    7
-#define EVENT_PI_CLASS    8
-#define EVENT_DT_CLASS    9
-#define EVENT_ER_CLASS   10
-#define EVENT_SC_CLASS   11
-#define EVENT_VOID_CLASS 25
 
 /**
  * This is the type of the "value" content of EXI events. It is used when schema is available.
  */
-#define VALUE_TYPE_NONE               0
-#define VALUE_TYPE_STRING            10
-#define VALUE_TYPE_FLOAT             20
-#define VALUE_TYPE_DECIMAL           30
-#define VALUE_TYPE_DATE_TIME         40
-#define VALUE_TYPE_BOOLEAN           50
-#define VALUE_TYPE_BINARY            60
-#define VALUE_TYPE_LIST              70
-#define VALUE_TYPE_QNAME             80
-#define VALUE_TYPE_INTEGER           90
-#define VALUE_TYPE_SMALL_INTEGER     91
-#define VALUE_TYPE_NON_NEGATIVE_INT  92
-#define VALUE_TYPE_UNTYPED          255
+enum EXIType
+{
+	VALUE_TYPE_NONE             =   0,
+	VALUE_TYPE_STRING           =  10,
+	VALUE_TYPE_FLOAT            =  20,
+	VALUE_TYPE_DECIMAL          =  30,
+	VALUE_TYPE_DATE_TIME        =  40,
+	VALUE_TYPE_BOOLEAN          =  50,
+	VALUE_TYPE_BINARY           =  60,
+	VALUE_TYPE_LIST             =  70,
+	VALUE_TYPE_QNAME            =  80,
+	VALUE_TYPE_INTEGER          =  90,
+	VALUE_TYPE_SMALL_INTEGER    =  91,
+	VALUE_TYPE_NON_NEGATIVE_INT =  92,
+	VALUE_TYPE_UNTYPED          = 255
+};
+
+typedef enum EXIType EXIType;
 
 /**
  * This is the type of the "value" content of EXI events. It is used when schema is available.
@@ -619,25 +630,22 @@ struct GrammarRule
     /** The number of productions */
     Index pCount;
 
+    // TODO: Think about get rid of that meta info
     /** Meta information for the grammar rule:
-     * - most significant 10 bits contain the number of AT(qname)[schema-typed value]  productions
-     * - least significant 5 bits contain the number of bits for productions event codes */
+     * - most significant 15 bits contain the number of AT(qname)[schema-typed value]  productions
+     * - least significant bit is used to indicate whether it has an EE production */
     uint16_t meta;
 };
 
 typedef struct GrammarRule GrammarRule;
 
-#define RULE_META_BITS_MASK        0x1F // 0b0000000000011111
-#define RULE_CONTAIN_EE_MASK       0x20 // 0b0000000000100000
+#define RULE_CONTAIN_EE_MASK       0x01 // 0b0000000000000001
 
-#define RULE_CONTAIN_EE(meta) (meta & RULE_CONTAIN_EE_MASK != 0)
+#define RULE_CONTAIN_EE(meta) ((meta & RULE_CONTAIN_EE_MASK) != 0)
 #define RULE_SET_CONTAIN_EE(meta) (meta = meta | RULE_CONTAIN_EE_MASK)
 
-#define RULE_SET_BITS(meta, b) (meta = (meta & ~RULE_META_BITS_MASK) | (b & RULE_META_BITS_MASK))
-#define RULE_GET_BITS(meta) (meta & RULE_META_BITS_MASK)
-
-#define RULE_SET_AT_COUNT(meta, ac) (meta = meta | (ac<<6))
-#define RULE_GET_AT_COUNT(meta) (meta>>6)
+#define RULE_SET_AT_COUNT(meta, ac) (meta = meta | (ac<<1))
+#define RULE_GET_AT_COUNT(meta) (meta>>1)
 
 /**
  * Extension to the GrammarRule. In the DynGrammarRule the production array is a dynamic array.
@@ -868,8 +876,9 @@ typedef struct UriTable UriTable;
 
 #define GET_EXI_TYPE(content) (content>>24)
 #define SET_EXI_TYPE(content, et) (content = (content & ST_CONTENT_MASK) | (et<<24))
-#define GET_TYPE_FACET(content, facet) ((content & facet) != 0)
+#define HAS_TYPE_FACET(content, facet) ((content & facet) != 0)
 #define SET_TYPE_FACET(content, facet) (content = (content | facet))
+#define REMOVE_TYPE_FACET(content, facet) (content = (content & ~facet))
 
 /**
  * Attributes of a schema simple type, including EXI datatype for the simple content. 
@@ -1078,6 +1087,9 @@ struct StreamContext
 
 	/** Non-zero if expecting attribute data or list items */
 	unsigned int expectATData;
+
+	/** TRUE if the current grammar rule must be processed as EmptyType grammar */
+	unsigned char isNilType;
 
 	/** Value type of the expected attribute */
 	Index attrTypeId;
