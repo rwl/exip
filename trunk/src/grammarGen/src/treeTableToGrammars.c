@@ -24,7 +24,8 @@
 
 #define DEFAULT_GLOBAL_QNAME_COUNT 200
 
-extern EXIGrammar static_grammar_empty;
+// TODO: check if this empty grammar is needed?
+static EXIGrammar static_grammar_empty = {{{0x2800FFFF, INDEX_MAX, {URI_MAX, LN_MAX}}, 1, 0x01}, 0x2000000, 1};
 
 struct GlobalElemQNameTable
 {

@@ -24,9 +24,6 @@
 #define DEF_FRAG_GRAMMAR_RULE_NUMBER 1 // first rule is excluded
 #define DEF_ELEMENT_GRAMMAR_RULE_NUMBER 2
 
-extern Production static_prod_start_doc[1];
-extern Production static_prod_doc_end[1];
-
 errorCode createDocGrammar(EXIPSchema* schema, QNameID* elQnameArr, Index qnameCount)
 {
 	GrammarRule* tmp_rule;
@@ -96,8 +93,8 @@ errorCode createDocGrammar(EXIPSchema* schema, QNameID* elQnameArr, Index qnameC
 	SET_PROD_EXI_EVENT(tmp_rule->production[0].content, EVENT_SE_ALL);
 	SET_PROD_NON_TERM(tmp_rule->production[0].content, GR_DOC_END);
 	tmp_rule->production[0].typeId = INDEX_MAX;
-	tmp_rule->production[0].qnameId.uriId = SMALL_INDEX_MAX;
-	tmp_rule->production[0].qnameId.lnId = INDEX_MAX;
+	tmp_rule->production[0].qnameId.uriId = URI_MAX;
+	tmp_rule->production[0].qnameId.lnId = LN_MAX;
 
 	/* Rule for Document end */
 	/* 
@@ -106,8 +103,19 @@ errorCode createDocGrammar(EXIPSchema* schema, QNameID* elQnameArr, Index qnameC
 	 */
 	tmp_rule = &schema->docGrammar.rule[GR_DOC_END];
 
+	// TODO: consider ignoring this rule as well.
+
 	/* Part 1 */
-	tmp_rule->production = static_prod_doc_end;
+	tmp_rule->production = (Production*) memManagedAllocate(&schema->memList, sizeof(Production));
+	if(tmp_rule->production == NULL)
+		return MEMORY_ALLOCATION_ERROR;
+
+	SET_PROD_EXI_EVENT(tmp_rule->production[0].content, EVENT_ED);
+	SET_PROD_NON_TERM(tmp_rule->production[0].content, GR_VOID_NON_TERMINAL);
+	tmp_rule->production[0].typeId = INDEX_MAX;
+	tmp_rule->production[0].qnameId.uriId = URI_MAX;
+	tmp_rule->production[0].qnameId.lnId = LN_MAX;
+
 	tmp_rule->pCount = 1;
 	tmp_rule->meta = 0;
 
@@ -170,8 +178,8 @@ errorCode createBuiltInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 	SET_PROD_EXI_EVENT(tmp_rule->production[0].content, EVENT_EE);
 	SET_PROD_NON_TERM(tmp_rule->production[0].content, GR_VOID_NON_TERMINAL);
 	tmp_rule->production[0].typeId = INDEX_MAX;
-	tmp_rule->production[0].qnameId.uriId = SMALL_INDEX_MAX;
-	tmp_rule->production[0].qnameId.lnId = INDEX_MAX;
+	tmp_rule->production[0].qnameId.uriId = URI_MAX;
+	tmp_rule->production[0].qnameId.lnId = LN_MAX;
 	tmp_rule->pCount = 1;
 	tmp_rule->prodDim = DEFAULT_PROD_ARRAY_DIM;
 	/* More part 1 productions get added later... */
@@ -277,14 +285,14 @@ errorCode createFragmentGrammar(EXIPSchema* schema, QNameID* elQnameArr, Index q
 	SET_PROD_EXI_EVENT(tmp_rule->production[0].content, EVENT_ED);
 	SET_PROD_NON_TERM(tmp_rule->production[0].content, GR_VOID_NON_TERMINAL);
 	tmp_rule->production[0].typeId = INDEX_MAX;
-	tmp_rule->production[0].qnameId.uriId = SMALL_INDEX_MAX;
-	tmp_rule->production[0].qnameId.lnId = INDEX_MAX;
+	tmp_rule->production[0].qnameId.uriId = URI_MAX;
+	tmp_rule->production[0].qnameId.lnId = LN_MAX;
 
 	SET_PROD_EXI_EVENT(tmp_rule->production[1].content, EVENT_SE_ALL);
 	SET_PROD_NON_TERM(tmp_rule->production[1].content, GR_FRAGMENT_CONTENT);
 	tmp_rule->production[1].typeId = INDEX_MAX;
-	tmp_rule->production[1].qnameId.uriId = SMALL_INDEX_MAX;
-	tmp_rule->production[1].qnameId.lnId = INDEX_MAX;
+	tmp_rule->production[1].qnameId.uriId = URI_MAX;
+	tmp_rule->production[1].qnameId.lnId = LN_MAX;
 
 	return ERR_OK;
 }
