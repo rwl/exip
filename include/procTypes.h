@@ -608,7 +608,9 @@ typedef struct EventCode EventCode;
 /**
  * Used to indicate that the production does not have NON_TERMINAL on the right-hand side
  */
-#define GR_VOID_NON_TERMINAL SMALL_INDEX_MAX
+#ifndef GR_VOID_NON_TERMINAL
+# define GR_VOID_NON_TERMINAL SMALL_INDEX_MAX
+#endif
 
 #define GR_DOC_CONTENT       0
 #define GR_DOC_END           1

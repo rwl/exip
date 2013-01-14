@@ -84,13 +84,6 @@ static errorCode handleProduction(EXIStream* strm, Production* prodHit, SmallInd
 
 	switch(GET_PROD_EXI_EVENT(prodHit->content))
 	{
-		case EVENT_SD:
-			if(handler->startDocument != NULL)
-			{
-				if(handler->startDocument(app_data) == EXIP_HANDLER_STOP)
-					return HANDLER_STOP_RECEIVED;
-			}
-		break;
 		case EVENT_ED:
 			if(handler->endDocument != NULL)
 			{
@@ -146,7 +139,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		if(tmp_bits_val == prodCnt-1)
+		if(tmp_bits_val == prodCnt)
 		{
 			// 3th level, CM or PI productions
 			return NOT_IMPLEMENTED_YET;
@@ -203,9 +196,11 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
 
-						tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, *nonTermID_out, &strm->context.currElem, 1);
+						tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, GR_ELEMENT_CONTENT, &strm->context.currElem, 1);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
+
+						strm->gStack->lastNonTermID = GR_ELEMENT_CONTENT;
 					}
 				break;
 				case 3:
@@ -224,9 +219,11 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 							if(tmp_err_code != ERR_OK)
 								return tmp_err_code;
 
-							tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, *nonTermID_out, &strm->context.currElem, 1);
+							tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, GR_ELEMENT_CONTENT, &strm->context.currElem, 1);
 							if(tmp_err_code != ERR_OK)
 								return tmp_err_code;
+
+							strm->gStack->lastNonTermID = GR_ELEMENT_CONTENT;
 						}
 					}
 					else if(WITH_SELF_CONTAINED(strm->header.opts.enumOpt))
@@ -236,14 +233,18 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
 
-						tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, *nonTermID_out, &strm->context.currElem, 1);
+						tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, GR_ELEMENT_CONTENT, &strm->context.currElem, 1);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
+
+						strm->gStack->lastNonTermID = GR_ELEMENT_CONTENT;
 					}
 					else
 					{
 						// CH event
 						DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">CH event\n"));
+
+						*nonTermID_out = GR_ELEMENT_CONTENT;
 
 						tmp_err_code = decodeValueItem(strm, INDEX_MAX, handler, nonTermID_out, strm->context.currElem, app_data);
 						if(tmp_err_code != ERR_OK)
@@ -265,14 +266,18 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 							if(tmp_err_code != ERR_OK)
 								return tmp_err_code;
 
-							tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, *nonTermID_out, &strm->context.currElem, 1);
+							tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, GR_ELEMENT_CONTENT, &strm->context.currElem, 1);
 							if(tmp_err_code != ERR_OK)
 								return tmp_err_code;
+
+							strm->gStack->lastNonTermID = GR_ELEMENT_CONTENT;
 						}
 						else
 						{
 							// CH event
 							DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">CH event\n"));
+
+							*nonTermID_out = GR_ELEMENT_CONTENT;
 
 							tmp_err_code = decodeValueItem(strm, INDEX_MAX, handler, nonTermID_out, strm->context.currElem, app_data);
 							if(tmp_err_code != ERR_OK)
@@ -288,6 +293,8 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 					{
 						// CH event
 						DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">CH event\n"));
+
+						*nonTermID_out = GR_ELEMENT_CONTENT;
 
 						tmp_err_code = decodeValueItem(strm, INDEX_MAX, handler, nonTermID_out, strm->context.currElem, app_data);
 						if(tmp_err_code != ERR_OK)
@@ -309,6 +316,8 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 					{
 						// CH event
 						DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">CH event\n"));
+
+						*nonTermID_out = GR_ELEMENT_CONTENT;
 
 						tmp_err_code = decodeValueItem(strm, INDEX_MAX, handler, nonTermID_out, strm->context.currElem, app_data);
 						if(tmp_err_code != ERR_OK)
@@ -334,13 +343,17 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
 
-					tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, *nonTermID_out, &strm->context.currElem, 1);
+					tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, GR_ELEMENT_CONTENT, &strm->context.currElem, 1);
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
+
+					strm->gStack->lastNonTermID = GR_ELEMENT_CONTENT;
 				break;
 				case 8:
 					// ElementContent : CH (*)
 					DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">CH event\n"));
+
+					*nonTermID_out = GR_ELEMENT_CONTENT;
 
 					tmp_err_code = decodeValueItem(strm, INDEX_MAX, handler, nonTermID_out, strm->context.currElem, app_data);
 					if(tmp_err_code != ERR_OK)
@@ -718,6 +731,8 @@ errorCode decodeEventContent(EXIStream* strm, Production* prodHit, ContentHandle
 			tmp_err_code = decodeSEWildcardEvent(strm, handler, nonTermID_out, app_data);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
+
+			strm->gStack->lastNonTermID = GET_PROD_NON_TERM(prodHit->content);
 		break;
 		case EVENT_AT_ALL:
 			tmp_err_code = decodeATWildcardEvent(strm, handler, nonTermID_out, app_data);
@@ -1100,7 +1115,6 @@ errorCode decodeSEWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallI
 	Index dynArrIndx;
 
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">SE(*) event\n"));
-	*nonTermID_out = GR_ELEMENT_CONTENT;
 
 	// The content of SE event is the element qname
 	tmp_err_code = decodeQName(strm, &qname, &qnameId);
@@ -1115,12 +1129,11 @@ errorCode decodeSEWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallI
 
 	// New element grammar is pushed on the stack
 	elemGrammar = GET_ELEM_GRAMMAR_QNAMEID(strm->schema, qnameId);
+	*nonTermID_out = GR_START_TAG_CONTENT;
 
-	strm->gStack->lastNonTermID = *nonTermID_out;
 	if(elemGrammar != NULL)
 	{
 		// The grammar is found
-		*nonTermID_out = GR_START_TAG_CONTENT;
 		tmp_err_code = pushGrammar(&(strm->gStack), elemGrammar);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
@@ -1137,7 +1150,6 @@ errorCode decodeSEWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallI
 			return tmp_err_code;
 
 		GET_LN_URI_QNAME(strm->schema->uriTable, qnameId).elemGrammar = dynArrIndx;
-		*nonTermID_out = GR_START_TAG_CONTENT;
 		tmp_err_code = pushGrammar(&(strm->gStack), &strm->schema->grammarTable.grammar[dynArrIndx]);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;

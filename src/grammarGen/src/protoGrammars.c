@@ -48,6 +48,8 @@ errorCode addProduction(ProtoRuleEntry* ruleEntry, EventType eventType, Index ty
 	Index newProdId;
 
 	tmp_err_code = addEmptyDynEntry(&ruleEntry->dynArray, (void**)&newProd, &newProdId);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
 
 	SET_PROD_EXI_EVENT(newProd->content, eventType);
 	newProd->typeId = typeId;

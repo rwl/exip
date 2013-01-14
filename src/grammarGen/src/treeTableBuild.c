@@ -429,7 +429,7 @@ static char xsd_endElement(void* app_data)
 		if(!isStringEmpty(elName))
 		{
 			Index lnId;
-			Index uriId = 0; // URI	0	"" [empty string]
+			SmallIndex uriId = 0; // URI	0	"" [empty string]
 
 			if(ttpd->contextStack == NULL) // If the schema definition is global
 			{
