@@ -19,12 +19,6 @@
 #define ON  1
 #define OFF 0
 
-#ifdef EXIP_APP_CONFIG
-
-#  include "app_config.h"
-
-#else  // The default EXIP parameters
-
 #  define EXIP_DEBUG  	     ON
 #  define EXIP_DEBUG_LEVEL INFO
 
@@ -77,6 +71,8 @@ struct ThinFloat
 
 #define EXIP_FLOAT struct ThinFloat
 
-#endif /* EXIP_APP_CONFIG */
+// NOTE: The GR_VOID_NON_TERMINAL should be set to the maximum 24 bit unsigned value in case the
+// SMALL_INDEX_MAX is 32 bits or bigger
+#define GR_VOID_NON_TERMINAL 0xFFFFFF
 
 #endif /* EXIPCONFIG_H_ */

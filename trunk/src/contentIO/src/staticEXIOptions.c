@@ -112,7 +112,7 @@ CONST EXIPSchema ops_schema =
 {
     {NULL, NULL},
     {{sizeof(UriEntry), 5, 5}, NULL, 5},
-    {NULL, 3, 10, 0},
+    {NULL, 3, 2},
     {{sizeof(SimpleType), 67, 67}, NULL, 67},
     {{sizeof(EXIGrammar), 75, 75}, NULL, 75},
     75,

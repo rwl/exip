@@ -112,6 +112,14 @@ errorCode parseHeader(Parser* parser)
 			return tmp_err_code;
 	}
 
+	// The parsing of the header is successful
+	// TODO: Consider removing the startDocument all together instead of invoking it always here?
+	if(parser->handler.startDocument != NULL)
+	{
+		if(parser->handler.startDocument(parser->app_data) == EXIP_HANDLER_STOP)
+			return HANDLER_STOP_RECEIVED;
+	}
+
 	return ERR_OK;
 }
 
