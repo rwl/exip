@@ -133,7 +133,10 @@ errorCode encodeProduction(EXIStream* strm, unsigned char eventClass, EXITypeCla
 		return INCONSISTENT_PROC_STATE;
 
 	if(IS_BUILT_IN_ELEM(strm->gStack->grammar->props))  // If the current grammar is build-in Element grammar ...
+	{
 		currentRule = (GrammarRule*) &((DynGrammarRule*) strm->gStack->grammar->rule)[strm->context.currNonTermID];
+		prodCount = currentRule->pCount;
+	}
 	else
 	{
 		currentRule = &strm->gStack->grammar->rule[strm->context.currNonTermID];
@@ -185,7 +188,7 @@ errorCode encodeProduction(EXIStream* strm, unsigned char eventClass, EXITypeCla
 		{
 			if(GET_EVENT_CLASS(GET_PROD_EXI_EVENT(tmpProd->content)) == eventClass)
 			{
-				if(qname == NULL ||
+				if(qname == NULL || tmpProd->qnameId.uriId == URI_MAX ||
 				  (stringEqual(strm->schema->uriTable.uri[tmpProd->qnameId.uriId].uriStr, *(qname->uri)) &&
 				   (tmpProd->qnameId.lnId == LN_MAX || stringEqual(GET_LN_URI_QNAME(strm->schema->uriTable, tmpProd->qnameId).lnStr, *(qname->localName)))))
 				{
@@ -214,10 +217,28 @@ static errorCode stateMachineProdEncode(EXIStream* strm, unsigned char eventClas
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	QNameID voidQnameID = {SMALL_INDEX_MAX, INDEX_MAX};
+	QNameID qnameID;
 
 	if(IS_BUILT_IN_ELEM(strm->gStack->grammar->props))
 	{
 		// Built-in element grammar
+
+		if(strm->context.currNonTermID == GR_START_TAG_CONTENT)
+		{
+			ec.bits[1] = getBitsNumber(3 +
+									   (IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) +
+										WITH_SELF_CONTAINED(strm->header.opts.enumOpt) +
+										IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD) +
+										(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) + IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS) != 0)));
+		}
+		else if(strm->context.currNonTermID == GR_ELEMENT_CONTENT)
+		{
+			ec.bits[1] = getBitsNumber(1 + IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD) +
+										(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) + IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS) != 0));
+		}
+		else
+			return INCONSISTENT_PROC_STATE;
+
 		switch(eventClass)
 		{
 			case EVENT_EE_CLASS:
@@ -225,13 +246,7 @@ static errorCode stateMachineProdEncode(EXIStream* strm, unsigned char eventClas
 					return INCONSISTENT_PROC_STATE;
 
 				SET_PROD_EXI_EVENT(prodHit->content, EVENT_EE);
-				ec.length = 2;
 				ec.part[1] = 0;
-				ec.bits[1] = getBitsNumber(4 +
-										   (IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) +
-										    WITH_SELF_CONTAINED(strm->header.opts.enumOpt) +
-											IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD) +
-											(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) + IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS) != 0)));
 				strm->context.currNonTermID = GR_VOID_NON_TERMINAL;
 
 				// #1# COMMENT and #2# COMMENT
@@ -244,16 +259,20 @@ static errorCode stateMachineProdEncode(EXIStream* strm, unsigned char eventClas
 					return INCONSISTENT_PROC_STATE;
 
 				SET_PROD_EXI_EVENT(prodHit->content, EVENT_AT_ALL);
-				ec.length = 2;
 				ec.part[1] = 1;
-				ec.bits[1] = getBitsNumber(4 +
-										   (IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) +
-										    WITH_SELF_CONTAINED(strm->header.opts.enumOpt) +
-											IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD) +
-											(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) + IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS) != 0)));
 				strm->context.currNonTermID = GR_START_TAG_CONTENT;
 
-				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_AT_QNAME, GR_START_TAG_CONTENT, &strm->context.currAttr, 1);
+				if(!lookupUri(&strm->schema->uriTable, *qname->uri, &qnameID.uriId))
+				{
+					qnameID.uriId = strm->schema->uriTable.count;
+					qnameID.lnId = 0;
+				}
+				else if(!lookupLn(&strm->schema->uriTable.uri[qnameID.uriId].lnTable, *qname->localName,  &qnameID.lnId))
+				{
+					qnameID.lnId = strm->schema->uriTable.uri[qnameID.uriId].lnTable.count;
+				}
+
+				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_AT_QNAME, GR_START_TAG_CONTENT, &qnameID, 1);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			break;
@@ -262,13 +281,7 @@ static errorCode stateMachineProdEncode(EXIStream* strm, unsigned char eventClas
 					return INCONSISTENT_PROC_STATE;
 
 				SET_PROD_EXI_EVENT(prodHit->content, EVENT_NS);
-				ec.length = 2;
 				ec.part[1] = 2;
-				ec.bits[1] = getBitsNumber(3 +
-										   (IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) +
-										    WITH_SELF_CONTAINED(strm->header.opts.enumOpt) +
-											IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD) +
-											(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) + IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS) != 0)));
 				strm->context.currNonTermID = GR_START_TAG_CONTENT;
 			break;
 			case EVENT_SC_CLASS:
@@ -276,13 +289,10 @@ static errorCode stateMachineProdEncode(EXIStream* strm, unsigned char eventClas
 			break;
 			case EVENT_SE_CLASS:
 				SET_PROD_EXI_EVENT(prodHit->content, EVENT_SE_ALL);
-				ec.length = 2;
-				ec.part[1] = 2 + IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) + WITH_SELF_CONTAINED(strm->header.opts.enumOpt);
-				ec.bits[1] = getBitsNumber(3 +
-										   (IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) +
-										    WITH_SELF_CONTAINED(strm->header.opts.enumOpt) +
-											IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD) +
-											(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) + IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS) != 0)));
+				if(strm->context.currNonTermID == GR_START_TAG_CONTENT)
+					ec.part[1] = 2 + IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) + WITH_SELF_CONTAINED(strm->header.opts.enumOpt);
+				else
+					ec.part[1] = 0;
 				strm->context.currNonTermID = GR_ELEMENT_CONTENT;
 
 				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, GR_ELEMENT_CONTENT, &strm->context.currElem, 1);
@@ -291,13 +301,10 @@ static errorCode stateMachineProdEncode(EXIStream* strm, unsigned char eventClas
 			break;
 			case EVENT_CH_CLASS:
 				SET_PROD_EXI_EVENT(prodHit->content, EVENT_CH);
-				ec.length = 2;
-				ec.part[1] = 3 + IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) + WITH_SELF_CONTAINED(strm->header.opts.enumOpt);
-				ec.bits[1] = getBitsNumber(3 +
-										   (IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) +
-										    WITH_SELF_CONTAINED(strm->header.opts.enumOpt) +
-											IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD) +
-											(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) + IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS) != 0)));
+				if(strm->context.currNonTermID == GR_START_TAG_CONTENT)
+					ec.part[1] = 3 + IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) + WITH_SELF_CONTAINED(strm->header.opts.enumOpt);
+				else
+					ec.part[1] = 1;
 				strm->context.currNonTermID = GR_ELEMENT_CONTENT;
 
 				// #1# COMMENT and #2# COMMENT
