@@ -1,0 +1,15 @@
+#!/bin/bash
+
+EXIPD=../../../bin/examples/exipd
+
+if ! [ -f  $EXIPD ];
+ then
+	echo "ERROR: You need to compile the exipd executable before executing this test."
+fi
+
+valgrind --leak-check=yes ../../../bin/examples/exipd ../../test-set/SchemaLess-WrongBody.exi 2> error.log 1> /dev/null 
+valgrind --leak-check=yes ../../../bin/examples/exipd ../../test-set/SchemaLess-TotallyWrong.exi 2>> error.log 1> /dev/null
+valgrind --leak-check=yes ../../../bin/examples/exipd -schema ../../test-set/Schema.exi ../../test-set/Schema-WrongBody.exi 2>> error.log 1> /dev/null
+valgrind --leak-check=yes ../../../bin/examples/exipd -schema ../../test-set/Schema.exi ../../test-set/Schema-TotallyWrong.exi 2>> error.log 1> /dev/null
+
+grep "ERROR SUMMARY" < error.log

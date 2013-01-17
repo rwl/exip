@@ -1,0 +1,156 @@
+\section{Parsing}
+\label{sec:Parsing}
+
+The parsing interface of EXIP is similar to SAX and StAX. The main difference is
+that most of the XML schema build-in types are passed in a native binary form
+rather than as a string representation.
+The EXIP parser processes the EXI stream in one direction and produces events
+on occurrence of information items such as elements, attributes or content values.
+The applications using EXIP must register callback functions for the events that they are interested in.
+In this way the data from the EXI stream is delivered to the application as a
+parameters to these callback functions.
+The header \texttt{contentHandler.h} provides declarations of the callback functions
+while the API for controlling the progress through the EXI stream is in \texttt{EXIParser.h}.
+
+\subsection{Schema-less decoding}
+
+When in schema-less mode all value items are encoded with strings and hence
+delivered to the application through the \texttt{stringData()} callback handler.
+Similarly to the serialization, the parsing consists of 7 simple steps:
+\begin{enumerate}
+ \item Declare a parser container that holds the serialized data and EXIP state:
+\begin{lstlisting}
+Parser parser;
+\end{lstlisting}
+
+ \item Define a binary input buffer for reading the EXI stream.
+The buffer can optionally include an external input stream for fetching the
+serialized EXI data. If an input stream is not defined the whole EXI
+document must be stored in memory before starting the
+parsing process. The following code declares and initializes an input memory buffer:
+\begin{lstlisting}
+BinaryBuffer buffer;
+char buf[INPUT_BUFFER_SIZE];
+
+buffer.buf = buf;
+buffer.bufLen = INPUT_BUFFER_SIZE;
+buffer.bufContent = 0;
+\end{lstlisting}
+Beside these definitions, when a file is used to fetch the
+EXI data the following steps are also required: 
+\begin{lstlisting}
+/* IN CASE OF FILE INPUT STREAM */
+/* Define a function implementing the actual reading from a file */
+size_t readFromFileInputStream(void* buf, size_t readSize, void* stream)
+{
+	FILE *infile = (FILE*) stream;
+	return fread(buf, 1, readSize, infile);
+}
+
+FILE *infile; /* Using a file for fetching the EXI data */
+infile = fopen(sourceEXIFile, "rb" ); /* open the file before use */
+buffer.ioStrm.readWriteToStream = readFromFileInputStream;
+buffer.ioStrm.stream = infile; /* Sets the input stream to the file */
+\end{lstlisting}
+If no file or other input streams are being used (e.i. the whole EXI message is
+stored in \texttt{buffer.buf}), the input function and the stream
+of the \texttt{BinaryBuffer} must be initialized with NULL values:
+\begin{lstlisting}
+/* IN CASE OF IN-MEMORY ONLY INPUT*/
+buffer.ioStrm.readWriteToStream = NULL;
+buffer.ioStrm.stream = NULL;
+\end{lstlisting}
+
+The size of the \texttt{INPUT\_BUFFER\_SIZE} macro depends on the
+use case. When in in-memory input mode or sufficient RAM on the
+platform the buffer size should be kept high. Note that even if
+an input stream is used such as a file, a non-zero length buffer
+for temporary storing parts of the EXI data is still needed.
+
+ \item Define application data and initialize the parser object:
+\begin{lstlisting}
+/** The application data that is passed to the callback handlers*/
+struct applicationData
+{
+  unsigned int elementCount;
+  unsigned int nestingLevel;
+} appData;
+
+/**
+ * @param[in, out] parser EXIP parser container
+ * @param[in] buffer binary buffer for fetching EXI encoded data
+ * @param[in] NULL a compiled schema information to be used for schema
+		      enabled processing; NULL if no schema is available
+ * @param[in, out] appData application data to be passed to the callback handlers
+ */  
+initParser(&parser, buffer, NULL, &appData);    
+\end{lstlisting}
+
+ \item Initialize the application data and register the callback handlers with the parser object:
+\begin{lstlisting}
+appData.elementCount = 0; /* Example: the number of elements passed */
+appData.nestingLevel = 0; /* Example: the nesting level */
+
+parser.handler.fatalError = sample_fatalError;
+parser.handler.error = sample_fatalError;
+parser.handler.startDocument = sample_startDocument;
+parser.handler.endDocument = sample_endDocument;
+parser.handler.startElement = sample_startElement;
+parser.handler.attribute = sample_attribute;
+parser.handler.stringData = sample_stringData;
+parser.handler.endElement = sample_endElement;
+
+/** According to the above definitions:
+  *  When the parser start parsing the body, the sample_startDocument()
+  *  callback will be invoked; when a start of an element is parsed the
+  *  sample_startElement() will be invoked and so on. All of the events
+  *  for which there is no handler registered will be discarded. 
+  */
+\end{lstlisting}
+
+\textbf{NOTE:} If the EXI options are communicated with an out-of-band mechanism and are
+not included in the EXI header of the stream they must be set here
+(see Section \ref{sec:Options} for more information on how to set up
+the EXI options).
+
+ \item Parse the header of the stream:
+\begin{lstlisting}
+parseHeader(&parser);
+/* The header fields are stored in parser.strm.header*/
+\end{lstlisting}
+
+ \item Parse the body of the EXI stream, one content item at a time:
+\begin{lstlisting}
+errorCode error_code = ERR_OK;
+while(error_code == ERR_OK)
+{
+  error_code = parseNext(&parser);
+}
+
+/**
+ * On successful parsing step, the parseNext() returns ERR_OK if there
+ * are more content items left for parsing and PARSING_COMPLETE in case
+ * the parsing is complete. If error conditions occur during the
+ * process it returns an error code.
+ */
+\end{lstlisting}
+
+ \item Destroy the parser object and free the memory allocated by it. If any other
+streams are left open close them as well:
+\begin{lstlisting}
+destroyParser(&parser);
+fclose(infile);
+\end{lstlisting}
+
+\end{enumerate}
+\subsection{Schema-enabled decoding}
+When in schema-enabled mode the basic parsing steps are essentially the same.
+The difference is in the \texttt{EXIPSchema*} parameter passed to the \texttt{initParser()}.
+You need to pass a valid \texttt{EXIPSchema} object and not NULL as in the schema-less
+case. This object contains all the definitions and constrains from the XML schema and
+its creation is a topic of section \ref{sec:Schema-Infromation} \textbf{Schema Information}.
+During parsing, the value types as defined by the schema definitions
+are delivered through the corresponding callback handlers and not only \texttt{stringData()}.
+For example, \texttt{xsd:integer} is delivered through \texttt{intData()} and
+\texttt{xsd:boolean} through \texttt{booleanData()}. Apart from that all other decoding steps
+are the same as in schema-less mode.

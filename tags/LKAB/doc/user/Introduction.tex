@@ -1,0 +1,47 @@
+\section{Introduction}
+\label{sec:Introduction}
+
+EXIP is a free, open-source, C language implementation of the Efficient XML Interchange (EXI) standard for representing XML documents.
+The EXI format keeps the data in a binary form and is a compact and efficient way for storing, processing and transmitting
+XML structured information. Each EXI document consists of two parts: a header and a body. The header defines different
+encoding/decoding parameters that affect the compactness, processing efficiency and memory usage when processing the
+document (the EXI body part). For example, the document size can be further reduced by using the EXI compression option indicating the
+application of DEFLATE algorithm for data compression. Another important parameter is connected to the use of XML
+schema information that sets constraints on the structure and content of the document. The schema information must
+be available before the EXI encoding/decoding, and it should be either statically set or communicated in advance
+using XML schema languages such as W3C XML Schema. Schema-enabled EXI processing is much faster and results in
+smaller EXI documents compared to schema-less processing. Furthermore, there are a set of options, called fidelity
+options, determining the degree to which the EXI encoding preserves all the information items found in the XML
+specification. More information about EXI is given in the W3C specification \cite{EXI1} and
+primer \cite{Peintner2009a}. There are other specifications/formats for increasing the compactness and efficiency
+of XML such as Fast Infoset, X.694 ASN.1 etc. Comparison with EXI and performance measurements are available from
+the W3C EXI Working Group \cite{Bournez2009, White2007}.
+
+\subsection{Intended audience}
+\label{sec:audience}
+This user guide is structured as a step-by-step tutorial on using the EXIP library. The guide is written with the
+assumption that the reader has fairly good understanding of the C programming language, XML and XML Schema technologies.
+While the goal was to give short introductory notes on the EXI format, the reader is expected to be familiar with the
+description of the EXI header options provided in the specification. The intended audience of this guide are
+programmers working with XML/EXI technologies for applications with high efficiency requirements such as networked
+embedded systems, productivity tools and servers. Developers interested in contributing to the EXIP project in
+terms of extra features, bug reports and patches are also encouraged to read it.
+
+This guide does not assume the use of any concrete hardware/software platform. All the examples and instructions
+should be valid for all execution environments.
+
+\subsection{Organization}
+\label{sec:organization}
+
+The rest of this guide is organized in five sections. Section \ref{sec:Basic-Concepts} \textbf{Basic Concepts}
+gives a high level overview of some important concepts for working with EXIP. Section \ref{sec:Maturity-Statement} \textbf{Maturity Statement}
+describes the current status of the project. Sections \ref{sec:Serialization} \textbf{Serialization} and 
+\ref{sec:Parsing} \textbf{Parsing} present the steps required for using the EXIP API for processing EXI streams.
+The last part - \ref{sec:Schema-Infromation} \textbf{Schema Information} is devoted to working with XML Schema
+definitions used for schema-enabled EXI parsing and serialization.
+
+\subsection{Acknowledgment}
+\label{sec:acknowledgment}
+The author would like to thank the European Commission
+and the partners of the EU FP7 project IMC-AESOP \href{http://www.imc-aesop.eu}{(www.imc-aesop.eu)}
+for their support.

@@ -1,0 +1,699 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=windows-1252">
+  <title>EXIP development plan</title>
+  <meta name="AUTHOR" content="Rumen Kyusakov">
+  <meta name="CREATED" content="20120514;00000000">
+  <meta name="CHANGEDBY" content="Robert Cragie">
+  <meta name="CHANGED" content="20120517;17382000">
+</head>
+<style type="text/css">
+@page { size: 21cm 29.7cm; margin: 2cm }
+p,li { margin-bottom: 0.21cm; font-family: "Arial", helvetica, sans-serif }
+H1,H2,H3,H4,H5 { margin-bottom: 0.21cm; font-family: "Arial", helvetica, sans-serif }
+H1 { font-size: 20pt }
+H2 { font-size: 16pt}
+H3 { font-size: 14pt}
+H4 { font-size: 12pt}
+H5 { font-size: 10pt}
+TD P { margin-bottom: 0.2cm ; font-size: 10pt}
+TH P { margin-bottom: 0.2cm ; font-size: 10pt}
+.Prim {
+font-family: courier, serif;
+font-size: 10pt;
+margin-left: 20px;
+}
+.PrimIndent {
+margin-left: 40px;
+}
+.Note {
+font-family: "Arial", helvetica, sans-serif;
+background-color: #ccff66;
+}
+.RobertCragieComment {
+font-family: "Arial", helvetica, sans-serif;
+font-size: 11pt;
+font-style: italic;
+background-color: #FFFF00;
+border-style: solid;
+border-width: thin;
+padding: 5px 5px 5px 5px;
+}
+.RumenKyusakovComment {
+font-family: "Arial", helvetica, sans-serif;
+font-size: 11pt;
+font-style: italic;
+background-color: #ffadad;
+border-style: solid;
+border-width: thin;
+padding: 5px 5px 5px 5px;
+}
+.Category {
+font-family: "Arial", helvetica, sans-serif;
+font-size: 14pt;
+background-color: #ccff66;
+}
+.Outcome {
+font-family: "Arial", helvetica, sans-serif;
+font-size: 14pt;
+font-style: italic;
+background-color: #cc99ff;
+}
+.Code {
+font-family: courier, serif;
+font-size: 10pt;
+}
+.Filename {
+font-style: italic;
+}
+.OrigText {
+border-style: solid;
+border-width: thin;
+margin-left: 20px;
+padding: 5px 5px 5px 5px;
+background-color: #b0e0e6;
+}
+.OrigText1 {
+border-style: solid;
+border-width: thin;
+margin-left: 40px;
+padding: 5px 5px 5px 5px;
+background-color: #b0e0e6;
+}
+.OrigText2 {
+border-style: solid;
+border-width: thin;
+margin-left: 60px;
+padding: 5px 5px 5px 5px;
+background-color: #b0e0e6;
+}
+.OrigText3 {
+border-style: solid;
+border-width: thin;
+margin-left: 80px;
+padding: 5px 5px 5px 5px;
+background-color: #b0e0e6;
+}
+.OrigText4 {
+border-style: solid;
+border-width: thin;
+margin-left: 100px;
+padding: 5px 5px 5px 5px;
+background-color: #b0e0e6;
+}
+.OrigText5 {
+border-style: solid;
+border-width: thin;
+margin-left: 120px;
+padding: 5px 5px 5px 5px;
+background-color: #b0e0e6;
+}
+.NotRelevant {
+background-color: #FA5858;
+}
+.Table {
+text-align: center;
+font-weight: bold;
+}
+.Figure {
+text-align: center;
+font-weight: bold;
+}
+</style>
+<body style="direction: ltr;" lang="en-US">
+
+<h1>Introduction</h1>
+
+<p>The purpose of this document is to identify and prioritize issues in the current version of the EXIP library and to suggest a solution that comply with the vision of all developers.</p>
+
+<h1><a name="Problem1" />Problem 1: Scope issue</h1>
+
+<div class="Note">
+<h1>SOLVED</h1>
+</div>
+
+<h2>Description</h2>
+
+<p>Elements with the same QName can reside in a different scope:</p>
+
+<ul>
+<li>In the global scope</li>
+<li>Nested in some complex type definition</li>
+</ul>
+
+<p>These elements are essentially distinct units and may have different types. As such, to uniquely identify the grammar for a particular element you need:</p>
+<ul>
+<li>The scope</li>
+<li>The element QName</li>
+</ul>
+
+<p>The scope of a complex type definition can be in the scope of another definition i.e. the scope can be nested. For example, in the following schema:</p>
+
+<pre>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;schema xmlns="http://www.w3.org/2001/XMLSchema" 
+targetNamespace="TestNS" 
+xmlns:tns="TestNS" elementFormDefault="qualified"&gt;
+
+&lt;element name="a" type="integer"&gt;&lt;/element&gt;
+&lt;complexType name="a"&gt;
+    &lt;sequence&gt;
+        &lt;element name="b" type="float"&gt;&lt;/element&gt;
+        &lt;element name="c"&gt;
+            &lt;complexType&gt;
+                &lt;sequence&gt;
+                    &lt;element name="b" type="boolean"&gt;&lt;/element&gt;
+                &lt;/sequence&gt;
+            &lt;/complexType&gt;
+        &lt;/element&gt;
+    &lt;/sequence&gt;
+&lt;/complexType&gt;
+&lt;element name="elem"&gt;
+    &lt;complexType&gt;
+        &lt;sequence&gt;
+            &lt;element name="b" type="tns:a"&gt;&lt;/element&gt;
+            &lt;element name="c"&gt;
+                &lt;complexType&gt;
+                    &lt;sequence&gt;
+                        &lt;element name="b" type="string"&gt;&lt;/element&gt;
+                    &lt;/sequence&gt;
+                &lt;/complexType&gt;
+            &lt;/element&gt;
+        &lt;/sequence&gt;
+    &lt;/complexType&gt;
+&lt;/element&gt;
+&lt;element name="b" type="boolean"&gt;&lt;/element&gt;
+&lt;/schema&gt;
+</pre>
+
+<p>The element <span class="Code">&lt;element name="b" type="tns:a"/&gt;</span> has nested scope <span class="Code">&lt;TestNS:elem&gt;</span> as it is defined within the anonymous complex type of <span class="Code">&lt;elem&gt;</span>. On the other hand, <span class="Code">&lt;element name="b" type="string"/&gt;</span> has nested scope of <span class="Code">&lt;TestNS:elem&gt;, &lt;TestNS:c&gt;</span>.</p>
+
+<p class="RobertCragieComment">Robert[1]: I use the term "nested scope" as "scope" on its own is really just local.</p>
+<p class="RumenKyusakovComment">Rumen[1]: yes scope is always local. I used "nested scope" instead just to make this clear as 
+in the <a href="http://www.w3.org/TR/2004/REC-xmlschema-1-20041028/#cElement_Declarations">XSD spec</a> the
+{scope} is defined simply as a complex type, which confused me at the beginning.</p>
+
+<p>To illustrate all the complexity of the scope issue, consider the following XML instance document that is valid XML according to the above schema:</p>
+
+<pre>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;elem xmlns="TestNS"&gt;
+  &lt;b&gt;
+    &lt;b&gt;0.1&lt;/b&gt;
+    &lt;c&gt;
+      &lt;b&gt;true&lt;/b&gt;
+    &lt;/c&gt;
+  &lt;/b&gt;
+  &lt;c&gt;
+    &lt;b&gt;string-type&lt;/b&gt;
+  &lt;/c&gt;
+&lt;/elem&gt;
+</pre>
+
+<p>Here <span class="Code">&lt;b&gt;</span> has 4 different types, hence 4 different grammars with the same QName but with different nested scope.</p>
+
+<p>One more thing to consider is that in the global scope you can have elements and types with the same QName and different grammars. In the schema above, there is:</p>
+
+<ul>
+<li><span class="Code">&lt;element name="a" type="integer"&gt;&lt;/element&gt;</span></li>
+<li><span class="Code">&lt;complexType name="a"&gt;</span></li>
+</ul>
+
+<p>This means that the <span class="Code">LnEntry</span> in the string tables should support two links to EXIGrammars - one for an element and one for a type. The built-in element grammars are also defined within the global scope and the global element grammar link in <span class="Code">LnEntry</span> can safely be reused for that purpose.</p>
+
+<p>The main problem with the current GRAMMAR_TABLE solution is that it assumes all elements have named types (either complex or simple) and thus these types can be found in the global scope of the string tables. However, there are also elements with anonymous types as the element "compression" below:</p>
+
+<pre>
+&lt;xsd:element name="common" minOccurs="0"&gt;
+	&lt;xsd:complexType&gt;
+	  &lt;xsd:sequence&gt;
+	    &lt;xsd:element name="compression" minOccurs="0"&gt;
+	      &lt;xsd:complexType /&gt;
+	        ......
+	  &lt;/xsd:sequence&gt;
+	&lt;/xsd:complexType&gt;
+&lt;/xsd:element&gt;
+</pre>
+
+<p>Another issue is that the <span class="Code">GrammarTable</span> in the <span class="Code">LnEntry</span> is a bit redundant because for a particular QName in global scope you can have at most 2 EXIGrammars - one for an element and one for a type. So this table can have at most 2 elements.</p>
+
+<p class="RobertCragieComment">Robert[1]: Maybe I am missing something here but the <span class="Code">LnTable</span> contains entries for all QNames, not just those in global scope. For example, in the SEP 2.0 schema, "value" has 8 entries in GrammarTable as it is declared with 8 different types in various scopes. Therefore, as to what you are saying above, that QName may appear in many different nested scopes. At the moment, each grammar entry is qualified with a QNameID which identifies its type. I guess the problem is that whilst it does take into account the repetition of the QName in different scopes with different types, it doesn't automatically take into account the nesting as the document is encoded. One simple but clumsy solution would be to manually identify the scope when the QName is used in the encoding. This may not be as bad as it sounds but is clearly clumsy.</p>
+
+<div class="RumenKyusakovComment">Rumen[1]: I think I did not fully understand the idea of <span class="Code">GrammarTable</span> and <span class="Code">LocalTable</span>.
+If you store all 8 occurrences in one <span class="Code">GrammarTable</span> (the one with <span class="Code">LnEntry</span> http://zigbee.org/sep:value) and the <span class="Code">qname</span>
+being the qname of the actual type such as Int48, Int16, String42 etc. then what is the role of <span class="Code">LocalTable</span>?
+Also what if you have a ninth occurrence of value in some scope that uses an anonymous type:
+<pre>
+&lt;xsd:element name="value"&gt;
+	&lt;xsd:complexType&gt;
+	  &lt;xsd:sequence&gt;
+	    &lt;xsd:element name="subValue" minOccurs="0"&gt;
+	      &lt;xsd:complexType /&gt;
+	        ......
+	  &lt;/xsd:sequence&gt;
+	&lt;/xsd:complexType&gt;
+&lt;/xsd:element&gt;
+</pre>
+
+The grammar for this type does not have a QNameID beside the http://zigbee.org/sep:value and in the <span class="Code">GrammarTable</span>
+the <span class="Code">qname</span> field will be empty. <br/>
+In any case, having two tables per <span class="Code">LnEntry</span> is huge overhead. Both size-wise and performance-wise when
+you need to look in the table to find the correct grammar. The idea to use the grammar production is very optimal
+as the SE(QNAME) productions themselves contain the scope information.
+</div>
+
+<p class="RobertCragieComment">Robert[2]: I think we should go with your approach and ignore what I have done to a large extent with GrammarTable and LocalTable. I admit it was done in a rush to get things working well enough for a test event and has not had enough thought. In other words, I have no objection at all to removing the concepts and we should look at it from a fresh approach.</p>
+
+<p>The current <span class="Code">LocalTable</span> in <span class="Code">LnEntry</span> cannot account for the nested scope described above. The <span class="Code">LocalTable</span> in the <span class="Code">LnEntry</span> is only needed if an element with the QName defined by the <span class="Code">LnEntry</span> is available in the schema and the type of this element is a complex type - either named or anonymous. In case of an anonymous type the scope is unique. In case of a named complex type the scope of all elements that has this type will be the same and hence needed to be created physically only once.</p>
+
+<h2>Suggestion</h2>
+
+<p>The simplest approach and the most efficient one is to add a link to the correct grammar in the grammar productions:</p>
+
+<pre>
+struct Production
+{
+    EventType eventType; // (enum EVENT_SD, EVENT_SE_QNAME, EVENT_AT_ALL etc.)
+    QNameID qname;
+    /** 
+     * type is an index in an array of Grammars in the EXIP schema when the event
+     * is SE(qname) (Requires the solution of <a href="#Problem2">Problem 2</a>)
+     * In case of CH or AT event the type is an Index in the SimpleTypeTable
+     * that contains detailed information about the type including the EXI data type
+     */
+    Index type;
+    Index nonTermID; // unique identifier of right-hand side Non-terminal
+};
+</pre>
+
+<p>Then the <span class="Code">LnEntry</span> will look like this:</p>
+
+<pre>
+struct LnEntry {
+    VxTable vxTable;
+    String lnStr;
+
+    /** Stores a pointer to global element grammars only */
+    EXIGrammar* elemGrammar;
+
+    /** Stores a pointer to global type grammars only - either complex or simple */
+    EXIGrammar* typeGrammar;
+};
+</pre>
+
+<p><span class="Code">elemGrammar</span> will be <span class="Code">NULL</span> if there is no global element with that qname. This pointer is also used for built-in element grammars in schema-less and mixed processing. To be changed to Index and INDEX_MAX (see <a href="#Problem2">Problem 2</a>)</p>
+
+<p><span class="Code">typeGrammar</span> will be <span class="Code">NULL</span> if there is no global type grammar with that qname. To be changed to Index and INDEX_MAX (see <a href="#Problem2">Problem 2</a>)</p>
+
+<p class="Note">NOTE: Most probably global attribute definitions should also be stored in the global scope. This can be done by implementing a sorted array of global attribute definitions in the EXIPSchema object. This will rarely be used for lookups during processing so that solution should work in a decent way. This can be left as a future work as global attribute definitions are not very common any way.</p>
+
+<h1><a name="Problem2" />Problem 2: Problems with handling of the grammar serialization</h1>
+
+<div class="Note">
+<h1>SOLVED</h1>
+</div>
+
+<h2>Description</h2>
+
+<p>Currently, the EXI grammars are not stored in a centralized location within the EXIPSchema object but instead multiple pointers spread in the LnEntries in the string tables are pointing to them. This leads to two issues:</p>
+
+<ol>
+<li>During serialization (exipg code) you need to make sure a single grammar is not serialized more than once. Currently, a hashtables with the grammars are used to check for that which makes the code very messy and bug prone.</li>
+<li>During grammar augmentation you need to walk through all the string table entries even though only small part of the LnEntries contain unique EXI grammar.</li>
+</ol>
+
+<p>This problem will be a number of times more severe if we implement the suggested solution to <a href="#Problem1">Problem 1</a> as there will be nested tables with local scope and even more pointer links to EXI grammars.</p>
+
+<h2>Suggestion</h2>
+
+<p>Store all the grammars in the EXIPSchema object in an array and use indexes of the array to identify a particular grammar in the LnEntry of the string tables and not pointers. This will make the serialization much more straight forward. In case, the simple types and the EXI grammars are represented with the same structure (see <a href="#Problem3">Problem 3</a>), only one grammar table is needed in EXIPSchema and SimpleTypeTable will contain all the grammars not only the simple types.</p>
+
+<p class="Note">NOTE: This problem should be solved before <a href="#Problem1">Problem 1</a> in order to save the efforts to modify the messy code in exipg.</p>
+
+<p class="RobertCragieComment">Robert[1]: This is a really good idea and I agree this should be done first</p>
+<p class="RumenKyusakovComment">Rumen[1]: I am working on that currently. I'll try to have a version of that
+more or less running today. If you agree to change the current version of the scope issue - GRAMMAR_TABLE
+with adding the scope information to the productions I can merge the branch to the trunk - all the
+grammar tables stuff is missing there? Think about it again and lets decide what will do
+for that.</p>
+
+<h1><a name="Problem3" />Problem 3: Simple type grammars are redundant</h1>
+
+<h2>Description</h2>
+
+<p>Simple type grammars always have the same structure:</p>
+
+<pre>
+NT-0:
+    CH [&lt;THE ACTUAL TYPE&gt;]    NT-1    0
+
+NT-1: 
+    EE 0
+</pre>
+
+<p>So we don't need to store them separately. This will save a lot of space and RAM especially in STRICT FALSE mode as each of this grammars after augmentation has the following structure:</p>
+
+<pre>
+NT-0: 
+    CH [&lt;THE ACTUAL TYPE&gt;]                                           NT-1  0
+    EE                                                                     1.0
+    AT ([2:1]http://www.w3.org/2001/XMLSchema-instance:type) [qname] NT-0  1.1
+    AT ([2:0]http://www.w3.org/2001/XMLSchema-instance:nil) [bool]   NT-0  1.2
+    AT (*) [N/A]                                                     NT-0  1.3
+    SE (*)                                                           NT-2  1.4
+    CH [untyped]                                                     NT-2  1.5
+    AT (*) [untyped]                                                 NT-0  1.6.0
+
+NT-1: 
+    EE                                                               0
+    SE (*)                                                           NT-1  1.0
+    CH [untyped]                                                     NT-1  1.1
+
+NT-2: 
+    CH [&lt;THE ACTUAL TYPE&gt;]                                           NT-1  0
+    EE                                                                     1.0
+    SE (*)                                                           NT-2  1.1
+    CH [untyped]                                                     NT-2  1.2
+</pre>
+
+<p>The only thing that we need to store is &lt;THE ACTUAL TYPE&gt; which includes the EXI encoding type along with any restrictions defined in the schema. struct ValueType contains the EXI encoding type and an index to the simple type table, which in turn indicates the restrictions, so this will work. So instead of creating a number of almost identical simple type grammars (one for each simple type definition) we can create just one and simply set the &lt;THE ACTUAL TYPE&gt; when processing.</p>
+
+<h2>Suggestion</h2>
+
+<p>So, we only need to store one simple type grammar before augmenting and augment the grammar after the parsing of the EXI header. Then at runtime adjust the &lt;THE ACTUAL TYPE&gt; of the simple type grammar to match the simple type definitions.</p>
+
+<p>One big change that needs to be implemented in order for that to work is to change the structure of the EXIGrammar. In case of simple type grammar the only thing that the EXIGrammar needs to store is the ValueType structure. In the case of complex type grammar the EXIGrammar needs to store the grammar rules. This could be solved by using a union:</p>
+
+<pre>
+struct EXIGrammar
+{
+    /**
+     * Beside the other properties, this will contain whether the grammar is
+     * simple or complex
+     */
+    unsigned char props;
+    union {
+        ComplexGrammar complGr; // Grammar productions and rules
+        ValueType simpleGr;     // <THE ACTUAL TYPE> for simple type grammars
+    } grammar;
+};
+</pre>
+
+<div class="RobertCragieComment">
+<p>Robert[1]: Do you mean:</p>
+
+<p class="Code">ComplexGrammar complGr; // Grammar productions and rules</p>
+
+<p>or:</p>
+
+<p class="Code">ComplexGrammar* complGr; // Pointer to grammar productions and rules</p>
+        
+<p>Declaring the structure inline and not through a pointer could save some space but it also means the EXIGrammar struct is always going to have maybe 4 or 8 extra bytes in to hold the two Index values, as a ValueType should pack into 4 bytes (assuming typical alignment). So it might be better to have the ComplexGrammar struct separate</p>
+</div>
+
+<div class="RumenKyusakovComment">
+<p>Rumen[1]: I meant <span class="Code">ComplexGrammar complGr;</span> as I am thinking of having the following
+array in the EXIPSchema structure:</p>
+<pre>
+struct SchemaGrammarTable {
+#if DYN_ARRAY_USE == ON
+    DynArray dynArray;
+#endif
+    EXIGrammar* grammar;
+    Index count;
+};
+</pre>
+
+If we have pointers in the EXIGrammar then we need to store the structures separately.
+Not sure what is best though. In any case having extra bytes in case we have a
+<span class="Code">ValueType simpleGr;</span> is still much less size than
+having the whole EXI grammar for the simple type. 
+</div>
+
+<p class="RobertCragieComment">Robert[2]: OK, understood - let's do it as you suggest</p>
+        
+<pre>
+struct ComplexGrammar
+{
+    GrammarRule* rule; // Array of grammar rules which constitute that grammar
+    Index count; // The size of the array
+    Index contentIndex;
+};
+</pre>
+
+<p>One problem in using a union is that you need to be able to initialize particular fields in the union which is a C99 feature that the notorious MS VS does not support. One solution to that is using void* instead of union:</p>
+
+<pre>
+struct EXIGrammar
+{
+    /**
+     * Beside the other properties, this will contain whether the grammar is
+     * simple or complex
+     */
+    unsigned char props;
+    
+    /**
+     * In case of simple type grammar the void* pointer points to a ValueType
+     * structure. In case of complex type grammar it points to ComplexGrammar
+     */
+    void* grammar;
+};
+
+struct ComplexGrammar
+{
+    GrammarRule* rule; // Array of grammar rules which constitute that grammar
+    Index count; // The size of the array
+    Index contentIndex;
+
+};
+</pre>
+
+
+<div class="RobertCragieComment">
+<p>Robert[1]: MS VS does allow union initialization but it has to be the first declared member.</p>
+
+<p>So there is another workaround:</p>
+
+<pre>
+struct EXIGrammarComplexGr
+{
+    unsigned char props;
+    union {
+        ComplexGrammar complGr; // Grammar productions and rules
+        ValueType simpleGr;     // &lt;THE ACTUAL TYPE&gt; for simple type grammars
+    } grammar;
+};
+
+struct EXIGrammarSimpleGr
+{
+    unsigned char props;
+    union {
+        ValueType simpleGr;     // &lt;THE ACTUAL TYPE&gt; for simple type grammars
+        ComplexGrammar complGr; // Grammar productions and rules
+    } grammar;
+};
+</pre>
+
+<p>The two structs are effectively the same and occupy the same storage, so you just choose the appropriate one and initialize accordingly.</p>
+
+<p>So if you wanted to initialize a complex grammar:</p>
+
+<p class="Code">struct EXIGrammarComplexGr myEXIGrammarComplexGr = { 0xAA, { &myGrammarRule, 2, 4 } };</p>
+
+<p>and if you wanted to initialize a simple value type:</p>
+
+<p class="Code">struct EXIGrammarSimpleGr myEXIGrammarSimpleGr = { 0xAA, { 7, 36 } };</p>
+
+<p>If you want to declare a generic type, pick either:</p>
+
+<p class="Code">typedef struct EXIGrammarSimpleGr EXIGrammar;</p>
+</div>
+
+<p class="RumenKyusakovComment">
+Rumen[1]: I like that - looks very intuitive actually.
+</p>
+
+<p class="Note">NOTE: In case of STRICT FALSE mode, there might be a cases when a simple type grammar is pushed on the grammar processing stack and then after a AT (*) or SE (*) events another simple type grammar needs to be pushed on the stack. However, if we use just one instance of the simple type grammar, the second change of &lt;THE ACTUAL TYPE&gt; will erase the first one and this will create a very hard to detect bug. If this solution is implemented, during the EXI processing there should be a stack which stores the currently used &lt;THE ACTUAL TYPE&gt; and this stack will follow the expansion and shrinkage of the grammar stack.</p>
+
+<h1><a name="Problem4" />Problem 4: Extending/restricting from user derived simple types</h1>
+
+<h2>Description</h2>
+
+<p>This problem occurs when building the grammars in <span class="Filename">treeTableToGrammars.c</span> When building a grammar for types that extend/restrict from user derived simple types you need to be able to locate the restrictions of the supertype. This currently is not possible as there is no connection between the QNameID of the type and its restrictions stored in <span class="Code">SimpleTypeTable simpleTypeTable;</span></p>
+
+<h2>Suggestion</h2>
+
+<p>The suggested solution of <a href="#Problem3">Problem 3</a> should solve that issue as well</p>
+
+<p class="Note">NOTE:</p>
+
+<h1><a name="Problem5" />Problem 5: Structure "Production" can be smaller</h1>
+
+<p class="Note">DEPRECATED! The solution of the scope issue overrides this suggestion. The only optimization that can be done is to move the EXI data type indicator (EXIType exiType;) to the SimpleTypeTable entries.</p>
+
+<h2>Description</h2>
+
+<p>Currently the grammar Production is defined as follow:</p>
+
+<pre>
+struct Production
+{
+    EXIEvent evnt;
+    /**
+     * For SE(qname), SE(uri:*), AT(qname) and AT(uri:*). Points to the qname of the element/attribute
+     */
+    QNameID qname;
+    Index nonTermID; // unique identifier of right-hand side Non-terminal
+};
+
+typedef struct Production Production;
+</pre>
+
+<p>Where the EXIEvent contains the event type and the value type:</p>
+
+<pre>
+struct EXIEvent
+{
+    EventType eventType;
+    ValueType valueType;
+};
+
+typedef struct EXIEvent EXIEvent;
+</pre>
+
+<p>where the ValueType is defined as follow:</p>
+
+<pre>
+struct ValueType
+{
+    EXIType exiType;
+    Index simpleTypeId; // An index of the simple type in the schema SimpleTypeArray if any, INDEX_MAX otherwise
+};
+</pre>
+
+<p>The value type is only needed in case of AT or CH events.</p>
+
+<h2>Suggestion</h2>
+
+<p>The suggested solution of <a href="#Problem3">Problem 3</a> will enable a lookup of the ValueType in the string tables during processing of CH events. If we include a EXIGrammar entries in the LocalEntry local scope table (<a href="#Problem1">Problem 1</a>) for AT qnameids as well - then we can lookup the ValueType of AT events as well.</p>
+
+<p>In this case the production will have the following structure without the ValueType:</p>
+
+<pre>
+struct Production
+{
+    EventType eventType; // (enum EVENT_SD, EVENT_SE_QNAME, EVENT_AT_ALL etc.)
+    QNameID qname;
+    Index nonTermID; // unique identifier of right-hand side Non-terminal
+};
+</pre>
+
+<p>This will save <span class="Code">2*sizeof(Index)</span> for every production!</p>
+
+<p class="Note">NOTE: In STRICT FALSE mode, there are both CH [typed] and CH [untyped] as well as AT [typed] and AT [untyped] in a single grammar rule. However, they still can be uniquely identified by the length of the event codes:</p>
+
+<ul>
+<li>AT(qname) [typed] have event codes with length 1 (part[0] of the rule)</li>
+<li>AT(qname) [untyped] have event codes with length 3 (part[2] of the rule)</li>
+<li>AT(*) [typed] have event codes with length 2 (part[1] of the rule)</li>
+<li>AT(*) [untyped] have event codes with length 3 (part[2] of the rule)</li>
+</ul>
+
+<ul>
+<li>CH [typed] have event codes with length 1 (part[0] of the rule)</li>
+<li>CH [untyped] have event codes with length 2 (part[1] of the rule)</li>
+</ul>
+
+<h1><a name="Problem6" />Problem 6: The default entries for the string tables are stored multiple times</h1>
+
+<h2>Description</h2>
+
+<p>When serializing a schema, the pre-populated string table entries and simple types are added to the EXIPSchema object even though they are already known i.e. memory for them is allocated in sTables.c and builtInGrammars.c</p>
+
+<h2>Suggestion</h2>
+
+<p>Have the pre-populated string table entries and simple types created once statically and used both for processing and not include them in the EXIPSchema object.</p>
+
+<p class="RumenKyusakovComment">
+Rumen: It is not that easy. If we use static string table entries then it won't be possible to work on two streams
+simultaneously. Even the EXIOptions document will make some modifications to the string tables such
+as adding local value entries and new uri entry etc. </br>
+The same is valid for the grammars - they need to be augmented accordingly</br>
+It seems to me this problem is not worth solving.
+</p>
+
+<h1><a name="Problem7" >Problem 7: All productions of the document grammars are created in RAM</a></h1>
+
+<h2>Description</h2>
+
+<p>The document grammars (both schema-less and schema-informed) are created in the RAM after the
+EXI header is parsed.</p>
+
+<h2>Suggestion</h2>
+
+<p>Still some grammar productions need to be created dynamically as they depend on
+certain options in the EXI header. However, the DocContent can mostly be created statically.
+This includes all SE(qname) events for schema-informed grammars which will also remove the
+need for GlobalElemGrammarTable in the EXIPSchema.</p>
+
+<p class="RumenKyusakovComment">
+This will also remove the need for GlobalElemGrammarTable in the EXIPSchema object.
+</p>
+
+<h1><a name="Problem8" >Problem 8: Use of dynamic arrays for schema-informed tables</a></h1>
+
+<h2>Description</h2>
+
+<p><span class="Code">LnEntry</span> contains a <span class="Code">VxTable</span> entry, which produces the following entry in the grammars for every <span class="Code">LnEntry</span>:</p>
+
+<p class="Code">{{sizeof(VxEntry), 0, 0, {NULL, 0}}, NULL, 0}</p>
+
+<p>This is due to using dynamic arrays. This takes up a lot of unnecessary space. There is also other use of dynamic arrays in tables which is less critical from a space-saving point of view. Whilst the structures do have the <span class="Code">#if DYN_ARRAY_USE == ON</span> bracketing, this is not the easiest way to distinguish the tables used for grammar generation and those used for schema-informed grammars.</p>
+
+<h2>Suggestion</h2>
+
+<p>Use specific static tables that can be used by the serializer and parser but are not used by the grammar generator.</p>
+
+<div class="RumenKyusakovComment">
+Rumen: What about using <p class="Code">#if DYN_ARRAY_USE == ON</p>
+During grammar creating you would need the dynamic arrays turned on. In the static code however,
+you would have something like this:
+<pre>
+
+static CONST LnEntry ops_LnEntry_4[39] =
+{
+    {
+        {
+    #if DYN_ARRAY_USE == ON
+        {sizeof(VxEntry), 0, 0, {NULL, 0}},
+    #endif    
+         NULL, 0
+        },
+        {ops_LN_4_0, 9},
+        -1, -1
+    },
+...
+}
+</pre>
+
+In this way the static code would work for both dynamic and static arrays and the
+bootstraping hell will be avoided to some extend.
+</div>
+
+<h1>Plan for working on these problems</h1>
+
+<p>Note that most of the suggested solutions are dependent on each other. On the other hand working on all of them simultaneously will be quite challenging. The best approach will be to take one step at a time while still try to avoid fixing same issues multiple times during the application of different solutions to the problems above.</p>
+
+<p>I suggest that first we fix <a href="#Problem2">Problem 2</a>: Problems with handling of the grammar serialization. That will make the refactoring of the Grammar structures much easier later on.</p>
+
+<p>Then we work on solving the <a href="#Problem1">Problem 1</a>: Scope issue. That will require extensive changes all over the code - grammar creation, serialization and the exi processing.</p>
+
+<p>Then we work on <a href="#Problem3">Problem 3</a>: Simple type grammars are redundant. This will make the fix to "<a href="#Problem4">Problem 4</a>: Extending/restricting from user derived simple types" easier.</p>
+
+<p>Then <a href="#Problem6">Problem 6</a>: The default entries for the string tables are stored multiple times</p>
+
+<p>Any comments and feedback are welcome!</p>
+
+</body>
+</html>

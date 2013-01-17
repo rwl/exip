@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<xsd:schema targetNamespace="urn:foo"
+           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+           xmlns:foo="urn:foo"
+           elementFormDefault="qualified">
+
+<xsd:element name="A">
+  <xsd:complexType>
+    <xsd:sequence>
+      <xsd:element ref="foo:AB"/>
+      <xsd:element ref="foo:AC" minOccurs="0" maxOccurs="2"/>
+      <xsd:element ref="foo:AD"/>
+      <xsd:element ref="foo:AE" minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:element>
+
+<xsd:element name="AB" type="xsd:string"/>
+
+<xsd:element name="AC" type="xsd:string"/>
+
+<xsd:element name="AD" type="xsd:string"/>
+
+<xsd:element name="AE" type="xsd:string"/>
+
+</xsd:schema>
