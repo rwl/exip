@@ -446,131 +446,88 @@ typedef struct dynArray DynArray;
  * <table>
  * <tr><th>Name</th><th>Notation</th><th>Value</th></tr>
  * <tr><td>Start Document</td><td>SD         </td><td> 0</td></tr>
- * <tr><td>End Document  </td><td>ED         </td><td>10</td></tr>
- * <tr><td>Start Element </td><td>SE( qname )</td><td>20</td></tr>
- * <tr><td>Start Element </td><td>SE( uri:* )</td><td>21</td></tr>
- * <tr><td>Start Element </td><td>SE( * )    </td><td>22</td></tr>
- * <tr><td>End Element   </td><td>EE         </td><td>30</td></tr>
- * <tr><td>Attribute     </td><td>AT( qname )</td><td>31</td></tr>
- * <tr><td>Attribute     </td><td>AT( uri:* )</td><td>32</td></tr>
- * <tr><td>Attribute     </td><td>AT( * )    </td><td>40</td></tr>
- * <tr><td>Characters    </td><td>CH         </td><td>50</td></tr>
- * <tr><td>Namespace Decl</td><td>NS         </td><td>60</td></tr>
- * <tr><td>Comment       </td><td>CM         </td><td>70</td></tr>
- * <tr><td>Processng Inst</td><td>PI         </td><td>80</td></tr>
- * <tr><td>DOCTYPE       </td><td>DT         </td><td>90</td></tr>
- * <tr><td>Entity Refrnce</td><td>ER         </td><td>100</td></tr>
- * <tr><td>Self-contained</td><td>SC         </td><td>110</td></tr>
- * <tr><td>Void          </td><td>--         </td><td>255</td></tr>
+ * <tr><td>End Document  </td><td>ED         </td><td> 1</td></tr>
+ * <tr><td>Start Element </td><td>SE( qname )</td><td> 5</td></tr>
+ * <tr><td>Start Element </td><td>SE( uri:* )</td><td> 6</td></tr>
+ * <tr><td>Start Element </td><td>SE( * )    </td><td> 7</td></tr>
+ * <tr><td>End Element   </td><td>EE         </td><td> 8</td></tr>
+ * <tr><td>Attribute     </td><td>AT( qname )</td><td> 2</td></tr>
+ * <tr><td>Attribute     </td><td>AT( uri:* )</td><td> 3</td></tr>
+ * <tr><td>Attribute     </td><td>AT( * )    </td><td> 4</td></tr>
+ * <tr><td>Characters    </td><td>CH         </td><td> 9</td></tr>
+ * <tr><td>Namespace Decl</td><td>NS         </td><td>10</td></tr>
+ * <tr><td>Comment       </td><td>CM         </td><td>11</td></tr>
+ * <tr><td>Processng Inst</td><td>PI         </td><td>12</td></tr>
+ * <tr><td>DOCTYPE       </td><td>DT         </td><td>13</td></tr>
+ * <tr><td>Entity Refrnce</td><td>ER         </td><td>14</td></tr>
+ * <tr><td>Self-contained</td><td>SC         </td><td>15</td></tr>
+ * <tr><td>Void          </td><td>--         </td><td>16</td></tr>
  * </table>
  */
 enum EventType
 {
-	EVENT_SD       =   0,
-	EVENT_ED       =  10,
-	EVENT_AT_QNAME =  20,
-	EVENT_AT_URI   =  21,
-	EVENT_AT_ALL   =  22,
-	EVENT_SE_QNAME =  30,
-	EVENT_SE_URI   =  31,
-	EVENT_SE_ALL   =  32,
-	EVENT_EE       =  40,
-	EVENT_CH       =  50,
-	EVENT_NS       =  60,
-	EVENT_CM       =  70,
-	EVENT_PI       =  80,
-	EVENT_DT       =  90,
-	EVENT_ER       = 100,
-	EVENT_SC       = 110,
+	EVENT_SD       =0,
+	EVENT_ED       =1,
+	EVENT_SE_QNAME =5,
+	EVENT_SE_URI   =6,
+	EVENT_SE_ALL   =7,
+	EVENT_EE       =8,
+	EVENT_AT_QNAME =2,
+	EVENT_AT_URI   =3,
+	EVENT_AT_ALL   =4,
+	EVENT_CH       =9,
+	EVENT_NS      =10,
+	EVENT_CM      =11,
+	EVENT_PI      =12,
+	EVENT_DT      =13,
+	EVENT_ER      =14,
+	EVENT_SC      =15,
 	/** Indicates lack of Terminal symbol in proto-grammars */
-	EVENT_VOID     = 255
+	EVENT_VOID    =16
 };
 
+#ifdef EXIP_SIZE_OPTIMIZE
+typedef uint8_t EventType;
+#else
+// This is better for debugging as it may allow display of the enum type string
 typedef enum EventType EventType;
+#endif
 
-enum EventTypeClass
-{
-	EVENT_SD_CLASS   =  0,
-	EVENT_ED_CLASS   =  1,
-	EVENT_AT_CLASS   =  2,
-	EVENT_SE_CLASS 	 =  3,
-	EVENT_EE_CLASS   =  4,
-	EVENT_CH_CLASS   =  5,
-	EVENT_NS_CLASS   =  6,
-	EVENT_CM_CLASS   =  7,
-	EVENT_PI_CLASS   =  8,
-	EVENT_DT_CLASS   =  9,
-	EVENT_ER_CLASS   = 10,
-	EVENT_SC_CLASS   = 11,
-	EVENT_VOID_CLASS = 25
-};
-
-typedef enum EventTypeClass EventTypeClass;
-
-#define GET_EVENT_CLASS(evnt) (evnt/10)
-
-/**
+/** 
  * This is the type of the "value" content of EXI events. It is used when schema is available.
  */
 enum EXIType
 {
-	VALUE_TYPE_NONE             =   0,
-	VALUE_TYPE_STRING           =  10,
-	VALUE_TYPE_FLOAT            =  20,
-	VALUE_TYPE_DECIMAL          =  30,
-	VALUE_TYPE_DATE_TIME        =  40,
-	VALUE_TYPE_BOOLEAN          =  50,
-	VALUE_TYPE_BINARY           =  60,
-	VALUE_TYPE_LIST             =  70,
-	VALUE_TYPE_QNAME            =  80,
-	VALUE_TYPE_INTEGER          =  90,
-	VALUE_TYPE_SMALL_INTEGER    =  91,
-	VALUE_TYPE_NON_NEGATIVE_INT =  92,
-	VALUE_TYPE_UNTYPED          = 255
+	VALUE_TYPE_NONE              =1,
+	VALUE_TYPE_STRING            =2,
+	VALUE_TYPE_FLOAT             =3,
+	VALUE_TYPE_DECIMAL           =4,
+	VALUE_TYPE_DATE_TIME         =5,
+	VALUE_TYPE_BOOLEAN           =6,
+	VALUE_TYPE_BINARY            =7,
+	VALUE_TYPE_LIST              =8,
+	VALUE_TYPE_QNAME             =9,
+	VALUE_TYPE_UNTYPED          =10,
+
+	VALUE_TYPE_INTEGER          =20,
+	VALUE_TYPE_SMALL_INTEGER    =21,
+	VALUE_TYPE_NON_NEGATIVE_INT =22
 };
 
+#ifdef EXIP_SIZE_OPTIMIZE
+typedef uint8_t EXIType;
+#else
+// This is better for debugging as it may allow display of the enum type string
 typedef enum EXIType EXIType;
-
-/**
- * This is the type of the "value" content of EXI events. It is used when schema is available.
- */
-enum EXITypeClass
-{
-	VALUE_TYPE_NONE_CLASS              =   0,
-	VALUE_TYPE_STRING_CLASS            =   1,
-	VALUE_TYPE_FLOAT_CLASS             =   2,
-	VALUE_TYPE_DECIMAL_CLASS           =   3,
-	VALUE_TYPE_DATE_TIME_CLASS         =   4,
-	VALUE_TYPE_BOOLEAN_CLASS           =   5,
-	VALUE_TYPE_BINARY_CLASS            =   6,
-	VALUE_TYPE_LIST_CLASS              =   7,
-	VALUE_TYPE_QNAME_CLASS             =   8,
-	VALUE_TYPE_INTEGER_CLASS           =   9,
-	VALUE_TYPE_UNTYPED_CLASS           =  25
-};
-
-typedef enum EXITypeClass EXITypeClass;
-
-#define GET_VALUE_TYPE_CLASS(value_type) (value_type/10)
-
-#define PROD_CONTENT_MASK 0xFFFFFF // 0b00000000111111111111111111111111
-
-#define GET_PROD_EXI_EVENT(content) (content>>24)
-#define SET_PROD_EXI_EVENT(content, eventType) (content = (content & PROD_CONTENT_MASK) | (eventType<<24))
-#define GET_PROD_NON_TERM(content) (content & PROD_CONTENT_MASK)
-#define SET_PROD_NON_TERM(content, nt) (content = (content & ~PROD_CONTENT_MASK) | (nt & PROD_CONTENT_MASK))
+#endif
 
 /** Specifies the right-hand side for a production rule.
  * The left-hand side is implicitly defined by the
  * parent grammar rule. */
 struct Production
 {
-	/** The production content consists of two parts:
-	 * - 8-bits EXI event type, like SD, CH, or EE (most significant 8 bits)
-	 * - 24-bits unique identifier of right-hand side non-terminal (least significant 24 bits)
-	 * Use GET_PROD_EXI_EVENT(), SET_PROD_EXI_EVENT(),
-	 * */
-	uint32_t content;
+	/** EXI event type, like SD, CH, or EE. */
+	EventType eventType;
 
 	/**
 	 * Index of the grammar for the production event, if applicable.
@@ -588,18 +545,14 @@ struct Production
      * SE(uri:*), AT(qname) or AT(uri:*).
 	 */
 	QNameID qnameId;
+	
+	/** 
+     * Unique identifier of right-hand side non-terminal.
+     */
+	SmallIndex nonTermID;
 };
 
 typedef struct Production Production;
-
-struct EventCode
-{
-	Index part[3];
-	Index bits[3];
-	unsigned char length;
-};
-
-typedef struct EventCode EventCode;
 
 /**
  * @name Built-in Grammars non-terminals
@@ -608,17 +561,17 @@ typedef struct EventCode EventCode;
 /**
  * Used to indicate that the production does not have NON_TERMINAL on the right-hand side
  */
-#ifndef GR_VOID_NON_TERMINAL
-# define GR_VOID_NON_TERMINAL SMALL_INDEX_MAX
-#endif
+#define GR_VOID_NON_TERMINAL SMALL_INDEX_MAX
 
-#define GR_DOC_CONTENT       0
-#define GR_DOC_END           1
+#define GR_DOCUMENT          0
+#define GR_DOC_CONTENT       1
+#define GR_DOC_END           2
 
 #define GR_START_TAG_CONTENT 0
 #define GR_ELEMENT_CONTENT   1
 
-#define GR_FRAGMENT_CONTENT  0
+#define GR_FRAGMENT          0
+#define GR_FRAGMENT_CONTENT  1
 /**@}*/
 
 /** 
@@ -627,47 +580,53 @@ typedef struct EventCode EventCode;
 struct GrammarRule
 {
 	/** Array of grammar productions with event code length 1 */
-    Production* production;
+    Production* prod1;
 
-    /** The number of productions */
-    Index pCount;
+    /** Array of grammar productions with event code with length 2 and length 3 */
+    Production* prod23;
 
-    // TODO: Think about get rid of that meta info
-    /** Meta information for the grammar rule:
-     * - most significant 15 bits contain the number of AT(qname)[schema-typed value]  productions
-     * - least significant bit is used to indicate whether it has an EE production */
-    uint16_t meta;
+    /** The number of productions in prod1 */
+    Index p1Count;
+
+    /** The number of productions with event code with length 2 */
+    SmallIndex p2Count;
+
+    /** The number of productions with event code with length 3 */
+    SmallIndex p3Count;
+
+    /** The number of bits for prod1 - used for the event code enumerations */
+    unsigned char bits1;
 };
 
 typedef struct GrammarRule GrammarRule;
 
-#define RULE_CONTAIN_EE_MASK       0x01 // 0b0000000000000001
-
-#define RULE_CONTAIN_EE(meta) ((meta & RULE_CONTAIN_EE_MASK) != 0)
-#define RULE_SET_CONTAIN_EE(meta) (meta = meta | RULE_CONTAIN_EE_MASK)
-
-#define RULE_SET_AT_COUNT(meta, ac) (meta = meta | (ac<<1))
-#define RULE_GET_AT_COUNT(meta) (meta>>1)
-
 /**
- * Extension to the GrammarRule. In the DynGrammarRule the production array is a dynamic array.
+ * Extension to the GrammarRule. In the DynGrammarRule the first production array i.e. the one holding the
+ * productions with event code with length 1 (prod1) is dynamic array.
  * The dynamic GrammarRule is used for Built-in Element Grammar and Built-in Fragment Grammar
  */
 struct DynGrammarRule
 {
-	/** Array of grammar productions with event code length 1 */
-    Production* production;
+   /** Array of grammar productions with event code length 1 */
+   Production* prod1;
 
-    /** The number of productions */
-    Index pCount;
+   /** Array of grammar productions with event code with length 2 and length 3 */
+   Production* prod23;
 
-    /** Meta information for the grammar rule:
-     * - most significant 10 bits contain the number of AT(qname)[schema-typed value]  productions
-     * - least significant 5 bits contain the number of bits for productions event codes */
-    uint16_t meta;
+   /** The number of productions in prod1 */
+   Index p1Count;
+
+   /** The number of productions with event code with length 2 */
+   SmallIndex p2Count;
+
+   /** The number of productions with event code with length 3 */
+   SmallIndex p3Count;
+
+   /** The number of bits for prod1 - used for the event code enumerations */
+   unsigned char bits1;
 
    /** Additional field */
-   Index prodDim; // The size of the productions Dynamic production array /allocated space for Productions in it/
+   Index prod1Dim; // The size of the prod1 Dynamic production array /allocated space for Productions in it/
 };
 typedef struct DynGrammarRule DynGrammarRule;
 
@@ -676,31 +635,22 @@ typedef struct DynGrammarRule DynGrammarRule;
  */
 /**@{*/
 #define IS_NILLABLE(p) 			        ((p & GR_PROP_NILLABLE) != 0)
-#define IS_BUILT_IN_ELEM(p) 	        ((p & GR_PROP_BUILT_IN_ELEMENT) != 0)
-#define IS_SCHEMA(p) 			        ((p & GR_PROP_SCHEMA_INFORMED) != 0)
-#define IS_DOCUMENT(p) 			        ((p & GR_PROP_DOCUMENT) != 0)
-#define IS_FRAGMENT(p) 			        ((p & GR_PROP_FRAGMENT) != 0)
+#define IS_AUGMENTED(p) 		        ((p & GR_PROP_AUGMENTED) != 0)
+#define IS_BUILT_IN_ELEM(p) 	        ((p & GR_PROP_TYPE_BUILT_IN_ELEMENT) != 0)
+#define IS_SCHEMA(p) 			        ((p & GR_PROP_TYPE_SCHEMA) != 0)
 #define HAS_NAMED_SUB_TYPE_OR_UNION(p) 	((p & GR_PROP_NAMED_SUB_TYPE_OR_UNION) != 0)
 
-#define SET_NILLABLE_GR(p)    	            ((p) = (p) | GR_PROP_NILLABLE)
-#define SET_BUILT_IN_ELEM_GR(p)             ((p) = (p) | GR_PROP_BUILT_IN_ELEMENT)
-#define SET_SCHEMA_GR(p)    		        ((p) = (p) | GR_PROP_SCHEMA_INFORMED)
-#define SET_DOCUMENT_GR(p)    		        ((p) = (p) | GR_PROP_DOCUMENT)
-#define SET_FRAGMENT_GR(p)    		        ((p) = (p) | GR_PROP_FRAGMENT)
+#define SET_NILLABLE(p)    	            ((p) = (p) | GR_PROP_NILLABLE)
+#define SET_AUGMENTED(p)    	        ((p) = (p) | GR_PROP_AUGMENTED)
+#define SET_BUILT_IN_ELEM(p)            ((p) = (p) | GR_PROP_TYPE_BUILT_IN_ELEMENT)
+#define SET_SCHEMA(p)    		        ((p) = (p) | GR_PROP_TYPE_SCHEMA)
 #define SET_NAMED_SUB_TYPE_OR_UNION(p)  ((p) = (p) | GR_PROP_NAMED_SUB_TYPE_OR_UNION)
 
-#define GR_PROP_BUILT_IN_ELEMENT         0x1000000 // 0b00000001000000000000000000000000
-#define GR_PROP_SCHEMA_INFORMED          0x2000000 // 0b00000010000000000000000000000000
-#define GR_PROP_DOCUMENT                 0x4000000 // 0b00000100000000000000000000000000
-#define GR_PROP_FRAGMENT                 0x8000000 // 0b00001000000000000000000000000000
-#define GR_PROP_NILLABLE                0x10000000 // 0b00010000000000000000000000000000
-#define GR_PROP_NAMED_SUB_TYPE_OR_UNION 0x20000000 // 0b00100000000000000000000000000000
-
-#define GR_CONTENT_INDEX_MASK 0xFFFFFF // 0b00000000111111111111111111111111
-
-#define SET_CONTENT_INDEX(props, indx) (props = (props & ~GR_CONTENT_INDEX_MASK) | (indx & GR_CONTENT_INDEX_MASK))
-#define GET_CONTENT_INDEX(props) (props & GR_CONTENT_INDEX_MASK)
-
+#define GR_PROP_TYPE_BUILT_IN_ELEMENT    0x01 // 0b00000001
+#define GR_PROP_TYPE_SCHEMA              0x02 // 0b00000010
+#define GR_PROP_NILLABLE                 0x04 // 0b00000100
+#define GR_PROP_AUGMENTED                0x08 // 0b00001000
+#define GR_PROP_NAMED_SUB_TYPE_OR_UNION  0x10 // 0b00010000
 /**@}*/
 
 /**
@@ -713,23 +663,23 @@ struct EXIGrammar
      * Rule container array, where the index of a container is its left-hand side non-terminal ID.
      */
 	GrammarRule* rule;
-
+	/** Size of the array */
+	SmallIndex count;
 	/**
-	 * Bitmap of properties and the value for the grammar contentIndex (the index of the first rule that does not contain attribute content.).
-	 * The most significant 8 bits are the properties and the least significant
-	 * 24 bits is the value for the contentIndex.
+	 * Bitmap of properties.
 	 * Use parenthesized macro to retrieve, or the "SET" form to update.
 	 * <ul>
 	 *   <li> nillable (IS_NILLABLE(p)) </li>
+	 *   <li> <a href="http://www.w3.org/TR/2011/REC-exi-20110310/#undeclaredProductions">augmented</a>
+	 *   with productions external to the schema (IS_AUGMENTED(p)) </li>
 	 *   <li> built-in grammar (IS_BUILT_IN_ELEM(p)) </li>
 	 *   <li> schema-informed grammar (IS_SCHEMA(p)) </li>
 	 *   <li> does type of this grammar have named sub-types or is it union? (HAS_NAMED_SUB_TYPE_OR_UNION(p)) </li>
 	 * </ul>
 	 */
-	uint32_t props;
-
-	/** Size of the rule array */
-	SmallIndex count;
+	unsigned char props;
+	/** For a type grammar, the index of the first rule that does not contain attribute content. */
+	SmallIndex contentIndex;
 };
 
 typedef struct EXIGrammar EXIGrammar;
@@ -874,30 +824,12 @@ typedef struct UriTable UriTable;
 #define TYPE_FACET_NAMED_SUBTYPE_UNION  0x1000 // 0b0001000000000000
 /**@}*/
 
-#define ST_CONTENT_MASK 0xFFFFFF // 0b00000000111111111111111111111111
-
-#define GET_EXI_TYPE(content) (content>>24)
-#define SET_EXI_TYPE(content, et) (content = (content & ST_CONTENT_MASK) | (et<<24))
-#define HAS_TYPE_FACET(content, facet) ((content & facet) != 0)
-#define SET_TYPE_FACET(content, facet) (content = (content | facet))
-#define REMOVE_TYPE_FACET(content, facet) (content = (content & ~facet))
-
 /**
  * Attributes of a schema simple type, including EXI datatype for the simple content. 
  */
 struct SimpleType {
-	/** The content of the simple type consists of two parts:
-	 * - 8-bits exiType such as VALUE_TYPE_STRING , VALUE_TYPE_FLOAT, VALUE_TYPE_DECIMAL etc. (most significant 8 bits)
-	 * - 24-bits facetPresenceMask - the least significant 32 bits
-	 */
-	uint32_t content;
-	/**
-	 * either length or (totalDigits and fractionDigits) or typeId, when exiType is LIST (they are mutually exclusive)
-	 * The totalDigits (if available) are encoded in the most significant 16 bits as unsigned integer
-	 * and fractionDigits (if available) are encoded in the least significant 16 bits as unsigned integer
-	 */
-	uint32_t length;
-
+	EXIType exiType;
+	uint16_t facetPresenceMask;
 	/**
 	 * either maxInclusive or maxExclusive or maxLength or
 	 * when exiType is LIST and TYPE_FACET_LENGTH is set then the
@@ -907,6 +839,12 @@ struct SimpleType {
 	/**
 	 * either minInclusive or minExclusive or minLength (they are mutually exclusive) */
 	int64_t min;
+	/**
+	 * either length or (totalDigits and fractionDigits) or typeId, when exiType is LIST (they are mutually exclusive)
+	 * The totalDigits (if available) are encoded in the most significant 16 bits as unsigned integer
+	 * and fractionDigits (if available) are encoded in the least significant 16 bits as unsigned integer
+	 */
+	uint32_t length;
 };
 
 typedef struct SimpleType SimpleType;
@@ -1089,9 +1027,6 @@ struct StreamContext
 
 	/** Non-zero if expecting attribute data or list items */
 	unsigned int expectATData;
-
-	/** TRUE if the current grammar rule must be processed as EmptyType grammar */
-	unsigned char isNilType;
 
 	/** Value type of the expected attribute */
 	Index attrTypeId;

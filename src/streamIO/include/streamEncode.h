@@ -138,13 +138,4 @@ errorCode encodeFloatValue(EXIStream* strm, Float fl_val);
  */
 errorCode encodeDateTimeValue(EXIStream* strm, EXIPDateTime dt_val);
 
-/**
- * @brief Serialize an event code to an EXI stream
- *
- * @param[in, out] strm EXI bit stream
- * @param[in] ec event code to be encoded
- * @return EventCode the newly created Event Code
- */
-errorCode writeEventCode(EXIStream* strm, EventCode ec);
-
 #endif /* STREAMENCODE_H_ */

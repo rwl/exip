@@ -18,11 +18,10 @@
 #define GRAMMARS_H_
 
 #include "errorHandle.h"
+#include "grammarRules.h"
+#include "eventsEXI.h"
 #include "procTypes.h"
 #include "contentHandler.h"
-
-// Defines the initial dimension of the dynamic array - production
-#define DEFAULT_PROD_ARRAY_DIM 10
 
 /**
  * Get global element EXIGrammar from the SchemaGrammarTable by given QNameID.
@@ -37,6 +36,18 @@
  * (i.e. the index of the grammar in the string table is INDEX_MAX)
  */
 #define GET_TYPE_GRAMMAR_QNAMEID(schema, qnameID) GET_LN_URI_QNAME((schema)->uriTable, qnameID).typeGrammar == INDEX_MAX?NULL:&((schema)->grammarTable.grammar[GET_LN_URI_QNAME((schema)->uriTable, qnameID).typeGrammar])
+
+/**
+ * @brief Process the next grammar production in the Current Grammar
+ * 
+ * Returns the terminal symbol of the production i.e. the EXI Event Type;
+ * @param[in] strm EXI stream of bits
+ * @param[out] nonTermID_out unique identifier of right-hand side Non-terminal
+ * @param[in] handler content handler callbacks
+ * @param[in] app_data Application data to be passed to the content handler callbacks
+ * @return Error handling code
+ */
+errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, ContentHandler* handler, void* app_data);
 
 /**
  * @brief Push a grammar on top of the Grammar Stack
@@ -89,44 +100,5 @@ errorCode createFragmentGrammar(EXIPSchema* schema, QNameID* elQnameArr, Index q
  * @return Error handling code
  */
 errorCode createBuiltInElementGrammar(EXIGrammar* elementGrammar, EXIStream* strm);
-
-
-/**
- * @brief Inserts a Production to a Grammar Rule (with LeftHandSide) with an event code 0
- * Note! It increments the first part of the event code of each production
- * in the current grammar with the non-terminal LeftHandSide on the left-hand side
- * Used only for Built-in Document Grammar and Built-in Fragment Grammar
- * @param[in, out] rule a Grammar Rule
- * @param[in] evnt event type
- * @param[in] nonTermID unique identifier of right-hand side Non-terminal
- * @param[in] qname qname identifier of the Event Type corresponding to the inserted production
- * @param[in] hasSecondLevelProd 0 if there are no second level productions (only possible in Fragment Grammar);
- * otherwise 1
- * @return Error handling code
- */
-errorCode insertZeroProduction(DynGrammarRule* rule, EventType evnt, SmallIndex nonTermID, QNameID* qname, unsigned char hasSecondLevelProd);
-
-/**
- * @brief For a given grammar and a rule from it, returns the number of bits needed to encode a production from that rule
- * @param[in] opts a set of options for the EXI stream
- * @param[in] grammar a grammar object
- * @param[in] currentRule the concrete grammar rule
- * @param[in] currentRuleIndx the index of the concrete grammar rule
- * @return number of bits needed to encode a production
- */
-unsigned int getBitsFirstPartCode(EXIOptions opts, EXIGrammar* grammar, GrammarRule* currentRule, SmallIndex currentRuleIndx);
-
-#if EXIP_DEBUG == ON
-/**
- * @brief Prints a grammar rule
- * Note! This is only for debugging purposes!
- * @param[in] nonTermID The left hand side nonTerminal of the Rule
- * @param[in] rule a Grammar Rule to be printed
- * @param[in] schema for string tables
- * @return Error handling code
- */
-errorCode printGrammarRule(SmallIndex nonTermID, GrammarRule* rule, EXIPSchema *schema);
-
-#endif // EXIP_DEBUG
 
 #endif /* GRAMMARS_H_ */

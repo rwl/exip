@@ -20,18 +20,6 @@
 #include "contentHandler.h"
 
 /**
- * @brief Process the next grammar production in the Current Grammar
- *
- * Returns the terminal symbol of the production i.e. the EXI Event Type;
- * @param[in] strm EXI stream of bits
- * @param[out] nonTermID_out unique identifier of right-hand side Non-terminal
- * @param[in] handler content handler callbacks
- * @param[in] app_data Application data to be passed to the content handler callbacks
- * @return Error handling code
- */
-errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, ContentHandler* handler, void* app_data);
-
-/**
  * @brief Decodes a QName from the EXI stream
  *
  * @param[in, out] strm EXI stream representation
@@ -96,10 +84,12 @@ errorCode decodeStringValue(EXIStream* strm, QNameID qnameID, String* value);
  * @param[in] prodHit the current grammar production
  * @param[in] handler application content handler; stores the callback functions
  * @param[out] nonTermID_out nonTerminal ID after the content decoding
+ * @param[in] currRule the current grammar rule in use for the event
  * @param[in] app_data Application data to be passed to the content handler callbacks
  * @return Error handling code
  */
-errorCode decodeEventContent(EXIStream* strm, Production* prodHit, ContentHandler* handler, SmallIndex* nonTermID_out, void* app_data);
+errorCode decodeEventContent(EXIStream* strm, Production* prodHit, ContentHandler* handler, SmallIndex* nonTermID_out,
+							GrammarRule* currRule, void* app_data);
 
 /**
  * @brief Decodes the value content item of an EXI event
@@ -113,36 +103,5 @@ errorCode decodeEventContent(EXIStream* strm, Production* prodHit, ContentHandle
  * @return Error handling code
  */
 errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler, SmallIndex* nonTermID_out, QNameID localQNameID, void* app_data);
-
-/**
- * @brief Decodes NS event
- * @param[in, out] strm EXI stream representation
- * @param[in] handler application content handler; stores the callback functions
- * @param[out] nonTermID_out nonTerminal ID after the content decoding
- * @param[in] app_data Application data to be passed to the content handler callbacks
- * @return Error handling code
- */
-errorCode decodeNSEvent(EXIStream* strm, ContentHandler* handler, SmallIndex* nonTermID_out, void* app_data);
-
-/**
- * @brief Decodes SE(*) event
- * @param[in, out] strm EXI stream representation
- * @param[in] handler application content handler; stores the callback functions
- * @param[out] nonTermID_out nonTerminal ID after the content decoding
- * @param[in] app_data Application data to be passed to the content handler callbacks
- * @return Error handling code
- */
-errorCode decodeSEWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallIndex* nonTermID_out, void* app_data);
-
-/**
- * @brief Decodes AT(*) event
- * @param[in, out] strm EXI stream representation
- * @param[in] handler application content handler; stores the callback functions
- * @param[out] nonTermID_out nonTerminal ID after the content decoding
- * @param[in] app_data Application data to be passed to the content handler callbacks
- * @return Error handling code
- */
-errorCode decodeATWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallIndex* nonTermID_out, void* app_data);
-
 
 #endif /* BODYDECODE_H_ */

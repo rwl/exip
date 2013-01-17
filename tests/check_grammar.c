@@ -18,7 +18,6 @@
 #include <stdlib.h>
 #include <check.h>
 #include "grammars.h"
-#include "bodyDecode.h"
 #include "memManagement.h"
 
 /* BEGIN: grammars tests */
@@ -172,13 +171,13 @@ START_TEST (test_insertZeroProduction)
 	Production prod0Arr[2];
 	QNameID qname = {0,0};
 
-	rule.pCount = 0;
-	rule.prodDim = 1;
-	rule.production = prod0Arr;
+	rule.p1Count = 0;
+	rule.prod1Dim = 1;
+	rule.prod1 = prod0Arr;
 
-	tmp_err_code = insertZeroProduction(&rule, EVENT_CH, 5, &qname, FALSE);
+	tmp_err_code = insertZeroProduction(&rule, EVENT_CH, 5, &qname);
 	fail_unless (tmp_err_code == ERR_OK, "insertZeroProduction returns an error code %d", tmp_err_code);
-	fail_unless (rule.pCount == 1);
+	fail_unless (rule.p1Count == 1);
 }
 END_TEST
 

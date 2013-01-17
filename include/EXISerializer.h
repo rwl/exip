@@ -28,7 +28,7 @@ struct EXISerializer
 	errorCode (*endDocument)(EXIStream* strm);
 	errorCode (*startElement)(EXIStream* strm, QName qname);
 	errorCode (*endElement)(EXIStream* strm);
-	errorCode (*attribute)(EXIStream* strm, QName qname, EXITypeClass valueType);
+	errorCode (*attribute)(EXIStream* strm, QName qname, EXIType valueType);
 
 	// For handling the data
 	errorCode (*intData)(EXIStream* strm, Integer int_val);
@@ -69,7 +69,7 @@ errorCode endDocument(EXIStream* strm);
 errorCode startElement(EXIStream* strm, QName qname);
 errorCode endElement(EXIStream* strm);
 /** @todo Consider handling the lexicographical sorting of attributes by exip encoding utilities?*/
-errorCode attribute(EXIStream* strm, QName qname, EXITypeClass exiType);
+errorCode attribute(EXIStream* strm, QName qname, EXIType exiType);
 
 // For handling the data
 errorCode intData(EXIStream* strm, Integer int_val);
@@ -117,12 +117,13 @@ errorCode closeEXIStream(EXIStream* strm);
  * and when efficiency is of high importance
  *
  * @param[in, out] strm EXI stream
- * @param[in] EventCode EXI event code of the production
+ * @param[in] codeLength 1,2 or 3 is the allowed length of EXI event codes
+ * @param[in] lastCodePart the last part of the event code
  * @param[in] qname used only for SE(*), AT(*), SE(uri:*), AT(uri:*) and when
  * a new prefix should be serialized in SE(QName) and AT(QName); NULL otherwise
  * @return Error handling code
  */
-errorCode serializeEvent(EXIStream* strm, EventCode ec, QName* qname);
+errorCode serializeEvent(EXIStream* strm, unsigned char codeLength, Index lastCodePart, QName* qname);
 
 /****  END: Fast, low level API for schema encoding only ****/
 

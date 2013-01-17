@@ -22,6 +22,7 @@
 #include "stringManipulate.h"
 #include "memManagement.h"
 #include "grammars.h"
+#include "grammarAugment.h"
 #include "initSchemaInstance.h"
 #include "grammarGenerator.h"
 
@@ -429,7 +430,7 @@ static char xsd_endElement(void* app_data)
 		if(!isStringEmpty(elName))
 		{
 			Index lnId;
-			SmallIndex uriId = 0; // URI	0	"" [empty string]
+			Index uriId = 0; // URI	0	"" [empty string]
 
 			if(ttpd->contextStack == NULL) // If the schema definition is global
 			{

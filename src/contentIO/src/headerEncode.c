@@ -89,7 +89,6 @@ errorCode encodeHeader(EXIStream* strm)
 		unsigned char hasUncommon = FALSE;
 		unsigned char hasLesscommon = FALSE;
 		unsigned char hasCommon = FALSE;
-		EventCode tmpEvCode;
 
 		makeDefaultOpts(&options_strm.header.opts);
 		SET_STRICT(options_strm.header.opts.enumOpt);
@@ -100,13 +99,12 @@ errorCode encodeHeader(EXIStream* strm)
 		options_strm.buffer = strm->buffer;
 		options_strm.context.bitPointer = strm->context.bitPointer;
 		options_strm.context.bufferIndx = strm->context.bufferIndx;
-		options_strm.context.currNonTermID = GR_DOC_CONTENT;
+		options_strm.context.currNonTermID = GR_DOCUMENT;
 		options_strm.context.currElem.lnId = LN_MAX;
 		options_strm.context.currElem.uriId = URI_MAX;
 		options_strm.context.currAttr.lnId = LN_MAX;
 		options_strm.context.currAttr.uriId = URI_MAX;
-		options_strm.context.expectATData = FALSE;
-		options_strm.context.isNilType = FALSE;
+		options_strm.context.expectATData = 0;
 		options_strm.context.attrTypeId = 0;
 		options_strm.gStack = NULL;
 		options_strm.schema = (EXIPSchema*) &ops_schema;
@@ -126,10 +124,9 @@ errorCode encodeHeader(EXIStream* strm)
 		}
 
 		// TODO: Below, provide a checks for tmp_err_code and stop the execution on an error condition
-		tmpEvCode.length = 1;
-		tmpEvCode.part[0] = 0;
-		tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startDocument
-		tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <header>
+
+		tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.startDocument
+		tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.startElement <header>
 
 		// uncommon options
 		if(GET_ALIGNMENT(strm->header.opts.enumOpt) != BIT_PACKED ||
@@ -150,154 +147,98 @@ errorCode encodeHeader(EXIStream* strm)
 		if(hasLesscommon)
 		{
 			int nonTermAdj;
-			tmpEvCode.length = 1;
-			tmpEvCode.part[0] = 0;
-			tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <lesscommon>
+			tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.startElement <lesscommon>
 			if(hasUncommon)
 			{
-				tmpEvCode.length = 1;
-				tmpEvCode.part[0] = 0;
-				tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <uncommon>
+				tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.startElement <uncommon>
 				if(GET_ALIGNMENT(strm->header.opts.enumOpt) != BIT_PACKED)
 				{
-					tmpEvCode.length = 1;
-					tmpEvCode.part[0] = 0;
-					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <alignment>
+					tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.startElement <alignment>
 					if(GET_ALIGNMENT(strm->header.opts.enumOpt) == BYTE_ALIGNMENT)
 					{
-						tmpEvCode.length = 1;
-						tmpEvCode.part[0] = 0;
-						tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <byte>
+						tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.startElement <byte>
 					}
 					else
 					{
-						tmpEvCode.length = 1;
-						tmpEvCode.part[0] = 1;
-						tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <pre-compress>
+						tmp_err_code += serializeEvent(&options_strm, 1, 1, NULL); // serialize.startElement <pre-compress>
 					}
-					tmpEvCode.length = 1;
-					tmpEvCode.part[0] = 0;
-					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <byte> or <pre-compress>
-					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <alignment>
+					tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endElement <byte> or <pre-compress>
+					tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endElement <alignment>
 				}
 				if(WITH_SELF_CONTAINED(strm->header.opts.enumOpt))
 				{
 					nonTermAdj = options_strm.context.currNonTermID - 1;
 					if(nonTermAdj < 0)
 						nonTermAdj = 0;
-					tmpEvCode.length = 1;
-					tmpEvCode.part[0] = 1 - nonTermAdj;
-					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <selfContained>
-					tmpEvCode.length = 1;
-					tmpEvCode.part[0] = 0;
-					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <selfContained>
+					tmp_err_code += serializeEvent(&options_strm, 1, 1 - nonTermAdj, NULL); // serialize.startElement <selfContained>
+					tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endElement <selfContained>
 				}
 				if(strm->header.opts.valueMaxLength != INDEX_MAX)
 				{
 					nonTermAdj = options_strm.context.currNonTermID - 1;
 					if(nonTermAdj < 0)
 						nonTermAdj = 0;
-					tmpEvCode.length = 1;
-					tmpEvCode.part[0] = 2 - nonTermAdj;
-					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <valueMaxLength>
+					tmp_err_code += serializeEvent(&options_strm, 1, 2 - nonTermAdj, NULL); // serialize.startElement <valueMaxLength>
 					tmp_err_code += serialize.intData(&options_strm, strm->header.opts.valueMaxLength);
-					tmpEvCode.length = 1;
-					tmpEvCode.part[0] = 0;
-					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <valueMaxLength>
+					tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endElement <valueMaxLength>
 				}
 				if(strm->header.opts.valuePartitionCapacity != INDEX_MAX)
 				{
 					nonTermAdj = options_strm.context.currNonTermID - 1;
 					if(nonTermAdj < 0)
 						nonTermAdj = 0;
-					tmpEvCode.length = 1;
-					tmpEvCode.part[0] = 3 - nonTermAdj;
-					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <valuePartitionCapacity>
+					tmp_err_code += serializeEvent(&options_strm, 1, 3 - nonTermAdj, NULL); // serialize.startElement <valuePartitionCapacity>
 					tmp_err_code += serialize.intData(&options_strm, strm->header.opts.valuePartitionCapacity);
-					tmpEvCode.length = 1;
-					tmpEvCode.part[0] = 0;
-					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <valuePartitionCapacity>
+					tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endElement <valuePartitionCapacity>
 				}
 				if(strm->header.opts.drMap != NULL)
 				{
 					nonTermAdj = options_strm.context.currNonTermID - 1;
 					if(nonTermAdj < 0)
 						nonTermAdj = 0;
-					tmpEvCode.length = 1;
-					tmpEvCode.part[0] = 4 - nonTermAdj;
-					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <datatypeRepresentationMap>
+					tmp_err_code += serializeEvent(&options_strm, 1, 4 - nonTermAdj, NULL); // serialize.startElement <datatypeRepresentationMap>
 					// TODO: not ready yet!
 					return NOT_IMPLEMENTED_YET;
 				}
-				tmpEvCode.length = 1;
-				tmpEvCode.part[0] = 6 - options_strm.context.currNonTermID;
-				tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <uncommon>
+				tmp_err_code += serializeEvent(&options_strm, 1, 6 - options_strm.context.currNonTermID, NULL); // serialize.endElement <uncommon>
 			}
 			if(strm->header.opts.preserve != 0)
 			{
-				tmpEvCode.length = 1;
-				tmpEvCode.part[0] = 1 - options_strm.context.currNonTermID;
-				tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <preserve>
+				tmp_err_code += serializeEvent(&options_strm, 1, 1 - options_strm.context.currNonTermID, NULL); // serialize.startElement <preserve>
 				if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
 				{
-					tmpEvCode.length = 1;
-					tmpEvCode.part[0] = 0;
-					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <dtd>
-					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <dtd>
+					tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.startElement <dtd>
+					tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endElement <dtd>
 				}
 				if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES))
 				{
-					tmpEvCode.length = 1;
-					tmpEvCode.part[0] = 1 - options_strm.context.currNonTermID;
-					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <prefixes>
-					tmpEvCode.length = 1;
-					tmpEvCode.part[0] = 0;
-					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <prefixes>
+					tmp_err_code += serializeEvent(&options_strm, 1, 1 - options_strm.context.currNonTermID, NULL); // serialize.startElement <prefixes>
+					tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endElement <prefixes>
 				}
 				if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_LEXVALUES))
 				{
-					tmpEvCode.length = 1;
-					tmpEvCode.part[0] = 2 - options_strm.context.currNonTermID;
-					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <lexicalValues>
-					tmpEvCode.length = 1;
-					tmpEvCode.part[0] = 0;
-					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <lexicalValues>
+					tmp_err_code += serializeEvent(&options_strm, 1, 2 - options_strm.context.currNonTermID, NULL); // serialize.startElement <lexicalValues>
+					tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endElement <lexicalValues>
 				}
 				if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
 				{
-					tmpEvCode.length = 1;
-					tmpEvCode.part[0] = 3 - options_strm.context.currNonTermID;
-					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <comments>
-					tmpEvCode.length = 1;
-					tmpEvCode.part[0] = 0;
-					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <comments>
+					tmp_err_code += serializeEvent(&options_strm, 1, 3 - options_strm.context.currNonTermID, NULL); // serialize.startElement <comments>
+					tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endElement <comments>
 				}
 				if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 				{
-					tmpEvCode.length = 1;
-					tmpEvCode.part[0] = 4 - options_strm.context.currNonTermID;
-					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <pis>
-					tmpEvCode.length = 1;
-					tmpEvCode.part[0] = 0;
-					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <pis>
+					tmp_err_code += serializeEvent(&options_strm, 1, 4 - options_strm.context.currNonTermID, NULL); // serialize.startElement <pis>
+					tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endElement <pis>
 				}
-				tmpEvCode.length = 1;
-				tmpEvCode.part[0] = 5 - options_strm.context.currNonTermID;
-				tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <preserve>
+				tmp_err_code += serializeEvent(&options_strm, 1, 5 - options_strm.context.currNonTermID, NULL); // serialize.endElement <preserve>
 			}
 			if(strm->header.opts.blockSize != 1000000)
 			{
-				tmpEvCode.length = 1;
-				tmpEvCode.part[0] = 2 - options_strm.context.currNonTermID;
-				tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <blockSize>
+				tmp_err_code += serializeEvent(&options_strm, 1, 2 - options_strm.context.currNonTermID, NULL); // serialize.startElement <blockSize>
 				tmp_err_code += serialize.intData(&options_strm, strm->header.opts.blockSize);
-				tmpEvCode.length = 1;
-				tmpEvCode.part[0] = 0;
-				tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <blockSize>
+				tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endElement <blockSize>
 			}
-			tmpEvCode.length = 1;
-			tmpEvCode.part[0] = 3 - options_strm.context.currNonTermID;
-			tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <lesscommon>
+			tmp_err_code += serializeEvent(&options_strm, 1, 3 - options_strm.context.currNonTermID, NULL); // serialize.endElement <lesscommon>
 		}
 
 		// common options if any...
@@ -308,30 +249,20 @@ errorCode encodeHeader(EXIStream* strm)
 
 		if(hasCommon)
 		{
-			tmpEvCode.length = 1;
-			tmpEvCode.part[0] = 1 - options_strm.context.currNonTermID;
-			tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <common>
+			tmp_err_code += serializeEvent(&options_strm, 1, 1 - options_strm.context.currNonTermID, NULL); // serialize.startElement <common>
 			if(WITH_COMPRESSION(strm->header.opts.enumOpt))
 			{
-				tmpEvCode.length = 1;
-				tmpEvCode.part[0] = 0;
-				tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <compression>
-				tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <compression>
+				tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.startElement <compression>
+				tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endElement <compression>
 			}
 			if(WITH_FRAGMENT(strm->header.opts.enumOpt))
 			{
-				tmpEvCode.length = 1;
-				tmpEvCode.part[0] = 1 - options_strm.context.currNonTermID;
-				tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <fragment>
-				tmpEvCode.length = 1;
-				tmpEvCode.part[0] = 0;
-				tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <fragment>
+				tmp_err_code += serializeEvent(&options_strm, 1, 1 - options_strm.context.currNonTermID, NULL); // serialize.startElement <fragment>
+				tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endElement <fragment>
 			}
 			if(strm->header.opts.schemaID.length != 0) // SchemaID modes are encoded in the length part
 			{
-				tmpEvCode.length = 1;
-				tmpEvCode.part[0] = 2 - options_strm.context.currNonTermID;
-				tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <schemaId>
+				tmp_err_code += serializeEvent(&options_strm, 1, 2 - options_strm.context.currNonTermID, NULL); // serialize.startElement <schemaId>
 				if(strm->header.opts.schemaID.str != NULL)
 				{
 					tmp_err_code += serialize.stringData(&options_strm, strm->header.opts.schemaID);
@@ -342,10 +273,7 @@ errorCode encodeHeader(EXIStream* strm)
 					nil.uri = &strm->schema->uriTable.uri[2].uriStr;
 					nil.localName = &strm->schema->uriTable.uri[2].lnTable.ln[0].lnStr;
 					nil.prefix = &strm->schema->uriTable.uri[2].pfxTable->pfxStr[0];
-					tmpEvCode.length = 2;
-					tmpEvCode.part[0] = 2;
-					tmpEvCode.part[1] = 0;
-					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, &nil); // serialize.attribute nil="true"
+					tmp_err_code += serializeEvent(&options_strm, 2, 0, &nil); // serialize.attribute nil="true"
 					tmp_err_code += serialize.booleanData(&options_strm, TRUE);
 				}
 				else if(strm->header.opts.schemaID.length == SCHEMA_ID_EMPTY)
@@ -355,32 +283,20 @@ errorCode encodeHeader(EXIStream* strm)
 					tmp_err_code += serialize.stringData(&options_strm, empty);
 				}
 
-				tmpEvCode.length = 1;
-				tmpEvCode.part[0] = 0;
-				tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <schemaId>
+				tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endElement <schemaId>
 			}
-			tmpEvCode.length = 1;
-			tmpEvCode.part[0] = 3 - options_strm.context.currNonTermID;
-			tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <common>
+			tmp_err_code += serializeEvent(&options_strm, 1, 3 - options_strm.context.currNonTermID, NULL); // serialize.endElement <common>
 		}
 
 		if(WITH_STRICT(strm->header.opts.enumOpt))
 		{
-			tmpEvCode.length = 1;
-			tmpEvCode.part[0] = 2 - options_strm.context.currNonTermID;
-			tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <strict>
-			tmpEvCode.length = 1;
-			tmpEvCode.part[0] = 0;
-			tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <strict>
+			tmp_err_code += serializeEvent(&options_strm, 1, 2 - options_strm.context.currNonTermID, NULL); // serialize.startElement <strict>
+			tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endElement <strict>
 		}
 
-		tmpEvCode.length = 1;
-		tmpEvCode.part[0] = 3 - options_strm.context.currNonTermID;
-		tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <header>
+		tmp_err_code += serializeEvent(&options_strm, 1, 3 - options_strm.context.currNonTermID, NULL); // serialize.endElement <header>
 
-		tmpEvCode.length = 1;
-		tmpEvCode.part[0] = 0;
-		tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endDocument
+		tmp_err_code += serializeEvent(&options_strm, 1, 0, NULL); // serialize.endDocument
 
 		strm->buffer.bufContent = options_strm.buffer.bufContent;
 		strm->context.bitPointer = options_strm.context.bitPointer;

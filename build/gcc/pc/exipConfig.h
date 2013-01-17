@@ -81,8 +81,4 @@
 /** Whether to use dynamic arrays */
 #define DYN_ARRAY_USE ON
 
-// NOTE: The GR_VOID_NON_TERMINAL should be set to the maximum 24 bit unsigned value in case the
-// SMALL_INDEX_MAX is 32 bits or bigger
-#define GR_VOID_NON_TERMINAL 0xFFFFFF
-
 #endif /* EXIPCONFIG_H_ */
