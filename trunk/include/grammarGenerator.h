@@ -41,10 +41,13 @@
  * 			  should be all the XSDs that are referenced from the main XSD document.
  * @param[in] bufCount the number of buffers in the array
  * @param[in] schemaFormat EXI, XSD, DTD or any other schema representation supported
+ * @param[in] opt options used for EXI schemaFormat - otherwise NULL. If options are set then they will be used
+ * for processing the EXI XSD stream although no options are specified in the EXI header. If there are
+ * options defined in the EXI header of the XSD stream then this parameter must be NULL.
  * @param[out] schema the resulted schema information used for processing EXI streams
  * @return Error handling code
  */
-errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int bufCount, unsigned char schemaFormat, EXIPSchema* schema);
+errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int bufCount, unsigned char schemaFormat, EXIOptions* opt, EXIPSchema* schema);
 
 /**
  * @brief Frees all the memory allocated by an EXIPSchema object

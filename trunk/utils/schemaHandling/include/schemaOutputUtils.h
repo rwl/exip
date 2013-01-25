@@ -24,10 +24,9 @@
 
 typedef struct
 {
-	char buf1[20];
-	char buf2[20];
-	char buf3[20];
-	char buf4[20];
+	char typeIdStr[20];
+	char uriIdStr[20];
+	char lnIdStr[20];
 } IndexStrings;
 
 /** TEXT OUTPUT DEFINITIONS */

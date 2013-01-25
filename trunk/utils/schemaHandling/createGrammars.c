@@ -16,7 +16,6 @@
  */
 
 #include "procTypes.h"
-#include "grammarAugment.h"
 #include "schemaOutputUtils.h"
 #include "grammars.h"
 #include "sTables.h"
@@ -96,16 +95,15 @@ errorCode toStaticSrc(EXIPSchema* schemaPtr, char* prefix, FILE *outfile)
 	}
 
 	/* The array of schema-informed EXI grammars in the EXIPSchema object */
-	fprintf(outfile, "static CONST EXIGrammar %sgrammarTable[%d] =\n{\n", prefix, (int) schemaPtr->grammarTable.count);
+	fprintf(outfile, "static CONST EXIGrammar %sgrammarTable[%u] =\n{\n", prefix, (unsigned int) schemaPtr->grammarTable.count);
 	for(grIter = 0; grIter < schemaPtr->grammarTable.count; grIter++)
 	{
 		tmpGrammar = &schemaPtr->grammarTable.grammar[grIter];
-		fprintf(outfile,"   {%srule_%d, %d, 0x%02x, %d},\n",
+		fprintf(outfile,"   {%srule_%u, %u, %u},\n",
 				prefix,
-				(int) grIter,
-				(int) tmpGrammar->count,
-				(int) tmpGrammar->props,
-				(int) tmpGrammar->contentIndex);
+				(unsigned int) grIter,
+				(unsigned int) tmpGrammar->props,
+				(unsigned int) tmpGrammar->count);
 	}
 
 	fprintf(outfile, "};\n\n");
@@ -126,29 +124,19 @@ errorCode toStaticSrc(EXIPSchema* schemaPtr, char* prefix, FILE *outfile)
 	staticDocGrammarOutput(&schemaPtr->docGrammar, prefix, outfile);
 
 	/* Build the simple types structure */
-	fprintf(outfile, "static CONST SimpleType %ssimpleTypes[%d] =\n{\n", prefix, (int) schemaPtr->simpleTypeTable.count);
+	fprintf(outfile, "static CONST SimpleType %ssimpleTypes[%u] =\n{\n", prefix, (unsigned int) schemaPtr->simpleTypeTable.count);
 
     if(schemaPtr->simpleTypeTable.sType != NULL)
 	{
 		stIdMax = schemaPtr->simpleTypeTable.count;
 		for(stId = 0; stId < stIdMax; stId++)
 		{
-			uint32_t maxMS, maxLS, minMS, minLS;
-
-			maxMS = (uint32_t)(schemaPtr->simpleTypeTable.sType[stId].max >> 32);
-			maxLS = (uint32_t)(schemaPtr->simpleTypeTable.sType[stId].max & 0xFFFFFFFF);
-			minMS = (uint32_t)(schemaPtr->simpleTypeTable.sType[stId].min >> 32);
-			minLS = (uint32_t)(schemaPtr->simpleTypeTable.sType[stId].min & 0xFFFFFFFF);
-
 			fprintf(outfile,
-					"    {%d, 0x%04x, 0x%08x%08x, 0x%08x%08x, %d}%s",
-					schemaPtr->simpleTypeTable.sType[stId].exiType,
-					schemaPtr->simpleTypeTable.sType[stId].facetPresenceMask,
-					maxMS,
-					maxLS,
-					minMS,
-					minLS,
+					"    {%d, %d, %lu, %lu}%s",
+					schemaPtr->simpleTypeTable.sType[stId].content,
 					schemaPtr->simpleTypeTable.sType[stId].length,
+					(long unsigned) schemaPtr->simpleTypeTable.sType[stId].max,
+					(long unsigned) schemaPtr->simpleTypeTable.sType[stId].min,
 					stId==(stIdMax-1) ? "\n};\n\n" : ",\n");
 		}
 	}
@@ -166,44 +154,43 @@ errorCode toStaticSrc(EXIPSchema* schemaPtr, char* prefix, FILE *outfile)
 
     count = schemaPtr->uriTable.count;
 	fprintf(outfile,
-            "    {{sizeof(UriEntry), %d, %d}, %suriEntry, %d},\n",
-            (int) count,
-            (int) count,
+            "    {{sizeof(UriEntry), %u, %u}, %suriEntry, %u},\n",
+            (unsigned int) count,
+            (unsigned int) count,
             prefix,
-            (int) count);
+            (unsigned int) count);
 
 	fprintf(outfile,
-            "    {%sdocGrammarRule, %d, %d, %d},\n",
+            "    {%sdocGrammarRule, %u, %u},\n",
             prefix,
-            (int) schemaPtr->docGrammar.count,
-            (int) schemaPtr->docGrammar.props,
-            (int) schemaPtr->docGrammar.contentIndex);
+            (unsigned int) schemaPtr->docGrammar.props,
+            (unsigned int) schemaPtr->docGrammar.count);
 
     count = schemaPtr->simpleTypeTable.count;
 	fprintf(outfile,
-            "    {{sizeof(SimpleType), %d, %d}, %ssimpleTypes, %d},\n",
-            (int) count,
-            (int) count,
+            "    {{sizeof(SimpleType), %u, %u}, %ssimpleTypes, %u},\n",
+            (unsigned int) count,
+            (unsigned int) count,
             prefix,
-            (int) count);
+            (unsigned int) count);
 
     count = schemaPtr->grammarTable.count;
 	fprintf(outfile,
-            "    {{sizeof(EXIGrammar), %d, %d}, %sgrammarTable, %d},\n    %d,\n",
-            (int) count,
-            (int) count,
+            "    {{sizeof(EXIGrammar), %u, %u}, %sgrammarTable, %u},\n    %u,\n",
+            (unsigned int) count,
+            (unsigned int) count,
             prefix,
-            (int) count,
-            (int) count);
+            (unsigned int) count,
+            (unsigned int) count);
 
     count = schemaPtr->enumTable.count;
 	fprintf(outfile,
-            "    {{sizeof(EnumDefinition), %d, %d}, %s%s, %d}\n};\n\n",
+            "    {{sizeof(EnumDefinition), %u, %u}, %s%s, %u}\n};\n\n",
 
-            (int) count,
-            (int) count,
+            (unsigned int) count,
+            (unsigned int) count,
             count == 0?"":prefix, count == 0?"NULL":"enumTable",
-			(int) count);
+			(unsigned int) count);
 
 	return ERR_OK;
 }

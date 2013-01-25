@@ -53,6 +53,12 @@
 #define DEBUG_GRAMMAR_GEN OFF
 #define DEBUG_STRING_TBLS OFF
 
+#if EXIP_DEBUG != ON
+# define NDEBUG
+#endif
+
+#include <assert.h>
+
 /**
  * @name mem_group Define the memory allocation functions and freeing functions
  *

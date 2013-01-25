@@ -30,12 +30,16 @@ struct collisionInfo
 	SmallIndex createdNonTerminal;
 };
 
+/** This function @returns TRUE is the two grammar rules represent the same state. Otherwise false */
+static char rulesEqual(ProtoGrammar* g1, Index ruleIndx1, ProtoGrammar* g2, Index ruleIndx2);
+
 /** Collision aware addition */
-static errorCode addProductionsToARule(ProtoGrammar* left, Index ruleIndxL, ProtoRuleEntry* rightRule,
+static errorCode addProductionsToARule(ProtoGrammar* left, Index ruleIndxL, ProtoGrammar* right, Index ruleIndxR,
 									   struct collisionInfo* collisions, unsigned int* collisionCount, unsigned int* currRuleIndex, unsigned int initialLeftRulesCount);
 
+// TODO: try to avoid this functionality if possible...
 // Creates the new grammar rules based on the collision information
-static errorCode resolveCollisionsInGrammar(struct collisionInfo* collisions, unsigned int* collisionCount, ProtoGrammar* left, unsigned int* currRuleIndex);
+// static errorCode resolveCollisionsInGrammar(struct collisionInfo* collisions, unsigned int* collisionCount, ProtoGrammar* left, unsigned int* currRuleIndex);
 
 /** Descending order comparison.
  * The productions are ordered with the largest event code first. */
@@ -116,7 +120,8 @@ errorCode concatenateGrammars(ProtoGrammar* left, ProtoGrammar* right)
 				/* Merge productions from RHS rule 0 into each left rule */
 				tmp_err_code = addProductionsToARule(left,
 													 ruleIterL,
-													 &right->rule[0],
+													 right,
+													 0,
 													 collisions,
 													 &collisionCount,
 													 &currRuleIndex,
@@ -128,11 +133,13 @@ errorCode concatenateGrammars(ProtoGrammar* left, ProtoGrammar* right)
 		}
 	}
 
+	// TODO: check if needed
 	// Create the new grammar rules based on the collision information
-	return resolveCollisionsInGrammar(collisions, &collisionCount, left, &currRuleIndex);
+	// return resolveCollisionsInGrammar(collisions, &collisionCount, left, &currRuleIndex);
+	return ERR_OK;
 }
 
-static errorCode addProductionsToARule(ProtoGrammar* left, Index ruleIndxL, ProtoRuleEntry* rightRule,
+static errorCode addProductionsToARule(ProtoGrammar* left, Index ruleIndxL, ProtoGrammar* right, Index ruleIndxR,
 									   struct collisionInfo* collisions, unsigned int* collisionCount, unsigned int* currRuleIndex, unsigned int initialLeftRulesCount)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -143,44 +150,53 @@ static errorCode addProductionsToARule(ProtoGrammar* left, Index ruleIndxL, Prot
 	unsigned int collisIter = 0;
 	Index nonTermRight;
 
-	for(prodIterR = 0; prodIterR < rightRule->count; prodIterR++)
+	for(prodIterR = 0; prodIterR < right->rule[ruleIndxR].count; prodIterR++)
 	{
 		/* Check for terminal collisions with existing production. These must be merged */
 		terminalCollision = FALSE;
-		if(GET_PROD_NON_TERM(rightRule->prod[prodIterR].content) == 0)
+		if(GET_PROD_NON_TERM(right->rule[ruleIndxR].prod[prodIterR].content) == 0)
 		{
 			ProtoRuleEntry* pRuleEntry;
 			unsigned int tmpIterR;
 
-			nonTermRight = *currRuleIndex;
-
-			/* Create new rule entry in LHS proto grammar */
-			tmp_err_code = addProtoRule(left, rightRule->count, &pRuleEntry);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-
-			/* Copy the RHS productions into the new rule entry, adjusting the non terminal ID */
-			for(tmpIterR = 0; tmpIterR < rightRule->count; tmpIterR++)
+			if(rulesEqual(left, ruleIndxL, right, ruleIndxR))
 			{
-				tmp_err_code = addProduction(pRuleEntry, GET_PROD_EXI_EVENT(rightRule->prod[tmpIterR].content),
-						rightRule->prod[tmpIterR].typeId, rightRule->prod[tmpIterR].qnameId,
-											 GET_PROD_NON_TERM(rightRule->prod[tmpIterR].content) + ((GET_PROD_EXI_EVENT(rightRule->prod[tmpIterR].content) == EVENT_EE)?0:(initialLeftRulesCount-1)));
+				nonTermRight = ruleIndxL;
+			}
+			else
+			{
+				// Creating a new rule ...
+
+				nonTermRight = *currRuleIndex;
+
+				/* Create new rule entry in LHS proto grammar */
+				tmp_err_code = addProtoRule(left, right->rule[ruleIndxR].count, &pRuleEntry);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
-			}
 
-			*currRuleIndex += 1;
+				/* Copy the RHS productions into the new rule entry, adjusting the non terminal ID */
+				for(tmpIterR = 0; tmpIterR < right->rule[ruleIndxR].count; tmpIterR++)
+				{
+					tmp_err_code = addProduction(pRuleEntry, GET_PROD_EXI_EVENT(right->rule[ruleIndxR].prod[tmpIterR].content),
+							right->rule[ruleIndxR].prod[tmpIterR].typeId, right->rule[ruleIndxR].prod[tmpIterR].qnameId,
+												 GET_PROD_NON_TERM(right->rule[ruleIndxR].prod[tmpIterR].content) + ((GET_PROD_EXI_EVENT(right->rule[ruleIndxR].prod[tmpIterR].content) == EVENT_EE)?0:(initialLeftRulesCount-1)));
+					if(tmp_err_code != ERR_OK)
+						return tmp_err_code;
+				}
+
+				*currRuleIndex += 1;
+			}
 		}
 		else
-			nonTermRight = GET_PROD_NON_TERM(rightRule->prod[prodIterR].content) + ((GET_PROD_EXI_EVENT(rightRule->prod[prodIterR].content) == EVENT_EE)?0:initialLeftRulesCount);
+			nonTermRight = GET_PROD_NON_TERM(right->rule[ruleIndxR].prod[prodIterR].content) + ((GET_PROD_EXI_EVENT(right->rule[ruleIndxR].prod[prodIterR].content) == EVENT_EE)?0:initialLeftRulesCount);
 
 		for(prodIterL = 0; prodIterL < left->rule[ruleIndxL].count; prodIterL++)
 		{
 			/* Check for the same terminal symbol e.g. SE(qname) */
-			if(GET_PROD_EXI_EVENT(left->rule[ruleIndxL].prod[prodIterL].content) == GET_PROD_EXI_EVENT(rightRule->prod[prodIterR].content) &&
-					left->rule[ruleIndxL].prod[prodIterL].typeId == rightRule->prod[prodIterR].typeId &&
-					left->rule[ruleIndxL].prod[prodIterL].qnameId.uriId == rightRule->prod[prodIterR].qnameId.uriId &&
-					left->rule[ruleIndxL].prod[prodIterL].qnameId.lnId == rightRule->prod[prodIterR].qnameId.lnId)
+			if(GET_PROD_EXI_EVENT(left->rule[ruleIndxL].prod[prodIterL].content) == GET_PROD_EXI_EVENT(right->rule[ruleIndxR].prod[prodIterR].content) &&
+					left->rule[ruleIndxL].prod[prodIterL].typeId == right->rule[ruleIndxR].prod[prodIterR].typeId &&
+					left->rule[ruleIndxL].prod[prodIterL].qnameId.uriId == right->rule[ruleIndxR].prod[prodIterR].qnameId.uriId &&
+					left->rule[ruleIndxL].prod[prodIterL].qnameId.lnId == right->rule[ruleIndxR].prod[prodIterR].qnameId.lnId)
 			{
 				/* Now check the non-terminal ID (noting that EE's don't have a non-terminal ID) */
 				collisionFound = FALSE;
@@ -196,6 +212,10 @@ static errorCode addProductionsToARule(ProtoGrammar* left, Index ruleIndxL, Prot
 					/* Check the next production in LHS... */
 					break;
 				}
+
+				// TODO: try to eliminate the collisions if possible. First detect when something collides - hopefully never
+				// We have a collision detected - must be traced why it happens
+				assert(FALSE);
 
 				for(collisIter = 0; collisIter < *collisionCount; collisIter++)
 				{
@@ -241,9 +261,9 @@ static errorCode addProductionsToARule(ProtoGrammar* left, Index ruleIndxL, Prot
 			 * so just add the production
 			 */
 			tmp_err_code = addProduction(left->rule,
-										 GET_PROD_EXI_EVENT(rightRule->prod[prodIterR].content),
-										 rightRule->prod[prodIterR].typeId,
-										 rightRule->prod[prodIterR].qnameId,
+										 GET_PROD_EXI_EVENT(right->rule[ruleIndxR].prod[prodIterR].content),
+										 right->rule[ruleIndxR].prod[prodIterR].typeId,
+										 right->rule[ruleIndxR].prod[prodIterR].qnameId,
 										 nonTermRight);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
@@ -252,46 +272,48 @@ static errorCode addProductionsToARule(ProtoGrammar* left, Index ruleIndxL, Prot
 	return ERR_OK;
 }
 
-static errorCode resolveCollisionsInGrammar(struct collisionInfo* collisions,
-											unsigned int* collisionCount, ProtoGrammar* left, unsigned int* currRuleIndex)
-{
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned int collisIter = 0;
-	unsigned int prodIterL = 0;
-	Production* tmpProduction;
-	ProtoRuleEntry* pRuleEntry;
-
-	for(collisIter = 0; collisIter < *collisionCount; collisIter++)
-	{
-		tmp_err_code = addProtoRule(left, 5, &pRuleEntry);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		for(prodIterL = 0; prodIterL < left->rule[collisions[collisIter].leftNonTerminal].count; prodIterL++)
-		{
-			tmpProduction = &left->rule[collisions[collisIter].leftNonTerminal].prod[prodIterL];
-			tmp_err_code = addProduction(pRuleEntry,
-										 GET_PROD_EXI_EVENT(tmpProduction->content),
-										 tmpProduction->typeId,
-										 tmpProduction->qnameId,
-										 GET_PROD_NON_TERM(tmpProduction->content));
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-		}
-
-		tmp_err_code = addProductionsToARule(left,
-											 left->count - 1,
-											 &left->rule[collisions[collisIter].rightNonTerminal],
-											 collisions,
-											 collisionCount,
-											 currRuleIndex,
-											 0);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-
-	return ERR_OK;
-}
+// TODO: check if needed
+// Hopefully we do not need to go through collision resolving code ...
+//static errorCode resolveCollisionsInGrammar(struct collisionInfo* collisions,
+//											unsigned int* collisionCount, ProtoGrammar* left, unsigned int* currRuleIndex)
+//{
+//	errorCode tmp_err_code = UNEXPECTED_ERROR;
+//	unsigned int collisIter = 0;
+//	unsigned int prodIterL = 0;
+//	Production* tmpProduction;
+//	ProtoRuleEntry* pRuleEntry;
+//
+//	for(collisIter = 0; collisIter < *collisionCount; collisIter++)
+//	{
+//		tmp_err_code = addProtoRule(left, 5, &pRuleEntry);
+//		if(tmp_err_code != ERR_OK)
+//			return tmp_err_code;
+//
+//		for(prodIterL = 0; prodIterL < left->rule[collisions[collisIter].leftNonTerminal].count; prodIterL++)
+//		{
+//			tmpProduction = &left->rule[collisions[collisIter].leftNonTerminal].prod[prodIterL];
+//			tmp_err_code = addProduction(pRuleEntry,
+//										 GET_PROD_EXI_EVENT(tmpProduction->content),
+//										 tmpProduction->typeId,
+//										 tmpProduction->qnameId,
+//										 GET_PROD_NON_TERM(tmpProduction->content));
+//			if(tmp_err_code != ERR_OK)
+//				return tmp_err_code;
+//		}
+//
+//		tmp_err_code = addProductionsToARule(left,
+//											 left->count - 1,
+//											 &left->rule[collisions[collisIter].rightNonTerminal],
+//											 collisions,
+//											 collisionCount,
+//											 currRuleIndex,
+//											 0);
+//		if(tmp_err_code != ERR_OK)
+//			return tmp_err_code;
+//	}
+//
+//	return ERR_OK;
+//}
 
 errorCode createSimpleTypeGrammar(Index typeId, ProtoGrammar* simpleGrammar)
 {
@@ -500,18 +522,18 @@ errorCode createParticleGrammar(int minOccurs, int maxOccurs,
 						// Remove this production
 						delDynEntry(&termGrammar->rule[i].dynArray, j);
 
-						tmp_err_code = addProductionsToARule(termGrammar, i, &termGrammar->rule[0], collisions, &collisionCount, &currRuleIndex, 0);
+						tmp_err_code = addProductionsToARule(termGrammar, i, termGrammar, 0, collisions, &collisionCount, &currRuleIndex, 0);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
 						break;
 					}
 				}
 			}
-
+			// TODO: check if needed
 			// Create the new grammar rules based on the collision information
-			tmp_err_code = resolveCollisionsInGrammar(collisions, &collisionCount, termGrammar, &currRuleIndex);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+//			tmp_err_code = resolveCollisionsInGrammar(collisions, &collisionCount, termGrammar, &currRuleIndex);
+//			if(tmp_err_code != ERR_OK)
+//				return tmp_err_code;
 
 			tmp_err_code = concatenateGrammars(particleGrammar, termGrammar);
 			if(tmp_err_code != ERR_OK)
@@ -715,7 +737,8 @@ errorCode createChoiceModelGroupsGrammar(ProtoGrammarArray* pgArray, ProtoGramma
 
 		tmp_err_code = addProductionsToARule(modGrpGrammar,
 											 0,
-											 &tmpGrammar->rule[0],
+											 tmpGrammar,
+											 0,
 											 collisions,
 											 &collisionCount,
 											 &currRuleIndex,
@@ -723,10 +746,11 @@ errorCode createChoiceModelGroupsGrammar(ProtoGrammarArray* pgArray, ProtoGramma
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		// Create the new grammar rules based on the collision information
-		tmp_err_code = resolveCollisionsInGrammar(collisions, &collisionCount, modGrpGrammar, &currRuleIndex);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		// TODO: check if needed
+//		// Create the new grammar rules based on the collision information
+//		tmp_err_code = resolveCollisionsInGrammar(collisions, &collisionCount, modGrpGrammar, &currRuleIndex);
+//		if(tmp_err_code != ERR_OK)
+//			return tmp_err_code;
 	}
 
 	return ERR_OK;
@@ -842,3 +866,35 @@ int compareQNameID(const void* qnameID1, const void* qnameID2)
 	return 0;
 }
 
+static char rulesEqual(ProtoGrammar* g1, Index ruleIndx1, ProtoGrammar* g2, Index ruleIndx2)
+{
+	Index i, j;
+	unsigned char prodFound;
+
+	// TODO: currently it does not follow the right hand side non-terminals to check if the state there is the same...
+	// It might not be needed; if needed there will be a recursive call that might lag a lot
+
+	if(g1->rule[ruleIndx1].count != g2->rule[ruleIndx2].count)
+		return FALSE;
+
+	for(i = 0; i < g1->rule[ruleIndx1].count; i++)
+	{
+		prodFound = FALSE;
+		for(j = 0; j < g2->rule[ruleIndx2].count; j++)
+		{
+			if(GET_PROD_EXI_EVENT(g1->rule[ruleIndx1].prod[i].content) == GET_PROD_EXI_EVENT(g2->rule[ruleIndx2].prod[j].content) &&
+					g1->rule[ruleIndx1].prod[i].typeId == g2->rule[ruleIndx2].prod[j].typeId &&
+					g1->rule[ruleIndx1].prod[i].qnameId.uriId == g2->rule[ruleIndx2].prod[j].qnameId.uriId &&
+					g1->rule[ruleIndx1].prod[i].qnameId.lnId == g2->rule[ruleIndx2].prod[j].qnameId.lnId)
+			{
+				prodFound = TRUE;
+				break;
+			}
+		}
+
+		if(!prodFound)
+			return FALSE;
+	}
+
+	return TRUE;
+}
