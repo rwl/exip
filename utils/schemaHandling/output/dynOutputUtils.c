@@ -17,7 +17,6 @@
 #include "schemaOutputUtils.h"
 #include "hashtable.h"
 #include "stringManipulate.h"
-#include "grammarAugment.h"
 
 #define MAX_GRAMMARS_COUNT 5000
 

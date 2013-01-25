@@ -143,7 +143,7 @@ static const char* attrStrings[] =
 	"mixed"
 };
 
-errorCode generateTreeTable(BinaryBuffer buffer, unsigned char schemaFormat, TreeTable* treeT, EXIPSchema* schema)
+errorCode generateTreeTable(BinaryBuffer buffer, unsigned char schemaFormat, EXIOptions* opt, TreeTable* treeT, EXIPSchema* schema)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	Parser xsdParser;
@@ -180,7 +180,8 @@ errorCode generateTreeTable(BinaryBuffer buffer, unsigned char schemaFormat, Tre
 
 	// Parse the EXI stream
 
-	SET_PRESERVED(xsdParser.strm.header.opts.preserve, PRESERVE_PREFIXES);
+	if(opt != NULL)
+		xsdParser.strm.header.opts = *opt;
 
 	tmp_err_code = parseHeader(&xsdParser);
 	if(tmp_err_code != ERR_OK)

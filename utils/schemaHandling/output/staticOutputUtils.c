@@ -24,35 +24,27 @@ static void setProdStrings(IndexStrings *indexStrings, Production *prod)
 
 	if (prod->typeId == INDEX_MAX)
 	{
-		strcpy(indexStrings->buf1, indexMaxStr);
+		strcpy(indexStrings->typeIdStr, indexMaxStr);
 	}
 	else
 	{
-		sprintf(indexStrings->buf1, "%d", (int) prod->typeId);
+		sprintf(indexStrings->typeIdStr, "%u", (unsigned int) prod->typeId);
 	}
 	if (prod->qnameId.uriId == SMALL_INDEX_MAX)
 	{
-		strcpy(indexStrings->buf2, smallIndexMaxStr);
+		strcpy(indexStrings->uriIdStr, smallIndexMaxStr);
 	}
 	else
 	{
-		sprintf(indexStrings->buf2, "%d", (int) prod->qnameId.uriId);
+		sprintf(indexStrings->uriIdStr, "%u", (unsigned int) prod->qnameId.uriId);
 	}
 	if (prod->qnameId.lnId == INDEX_MAX)
 	{
-		strcpy(indexStrings->buf3, indexMaxStr);
+		strcpy(indexStrings->lnIdStr, indexMaxStr);
 	}
 	else
 	{
-		sprintf(indexStrings->buf3, "%d", (int) prod->qnameId.lnId);
-	}
-	if (prod->nonTermID == SMALL_INDEX_MAX)
-	{
-		strcpy(indexStrings->buf4, smallIndexMaxStr);
-	}
-	else
-	{
-		sprintf(indexStrings->buf4, "%d", (int) prod->nonTermID);
+		sprintf(indexStrings->lnIdStr, "%u", (unsigned int) prod->qnameId.lnId);
 	}
 }
 
@@ -87,7 +79,7 @@ void staticStringTblDefsOutput(UriTable* uriTbl, char* prefix, FILE* out)
 	for(uriIter = 0; uriIter < uriTbl->count; uriIter++)
 	{
 		// Printing of a uri string
-		sprintf(varName, "%sURI_%d", prefix, (int) uriIter);
+		sprintf(varName, "%sURI_%u", prefix, (unsigned int) uriIter);
 		staticStringDefOutput(&uriTbl->uri[uriIter].uriStr, varName, out);
 
 		// Printing of a pfx strings if any
@@ -95,7 +87,7 @@ void staticStringTblDefsOutput(UriTable* uriTbl, char* prefix, FILE* out)
 		{
 			for(pfxIter = 0; pfxIter < uriTbl->uri[uriIter].pfxTable->count; pfxIter++)
 			{
-				sprintf(varName, "%sPFX_%d_%d", prefix, (int) uriIter, (int) pfxIter);
+				sprintf(varName, "%sPFX_%u_%u", prefix, (unsigned int) uriIter, (unsigned int) pfxIter);
 				staticStringDefOutput(&uriTbl->uri[uriIter].pfxTable->pfxStr[pfxIter], varName, out);
 			}
 		}
@@ -103,7 +95,7 @@ void staticStringTblDefsOutput(UriTable* uriTbl, char* prefix, FILE* out)
 		// Printing of all local names for that uri
 		for(lnIter = 0; lnIter < uriTbl->uri[uriIter].lnTable.count; lnIter++)
 		{
-			sprintf(varName, "%sLN_%d_%d", prefix, (int) uriIter, (int) lnIter);
+			sprintf(varName, "%sLN_%u_%u", prefix, (unsigned int) uriIter, (unsigned int) lnIter);
 			staticStringDefOutput(&uriTbl->uri[uriIter].lnTable.ln[lnIter].lnStr, varName, out);
 		}
 	}
@@ -120,46 +112,23 @@ void staticProductionsOutput(EXIGrammar* gr, char* prefix, Index grId, FILE* out
 
 	for(ruleIter = 0; ruleIter < gr->count; ruleIter++)
 	{
-		if (gr->rule[ruleIter].p1Count)
+		if (gr->rule[ruleIter].pCount)
 		{
 			// Printing of the Production variable string
-			sprintf(varName, "%sprod_%d_%d_part%d", prefix, (int) grId, (int) ruleIter, 1);
+			sprintf(varName, "%sprod_%u_%u", prefix, (unsigned int) grId, (unsigned int) ruleIter);
 
-			fprintf(out, "static CONST Production %s[%d] =\n{\n", varName, (int) gr->rule[ruleIter].p1Count);
+			fprintf(out, "static CONST Production %s[%u] =\n{\n", varName, (unsigned int) gr->rule[ruleIter].pCount);
 
-			for(prodIter = 0; prodIter < gr->rule[ruleIter].p1Count; prodIter++)
+			for(prodIter = 0; prodIter < gr->rule[ruleIter].pCount; prodIter++)
 			{
-				setProdStrings(&indexStrings, &gr->rule[ruleIter].prod1[prodIter]);
+				setProdStrings(&indexStrings, &gr->rule[ruleIter].production[prodIter]);
 				fprintf(out,
-						"    {\n        %d, %s,\n        {%s, %s},\n        %s\n    }%s",
-						gr->rule[ruleIter].prod1[prodIter].eventType,
-						indexStrings.buf1,
-						indexStrings.buf2,
-						indexStrings.buf3,
-						indexStrings.buf4,
-						prodIter==(gr->rule[ruleIter].p1Count - 1) ? "\n};\n\n" : ",\n");
-			}
-		}
-
-		if (gr->rule[ruleIter].p2Count + gr->rule[ruleIter].p3Count)
-		{
-			// Printing of the Production variable string
-			sprintf(varName, "%sprod_%d_%d_part%d", prefix, (int) grId, (int) ruleIter, 23);
-
-			fprintf(out, "static CONST Production %s[%d] =\n{\n",
-					varName, (int) gr->rule[ruleIter].p2Count + gr->rule[ruleIter].p3Count);
-
-			for(prodIter = 0; prodIter < gr->rule[ruleIter].p2Count + gr->rule[ruleIter].p3Count; prodIter++)
-			{
-				setProdStrings(&indexStrings, &gr->rule[ruleIter].prod23[prodIter]);
-				fprintf(out,
-						"    {\n        %d, %s,\n        {%s, %s},\n        %s\n    }%s",
-						gr->rule[ruleIter].prod23[prodIter].eventType,
-						indexStrings.buf1,
-						indexStrings.buf2,
-						indexStrings.buf3,
-						indexStrings.buf4,
-						prodIter==(gr->rule[ruleIter].p2Count + gr->rule[ruleIter].p3Count - 1) ? "\n};\n\n" : ",\n");
+						"    {\n        %u, %s,\n        {%s, %s}}%s",
+						gr->rule[ruleIter].production[prodIter].content,
+						indexStrings.typeIdStr,
+						indexStrings.uriIdStr,
+						indexStrings.lnIdStr,
+						prodIter==(gr->rule[ruleIter].pCount - 1) ? "\n};\n\n" : ",\n");
 			}
 		}
 	}
@@ -169,45 +138,29 @@ void staticRulesOutput(EXIGrammar* gr, char* prefix, Index grId, FILE* out)
 {
 	Index ruleIter;
 
-	// #DOCUMENT# IMPORTANT! tmpGrammar->count + (mask_specified == FALSE) because It must be assured that the schema informed grammars have one empty slot for the rule:  Element i, content2
 	fprintf(out,
-		    "static CONST GrammarRule %srule_%d[%d] =\n{",
+		    "static CONST GrammarRule %srule_%u[%u] =\n{",
 			prefix,
-			(int) grId,
-			(int) gr->count);
-//			(int) (gr->count + (mask_specified == FALSE)));
+			(unsigned int) grId,
+			(unsigned int) gr->count);
 
 	for(ruleIter = 0; ruleIter < gr->count; ruleIter++)
 	{
 		fprintf(out, "\n    {");
-		if (gr->rule[ruleIter].p1Count > 0)
+		if (gr->rule[ruleIter].pCount > 0)
 		{
 			fprintf(out,
-			        "%sprod_%d_%d_part%d, ",
+			        "%sprod_%u_%u, ",
 					prefix,
-					(int) grId,
-					(int) ruleIter,
-					(int) 1);
+					(unsigned int) grId,
+					(unsigned int) ruleIter);
 		}
 		else
 			fprintf(out, "NULL, ");
 
-		if (gr->rule[ruleIter].p2Count + gr->rule[ruleIter].p3Count > 0)
-		{
-			fprintf(out,
-			        "%sprod_%d_%d_part%d, ",
-					prefix,
-					(int) grId,
-					(int) ruleIter,
-					(int) 23);
-		}
-		else
-			fprintf(out, "NULL, ");
-
-		fprintf(out, "%d, ", gr->rule[ruleIter].p1Count);
-		fprintf(out, "%d, ", gr->rule[ruleIter].p2Count);
-		fprintf(out, "%d, ", gr->rule[ruleIter].p3Count);
-		fprintf(out, "%d}%s", gr->rule[ruleIter].bits1, ruleIter != (gr->count-1)?",":"");
+		fprintf(out, "%u, ", (unsigned int) gr->rule[ruleIter].pCount);
+		fprintf(out, "%u, ", (unsigned int) gr->rule[ruleIter].meta);
+		fprintf(out, "}%s", ruleIter != (gr->count-1)?",":"");
 
 	}
 
@@ -225,28 +178,25 @@ void staticDocGrammarOutput(EXIGrammar* docGr, char* prefix, FILE* out)
 
 	/* Build the document grammar, DocContent productions */
 
-	fprintf(out, "static CONST Production %s[%d] =\n{\n", varName, (int) docGr->rule[1].p1Count);
+	fprintf(out, "static CONST Production %s[%u] =\n{\n", varName, (unsigned int) docGr->rule[1].pCount);
 
-	for(prodIter = 0; prodIter < docGr->rule[1].p1Count; prodIter++)
+	for(prodIter = 0; prodIter < docGr->rule[1].pCount; prodIter++)
 	{
-		setProdStrings(&indexStrings, &docGr->rule[1].prod1[prodIter]);
+		setProdStrings(&indexStrings, &docGr->rule[1].production[prodIter]);
 		fprintf(out,
-				"    {\n        %d, %s,\n        {%s, %s},\n        %s\n    }%s",
-				docGr->rule[1].prod1[prodIter].eventType,
-				indexStrings.buf1,
-				indexStrings.buf2,
-				indexStrings.buf3,
-				indexStrings.buf4,
-				prodIter==(docGr->rule[1].p1Count - 1) ? "\n};\n\n" : ",\n");
+				"    {\n        %u, %s,\n        {%s, %s}}%s",
+				(unsigned int) docGr->rule[1].production[prodIter].content,
+				indexStrings.typeIdStr,
+				indexStrings.uriIdStr,
+				indexStrings.lnIdStr,
+				prodIter==(docGr->rule[1].pCount - 1) ? "\n};\n\n" : ",\n");
 	}
-
-	// TODO: When mask_specified and DT, CM or PI are preserved, the docGrammarRule must contained these productions
 
 	/* Build the document grammar rules */
 	fprintf(out, "static CONST GrammarRule %sdocGrammarRule[3] =\n{\n", prefix);
 	fprintf(out, "    {static_prod_start_doc, NULL, 1, 0, 0, 0},\n\
-	{%s, NULL, %d, 0, 0, %d},\n\
-    {static_prod_doc_end, NULL, 1, 0, 0, 0}\n};\n\n", varName, (int) docGr->rule[1].p1Count, docGr->rule[1].bits1);
+	{%s, NULL, %u, 0, 0},\n\
+    {static_prod_doc_end, NULL, 1, 0, 0, 0}\n};\n\n", varName, (unsigned int) docGr->rule[1].pCount);
 }
 
 void staticPrefixOutput(PfxTable* pfxTbl, char* prefix, Index uriId, FILE* out)
@@ -254,12 +204,12 @@ void staticPrefixOutput(PfxTable* pfxTbl, char* prefix, Index uriId, FILE* out)
 	Index pfxIter;
 	if(pfxTbl != NULL)
 	{
-		fprintf(out, "static CONST PfxTable %spfxTable_%d =\n{\n    %d,\n    {\n", prefix, (int) uriId, (int) pfxTbl->count);
+		fprintf(out, "static CONST PfxTable %spfxTable_%u =\n{\n    %u,\n    {\n", prefix, (unsigned int) uriId, (unsigned int) pfxTbl->count);
 
 		for(pfxIter = 0; pfxIter < pfxTbl->count; pfxIter++)
 		{
 			if(pfxTbl->pfxStr[pfxIter].length > 0)
-				fprintf(out, "        {%sPFX_%d_%d, %d},\n", prefix, (int) uriId, (int) pfxIter, (int) pfxTbl->pfxStr[pfxIter].length);
+				fprintf(out, "        {%sPFX_%u_%u, %u},\n", prefix, (unsigned int) uriId, (unsigned int) pfxIter, (unsigned int) pfxTbl->pfxStr[pfxIter].length);
 			else
 				fprintf(out, "        {NULL, 0},\n");
 		}
@@ -278,23 +228,23 @@ void staticLnEntriesOutput(LnTable* lnTbl, char* prefix, Index uriId, FILE* out)
 
 	if(lnTbl->count > 0)
 	{
-		fprintf(out, "static CONST LnEntry %sLnEntry_%d[%d] =\n{\n", prefix, (int) uriId, (int) lnTbl->count);
+		fprintf(out, "static CONST LnEntry %sLnEntry_%u[%u] =\n{\n", prefix, (unsigned int) uriId, (unsigned int) lnTbl->count);
 
 		for(lnIter = 0; lnIter < lnTbl->count; lnIter++)
 		{
 			if(lnTbl->ln[lnIter].elemGrammar == INDEX_MAX)
 				strcpy(elemGrammar, "INDEX_MAX");
 			else
-				sprintf(elemGrammar, "%d", (int) lnTbl->ln[lnIter].elemGrammar);
+				sprintf(elemGrammar, "%u", (unsigned int) lnTbl->ln[lnIter].elemGrammar);
 
 			if(lnTbl->ln[lnIter].typeGrammar == INDEX_MAX)
 				strcpy(typeGrammar, "INDEX_MAX");
 			else
-				sprintf(typeGrammar, "%d", (int) lnTbl->ln[lnIter].typeGrammar);
+				sprintf(typeGrammar, "%u", (unsigned int) lnTbl->ln[lnIter].typeGrammar);
 
 			fprintf(out, "    {\n        {{sizeof(VxEntry), 0, 0}, NULL, 0},\n");
 			if(lnTbl->ln[lnIter].lnStr.length > 0)
-				fprintf(out, "        {%sLN_%d_%d, %d},\n        %s, %s\n", prefix, (int) uriId, (int) lnIter, (int) lnTbl->ln[lnIter].lnStr.length, elemGrammar, typeGrammar);
+				fprintf(out, "        {%sLN_%u_%u, %u},\n        %s, %s\n", prefix, (unsigned int) uriId, (unsigned int) lnIter, (unsigned int) lnTbl->ln[lnIter].lnStr.length, elemGrammar, typeGrammar);
 			else
 				fprintf(out, "        {NULL, 0},\n        %s, %s\n", elemGrammar, typeGrammar);
 			fprintf(out, "%s", lnIter==(lnTbl->count-1)?"    }\n};\n\n":"    },\n");
@@ -305,19 +255,19 @@ void staticLnEntriesOutput(LnTable* lnTbl, char* prefix, Index uriId, FILE* out)
 void staticUriTableOutput(UriTable* uriTbl, char* prefix, FILE* out)
 {
 	Index uriIter;
-	fprintf(out, "static CONST UriEntry %suriEntry[%d] =\n{\n", prefix, (int) uriTbl->count);
+	fprintf(out, "static CONST UriEntry %suriEntry[%u] =\n{\n", prefix, (unsigned int) uriTbl->count);
 
 	for(uriIter = 0; uriIter < uriTbl->count; uriIter++)
 	{
 		if(uriTbl->uri[uriIter].lnTable.count > 0)
         {
 			fprintf(out,
-                    "    {\n        {{sizeof(LnEntry), %d, %d}, %sLnEntry_%d, %d},\n",
-                    (int) uriTbl->uri[uriIter].lnTable.count,
-                    (int) uriTbl->uri[uriIter].lnTable.count,
+                    "    {\n        {{sizeof(LnEntry), %u, %u}, %sLnEntry_%u, %u},\n",
+                    (unsigned int) uriTbl->uri[uriIter].lnTable.count,
+                    (unsigned int) uriTbl->uri[uriIter].lnTable.count,
                     prefix,
-                    (int) uriIter,
-                    (int) uriTbl->uri[uriIter].lnTable.count);
+                    (unsigned int) uriIter,
+                    (unsigned int) uriTbl->uri[uriIter].lnTable.count);
         }
 		else
         {
@@ -326,7 +276,7 @@ void staticUriTableOutput(UriTable* uriTbl, char* prefix, FILE* out)
 
 		if(uriTbl->uri[uriIter].pfxTable != NULL)
 		{
-			fprintf(out, "        &%spfxTable_%d,\n", prefix, (int) uriIter);
+			fprintf(out, "        &%spfxTable_%u,\n", prefix, (unsigned int) uriIter);
 		}
 		else
 		{
@@ -334,7 +284,7 @@ void staticUriTableOutput(UriTable* uriTbl, char* prefix, FILE* out)
 		}
 
 		if(uriTbl->uri[uriIter].uriStr.length > 0)
-			fprintf(out, "        {%sURI_%d, %d}%s", prefix, (int) uriIter, (int) uriTbl->uri[uriIter].uriStr.length,
+			fprintf(out, "        {%sURI_%u, %u}%s", prefix, (unsigned int) uriIter, (unsigned int) uriTbl->uri[uriIter].uriStr.length,
                 uriIter==(uriTbl->count-1)?"\n    }\n};\n\n":"\n    },\n");
 		else
 			fprintf(out, "        {NULL, 0}%s", uriIter==(uriTbl->count-1)?"\n    }\n};\n\n":"\n    },\n");
@@ -353,7 +303,7 @@ void staticEnumTableOutput(EXIPSchema* schema, char* prefix, FILE* out)
 	for(i = 0; i < schema->enumTable.count; i++)
 	{
 		tmpDef = &schema->enumTable.enumDef[i];
-		switch(schema->simpleTypeTable.sType[tmpDef->typeId].exiType)
+		switch(GET_EXI_TYPE(schema->simpleTypeTable.sType[tmpDef->typeId].content))
 		{
 			case VALUE_TYPE_STRING:
 			{
@@ -361,15 +311,15 @@ void staticEnumTableOutput(EXIPSchema* schema, char* prefix, FILE* out)
 				for(j = 0; j < tmpDef->count; j++)
 				{
 					tmpStr = &((String*) tmpDef->values)[j];
-					sprintf(varName, "%sENUM_%d_%d", prefix, (int) i, (int) j);
+					sprintf(varName, "%sENUM_%u_%u", prefix, (unsigned int) i, (unsigned int) j);
 					staticStringDefOutput(tmpStr, varName, out);
 				}
-				fprintf(out, "\nstatic CONST String %senumValues_%d[%d] = { \n", prefix, (int) i, (int) tmpDef->count);
+				fprintf(out, "\nstatic CONST String %senumValues_%u[%u] = { \n", prefix, (unsigned int) i, (unsigned int) tmpDef->count);
 				for(j = 0; j < tmpDef->count; j++)
 				{
 					tmpStr = &((String*) tmpDef->values)[j];
 					if(tmpStr->str != NULL)
-						fprintf(out, "   {%sENUM_%d_%d, %d}", prefix, (int) i, (int) j, (int) tmpStr->length);
+						fprintf(out, "   {%sENUM_%u_%u, %u}", prefix, (unsigned int) i, (unsigned int) j, (unsigned int) tmpStr->length);
 					else
 						fprintf(out, "   {NULL, 0}");
 
@@ -400,11 +350,11 @@ void staticEnumTableOutput(EXIPSchema* schema, char* prefix, FILE* out)
 		}
 	}
 
-	fprintf(out, "static CONST EnumDefinition %senumTable[%d] = { \n", prefix, (int) schema->enumTable.count);
+	fprintf(out, "static CONST EnumDefinition %senumTable[%u] = { \n", prefix, (unsigned int) schema->enumTable.count);
 	for(i = 0; i < schema->enumTable.count; i++)
 	{
 		tmpDef = &schema->enumTable.enumDef[i];
-		fprintf(out, "   {%d, %senumValues_%d, %d}", (int) tmpDef->typeId, prefix, (int) i, (int) tmpDef->count);
+		fprintf(out, "   {%u, %senumValues_%u, %u}", (unsigned int) tmpDef->typeId, prefix, (unsigned int) i, (unsigned int) tmpDef->count);
 
 		if(i < schema->enumTable.count - 1)
 			fprintf(out, ",\n");

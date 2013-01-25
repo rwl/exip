@@ -280,12 +280,15 @@ void destroyTreeTable(TreeTable* treeT);
  * The schema and treeT objects should be initialized before calling this function.
  * @param[in] buffer an input buffer holding (part of) the representation of the schema
  * @param[in] schemaFormat EXI, XSD, DTD or any other schema representation supported
+ * @param[in] opt options used for EXI schemaFormat - otherwise NULL. If options are set then they will be used
+ * for processing the EXI XSD stream although no options are specified in the EXI header. If there are
+ * options defined in the EXI header of the XSD stream then this parameter must be NULL.
  * @param[out] treeT a memory representation of the XML schema definitions. Must be initialized.
  * @param[out] schema partly built schema information (only the string tables) used for processing EXI streams.
  * Must be initialized.
  * @return Error handling code
  */
-errorCode generateTreeTable(BinaryBuffer buffer, unsigned char schemaFormat, TreeTable* treeT, EXIPSchema* schema);
+errorCode generateTreeTable(BinaryBuffer buffer, unsigned char schemaFormat, EXIOptions* opt, TreeTable* treeT, EXIPSchema* schema);
 
 /**
  * @brief Links derived types to base types, elements to types and references to global elements

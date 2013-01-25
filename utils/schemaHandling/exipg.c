@@ -16,7 +16,6 @@
  */
 
 #include "createGrammars.h"
-#include "grammarAugment.h"
 #include "grammarGenerator.h"
 
 #define MAX_XSD_FILES_COUNT 10 // up to 10 XSD files
@@ -26,7 +25,7 @@
 #define OUT_SRC_STAT 3
 
 static void printfHelp();
-static void parseSchema(char* xsdList, EXIPSchema* schema);
+static void parseSchema(char* xsdList, EXIPSchema* schema, unsigned char mask, EXIOptions maskOpt);
 
 int main(int argc, char *argv[])
 {
@@ -100,14 +99,13 @@ int main(int argc, char *argv[])
 	}
 
 	if(argv[argIndex][0] == '-' &&
-	   argv[argIndex][1] == 'm' &&
-	   argv[argIndex][2] == 'a' &&
+	   argv[argIndex][1] == 'o' &&
+	   argv[argIndex][2] == 'p' &&
 	   argv[argIndex][3] == 's' &&
-	   argv[argIndex][4] == 'k' &&
-	   argv[argIndex][5] == '=')
+	   argv[argIndex][4] == '=')
 	{
 		mask = TRUE;
-		if(argv[argIndex][6] == '1')
+		if(argv[argIndex][5] == '1')
 			SET_STRICT(maskOpt.enumOpt);
 
 		if(argv[argIndex][6] == '1')
@@ -141,7 +139,7 @@ int main(int argc, char *argv[])
 	{
 		char *xsdList = argv[argIndex] + 7;
 
-		parseSchema(xsdList, &schema);
+		parseSchema(xsdList, &schema, mask, maskOpt);
 
 		argIndex += 1;
 	}
@@ -160,24 +158,6 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 		argIndex += 1;
-	}
-
-	if(mask == TRUE)
-	{
-		// Augment the grammars
-		tmp_err_code = addUndeclaredProductionsToAll(&schema.memList, &schema, &maskOpt);
-		if(tmp_err_code != ERR_OK)
-		{
-			destroySchema(&schema);
-			exit(1);
-		}
-
-		/* TODO: add a Fragment document grammar
-		   create a Schema-informed Fragment Grammar from the EXIP schema object */
-
-		tmp_err_code = augmentDocGrammar(&schema.memList, maskOpt.preserve, &schema.docGrammar);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
 	}
 
 	switch(outputFormat)
@@ -217,7 +197,7 @@ static void printfHelp()
     printf("  EXIP     Copyright (c) 2010 - 2012, EISLAB - Luleå University of Technology Version 0.4.1 \n");
     printf("           Author: Rumen Kyusakov\n");
     printf("  Usage:   exipg [options] -schema=<xsd_in> [grammar_out] \n\n");
-    printf("           Options: [-help | [[-exip | -text | -dynamic | -static] [-pfx=<prefix>] [-mask=<options_mask>]] ] \n");
+    printf("           Options: [-help | [[-exip | -text | -dynamic | -static] [-pfx=<prefix>] [-ops=<ops_mask>]] ] \n");
     printf("           -help        :   Prints this help message\n");
     printf("           -exip        :   Format the output schema definitions in EXIP-specific format (Default)\n");
     printf("           -text        :   Format the output schema definitions in human readable text format\n");
@@ -225,9 +205,10 @@ static void printfHelp()
     printf("           -static      :   Create C code for the grammars defined. The output is C structures describing the grammars\n");
     printf("           -pfx         :   When in -dynamic or -static mode, this option allows you to specify a unique prefix for the\n");
     printf("                            generated global types. The default is \"prfx_\"\n");
-    printf("           options_mask :   The format is: <STRICT><SELF_CONTAINED><dtd><prefixes><lexicalValues><comments><pis> := <0|1><0|1><0|1><0|1><0|1><0|1><0|1>\n");
-    printf("                            If you know the EXI options to be used for processing in advance, you can create more efficient representation \n");
-    printf("                            by specifying STRICT, SELF_CONTAINED and PRESERVE options in the OPTIONS_MASK\n");
+    printf("           ops_mask     :   The format is: <STRICT><SELF_CONTAINED><dtd><prefixes><lexicalValues><comments><pis> := <0|1><0|1><0|1><0|1><0|1><0|1><0|1>\n");
+    printf("                            No options are specified in the header of the <xsd_in> EXI encoded schema files but some options are used during encoding.\n");
+    printf("                            This option is useful for generating the Options grammar where STRICT is set and the rest are default options. \n");
+    printf("                            In this way the bootstrapping of the code is easier. The mask to use for EXIOptions-xsd.exi is -ops=1000000 \n");
     printf("                            Only documents for the specified values for this options will be able to\n");
     printf("                            successfully process by the EXIP instance.\n\n");
     printf("           -schema      :   The source schema definitions - all referenced schema files should be included in <xsd_in>\n");
@@ -238,7 +219,7 @@ static void printfHelp()
     printf("\n" );
 }
 
-static void parseSchema(char* xsdList, EXIPSchema* schema)
+static void parseSchema(char* xsdList, EXIPSchema* schema, unsigned char mask, EXIOptions maskOpt)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	FILE *schemaFile;
@@ -247,6 +228,10 @@ static void parseSchema(char* xsdList, EXIPSchema* schema)
 	unsigned int schemaFilesCount = 0;
 	unsigned int i;
 	char *token;
+	EXIOptions* opt = NULL;
+
+	if(mask)
+		opt = &maskOpt;
 
 	for (token = strtok(xsdList, "=,"), i = 0; token != NULL; token = strtok(NULL, "=,"), i++)
 	{
@@ -291,7 +276,7 @@ static void parseSchema(char* xsdList, EXIPSchema* schema)
 	}
 
 	// Generate the EXI grammars based on the schema information
-	tmp_err_code = generateSchemaInformedGrammars(buffer, schemaFilesCount, SCHEMA_FORMAT_XSD_EXI, schema);
+	tmp_err_code = generateSchemaInformedGrammars(buffer, schemaFilesCount, SCHEMA_FORMAT_XSD_EXI, opt, schema);
 
 	for(i = 0; i < schemaFilesCount; i++)
 	{

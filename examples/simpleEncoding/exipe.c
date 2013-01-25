@@ -161,7 +161,7 @@ static void parseSchema(char* xsdList, EXIPSchema* schema)
 	}
 
 	// Generate the EXI grammars based on the schema information
-	tmp_err_code = generateSchemaInformedGrammars(buffer, schemaFilesCount, SCHEMA_FORMAT_XSD_EXI, schema);
+	tmp_err_code = generateSchemaInformedGrammars(buffer, schemaFilesCount, SCHEMA_FORMAT_XSD_EXI, NULL, schema);
 
 	for(i = 0; i < schemaFilesCount; i++)
 	{
