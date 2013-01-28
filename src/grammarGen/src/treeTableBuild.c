@@ -181,11 +181,18 @@ errorCode generateTreeTable(BinaryBuffer buffer, SchemaFormat schemaFormat, EXIO
 	// Parse the EXI stream
 
 	if(opt != NULL)
+	{
 		xsdParser.strm.header.opts = *opt;
-
-	tmp_err_code = parseHeader(&xsdParser, FALSE);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+		tmp_err_code = parseHeader(&xsdParser, TRUE);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
+	else
+	{
+		tmp_err_code = parseHeader(&xsdParser, FALSE);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
 
 	if(IS_PRESERVED(xsdParser.strm.header.opts.preserve, PRESERVE_PREFIXES) == FALSE)
 	{
