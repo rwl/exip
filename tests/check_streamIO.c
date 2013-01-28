@@ -35,7 +35,7 @@ START_TEST (test_readNextBit)
   EXIStream testStream;
 
   char buf[2];
-  unsigned char bit_val = 0;
+  boolean bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
 
   testStream.context.bitPointer = 0;
@@ -327,7 +327,7 @@ START_TEST (test_decodeBoolean)
 {
   EXIStream testStream;
   char buf[2];
-  unsigned char bit_val = 0;
+  boolean bit_val = 0;
   errorCode err = UNEXPECTED_ERROR;
 
   testStream.context.bitPointer = 0;
