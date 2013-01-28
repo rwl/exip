@@ -297,7 +297,7 @@ errorCode createFragmentGrammar(EXIPSchema* schema, QNameID* elQnameArr, Index q
 	return ERR_OK;
 }
 
-errorCode insertZeroProduction(DynGrammarRule* rule, EventType eventType, SmallIndex nonTermID, QNameID* qnameId, unsigned char hasSecondLevelProd)
+errorCode insertZeroProduction(DynGrammarRule* rule, EventType eventType, SmallIndex nonTermID, QNameID* qnameId, boolean hasSecondLevelProd)
 {
 	if(rule->pCount == rule->prodDim) // The dynamic array rule->production needs to be resized
 	{

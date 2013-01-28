@@ -25,8 +25,13 @@
 #include "exipConfig.h"
 #include <limits.h>
 
-#define TRUE  1
-#define FALSE 0
+enum boolean
+{
+	FALSE = 0,
+	TRUE  = 1
+};
+
+typedef enum boolean boolean;
 
 #ifndef NULL
 #define NULL ((void *)0)
@@ -96,12 +101,15 @@ typedef struct stackNode GenericStack;
  *
  * @see http://www.w3.org/TR/2011/REC-exi-20110310/#key-schemaIdOption
  */
-/**@{*/
-#define SCHEMA_ID_ABSENT 0
-#define SCHEMA_ID_SET    1
-#define SCHEMA_ID_NIL    2
-#define SCHEMA_ID_EMPTY  3
-/**@}*/
+enum SchemaIdMode
+{
+	SCHEMA_ID_ABSENT = 0,
+	SCHEMA_ID_SET    = 1,
+	SCHEMA_ID_NIL    = 2,
+	SCHEMA_ID_EMPTY  = 3
+};
+
+typedef enum SchemaIdMode SchemaIdMode;
 
 /**
  *	@name Fidelity options handling
@@ -1091,7 +1099,7 @@ struct StreamContext
 	unsigned int expectATData;
 
 	/** TRUE if the current grammar rule must be processed as EmptyType grammar */
-	unsigned char isNilType;
+	boolean isNilType;
 
 	/** Value type of the expected attribute */
 	Index attrTypeId;
@@ -1183,17 +1191,17 @@ typedef struct EXIOptions EXIOptions;
 struct EXIheader
 {
 	/**
-	 * Boolean value - 0 for lack of EXI cookie, otherwise 1
+	 * Boolean value - FALSE for lack of EXI cookie, otherwise TRUE
 	 */
-	unsigned char has_cookie;
+	boolean has_cookie;
 
 	/**
-	 * Boolean value - 0 for lack of EXI Options, otherwise 1
+	 * Boolean value - FALSE for lack of EXI Options, otherwise TRUE
 	 */
-	unsigned char has_options;
+	boolean has_options;
 
-	/** Boolean value - 1 preview version, 0 final version */
-	unsigned char is_preview_version;
+	/** Boolean value - TRUE preview version, FALSE final version */
+	boolean is_preview_version;
 
 	/**
 	 * EXI stream version

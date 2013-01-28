@@ -70,7 +70,7 @@ struct localAttrNames
  * The type grammar is then used for processing of the corresponding
  * SE(QName) productions.
  */
-static errorCode handleElementEl(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* entry, unsigned char isGlobal, Index* grIndex);
+static errorCode handleElementEl(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* entry, boolean isGlobal, Index* grIndex);
 
 /**
  * Builds a simple type grammar if it is not already built.
@@ -120,7 +120,7 @@ static errorCode getElementTermProtoGrammar(BuildContext* ctx, TreeTable* treeT,
  * Given an attribute use entry this function builds the corresponding
  * attribute use proto grammar.
  */
-static errorCode getAttributeProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* attrEntry, unsigned char isGlobal, ProtoGrammar** attr);
+static errorCode getAttributeProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* attrEntry, boolean isGlobal, ProtoGrammar** attr);
 
 /**
  * Given a Simple Type entry this function builds the corresponding
@@ -242,7 +242,7 @@ static errorCode getAnonymousTypeId(BuildContext* ctx, TreeTableEntry* typeEntry
  * the SchemaGrammarTable of the EXIPSchema object.
  * The index to the grammar is returned in grIndex parameter
  */
-static errorCode storeGrammar(BuildContext* ctx, QNameID qnameID, ProtoGrammar* pGrammar, unsigned char isNillable, Index* grIndex);
+static errorCode storeGrammar(BuildContext* ctx, QNameID qnameID, ProtoGrammar* pGrammar, boolean isNillable, Index* grIndex);
 
 static void sortGlobalElemQnameTable(GlobalElemQNameTable *gElTbl);
 
@@ -445,13 +445,13 @@ static errorCode getElementTermProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 	return ERR_OK;
 }
 
-static errorCode handleElementEl(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* entry, unsigned char isGlobal, Index* grIndex)
+static errorCode handleElementEl(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* entry, boolean isGlobal, Index* grIndex)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	String type;
 	QNameID elQNameID;
 	QNameID typeQNameID;
-	unsigned char isNillable = FALSE;
+	boolean isNillable = FALSE;
 
 #if DEBUG_GRAMMAR_GEN == ON
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Handle Element: "));
@@ -636,10 +636,10 @@ static errorCode handleElementEl(BuildContext* ctx, TreeTable* treeT, TreeTableE
 	return ERR_OK;
 }
 
-static errorCode getAttributeProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* attrEntry, unsigned char isGlobal, ProtoGrammar** attr)
+static errorCode getAttributeProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* attrEntry, boolean isGlobal, ProtoGrammar** attr)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned char required = 0;
+	boolean required = FALSE;
 	Index typeId;
 	QNameID atQnameID;
 
@@ -1028,7 +1028,7 @@ static errorCode getComplexTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 	ProtoGrammarArray attrUseArray;
 	ProtoGrammar* contentTypeGrammar = NULL;
 	String* attrWildcardNS = NULL;
-	unsigned char isMixedContent = FALSE;
+	boolean isMixedContent = FALSE;
 	Index i;
 
 	if(!isStringEmpty(&complEntry->attributePointers[ATTRIBUTE_MIXED])
@@ -2092,7 +2092,7 @@ static errorCode getListProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTa
 	return ERR_OK;
 }
 
-static errorCode storeGrammar(BuildContext* ctx, QNameID qnameID, ProtoGrammar* pGrammar, unsigned char isNillable, Index* grIndex)
+static errorCode storeGrammar(BuildContext* ctx, QNameID qnameID, ProtoGrammar* pGrammar, boolean isNillable, Index* grIndex)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIGrammar exiGr;

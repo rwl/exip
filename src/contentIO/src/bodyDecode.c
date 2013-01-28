@@ -914,7 +914,7 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 		break;
 		case VALUE_TYPE_BOOLEAN:
 		{
-			unsigned char bool_val;
+			boolean bool_val;
 			tmp_err_code = decodeBoolean(strm, &bool_val);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
@@ -1024,7 +1024,7 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 		default: // VALUE_TYPE_STRING || VALUE_TYPE_NONE || VALUE_TYPE_UNTYPED
 		{
 			String value;
-			unsigned char freeable = FALSE;
+			boolean freeable = FALSE;
 
 			/* ENUMERATION CHECK */
 			if(typeId != INDEX_MAX && (HAS_TYPE_FACET(strm->schema->simpleTypeTable.sType[typeId].content, TYPE_FACET_ENUMERATION)))
@@ -1039,7 +1039,7 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 				if(eDefFound == NULL)
 					return UNEXPECTED_ERROR;
 
-				tmp_err_code = decodeNBitUnsignedInteger(strm, getBitsNumber(eDefFound->count), &indx);
+				tmp_err_code = decodeNBitUnsignedInteger(strm, getBitsNumber(eDefFound->count - 1), &indx);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 
@@ -1075,7 +1075,7 @@ errorCode decodeNSEvent(EXIStream* strm, ContentHandler* handler, SmallIndex* no
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	SmallIndex ns_uriId;
 	SmallIndex pfxId;
-	unsigned char boolean = FALSE;
+	boolean bool = FALSE;
 
 	*nonTermID_out = GR_START_TAG_CONTENT;
 
@@ -1094,13 +1094,13 @@ errorCode decodeNSEvent(EXIStream* strm, ContentHandler* handler, SmallIndex* no
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	tmp_err_code = decodeBoolean(strm, &boolean);
+	tmp_err_code = decodeBoolean(strm, &bool);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
 	if(handler->namespaceDeclaration != NULL)  // Invoke handler method
 	{
-		if(handler->namespaceDeclaration(strm->schema->uriTable.uri[ns_uriId].uriStr, strm->schema->uriTable.uri[ns_uriId].pfxTable->pfxStr[pfxId], boolean, app_data) == EXIP_HANDLER_STOP)
+		if(handler->namespaceDeclaration(strm->schema->uriTable.uri[ns_uriId].uriStr, strm->schema->uriTable.uri[ns_uriId].pfxTable->pfxStr[pfxId], bool, app_data) == EXIP_HANDLER_STOP)
 			return HANDLER_STOP_RECEIVED;
 	}
 	return ERR_OK;

@@ -41,7 +41,7 @@ static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, un
 /**
  * Check if there exists an <xs:import> with a given namespace attribute
  */
-static unsigned char checkForImportWithNs(TreeTable* treeT, String ns);
+static boolean checkForImportWithNs(TreeTable* treeT, String ns);
 
 /**
  * Resolve all the TreeTable entries linked to a global TreeTable entry
@@ -318,7 +318,7 @@ errorCode getTypeQName(EXIPSchema* schema, TreeTable* treeT, const String typeLi
 	String lnStr;
 	String uriStr;
 	Index i;
-	unsigned char pfxFound = FALSE;
+	boolean pfxFound = FALSE;
 
 	/*
 	 * The type literal string passed in will be in the form of either:
@@ -433,7 +433,7 @@ errorCode getTypeQName(EXIPSchema* schema, TreeTable* treeT, const String typeLi
 	return ERR_OK;
 }
 
-static unsigned char checkForImportWithNs(TreeTable* treeT, String ns)
+static boolean checkForImportWithNs(TreeTable* treeT, String ns)
 {
 	Index i;
 

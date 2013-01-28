@@ -100,11 +100,11 @@ errorCode createBuiltInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
  * @param[in] evnt event type
  * @param[in] nonTermID unique identifier of right-hand side Non-terminal
  * @param[in] qname qname identifier of the Event Type corresponding to the inserted production
- * @param[in] hasSecondLevelProd 0 if there are no second level productions (only possible in Fragment Grammar);
- * otherwise 1
+ * @param[in] hasSecondLevelProd FALSE if there are no second level productions (only possible in Fragment Grammar);
+ * otherwise TRUE
  * @return Error handling code
  */
-errorCode insertZeroProduction(DynGrammarRule* rule, EventType evnt, SmallIndex nonTermID, QNameID* qname, unsigned char hasSecondLevelProd);
+errorCode insertZeroProduction(DynGrammarRule* rule, EventType evnt, SmallIndex nonTermID, QNameID* qname, boolean hasSecondLevelProd);
 
 /**
  * @brief For a given grammar and a rule from it, returns the number of bits needed to encode a production from that rule

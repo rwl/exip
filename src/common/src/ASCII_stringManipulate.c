@@ -54,14 +54,14 @@ void getEmptyString(String* emptyStr)
 	emptyStr->str = NULL;
 }
 
-char isStringEmpty(const String* str)
+boolean isStringEmpty(const String* str)
 {
 	if(str == NULL || str->length == 0)
 		return 1;
 	return 0;
 }
 
-errorCode asciiToString(const char* inStr, String* outStr, AllocList* memList, unsigned char clone)
+errorCode asciiToString(const char* inStr, String* outStr, AllocList* memList, boolean clone)
 {
 	outStr->length = strlen(inStr);
 	if(outStr->length > 0)  // If == 0 -> empty string
@@ -85,7 +85,7 @@ errorCode asciiToString(const char* inStr, String* outStr, AllocList* memList, u
 	return ERR_OK;
 }
 
-char stringEqual(const String str1, const String str2)
+boolean stringEqual(const String str1, const String str2)
 {
 	if(str1.length != str2.length)
 		return 0;
@@ -103,7 +103,7 @@ char stringEqual(const String str1, const String str2)
 	}
 }
 
-char stringEqualToAscii(const String str1, const char* str2)
+boolean stringEqualToAscii(const String str1, const char* str2)
 {
 	if(str1.length != strlen(str2))
 		return 0;

@@ -32,7 +32,7 @@ struct EXISerializer
 
 	// For handling the data
 	errorCode (*intData)(EXIStream* strm, Integer int_val);
-	errorCode (*booleanData)(EXIStream* strm, unsigned char bool_val);
+	errorCode (*booleanData)(EXIStream* strm, boolean bool_val);
 	errorCode (*stringData)(EXIStream* strm, const String str_val);
 	errorCode (*floatData)(EXIStream* strm, Float float_val);
 	errorCode (*binaryData)(EXIStream* strm, const char* binary_val, Index nbytes);
@@ -42,7 +42,7 @@ struct EXISerializer
 
 	// Miscellaneous
 	errorCode (*processingInstruction)(EXIStream* strm); // TODO: define the parameters!
-	errorCode (*namespaceDeclaration)(EXIStream* strm, const String ns, const String prefix, unsigned char isLocalElementNS);
+	errorCode (*namespaceDeclaration)(EXIStream* strm, const String ns, const String prefix, boolean isLocalElementNS);
 
 	// EXI specific
 	errorCode (*exiHeader)(EXIStream* strm);
@@ -50,7 +50,7 @@ struct EXISerializer
 
 	// EXIP specific
 	void (*initHeader)(EXIStream* strm);
-	errorCode (*initStream)(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema, unsigned char schemaIdMode, String* schemaID);
+	errorCode (*initStream)(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema, SchemaIdMode schemaIdMode, String* schemaID);
 	errorCode (*closeEXIStream)(EXIStream* strm);
 };
 
@@ -73,7 +73,7 @@ errorCode attribute(EXIStream* strm, QName qname, EXITypeClass exiType);
 
 // For handling the data
 errorCode intData(EXIStream* strm, Integer int_val);
-errorCode booleanData(EXIStream* strm, unsigned char bool_val);
+errorCode booleanData(EXIStream* strm, boolean bool_val);
 errorCode stringData(EXIStream* strm, const String str_val);
 errorCode floatData(EXIStream* strm, Float float_val);
 errorCode binaryData(EXIStream* strm, const char* binary_val, Index nbytes);
@@ -83,7 +83,7 @@ errorCode listData(EXIStream* strm, unsigned int itemCount);
 
 // Miscellaneous
 errorCode processingInstruction(EXIStream* strm); // TODO: define the parameters!
-errorCode namespaceDeclaration(EXIStream* strm, const String ns, const String prefix, unsigned char isLocalElementNS);
+errorCode namespaceDeclaration(EXIStream* strm, const String ns, const String prefix, boolean isLocalElementNS);
 
 // EXI specific
 errorCode selfContained(EXIStream* strm);  // Used for indexing independent elements for random access
@@ -102,7 +102,7 @@ void initHeader(EXIStream* strm);
  * @return Error handling code
  */
 errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema *schema,
-					unsigned char schemaIdMode, String* schemaID);
+						SchemaIdMode schemaIdMode, String* schemaID);
 
 
 errorCode closeEXIStream(EXIStream* strm);

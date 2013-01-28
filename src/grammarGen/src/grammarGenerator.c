@@ -30,7 +30,7 @@ static int compareUri(const void* uriRow1, const void* uriRow2);
  */
 static void sortUriTable(UriTable* uriTable);
 
-errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int bufCount, unsigned char schemaFormat, EXIOptions* opt, EXIPSchema* schema)
+errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int bufCount, SchemaFormat schemaFormat, EXIOptions* opt, EXIPSchema* schema)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	TreeTable* treeT;

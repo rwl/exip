@@ -24,19 +24,21 @@
 #include "memManagement.h"
 
 /* Three different levels of EXIPSchema object initialization */
+enum InitSchemaType
+{
+	/** Only the string tables and the SchemaGrammarTable are used */
+	INIT_SCHEMA_SCHEMA_LESS_MODE = 0,
+	/**
+	 * When the value of the "schemaId" element is empty, no user defined schema information
+	 * is used for processing the EXI body; however, the built-in XML schema types are available
+	 * for use in the EXI body
+	 */
+	INIT_SCHEMA_BUILD_IN_TYPES   = 1,
+	/** Full schema information with schema-informed grammars */
+	INIT_SCHEMA_SCHEMA_ENABLED   = 2
+};
 
-/**
- * Only the string tables and the SchemaGrammarTable are used
- */
-#define INIT_SCHEMA_SCHEMA_LESS_MODE 0
-/**
- * When the value of the "schemaId" element is empty, no user defined schema information 
- * is used for processing the EXI body; however, the built-in XML schema types are available 
- * for use in the EXI body
- */
-#define INIT_SCHEMA_BUILD_IN_TYPES   1
-/** Full schema information with schema-informed grammars */
-#define INIT_SCHEMA_SCHEMA_ENABLED   2
+typedef enum InitSchemaType InitSchemaType;
 
 /**
  * @brief Generate a Schema-informed Type and TypeEmpty Grammars for all built-in XML Schema Types
@@ -71,6 +73,6 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
  * INIT_SCHEMA_SCHEMA_ENABLED
  * @return Error handling code
  */
-errorCode initSchema(EXIPSchema* schema, unsigned char initializationType);
+errorCode initSchema(EXIPSchema* schema, InitSchemaType initializationType);
 
 #endif /* INITSCHEMAINSTANCE_H_ */

@@ -23,7 +23,7 @@
 #define DEFAULT_SIMPLE_GRAMMAR_TABLE  75
 #define DEFAULT_ENUM_TABLE             5
 
-errorCode initSchema(EXIPSchema* schema, unsigned char initializationType)
+errorCode initSchema(EXIPSchema* schema, InitSchemaType initializationType)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 

@@ -23,12 +23,15 @@
 /** @name Supported schema formats
  * Such as XML-XSD, EXI-XSD, DTD or any other schema representation
  */
-/**@{*/
-#define SCHEMA_FORMAT_XSD_EXI           0
-#define SCHEMA_FORMAT_XSD_XML           1
-#define SCHEMA_FORMAT_DTD               2
-#define SCHEMA_FORMAT_RELAX_NG          3
-/**@}*/
+enum SchemaFormat
+{
+	SCHEMA_FORMAT_XSD_EXI   = 0,
+	SCHEMA_FORMAT_XSD_XML   = 1,
+	SCHEMA_FORMAT_DTD       = 2,
+	SCHEMA_FORMAT_RELAX_NG  = 3
+};
+
+typedef enum SchemaFormat SchemaFormat;
 
 /**
  * @brief Given a set of XML schemes, generates all Schema-informed Element and Type Grammars
@@ -47,7 +50,7 @@
  * @param[out] schema the resulted schema information used for processing EXI streams
  * @return Error handling code
  */
-errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int bufCount, unsigned char schemaFormat, EXIOptions* opt, EXIPSchema* schema);
+errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int bufCount, SchemaFormat schemaFormat, EXIOptions* opt, EXIPSchema* schema);
 
 /**
  * @brief Frees all the memory allocated by an EXIPSchema object

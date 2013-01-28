@@ -34,7 +34,7 @@ static errorCode stateMachineProdEncode(EXIStream* strm, unsigned char eventClas
 errorCode encodeStringData(EXIStream* strm, String strng, QNameID qnameID, Index typeId)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned char flag_StringLiteralsPartition = 0;
+	boolean flag_StringLiteralsPartition = 0;
 	Index vxEntryId = 0;
 	VxTable* vxTable = &GET_LN_URI_QNAME(strm->schema->uriTable, qnameID).vxTable;
 
@@ -55,7 +55,7 @@ errorCode encodeStringData(EXIStream* strm, String strng, QNameID qnameID, Index
 		{
 			if(stringEqual(((String*) eDefFound->values)[i], strng))
 			{
-				return encodeNBitUnsignedInteger(strm, getBitsNumber(eDefFound->count), i);
+				return encodeNBitUnsignedInteger(strm, getBitsNumber(eDefFound->count - 1), i);
 			}
 		}
 		/* The enum value is not found! */

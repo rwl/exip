@@ -57,11 +57,11 @@ errorCode initParser(Parser* parser, BinaryBuffer buffer, EXIPSchema* schema, vo
 	return ERR_OK;
 }
 
-errorCode parseHeader(Parser* parser)
+errorCode parseHeader(Parser* parser, boolean outOfBandOpts)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
-	tmp_err_code = decodeHeader(&parser->strm);
+	tmp_err_code = decodeHeader(&parser->strm, outOfBandOpts);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 

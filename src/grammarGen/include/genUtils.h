@@ -64,7 +64,7 @@ errorCode createSimpleTypeGrammar(Index typeId, ProtoGrammar* simpleGrammar);
  * @return Error handling code
  */
 errorCode createComplexTypeGrammar(ProtoGrammarArray* attrUseArray, ProtoGrammar* contentTypeGrammar,
-								unsigned char isMixedContent, ProtoGrammar* complexGrammar);
+								boolean isMixedContent, ProtoGrammar* complexGrammar);
 
 /**
  * @brief Creates Complex Ur-Type Grammar from XML Schema complex ur-type
@@ -83,7 +83,7 @@ errorCode createComplexUrTypeGrammar(ProtoGrammar* result);
  * @param[in] qnameID uri/ln indices in the unsorted string tables
  * @return Error handling code
  */
-errorCode createAttributeUseGrammar(unsigned char required, Index typeId,
+errorCode createAttributeUseGrammar(boolean required, Index typeId,
 									ProtoGrammar* attrGrammar, QNameID qnameID);
 
 /**

@@ -352,7 +352,7 @@ errorCode createUriTableEntry(UriTable* uriTable, const String uri, int createPf
 	return ERR_OK;
 }
 
-errorCode createUriTableEntries(UriTable* uriTable, unsigned char withSchema)
+errorCode createUriTableEntries(UriTable* uriTable, boolean withSchema)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	String emptyStr;

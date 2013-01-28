@@ -145,8 +145,8 @@ static errorCode addProductionsToARule(ProtoGrammar* left, Index ruleIndxL, Prot
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int prodIterL = 0;
 	unsigned int prodIterR = 0;
-	unsigned char terminalCollision = FALSE;
-	unsigned char collisionFound = FALSE;
+	boolean terminalCollision = FALSE;
+	boolean collisionFound = FALSE;
 	unsigned int collisIter = 0;
 	Index nonTermRight;
 
@@ -345,7 +345,7 @@ errorCode createSimpleTypeGrammar(Index typeId, ProtoGrammar* simpleGrammar)
 }
 
 errorCode createComplexTypeGrammar(ProtoGrammarArray* attrUseArray, ProtoGrammar* contentTypeGrammar,
-							unsigned char isMixedContent, ProtoGrammar* complexGrammar)
+							boolean isMixedContent, ProtoGrammar* complexGrammar)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int i;
@@ -416,7 +416,7 @@ errorCode createComplexUrTypeGrammar(ProtoGrammar* result)
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode createAttributeUseGrammar(unsigned char required, Index typeId,
+errorCode createAttributeUseGrammar(boolean required, Index typeId,
 									ProtoGrammar* attrGrammar, QNameID qnameID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -480,7 +480,7 @@ errorCode createParticleGrammar(int minOccurs, int maxOccurs,
 
 	if(maxOccurs - minOccurs > 0 || maxOccurs < 0) // Only if maxOccurs is unbounded or maxOccurs > minOccurs
 	{
-		unsigned char prodEEFound = FALSE;
+		boolean prodEEFound = FALSE;
 		for(i = 0; i < (int)termGrammar->rule[0].count; i++)
 		{
 			if(GET_PROD_EXI_EVENT(termGrammar->rule[0].prod[i].content) == EVENT_EE)
@@ -869,7 +869,7 @@ int compareQNameID(const void* qnameID1, const void* qnameID2)
 static char rulesEqual(ProtoGrammar* g1, Index ruleIndx1, ProtoGrammar* g2, Index ruleIndx2)
 {
 	Index i, j;
-	unsigned char prodFound;
+	boolean prodFound;
 
 	// TODO: currently it does not follow the right hand side non-terminals to check if the state there is the same...
 	// It might not be needed; if needed there will be a recursive call that might lag a lot

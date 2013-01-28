@@ -78,9 +78,9 @@ void getEmptyString(String* emptyStr);
 /**
  * @brief Checks if an string is empty
  * @param[in] str string to check
- * @return 0 if not empty, 1 if empty
+ * @return FALSE if not empty, TRUE if empty
  */
-char isStringEmpty(const String* str);
+boolean isStringEmpty(const String* str);
 
 /**
  * @brief Transform a NULL terminated string of ASCII chars to String allocating memory for the CharType*.
@@ -88,19 +88,19 @@ char isStringEmpty(const String* str);
  * @param[in, out] outStr resulted string
  * @param[in, out] memList A list storing the memory allocations
  * @param[in] clone Boolean indicating if outStr should reuse the memory allocated for inStr if possible.
- * 					0 - if String implementation allows it - do not allocate new memory for the string
- * 					1 - always allocate fresh memory for outStr and copy inStr there
+ * 					FALSE - if String implementation allows it - do not allocate new memory for the string
+ * 					TRUE - always allocate fresh memory for outStr and copy inStr there
  * @return Error handling code
  */
-errorCode asciiToString(const char* inStr, String* outStr, AllocList* memList, unsigned char clone);
+errorCode asciiToString(const char* inStr, String* outStr, AllocList* memList, boolean clone);
 
 /**
  * @brief Tests if two strings are equal
  * @param[in] str1 string to compare
  * @param[in] str2 string to compare
- * @return 1 if the strings are equal, 0 - otherwise
+ * @return TRUE if the strings are equal, FALSE - otherwise
  */
-char stringEqual(const String str1, const String str2);
+boolean stringEqual(const String str1, const String str2);
 
 /**
  * @brief Compare two strings lexicographically
@@ -114,9 +114,9 @@ int stringCompare(const String str1, const String str2);
  * @brief Checks if a String string and ASCII string are equal
  * @param[in] str1 string to compare
  * @param[in] str2 null terminated string to compare
- * @return 1 if the strings are equal, 0 - otherwise
+ * @return TRUE if the strings are equal, FALSE - otherwise
  */
-char stringEqualToAscii(const String str1, const char* str2);
+boolean stringEqualToAscii(const String str1, const char* str2);
 
 /**
  * @brief Makes a copy of the string in a new location
