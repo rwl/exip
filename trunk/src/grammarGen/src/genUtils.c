@@ -149,8 +149,9 @@ static errorCode addProductionsToARule(ProtoGrammar* left, Index ruleIndxL, Prot
 	boolean collisionFound = FALSE;
 	unsigned int collisIter = 0;
 	Index nonTermRight;
+	unsigned int prodCountR = right->rule[ruleIndxR].count; // Needed as left might be the same as right
 
-	for(prodIterR = 0; prodIterR < right->rule[ruleIndxR].count; prodIterR++)
+	for(prodIterR = 0; prodIterR < prodCountR; prodIterR++)
 	{
 		/* Check for terminal collisions with existing production. These must be merged */
 		terminalCollision = FALSE;
@@ -260,7 +261,7 @@ static errorCode addProductionsToARule(ProtoGrammar* left, Index ruleIndxL, Prot
 			 * We have been through all LHS productions and there were no clashes
 			 * so just add the production
 			 */
-			tmp_err_code = addProduction(left->rule,
+			tmp_err_code = addProduction(&left->rule[ruleIndxL],
 										 GET_PROD_EXI_EVENT(right->rule[ruleIndxR].prod[prodIterR].content),
 										 right->rule[ruleIndxR].prod[prodIterR].typeId,
 										 right->rule[ruleIndxR].prod[prodIterR].qnameId,
