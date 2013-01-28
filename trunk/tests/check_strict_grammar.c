@@ -95,7 +95,7 @@ static void parseSchema(const char* fileName, EXIPSchema* schema)
 		buffer.ioStrm.readWriteToStream = NULL;
 		buffer.ioStrm.stream = NULL;
 
-		tmp_err_code = generateSchemaInformedGrammars(&buffer, 1, SCHEMA_FORMAT_XSD_EXI, schema);
+		tmp_err_code = generateSchemaInformedGrammars(&buffer, 1, SCHEMA_FORMAT_XSD_EXI, NULL, schema);
 
 		if(tmp_err_code != ERR_OK)
 		{
@@ -326,7 +326,7 @@ START_TEST (test_acceptance_for_A_01)
 	testParser.handler.floatData     = sample_floatData;
 	
 	// IV: Parse the header of the stream
-	tmp_err_code = parseHeader(&testParser);
+	tmp_err_code = parseHeader(&testParser, FALSE);
 	fail_unless (tmp_err_code == ERR_OK, "parsing the header returns an error code %d", tmp_err_code);
 
 	// V: Parse the body of the EXI stream
@@ -483,7 +483,7 @@ START_TEST (test_acceptance_for_A_01_exip1)
 	testParser.handler.floatData     = sample_floatData;
 	
 	// IV: Parse the header of the stream
-	tmp_err_code = parseHeader(&testParser);
+	tmp_err_code = parseHeader(&testParser, FALSE);
 	fail_unless (tmp_err_code == ERR_OK, "parsing the header returns an error code %d", tmp_err_code);
 
 	// V: Parse the body of the EXI stream
@@ -751,8 +751,8 @@ static char lkab_startElement_desc(QName qname, void* app_data);
 static char lkab_endElement(void* app_data);
 static char lkab_stringData_io(const String value, void* app_data);
 static char lkab_stringData_desc(const String value, void* app_data);
-static char lkab_booleanData_io(unsigned char bool_val, void* app_data);
-static char lkab_booleanData_desc(unsigned char bool_val, void* app_data);
+static char lkab_booleanData_io(boolean bool_val, void* app_data);
+static char lkab_booleanData_desc(boolean bool_val, void* app_data);
 static char lkab_dateTimeData(EXIPDateTime dt_val, void* app_data);
 
 /**
@@ -1092,7 +1092,7 @@ static error_code parseIOMsg(char* buf, unsigned int buf_size, BoolValue *val)
 
 	// IV: Parse the header of the stream
 
-	tmp_err_code = parseHeader(&lkabParser);
+	tmp_err_code = parseHeader(&lkabParser, FALSE);
 
 	// V: Parse the body of the EXI stream
 
@@ -1162,7 +1162,7 @@ static error_code parseDevDescMsg(char* buf, unsigned int buf_size, DevDescribti
 
 	// IV: Parse the header of the stream
 
-	tmp_err_code = parseHeader(&lkabParser);
+	tmp_err_code = parseHeader(&lkabParser, FALSE);
 
 	// V: Parse the body of the EXI stream
 
@@ -1357,7 +1357,7 @@ static char lkab_stringData_desc(const String value, void* app_data)
 	return EXIP_HANDLER_OK;
 }
 
-static char lkab_booleanData_io(unsigned char bool_val, void* app_data)
+static char lkab_booleanData_io(boolean bool_val, void* app_data)
 {
 	struct appDataLKAB* appD = (struct appDataLKAB*) app_data;
 
@@ -1371,7 +1371,7 @@ static char lkab_booleanData_io(unsigned char bool_val, void* app_data)
 	return EXIP_HANDLER_OK;
 }
 
-static char lkab_booleanData_desc(unsigned char bool_val, void* app_data)
+static char lkab_booleanData_desc(boolean bool_val, void* app_data)
 {
 	struct appDataLKAB* appD = (struct appDataLKAB*) app_data;
 

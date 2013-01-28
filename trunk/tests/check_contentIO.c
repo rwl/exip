@@ -42,8 +42,9 @@ START_TEST (test_decodeHeader)
 	testStream.buffer.ioStrm.readWriteToStream = NULL;
 	testStream.buffer.ioStrm.stream = NULL;
 	initAllocList(&testStream.memList);
+	makeDefaultOpts(&testStream.header.opts);
 
-	err = decodeHeader(&testStream);
+	err = decodeHeader(&testStream, TRUE);
 	fail_unless (err == ERR_OK, "decodeHeader returns error code %d", err);
 	fail_unless (testStream.header.has_cookie == 0,
 				"decodeHeader founds EXI cookie");
@@ -71,7 +72,7 @@ START_TEST (test_decodeHeader)
 	testStream2.buffer.ioStrm.readWriteToStream = NULL;
 	testStream2.buffer.ioStrm.stream = NULL;
 
-	err = decodeHeader(&testStream2);
+	err = decodeHeader(&testStream2, TRUE);
 	fail_unless (err == ERR_OK, "decodeHeader returns error code %d", err);
 	fail_unless (testStream2.header.has_cookie == 1,
 				"decodeHeader does not found EXI cookie");

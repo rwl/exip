@@ -84,7 +84,7 @@ static void parseSchema(const char* fileName, EXIPSchema* schema)
 		buffer.ioStrm.readWriteToStream = NULL;
 		buffer.ioStrm.stream = NULL;
 
-		tmp_err_code = generateSchemaInformedGrammars(&buffer, 1, SCHEMA_FORMAT_XSD_EXI, schema);
+		tmp_err_code = generateSchemaInformedGrammars(&buffer, 1, SCHEMA_FORMAT_XSD_EXI, NULL, schema);
 
 		if(tmp_err_code != ERR_OK)
 		{
@@ -278,7 +278,7 @@ START_TEST (test_default_options)
 
 	// IV: Parse the header of the stream
 
-	tmp_err_code = parseHeader(&testParser);
+	tmp_err_code = parseHeader(&testParser, FALSE);
 	fail_unless (tmp_err_code == ERR_OK, "parsing the header returns an error code %d", tmp_err_code);
 
 	// V: Parse the body of the EXI stream
@@ -348,7 +348,7 @@ START_TEST (test_strict_option)
 
 	// IV: Parse the header of the stream
 
-	tmp_err_code = parseHeader(&testParser);
+	tmp_err_code = parseHeader(&testParser, FALSE);
 	fail_unless (tmp_err_code == ERR_OK, "parsing the header returns an error code %d", tmp_err_code);
 
 	// V: Parse the body of the EXI stream
