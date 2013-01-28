@@ -63,7 +63,7 @@ static char sample_stringData(const String value, void* app_data);
 static char sample_decimalData(Decimal value, void* app_data);
 static char sample_intData(Integer int_val, void* app_data);
 static char sample_floatData(Float fl_val, void* app_data);
-static char sample_booleanData(unsigned char bool_val, void* app_data);
+static char sample_booleanData(boolean bool_val, void* app_data);
 static char sample_dateTimeData(EXIPDateTime dt_val, void* app_data);
 static char sample_binaryData(const char* binary_val, Index nbytes, void* app_data);
 
@@ -114,7 +114,7 @@ errorCode decode(EXIPSchema* schemaPtr, unsigned char outFlag, FILE *infile, siz
 
 	// IV: Parse the header of the stream
 
-	tmp_err_code = parseHeader(&testParser);
+	tmp_err_code = parseHeader(&testParser, FALSE);
 
 	// V: Parse the body of the EXI stream
 
@@ -378,7 +378,7 @@ static char sample_intData(Integer int_val, void* app_data)
 	return EXIP_HANDLER_OK;
 }
 
-static char sample_booleanData(unsigned char bool_val, void* app_data)
+static char sample_booleanData(boolean bool_val, void* app_data)
 {
 	struct appData* appD = (struct appData*) app_data;
 

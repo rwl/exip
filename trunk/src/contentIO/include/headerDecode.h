@@ -25,8 +25,10 @@
  * @brief Decode the header of an EXI stream. The current position in the stream is set to
  * the first bit after the header. The EXIStream.header.EXIOptions* are set accordingly
  * @param[in, out] strm EXI stream of bits
+ * @param[in] outOfBandOpts TRUE if there are out-of-band options set in parser->strm.header;
+ * FALSE otherwise
  * @return Error handling code
  */
-errorCode decodeHeader(EXIStream* strm);
+errorCode decodeHeader(EXIStream* strm, boolean outOfBandOpts);
 
 #endif /* HEADERDECODE_H_ */

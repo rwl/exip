@@ -59,7 +59,7 @@ void initHeader(EXIStream* strm)
 	makeDefaultOpts(&strm->header.opts);
 }
 
-errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema, unsigned char schemaIdMode, String* schemaID)
+errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema, SchemaIdMode schemaIdMode, String* schemaID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
@@ -383,10 +383,10 @@ errorCode intData(EXIStream* strm, Integer int_val)
 	return encodeIntData(strm, int_val, intTypeId);
 }
 
-errorCode booleanData(EXIStream* strm, unsigned char bool_val)
+errorCode booleanData(EXIStream* strm, boolean bool_val)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned char isXsiNilAttr = FALSE;
+	boolean isXsiNilAttr = FALSE;
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Start boolean data serialization\n"));
 
 	if(strm->context.expectATData > 0) // Value for an attribute
@@ -550,7 +550,7 @@ errorCode processingInstruction(EXIStream* strm)
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode namespaceDeclaration(EXIStream* strm, const String ns, const String prefix, unsigned char isLocalElementNS)
+errorCode namespaceDeclaration(EXIStream* strm, const String ns, const String prefix, boolean isLocalElementNS)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	SmallIndex uriId;

@@ -27,7 +27,7 @@
  * @param[in] bit_val the value of the next bit: 0 or 1
  * @return Error handling code
  */
-errorCode writeNextBit(EXIStream* strm, unsigned char bit_val);
+errorCode writeNextBit(EXIStream* strm, boolean bit_val);
 
 /**
  * @brief Writes an unsigned integer value to an EXI stream with the least possible bits

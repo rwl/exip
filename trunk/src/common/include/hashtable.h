@@ -92,7 +92,7 @@ struct hashtable;
 struct hashtable *
 create_hashtable(unsigned int minsize,
 				 uint32_t (*hashfn) (String key),
-				 char (*eqfn) (const String str1, const String str2));
+				 boolean (*eqfn) (const String str1, const String str2));
 
 /*****************************************************************************
  * hashtable_insert

@@ -129,7 +129,7 @@ errorCode createUriTableEntry(UriTable* uriTable, const String uri, int createPf
  * Can be retrieved from strm->opts->schemaID != NULL
  * @return Error handling code
  */
-errorCode createUriTableEntries(UriTable* uriTable, unsigned char withSchema);
+errorCode createUriTableEntries(UriTable* uriTable, boolean withSchema);
 
 /**
  * @brief Search the URI table for a particular string value

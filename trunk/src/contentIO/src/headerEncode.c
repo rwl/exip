@@ -86,9 +86,9 @@ errorCode encodeHeader(EXIStream* strm)
 	if(strm->header.has_options)
 	{
 		EXIStream options_strm;
-		unsigned char hasUncommon = FALSE;
-		unsigned char hasLesscommon = FALSE;
-		unsigned char hasCommon = FALSE;
+		boolean hasUncommon = FALSE;
+		boolean hasLesscommon = FALSE;
+		boolean hasCommon = FALSE;
 		EventCode tmpEvCode;
 
 		makeDefaultOpts(&options_strm.header.opts);

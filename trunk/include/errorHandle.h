@@ -144,6 +144,7 @@ typedef char errorCode;
  * "pre-compression" or "strict" elements are present in the same options document.
  * 4) The  datatypeRepresentationMap option does not take effect when the value of the Preserve.lexicalValues
  * fidelity option is true (see 6.3 Fidelity Options), or when the EXI stream is a schema-less EXI stream.
+ * 5) Presence Bit for EXI Options not set and no out-of-band options set
  */
 #define HEADER_OPTIONS_MISMATCH 20
 

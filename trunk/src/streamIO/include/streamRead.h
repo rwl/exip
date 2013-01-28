@@ -27,7 +27,7 @@
  * @param[out] bit_val the value of the next bit: 0 or 1
  * @return Error handling code
  */
-errorCode readNextBit(EXIStream* strm, unsigned char* bit_val);
+errorCode readNextBit(EXIStream* strm, boolean* bit_val);
 
 /**
  * @brief Read the next n bits and return the result as an integer. Moves the stream current bit pointer

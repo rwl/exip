@@ -43,7 +43,7 @@ struct TreeTableParsingData
 	 * - 2 the properties are all set ([schema] attr. parsed)
 	 */
 	unsigned char propsStat; 
-	unsigned char expectingAttr;
+	boolean expectingAttr;
 	/** Pointer to the expected character data */
 	String* charDataPtr;
 	/**
@@ -73,7 +73,7 @@ static char xsd_startElement(QName qname, void* app_data);
 static char xsd_endElement(void* app_data);
 static char xsd_attribute(QName qname, void* app_data);
 static char xsd_stringData(const String value, void* app_data);
-static char xsd_namespaceDeclaration(const String ns, const String prefix, unsigned char isLocalElementNS, void* app_data);
+static char xsd_namespaceDeclaration(const String ns, const String prefix, boolean isLocalElementNS, void* app_data);
 
 //////////// Helper functions
 
@@ -143,7 +143,7 @@ static const char* attrStrings[] =
 	"mixed"
 };
 
-errorCode generateTreeTable(BinaryBuffer buffer, unsigned char schemaFormat, EXIOptions* opt, TreeTable* treeT, EXIPSchema* schema)
+errorCode generateTreeTable(BinaryBuffer buffer, SchemaFormat schemaFormat, EXIOptions* opt, TreeTable* treeT, EXIPSchema* schema)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	Parser xsdParser;
@@ -183,7 +183,7 @@ errorCode generateTreeTable(BinaryBuffer buffer, unsigned char schemaFormat, EXI
 	if(opt != NULL)
 		xsdParser.strm.header.opts = *opt;
 
-	tmp_err_code = parseHeader(&xsdParser);
+	tmp_err_code = parseHeader(&xsdParser, FALSE);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -687,7 +687,7 @@ static char xsd_stringData(const String value, void* app_data)
 	return EXIP_HANDLER_OK;
 }
 
-static char xsd_namespaceDeclaration(const String ns, const String pfx, unsigned char isLocalElementNS, void* app_data)
+static char xsd_namespaceDeclaration(const String ns, const String pfx, boolean isLocalElementNS, void* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	struct TreeTableParsingData* ttpd = (struct TreeTableParsingData*) app_data;

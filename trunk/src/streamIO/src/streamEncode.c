@@ -47,7 +47,7 @@ errorCode encodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, unsigned i
 	return ERR_OK;
 }
 
-errorCode encodeBoolean(EXIStream* strm, unsigned char bool_val)
+errorCode encodeBoolean(EXIStream* strm, boolean bool_val)
 {
 	//TODO:  when pattern facets are available in the schema datatype - handle it differently
 	DEBUG_MSG(INFO, DEBUG_STREAM_IO, (">> 0x%X (bool)", bool_val));
@@ -180,18 +180,18 @@ errorCode encodeDecimalValue(EXIStream* strm, Decimal dec_val)
 {
 	// TODO: Review this. Probably incorrect in some cases and not efficient. Depends on decimal floating point support!
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned char sign = 0;
+	boolean sign = FALSE;
 	UnsignedInteger integr_part = 0;
 	UnsignedInteger fract_part_rev = 0;
 	unsigned int i = 1;
 	unsigned int d = 0;
 
 	if(dec_val >= 0)
-		sign = 0;
+		sign = FALSE;
 	else
 	{
 		dec_val = -dec_val;
-		sign = 1;
+		sign = TRUE;
 	}
 
 	tmp_err_code = encodeBoolean(strm, sign);

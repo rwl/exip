@@ -46,7 +46,7 @@ errorCode decodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, unsigned i
 	return ERR_OK;
 }
 
-errorCode decodeBoolean(EXIStream* strm, unsigned char* bool_val)
+errorCode decodeBoolean(EXIStream* strm, boolean* bool_val)
 {
 	//TODO:  when pattern facets are available in the schema datatype - handle it differently
 	return readNextBit(strm, bool_val);
@@ -155,7 +155,7 @@ errorCode decodeIntegerValue(EXIStream* strm, Integer* sint_val)
 	// TODO: If there is associated schema datatype handle differently!
 	// TODO: check if the result fit into int type
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned char bool_val = 0;
+	boolean bool_val = 0;
 	UnsignedInteger val;
 	tmp_err_code = decodeBoolean(strm, &bool_val);
 	if(tmp_err_code != ERR_OK)
@@ -182,7 +182,7 @@ errorCode decodeDecimalValue(EXIStream* strm, Decimal* dec_val)
 	// TODO: Review this. Probably can be more efficient. Depends on decimal floating point support!
 	// Ref: http://gcc.gnu.org/onlinedocs/gccint/Decimal-float-library-routines.html
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	unsigned char sign;
+	boolean sign;
 	UnsignedInteger integr_part = 0;
 	UnsignedInteger fract_part = 0;
 	unsigned int fraction_digits = 1;
@@ -209,7 +209,7 @@ errorCode decodeDecimalValue(EXIStream* strm, Decimal* dec_val)
 	}
 	*dec_val = (Decimal)fract_part_rev;
 
-	if(sign == 1) // negative number
+	if(sign == TRUE) // negative number
 		*dec_val = -*dec_val;
 
 	*dec_val = *dec_val / fraction_digits;
@@ -258,7 +258,7 @@ errorCode decodeDateTimeValue(EXIStream* strm, EXIPDateTime* dt_val)
 	Integer year;
 	unsigned int monDay = 0;
 	unsigned int timeVal = 0;
-	unsigned char presence = FALSE;
+	boolean presence = FALSE;
 
 	dt_val->presenceMask = 0;
 

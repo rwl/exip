@@ -39,7 +39,7 @@ static char ops_endElement(void* app_data);
 static char ops_attribute(QName qname, void* app_data);
 static char ops_stringData(const String value, void* app_data);
 static char ops_intData(Integer int_val, void* app_data);
-static char ops_boolData(unsigned char bool_val, void* app_data);
+static char ops_boolData(boolean bool_val, void* app_data);
 
 struct ops_AppData
 {
@@ -57,11 +57,11 @@ struct ops_AppData
 #define SCHEMA_ID_EL_EMPTY    3
 #define SCHEMA_ID_EL_STRING   4
 
-errorCode decodeHeader(EXIStream* strm)
+errorCode decodeHeader(EXIStream* strm, boolean outOfBandOpts)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int bits_val = 0;
-	unsigned char smallVal = 0;
+	boolean boolVal = FALSE;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start EXI header decoding\n"));
 	tmp_err_code = readBits(strm, 2, &bits_val);
@@ -109,44 +109,41 @@ errorCode decodeHeader(EXIStream* strm)
 	}
 
 	// Read the Presence Bit for EXI Options
-	tmp_err_code = readNextBit(strm, &smallVal);
+	tmp_err_code = readNextBit(strm, &boolVal);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	if(smallVal == 1) // There are EXI options
+	if(boolVal == TRUE) // There are EXI options
 	{
-		strm->header.has_options = 1;
+		strm->header.has_options = TRUE;
 		// validation checks. If the options are included then
 		// they cannot be set by an out-of-band mechanism.
-		// If some options are set i.e. different from the
-		// defaults rise a warning and overwrite them -
+		// If out-of-band options are set -
+		// rise a warning and overwrite them.
 		// Only the options from the header will be used
-		if(strm->header.opts.enumOpt != 0 ||
-				strm->header.opts.preserve != 0 ||
-				strm->header.opts.blockSize != 1000000 ||
-				strm->header.opts.valueMaxLength != INDEX_MAX ||
-				strm->header.opts.valuePartitionCapacity != INDEX_MAX ||
-				strm->header.opts.user_defined_data != NULL ||
-				strm->header.opts.schemaID.str != NULL ||
-				strm->header.opts.schemaID.length != 0 ||
-				strm->header.opts.drMap != NULL)
+		if(outOfBandOpts == TRUE)
 		{
 			DEBUG_MSG(WARNING, DEBUG_CONTENT_IO, (">Ignored out-of-band set EXI options\n"));
 			makeDefaultOpts(&strm->header.opts);
 		}
 	}
-	else // The default values for EXI options or out-of-band set EXI options
+	else // Out-of-band set EXI options
 	{
 		DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">No EXI options field in the header\n"));
-		strm->header.has_options = 0;
+		strm->header.has_options = FALSE;
+		if(outOfBandOpts == FALSE)
+		{
+			DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">No EXI options in the header and no out-of-band options specified. \n"));
+			return HEADER_OPTIONS_MISMATCH;
+		}
 	}
 
 	// Read the Version type
-	tmp_err_code = readNextBit(strm, &smallVal);
+	tmp_err_code = readNextBit(strm, &boolVal);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	strm->header.is_preview_version = smallVal;
+	strm->header.is_preview_version = boolVal;
 	strm->header.version_number = 1;
 
 	do
@@ -451,7 +448,7 @@ static char ops_intData(Integer int_val, void* app_data)
 	return EXIP_HANDLER_OK;
 }
 
-static char ops_boolData(unsigned char bool_val, void* app_data)
+static char ops_boolData(boolean bool_val, void* app_data)
 {
 	struct ops_AppData* o_appD = (struct ops_AppData*) app_data;
 

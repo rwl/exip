@@ -30,6 +30,7 @@
 #include "dynamicArray.h"
 #include "protoGrammars.h"
 #include "hashtable.h"
+#include "grammarGenerator.h"
 
 /** Enumeration of elements found in the schema */
 enum ElemEnum
@@ -187,7 +188,7 @@ struct TreeTable
 	struct
 	{
 		/** Whether the tree corresponds to the main XSD of the schema definitions */
-		unsigned char isMain;
+		boolean isMain;
 		/** targetNamespace for that TreeTable */
 		String targetNs;
 		/** Identifies the target namespace in the EXIP Schema URI Table */
@@ -288,7 +289,7 @@ void destroyTreeTable(TreeTable* treeT);
  * Must be initialized.
  * @return Error handling code
  */
-errorCode generateTreeTable(BinaryBuffer buffer, unsigned char schemaFormat, EXIOptions* opt, TreeTable* treeT, EXIPSchema* schema);
+errorCode generateTreeTable(BinaryBuffer buffer, SchemaFormat schemaFormat, EXIOptions* opt, TreeTable* treeT, EXIPSchema* schema);
 
 /**
  * @brief Links derived types to base types, elements to types and references to global elements

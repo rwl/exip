@@ -29,7 +29,7 @@ const unsigned char BIT_MASK[] = {	(char) 0x00,	// 0b00000000
 									(char) 0xFF	};	// 0b11111111
 
 
-errorCode readNextBit(EXIStream* strm, unsigned char* bit_val)
+errorCode readNextBit(EXIStream* strm, boolean* bit_val)
 {
 	if(strm->buffer.bufContent <= strm->context.bufferIndx) // the whole buffer is parsed! read another portion
 	{

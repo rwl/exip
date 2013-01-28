@@ -23,7 +23,7 @@ struct hashtable {
     unsigned int loadlimit;
     unsigned int primeindex;
     uint32_t (*hashfn) (String key);
-    char (*eqfn) (const String str1, const String str2);
+    boolean (*eqfn) (const String str1, const String str2);
 };
 
 /*****************************************************************************/

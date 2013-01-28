@@ -49,9 +49,11 @@ errorCode initParser(Parser* parser, BinaryBuffer buffer, EXIPSchema* schema, vo
 /**
  * @brief Parse the header on the EXI stream contained in the parser object
  * @param[in] parser the parser object
+ * @param[in] outOfBandOpts TRUE if there are out-of-band options set in parser->strm.header
+ * FALSE otherwise
  * @return Error handling code
  */
-errorCode parseHeader(Parser* parser);
+errorCode parseHeader(Parser* parser, boolean outOfBandOpts);
 
 /**
  * @brief Parse the next content item from the EXI stream contained in the parser object
