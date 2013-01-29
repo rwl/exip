@@ -132,7 +132,7 @@ errorCode toStaticSrc(EXIPSchema* schemaPtr, char* prefix, FILE *outfile)
 		for(stId = 0; stId < stIdMax; stId++)
 		{
 			fprintf(outfile,
-					"    {%d, %d, %lu, %lu}%s",
+					"    {%d, %d, 0x%016lX, 0x%016lX}%s",
 					schemaPtr->simpleTypeTable.sType[stId].content,
 					schemaPtr->simpleTypeTable.sType[stId].length,
 					(long unsigned) schemaPtr->simpleTypeTable.sType[stId].max,

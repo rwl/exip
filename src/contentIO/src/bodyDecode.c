@@ -33,6 +33,7 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 	unsigned int bitCount;
 	unsigned int tmp_bits_val = 0;
 	GrammarRule* currentRule;
+	Index prodCount;
 
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Next production non-term-id: %u\n", (unsigned int) strm->context.currNonTermID));
 
@@ -52,9 +53,14 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 	}
 #endif
 
-	bitCount = getBitsFirstPartCode(strm->header.opts, strm->gStack->grammar, currentRule, strm->context.currNonTermID);
+	bitCount = getBitsFirstPartCode(strm->header.opts, strm->gStack->grammar, strm->context.currNonTermID, strm->context.isNilType);
 
-	if(currentRule->pCount > 0)
+	if(strm->context.isNilType == FALSE)
+		prodCount = currentRule->pCount;
+	else
+		prodCount = RULE_GET_AT_COUNT(currentRule->meta) + RULE_CONTAIN_EE(currentRule->meta);
+
+	if(prodCount > 0)
 	{
 		if(bitCount == 0)
 		{
@@ -67,9 +73,40 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			if(tmp_bits_val < currentRule->pCount)
-				return handleProduction(strm, &currentRule->production[currentRule->pCount - 1 - tmp_bits_val], nonTermID_out, handler, app_data);
+			if(tmp_bits_val < prodCount)
+			{
+				if(strm->context.isNilType == TRUE && tmp_bits_val == (prodCount - 1))
+				{
+					// Because SE productions are ordered before the EE in case of emptyTypeGrammar this might be either AT or EE
+					if(RULE_CONTAIN_EE(currentRule->meta))
+					{
+						// Always last so this is an EE event
+						strm->context.isNilType = FALSE;
+						if(handler->endElement != NULL)
+						{
+							if(handler->endElement(app_data) == EXIP_HANDLER_STOP)
+								return HANDLER_STOP_RECEIVED;
+						}
+
+						return ERR_OK;
+					}
+				}
+
+				return handleProduction(strm, &currentRule->production[prodCount - 1 - tmp_bits_val], nonTermID_out, handler, app_data);
+			}
 		}
+	}
+	else if(strm->context.isNilType == TRUE)
+	{
+		// There is a single EE production encoded with zero bits
+		strm->context.isNilType = FALSE;
+		if(handler->endElement != NULL)
+		{
+			if(handler->endElement(app_data) == EXIP_HANDLER_STOP)
+				return HANDLER_STOP_RECEIVED;
+		}
+
+		return ERR_OK;
 	}
 
 	// Production with length code 1 not found: search second or third level productions
@@ -92,6 +129,7 @@ static errorCode handleProduction(EXIStream* strm, Production* prodHit, SmallInd
 			}
 		break;
 		case EVENT_EE:
+			strm->context.isNilType = FALSE;
 			if(handler->endElement != NULL)
 			{
 				if(handler->endElement(app_data) == EXIP_HANDLER_STOP)
@@ -151,6 +189,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 			{
 				case 0:
 					// StartTagContent : EE
+					strm->context.isNilType = FALSE;
 					if(handler->endElement != NULL)
 					{
 						if(handler->endElement(app_data) == EXIP_HANDLER_STOP)
@@ -429,6 +468,10 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 			// Strict mode
 			if(strm->context.currNonTermID == GR_START_TAG_CONTENT)
 			{
+				boolean nil;
+
+				*nonTermID_out = GR_START_TAG_CONTENT;
+
 				if(HAS_NAMED_SUB_TYPE_OR_UNION(strm->gStack->grammar->props))
 				{
 					if(IS_NILLABLE(strm->gStack->grammar->props))
@@ -445,7 +488,12 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 						else
 						{
 							// AT(xsi:nil) event
-							return NOT_IMPLEMENTED_YET;
+							tmp_err_code = decodeBoolean(strm, &nil);
+							if(tmp_err_code != ERR_OK)
+								return tmp_err_code;
+
+							if(nil == TRUE)
+								strm->context.isNilType = TRUE;
 						}
 					}
 					else
@@ -457,7 +505,12 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 				else if(IS_NILLABLE(strm->gStack->grammar->props))
 				{
 					// AT(xsi:nil) event
-					return NOT_IMPLEMENTED_YET;
+					tmp_err_code = decodeBoolean(strm, &nil);
+					if(tmp_err_code != ERR_OK)
+						return tmp_err_code;
+
+					if(nil == TRUE)
+						strm->context.isNilType = TRUE;
 				}
 				else
 					return INCONSISTENT_PROC_STATE;
@@ -467,7 +520,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 		}
 		else // Non-strict mode
 		{
-
+			return NOT_IMPLEMENTED_YET;
 		}
 	}
 
@@ -728,6 +781,7 @@ errorCode decodeEventContent(EXIStream* strm, Production* prodHit, ContentHandle
 	{
 		case EVENT_SE_ALL:
 			strm->gStack->lastNonTermID = GET_PROD_NON_TERM(prodHit->content);
+			assert(strm->context.isNilType == FALSE);
 
 			tmp_err_code = decodeSEWildcardEvent(strm, handler, nonTermID_out, app_data);
 			if(tmp_err_code != ERR_OK)
@@ -743,6 +797,7 @@ errorCode decodeEventContent(EXIStream* strm, Production* prodHit, ContentHandle
 			EXIGrammar* elemGrammar = NULL;
 
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">SE(qname) event\n"));
+			assert(strm->context.isNilType == FALSE);
 			strm->context.currElem = prodHit->qnameId;
 			qname.uri = &(strm->schema->uriTable.uri[prodHit->qnameId.uriId].uriStr);
 			qname.localName = &(GET_LN_URI_QNAME(strm->schema->uriTable, prodHit->qnameId).lnStr);
@@ -804,7 +859,7 @@ errorCode decodeEventContent(EXIStream* strm, Production* prodHit, ContentHandle
 		case EVENT_CH:
 		{
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">CH event\n"));
-
+			assert(strm->context.isNilType == FALSE);
 			tmp_err_code = decodeValueItem(strm, prodHit->typeId, handler, nonTermID_out, strm->context.currElem, app_data);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
