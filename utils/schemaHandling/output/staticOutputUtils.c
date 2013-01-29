@@ -160,7 +160,7 @@ void staticRulesOutput(EXIGrammar* gr, char* prefix, Index grId, FILE* out)
 			fprintf(out, "NULL, ");
 
 		fprintf(out, "%u, ", (unsigned int) gr->rule[ruleIter].pCount);
-		fprintf(out, "%u, ", (unsigned int) gr->rule[ruleIter].meta);
+		fprintf(out, "%u", (unsigned int) gr->rule[ruleIter].meta);
 		fprintf(out, "}%s", ruleIter != (gr->count-1)?",":"");
 
 	}

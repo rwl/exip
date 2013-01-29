@@ -173,7 +173,7 @@ errorCode encodeProduction(EXIStream* strm, unsigned char eventClass, EXITypeCla
 	}
 #endif
 
-	bitCount = getBitsFirstPartCode(strm->header.opts, strm->gStack->grammar, currentRule, strm->context.currNonTermID);
+	bitCount = getBitsFirstPartCode(strm->header.opts, strm->gStack->grammar, currentRule, strm->context.currNonTermID, strm->context.isNilType);
 
 	for(j = 0; j < prodCount; j++)
 	{

@@ -53,12 +53,26 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 	}
 #endif
 
-	bitCount = getBitsFirstPartCode(strm->header.opts, strm->gStack->grammar, strm->context.currNonTermID, strm->context.isNilType);
-
 	if(strm->context.isNilType == FALSE)
 		prodCount = currentRule->pCount;
 	else
+	{
 		prodCount = RULE_GET_AT_COUNT(currentRule->meta) + RULE_CONTAIN_EE(currentRule->meta);
+		if(strm->context.currNonTermID >= GET_CONTENT_INDEX(strm->gStack->grammar->props))
+		{
+			// Instead of content we have a single EE production encoded with zero bits because of xsi:nil=TRUE
+			strm->context.isNilType = FALSE;
+			if(handler->endElement != NULL)
+			{
+				if(handler->endElement(app_data) == EXIP_HANDLER_STOP)
+					return HANDLER_STOP_RECEIVED;
+			}
+
+			return ERR_OK;
+		}
+	}
+
+	bitCount = getBitsFirstPartCode(strm->header.opts, strm->gStack->grammar, currentRule, strm->context.currNonTermID, strm->context.isNilType);
 
 	if(prodCount > 0)
 	{
@@ -462,11 +476,12 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 	{
 		// Schema-informed element/type grammar
 		// TODO: implement is_empty case
+		QName qname;
 
 		if(WITH_STRICT(strm->header.opts.enumOpt))
 		{
 			// Strict mode
-			if(strm->context.currNonTermID == GR_START_TAG_CONTENT)
+			if(strm->context.currNonTermID == GR_START_TAG_CONTENT && strm->context.isNilType == FALSE)
 			{
 				boolean nil;
 
@@ -494,6 +509,24 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 
 							if(nil == TRUE)
 								strm->context.isNilType = TRUE;
+
+							DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">AT(xsi:nil) event\n"));
+							strm->context.currAttr.uriId = XML_SCHEMA_INSTANCE_ID;
+							strm->context.currAttr.lnId = XML_SCHEMA_INSTANCE_NIL_ID;
+							qname.uri = &strm->schema->uriTable.uri[strm->context.currAttr.uriId].uriStr;
+							qname.localName = &GET_LN_URI_QNAME(strm->schema->uriTable, strm->context.currAttr).lnStr;
+
+							if(handler->attribute != NULL)  // Invoke handler method
+							{
+								if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
+									return HANDLER_STOP_RECEIVED;
+							}
+
+							if(handler->booleanData != NULL)  // Invoke handler method
+							{
+								if(handler->booleanData(nil, app_data) == EXIP_HANDLER_STOP)
+									return HANDLER_STOP_RECEIVED;
+							}
 						}
 					}
 					else
@@ -511,6 +544,24 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 
 					if(nil == TRUE)
 						strm->context.isNilType = TRUE;
+
+					DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">AT(xsi:nil) event\n"));
+					strm->context.currAttr.uriId = XML_SCHEMA_INSTANCE_ID;
+					strm->context.currAttr.lnId = XML_SCHEMA_INSTANCE_NIL_ID;
+					qname.uri = &strm->schema->uriTable.uri[strm->context.currAttr.uriId].uriStr;
+					qname.localName = &GET_LN_URI_QNAME(strm->schema->uriTable, strm->context.currAttr).lnStr;
+
+					if(handler->attribute != NULL)  // Invoke handler method
+					{
+						if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
+							return HANDLER_STOP_RECEIVED;
+					}
+
+					if(handler->booleanData != NULL)  // Invoke handler method
+					{
+						if(handler->booleanData(nil, app_data) == EXIP_HANDLER_STOP)
+							return HANDLER_STOP_RECEIVED;
+					}
 				}
 				else
 					return INCONSISTENT_PROC_STATE;

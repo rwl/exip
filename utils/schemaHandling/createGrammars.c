@@ -23,11 +23,11 @@
 #include <time.h>
 #include "createGrammars.h"
 
-
 errorCode toText(EXIPSchema* schemaPtr, FILE *outfile)
 {
     EXIGrammar* tmpGrammar;
 	QNameID qnameId = {0, 0};
+
 	fprintf(outfile, "\n/** GLOBAL ELEMENT GRAMMARS **/\n\n");
 	for(qnameId.uriId = 0; qnameId.uriId < schemaPtr->uriTable.count; qnameId.uriId++)
 	{
@@ -36,7 +36,7 @@ errorCode toText(EXIPSchema* schemaPtr, FILE *outfile)
 			tmpGrammar = GET_ELEM_GRAMMAR_QNAMEID(schemaPtr, qnameId);
 			if(tmpGrammar != NULL)
 			{
-				if(ERR_OK != textGrammarOutput(qnameId, GET_LN_URI_QNAME(schemaPtr->uriTable, qnameId).elemGrammar, tmpGrammar, schemaPtr, outfile))
+				if(ERR_OK != recursiveTextGrammarOutput(qnameId, GET_LN_URI_QNAME(schemaPtr->uriTable, qnameId).elemGrammar, tmpGrammar, schemaPtr, outfile))
 				{
 					printf("\n ERROR: OUT_TEXT output format!");
 					return UNEXPECTED_ERROR;
