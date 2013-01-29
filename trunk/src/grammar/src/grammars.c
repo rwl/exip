@@ -103,7 +103,7 @@ errorCode createDocGrammar(EXIPSchema* schema, QNameID* elQnameArr, Index qnameC
 	 */
 	tmp_rule = &schema->docGrammar.rule[GR_DOC_END];
 
-	// TODO: consider ignoring this rule as well.
+	// TODO: consider ignoring this rule as well. In exipg generation as well ...
 
 	/* Part 1 */
 	tmp_rule->production = (Production*) memManagedAllocate(&schema->memList, sizeof(Production));
@@ -318,7 +318,7 @@ errorCode insertZeroProduction(DynGrammarRule* rule, EventType eventType, SmallI
 	return ERR_OK;
 }
 
-unsigned int getBitsFirstPartCode(EXIOptions opts, EXIGrammar* grammar, GrammarRule* currentRule, SmallIndex currentRuleIndx)
+unsigned int getBitsFirstPartCode(EXIOptions opts, EXIGrammar* grammar, SmallIndex currentRuleIndx, boolean isNilType)
 {
 	unsigned char secondLevelExists = 0;
 
@@ -326,7 +326,7 @@ unsigned int getBitsFirstPartCode(EXIOptions opts, EXIGrammar* grammar, GrammarR
 	{
 		// Built-in element grammar
 		// There is always a second level production
-		return getBitsNumber(currentRule->pCount);
+		return getBitsNumber(grammar->rule[currentRuleIndx].pCount);
 	}
 	else if(IS_DOCUMENT(grammar->props))
 	{
@@ -336,30 +336,36 @@ unsigned int getBitsFirstPartCode(EXIOptions opts, EXIGrammar* grammar, GrammarR
 		else if(currentRuleIndx == 0 && IS_PRESERVED(opts.preserve, PRESERVE_DTD))
 			secondLevelExists = 1;
 
-		return getBitsNumber(currentRule->pCount - 1 + secondLevelExists);
+		return getBitsNumber(grammar->rule[currentRuleIndx].pCount - 1 + secondLevelExists);
 	}
 	else if(IS_FRAGMENT(grammar->props))
 	{
 		// Fragment grammar
 		if(IS_PRESERVED(opts.preserve, PRESERVE_COMMENTS) || IS_PRESERVED(opts.preserve, PRESERVE_PIS))
 			secondLevelExists = 1;
-		return getBitsNumber(currentRule->pCount - 1 + secondLevelExists);
+		return getBitsNumber(grammar->rule[currentRuleIndx].pCount - 1 + secondLevelExists);
 	}
 	else
 	{
 		// Schema-informed element/type grammar
+		Index prodCount;
+
+		if(isNilType == FALSE)
+			prodCount = grammar->rule[currentRuleIndx].pCount;
+		else
+			prodCount = RULE_GET_AT_COUNT(grammar->rule[currentRuleIndx].meta) + RULE_CONTAIN_EE(grammar->rule[currentRuleIndx].meta);
 
 		if(WITH_STRICT(opts.enumOpt))
 		{
 			// Strict mode
-			if(currentRuleIndx == 0 && (HAS_NAMED_SUB_TYPE_OR_UNION(grammar->props) || IS_NILLABLE(grammar->props)))
+			if(isNilType == FALSE && currentRuleIndx == 0 && (HAS_NAMED_SUB_TYPE_OR_UNION(grammar->props) || IS_NILLABLE(grammar->props)))
 				secondLevelExists = 1;
-			return getBitsNumber(currentRule->pCount - 1 + secondLevelExists);
+			return getBitsNumber(prodCount - 1 + secondLevelExists);
 		}
 		else // Non-strict mode
 		{
 			// There is always a second level production
-			return getBitsNumber(currentRule->pCount);
+			return getBitsNumber(prodCount);
 		}
 	}
 }

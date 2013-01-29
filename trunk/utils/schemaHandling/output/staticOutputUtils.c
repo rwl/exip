@@ -20,7 +20,8 @@
 static void setProdStrings(IndexStrings *indexStrings, Production *prod)
 {
 	char *indexMaxStr = "INDEX_MAX";
-	char *smallIndexMaxStr = "SMALL_INDEX_MAX";
+	char *uriMaxStr = "URI_MAX";
+	char *lnMaxStr = "LN_MAX";
 
 	if (prod->typeId == INDEX_MAX)
 	{
@@ -30,17 +31,17 @@ static void setProdStrings(IndexStrings *indexStrings, Production *prod)
 	{
 		sprintf(indexStrings->typeIdStr, "%u", (unsigned int) prod->typeId);
 	}
-	if (prod->qnameId.uriId == SMALL_INDEX_MAX)
+	if (prod->qnameId.uriId == URI_MAX)
 	{
-		strcpy(indexStrings->uriIdStr, smallIndexMaxStr);
+		strcpy(indexStrings->uriIdStr, uriMaxStr);
 	}
 	else
 	{
 		sprintf(indexStrings->uriIdStr, "%u", (unsigned int) prod->qnameId.uriId);
 	}
-	if (prod->qnameId.lnId == INDEX_MAX)
+	if (prod->qnameId.lnId == LN_MAX)
 	{
-		strcpy(indexStrings->lnIdStr, indexMaxStr);
+		strcpy(indexStrings->lnIdStr, lnMaxStr);
 	}
 	else
 	{
@@ -169,34 +170,42 @@ void staticRulesOutput(EXIGrammar* gr, char* prefix, Index grId, FILE* out)
 
 void staticDocGrammarOutput(EXIGrammar* docGr, char* prefix, FILE* out)
 {
-	char varName[VAR_BUFFER_MAX_LENGTH];
+	char varNameContent[VAR_BUFFER_MAX_LENGTH];
+	char varNameEnd[VAR_BUFFER_MAX_LENGTH];
 	Index prodIter;
 	IndexStrings indexStrings;
 
 	// Printing of the Production variable string
-	sprintf(varName, "%sprod_doc_content", prefix);
+	sprintf(varNameContent, "%sprod_doc_content", prefix);
 
 	/* Build the document grammar, DocContent productions */
 
-	fprintf(out, "static CONST Production %s[%u] =\n{\n", varName, (unsigned int) docGr->rule[1].pCount);
+	fprintf(out, "static CONST Production %s[%u] =\n{\n", varNameContent, (unsigned int) docGr->rule[GR_DOC_CONTENT].pCount);
 
-	for(prodIter = 0; prodIter < docGr->rule[1].pCount; prodIter++)
+	for(prodIter = 0; prodIter < docGr->rule[GR_DOC_CONTENT].pCount; prodIter++)
 	{
-		setProdStrings(&indexStrings, &docGr->rule[1].production[prodIter]);
+		setProdStrings(&indexStrings, &docGr->rule[GR_DOC_CONTENT].production[prodIter]);
 		fprintf(out,
 				"    {\n        %u, %s,\n        {%s, %s}}%s",
-				(unsigned int) docGr->rule[1].production[prodIter].content,
+				(unsigned int) docGr->rule[GR_DOC_CONTENT].production[prodIter].content,
 				indexStrings.typeIdStr,
 				indexStrings.uriIdStr,
 				indexStrings.lnIdStr,
-				prodIter==(docGr->rule[1].pCount - 1) ? "\n};\n\n" : ",\n");
+				prodIter==(docGr->rule[GR_DOC_CONTENT].pCount - 1) ? "\n};\n\n" : ",\n");
 	}
 
+	// Printing of the Production variable string
+	sprintf(varNameEnd, "%sprod_doc_end", prefix);
+
+	/* Build the document grammar, DocEnd productions */
+
+	fprintf(out, "static CONST Production %s[%u] =\n{\n", varNameEnd, 1);
+	fprintf(out,"    {\n        0xaffffff, INDEX_MAX,\n        {URI_MAX, LN_MAX}}\n};\n\n");
+
 	/* Build the document grammar rules */
-	fprintf(out, "static CONST GrammarRule %sdocGrammarRule[3] =\n{\n", prefix);
-	fprintf(out, "    {static_prod_start_doc, NULL, 1, 0, 0, 0},\n\
-	{%s, NULL, %u, 0, 0},\n\
-    {static_prod_doc_end, NULL, 1, 0, 0, 0}\n};\n\n", varName, (unsigned int) docGr->rule[1].pCount);
+	fprintf(out, "static CONST GrammarRule %sdocGrammarRule[2] =\n{\n", prefix);
+	fprintf(out, "    {%s, %u, 0},\n\
+    {%s, 1, 0}\n};\n\n", varNameContent, (unsigned int) docGr->rule[GR_DOC_CONTENT].pCount, varNameEnd);
 }
 
 void staticPrefixOutput(PfxTable* pfxTbl, char* prefix, Index uriId, FILE* out)
