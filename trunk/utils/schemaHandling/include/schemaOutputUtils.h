@@ -42,6 +42,17 @@ typedef struct
  */
 errorCode textGrammarOutput(QNameID qnameid, Index grIndex, EXIGrammar* gr, EXIPSchema* schema, FILE* out);
 
+/**
+ * @brief Recursively builds an EXI grammars text representation and stores it in out.
+ * All referenced grammars through SE(QName) are also written to the output
+ * @param[in] qnameid the qnameid of the EXI grammar
+ * @param[in] grIndex index in the schema grammar table
+ * @param[in] gr EXI grammar to be stored
+ * @param[in] schema the EXIPSchema instance
+ * @param[out] out output stream
+ * @return Error handling code
+ */
+errorCode recursiveTextGrammarOutput(QNameID qnameid, Index grIndex, EXIGrammar* gr, EXIPSchema* schema, FILE* out);
 
 /** STATIC CODE OUTPUT DEFINITIONS */
 

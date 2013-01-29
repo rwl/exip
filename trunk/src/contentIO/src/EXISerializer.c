@@ -633,6 +633,8 @@ errorCode serializeEvent(EXIStream* strm, EventCode ec, QName* qname)
 	else // length == 3
 		return NOT_IMPLEMENTED_YET;
 
+	strm->context.currNonTermID = GET_PROD_NON_TERM(tmpProd->content);
+
 	switch(GET_PROD_EXI_EVENT(tmpProd->content))
 	{
 		case EVENT_SD:
@@ -751,15 +753,12 @@ errorCode serializeEvent(EXIStream* strm, EventCode ec, QName* qname)
 		}
 		break;
 		case EVENT_EE:
-			if(strm->context.currNonTermID == GR_VOID_NON_TERMINAL)
-			{
-				EXIGrammar* grammar;
-				popGrammar(&(strm->gStack), &grammar);
-				if(strm->gStack != NULL) // There is more grammars in the stack
-					strm->context.currNonTermID = strm->gStack->lastNonTermID;
-			}
-			else
-				return INCONSISTENT_PROC_STATE;
+			assert(strm->context.currNonTermID == GR_VOID_NON_TERMINAL);
+
+			EXIGrammar* grammar;
+			popGrammar(&(strm->gStack), &grammar);
+			if(strm->gStack != NULL) // There is more grammars in the stack
+				strm->context.currNonTermID = strm->gStack->lastNonTermID;
 		break;
 		case EVENT_CH:
 			return NOT_IMPLEMENTED_YET;

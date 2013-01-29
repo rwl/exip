@@ -166,3 +166,30 @@ static void writeValueTypeString(FILE* out, EXIType exiType)
 			break;
 	}
 }
+
+errorCode recursiveTextGrammarOutput(QNameID qnameid, Index grIndex, EXIGrammar* gr, EXIPSchema* schema, FILE* out)
+{
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	Index r, p;
+
+	tmp_err_code = textGrammarOutput(qnameid, grIndex, gr, schema, out);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	for(r = 0; r < gr->count; r++)
+	{
+		for(p = 0; p < gr->rule[r].pCount; p++)
+		{
+			if(GET_PROD_EXI_EVENT(gr->rule[r].production[p].content) == EVENT_SE_QNAME &&
+					gr->rule[r].production[p].typeId != INDEX_MAX)
+			{
+				tmp_err_code = recursiveTextGrammarOutput(gr->rule[r].production[p].qnameId, gr->rule[r].production[p].typeId, &schema->grammarTable.grammar[gr->rule[r].production[p].typeId], schema, out);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
+		}
+	}
+
+	return ERR_OK;
+}
+

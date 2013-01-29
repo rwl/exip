@@ -108,8 +108,7 @@ errorCode dynExipSchemaOutput(EXIPSchema* schema, char* prefix, unsigned char ma
 						}
 					}
 				}
-				// #DOCUMENT# IMPORTANT! tmpGrammar->count + (mask_specified == FALSE) because It must be assured that the schema informed grammars have one empty slot for the rule:  Element i, content2
-				fprintf(out, "GrammarRule* rule_%d_%d = memManagedAllocate(&schema->memList, %d * sizeof(GrammarRule));\n\t", uriIter, lnIter, tmpGrammar->count + (mask_specified == FALSE));
+				fprintf(out, "GrammarRule* rule_%d_%d = memManagedAllocate(&schema->memList, %d * sizeof(GrammarRule));\n\t", uriIter, lnIter, tmpGrammar->count);
 				fprintf(out, "if(rule_%d_%d == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t", uriIter, lnIter);
 
 				for(ruleIter = 0; ruleIter < tmpGrammar->count; ruleIter++)

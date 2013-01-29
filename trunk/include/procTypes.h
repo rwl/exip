@@ -564,6 +564,7 @@ typedef enum EXITypeClass EXITypeClass;
 #define PROD_CONTENT_MASK 0xFFFFFF // 0b00000000111111111111111111111111
 
 #define GET_PROD_EXI_EVENT(content) (content>>24)
+#define GET_PROD_EXI_EVENT_CLASS(content) GET_EVENT_CLASS((content>>24))
 #define SET_PROD_EXI_EVENT(content, eventType) (content = (content & PROD_CONTENT_MASK) | (eventType<<24))
 #define GET_PROD_NON_TERM(content) (content & PROD_CONTENT_MASK)
 #define SET_PROD_NON_TERM(content, nt) (content = (content & ~PROD_CONTENT_MASK) | (nt & PROD_CONTENT_MASK))

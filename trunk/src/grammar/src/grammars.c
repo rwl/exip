@@ -318,7 +318,7 @@ errorCode insertZeroProduction(DynGrammarRule* rule, EventType eventType, SmallI
 	return ERR_OK;
 }
 
-unsigned int getBitsFirstPartCode(EXIOptions opts, EXIGrammar* grammar, SmallIndex currentRuleIndx, boolean isNilType)
+unsigned int getBitsFirstPartCode(EXIOptions opts, EXIGrammar* grammar, GrammarRule* currentRule, SmallIndex currentRuleIndx, boolean isNilType)
 {
 	unsigned char secondLevelExists = 0;
 
@@ -326,7 +326,7 @@ unsigned int getBitsFirstPartCode(EXIOptions opts, EXIGrammar* grammar, SmallInd
 	{
 		// Built-in element grammar
 		// There is always a second level production
-		return getBitsNumber(grammar->rule[currentRuleIndx].pCount);
+		return getBitsNumber(currentRule->pCount);
 	}
 	else if(IS_DOCUMENT(grammar->props))
 	{
@@ -336,14 +336,14 @@ unsigned int getBitsFirstPartCode(EXIOptions opts, EXIGrammar* grammar, SmallInd
 		else if(currentRuleIndx == 0 && IS_PRESERVED(opts.preserve, PRESERVE_DTD))
 			secondLevelExists = 1;
 
-		return getBitsNumber(grammar->rule[currentRuleIndx].pCount - 1 + secondLevelExists);
+		return getBitsNumber(currentRule->pCount - 1 + secondLevelExists);
 	}
 	else if(IS_FRAGMENT(grammar->props))
 	{
 		// Fragment grammar
 		if(IS_PRESERVED(opts.preserve, PRESERVE_COMMENTS) || IS_PRESERVED(opts.preserve, PRESERVE_PIS))
 			secondLevelExists = 1;
-		return getBitsNumber(grammar->rule[currentRuleIndx].pCount - 1 + secondLevelExists);
+		return getBitsNumber(currentRule->pCount - 1 + secondLevelExists);
 	}
 	else
 	{
@@ -351,9 +351,9 @@ unsigned int getBitsFirstPartCode(EXIOptions opts, EXIGrammar* grammar, SmallInd
 		Index prodCount;
 
 		if(isNilType == FALSE)
-			prodCount = grammar->rule[currentRuleIndx].pCount;
+			prodCount = currentRule->pCount;
 		else
-			prodCount = RULE_GET_AT_COUNT(grammar->rule[currentRuleIndx].meta) + RULE_CONTAIN_EE(grammar->rule[currentRuleIndx].meta);
+			prodCount = RULE_GET_AT_COUNT(currentRule->meta) + RULE_CONTAIN_EE(currentRule->meta);
 
 		if(WITH_STRICT(opts.enumOpt))
 		{

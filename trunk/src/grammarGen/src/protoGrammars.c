@@ -63,30 +63,42 @@ errorCode convertProtoGrammar(AllocList* memlist, ProtoGrammar* pg, EXIGrammar* 
 {
 	Index ruleIter;
 	Index prodIter;
+	uint16_t attrCount;
+	boolean hasEE;
 
 	exiGrammar->props = 0;
 	SET_SCHEMA_GR(exiGrammar->props);
 	SET_CONTENT_INDEX(exiGrammar->props, pg->contentIndex);
 	exiGrammar->count = pg->count;
 
-	// #DOCUMENT# one more rule slot is created as it can be needed for addUndeclaredProductions
-	exiGrammar->rule = (GrammarRule*) memManagedAllocate(memlist, sizeof(GrammarRule)*(pg->count + 1));
+	exiGrammar->rule = (GrammarRule*) memManagedAllocate(memlist, sizeof(GrammarRule)*(pg->count));
 	if(exiGrammar->rule == NULL)
 		return MEMORY_ALLOCATION_ERROR;
 
 	for(ruleIter = 0; ruleIter < pg->count; ruleIter++)
 	{
-		/* Part 1 */
+		attrCount = 0;
+		hasEE = FALSE;
+
 		exiGrammar->rule[ruleIter].production = (Production*) memManagedAllocate(memlist, sizeof(Production)*pg->rule[ruleIter].count);
 		if(exiGrammar->rule[ruleIter].production == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
 		exiGrammar->rule[ruleIter].pCount = pg->rule[ruleIter].count;
+		exiGrammar->rule[ruleIter].meta = 0;
 
 		for(prodIter = 0; prodIter < pg->rule[ruleIter].count; prodIter++)
 		{
+			if(GET_PROD_EXI_EVENT_CLASS(pg->rule[ruleIter].prod[prodIter].content) == EVENT_AT_CLASS)
+				attrCount++;
+			else if(GET_PROD_EXI_EVENT(pg->rule[ruleIter].prod[prodIter].content) == EVENT_EE)
+				hasEE = TRUE;
 			exiGrammar->rule[ruleIter].production[prodIter] = pg->rule[ruleIter].prod[prodIter];
 		}
+
+		RULE_SET_AT_COUNT(exiGrammar->rule[ruleIter].meta, attrCount);
+		if(hasEE)
+			RULE_SET_CONTAIN_EE(exiGrammar->rule[ruleIter].meta);
 	}
 
 	return ERR_OK;
