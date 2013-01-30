@@ -1,4 +1,4 @@
-/** AUTO-GENERATED: Tue Jan 29 16:26:39 2013
+/** AUTO-GENERATED: Wed Jan 30 10:57:02 2013
   * Copyright (c) 2010 - 2011, Rumen Kyusakov, EISLAB, LTU
   * $Id$ */
 
@@ -1046,7 +1046,7 @@ static CONST GrammarRule ops_rule_45[2] =
 static CONST Production ops_prod_46_0[1] =
 {
     {
-        671154175, INDEX_MAX,
+        687865855, INDEX_MAX,
         {URI_MAX, LN_MAX}}
 };
 
@@ -2547,7 +2547,7 @@ static CONST Production ops_prod_doc_content[2] =
 static CONST Production ops_prod_doc_end[1] =
 {
     {
-        0xaffffff, INDEX_MAX,
+        0xAFFFFFF, INDEX_MAX,
         {URI_MAX, LN_MAX}}
 };
 

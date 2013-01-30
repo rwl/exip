@@ -136,6 +136,7 @@ static errorCode handleProduction(EXIStream* strm, Production* prodHit, SmallInd
 	switch(GET_PROD_EXI_EVENT(prodHit->content))
 	{
 		case EVENT_ED:
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR, ("> ED event:\n"));
 			if(handler->endDocument != NULL)
 			{
 				if(handler->endDocument(app_data) == EXIP_HANDLER_STOP)
@@ -143,6 +144,7 @@ static errorCode handleProduction(EXIStream* strm, Production* prodHit, SmallInd
 			}
 		break;
 		case EVENT_EE:
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR, ("> EE event:\n"));
 			strm->context.isNilType = FALSE;
 			if(handler->endElement != NULL)
 			{
@@ -151,6 +153,7 @@ static errorCode handleProduction(EXIStream* strm, Production* prodHit, SmallInd
 			}
 		break;
 		case EVENT_SC:
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR, ("> SC event:\n"));
 			if(handler->selfContained != NULL)
 			{
 				if(handler->selfContained(app_data) == EXIP_HANDLER_STOP)
@@ -847,11 +850,17 @@ errorCode decodeEventContent(EXIStream* strm, Production* prodHit, ContentHandle
 		{
 			EXIGrammar* elemGrammar = NULL;
 
-			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">SE(qname) event\n"));
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">SE(qname) event: \n"));
 			assert(strm->context.isNilType == FALSE);
 			strm->context.currElem = prodHit->qnameId;
 			qname.uri = &(strm->schema->uriTable.uri[prodHit->qnameId.uriId].uriStr);
 			qname.localName = &(GET_LN_URI_QNAME(strm->schema->uriTable, prodHit->qnameId).lnStr);
+#if DEBUG_GRAMMAR == ON && EXIP_DEBUG_LEVEL == INFO
+			printString(qname.uri);
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (" : "));
+			printString(qname.localName);
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR, ("\n"));
+#endif
 			tmp_err_code = decodePfxQname(strm, &qname, prodHit->qnameId.uriId);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
@@ -893,6 +902,12 @@ errorCode decodeEventContent(EXIStream* strm, Production* prodHit, ContentHandle
 			strm->context.currAttr = prodHit->qnameId;
 			qname.uri = &strm->schema->uriTable.uri[strm->context.currAttr.uriId].uriStr;
 			qname.localName = &GET_LN_URI_QNAME(strm->schema->uriTable, prodHit->qnameId).lnStr;
+#if DEBUG_GRAMMAR == ON && EXIP_DEBUG_LEVEL == INFO
+			printString(qname.uri);
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR, (" : "));
+			printString(qname.localName);
+			DEBUG_MSG(INFO, DEBUG_GRAMMAR, ("\n"));
+#endif
 			tmp_err_code = decodePfxQname(strm, &qname, prodHit->qnameId.uriId);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
@@ -1182,6 +1197,7 @@ errorCode decodeNSEvent(EXIStream* strm, ContentHandler* handler, SmallIndex* no
 	SmallIndex pfxId;
 	boolean bool = FALSE;
 
+	DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">NS event:\n"));
 	*nonTermID_out = GR_START_TAG_CONTENT;
 
 	tmp_err_code = decodeUri(strm, &ns_uriId);
