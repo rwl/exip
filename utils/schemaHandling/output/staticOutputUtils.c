@@ -200,7 +200,7 @@ void staticDocGrammarOutput(EXIGrammar* docGr, char* prefix, FILE* out)
 	/* Build the document grammar, DocEnd productions */
 
 	fprintf(out, "static CONST Production %s[%u] =\n{\n", varNameEnd, 1);
-	fprintf(out,"    {\n        0xaffffff, INDEX_MAX,\n        {URI_MAX, LN_MAX}}\n};\n\n");
+	fprintf(out,"    {\n        0xAFFFFFF, INDEX_MAX,\n        {URI_MAX, LN_MAX}}\n};\n\n");
 
 	/* Build the document grammar rules */
 	fprintf(out, "static CONST GrammarRule %sdocGrammarRule[2] =\n{\n", prefix);

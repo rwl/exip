@@ -91,6 +91,7 @@ errorCode encodeHeader(EXIStream* strm)
 		boolean hasLesscommon = FALSE;
 		boolean hasCommon = FALSE;
 		EventCode tmpEvCode;
+		unsigned int ruleContext = 0;
 
 		makeDefaultOpts(&options_strm.header.opts);
 		SET_STRICT(options_strm.header.opts.enumOpt);
@@ -162,12 +163,14 @@ errorCode encodeHeader(EXIStream* strm)
 				tmpEvCode.part[0] = 0;
 				tmpEvCode.bits[0] = 2;
 				tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <uncommon>
+				ruleContext = 0;
 				if(GET_ALIGNMENT(strm->header.opts.enumOpt) != BIT_PACKED)
 				{
 					tmpEvCode.length = 1;
 					tmpEvCode.part[0] = 0;
 					tmpEvCode.bits[0] = 3;
 					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <alignment>
+					ruleContext = 1;
 					if(GET_ALIGNMENT(strm->header.opts.enumOpt) == BYTE_ALIGNMENT)
 					{
 						tmpEvCode.length = 1;
@@ -191,9 +194,10 @@ errorCode encodeHeader(EXIStream* strm)
 				if(WITH_SELF_CONTAINED(strm->header.opts.enumOpt))
 				{
 					tmpEvCode.length = 1;
-					tmpEvCode.part[0] = 1 - (GET_ALIGNMENT(strm->header.opts.enumOpt) != BIT_PACKED);
+					tmpEvCode.part[0] = 1 - ruleContext;
 					tmpEvCode.bits[0] = 3;
 					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <selfContained>
+					ruleContext = 2;
 					tmpEvCode.length = 1;
 					tmpEvCode.part[0] = 0;
 					tmpEvCode.bits[0] = 0;
@@ -202,9 +206,10 @@ errorCode encodeHeader(EXIStream* strm)
 				if(strm->header.opts.valueMaxLength != INDEX_MAX)
 				{
 					tmpEvCode.length = 1;
-					tmpEvCode.part[0] = 2 - WITH_SELF_CONTAINED(strm->header.opts.enumOpt) - (GET_ALIGNMENT(strm->header.opts.enumOpt) != BIT_PACKED);
-					tmpEvCode.bits[0] = 3 - (WITH_SELF_CONTAINED(strm->header.opts.enumOpt) && (GET_ALIGNMENT(strm->header.opts.enumOpt) != BIT_PACKED));
+					tmpEvCode.part[0] = 2 - ruleContext;
+					tmpEvCode.bits[0] = 3 - (ruleContext == 2);
 					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <valueMaxLength>
+					ruleContext = 3;
 					tmp_err_code += serialize.intData(&options_strm, strm->header.opts.valueMaxLength);
 					tmpEvCode.length = 1;
 					tmpEvCode.part[0] = 0;
@@ -214,9 +219,10 @@ errorCode encodeHeader(EXIStream* strm)
 				if(strm->header.opts.valuePartitionCapacity != INDEX_MAX)
 				{
 					tmpEvCode.length = 1;
-					tmpEvCode.part[0] = 3 - (GET_ALIGNMENT(strm->header.opts.enumOpt) != BIT_PACKED) - WITH_SELF_CONTAINED(strm->header.opts.enumOpt) - (strm->header.opts.valueMaxLength != INDEX_MAX);
+					tmpEvCode.part[0] = 3 - ruleContext;
 					tmpEvCode.bits[0] = 3 - (tmpEvCode.part[0] < 2);
 					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <valuePartitionCapacity>
+					ruleContext = 4;
 					tmp_err_code += serialize.intData(&options_strm, strm->header.opts.valuePartitionCapacity);
 					tmpEvCode.length = 1;
 					tmpEvCode.part[0] = 0;
@@ -226,15 +232,15 @@ errorCode encodeHeader(EXIStream* strm)
 				if(strm->header.opts.drMap != NULL)
 				{
 					tmpEvCode.length = 1;
-					tmpEvCode.part[0] = 4 - (GET_ALIGNMENT(strm->header.opts.enumOpt) != BIT_PACKED) - WITH_SELF_CONTAINED(strm->header.opts.enumOpt) - (strm->header.opts.valueMaxLength != INDEX_MAX) - (strm->header.opts.valuePartitionCapacity != INDEX_MAX);
+					tmpEvCode.part[0] = 4 - ruleContext;
 					tmpEvCode.bits[0] = 3 - (tmpEvCode.part[0] < 3) - (tmpEvCode.part[0] == 0);
 					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <datatypeRepresentationMap>
+					ruleContext = 5;
 					// TODO: not ready yet!
 					return NOT_IMPLEMENTED_YET;
 				}
 				tmpEvCode.length = 1;
-				tmpEvCode.part[0] = 6 - (GET_ALIGNMENT(strm->header.opts.enumOpt) != BIT_PACKED) - WITH_SELF_CONTAINED(strm->header.opts.enumOpt) - (strm->header.opts.valueMaxLength != INDEX_MAX) - (strm->header.opts.valuePartitionCapacity != INDEX_MAX) - (strm->header.opts.drMap != NULL) -
-						((GET_ALIGNMENT(strm->header.opts.enumOpt) != BIT_PACKED) || WITH_SELF_CONTAINED(strm->header.opts.enumOpt) || (strm->header.opts.valueMaxLength != INDEX_MAX) || (strm->header.opts.valuePartitionCapacity != INDEX_MAX) || (strm->header.opts.drMap != NULL));
+				tmpEvCode.part[0] = 6 - ruleContext - (ruleContext > 0);
 				tmpEvCode.bits[0] = getBitsNumber(tmpEvCode.part[0]);
 				tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <uncommon>
 			}
@@ -244,21 +250,24 @@ errorCode encodeHeader(EXIStream* strm)
 				tmpEvCode.part[0] = 1 - hasUncommon;
 				tmpEvCode.bits[0] = 2;
 				tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <preserve>
+				ruleContext = 0;
 				if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
 				{
 					tmpEvCode.length = 1;
 					tmpEvCode.part[0] = 0;
 					tmpEvCode.bits[0] = 3;
 					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <dtd>
+					ruleContext = 1;
 					tmpEvCode.bits[0] = 0;
 					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <dtd>
 				}
 				if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES))
 				{
 					tmpEvCode.length = 1;
-					tmpEvCode.part[0] = 1 - IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD);
+					tmpEvCode.part[0] = 1 - ruleContext;
 					tmpEvCode.bits[0] = 3;
 					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <prefixes>
+					ruleContext = 2;
 					tmpEvCode.length = 1;
 					tmpEvCode.part[0] = 0;
 					tmpEvCode.bits[0] = 0;
@@ -267,9 +276,10 @@ errorCode encodeHeader(EXIStream* strm)
 				if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_LEXVALUES))
 				{
 					tmpEvCode.length = 1;
-					tmpEvCode.part[0] = 2 - IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD) - IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES);
-					tmpEvCode.bits[0] = 3 - (IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD) && IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES));
+					tmpEvCode.part[0] = 2 - ruleContext;
+					tmpEvCode.bits[0] = 3 - (ruleContext == 2);
 					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <lexicalValues>
+					ruleContext = 3;
 					tmpEvCode.length = 1;
 					tmpEvCode.part[0] = 0;
 					tmpEvCode.bits[0] = 0;
@@ -278,9 +288,10 @@ errorCode encodeHeader(EXIStream* strm)
 				if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
 				{
 					tmpEvCode.length = 1;
-					tmpEvCode.part[0] = 3 - IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD) - IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES)-IS_PRESERVED(strm->header.opts.preserve, PRESERVE_LEXVALUES);
+					tmpEvCode.part[0] = 3 - ruleContext;
 					tmpEvCode.bits[0] = 3 - (tmpEvCode.part[0] < 2);
 					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <comments>
+					ruleContext = 4;
 					tmpEvCode.length = 1;
 					tmpEvCode.part[0] = 0;
 					tmpEvCode.bits[0] = 0;
@@ -289,24 +300,25 @@ errorCode encodeHeader(EXIStream* strm)
 				if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 				{
 					tmpEvCode.length = 1;
-					tmpEvCode.part[0] = 4 - IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD) - IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES)-IS_PRESERVED(strm->header.opts.preserve, PRESERVE_LEXVALUES) - IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS);
+					tmpEvCode.part[0] = 4 - ruleContext;
 					tmpEvCode.bits[0] = 3 - (tmpEvCode.part[0] < 3) - (tmpEvCode.part[0] == 0);
 					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <pis>
+					ruleContext = 5;
 					tmpEvCode.length = 1;
 					tmpEvCode.part[0] = 0;
 					tmpEvCode.bits[0] = 0;
 					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <pis>
 				}
 				tmpEvCode.length = 1;
-				tmpEvCode.part[0] = 5 - IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD) - IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES)-IS_PRESERVED(strm->header.opts.preserve, PRESERVE_LEXVALUES) - IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) - IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS);
+				tmpEvCode.part[0] = 5 - ruleContext;
 				tmpEvCode.bits[0] = getBitsNumber(tmpEvCode.part[0]);
 				tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <preserve>
 			}
 			if(strm->header.opts.blockSize != 1000000)
 			{
 				tmpEvCode.length = 1;
-				tmpEvCode.part[0] = 2 - hasUncommon - (strm->header.opts.preserve != 0);
-				tmpEvCode.bits[0] = 2 - (hasUncommon && strm->header.opts.preserve != 0);
+				tmpEvCode.part[0] = strm->header.opts.preserve != 0 ? 0 : (2 - hasUncommon);
+				tmpEvCode.bits[0] = 2 - (strm->header.opts.preserve != 0);
 				tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <blockSize>
 				tmp_err_code += serialize.intData(&options_strm, strm->header.opts.blockSize);
 				tmpEvCode.length = 1;
@@ -315,7 +327,7 @@ errorCode encodeHeader(EXIStream* strm)
 				tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <blockSize>
 			}
 			tmpEvCode.length = 1;
-			tmpEvCode.part[0] = 3 - hasUncommon - (strm->header.opts.preserve != 0) - (strm->header.opts.blockSize != 1000000);
+			tmpEvCode.part[0] = strm->header.opts.blockSize != 1000000 ? 0 : (strm->header.opts.preserve != 0 ? 1 : 3 - hasUncommon);
 			tmpEvCode.bits[0] = getBitsNumber(tmpEvCode.part[0]);
 			tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <lesscommon>
 		}
@@ -332,21 +344,24 @@ errorCode encodeHeader(EXIStream* strm)
 			tmpEvCode.part[0] = 1 - hasLesscommon;
 			tmpEvCode.bits[0] = 2;
 			tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <common>
+			ruleContext = 0;
 			if(WITH_COMPRESSION(strm->header.opts.enumOpt))
 			{
 				tmpEvCode.length = 1;
 				tmpEvCode.part[0] = 0;
 				tmpEvCode.bits[0] = 2;
 				tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <compression>
+				ruleContext = 1;
 				tmpEvCode.bits[0] = 0;
 				tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <compression>
 			}
 			if(WITH_FRAGMENT(strm->header.opts.enumOpt))
 			{
 				tmpEvCode.length = 1;
-				tmpEvCode.part[0] = 1 - WITH_COMPRESSION(strm->header.opts.enumOpt);
+				tmpEvCode.part[0] = 1 - ruleContext;
 				tmpEvCode.bits[0] = 2;
 				tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <fragment>
+				ruleContext = 2;
 				tmpEvCode.length = 1;
 				tmpEvCode.part[0] = 0;
 				tmpEvCode.bits[0] = 0;
@@ -355,9 +370,10 @@ errorCode encodeHeader(EXIStream* strm)
 			if(strm->header.opts.schemaID.length != 0) // SchemaID modes are encoded in the length part
 			{
 				tmpEvCode.length = 1;
-				tmpEvCode.part[0] = 2 - WITH_COMPRESSION(strm->header.opts.enumOpt) - WITH_FRAGMENT(strm->header.opts.enumOpt);
-				tmpEvCode.bits[0] = 2 - (WITH_COMPRESSION(strm->header.opts.enumOpt) && WITH_FRAGMENT(strm->header.opts.enumOpt));
+				tmpEvCode.part[0] = 2 - ruleContext;
+				tmpEvCode.bits[0] = 2 - (ruleContext == 2);
 				tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <schemaId>
+				ruleContext = 3;
 				if(strm->header.opts.schemaID.str != NULL)
 				{
 					tmp_err_code += serialize.stringData(&options_strm, strm->header.opts.schemaID);
@@ -389,7 +405,7 @@ errorCode encodeHeader(EXIStream* strm)
 				tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <schemaId>
 			}
 			tmpEvCode.length = 1;
-			tmpEvCode.part[0] = 3 - WITH_COMPRESSION(strm->header.opts.enumOpt) - WITH_FRAGMENT(strm->header.opts.enumOpt) - (strm->header.opts.schemaID.length != 0);
+			tmpEvCode.part[0] = 3 - ruleContext;
 			tmpEvCode.bits[0] = getBitsNumber(tmpEvCode.part[0]);
 			tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <common>
 		}
@@ -397,8 +413,8 @@ errorCode encodeHeader(EXIStream* strm)
 		if(WITH_STRICT(strm->header.opts.enumOpt))
 		{
 			tmpEvCode.length = 1;
-			tmpEvCode.part[0] = 2 - hasLesscommon - hasCommon;
-			tmpEvCode.bits[0] = 2 - (hasLesscommon && hasCommon);
+			tmpEvCode.part[0] = hasCommon? 0 : 2 - hasLesscommon;
+			tmpEvCode.bits[0] = 2 - hasCommon;
 			tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <strict>
 			tmpEvCode.length = 1;
 			tmpEvCode.part[0] = 0;
@@ -407,7 +423,7 @@ errorCode encodeHeader(EXIStream* strm)
 		}
 
 		tmpEvCode.length = 1;
-		tmpEvCode.part[0] = 3 - hasLesscommon - hasCommon - WITH_STRICT(strm->header.opts.enumOpt);
+		tmpEvCode.part[0] = WITH_STRICT(strm->header.opts.enumOpt)? 0 : (hasCommon? 1 : 3 - hasLesscommon);
 		tmpEvCode.bits[0] = getBitsNumber(tmpEvCode.part[0]);
 		tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <header>
 
