@@ -113,19 +113,19 @@ errorCode encode(EXIPSchema* schemaPtr, FILE *outfile, size_t (*outputStream)(vo
 	if(schemaPtr != NULL)
 	{
 		// schema mode
-		tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_SMALL_INTEGER); // testByte="
+		tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_INTEGER_CLASS); // testByte="
 		tmp_err_code += serialize.intData(&testStrm, 55);
 	}
 	else
 	{
 		// schema-less mode
-		tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING); // testByte="
+		tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING_CLASS); // testByte="
 		tmp_err_code += asciiToString("55", &chVal, &testStrm.memList, FALSE);
 		tmp_err_code += serialize.stringData(&testStrm, chVal);
 	}
 
 	qname.localName = &ATTR_VERSION_STR;
-	tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING); // version="
+	tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING_CLASS); // version="
 
 	tmp_err_code += asciiToString("0.2", &chVal, &testStrm.memList, FALSE);
 	tmp_err_code += serialize.stringData(&testStrm, chVal);
@@ -150,7 +150,7 @@ errorCode encode(EXIPSchema* schemaPtr, FILE *outfile, size_t (*outputStream)(vo
 
 	qname.uri = &NS_EMPTY_STR;
 	qname.localName = &ATTR_GOAL_STR;
-	tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING); // goal="
+	tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING_CLASS); // goal="
 
 	tmp_err_code += asciiToString("Verify that the implementation works!", &chVal, &testStrm.memList, FALSE);
 	tmp_err_code += serialize.stringData(&testStrm, chVal);
@@ -169,7 +169,7 @@ errorCode encode(EXIPSchema* schemaPtr, FILE *outfile, size_t (*outputStream)(vo
 		// schema mode
 		qname.uri = &NS_EMPTY_STR;
 		qname.localName = &ATTR_ID_STR;
-		tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_INTEGER); // id="
+		tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_INTEGER_CLASS); // id="
 		tmp_err_code += serialize.intData(&testStrm, 1001);
 	}
 	else
@@ -177,7 +177,7 @@ errorCode encode(EXIPSchema* schemaPtr, FILE *outfile, size_t (*outputStream)(vo
 		// schema-less mode
 		qname.uri = &NS_EMPTY_STR;
 		qname.localName = &ATTR_ID_STR;
-		tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING); // id="
+		tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING_CLASS); // id="
 		tmp_err_code += asciiToString("1001", &chVal, &testStrm.memList, FALSE);
 		tmp_err_code += serialize.stringData(&testStrm, chVal);
 	}

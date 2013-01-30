@@ -372,10 +372,57 @@ unsigned int getBitsFirstPartCode(EXIOptions opts, EXIGrammar* grammar, GrammarR
 
 #if EXIP_DEBUG == ON
 
+static void writeValueTypeString(EXIType exiType)
+{
+	switch(exiType)
+	{
+		case VALUE_TYPE_NONE:
+			DEBUG_MSG(INFO, EXIP_DEBUG, ("[N/A]"));
+			break;
+		case VALUE_TYPE_STRING:
+			DEBUG_MSG(INFO, EXIP_DEBUG, ("[str]"));
+			break;
+		case VALUE_TYPE_FLOAT:
+			DEBUG_MSG(INFO, EXIP_DEBUG, ("[float]"));
+			break;
+		case VALUE_TYPE_DECIMAL:
+			DEBUG_MSG(INFO, EXIP_DEBUG, ("[dec]"));
+			break;
+		case VALUE_TYPE_DATE_TIME:
+			DEBUG_MSG(INFO, EXIP_DEBUG, ("[date]"));
+			break;
+		case VALUE_TYPE_BOOLEAN:
+			DEBUG_MSG(INFO, EXIP_DEBUG, ("[bool]"));
+			break;
+		case VALUE_TYPE_BINARY:
+			DEBUG_MSG(INFO, EXIP_DEBUG, ("[bin]"));
+			break;
+		case VALUE_TYPE_LIST:
+			DEBUG_MSG(INFO, EXIP_DEBUG, ("[list]"));
+			break;
+		case VALUE_TYPE_QNAME:
+			DEBUG_MSG(INFO, EXIP_DEBUG, ("[qname]"));
+			break;
+		case VALUE_TYPE_UNTYPED:
+			DEBUG_MSG(INFO, EXIP_DEBUG, ("[untyped]"));
+			break;
+		case VALUE_TYPE_INTEGER:
+			DEBUG_MSG(INFO, EXIP_DEBUG, ("[int]"));
+			break;
+		case VALUE_TYPE_SMALL_INTEGER:
+			DEBUG_MSG(INFO, EXIP_DEBUG, ("[short]"));
+			break;
+		case VALUE_TYPE_NON_NEGATIVE_INT:
+			DEBUG_MSG(INFO, EXIP_DEBUG, ("[uint]"));
+			break;
+	}
+}
+
 errorCode printGrammarRule(SmallIndex nonTermID, GrammarRule* rule, EXIPSchema *schema)
 {
 	Index j = 0;
 	Production* tmpProd;
+	EXIType exiType = VALUE_TYPE_NONE;
 
 	DEBUG_MSG(INFO, EXIP_DEBUG, ("\n>RULE\n"));
 	DEBUG_MSG(INFO, EXIP_DEBUG, ("NT-%u:", (unsigned int) nonTermID));
@@ -387,6 +434,12 @@ errorCode printGrammarRule(SmallIndex nonTermID, GrammarRule* rule, EXIPSchema *
 		String *localName = NULL;
 		tmpProd = &rule->production[rule->pCount - 1 - j];
 		DEBUG_MSG(INFO, EXIP_DEBUG, ("\t"));
+
+		if(GET_PROD_EXI_EVENT(tmpProd->content) != EVENT_SE_QNAME && tmpProd->typeId != INDEX_MAX)
+			exiType = GET_EXI_TYPE(schema->simpleTypeTable.sType[tmpProd->typeId].content);
+		else
+			exiType = VALUE_TYPE_NONE;
+
 		switch(GET_PROD_EXI_EVENT(tmpProd->content))
 		{
 			case EVENT_SD:
@@ -415,17 +468,20 @@ errorCode printGrammarRule(SmallIndex nonTermID, GrammarRule* rule, EXIPSchema *
 			{
 				QNameID *qname = &tmpProd->qnameId;
 				localName = &(GET_LN_URI_P_QNAME(schema->uriTable, qname).lnStr);
-				DEBUG_MSG(INFO, EXIP_DEBUG, ("AT (qname %u:%u) [%u]", (unsigned int) tmpProd->qnameId.uriId, (unsigned int) tmpProd->qnameId.lnId, (unsigned int) tmpProd->typeId));
+				DEBUG_MSG(INFO, EXIP_DEBUG, ("AT (qname %u:%u) ", (unsigned int) tmpProd->qnameId.uriId, (unsigned int) tmpProd->qnameId.lnId));
+				writeValueTypeString(exiType);
 				break;
 			}
 			case EVENT_AT_URI:
 				DEBUG_MSG(INFO, EXIP_DEBUG, ("AT (uri) "));
 				break;
 			case EVENT_AT_ALL:
-				DEBUG_MSG(INFO, EXIP_DEBUG, ("AT (*) [%u]", (unsigned int) tmpProd->typeId));
+				DEBUG_MSG(INFO, EXIP_DEBUG, ("AT (*) "));
+				writeValueTypeString(exiType);
 				break;
 			case EVENT_CH:
-				DEBUG_MSG(INFO, EXIP_DEBUG, ("CH [%u]", (unsigned int) tmpProd->typeId));
+				DEBUG_MSG(INFO, EXIP_DEBUG, ("CH "));
+				writeValueTypeString(exiType);
 				break;
 			case EVENT_NS:
 				DEBUG_MSG(INFO, EXIP_DEBUG, ("NS "));

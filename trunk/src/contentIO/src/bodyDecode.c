@@ -35,7 +35,7 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 	GrammarRule* currentRule;
 	Index prodCount;
 
-	DEBUG_MSG(INFO, DEBUG_GRAMMAR, (">Next production non-term-id: %u\n", (unsigned int) strm->context.currNonTermID));
+	DEBUG_MSG(INFO, DEBUG_GRAMMAR, ("\n>Next production non-term-id: %u\n", (unsigned int) strm->context.currNonTermID));
 
 	if(strm->context.currNonTermID >=  strm->gStack->grammar->count)
 		return INCONSISTENT_PROC_STATE;
@@ -1002,7 +1002,7 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 			else
 				return NOT_IMPLEMENTED_YET;
 
-			if(HAS_TYPE_FACET(strm->schema->simpleTypeTable.sType[typeId].content, TYPE_FACET_MIN_EXCLUSIVE))
+			if(HAS_TYPE_FACET(strm->schema->simpleTypeTable.sType[typeId].content, TYPE_FACET_MAX_INCLUSIVE))
 				upLimit = strm->schema->simpleTypeTable.sType[typeId].max;
 			else
 				return NOT_IMPLEMENTED_YET;
