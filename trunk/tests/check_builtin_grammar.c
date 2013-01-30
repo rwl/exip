@@ -111,6 +111,7 @@ START_TEST (test_decode_ant_example01)
 	// IV: Parse the header of the stream
 	tmp_err_code = parseHeader(&testParser, TRUE);
 	fail_unless (tmp_err_code == ERR_OK, "parsing the header returns an error code %d", tmp_err_code);
+	parsingData.eventCount++; // SD event is implicit
 
 	// V: Parse the body of the EXI stream
 	while(tmp_err_code == ERR_OK)
