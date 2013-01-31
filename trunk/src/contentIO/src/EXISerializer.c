@@ -83,6 +83,7 @@ errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema, S
 	strm->context.currAttr.lnId = LN_MAX;
 	strm->context.expectATData = FALSE;
 	strm->context.isNilType = FALSE;
+	strm->context.isContent2Grammar = FALSE;
 	strm->context.attrTypeId = INDEX_MAX;
 	strm->gStack = NULL;
 	strm->valueTable.value = NULL;
@@ -339,6 +340,13 @@ errorCode attribute(EXIStream* strm, QName qname, EXITypeClass exiType)
 		tmp_err_code = encodeQName(strm, qname, EVENT_AT_ALL, &strm->context.currAttr);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
+
+		if(IS_SCHEMA(strm->gStack->grammar->props) && strm->context.currAttr.uriId == XML_SCHEMA_INSTANCE_ID &&
+				(strm->context.currAttr.uriId == XML_SCHEMA_INSTANCE_TYPE_ID || strm->context.currAttr.uriId == XML_SCHEMA_INSTANCE_NIL_ID))
+		{
+			DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">In schema-informed grammars, xsi:type and xsi:nil attributes MUST NOT be represented using AT(*) terminal\n"));
+			return INCONSISTENT_PROC_STATE;
+		}
 	}
 	else if(GET_PROD_EXI_EVENT(prodHit.content) == EVENT_AT_QNAME)
 	{

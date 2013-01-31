@@ -25,7 +25,8 @@
 				</element>
 			</sequence>
 			<attribute name="language" type="string" use="required"></attribute>
-			<attribute name="version" type="decimal" use="required"></attribute>
+			<attribute name="version" type="string" use="required"></attribute>
+			<attribute name="decTest" type="decimal"></attribute>
 		</complexType>
 	</element>
 </schema>
