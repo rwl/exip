@@ -1102,6 +1102,9 @@ struct StreamContext
 	/** TRUE if the current grammar rule must be processed as EmptyType grammar */
 	boolean isNilType;
 
+	/** TRUE if the current grammar rule must be processed as Content2 grammar. */
+	boolean isContent2Grammar;
+
 	/** Value type of the expected attribute */
 	Index attrTypeId;
 };

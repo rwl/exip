@@ -41,6 +41,7 @@ errorCode initParser(Parser* parser, BinaryBuffer buffer, EXIPSchema* schema, vo
 	parser->strm.context.currAttr.uriId = 0;
 	parser->strm.context.expectATData = FALSE;
 	parser->strm.context.isNilType = FALSE;
+	parser->strm.context.isContent2Grammar = FALSE;
 	parser->strm.context.attrTypeId = INDEX_MAX;
 	parser->strm.gStack = NULL;
 	parser->strm.valueTable.value = NULL;
