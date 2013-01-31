@@ -83,7 +83,6 @@ errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema, S
 	strm->context.currAttr.lnId = LN_MAX;
 	strm->context.expectATData = FALSE;
 	strm->context.isNilType = FALSE;
-	strm->context.isContent2Grammar = FALSE;
 	strm->context.attrTypeId = INDEX_MAX;
 	strm->gStack = NULL;
 	strm->valueTable.value = NULL;
