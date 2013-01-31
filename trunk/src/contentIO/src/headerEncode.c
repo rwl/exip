@@ -109,7 +109,6 @@ errorCode encodeHeader(EXIStream* strm)
 		options_strm.context.currAttr.uriId = URI_MAX;
 		options_strm.context.expectATData = FALSE;
 		options_strm.context.isNilType = FALSE;
-		options_strm.context.isContent2Grammar = FALSE;
 		options_strm.context.attrTypeId = 0;
 		options_strm.gStack = NULL;
 		options_strm.schema = (EXIPSchema*) &ops_schema;

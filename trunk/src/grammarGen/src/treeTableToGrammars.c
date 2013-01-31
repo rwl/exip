@@ -28,7 +28,7 @@
 //       Also this is platform dependent and must be fixed!
 static Production static_grammar_prod_empty[1] = {{0x28FFFFFF, INDEX_MAX, {URI_MAX, LN_MAX}}};
 static GrammarRule static_grammar_rule_empty[1] = {{static_grammar_prod_empty, 1, 0x01}};
-static EXIGrammar static_grammar_empty = {static_grammar_rule_empty, 0x2000000, 1};
+static EXIGrammar static_grammar_empty = {static_grammar_rule_empty, 0x42000000, 1};
 
 struct GlobalElemQNameTable
 {
@@ -2122,6 +2122,30 @@ static errorCode storeGrammar(BuildContext* ctx, QNameID qnameID, ProtoGrammar* 
 
 		if(isNillable)
 			SET_NILLABLE_GR(exiGr.props);
+
+		// The grammar has a content2 grammar if and only if there are AT
+		// productions that point to the content grammar rule OR the content index is 0.
+		if(GET_CONTENT_INDEX(exiGr.props) == 0)
+			SET_HAS_CONTENT2(exiGr.props);
+		else
+		{
+			Index r, p;
+			boolean prodFound = FALSE;
+			for(r = 0; r < GET_CONTENT_INDEX(exiGr.props); r++)
+			{
+				for(p = 0; p < RULE_GET_AT_COUNT(exiGr.rule[r].meta); p++)
+				{
+					if(GET_PROD_NON_TERM(exiGr.rule[r].production[exiGr.rule[r].pCount-1-p].content) == GET_CONTENT_INDEX(exiGr.props))
+					{
+						SET_HAS_CONTENT2(exiGr.props);
+						prodFound = TRUE;
+						break;
+					}
+				}
+				if(prodFound)
+					break;
+			}
+		}
 
 		tmp_err_code = addDynEntry(&ctx->schema->grammarTable.dynArray, &exiGr, grIndex);
 		if(tmp_err_code != ERR_OK)

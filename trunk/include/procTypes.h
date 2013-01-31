@@ -690,13 +690,15 @@ typedef struct DynGrammarRule DynGrammarRule;
 #define IS_DOCUMENT(p) 			        ((p & GR_PROP_DOCUMENT) != 0)
 #define IS_FRAGMENT(p) 			        ((p & GR_PROP_FRAGMENT) != 0)
 #define HAS_NAMED_SUB_TYPE_OR_UNION(p) 	((p & GR_PROP_NAMED_SUB_TYPE_OR_UNION) != 0)
+#define HAS_CONTENT2(p) 				((p & GR_PROP_HAS_CONTENT2) != 0)
 
 #define SET_NILLABLE_GR(p)    	            ((p) = (p) | GR_PROP_NILLABLE)
 #define SET_BUILT_IN_ELEM_GR(p)             ((p) = (p) | GR_PROP_BUILT_IN_ELEMENT)
 #define SET_SCHEMA_GR(p)    		        ((p) = (p) | GR_PROP_SCHEMA_INFORMED)
 #define SET_DOCUMENT_GR(p)    		        ((p) = (p) | GR_PROP_DOCUMENT)
 #define SET_FRAGMENT_GR(p)    		        ((p) = (p) | GR_PROP_FRAGMENT)
-#define SET_NAMED_SUB_TYPE_OR_UNION(p)  ((p) = (p) | GR_PROP_NAMED_SUB_TYPE_OR_UNION)
+#define SET_NAMED_SUB_TYPE_OR_UNION(p) 		((p) = (p) | GR_PROP_NAMED_SUB_TYPE_OR_UNION)
+#define SET_HAS_CONTENT2(p)  				((p) = (p) | GR_PROP_HAS_CONTENT2)
 
 #define GR_PROP_BUILT_IN_ELEMENT         0x1000000 // 0b00000001000000000000000000000000
 #define GR_PROP_SCHEMA_INFORMED          0x2000000 // 0b00000010000000000000000000000000
@@ -704,6 +706,10 @@ typedef struct DynGrammarRule DynGrammarRule;
 #define GR_PROP_FRAGMENT                 0x8000000 // 0b00001000000000000000000000000000
 #define GR_PROP_NILLABLE                0x10000000 // 0b00010000000000000000000000000000
 #define GR_PROP_NAMED_SUB_TYPE_OR_UNION 0x20000000 // 0b00100000000000000000000000000000
+
+/* There is a content2 rule if there are AT productions
+ * that point to the content grammar rule OR the content index is 0. */
+#define GR_PROP_HAS_CONTENT2            0x40000000 // 0b01000000000000000000000000000000
 
 #define GR_CONTENT_INDEX_MASK 0xFFFFFF // 0b00000000111111111111111111111111
 
@@ -1101,9 +1107,6 @@ struct StreamContext
 
 	/** TRUE if the current grammar rule must be processed as EmptyType grammar */
 	boolean isNilType;
-
-	/** TRUE if the current grammar rule must be processed as Content2 grammar. */
-	boolean isContent2Grammar;
 
 	/** Value type of the expected attribute */
 	Index attrTypeId;

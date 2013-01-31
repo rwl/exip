@@ -62,7 +62,6 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 		{
 			// Instead of content we have a single EE production encoded with zero bits because of xsi:nil=TRUE
 			strm->context.isNilType = FALSE;
-			strm->context.isContent2Grammar = FALSE;
 			if(handler->endElement != NULL)
 			{
 				if(handler->endElement(app_data) == EXIP_HANDLER_STOP)
@@ -97,7 +96,6 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 					{
 						// Always last so this is an EE event
 						strm->context.isNilType = FALSE;
-						strm->context.isContent2Grammar = FALSE;
 						if(handler->endElement != NULL)
 						{
 							if(handler->endElement(app_data) == EXIP_HANDLER_STOP)
@@ -116,7 +114,6 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 	{
 		// There is a single EE production encoded with zero bits
 		strm->context.isNilType = FALSE;
-		strm->context.isContent2Grammar = FALSE;
 		if(handler->endElement != NULL)
 		{
 			if(handler->endElement(app_data) == EXIP_HANDLER_STOP)
@@ -149,7 +146,6 @@ static errorCode handleProduction(EXIStream* strm, Production* prodHit, SmallInd
 		case EVENT_EE:
 			DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("> EE event:\n"));
 			strm->context.isNilType = FALSE;
-			strm->context.isContent2Grammar = FALSE;
 			if(handler->endElement != NULL)
 			{
 				if(handler->endElement(app_data) == EXIP_HANDLER_STOP)
@@ -592,34 +588,21 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 			 * and so on. */
 			unsigned int state_mask = 0;
 			unsigned int i;
-
 			// Create a copy of the content grammar if and only if there are AT
-			// productions that point to the content grammar OR the content index is 0.
-			// The content2 grammar is only needed in case the current rule is
+			// productions that point to the content grammar rule OR the content index is 0.
+			// The content2 grammar rule is only needed in case the current rule is
 			// equal the content grammar
-			if(strm->context.currNonTermID == GET_CONTENT_INDEX(strm->gStack->grammar->props))
+			boolean isContent2Grammar = FALSE;
+
+			if(strm->context.currNonTermID == GET_CONTENT_INDEX(strm->gStack->grammar->props)
+					&& HAS_CONTENT2(strm->gStack->grammar->props))
 			{
-				if(GET_CONTENT_INDEX(strm->gStack->grammar->props) == 0)
-					strm->context.isContent2Grammar = TRUE;
-				else
-				{
-					Index p;
-					for(p = 0; p < RULE_GET_AT_COUNT(currentRule->meta); p++)
-					{
-						if(GET_PROD_NON_TERM(currentRule->production[currentRule->pCount-1-p].content) == strm->context.currNonTermID)
-						{
-							strm->context.isContent2Grammar = TRUE;
-							break;
-						}
-					}
-				}
+				isContent2Grammar = TRUE;
 			}
-			else
-				strm->context.isContent2Grammar = FALSE;
 
 			prodCnt = 2; // SE(*), CH(untyped) always available, position 7 and 8
 			state_mask =  384; // 0b110000000
-			if(strm->context.isContent2Grammar ||
+			if(isContent2Grammar ||
 					strm->context.currNonTermID < GET_CONTENT_INDEX(strm->gStack->grammar->props))
 			{
 				prodCnt += 2; // AT(*), AT(untyped) third level, position 3 and 4
@@ -677,7 +660,6 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 				case 0:
 					// EE event
 					strm->context.isNilType = FALSE;
-					strm->context.isContent2Grammar = FALSE;
 					if(handler->endElement != NULL)
 					{
 						if(handler->endElement(app_data) == EXIP_HANDLER_STOP)
