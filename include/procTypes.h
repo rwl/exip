@@ -381,12 +381,12 @@ struct dynArray {
 	 * The initial size of the dynamic array (in number of entries), 
 	 * also the chunk of number of entries to be added each expansion time
 	 */
-	uint16_t chunkEntries;
+	Index chunkEntries;
 
 	/**
 	 * The total number of entries in the array
 	 */
-	uint16_t arrayEntries; 
+	Index arrayEntries;
 };
 
 typedef struct dynArray DynArray;
