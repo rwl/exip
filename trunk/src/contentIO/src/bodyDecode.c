@@ -485,90 +485,80 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 		if(WITH_STRICT(strm->header.opts.enumOpt))
 		{
 			// Strict mode
+
+			// Only available second level event if it is an entry grammar rule and is not Nil type grammar
 			if(strm->context.currNonTermID == GR_START_TAG_CONTENT && strm->context.isNilType == FALSE)
 			{
+				/* There are 2 possible states to exit the state machine: AT(xsi:type) and AT(xsi:nil)
+				 * (Note this is the state for level 2 productions) */
+				unsigned int state = 0;
 				boolean nil;
 
 				*nonTermID_out = GR_START_TAG_CONTENT;
 
 				if(HAS_NAMED_SUB_TYPE_OR_UNION(strm->gStack->grammar->props))
+					prodCnt += 1;
+				if(IS_NILLABLE(strm->gStack->grammar->props))
+					prodCnt += 1;
+
+				if(prodCnt == 2)
 				{
-					if(IS_NILLABLE(strm->gStack->grammar->props))
-					{
-						tmp_err_code = decodeNBitUnsignedInteger(strm, 1, &tmp_bits_val);
-						if(tmp_err_code != ERR_OK)
-							return tmp_err_code;
-
-						if(tmp_bits_val == 0)
-						{
-							// AT(xsi:type) event
-							return NOT_IMPLEMENTED_YET;
-						}
-						else
-						{
-							// AT(xsi:nil) event
-							tmp_err_code = decodeBoolean(strm, &nil);
-							if(tmp_err_code != ERR_OK)
-								return tmp_err_code;
-
-							if(nil == TRUE)
-								strm->context.isNilType = TRUE;
-
-							DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">AT(xsi:nil) event\n"));
-							strm->context.currAttr.uriId = XML_SCHEMA_INSTANCE_ID;
-							strm->context.currAttr.lnId = XML_SCHEMA_INSTANCE_NIL_ID;
-							qname.uri = &strm->schema->uriTable.uri[strm->context.currAttr.uriId].uriStr;
-							qname.localName = &GET_LN_URI_QNAME(strm->schema->uriTable, strm->context.currAttr).lnStr;
-
-							if(handler->attribute != NULL)  // Invoke handler method
-							{
-								if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
-									return HANDLER_STOP_RECEIVED;
-							}
-
-							if(handler->booleanData != NULL)  // Invoke handler method
-							{
-								if(handler->booleanData(nil, app_data) == EXIP_HANDLER_STOP)
-									return HANDLER_STOP_RECEIVED;
-							}
-						}
-					}
-					else
-					{
-						// AT(xsi:type) event
-						return NOT_IMPLEMENTED_YET;
-					}
-				}
-				else if(IS_NILLABLE(strm->gStack->grammar->props))
-				{
-					// AT(xsi:nil) event
-					tmp_err_code = decodeBoolean(strm, &nil);
+					tmp_err_code = decodeNBitUnsignedInteger(strm, 1, &tmp_bits_val);
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
 
-					if(nil == TRUE)
-						strm->context.isNilType = TRUE;
-
-					DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">AT(xsi:nil) event\n"));
-					strm->context.currAttr.uriId = XML_SCHEMA_INSTANCE_ID;
-					strm->context.currAttr.lnId = XML_SCHEMA_INSTANCE_NIL_ID;
-					qname.uri = &strm->schema->uriTable.uri[strm->context.currAttr.uriId].uriStr;
-					qname.localName = &GET_LN_URI_QNAME(strm->schema->uriTable, strm->context.currAttr).lnStr;
-
-					if(handler->attribute != NULL)  // Invoke handler method
-					{
-						if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
-							return HANDLER_STOP_RECEIVED;
-					}
-
-					if(handler->booleanData != NULL)  // Invoke handler method
-					{
-						if(handler->booleanData(nil, app_data) == EXIP_HANDLER_STOP)
-							return HANDLER_STOP_RECEIVED;
-					}
+					if(tmp_bits_val > 1)
+						return INCONSISTENT_PROC_STATE;
+				}
+				else if(prodCnt == 1)
+				{
+					// zero bit encoded event
+					tmp_bits_val = 0;
 				}
 				else
 					return INCONSISTENT_PROC_STATE;
+
+				state = tmp_bits_val;
+
+				if(!HAS_NAMED_SUB_TYPE_OR_UNION(strm->gStack->grammar->props))
+					state += 1;
+
+				switch(state)
+				{
+					case 0:
+						// AT(xsi:type) event
+						return NOT_IMPLEMENTED_YET;
+					break;
+					case 1:
+						// AT(xsi:nil) event
+						tmp_err_code = decodeBoolean(strm, &nil);
+						if(tmp_err_code != ERR_OK)
+							return tmp_err_code;
+
+						if(nil == TRUE)
+							strm->context.isNilType = TRUE;
+
+						DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">AT(xsi:nil) event\n"));
+						strm->context.currAttr.uriId = XML_SCHEMA_INSTANCE_ID;
+						strm->context.currAttr.lnId = XML_SCHEMA_INSTANCE_NIL_ID;
+						qname.uri = &strm->schema->uriTable.uri[strm->context.currAttr.uriId].uriStr;
+						qname.localName = &GET_LN_URI_QNAME(strm->schema->uriTable, strm->context.currAttr).lnStr;
+
+						if(handler->attribute != NULL)  // Invoke handler method
+						{
+							if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
+								return HANDLER_STOP_RECEIVED;
+						}
+
+						if(handler->booleanData != NULL)  // Invoke handler method
+						{
+							if(handler->booleanData(nil, app_data) == EXIP_HANDLER_STOP)
+								return HANDLER_STOP_RECEIVED;
+						}
+					break;
+					default:
+						return INCONSISTENT_PROC_STATE;
+				}
 			}
 			else
 				return INCONSISTENT_PROC_STATE;
@@ -673,7 +663,33 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 				break;
 				case 2:
 					// AT(xsi:nil) Element i, 0
-					return NOT_IMPLEMENTED_YET;
+					{
+						boolean nil = FALSE;
+						tmp_err_code = decodeBoolean(strm, &nil);
+						if(tmp_err_code != ERR_OK)
+							return tmp_err_code;
+
+						if(nil == TRUE)
+							strm->context.isNilType = TRUE;
+
+						DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">AT(xsi:nil) event\n"));
+						strm->context.currAttr.uriId = XML_SCHEMA_INSTANCE_ID;
+						strm->context.currAttr.lnId = XML_SCHEMA_INSTANCE_NIL_ID;
+						qname.uri = &strm->schema->uriTable.uri[strm->context.currAttr.uriId].uriStr;
+						qname.localName = &GET_LN_URI_QNAME(strm->schema->uriTable, strm->context.currAttr).lnStr;
+
+						if(handler->attribute != NULL)  // Invoke handler method
+						{
+							if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
+								return HANDLER_STOP_RECEIVED;
+						}
+
+						if(handler->booleanData != NULL)  // Invoke handler method
+						{
+							if(handler->booleanData(nil, app_data) == EXIP_HANDLER_STOP)
+								return HANDLER_STOP_RECEIVED;
+						}
+					}
 				break;
 				case 3:
 					// AT(*)
