@@ -435,45 +435,6 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 			default:
 				return INCONSISTENT_PROC_STATE;
 		}
-
-		if(strm->context.currNonTermID == GR_DOC_CONTENT)
-		{
-			if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
-			{
-				if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) + IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS) > 0)
-				{
-					tmp_err_code = decodeNBitUnsignedInteger(strm, 1, &tmp_bits_val);
-					if(tmp_err_code != ERR_OK)
-						return tmp_err_code;
-
-					if(tmp_bits_val == 0)
-					{
-						// DT event
-						return NOT_IMPLEMENTED_YET;
-					}
-					else
-					{
-						// 3th level, CM or PI productions
-						return NOT_IMPLEMENTED_YET;
-					}
-				}
-				else
-				{
-					// 0-bit DT event
-					return NOT_IMPLEMENTED_YET;
-				}
-			}
-			else
-			{
-				// 3th level, CM or PI productions
-				return NOT_IMPLEMENTED_YET;
-			}
-		}
-		else // GR_DOC_END
-		{
-			// CM or PI event
-			return NOT_IMPLEMENTED_YET;
-		}
 	}
 	else if(IS_FRAGMENT(strm->gStack->grammar->props))
 	{
