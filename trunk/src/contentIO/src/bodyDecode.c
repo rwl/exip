@@ -178,259 +178,264 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 	if(IS_BUILT_IN_ELEM(strm->gStack->grammar->props))
 	{
 		// Built-in element grammar
+
+		/* There are 8 possible states to exit the state machine: EE, AT (*), NS etc.
+		 * The state depends on the input event code from the stream and the
+		 * available productions at level 2.
+		 * (Note this is the state for level 2 productions) */
+		unsigned int state = 0;
+
+		/* The state mask stores the availability of the productions on level 2.
+		 * They are encoded ordered:
+		 * Availability for EE is encoded in position 0,
+		 * availability for AT(xsi:type) is encoded in position 1,
+		 * and so on. */
+		boolean state_mask[8] = {FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE};
+		unsigned int i;
+
+		prodCnt = 2; // Always SE, CH, position 4, 5
+		state_mask[4] = TRUE;
+		state_mask[5] = TRUE;
+
 		if(strm->context.currNonTermID == GR_START_TAG_CONTENT)
 		{
-			prodCnt = 4;
-			prodCnt += IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES);
-			prodCnt += WITH_SELF_CONTAINED(strm->header.opts.enumOpt);
-		}
-		else // GR_ELEMENT_CONTENT
-			prodCnt = 2;
+			prodCnt += 2; // EE, AT, position 0, 1
+			state_mask[0] = TRUE;
+			state_mask[1] = TRUE;
 
-		prodCnt += IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD);
-		prodCnt += (IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) || IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS));
+			if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES))
+			{
+				prodCnt += 1; // NS, position 2
+				state_mask[2] = TRUE;
+			}
+
+			if(WITH_SELF_CONTAINED(strm->header.opts.enumOpt))
+			{
+				prodCnt += 1; // SC, position 3
+				state_mask[3] = TRUE;
+			}
+		}
+
+		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
+		{
+			prodCnt += 1; // ER position 6
+			state_mask[6] = TRUE;
+		}
+
+		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) || IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
+		{
+			prodCnt += 1; // CM or PI, position 7
+			state_mask[7] = TRUE;
+		}
 
 		tmp_err_code = decodeNBitUnsignedInteger(strm, getBitsNumber(prodCnt - 1), &tmp_bits_val);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		if(tmp_bits_val == prodCnt)
+		state = tmp_bits_val;
+
+		for(i = 0; i <= state && state < 8; i++)
 		{
-			// 3th level, CM or PI productions
-			return NOT_IMPLEMENTED_YET;
+			state = state + (state_mask[i] == 0);
 		}
-		else
+
+		switch(state)
 		{
-			// 2nd level
-			switch(tmp_bits_val + (strm->context.currNonTermID*7))
-			{
-				case 0:
-					// StartTagContent : EE
-					strm->context.isNilType = FALSE;
-					if(handler->endElement != NULL)
-					{
-						if(handler->endElement(app_data) == EXIP_HANDLER_STOP)
-							return HANDLER_STOP_RECEIVED;
-					}
+			case 0:
+				// StartTagContent : EE event
+				strm->context.isNilType = FALSE;
+				if(handler->endElement != NULL)
+				{
+					if(handler->endElement(app_data) == EXIP_HANDLER_STOP)
+						return HANDLER_STOP_RECEIVED;
+				}
 
-					*nonTermID_out = GR_VOID_NON_TERMINAL;
+				*nonTermID_out = GR_VOID_NON_TERMINAL;
 
-					tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_EE, GR_VOID_NON_TERMINAL, &voidQnameID, 1);
-					if(tmp_err_code != ERR_OK)
-						return tmp_err_code;
-				break;
-				case 1:
-					// StartTagContent : AT (*)
-					*nonTermID_out = GR_START_TAG_CONTENT;
+				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_EE, GR_VOID_NON_TERMINAL, &voidQnameID, 1);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			break;
+			case 1:
+				// StartTagContent : AT(*) event
+				*nonTermID_out = GR_START_TAG_CONTENT;
 
-					tmp_err_code = decodeATWildcardEvent(strm, handler, nonTermID_out, app_data);
-					if(tmp_err_code != ERR_OK)
-						return tmp_err_code;
+				tmp_err_code = decodeATWildcardEvent(strm, handler, nonTermID_out, app_data);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
 
-					tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_AT_QNAME, GR_START_TAG_CONTENT, &strm->context.currAttr, 1);
-					if(tmp_err_code != ERR_OK)
-						return tmp_err_code;
-				break;
-				case 2:
-					// StartTagContent : NS or SC or SE
-					if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES))
-					{
-						// NS event
-						tmp_err_code = decodeNSEvent(strm, handler, nonTermID_out, app_data);
-						if(tmp_err_code != ERR_OK)
-							return tmp_err_code;
-					}
-					else if(WITH_SELF_CONTAINED(strm->header.opts.enumOpt))
-					{
-						// SC event
-						return NOT_IMPLEMENTED_YET;
-					}
-					else
-					{
-						// SE event
-						strm->gStack->lastNonTermID = GR_ELEMENT_CONTENT;
+				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_AT_QNAME, GR_START_TAG_CONTENT, &strm->context.currAttr, 1);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			break;
+			case 2:
+				// StartTagContent : NS event
+				tmp_err_code = decodeNSEvent(strm, handler, nonTermID_out, app_data);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			break;
+			case 3:
+				// StartTagContent : SC event
+				return NOT_IMPLEMENTED_YET;
+			break;
+			case 4:
+				// SE(*) event
+				strm->gStack->lastNonTermID = GR_ELEMENT_CONTENT;
 
-						tmp_err_code = decodeSEWildcardEvent(strm, handler, nonTermID_out, app_data);
-						if(tmp_err_code != ERR_OK)
-							return tmp_err_code;
+				tmp_err_code = decodeSEWildcardEvent(strm, handler, nonTermID_out, app_data);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
 
-						tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, GR_ELEMENT_CONTENT, &strm->context.currElem, 1);
-						if(tmp_err_code != ERR_OK)
-							return tmp_err_code;
-					}
-				break;
-				case 3:
-					// StartTagContent : SC or SE or CH
-					if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES))
-					{
-						if(WITH_SELF_CONTAINED(strm->header.opts.enumOpt))
-						{
-							// SC event
-							return NOT_IMPLEMENTED_YET;
-						}
-						else
-						{
-							// SE event
-							strm->gStack->lastNonTermID = GR_ELEMENT_CONTENT;
+				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, GR_ELEMENT_CONTENT, &strm->context.currElem, 1);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			break;
+			case 5:
+				// CH event
+				DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">CH event\n"));
 
-							tmp_err_code = decodeSEWildcardEvent(strm, handler, nonTermID_out, app_data);
-							if(tmp_err_code != ERR_OK)
-								return tmp_err_code;
+				*nonTermID_out = GR_ELEMENT_CONTENT;
 
-							tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, GR_ELEMENT_CONTENT, &strm->context.currElem, 1);
-							if(tmp_err_code != ERR_OK)
-								return tmp_err_code;
-						}
-					}
-					else if(WITH_SELF_CONTAINED(strm->header.opts.enumOpt))
-					{
-						// SE event
-						strm->gStack->lastNonTermID = GR_ELEMENT_CONTENT;
+				tmp_err_code = decodeValueItem(strm, INDEX_MAX, handler, nonTermID_out, strm->context.currElem, app_data);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
 
-						tmp_err_code = decodeSEWildcardEvent(strm, handler, nonTermID_out, app_data);
-						if(tmp_err_code != ERR_OK)
-							return tmp_err_code;
-
-						tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, GR_ELEMENT_CONTENT, &strm->context.currElem, 1);
-						if(tmp_err_code != ERR_OK)
-							return tmp_err_code;
-					}
-					else
-					{
-						// CH event
-						DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">CH event\n"));
-
-						*nonTermID_out = GR_ELEMENT_CONTENT;
-
-						tmp_err_code = decodeValueItem(strm, INDEX_MAX, handler, nonTermID_out, strm->context.currElem, app_data);
-						if(tmp_err_code != ERR_OK)
-							return tmp_err_code;
-
-						tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_CH, *nonTermID_out, &voidQnameID, 1);
-						if(tmp_err_code != ERR_OK)
-							return tmp_err_code;
-					}
-				break;
-				case 4:
-					// StartTagContent : SE or CH or ER
-					if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES))
-					{
-						if(WITH_SELF_CONTAINED(strm->header.opts.enumOpt))
-						{
-							// SE event
-							strm->gStack->lastNonTermID = GR_ELEMENT_CONTENT;
-
-							tmp_err_code = decodeSEWildcardEvent(strm, handler, nonTermID_out, app_data);
-							if(tmp_err_code != ERR_OK)
-								return tmp_err_code;
-
-							tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, GR_ELEMENT_CONTENT, &strm->context.currElem, 1);
-							if(tmp_err_code != ERR_OK)
-								return tmp_err_code;
-						}
-						else
-						{
-							// CH event
-							DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">CH event\n"));
-
-							*nonTermID_out = GR_ELEMENT_CONTENT;
-
-							tmp_err_code = decodeValueItem(strm, INDEX_MAX, handler, nonTermID_out, strm->context.currElem, app_data);
-							if(tmp_err_code != ERR_OK)
-								return tmp_err_code;
-
-							tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_CH, *nonTermID_out, &voidQnameID, 1);
-							if(tmp_err_code != ERR_OK)
-								return tmp_err_code;
-						}
-
-					}
-					else if(WITH_SELF_CONTAINED(strm->header.opts.enumOpt))
-					{
-						// CH event
-						DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">CH event\n"));
-
-						*nonTermID_out = GR_ELEMENT_CONTENT;
-
-						tmp_err_code = decodeValueItem(strm, INDEX_MAX, handler, nonTermID_out, strm->context.currElem, app_data);
-						if(tmp_err_code != ERR_OK)
-							return tmp_err_code;
-
-						tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_CH, *nonTermID_out, &voidQnameID, 1);
-						if(tmp_err_code != ERR_OK)
-							return tmp_err_code;
-					}
-					else
-					{
-						// ER event
-						return NOT_IMPLEMENTED_YET;
-					}
-				break;
-				case 5:
-					// StartTagContent : CH or ER
-					if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) && WITH_SELF_CONTAINED(strm->header.opts.enumOpt))
-					{
-						// CH event
-						DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">CH event\n"));
-
-						*nonTermID_out = GR_ELEMENT_CONTENT;
-
-						tmp_err_code = decodeValueItem(strm, INDEX_MAX, handler, nonTermID_out, strm->context.currElem, app_data);
-						if(tmp_err_code != ERR_OK)
-							return tmp_err_code;
-
-						tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_CH, *nonTermID_out, &voidQnameID, 1);
-						if(tmp_err_code != ERR_OK)
-							return tmp_err_code;
-					}
-					else
-					{
-						// ER event
-						return NOT_IMPLEMENTED_YET;
-					}
-				break;
-				case 6:
-					// StartTagContent : ER
-					return NOT_IMPLEMENTED_YET;
-				break;
-				case 7:
-					// ElementContent : SE (*)
-					strm->gStack->lastNonTermID = GR_ELEMENT_CONTENT;
-
-					tmp_err_code = decodeSEWildcardEvent(strm, handler, nonTermID_out, app_data);
-					if(tmp_err_code != ERR_OK)
-						return tmp_err_code;
-
-					tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, GR_ELEMENT_CONTENT, &strm->context.currElem, 1);
-					if(tmp_err_code != ERR_OK)
-						return tmp_err_code;
-				break;
-				case 8:
-					// ElementContent : CH (*)
-					DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">CH event\n"));
-
-					*nonTermID_out = GR_ELEMENT_CONTENT;
-
-					tmp_err_code = decodeValueItem(strm, INDEX_MAX, handler, nonTermID_out, strm->context.currElem, app_data);
-					if(tmp_err_code != ERR_OK)
-						return tmp_err_code;
-
-					tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_CH, *nonTermID_out, &voidQnameID, 1);
-					if(tmp_err_code != ERR_OK)
-						return tmp_err_code;
-				break;
-				case 9:
-					// ElementContent : ER (*)
-					return NOT_IMPLEMENTED_YET;
-				break;
-				default:
-					return INCONSISTENT_PROC_STATE;
-			}
+				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_CH, *nonTermID_out, &voidQnameID, 1);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			break;
+			case 6:
+				// ER event
+				return NOT_IMPLEMENTED_YET;
+			break;
+			case 7:
+				// CM or PI event
+				return NOT_IMPLEMENTED_YET;
+			break;
+			default:
+				return INCONSISTENT_PROC_STATE;
 		}
 	}
 	else if(IS_DOCUMENT(strm->gStack->grammar->props))
 	{
 		// Document grammar
+		/* There are 3 possible states to exit the state machine: DT, CM or PI
+		 * The state depends on the input event code from the stream and the
+		 * available productions at level 2 and 3.*/
+		unsigned int state = 0;
+		unsigned int level3ProdCnt = 0;
+
+		if(strm->context.currNonTermID == GR_DOC_CONTENT)
+		{
+			if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
+				prodCnt += 1; // DT event
+
+			if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
+				level3ProdCnt += 1;
+
+			if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
+				level3ProdCnt += 1;
+
+			if(level3ProdCnt > 0)
+				prodCnt += 1; // CM or PI third level
+
+			if(prodCnt == 2)
+			{
+				tmp_err_code = decodeNBitUnsignedInteger(strm, 1, &tmp_bits_val);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				if(tmp_bits_val == 0)
+					state = 0;
+				else if(tmp_bits_val == 1)
+				{
+					// CM or PI third level
+					if(level3ProdCnt == 2)
+					{
+						tmp_err_code = decodeNBitUnsignedInteger(strm, 1, &tmp_bits_val);
+						if(tmp_err_code != ERR_OK)
+							return tmp_err_code;
+
+						state = tmp_bits_val + 1;
+					}
+					else if(level3ProdCnt == 1)
+					{
+						state = !IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) + 1;
+					}
+					else
+						return INCONSISTENT_PROC_STATE;
+				}
+				else
+					return INCONSISTENT_PROC_STATE;
+			}
+			else if(prodCnt == 1)
+			{
+				if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
+					state = 0;
+				else
+				{
+					// CM or PI third level
+					if(level3ProdCnt == 2)
+					{
+						tmp_err_code = decodeNBitUnsignedInteger(strm, 1, &tmp_bits_val);
+						if(tmp_err_code != ERR_OK)
+							return tmp_err_code;
+
+						state = tmp_bits_val + 1;
+					}
+					else if(level3ProdCnt == 1)
+					{
+						state = !IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) + 1;
+					}
+					else
+						return INCONSISTENT_PROC_STATE;
+				}
+			}
+			else
+				return INCONSISTENT_PROC_STATE;
+		}
+		else
+		{
+			if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS))
+				prodCnt += 1; // CM second level
+
+			if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
+				prodCnt += 1; // PI second level
+
+			if(prodCnt == 2)
+			{
+				tmp_err_code = decodeNBitUnsignedInteger(strm, 1, &tmp_bits_val);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				state = tmp_bits_val + 1;
+			}
+			else if(prodCnt == 1)
+			{
+				state = !IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) + 1;
+			}
+			else
+				return INCONSISTENT_PROC_STATE;
+		}
+
+		switch(state)
+		{
+			case 0:
+				// DT event
+				return NOT_IMPLEMENTED_YET;
+			break;
+			case 1:
+				// CM event
+				return NOT_IMPLEMENTED_YET;
+			break;
+			case 2:
+				// PI event
+				return NOT_IMPLEMENTED_YET;
+			break;
+			default:
+				return INCONSISTENT_PROC_STATE;
+		}
+
 		if(strm->context.currNonTermID == GR_DOC_CONTENT)
 		{
 			if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
@@ -479,7 +484,6 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 	else
 	{
 		// Schema-informed element/type grammar
-		// TODO: check if all around is_empty case is implemented
 		QName qname;
 
 		if(WITH_STRICT(strm->header.opts.enumOpt))
@@ -573,10 +577,10 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 
 			/* The state mask stores the availability of the productions on level 2.
 			 * They are encoded ordered:
-			 * Availability for EE is encoded in the least significant bit,
-			 * availability for AT(xsi:type) is encoded in the second least significant bit,
+			 * Availability for EE is encoded in position 0,
+			 * availability for AT(xsi:type) is encoded in position 1,
 			 * and so on. */
-			unsigned int state_mask = 0;
+			boolean state_mask[11] = {FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE};
 			unsigned int i;
 			// Create a copy of the content grammar if and only if there are AT
 			// productions that point to the content grammar rule OR the content index is 0.
@@ -591,47 +595,50 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 			}
 
 			prodCnt = 2; // SE(*), CH(untyped) always available, position 7 and 8
-			state_mask =  384; // 0b110000000
+			state_mask[7] = TRUE;
+			state_mask[8] = TRUE;
 			if(isContent2Grammar ||
 					strm->context.currNonTermID < GET_CONTENT_INDEX(strm->gStack->grammar->props))
 			{
 				prodCnt += 2; // AT(*), AT(untyped) third level, position 3 and 4
-				state_mask = state_mask | (3<<3); // 0b11000
+				state_mask[3] = TRUE;
+				state_mask[4] = TRUE;
 			}
 
 			if(!RULE_CONTAIN_EE(currentRule->meta))
 			{
 				prodCnt += 1; // EE, position 0
-				state_mask = state_mask | 1;
+				state_mask[0] = TRUE;
 			}
 
 			if(strm->context.currNonTermID == GR_START_TAG_CONTENT)
 			{
 				prodCnt += 2; // AT(xsi:type), AT(xsi:nil), position 1 and 2
-				state_mask = state_mask | (3<<1); // 0b110
+				state_mask[1] = TRUE;
+				state_mask[2] = TRUE;
 
 				if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES))
 				{
 					prodCnt += 1; // NS, position 5
-					state_mask = state_mask | (1<<5); // 0b100000
+					state_mask[5] = TRUE;
 				}
 				if(WITH_SELF_CONTAINED(strm->header.opts.enumOpt))
 				{
 					prodCnt += 1; // SC, position 6
-					state_mask = state_mask | (1<<6); // 0b1000000
+					state_mask[6] = TRUE;
 				}
 			}
 
 			if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
 			{
 				prodCnt += 1; // ER, position 9
-				state_mask = state_mask | (1<<9); // 0b1000000000
+				state_mask[9] = TRUE;
 			}
 
 			if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) || IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 			{
 				prodCnt += 1; // CM or PI, position 10
-				state_mask = state_mask | (1<<10); // 0b10000000000
+				state_mask[10] = TRUE;
 			}
 
 			tmp_err_code = decodeNBitUnsignedInteger(strm, getBitsNumber(prodCnt - 1), &tmp_bits_val);
@@ -640,9 +647,9 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 
 			state = tmp_bits_val;
 
-			for(i = 0; i <= tmp_bits_val; i++)
+			for(i = 0; i <= state && state < 11; i++)
 			{
-				state = state + ((state_mask & (1 << i)) == 0);
+				state = state + (state_mask[i] == 0);
 			}
 
 			switch(state)
