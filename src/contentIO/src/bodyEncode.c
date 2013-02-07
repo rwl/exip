@@ -361,8 +361,6 @@ static errorCode stateMachineProdEncode(EXIStream* strm, unsigned char eventClas
 	else
 	{
 		// Schema-informed element/type grammar
-		// TODO: implement is_empty case
-
 		if(WITH_STRICT(strm->header.opts.enumOpt))
 		{
 			// Strict mode
@@ -375,14 +373,35 @@ static errorCode stateMachineProdEncode(EXIStream* strm, unsigned char eventClas
 				if(!HAS_NAMED_SUB_TYPE_OR_UNION(strm->gStack->grammar->props))
 					return INCONSISTENT_PROC_STATE;
 
-				return NOT_IMPLEMENTED_YET;
+				SET_PROD_EXI_EVENT(prodHit->content, EVENT_AT_QNAME);
+				prodHit->qnameId.uriId = XML_SCHEMA_INSTANCE_ID;
+				prodHit->qnameId.lnId = XML_SCHEMA_INSTANCE_TYPE_ID;
+				ec.part[1] = 0;
+
+				if(!IS_NILLABLE(strm->gStack->grammar->props))
+					ec.bits[1] = 0;
+				else
+					ec.bits[1] = 1;
 			}
 			else if(stringEqualToAscii(*qname->localName, "nil"))
 			{
 				if(!IS_NILLABLE(strm->gStack->grammar->props))
 					return INCONSISTENT_PROC_STATE;
 
-				return NOT_IMPLEMENTED_YET;
+				SET_PROD_EXI_EVENT(prodHit->content, EVENT_AT_QNAME);
+				prodHit->qnameId.uriId = XML_SCHEMA_INSTANCE_ID;
+				prodHit->qnameId.lnId = XML_SCHEMA_INSTANCE_NIL_ID;
+
+				if(!HAS_NAMED_SUB_TYPE_OR_UNION(strm->gStack->grammar->props))
+				{
+					ec.part[1] = 0;
+					ec.bits[1] = 0;
+				}
+				else
+				{
+					ec.part[1] = 1;
+					ec.bits[1] = 1;
+				}
 			}
 			else
 				return INCONSISTENT_PROC_STATE;
@@ -391,28 +410,27 @@ static errorCode stateMachineProdEncode(EXIStream* strm, unsigned char eventClas
 		{
 			unsigned int prod2Count = 0;
 
+			prod2Count += 5; // EE, AT (*), AT (*) [untyped value], SE (*), CH [untyped value]
+			if(!RULE_CONTAIN_EE(currentRule->meta))
+				prod2Count += 1;
+			if(strm->context.currNonTermID == GR_START_TAG_CONTENT)
+			{
+				prod2Count += 2; // AT(xsi:type) Element i,0 and AT(xsi:nil) Element i,0
+				if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES))
+					prod2Count += 1; // NS
+
+				if(WITH_SELF_CONTAINED(strm->header.opts.enumOpt))
+					prod2Count += 1; // SC
+			}
+			if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
+				prod2Count += 1; // ER
+			if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) || IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
+				prod2Count += 1; // CM & PI
+
 			switch(eventClass)
 			{
 				case EVENT_EE_CLASS:
-					if(RULE_CONTAIN_EE(currentRule->meta))
-						return INCONSISTENT_PROC_STATE;
-
-					prod2Count += 5; // EE, AT (*), AT (*) [untyped value], SE (*), CH [untyped value]
-					if(strm->context.currNonTermID == GR_START_TAG_CONTENT)
-					{
-						prod2Count += 2; // AT(xsi:type) Element i, 0	n.m, AT(xsi:nil) Element i, 0
-						if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES))
-							prod2Count += 1; // NS
-
-						if(WITH_SELF_CONTAINED(strm->header.opts.enumOpt))
-							prod2Count += 1; // SC
-					}
-
-					if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
-						prod2Count += 1; // ER
-
-					if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) + IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS) != 0)
-						prod2Count += 1; // CM & PI
+					assert(!RULE_CONTAIN_EE(currentRule->meta));
 
 					SET_PROD_EXI_EVENT(prodHit->content, EVENT_EE);
 					ec.length = 2;
@@ -421,25 +439,54 @@ static errorCode stateMachineProdEncode(EXIStream* strm, unsigned char eventClas
 					strm->context.currNonTermID = GR_VOID_NON_TERMINAL;
 				break;
 				case EVENT_AT_CLASS:
-					return NOT_IMPLEMENTED_YET;
+
+					if(strm->context.currNonTermID >= GET_CONTENT_INDEX(strm->gStack->grammar->props))
+						return INCONSISTENT_PROC_STATE;
+
+					if(!lookupUri(&strm->schema->uriTable, *qname->uri, &qnameID.uriId))
+					{
+						qnameID.uriId = strm->schema->uriTable.count;
+						qnameID.lnId = 0;
+					}
+					else if(!lookupLn(&strm->schema->uriTable.uri[qnameID.uriId].lnTable, *qname->localName,  &qnameID.lnId))
+					{
+						qnameID.lnId = strm->schema->uriTable.uri[qnameID.uriId].lnTable.count;
+					}
+
+					prodHit->qnameId = qnameID;
+
+					if(qnameID.uriId == XML_SCHEMA_INSTANCE_ID)
+					{
+						if(qnameID.lnId == XML_SCHEMA_INSTANCE_NIL_ID)
+						{
+							if(strm->context.currNonTermID != GR_START_TAG_CONTENT)
+								return INCONSISTENT_PROC_STATE;
+
+							SET_PROD_EXI_EVENT(prodHit->content, EVENT_AT_QNAME);
+							ec.length = 2;
+							ec.part[1] = 1 + !RULE_CONTAIN_EE(currentRule->meta);
+							ec.bits[1] = getBitsNumber(prod2Count - 1);
+						}
+						else if(qnameID.lnId == XML_SCHEMA_INSTANCE_TYPE_ID)
+						{
+							if(strm->context.currNonTermID != GR_START_TAG_CONTENT)
+								return INCONSISTENT_PROC_STATE;
+
+							SET_PROD_EXI_EVENT(prodHit->content, EVENT_AT_QNAME);
+							ec.length = 2;
+							ec.part[1] = 0 + !RULE_CONTAIN_EE(currentRule->meta);
+							ec.bits[1] = getBitsNumber(prod2Count - 1);
+						}
+						else
+							return NOT_IMPLEMENTED_YET;
+					}
+					else // All other cases of AT events
+						return NOT_IMPLEMENTED_YET;
 				break;
 				case EVENT_NS_CLASS:
 					if(strm->context.currNonTermID != GR_START_TAG_CONTENT ||
 						!IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES))
 						return INCONSISTENT_PROC_STATE;
-
-					if(!RULE_CONTAIN_EE(currentRule->meta))
-						prod2Count += 1;
-					prod2Count += 7; // AT(xsi:type), AT(xsi:nil), AT (*), AT (*) [untyped value], SE (*), CH [untyped value], NS
-
-					if(WITH_SELF_CONTAINED(strm->header.opts.enumOpt))
-						prod2Count += 1; // SC
-
-					if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
-						prod2Count += 1; // ER
-
-					if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) + IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS) != 0)
-						prod2Count += 1; // CM & PI
 
 					SET_PROD_EXI_EVENT(prodHit->content, EVENT_NS);
 					ec.length = 2;

@@ -39,6 +39,7 @@ struct EXISerializer
 	errorCode (*dateTimeData)(EXIStream* strm, EXIPDateTime dt_val);
 	errorCode (*decimalData)(EXIStream* strm, Decimal dec_val);
 	errorCode (*listData)(EXIStream* strm, unsigned int itemCount);
+	errorCode (*qnameData)(EXIStream* strm, QName qname);
 
 	// Miscellaneous
 	errorCode (*processingInstruction)(EXIStream* strm); // TODO: define the parameters!
@@ -80,6 +81,7 @@ errorCode binaryData(EXIStream* strm, const char* binary_val, Index nbytes);
 errorCode dateTimeData(EXIStream* strm, EXIPDateTime dt_val);
 errorCode decimalData(EXIStream* strm, Decimal dec_val);
 errorCode listData(EXIStream* strm, unsigned int itemCount);
+errorCode qnameData(EXIStream* strm, QName qname);
 
 // Miscellaneous
 errorCode processingInstruction(EXIStream* strm); // TODO: define the parameters!

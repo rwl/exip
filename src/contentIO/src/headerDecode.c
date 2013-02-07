@@ -250,6 +250,19 @@ errorCode decodeHeader(EXIStream* strm, boolean outOfBandOpts)
 			tmp_err_code = initSchema(strm->schema, INIT_SCHEMA_BUILD_IN_TYPES);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
+
+			if(WITH_FRAGMENT(strm->header.opts.enumOpt))
+			{
+				tmp_err_code = createFragmentGrammar(strm->schema, NULL, 0);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
+			else
+			{
+				tmp_err_code = createDocGrammar(strm->schema, NULL, 0);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
 		}
 	}
 
