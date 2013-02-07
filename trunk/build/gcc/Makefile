@@ -64,24 +64,16 @@ UTILS_BIN_DIR = $(BIN_DIR)/utils
 # Public include directory
 PUBLIC_INCLUDE_DIR = $(PROJECT_ROOT)/include
 
-# All directories containing *.c and *.h files
+# All directories containing *.c files
 VPATH = $(PROJECT_ROOT)/src/common/src
 VPATH += $(PROJECT_ROOT)/src/contentIO/src
 VPATH += $(PROJECT_ROOT)/src/grammar/src
 VPATH += $(PROJECT_ROOT)/src/grammarGen/src
 VPATH += $(PROJECT_ROOT)/src/streamIO/src
 VPATH += $(PROJECT_ROOT)/src/stringTables/src
-VPATH += $(PROJECT_ROOT)/src/common/include
-VPATH += $(PROJECT_ROOT)/src/contentIO/include
-VPATH += $(PROJECT_ROOT)/src/grammar/include
-VPATH += $(PROJECT_ROOT)/src/grammarGen/include
-VPATH += $(PROJECT_ROOT)/src/streamIO/include
-VPATH += $(PROJECT_ROOT)/src/stringTables/include
-VPATH += $(PUBLIC_INCLUDE_DIR)
 VPATH += $(PROJECT_ROOT)/examples/simpleDecoding
 VPATH += $(PROJECT_ROOT)/examples/simpleEncoding
 VPATH += $(PROJECT_ROOT)/utils/schemaHandling
-VPATH += $(PROJECT_ROOT)/utils/schemaHandling/include
 VPATH += $(PROJECT_ROOT)/utils/schemaHandling/output
 VPATH += $(TESTS_SRC_DIR)
 VPATH += $(TARGET)
@@ -131,7 +123,8 @@ TESTS_SRC = check_builtin_grammar.c\
 		check_grammar.c\
 		check_streamIO.c\
 		check_strict_grammar.c\
-		check_stringTables.c
+		check_stringTables.c\
+		check_xsi_type.c
 
 # Source files for the utils
 EXIPG_UTIL_SRC = createGrammars.c\
@@ -177,7 +170,7 @@ LDFLAGS += -L$(LIB_BIN_DIR)
 
 # Tests all targets by default. May override in environment to specify checks to run, for example:
 #   $make check CHECK_TARGETS="streamio strict_grammar"
-CHECK_TARGETS ?= streamIO stringTables grammar contentIO exip builtin_grammar strict_grammar emptyType
+CHECK_TARGETS ?= streamIO stringTables grammar contentIO exip builtin_grammar strict_grammar emptyType xsi_type
 CHECK_BINS := $(foreach acheck, $(CHECK_TARGETS), $(TESTS_BIN_DIR)/test_$(acheck))
 
 EXAMPLE_BINS := $(EXAMPLES_BIN_DIR)/exipd $(EXAMPLES_BIN_DIR)/exipe

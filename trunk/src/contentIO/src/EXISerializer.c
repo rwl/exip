@@ -42,6 +42,7 @@ const EXISerializer serialize ={startDocument,
 								dateTimeData,
 								decimalData,
 								listData,
+								qnameData,
 								processingInstruction,
 								namespaceDeclaration,
 								encodeHeader,
@@ -550,6 +551,45 @@ errorCode listData(EXIStream* strm, unsigned int itemCount)
  	strm->context.attrTypeId = strm->schema->simpleTypeTable.sType[typeId].length; // The actual type of the list items
 
 	return encodeUnsignedInteger(strm, (UnsignedInteger) itemCount);
+}
+
+errorCode qnameData(EXIStream* strm, QName qname)
+{
+	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Start qname data serialization\n"));
+	// Only allowed for AT(xsi:type) productions
+
+	if(strm->context.expectATData > 0 && strm->context.currAttr.uriId == XML_SCHEMA_INSTANCE_ID && strm->context.currAttr.lnId == XML_SCHEMA_INSTANCE_TYPE_ID)
+	{
+		// Value for the attribute xsi:type
+		QNameID qnameId;
+		EXIGrammar* newGrammar = NULL;
+		errorCode tmp_err_code = UNEXPECTED_ERROR;
+
+		strm->context.expectATData -= 1;
+
+		tmp_err_code = encodeQName(strm, qname, EVENT_AT_ALL, &qnameId);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		// New type grammar is pushed on the stack if it exists
+		newGrammar = GET_TYPE_GRAMMAR_QNAMEID(strm->schema, qnameId);
+
+		if(newGrammar != NULL)
+		{
+			// The grammar is found
+			EXIGrammar* currGr;
+
+			popGrammar(&(strm->gStack), &currGr);
+
+			strm->context.currNonTermID = GR_START_TAG_CONTENT;
+			tmp_err_code = pushGrammar(&(strm->gStack), newGrammar);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+		return ERR_OK;
+	}
+	else
+		return INCONSISTENT_PROC_STATE;
 }
 
 errorCode processingInstruction(EXIStream* strm)

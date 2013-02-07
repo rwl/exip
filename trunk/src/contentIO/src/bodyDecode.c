@@ -491,8 +491,32 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 				switch(state)
 				{
 					case 0:
+					{
 						// AT(xsi:type) event
-						return NOT_IMPLEMENTED_YET;
+						QName qname;
+						QNameID qnameId;
+						EXIGrammar* newGrammar = NULL;
+
+						tmp_err_code = decodeQName(strm, &qname, &qnameId);
+						if(tmp_err_code != ERR_OK)
+							return tmp_err_code;
+
+						// New type grammar is pushed on the stack if it exists
+						newGrammar = GET_TYPE_GRAMMAR_QNAMEID(strm->schema, qnameId);
+
+						if(newGrammar != NULL)
+						{
+							// The grammar is found
+							EXIGrammar* currGr;
+
+							popGrammar(&(strm->gStack), &currGr);
+
+							*nonTermID_out = GR_START_TAG_CONTENT;
+							tmp_err_code = pushGrammar(&(strm->gStack), newGrammar);
+							if(tmp_err_code != ERR_OK)
+								return tmp_err_code;
+						}
+					}
 					break;
 					case 1:
 						// AT(xsi:nil) event
@@ -626,8 +650,32 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 					*nonTermID_out = GR_VOID_NON_TERMINAL;
 				break;
 				case 1:
-					// AT(xsi:type)
-					return NOT_IMPLEMENTED_YET;
+				{
+					// AT(xsi:type) event
+					QName qname;
+					QNameID qnameId;
+					EXIGrammar* newGrammar = NULL;
+
+					tmp_err_code = decodeQName(strm, &qname, &qnameId);
+					if(tmp_err_code != ERR_OK)
+						return tmp_err_code;
+
+					// New type grammar is pushed on the stack if it exists
+					newGrammar = GET_TYPE_GRAMMAR_QNAMEID(strm->schema, qnameId);
+
+					if(newGrammar != NULL)
+					{
+						// The grammar is found
+						EXIGrammar* currGr;
+
+						popGrammar(&(strm->gStack), &currGr);
+
+						*nonTermID_out = GR_START_TAG_CONTENT;
+						tmp_err_code = pushGrammar(&(strm->gStack), newGrammar);
+						if(tmp_err_code != ERR_OK)
+							return tmp_err_code;
+					}
+				}
 				break;
 				case 2:
 					// AT(xsi:nil) Element i, 0
@@ -1085,6 +1133,11 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 
 	if(typeId != INDEX_MAX)
 		exiType = GET_EXI_TYPE(strm->schema->simpleTypeTable.sType[typeId].content);
+	else if(localQNameID.uriId == XML_SCHEMA_INSTANCE_ID &&
+			(localQNameID.lnId == XML_SCHEMA_INSTANCE_TYPE_ID || localQNameID.lnId == XML_SCHEMA_INSTANCE_NIL_ID))
+	{
+		exiType = VALUE_TYPE_QNAME;
+	}
 
 	switch(exiType)
 	{
@@ -1273,7 +1326,33 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 		break;
 		case VALUE_TYPE_QNAME:
 		{
-			return NOT_IMPLEMENTED_YET;
+			QName qname;
+			QNameID qnameId;
+			EXIGrammar* newGrammar = NULL;;
+
+			// Only allowed if the current production is AT(xsi:type)
+			if(localQNameID.uriId != XML_SCHEMA_INSTANCE_ID || localQNameID.lnId != XML_SCHEMA_INSTANCE_TYPE_ID)
+				return INCONSISTENT_PROC_STATE;
+
+			tmp_err_code = decodeQName(strm, &qname, &qnameId);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+
+			// New type grammar is pushed on the stack if it exists
+			newGrammar = GET_TYPE_GRAMMAR_QNAMEID(strm->schema, qnameId);
+
+			if(newGrammar != NULL)
+			{
+				// The grammar is found
+				EXIGrammar* currGr;
+
+				popGrammar(&(strm->gStack), &currGr);
+
+				*nonTermID_out = GR_START_TAG_CONTENT;
+				tmp_err_code = pushGrammar(&(strm->gStack), newGrammar);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
 		}
 		break;
 		default: // VALUE_TYPE_STRING || VALUE_TYPE_NONE || VALUE_TYPE_UNTYPED
@@ -1427,11 +1506,14 @@ errorCode decodeATWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallI
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-	if(IS_SCHEMA(strm->gStack->grammar->props) && qnameId.uriId == XML_SCHEMA_INSTANCE_ID &&
-			(qnameId.uriId == XML_SCHEMA_INSTANCE_TYPE_ID || qnameId.uriId == XML_SCHEMA_INSTANCE_NIL_ID))
+	if(qnameId.uriId == XML_SCHEMA_INSTANCE_ID &&
+			(qnameId.lnId == XML_SCHEMA_INSTANCE_TYPE_ID || qnameId.lnId == XML_SCHEMA_INSTANCE_NIL_ID))
 	{
-		DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">In schema-informed grammars, xsi:type and xsi:nil attributes MUST NOT be represented using AT(*) terminal\n"));
-		return INCONSISTENT_PROC_STATE;
+		if(IS_SCHEMA(strm->gStack->grammar->props))
+		{
+			DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">In schema-informed grammars, xsi:type and xsi:nil attributes MUST NOT be represented using AT(*) terminal\n"));
+			return INCONSISTENT_PROC_STATE;
+		}
 	}
 
 	if(handler->attribute != NULL)  // Invoke handler method
