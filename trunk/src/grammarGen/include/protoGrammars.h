@@ -116,4 +116,12 @@ errorCode convertProtoGrammar(AllocList* memlist, ProtoGrammar* pg, EXIGrammar* 
  */
 errorCode cloneProtoGrammar(ProtoGrammar* src, ProtoGrammar* dest);
 
+#if EXIP_DEBUG == ON && DEBUG_GRAMMAR_GEN == ON
+
+errorCode printProtoGrammarRule(SmallIndex nonTermID, ProtoRuleEntry* rule);
+
+errorCode printProtoGrammar(ProtoGrammar* pgr);
+
+#endif
+
 #endif /* PROTOGRAMMARS_H_ */

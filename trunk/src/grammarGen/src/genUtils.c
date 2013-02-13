@@ -114,20 +114,40 @@ errorCode concatenateGrammars(ProtoGrammar* left, ProtoGrammar* right)
 		{
 			if(GET_PROD_EXI_EVENT(left->rule[ruleIterL].prod[prodIterL].content) == EVENT_EE)
 			{
-				/* Remove the EE production */
-				delDynEntry(&left->rule[ruleIterL].dynArray, prodIterL);
-	
-				/* Merge productions from RHS rule 0 into each left rule */
-				tmp_err_code = addProductionsToARule(left,
-													 ruleIterL,
-													 right,
-													 0,
-													 collisions,
-													 &collisionCount,
-													 &currRuleIndex,
-													 initialLeftRulesCount - 1);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
+				if(!rulesEqual(left, ruleIterL, right, 0))
+				{
+					/* Remove the EE production */
+					delDynEntry(&left->rule[ruleIterL].dynArray, prodIterL);
+
+					if(left->rule[ruleIterL].count == 0)
+					{
+						// Just copy all the production...
+						for(prodIterR = 0; prodIterR < right->rule[0].count; prodIterR++)
+						{
+							tmp_err_code = addProduction(&left->rule[ruleIterL],
+														 GET_PROD_EXI_EVENT(right->rule[0].prod[prodIterR].content),
+														 right->rule[0].prod[prodIterR].typeId,
+														 right->rule[0].prod[prodIterR].qnameId,
+														 GET_PROD_NON_TERM(right->rule[0].prod[prodIterR].content) + ((GET_PROD_EXI_EVENT(right->rule[0].prod[prodIterR].content) == EVENT_EE)?0:(initialLeftRulesCount-1)));
+							if(tmp_err_code != ERR_OK)
+								return tmp_err_code;
+						}
+					}
+					else
+					{
+						/* Merge productions from RHS rule 0 into each left rule */
+						tmp_err_code = addProductionsToARule(left,
+															 ruleIterL,
+															 right,
+															 0,
+															 collisions,
+															 &collisionCount,
+															 &currRuleIndex,
+															 initialLeftRulesCount - 1);
+						if(tmp_err_code != ERR_OK)
+							return tmp_err_code;
+					}
+				}
 				break;
 			}
 		}
@@ -158,34 +178,76 @@ static errorCode addProductionsToARule(ProtoGrammar* left, Index ruleIndxL, Prot
 		if(GET_PROD_NON_TERM(right->rule[ruleIndxR].prod[prodIterR].content) == 0)
 		{
 			ProtoRuleEntry* pRuleEntry;
-			unsigned int tmpIterR;
+			unsigned int tmpIterL, tmpIterR;
+			boolean equalRRuleFound = FALSE;
+			boolean allRProdIn = TRUE;
+			boolean rProdFound = FALSE;
 
-			if(rulesEqual(left, ruleIndxL, right, ruleIndxR))
+			// It is only an issue if we have productions in (right, ruleIndxR) that are not in (left, ruleIndxL); EE excluded
+			for(tmpIterR = 0; tmpIterR < right->rule[ruleIndxR].count; tmpIterR++)
 			{
+				if(GET_PROD_EXI_EVENT(right->rule[ruleIndxR].prod[tmpIterR].content) != EVENT_EE)
+				{
+					rProdFound = FALSE;
+					for(tmpIterL = 0; tmpIterL < left->rule[ruleIndxL].count; tmpIterL++)
+					{
+						if(GET_PROD_EXI_EVENT(right->rule[ruleIndxR].prod[tmpIterR].content) == GET_PROD_EXI_EVENT(left->rule[ruleIndxL].prod[tmpIterL].content))
+						{
+							rProdFound = TRUE;
+							break;
+						}
+					}
+
+					if(rProdFound == FALSE)
+					{
+						allRProdIn = FALSE;
+						break;
+					}
+				}
+			}
+
+			if(allRProdIn)
+			{
+				// All productions in (right, ruleIndxR) are available in (left, ruleIndxL)
 				nonTermRight = ruleIndxL;
 			}
 			else
 			{
-				// Creating a new rule ...
-
-				nonTermRight = *currRuleIndex;
-
-				/* Create new rule entry in LHS proto grammar */
-				tmp_err_code = addProtoRule(left, right->rule[ruleIndxR].count, &pRuleEntry);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
-
-				/* Copy the RHS productions into the new rule entry, adjusting the non terminal ID */
-				for(tmpIterR = 0; tmpIterR < right->rule[ruleIndxR].count; tmpIterR++)
+				// Try to find a rule in left, different from ruleIndxL that is equal to (right,ruleIndxR)
+				for(tmpIterL = 0; tmpIterL < left->count; tmpIterL++)
 				{
-					tmp_err_code = addProduction(pRuleEntry, GET_PROD_EXI_EVENT(right->rule[ruleIndxR].prod[tmpIterR].content),
-							right->rule[ruleIndxR].prod[tmpIterR].typeId, right->rule[ruleIndxR].prod[tmpIterR].qnameId,
-												 GET_PROD_NON_TERM(right->rule[ruleIndxR].prod[tmpIterR].content) + ((GET_PROD_EXI_EVENT(right->rule[ruleIndxR].prod[tmpIterR].content) == EVENT_EE)?0:(initialLeftRulesCount-1)));
-					if(tmp_err_code != ERR_OK)
-						return tmp_err_code;
+					if(tmpIterL != ruleIndxL && rulesEqual(left, tmpIterL, right, ruleIndxR))
+					{
+						// We found a rule that is equal, then make the Non-TermS on the RHS pointing to it
+						nonTermRight = tmpIterL;
+						equalRRuleFound = TRUE;
+						break;
+					}
 				}
 
-				*currRuleIndex += 1;
+				if(equalRRuleFound == FALSE)
+				{
+					// Creating a new rule ...
+
+					nonTermRight = *currRuleIndex;
+
+					/* Create new rule entry in LHS proto grammar */
+					tmp_err_code = addProtoRule(left, right->rule[ruleIndxR].count, &pRuleEntry);
+					if(tmp_err_code != ERR_OK)
+						return tmp_err_code;
+
+					/* Copy the RHS productions into the new rule entry, adjusting the non terminal ID */
+					for(tmpIterR = 0; tmpIterR < right->rule[ruleIndxR].count; tmpIterR++)
+					{
+						tmp_err_code = addProduction(pRuleEntry, GET_PROD_EXI_EVENT(right->rule[ruleIndxR].prod[tmpIterR].content),
+								right->rule[ruleIndxR].prod[tmpIterR].typeId, right->rule[ruleIndxR].prod[tmpIterR].qnameId,
+													 GET_PROD_NON_TERM(right->rule[ruleIndxR].prod[tmpIterR].content) + ((GET_PROD_EXI_EVENT(right->rule[ruleIndxR].prod[tmpIterR].content) == EVENT_EE)?0:(initialLeftRulesCount-1)));
+						if(tmp_err_code != ERR_OK)
+							return tmp_err_code;
+					}
+
+					*currRuleIndex += 1;
+				}
 			}
 		}
 		else
@@ -541,12 +603,41 @@ errorCode createParticleGrammar(int minOccurs, int maxOccurs,
 				{
 					if(GET_PROD_EXI_EVENT(termGrammar->rule[i].prod[j].content) == EVENT_EE)
 					{
-						// Remove this production
-						delDynEntry(&termGrammar->rule[i].dynArray, j);
+						if(!rulesEqual(termGrammar, i, termGrammar, 0))
+						{
+							/* Remove the EE production */
+							delDynEntry(&termGrammar->rule[i].dynArray, j);
 
-						tmp_err_code = addProductionsToARule(termGrammar, i, termGrammar, 0, collisions, &collisionCount, &currRuleIndex, 0);
-						if(tmp_err_code != ERR_OK)
-							return tmp_err_code;
+							if(termGrammar->rule[i].count == 0)
+							{
+								Index prodIterR;
+								// Just copy all the production...
+								for(prodIterR = 0; prodIterR < termGrammar->rule[0].count; prodIterR++)
+								{
+									tmp_err_code = addProduction(&termGrammar->rule[i],
+																 GET_PROD_EXI_EVENT(termGrammar->rule[0].prod[prodIterR].content),
+																 termGrammar->rule[0].prod[prodIterR].typeId,
+																 termGrammar->rule[0].prod[prodIterR].qnameId,
+																 GET_PROD_NON_TERM(termGrammar->rule[0].prod[prodIterR].content));
+									if(tmp_err_code != ERR_OK)
+										return tmp_err_code;
+								}
+							}
+							else
+							{
+								/* Merge productions from RHS rule 0 into each left rule */
+								tmp_err_code = addProductionsToARule(termGrammar,
+																	 i,
+																	 termGrammar,
+																	 0,
+																	 collisions,
+																	 &collisionCount,
+																	 &currRuleIndex,
+																	 0);
+								if(tmp_err_code != ERR_OK)
+									return tmp_err_code;
+							}
+						}
 						break;
 					}
 				}
@@ -757,16 +848,38 @@ errorCode createChoiceModelGroupsGrammar(ProtoGrammarArray* pgArray, ProtoGramma
 
 		currRuleIndex = modGrpGrammar->count;
 
-		tmp_err_code = addProductionsToARule(modGrpGrammar,
-											 0,
-											 tmpGrammar,
-											 0,
-											 collisions,
-											 &collisionCount,
-											 &currRuleIndex,
-											 initialResultRulesCount - 1);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		if(!rulesEqual(modGrpGrammar, 0, tmpGrammar, 0))
+		{
+			if(modGrpGrammar->rule[0].count == 0)
+			{
+				Index prodIterR;
+				// Just copy all the production...
+				for(prodIterR = 0; prodIterR < tmpGrammar->rule[0].count; prodIterR++)
+				{
+					tmp_err_code = addProduction(&modGrpGrammar->rule[0],
+												 GET_PROD_EXI_EVENT(tmpGrammar->rule[0].prod[prodIterR].content),
+												 tmpGrammar->rule[0].prod[prodIterR].typeId,
+												 tmpGrammar->rule[0].prod[prodIterR].qnameId,
+												 GET_PROD_NON_TERM(tmpGrammar->rule[0].prod[prodIterR].content) + ((GET_PROD_EXI_EVENT(tmpGrammar->rule[0].prod[prodIterR].content) == EVENT_EE)?0:(initialResultRulesCount-1)));
+					if(tmp_err_code != ERR_OK)
+						return tmp_err_code;
+				}
+			}
+			else
+			{
+				/* Merge productions from RHS rule 0 into each left rule */
+				tmp_err_code = addProductionsToARule(modGrpGrammar,
+													 0,
+													 tmpGrammar,
+													 0,
+													 collisions,
+													 &collisionCount,
+													 &currRuleIndex,
+													 initialResultRulesCount - 1);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
+		}
 
 		// TODO: check if needed
 //		// Create the new grammar rules based on the collision information
