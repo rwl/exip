@@ -557,6 +557,7 @@ errorCode qnameData(EXIStream* strm, QName qname)
 {
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Start qname data serialization\n"));
 	// Only allowed for AT(xsi:type) productions
+	// TODO: Add the case when Preserve.lexicalValues option value is true - instead of Qname encode it as String
 
 	if(strm->context.expectATData > 0 && strm->context.currAttr.uriId == XML_SCHEMA_INSTANCE_ID && strm->context.currAttr.lnId == XML_SCHEMA_INSTANCE_TYPE_ID)
 	{

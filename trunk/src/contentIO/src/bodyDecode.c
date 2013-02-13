@@ -26,6 +26,7 @@
 
 static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRule, SmallIndex* nonTermID_out, ContentHandler* handler, void* app_data);
 static errorCode handleProduction(EXIStream* strm, Production* prodHit, SmallIndex* nonTermID_out, ContentHandler* handler, void* app_data);
+static errorCode decodeQNameValue(EXIStream* strm, ContentHandler* handler, SmallIndex* nonTermID_out, void* app_data);
 
 errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, ContentHandler* handler, void* app_data)
 {
@@ -491,32 +492,10 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 				switch(state)
 				{
 					case 0:
-					{
 						// AT(xsi:type) event
-						QName qname;
-						QNameID qnameId;
-						EXIGrammar* newGrammar = NULL;
-
-						tmp_err_code = decodeQName(strm, &qname, &qnameId);
+						tmp_err_code = decodeQNameValue(strm, handler, nonTermID_out, app_data);
 						if(tmp_err_code != ERR_OK)
 							return tmp_err_code;
-
-						// New type grammar is pushed on the stack if it exists
-						newGrammar = GET_TYPE_GRAMMAR_QNAMEID(strm->schema, qnameId);
-
-						if(newGrammar != NULL)
-						{
-							// The grammar is found
-							EXIGrammar* currGr;
-
-							popGrammar(&(strm->gStack), &currGr);
-
-							*nonTermID_out = GR_START_TAG_CONTENT;
-							tmp_err_code = pushGrammar(&(strm->gStack), newGrammar);
-							if(tmp_err_code != ERR_OK)
-								return tmp_err_code;
-						}
-					}
 					break;
 					case 1:
 						// AT(xsi:nil) event
@@ -650,32 +629,10 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 					*nonTermID_out = GR_VOID_NON_TERMINAL;
 				break;
 				case 1:
-				{
 					// AT(xsi:type) event
-					QName qname;
-					QNameID qnameId;
-					EXIGrammar* newGrammar = NULL;
-
-					tmp_err_code = decodeQName(strm, &qname, &qnameId);
+					tmp_err_code = decodeQNameValue(strm, handler, nonTermID_out, app_data);
 					if(tmp_err_code != ERR_OK)
 						return tmp_err_code;
-
-					// New type grammar is pushed on the stack if it exists
-					newGrammar = GET_TYPE_GRAMMAR_QNAMEID(strm->schema, qnameId);
-
-					if(newGrammar != NULL)
-					{
-						// The grammar is found
-						EXIGrammar* currGr;
-
-						popGrammar(&(strm->gStack), &currGr);
-
-						*nonTermID_out = GR_START_TAG_CONTENT;
-						tmp_err_code = pushGrammar(&(strm->gStack), newGrammar);
-						if(tmp_err_code != ERR_OK)
-							return tmp_err_code;
-					}
-				}
 				break;
 				case 2:
 					// AT(xsi:nil) Element i, 0
@@ -1326,33 +1283,12 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 		break;
 		case VALUE_TYPE_QNAME:
 		{
-			QName qname;
-			QNameID qnameId;
-			EXIGrammar* newGrammar = NULL;;
-
 			// Only allowed if the current production is AT(xsi:type)
-			if(localQNameID.uriId != XML_SCHEMA_INSTANCE_ID || localQNameID.lnId != XML_SCHEMA_INSTANCE_TYPE_ID)
-				return INCONSISTENT_PROC_STATE;
+			assert(localQNameID.uriId == XML_SCHEMA_INSTANCE_ID && localQNameID.lnId == XML_SCHEMA_INSTANCE_TYPE_ID);
 
-			tmp_err_code = decodeQName(strm, &qname, &qnameId);
+			tmp_err_code = decodeQNameValue(strm, handler, nonTermID_out, app_data);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
-
-			// New type grammar is pushed on the stack if it exists
-			newGrammar = GET_TYPE_GRAMMAR_QNAMEID(strm->schema, qnameId);
-
-			if(newGrammar != NULL)
-			{
-				// The grammar is found
-				EXIGrammar* currGr;
-
-				popGrammar(&(strm->gStack), &currGr);
-
-				*nonTermID_out = GR_START_TAG_CONTENT;
-				tmp_err_code = pushGrammar(&(strm->gStack), newGrammar);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
-			}
 		}
 		break;
 		default: // VALUE_TYPE_STRING || VALUE_TYPE_NONE || VALUE_TYPE_UNTYPED
@@ -1527,6 +1463,43 @@ errorCode decodeATWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallI
 		return tmp_err_code;
 
 	strm->context.currAttr = qnameId;
+
+	return ERR_OK;
+}
+
+static errorCode decodeQNameValue(EXIStream* strm, ContentHandler* handler, SmallIndex* nonTermID_out, void* app_data)
+{
+	// TODO: Add the case when Preserve.lexicalValues option value is true - instead of Qname decode it as String
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	QName qname;
+	QNameID qnameId;
+	EXIGrammar* newGrammar = NULL;;
+
+	tmp_err_code = decodeQName(strm, &qname, &qnameId);
+	if(tmp_err_code != ERR_OK)
+		return tmp_err_code;
+
+	if(handler->qnameData != NULL)  // Invoke handler method
+	{
+		if(handler->qnameData(qname, app_data) == EXIP_HANDLER_STOP)
+			return HANDLER_STOP_RECEIVED;
+	}
+
+	// New type grammar is pushed on the stack if it exists
+	newGrammar = GET_TYPE_GRAMMAR_QNAMEID(strm->schema, qnameId);
+
+	if(newGrammar != NULL)
+	{
+		// The grammar is found
+		EXIGrammar* currGr;
+
+		popGrammar(&(strm->gStack), &currGr);
+
+		*nonTermID_out = GR_START_TAG_CONTENT;
+		tmp_err_code = pushGrammar(&(strm->gStack), newGrammar);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+	}
 
 	return ERR_OK;
 }
