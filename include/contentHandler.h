@@ -47,6 +47,7 @@ struct ContentHandler
 	char (*dateTimeData)(EXIPDateTime dt_val, void* app_data);
 	char (*decimalData)(Decimal dec_val, void* app_data);
 	char (*listData)(EXITypeClass exiType, unsigned int itemCount, void* app_data);
+	char (*qnameData)(const QName qname, void* app_data); // xsi:type value only
 
 	// Miscellaneous
 	char (*processingInstruction)(void* app_data); // TODO: define the parameters!

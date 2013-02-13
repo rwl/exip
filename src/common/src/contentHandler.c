@@ -30,6 +30,7 @@ void initContentHandler(ContentHandler* handler)
 	handler->floatData = NULL;
 	handler->intData = NULL;
 	handler->listData = NULL;
+	handler->qnameData = NULL;
 	handler->processingInstruction = NULL;
 	handler->namespaceDeclaration = NULL;
 	handler->selfContained = NULL;
