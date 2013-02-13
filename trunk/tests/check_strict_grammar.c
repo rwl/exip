@@ -332,8 +332,6 @@ START_TEST (test_acceptance_for_A_01)
 	// V: Parse the body of the EXI stream
 	while(tmp_err_code == ERR_OK)
 	{
-		tmp_err_code = parseNext(&testParser);
-		
 		switch (parsingData.eventCount)
 		{
 			case 0:
@@ -407,13 +405,17 @@ START_TEST (test_acceptance_for_A_01)
 				break;
 			default:
 				// Unexpected event count caught below.
-				;
+				break;
 		}
+		tmp_err_code = parseNext(&testParser);
+
 		parsingData.eventCount++;
 				
 	}
 	
-	fail_unless(parsingData.eventCount == 19, 
+	fail_unless(stringEqualToAscii(parsingData.eventCode, "ED"));
+
+	fail_unless(parsingData.eventCount == 18,
 	            "Unexpected event count: %u", parsingData.eventCount);
 
 	// VI: Free the memory allocated by the parser object
@@ -489,8 +491,6 @@ START_TEST (test_acceptance_for_A_01_exip1)
 	// V: Parse the body of the EXI stream
 	while(tmp_err_code == ERR_OK)
 	{
-		tmp_err_code = parseNext(&testParser);
-		
 		switch (parsingData.eventCount)
 		{
 			case 0:
@@ -512,12 +512,16 @@ START_TEST (test_acceptance_for_A_01_exip1)
 				break;
 			default:
 				// Unexpected event count caught below.
-				;
+				break;
 		}
+
+		tmp_err_code = parseNext(&testParser);
 		parsingData.eventCount++;
 	}
 	
-	fail_unless(parsingData.eventCount == 5, 
+	fail_unless(stringEqualToAscii(parsingData.eventCode, "ED"));
+
+	fail_unless(parsingData.eventCount == 4,
 	            "Unexpected event count: %u", parsingData.eventCount);
 
 	// VI: Free the memory allocated by the parser object
