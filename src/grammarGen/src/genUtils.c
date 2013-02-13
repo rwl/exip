@@ -213,6 +213,27 @@ static errorCode addProductionsToARule(ProtoGrammar* left, Index ruleIndxL, Prot
 					/* Check the next production in LHS... */
 					break;
 				}
+				else
+				{
+					// The LHS non-terminals are different for the two productions with the same terminal
+					// Check if the rules that are indicated by the terminals are equal
+					if(rulesEqual(left, GET_PROD_NON_TERM(left->rule[ruleIndxL].prod[prodIterL].content), left, nonTermRight))
+					{
+						// NonTerminals are different indexes but are otherwise equal
+						// no need to add the production as it's already there
+						collisionFound = TRUE;
+						terminalCollision = TRUE;
+						/* Check the next production in LHS... */
+						break;
+					}
+					else
+					{
+						// Collision: equal terminals and non-equal non-terminals
+						// We have a collision detected - must be traced why it happens
+						assert(FALSE);
+					}
+
+				}
 
 				// TODO: try to eliminate the collisions if possible. First detect when something collides - hopefully never
 				// We have a collision detected - must be traced why it happens

@@ -2065,10 +2065,6 @@ static errorCode getListProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTa
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		// The type definition (itemType) should be linked already to the supertype.entry
-		if(listEntry->supertype.entry == NULL)
-			return UNEXPECTED_ERROR;
-
 		tmp_err_code = getTypeId(ctx, itemTypeQnameId, listEntry->supertype.entry, listEntry->supertype.treeT, &itemTypeId);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
