@@ -63,7 +63,7 @@ errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int buf
 			return tmp_err_code;
 	}
 
-#if DEBUG_GRAMMAR_GEN == ON
+#if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
 	{
 		unsigned int j;
 		for(i = 0; i < bufCount; i++)
@@ -113,7 +113,7 @@ errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int buf
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
-#if DEBUG_GRAMMAR_GEN == ON
+#if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
 	{
 		unsigned int j;
 

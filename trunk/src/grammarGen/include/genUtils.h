@@ -149,22 +149,15 @@ errorCode createChoiceModelGroupsGrammar(ProtoGrammarArray* pgArray, ProtoGramma
 errorCode createAllModelGroupsGrammar(ProtoGrammar* pTermArray, unsigned int pTermArraySize, ProtoGrammar* modGrpGrammar);
 
 /**
- * @brief Event Code Assignment to normalized grammar
- *
- * @param[in, out] grammar the normalized grammar for assigning the event codes
- * @return Error handling code
- */
-errorCode assignCodes(ProtoGrammar* grammar);
-
-/**
  * @brief Compare lexicographically two qnames: first by qname local-name, then by qname uri
  * NOTE: Relies on the fact that the sting tables are sorted beforehand!
  *
  * @param[in] qnameID1 qnameId of the first qname
  * @param[in] qnameID2 qnameId of the second qname
+ * @param[in] uriTbl string table reference
  * @return 0 when the qnames are equal; negative int when qnameID1<qnameID2; positive when qnameID1>qnameID2
  */
-int compareQNameID(const void* qnameID1, const void* qnameID2);
+int compareQNameID(const void* qnameID1, const void* qnameID2, UriTable* uriTbl);
 
 /**
  * @brief Adds a EE production to a proto grammar rule
