@@ -113,7 +113,7 @@ errorCode encodeStringOnly(EXIStream* strm, const String* string_val)
 	uint32_t tmp_val= 0;
 	Index i = 0;
 	Index readerPosition = 0;
-#if DEBUG_STREAM_IO == ON
+#if DEBUG_STREAM_IO == ON && EXIP_DEBUG_LEVEL == INFO
 	DEBUG_MSG(INFO, DEBUG_STREAM_IO, ("\n Write string, len %u: ", (unsigned int) string_val->length));
 	printString(string_val);
 	DEBUG_MSG(INFO, DEBUG_STREAM_IO, ("\n"));

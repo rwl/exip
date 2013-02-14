@@ -30,6 +30,9 @@ static Production static_grammar_prod_empty[1] = {{0x28FFFFFF, INDEX_MAX, {URI_M
 static GrammarRule static_grammar_rule_empty[1] = {{static_grammar_prod_empty, 1, 0x01}};
 static EXIGrammar static_grammar_empty = {static_grammar_rule_empty, 0x42000000, 1};
 
+/** It is used by compareAttrUse(), compareProductions() and compareGlobalElemQName() functions */
+static EXIPSchema* globalSchemaPtr;
+
 struct GlobalElemQNameTable
 {
 	DynArray dynArray;
@@ -211,11 +214,26 @@ static errorCode getListProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTa
 
 // Helper functions
 
+/** Descending order comparison.
+ * The productions are ordered with the largest event code first. */
+static int compareProductions(const void* prod1, const void* prod2);
+
+/**
+ * @brief Event Code Assignment to normalized grammar
+ *
+ * @param[in, out] grammar the normalized grammar for assigning the event codes
+ * @return Error handling code
+ */
+static void assignCodes(ProtoGrammar* grammar);
+
 /** Sorts an array of attribute use proto-grammars */
 static void sortAttributeUseGrammars(ProtoGrammarArray* attrUseArray);
 
 /** Used by sortAttributeUseGrammars() */
 static int compareAttrUse(const void* attrPG1, const void* attrPG2);
+
+/** Used by sortGlobalElemQnameTable() */
+static int compareGlobalElemQName(const void* QNameId1, const void* QNameId2);
 
 /** Given a string value of an Occurance Attribute this function
  * converts it to a int representation (outInt).
@@ -264,6 +282,7 @@ errorCode convertTreeTablesToExipSchema(TreeTable* treeT, unsigned int count, EX
 	Index grIndex; // Index of the grammar in the schemaGrammarTable
 
 	ctx.schema = schema;
+	globalSchemaPtr = schema;
 	ctx.emptyGrIndex = INDEX_MAX;
 	getEmptyString(&ctx.emptyString);
 
@@ -373,7 +392,7 @@ static int compareAttrUse(const void* attrPG1, const void* attrPG2)
 	ProtoGrammar** a1 = (ProtoGrammar**) attrPG1;
 	ProtoGrammar** a2 = (ProtoGrammar**) attrPG2;
 
-	return compareQNameID(&((*a1)->rule[0].prod[0].qnameId), &((*a2)->rule[0].prod[0].qnameId));
+	return compareQNameID(&((*a1)->rule[0].prod[0].qnameId), &((*a2)->rule[0].prod[0].qnameId), &globalSchemaPtr->uriTable);
 }
 
 static void sortAttributeUseGrammars(ProtoGrammarArray* attrUseArray)
@@ -454,7 +473,7 @@ static errorCode handleElementEl(BuildContext* ctx, TreeTable* treeT, TreeTableE
 	QNameID typeQNameID;
 	boolean isNillable = FALSE;
 
-#if DEBUG_GRAMMAR_GEN == ON
+#if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Handle Element: "));
 	printString(&entry->attributePointers[ATTRIBUTE_NAME]);
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (" of type: "));
@@ -462,19 +481,38 @@ static errorCode handleElementEl(BuildContext* ctx, TreeTable* treeT, TreeTableE
 #endif
 
 	/*======== COMMENT #SCHEMA# ========*/
-	/* Because of the possible recursive loops in the XML schema definitions this needs to be fixed */
-//	if(
-//			stringEqualToAscii(entry->attributePointers[ATTRIBUTE_REF], "xs:restriction") ||
-//			stringEqualToAscii(entry->attributePointers[ATTRIBUTE_REF], "xs:list") ||
-//			stringEqualToAscii(entry->attributePointers[ATTRIBUTE_REF], "xs:union") ||
-//			stringEqualToAscii(entry->attributePointers[ATTRIBUTE_REF], "xs:all") ||
-//			stringEqualToAscii(entry->attributePointers[ATTRIBUTE_REF], "xs:choice") ||
-//			stringEqualToAscii(entry->attributePointers[ATTRIBUTE_REF], "xs:sequence"))
+	/* TODO: Because of the possible recursive loops in the XML schema definitions this needs to be fixed */
+	/* The below code is a temporary fix for the XML schema processing in schema mode */
+//	if(stringEqualToAscii(entry->attributePointers[ATTRIBUTE_REF], "xs:restriction"))
 //	{
-//		*grIndex = INDEX_MAX;
+//		*grIndex = 109;
 //		return ERR_OK;
 //	}
-
+//	else if(stringEqualToAscii(entry->attributePointers[ATTRIBUTE_REF], "xs:list"))
+//	{
+//		*grIndex = 110;
+//		return ERR_OK;
+//	}
+//	else if(stringEqualToAscii(entry->attributePointers[ATTRIBUTE_REF], "xs:union"))
+//	{
+//		*grIndex = 111;
+//		return ERR_OK;
+//	}
+//	else if(stringEqualToAscii(entry->attributePointers[ATTRIBUTE_REF], "xs:all"))
+//	{
+//		*grIndex = 106;
+//		return ERR_OK;
+//	}
+//	else if(stringEqualToAscii(entry->attributePointers[ATTRIBUTE_REF], "xs:choice"))
+//	{
+//		*grIndex = 105;
+//		return ERR_OK;
+//	}
+//	else if(stringEqualToAscii(entry->attributePointers[ATTRIBUTE_REF], "xs:sequence"))
+//	{
+//		*grIndex = 105;
+//		return ERR_OK;
+//	}
 
 	type = entry->attributePointers[ATTRIBUTE_TYPE];
 
@@ -760,7 +798,7 @@ static errorCode handleSimpleTypeEl(BuildContext* ctx, TreeTable* treeT, TreeTab
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
-#if DEBUG_GRAMMAR_GEN == ON
+#if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Handle SimpleType: "));
 	printString(&entry->attributePointers[ATTRIBUTE_NAME]);
 #endif
@@ -1170,7 +1208,7 @@ static errorCode handleComplexTypeEl(BuildContext* ctx, TreeTable* treeT, TreeTa
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
-#if DEBUG_GRAMMAR_GEN == ON
+#if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Handle ComplexType: "));
 	printString(&entry->attributePointers[ATTRIBUTE_NAME]);
 #endif
@@ -1514,7 +1552,7 @@ static errorCode getGroupProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeT
 	int minOccurs = 1;
 	int maxOccurs = 1;
 
-#if DEBUG_GRAMMAR_GEN == ON
+#if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Handle Group: "));
 	printString(&grEntry->attributePointers[ATTRIBUTE_REF]);
 #endif
@@ -1583,7 +1621,7 @@ static errorCode getExtensionSimpleProtoGrammar(BuildContext* ctx, TreeTable* tr
 	ProtoGrammar* resultProtoGrammar = NULL;
 	Index typeId;
 
-#if DEBUG_GRAMMAR_GEN == ON
+#if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Handle SimpleContent Extension: "));
 	printString(&extEntry->attributePointers[ATTRIBUTE_BASE]);
 #endif
@@ -1619,7 +1657,7 @@ static errorCode getExtensionComplexProtoGrammar(BuildContext* ctx, TreeTable* t
 	ProtoGrammar* resultProtoGrammar = NULL;
 	ProtoGrammar* contGrArr[2];
 
-#if DEBUG_GRAMMAR_GEN == ON
+#if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Handle ComplexContent Extension: "));
 	printString(&extEntry->attributePointers[ATTRIBUTE_BASE]);
 #endif
@@ -1938,7 +1976,7 @@ static errorCode getRestrictionComplexProtoGrammar(BuildContext* ctx, TreeTable*
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	QNameID baseTypeId;
 
-#if DEBUG_GRAMMAR_GEN == ON
+#if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Handle ComplexContent Restriction: "));
 	printString(&resEntry->attributePointers[ATTRIBUTE_BASE]);
 #endif
@@ -2108,9 +2146,7 @@ static errorCode storeGrammar(BuildContext* ctx, QNameID qnameID, ProtoGrammar* 
 	}
 	else
 	{
-		tmp_err_code = assignCodes(pGrammar);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		assignCodes(pGrammar);
 
 		tmp_err_code = convertProtoGrammar(&ctx->schema->memList, pGrammar, &exiGr);
 		if(tmp_err_code != ERR_OK)
@@ -2150,7 +2186,7 @@ static errorCode storeGrammar(BuildContext* ctx, QNameID qnameID, ProtoGrammar* 
 		destroyProtoGrammar(pGrammar);
 	}
 
-#if DEBUG_GRAMMAR_GEN == ON
+#if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
 	{
 		SmallIndex t = 0;
 
@@ -2171,9 +2207,17 @@ static errorCode storeGrammar(BuildContext* ctx, QNameID qnameID, ProtoGrammar* 
 	return ERR_OK;
 }
 
+static int compareGlobalElemQName(const void* QNameId1, const void* QNameId2)
+{
+	QNameID* q1 = (QNameID*) QNameId1;
+	QNameID* q2 = (QNameID*) QNameId2;
+
+	return compareQNameID(q1, q2, &globalSchemaPtr->uriTable);
+}
+
 static void sortGlobalElemQnameTable(GlobalElemQNameTable *gElTbl)
 {
-	qsort(gElTbl->qname, gElTbl->count, sizeof(QNameID), compareQNameID);
+	qsort(gElTbl->qname, gElTbl->count, sizeof(QNameID), compareGlobalElemQName);
 }
 
 static void sortEnumTable(EXIPSchema *schema)
@@ -2193,3 +2237,58 @@ static char isAttrAlreadyPresent(String aName, struct localAttrNames* lAttrTbl)
 
 	return FALSE;
 }
+
+void assignCodes(ProtoGrammar* grammar)
+{
+	Index i = 0;
+
+	for (i = 0; i < grammar->count; i++)
+	{
+		qsort(grammar->rule[i].prod, grammar->rule[i].count, sizeof(Production), compareProductions);
+	}
+}
+
+static int compareProductions(const void* prod1, const void* prod2)
+{
+	Production* p1 = (Production*) prod1;
+	Production* p2 = (Production*) prod2;
+
+	if(GET_PROD_EXI_EVENT(p1->content) < GET_PROD_EXI_EVENT(p2->content))
+		return 1;
+	else if(GET_PROD_EXI_EVENT(p1->content) > GET_PROD_EXI_EVENT(p2->content))
+		return -1;
+	else // the same event Type
+	{
+		if(GET_PROD_EXI_EVENT(p1->content) == EVENT_AT_QNAME)
+		{
+			return -compareQNameID(&(p1->qnameId), &(p2->qnameId), &globalSchemaPtr->uriTable);
+		}
+		else if(GET_PROD_EXI_EVENT(p1->content) == EVENT_AT_URI)
+		{
+			if(p1->qnameId.uriId < p2->qnameId.uriId)
+			{
+				return 1;
+			}
+			else if(p1->qnameId.uriId > p2->qnameId.uriId)
+			{
+				return -1;
+			}
+			else
+				return 0;
+		}
+		else if(GET_PROD_EXI_EVENT(p1->content) == EVENT_SE_QNAME)
+		{
+			// TODO: figure out how it works??? if this really works for all cases. Seems very unlikely that it does!
+			if(GET_PROD_NON_TERM(p1->content) < GET_PROD_NON_TERM(p2->content))
+				return 1;
+			else
+				return -1;
+		}
+		else if(GET_PROD_EXI_EVENT(p1->content) == EVENT_SE_URI)
+		{
+			// TODO: figure out how it should be done
+		}
+		return 0;
+	}
+}
+

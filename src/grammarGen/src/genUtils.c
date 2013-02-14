@@ -41,10 +41,6 @@ static errorCode addProductionsToARule(ProtoGrammar* left, Index ruleIndxL, Prot
 // Creates the new grammar rules based on the collision information
 // static errorCode resolveCollisionsInGrammar(struct collisionInfo* collisions, unsigned int* collisionCount, ProtoGrammar* left, unsigned int* currRuleIndex);
 
-/** Descending order comparison.
- * The productions are ordered with the largest event code first. */
-static int compareProductions(const void* prod1, const void* prod2);
-
 errorCode concatenateGrammars(ProtoGrammar* left, ProtoGrammar* right)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -896,61 +892,6 @@ errorCode createAllModelGroupsGrammar(ProtoGrammar* pTermArray, unsigned int pTe
 	return NOT_IMPLEMENTED_YET;
 }
 
-errorCode assignCodes(ProtoGrammar* grammar)
-{
-	Index i = 0;
-
-	for (i = 0; i < grammar->count; i++)
-	{
-		qsort(grammar->rule[i].prod, grammar->rule[i].count, sizeof(Production), compareProductions);
-	}
-	return ERR_OK;
-}
-
-static int compareProductions(const void* prod1, const void* prod2)
-{
-	Production* p1 = (Production*) prod1;
-	Production* p2 = (Production*) prod2;
-
-	if(GET_PROD_EXI_EVENT(p1->content) < GET_PROD_EXI_EVENT(p2->content))
-		return 1;
-	else if(GET_PROD_EXI_EVENT(p1->content) > GET_PROD_EXI_EVENT(p2->content))
-		return -1;
-	else // the same event Type
-	{
-		if(GET_PROD_EXI_EVENT(p1->content) == EVENT_AT_QNAME)
-		{
-			return -compareQNameID(&(p1->qnameId), &(p2->qnameId));
-		}
-		else if(GET_PROD_EXI_EVENT(p1->content) == EVENT_AT_URI)
-		{
-			if(p1->qnameId.uriId < p2->qnameId.uriId)
-			{
-				return 1;
-			}
-			else if(p1->qnameId.uriId > p2->qnameId.uriId)
-			{
-				return -1;
-			}
-			else
-				return 0;
-		}
-		else if(GET_PROD_EXI_EVENT(p1->content) == EVENT_SE_QNAME)
-		{
-			// TODO: figure out how it works??? if this really works for all cases. Seems very unpossible that it does!
-			if(GET_PROD_NON_TERM(p1->content) < GET_PROD_NON_TERM(p2->content))
-				return 1;
-			else
-				return -1;
-		}
-		else if(GET_PROD_EXI_EVENT(p1->content) == EVENT_SE_URI)
-		{
-			// TODO: figure out how it should be done
-		}
-		return 0;
-	}
-}
-
 errorCode addEEProduction(ProtoRuleEntry* rule)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -970,32 +911,45 @@ errorCode addEEProduction(ProtoRuleEntry* rule)
 	return ERR_OK;
 }
 
-int compareQNameID(const void* qnameID1, const void* qnameID2)
+int compareQNameID(const void* qnameID1, const void* qnameID2, UriTable* uriTbl)
 {
 	/**
-	 *  The strings in the sting tables are sorted beforehand so simple comparison
+	 *  The strings in the string tables are sorted beforehand so simple comparison
 	 *  of the indexes is enough.
 	 */
 	QNameID* qId1 = (QNameID*) qnameID1;
 	QNameID* qId2 = (QNameID*) qnameID2;
-	if(qId1->lnId < qId2->lnId)
+
+	if(qId1->uriId == qId2->uriId)
 	{
-		return -1;
-	}
-	else if(qId1->lnId > qId2->lnId)
-	{
-		return 1;
-	}
-	else
-	{
-		if(qId1->uriId < qId2->uriId)
+		// Within the same namespace
+		if(qId1->lnId < qId2->lnId)
 		{
 			return -1;
 		}
-		else if(qId1->uriId > qId2->uriId)
+		else if(qId1->lnId > qId2->lnId)
 		{
 			return 1;
 		}
+	}
+	else
+	{
+		// In different namespaces
+		int i;
+		i = stringCompare(GET_LN_P_URI_P_QNAME(uriTbl, qId1).lnStr, GET_LN_P_URI_P_QNAME(uriTbl, qId2).lnStr);
+		if(i == 0)
+		{
+			if(qId1->uriId < qId2->uriId)
+			{
+				return -1;
+			}
+			else if(qId1->uriId > qId2->uriId)
+			{
+				return 1;
+			}
+		}
+		else
+			return i;
 	}
 
 	return 0;
