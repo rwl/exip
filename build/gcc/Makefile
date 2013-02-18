@@ -34,17 +34,11 @@ EXIP_VERSION = 0.4.1
 # The project root directory
 PROJECT_ROOT = ../..
 
-# The src folder of the project 
-SOURCE_DIR = $(PROJECT_ROOT)/src
-
 # The bin folder of the project 
 BIN_DIR = $(PROJECT_ROOT)/bin
 
 # The development documentation folder of the project
 DEV_DOC_DIR = $(PROJECT_ROOT)/doc/dev
-
-# Unit tests src root directory
-TESTS_SRC_DIR = $(PROJECT_ROOT)/tests
 
 # Unit tests test data directory
 TESTS_DATA_DIR = $(PROJECT_ROOT)/tests/test-set
@@ -75,70 +69,37 @@ VPATH += $(PROJECT_ROOT)/examples/simpleDecoding
 VPATH += $(PROJECT_ROOT)/examples/simpleEncoding
 VPATH += $(PROJECT_ROOT)/utils/schemaHandling
 VPATH += $(PROJECT_ROOT)/utils/schemaHandling/output
-VPATH += $(TESTS_SRC_DIR)
+VPATH += $(PROJECT_ROOT)/tests
 VPATH += $(TARGET)
 
 # Source files for the common module
-COMMON_SRC = ASCII_stringManipulate.c\
-		contentHandler.c\
-		dynamicArray.c\
-		hashtable.c\
-		memManagement.c\
-		procTypes.c
+COMMON_SRC = $(notdir $(wildcard $(PROJECT_ROOT)/src/common/src/*.c))
 
 # Source files for the contentIO module
-CONTENT_IO_SRC = bodyDecode.c\
-		bodyEncode.c\
-		EXIParser.c\
-		EXISerializer.c\
-		headerDecode.c\
-		headerEncode.c\
-		initSchemaInstance.c\
-		staticEXIOptions.c
+CONTENT_IO_SRC = $(notdir $(wildcard $(PROJECT_ROOT)/src/contentIO/src/*.c))
 
 # Source files for the grammar module		
-GRAMMAR_SRC = grammars.c
+GRAMMAR_SRC = $(notdir $(wildcard $(PROJECT_ROOT)/src/grammar/src/*.c))
 
 # Source files for the grammar generation module
-GRAMMAR_GEN_SRC = genUtils.c\
-		grammarGenerator.c\
-		protoGrammars.c\
-		treeTableBuild.c\
-		treeTableManipulate.c\
-		treeTableToGrammars.c
+GRAMMAR_GEN_SRC = $(notdir $(wildcard $(PROJECT_ROOT)/src/grammarGen/src/*.c))
 		
-STREAM_IO_SRC =	ioUtil.c\
-		streamDecode.c\
-		streamEncode.c\
-		streamRead.c\
-		streamWrite.c
+STREAM_IO_SRC =	$(notdir $(wildcard $(PROJECT_ROOT)/src/streamIO/src/*.c))
 
 # Source files for the string tables module
-STRING_TABLES_SRC = sTables.c
+STRING_TABLES_SRC = $(notdir $(wildcard $(PROJECT_ROOT)/src/stringTables/src/*.c))
 
-TESTS_SRC = check_builtin_grammar.c\
-		check_contentIO.c\
-		check_emptyType.c\
-		check_exip.c\
-		check_grammar.c\
-		check_streamIO.c\
-		check_strict_grammar.c\
-		check_stringTables.c\
-		check_xsi_type.c
+TESTS_SRC = $(notdir $(wildcard $(PROJECT_ROOT)/tests/*.c)) 
 
 # Source files for the utils
-EXIPG_UTIL_SRC = createGrammars.c\
-		exipg.c\
-		dynOutputUtils.c\
-		exipOutputUtils.c\
-		staticOutputUtils.c\
-		textOutputUtils.c
+EXIPG_UTIL_SRC = $(notdir $(wildcard $(PROJECT_ROOT)/utils/schemaHandling/*.c))
+EXIPG_UTIL_SRC += $(notdir $(wildcard $(PROJECT_ROOT)/utils/schemaHandling/output/*.c))
 
 # Source files for the examples
-EXIPE_EXAMPLE_SRC = encodeTestEXI.c exipe.c
-EXIPD_EXAMPLE_SRC = decodeTestEXI.c exipd.c
+EXIPE_EXAMPLE_SRC = $(notdir $(wildcard $(PROJECT_ROOT)/examples/simpleEncoding/*.c))
+EXIPD_EXAMPLE_SRC = $(notdir $(wildcard $(PROJECT_ROOT)/examples/simpleDecoding/*.c))
 
-LIB_SOURCES = $(COMMON_SRC) $(CONTENT_IO_SRC) $(GRAMMAR_SRC) $(STREAM_IO_SRC) $(STRING_TABLES_SRC)
+LIB_SOURCES = $(COMMON_SRC) $(CONTENT_IO_SRC) $(GRAMMAR_SRC) $(STREAM_IO_SRC) $(STRING_TABLES_SRC) $(notdir $(wildcard $(TARGET)/*.c))
 
 ifeq ($(INCLUDE_GRAMMAR_GENERATION), true)
    LIB_SOURCES += $(GRAMMAR_GEN_SRC)
@@ -150,7 +111,7 @@ EXIPG_OBJECTS=$(EXIPG_UTIL_SRC:%.c=$(BIN_DIR)/%.o)
 LIB_OBJECTS=$(LIB_SOURCES:%.c=$(BIN_DIR)/%.o)
 
 SOURCES_ALL = $(COMMON_SRC) $(CONTENT_IO_SRC) $(GRAMMAR_SRC) $(STREAM_IO_SRC) $(STRING_TABLES_SRC)\
-	$(GRAMMAR_GEN_SRC) $(TESTS_SRC) $(EXIPG_UTIL_SRC) $(EXIPE_EXAMPLE_SRC) $(EXIPD_EXAMPLE_SRC)
+	$(GRAMMAR_GEN_SRC) $(notdir $(wildcard $(TARGET)/*.c)) $(TESTS_SRC) $(EXIPG_UTIL_SRC) $(EXIPE_EXAMPLE_SRC) $(EXIPD_EXAMPLE_SRC)
 
 # Compiler include flags
 INCDIRS += -I$(PROJECT_ROOT)/src/common/include
@@ -244,7 +205,7 @@ $(UTILS_BIN_DIR)/exipg: $(EXIPG_OBJECTS)
 		$(COMPILE) $(LDFLAGS) $^ -lexip -o $@
 	
 $(LIB_BIN_DIR)/libexip.a: $(LIB_OBJECTS)
-		ar rcs $(LIB_BIN_DIR)/libexip.a $(LIB_OBJECTS)
+		$(ARCHIVER) rcs $(LIB_BIN_DIR)/libexip.a $(LIB_OBJECTS)
 
 $(LIB_BIN_DIR)/libexip.so: $(LIB_OBJECTS)
 		$(CC) -shared -Wl,-soname,libexip.so.$(EXIP_VERSION) -o $(LIB_BIN_DIR)/libexip.so.$(EXIP_VERSION) $(LIB_OBJECTS)

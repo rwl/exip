@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include "d_mem.h"
 
 uint8_t heap[D_MEM_HEAP_SIZE];
@@ -81,12 +82,12 @@ uint16_t d_malloc_freespace() {
 
 void* d_realloc(void *ptr, uint16_t size)
 {
-	void* p_ptr = malloc(size);
+	void* p_ptr = d_malloc(size);
 	if(p_ptr == NULL)
 		return NULL;
 
 	memcpy(p_ptr, ptr, size);
 
-	free(ptr);
+	d_free(ptr);
 	return p_ptr;
 }

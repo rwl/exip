@@ -565,7 +565,7 @@ typedef enum EXITypeClass EXITypeClass;
 
 #define GET_PROD_EXI_EVENT(content) (content>>24)
 #define GET_PROD_EXI_EVENT_CLASS(content) GET_EVENT_CLASS((content>>24))
-#define SET_PROD_EXI_EVENT(content, eventType) (content = (content & PROD_CONTENT_MASK) | (eventType<<24))
+#define SET_PROD_EXI_EVENT(content, eventType) (content = (content & PROD_CONTENT_MASK) | (((uint32_t) eventType)<<24))
 #define GET_PROD_NON_TERM(content) (content & PROD_CONTENT_MASK)
 #define SET_PROD_NON_TERM(content, nt) (content = (content & ~PROD_CONTENT_MASK) | (nt & PROD_CONTENT_MASK))
 
@@ -892,7 +892,7 @@ typedef struct UriTable UriTable;
 #define ST_CONTENT_MASK 0xFFFFFF // 0b00000000111111111111111111111111
 
 #define GET_EXI_TYPE(content) (content>>24)
-#define SET_EXI_TYPE(content, et) (content = (content & ST_CONTENT_MASK) | (et<<24))
+#define SET_EXI_TYPE(content, et) (content = (content & ST_CONTENT_MASK) | (((uint32_t) et)<<24))
 #define HAS_TYPE_FACET(content, facet) ((content & facet) != 0)
 #define SET_TYPE_FACET(content, facet) (content = (content | facet))
 #define REMOVE_TYPE_FACET(content, facet) (content = (content & ~facet))

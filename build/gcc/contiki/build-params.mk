@@ -1,6 +1,9 @@
 # Specify compiler to be used
 COMPILER = m32c-elf-gcc
 
+# Specify ar tool to be used
+ARCHIVER = m32c-elf-ar
+
 # Debug flags if any
 DEBUGGING = #-O0 -g
 
