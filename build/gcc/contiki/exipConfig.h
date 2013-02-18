@@ -14,8 +14,9 @@
  * @par[Revision] $Id$
  */
 
-#include "ip_malloc.h"
+#include "d_mem.h"
 #include "elib.h"
+#include <stdlib.h>
 
 #ifndef EXIPCONFIG_H_
 #define EXIPCONFIG_H_
@@ -36,12 +37,14 @@
 #define DEBUG_CHAR_OUTPUT(character)	do {_printf ("%c", character);} while(0)
 #define DEBUG_OUTPUT(msg)	do {_printf msg;} while(0)
 
+#define assert(ignore)((void) 0)
+
 /**
  * Define the memory allocation and freeing functions
  */
-#define EXIP_MALLOC malloc
-#define EXIP_REALLOC realloc
-#define EXIP_MFREE free
+#define EXIP_MALLOC d_malloc
+#define EXIP_REALLOC d_realloc
+#define EXIP_MFREE d_free
 
 #define HASH_TABLE_USE OFF
 #define INITIAL_HASH_TABLE_SIZE 53
@@ -62,14 +65,7 @@ struct ThinFloat
 
 #define EXIP_FLOAT struct ThinFloat
 
-/* NO support for strtol(), strtoll() and bsearch(),
- * Not used in our use cases so just ignore them */
-//#define EXIP_STRTOLL(buff, endPointer, b) 0
-//#define strtol(buff, endPointer, b) 0
-#define LLONG_MAX -1
-#define LLONG_MIN -1
-//#define bsearch(key, base, nmemb, size, fn_t) NULL
-
-//#include <stdlib.h>
+#define LLONG_MAX LONG_MAX
+#define LLONG_MIN LONG_MIN
 
 #endif /* EXIPCONFIG_H_ */
