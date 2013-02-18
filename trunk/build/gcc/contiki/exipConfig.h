@@ -15,7 +15,6 @@
  */
 
 #include "d_mem.h"
-#include "elib.h"
 #include <stdlib.h>
 
 #ifndef EXIPCONFIG_H_

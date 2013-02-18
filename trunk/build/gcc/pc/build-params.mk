@@ -1,6 +1,9 @@
 # Specify compiler to be used
 COMPILER = gcc
 
+# Specify ar tool to be used
+ARCHIVER = ar
+
 # Debug flags if any
 DEBUGGING = -O0 -g
 
