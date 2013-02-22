@@ -87,6 +87,7 @@ errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema, S
 	strm->context.attrTypeId = INDEX_MAX;
 	strm->gStack = NULL;
 	strm->valueTable.value = NULL;
+	strm->valueTable.count = 0;
 	strm->schema = schema;
 
 	if(strm->header.opts.valuePartitionCapacity > 0)

@@ -44,6 +44,7 @@ errorCode initParser(Parser* parser, BinaryBuffer buffer, EXIPSchema* schema, vo
 	parser->strm.context.attrTypeId = INDEX_MAX;
 	parser->strm.gStack = NULL;
 	parser->strm.valueTable.value = NULL;
+	parser->strm.valueTable.count = 0;
 	parser->app_data = app_data;
 	parser->strm.schema = schema;
     makeDefaultOpts(&parser->strm.header.opts);

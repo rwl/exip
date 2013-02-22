@@ -67,4 +67,7 @@ struct ThinFloat
 #define LLONG_MAX LONG_MAX
 #define LLONG_MIN LONG_MIN
 
+#define DEFAULT_GRAMMAR_TABLE         40
+#define DEFAULT_SIMPLE_GRAMMAR_TABLE  55
+
 #endif /* EXIPCONFIG_H_ */

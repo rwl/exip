@@ -488,8 +488,7 @@ char lookupValue(ValueTable* valueTable, String valueStr, Index* valueEntryId)
 	Index i;
 	ValueEntry* valueEntry;
 
-	if(valueTable == NULL)
-		return 0;
+	assert(valueTable);
 
 #if HASH_TABLE_USE == ON
 	if(valueTable->hashTbl != NULL)
