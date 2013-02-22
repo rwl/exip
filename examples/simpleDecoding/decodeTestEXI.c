@@ -80,7 +80,7 @@ errorCode decode(EXIPSchema* schemaPtr, unsigned char outFlag, FILE *infile, siz
 	buffer.bufContent = 0;
 	// Parsing steps:
 
-	// I: First, define an external stream for the input to the parser if any
+	// I: First, define an external stream for the input to the parser if any, otherwise set to NULL
 	buffer.ioStrm.readWriteToStream = inputStream;
 	buffer.ioStrm.stream = infile;
 

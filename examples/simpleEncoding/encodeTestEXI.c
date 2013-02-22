@@ -81,7 +81,7 @@ errorCode encode(EXIPSchema* schemaPtr, FILE *outfile, size_t (*outputStream)(vo
 	testStrm.header.opts.valuePartitionCapacity = 50;
 	SET_STRICT(testStrm.header.opts.enumOpt);
 
-	// III: Define an external stream for the output if any
+	// III: Define an external stream for the output if any, otherwise set to NULL
 	buffer.ioStrm.readWriteToStream = outputStream;
 	buffer.ioStrm.stream = outfile;
 
