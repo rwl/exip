@@ -7,7 +7,6 @@
 // align on this number of byte boundarie#s
 #define D_MEM_ALIGN   2
 #define D_MEM_LEN     0x0fff
-#define D_MEM_FLAGS   0x7000
 #define D_MEM_INUSE   0x8000
 
 extern uint8_t heap[D_MEM_HEAP_SIZE];

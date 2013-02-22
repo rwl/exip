@@ -21,25 +21,13 @@
 #include "ioUtil.h"
 #include "initSchemaInstance.h"
 
-#define MAX_COLLISIONS_NUMBER 50
-
-struct collisionInfo
-{
-	SmallIndex leftNonTerminal;
-	SmallIndex rightNonTerminal;
-	SmallIndex createdNonTerminal;
-};
-
 /** This function @returns TRUE is the two grammar rules represent the same state. Otherwise false */
 static char rulesEqual(ProtoGrammar* g1, Index ruleIndx1, ProtoGrammar* g2, Index ruleIndx2);
 
-/** Collision aware addition */
+/** Collision aware addition of all the productions from grammar rule right[ruleIndxR]
+ * to the grammar rule left[ruleIndxL] */
 static errorCode addProductionsToARule(ProtoGrammar* left, Index ruleIndxL, ProtoGrammar* right, Index ruleIndxR,
-									   struct collisionInfo* collisions, unsigned int* collisionCount, unsigned int* currRuleIndex, unsigned int initialLeftRulesCount);
-
-// TODO: try to avoid this functionality if possible...
-// Creates the new grammar rules based on the collision information
-// static errorCode resolveCollisionsInGrammar(struct collisionInfo* collisions, unsigned int* collisionCount, ProtoGrammar* left, unsigned int* currRuleIndex);
+									   unsigned int* currRuleIndex, unsigned int initialLeftRulesCount);
 
 errorCode concatenateGrammars(ProtoGrammar* left, ProtoGrammar* right)
 {
@@ -48,15 +36,13 @@ errorCode concatenateGrammars(ProtoGrammar* left, ProtoGrammar* right)
 	unsigned int ruleIterR = 0;
 	unsigned int prodIterL = 0;
 	unsigned int prodIterR = 0;
-	struct collisionInfo collisions[MAX_COLLISIONS_NUMBER];
-	unsigned int collisionCount = 0;
 	unsigned int currRuleIndex;
 	unsigned int initialLeftRulesCount;
 	ProtoRuleEntry* pRuleEntry;
 
-	if(left == NULL)
-		return NULL_POINTER_REF;
-	else if(right == NULL)
+	assert(left);
+
+	if(right == NULL)
 		return ERR_OK;
 
 	/* 
@@ -136,8 +122,6 @@ errorCode concatenateGrammars(ProtoGrammar* left, ProtoGrammar* right)
 															 ruleIterL,
 															 right,
 															 0,
-															 collisions,
-															 &collisionCount,
 															 &currRuleIndex,
 															 initialLeftRulesCount - 1);
 						if(tmp_err_code != ERR_OK)
@@ -149,28 +133,32 @@ errorCode concatenateGrammars(ProtoGrammar* left, ProtoGrammar* right)
 		}
 	}
 
-	// TODO: check if needed
-	// Create the new grammar rules based on the collision information
-	// return resolveCollisionsInGrammar(collisions, &collisionCount, left, &currRuleIndex);
 	return ERR_OK;
 }
 
 static errorCode addProductionsToARule(ProtoGrammar* left, Index ruleIndxL, ProtoGrammar* right, Index ruleIndxR,
-									   struct collisionInfo* collisions, unsigned int* collisionCount, unsigned int* currRuleIndex, unsigned int initialLeftRulesCount)
+									   unsigned int* currRuleIndex, unsigned int initialLeftRulesCount)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int prodIterL = 0;
 	unsigned int prodIterR = 0;
-	boolean terminalCollision = FALSE;
-	boolean collisionFound = FALSE;
-	unsigned int collisIter = 0;
+	boolean rProdFoundInLeft = FALSE;
 	Index nonTermRight;
-	unsigned int prodCountR = right->rule[ruleIndxR].count; // Needed as left might be the same as right
+	unsigned int prodCountR = right->rule[ruleIndxR].count; // Needed as left might be the same grammar as right
 
 	for(prodIterR = 0; prodIterR < prodCountR; prodIterR++)
 	{
-		/* Check for terminal collisions with existing production. These must be merged */
-		terminalCollision = FALSE;
+		/* Check for equivalent productions */
+		rProdFoundInLeft = FALSE;
+
+		/* The use case when the Non-Terminal RHS symbol of the production is pointing to the same grammar rule
+		 * can cause problems when the rules are merged. Few possible outcomes:
+		 * - If all the productions from the right rule are contained in the left rule then the Non-Terminal RHS symbol
+		 * can again point to the same rule safely
+		 * - If that is not the case, try to find a rule in the left grammar that is equivalent to the
+		 * right rule and make the Non-Terminal RHS symbol point to that grammar instead
+		 * - If non of these is true then we need to create a new grammar rule on the left that is
+		 * equivalent to the right rule and point the Non-Terminal RHS symbol to it */
 		if(GET_PROD_NON_TERM(right->rule[ruleIndxR].prod[prodIterR].content) == 0)
 		{
 			ProtoRuleEntry* pRuleEntry;
@@ -258,7 +246,6 @@ static errorCode addProductionsToARule(ProtoGrammar* left, Index ruleIndxL, Prot
 					left->rule[ruleIndxL].prod[prodIterL].qnameId.lnId == right->rule[ruleIndxR].prod[prodIterR].qnameId.lnId)
 			{
 				/* Now check the non-terminal ID (noting that EE's don't have a non-terminal ID) */
-				collisionFound = FALSE;
 				if(GET_PROD_EXI_EVENT(left->rule[ruleIndxL].prod[prodIterL].content) == EVENT_EE ||
 				   GET_PROD_NON_TERM(left->rule[ruleIndxL].prod[prodIterL].content) == nonTermRight)
 				{
@@ -266,8 +253,7 @@ static errorCode addProductionsToARule(ProtoGrammar* left, Index ruleIndxL, Prot
 					 * If the NonTerminals are the same as well, no need to add
 					 * the production as it's already there
 					 */
-					collisionFound = TRUE;
-					terminalCollision = TRUE;
+					rProdFoundInLeft = TRUE;
 					/* Check the next production in LHS... */
 					break;
 				}
@@ -279,8 +265,7 @@ static errorCode addProductionsToARule(ProtoGrammar* left, Index ruleIndxL, Prot
 					{
 						// NonTerminals are different indexes but are otherwise equal
 						// no need to add the production as it's already there
-						collisionFound = TRUE;
-						terminalCollision = TRUE;
+						rProdFoundInLeft = TRUE;
 						/* Check the next production in LHS... */
 						break;
 					}
@@ -290,51 +275,11 @@ static errorCode addProductionsToARule(ProtoGrammar* left, Index ruleIndxL, Prot
 						// We have a collision detected - must be traced why it happens
 						assert(FALSE);
 					}
-
 				}
-
-				// TODO: try to eliminate the collisions if possible. First detect when something collides - hopefully never
-				// We have a collision detected - must be traced why it happens
-				assert(FALSE);
-
-				for(collisIter = 0; collisIter < *collisionCount; collisIter++)
-				{
-					if(collisions[collisIter].leftNonTerminal == GET_PROD_NON_TERM(left->rule[ruleIndxL].prod[prodIterL].content) &&
-					   collisions[collisIter].rightNonTerminal == nonTermRight)
-					{
-						/* Already collided nonTerminals. Modify the existing LHS non-terminal ID */
-						collisionFound = TRUE;
-						SET_PROD_NON_TERM(left->rule[ruleIndxL].prod[prodIterL].content, collisions[collisIter].createdNonTerminal);
-						break;
-					}
-
-				}
-
-				if(collisionFound == FALSE)
-				{
-					/* We have the same terminal but we haven't resolved the non-terminal ID yet */
-					if(*collisionCount == MAX_COLLISIONS_NUMBER - 1)
-						return OUT_OF_BOUND_BUFFER;
-
-					/* Store the LHS and RHS non-terminal IDs and the current non-terminal ID for later checking */
-					collisions[*collisionCount].leftNonTerminal = GET_PROD_NON_TERM(left->rule[ruleIndxL].prod[prodIterL].content);
-					collisions[*collisionCount].rightNonTerminal = nonTermRight;
-					collisions[*collisionCount].createdNonTerminal = *currRuleIndex;
-
-					/* Modify the existing LHS non-terminal ID */
-					SET_PROD_NON_TERM(left->rule[ruleIndxL].prod[prodIterL].content, *currRuleIndex);
-
-					/* Increment collision array index and non-terminal ID */
-					*collisionCount += 1;
-					*currRuleIndex += 1;
-				}
-
-				terminalCollision = TRUE;
-				break;
 			}
 		}
 
-		if(terminalCollision == FALSE)
+		if(rProdFoundInLeft == FALSE)
 		{
 			/*
 			 * We have been through all LHS productions and there were no clashes
@@ -351,49 +296,6 @@ static errorCode addProductionsToARule(ProtoGrammar* left, Index ruleIndxL, Prot
 	}
 	return ERR_OK;
 }
-
-// TODO: check if needed
-// Hopefully we do not need to go through collision resolving code ...
-//static errorCode resolveCollisionsInGrammar(struct collisionInfo* collisions,
-//											unsigned int* collisionCount, ProtoGrammar* left, unsigned int* currRuleIndex)
-//{
-//	errorCode tmp_err_code = UNEXPECTED_ERROR;
-//	unsigned int collisIter = 0;
-//	unsigned int prodIterL = 0;
-//	Production* tmpProduction;
-//	ProtoRuleEntry* pRuleEntry;
-//
-//	for(collisIter = 0; collisIter < *collisionCount; collisIter++)
-//	{
-//		tmp_err_code = addProtoRule(left, 5, &pRuleEntry);
-//		if(tmp_err_code != ERR_OK)
-//			return tmp_err_code;
-//
-//		for(prodIterL = 0; prodIterL < left->rule[collisions[collisIter].leftNonTerminal].count; prodIterL++)
-//		{
-//			tmpProduction = &left->rule[collisions[collisIter].leftNonTerminal].prod[prodIterL];
-//			tmp_err_code = addProduction(pRuleEntry,
-//										 GET_PROD_EXI_EVENT(tmpProduction->content),
-//										 tmpProduction->typeId,
-//										 tmpProduction->qnameId,
-//										 GET_PROD_NON_TERM(tmpProduction->content));
-//			if(tmp_err_code != ERR_OK)
-//				return tmp_err_code;
-//		}
-//
-//		tmp_err_code = addProductionsToARule(left,
-//											 left->count - 1,
-//											 &left->rule[collisions[collisIter].rightNonTerminal],
-//											 collisions,
-//											 collisionCount,
-//											 currRuleIndex,
-//											 0);
-//		if(tmp_err_code != ERR_OK)
-//			return tmp_err_code;
-//	}
-//
-//	return ERR_OK;
-//}
 
 errorCode createSimpleTypeGrammar(Index typeId, ProtoGrammar* simpleGrammar)
 {
@@ -588,8 +490,6 @@ errorCode createParticleGrammar(int minOccurs, int maxOccurs,
 		else // {max occurs} is unbounded
 		{
 			Index j = 0;
-			struct collisionInfo collisions[MAX_COLLISIONS_NUMBER];
-			unsigned int collisionCount = 0;
 			unsigned int currRuleIndex = termGrammar->count;
 
 			// Excluding the first rule
@@ -626,8 +526,6 @@ errorCode createParticleGrammar(int minOccurs, int maxOccurs,
 																	 i,
 																	 termGrammar,
 																	 0,
-																	 collisions,
-																	 &collisionCount,
 																	 &currRuleIndex,
 																	 0);
 								if(tmp_err_code != ERR_OK)
@@ -638,11 +536,6 @@ errorCode createParticleGrammar(int minOccurs, int maxOccurs,
 					}
 				}
 			}
-			// TODO: check if needed
-			// Create the new grammar rules based on the collision information
-//			tmp_err_code = resolveCollisionsInGrammar(collisions, &collisionCount, termGrammar, &currRuleIndex);
-//			if(tmp_err_code != ERR_OK)
-//				return tmp_err_code;
 
 			tmp_err_code = concatenateGrammars(particleGrammar, termGrammar);
 			if(tmp_err_code != ERR_OK)
@@ -787,8 +680,6 @@ errorCode createChoiceModelGroupsGrammar(ProtoGrammarArray* pgArray, ProtoGramma
 	Index i;
 	unsigned int ruleIterTerm = 0;
 	unsigned int prodIterTerm = 0;
-	struct collisionInfo collisions[MAX_COLLISIONS_NUMBER];
-	unsigned int collisionCount = 0;
 	unsigned int currRuleIndex;
 	unsigned int initialResultRulesCount;
 	ProtoGrammar* tmpGrammar;
@@ -868,20 +759,12 @@ errorCode createChoiceModelGroupsGrammar(ProtoGrammarArray* pgArray, ProtoGramma
 													 0,
 													 tmpGrammar,
 													 0,
-													 collisions,
-													 &collisionCount,
 													 &currRuleIndex,
 													 initialResultRulesCount - 1);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			}
 		}
-
-		// TODO: check if needed
-//		// Create the new grammar rules based on the collision information
-//		tmp_err_code = resolveCollisionsInGrammar(collisions, &collisionCount, modGrpGrammar, &currRuleIndex);
-//		if(tmp_err_code != ERR_OK)
-//			return tmp_err_code;
 	}
 
 	return ERR_OK;
