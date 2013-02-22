@@ -28,7 +28,7 @@ extern const String XML_SCHEMA_INSTANCE;
 
 /**
  * @brief Encodes second or third level production based on a state machine  */
-static errorCode stateMachineProdEncode(EXIStream* strm, unsigned char eventClass, unsigned char exiTypeClass, GrammarRule* currentRule,
+static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventClass, GrammarRule* currentRule,
 										QName* qname, EventCode ec, Production* prodHit);
 
 errorCode encodeStringData(EXIStream* strm, String strng, QNameID qnameID, Index typeId)
@@ -119,15 +119,15 @@ errorCode encodeStringData(EXIStream* strm, String strng, QNameID qnameID, Index
 	return ERR_OK;
 }
 
-errorCode encodeProduction(EXIStream* strm, unsigned char eventClass, EXITypeClass exiTypeClass, QName* qname, Production* prodHit)
+errorCode encodeProduction(EXIStream* strm, EventTypeClass eventClass, boolean isSchemaType, QName* qname, Production* prodHit)
 {
 	GrammarRule* currentRule;
 	EventCode ec;
 	Index j = 0;
 	Production* tmpProd = NULL;
-	EXITypeClass prodExiTypeClass;
 	Index prodCount;
 	unsigned int bitCount;
+	boolean matchFound = FALSE;
 
 	if(strm->context.currNonTermID >=  strm->gStack->grammar->count)
 		return INCONSISTENT_PROC_STATE;
@@ -175,44 +175,55 @@ errorCode encodeProduction(EXIStream* strm, unsigned char eventClass, EXITypeCla
 
 	bitCount = getBitsFirstPartCode(strm->header.opts, strm->gStack->grammar, currentRule, strm->context.currNonTermID, strm->context.isNilType);
 
-	for(j = 0; j < prodCount; j++)
+	if(isSchemaType == TRUE)
 	{
-		tmpProd = &currentRule->production[currentRule->pCount - 1 - j];
-
-		if(GET_PROD_EXI_EVENT(tmpProd->content) != EVENT_SE_QNAME && tmpProd->typeId != INDEX_MAX)
-			prodExiTypeClass = GET_VALUE_TYPE_CLASS(GET_EXI_TYPE(strm->schema->simpleTypeTable.sType[tmpProd->typeId].content));
-		else
-			prodExiTypeClass = VALUE_TYPE_NONE_CLASS;
-
-		if(IS_BUILT_IN_ELEM(strm->gStack->grammar->props) || prodExiTypeClass == exiTypeClass)
+		for(j = 0; j < prodCount; j++)
 		{
+			tmpProd = &currentRule->production[currentRule->pCount - 1 - j];
+
 			if(GET_EVENT_CLASS(GET_PROD_EXI_EVENT(tmpProd->content)) == eventClass)
 			{
-				if(qname == NULL || tmpProd->qnameId.uriId == URI_MAX ||
-				  (stringEqual(strm->schema->uriTable.uri[tmpProd->qnameId.uriId].uriStr, *(qname->uri)) &&
-				   (tmpProd->qnameId.lnId == LN_MAX || stringEqual(GET_LN_URI_QNAME(strm->schema->uriTable, tmpProd->qnameId).lnStr, *(qname->localName)))))
+				if(eventClass == EVENT_AT_CLASS || eventClass == EVENT_SE_CLASS)
 				{
-					*prodHit = *tmpProd;
-					ec.length = 1;
-					ec.part[0] = j;
-					ec.bits[0] = bitCount;
-					strm->context.currNonTermID = GET_PROD_NON_TERM(tmpProd->content);
-
-					return writeEventCode(strm, ec);
+					assert(qname);
+					if(tmpProd->qnameId.uriId == URI_MAX || (stringEqual(strm->schema->uriTable.uri[tmpProd->qnameId.uriId].uriStr, *(qname->uri)) &&
+					   (tmpProd->qnameId.lnId == LN_MAX || stringEqual(GET_LN_URI_QNAME(strm->schema->uriTable, tmpProd->qnameId).lnStr, *(qname->localName)))))
+					{
+						matchFound = TRUE;
+						break;
+					}
+				}
+				else
+				{
+					matchFound = TRUE;
+					break;
 				}
 			}
 		}
 	}
 
-	// Production not found: encoded as second or third level production
-	ec.length = 2;
-	ec.part[0] = prodCount;
-	ec.bits[0] = bitCount;
+	if(matchFound == TRUE)
+	{
+		*prodHit = *tmpProd;
+		ec.length = 1;
+		ec.part[0] = j;
+		ec.bits[0] = bitCount;
+		strm->context.currNonTermID = GET_PROD_NON_TERM(tmpProd->content);
 
-	return stateMachineProdEncode(strm, eventClass, exiTypeClass, currentRule, qname, ec, prodHit);
+		return writeEventCode(strm, ec);
+	}
+	else
+	{
+		// Production not found: encoded as second or third level production
+		ec.length = 2;
+		ec.part[0] = prodCount;
+		ec.bits[0] = bitCount;
+
+		return stateMachineProdEncode(strm, eventClass, currentRule, qname, ec, prodHit);
+	}
 }
 
-static errorCode stateMachineProdEncode(EXIStream* strm, unsigned char eventClass, unsigned char exiTypeClass,
+static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventClass,
 						GrammarRule* currentRule, QName* qname, EventCode ec, Production* prodHit)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
