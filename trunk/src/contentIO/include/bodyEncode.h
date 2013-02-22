@@ -24,12 +24,12 @@
  * @brief Finds the grammar production based on the event (and eventually the qname in case of SE and AT)
  * @param[in, out] strm EXI stream
  * @param[in] eventClass event class type to be looked up
- * @param[in] exiTypeClass EXI data type class to be encoded
+ * @param[in] isSchemaType determine if the data type should be encoded as non-schema type
  * @param[in] qname element or attribute QName in case of SE or AT events; NULL otherwise
  * @param[out] prodHit the matched grammar production
  * @return Error handling code
  */
-errorCode encodeProduction(EXIStream* strm, unsigned char eventClass, EXITypeClass exiTypeClass, QName* qname, Production* prodHit);
+errorCode encodeProduction(EXIStream* strm, EventTypeClass eventClass, boolean isSchemaType, QName* qname, Production* prodHit);
 
 /**
  * @brief Encodes String value into EXI stream

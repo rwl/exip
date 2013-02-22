@@ -63,6 +63,7 @@ errorCode encode(EXIPSchema* schemaPtr, FILE *outfile, size_t (*outputStream)(vo
 	String chVal;
 	char buf[OUTPUT_BUFFER_SIZE];
 	BinaryBuffer buffer;
+	EXITypeClass valueType;
 
 	buffer.buf = buf;
 	buffer.bufLen = OUTPUT_BUFFER_SIZE;
@@ -99,11 +100,11 @@ errorCode encode(EXIPSchema* schemaPtr, FILE *outfile, size_t (*outputStream)(vo
 
 	qname.uri = &NS_STR;
 	qname.localName = &ELEM_MULT_TEST_STR;
-	tmp_err_code += serialize.startElement(&testStrm, qname); // <MultipleXSDsTest>
+	tmp_err_code += serialize.startElement(&testStrm, qname, &valueType); // <MultipleXSDsTest>
 
 	qname.uri = &NS_STR;
 	qname.localName = &ELEM_ENCODE_STR;
-	tmp_err_code += serialize.startElement(&testStrm, qname); // <EXIPEncoder>
+	tmp_err_code += serialize.startElement(&testStrm, qname, &valueType); // <EXIPEncoder>
 
 	// NOTE: attributes should come lexicographically sorted during serialization
 
@@ -113,19 +114,19 @@ errorCode encode(EXIPSchema* schemaPtr, FILE *outfile, size_t (*outputStream)(vo
 	if(schemaPtr != NULL)
 	{
 		// schema mode
-		tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_INTEGER_CLASS); // testByte="
+		tmp_err_code += serialize.attribute(&testStrm, qname, TRUE, &valueType); // testByte="
 		tmp_err_code += serialize.intData(&testStrm, 55);
 	}
 	else
 	{
 		// schema-less mode
-		tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING_CLASS); // testByte="
+		tmp_err_code += serialize.attribute(&testStrm, qname, TRUE, &valueType); // testByte="
 		tmp_err_code += asciiToString("55", &chVal, &testStrm.memList, FALSE);
 		tmp_err_code += serialize.stringData(&testStrm, chVal);
 	}
 
 	qname.localName = &ATTR_VERSION_STR;
-	tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING_CLASS); // version="
+	tmp_err_code += serialize.attribute(&testStrm, qname, TRUE, &valueType); // version="
 
 	tmp_err_code += asciiToString("0.2", &chVal, &testStrm.memList, FALSE);
 	tmp_err_code += serialize.stringData(&testStrm, chVal);
@@ -137,7 +138,7 @@ errorCode encode(EXIPSchema* schemaPtr, FILE *outfile, size_t (*outputStream)(vo
 
 	qname.uri = &NS_STR;
 	qname.localName = &ELEM_DESCR_STR;
-	tmp_err_code += serialize.startElement(&testStrm, qname); // <description>
+	tmp_err_code += serialize.startElement(&testStrm, qname, &valueType); // <description>
 
 	tmp_err_code += asciiToString("This is a test of processing XML schemes with multiple XSD files", &chVal, &testStrm.memList, FALSE);
 	tmp_err_code += serialize.stringData(&testStrm, chVal);
@@ -146,11 +147,11 @@ errorCode encode(EXIPSchema* schemaPtr, FILE *outfile, size_t (*outputStream)(vo
 
 	qname.uri = &NS_NESTED_STR;
 	qname.localName = &ELEM_TEST_SETUP_STR;
-	tmp_err_code += serialize.startElement(&testStrm, qname); // <testSetup>
+	tmp_err_code += serialize.startElement(&testStrm, qname, &valueType); // <testSetup>
 
 	qname.uri = &NS_EMPTY_STR;
 	qname.localName = &ATTR_GOAL_STR;
-	tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING_CLASS); // goal="
+	tmp_err_code += serialize.attribute(&testStrm, qname, TRUE, &valueType); // goal="
 
 	tmp_err_code += asciiToString("Verify that the implementation works!", &chVal, &testStrm.memList, FALSE);
 	tmp_err_code += serialize.stringData(&testStrm, chVal);
@@ -162,14 +163,14 @@ errorCode encode(EXIPSchema* schemaPtr, FILE *outfile, size_t (*outputStream)(vo
 
 	qname.uri = &NS_STR;
 	qname.localName = &ELEM_TYPE_TEST_STR;
-	tmp_err_code += serialize.startElement(&testStrm, qname); // <type-test>
+	tmp_err_code += serialize.startElement(&testStrm, qname, &valueType); // <type-test>
 
 	if(schemaPtr != NULL)
 	{
 		// schema mode
 		qname.uri = &NS_EMPTY_STR;
 		qname.localName = &ATTR_ID_STR;
-		tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_INTEGER_CLASS); // id="
+		tmp_err_code += serialize.attribute(&testStrm, qname, TRUE, &valueType); // id="
 		tmp_err_code += serialize.intData(&testStrm, 1001);
 	}
 	else
@@ -177,14 +178,14 @@ errorCode encode(EXIPSchema* schemaPtr, FILE *outfile, size_t (*outputStream)(vo
 		// schema-less mode
 		qname.uri = &NS_EMPTY_STR;
 		qname.localName = &ATTR_ID_STR;
-		tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING_CLASS); // id="
+		tmp_err_code += serialize.attribute(&testStrm, qname, TRUE, &valueType); // id="
 		tmp_err_code += asciiToString("1001", &chVal, &testStrm.memList, FALSE);
 		tmp_err_code += serialize.stringData(&testStrm, chVal);
 	}
 
 	qname.uri = &NS_NESTED_STR;
 	qname.localName = &ELEM_BOOL_STR;
-	tmp_err_code += serialize.startElement(&testStrm, qname); // <bool>
+	tmp_err_code += serialize.startElement(&testStrm, qname, &valueType); // <bool>
 
 	if(schemaPtr != NULL)
 	{
@@ -204,11 +205,11 @@ errorCode encode(EXIPSchema* schemaPtr, FILE *outfile, size_t (*outputStream)(vo
 
 	qname.uri = &NS_STR;
 	qname.localName = &ELEM_EXT_TYPES_STR;
-	tmp_err_code += serialize.startElement(&testStrm, qname); // <extendedTypeTest>
+	tmp_err_code += serialize.startElement(&testStrm, qname, &valueType); // <extendedTypeTest>
 
 	qname.uri = &NS_EMPTY_STR;
 	qname.localName = &ELEM_BYTE_TYPES_STR;
-	tmp_err_code += serialize.startElement(&testStrm, qname); // <byteTest>
+	tmp_err_code += serialize.startElement(&testStrm, qname, &valueType); // <byteTest>
 
 	if(schemaPtr != NULL)
 	{
@@ -226,7 +227,7 @@ errorCode encode(EXIPSchema* schemaPtr, FILE *outfile, size_t (*outputStream)(vo
 
 	qname.uri = &NS_EMPTY_STR;
 	qname.localName = &ELEM_DATE_TYPES_STR;
-	tmp_err_code += serialize.startElement(&testStrm, qname); // <dateTimeTest>
+	tmp_err_code += serialize.startElement(&testStrm, qname, &valueType); // <dateTimeTest>
 
 	if(schemaPtr != NULL)
 	{
@@ -264,7 +265,7 @@ errorCode encode(EXIPSchema* schemaPtr, FILE *outfile, size_t (*outputStream)(vo
 
 	qname.uri = &NS_EMPTY_STR;
 	qname.localName = &ELEM_BIN_TYPES_STR;
-	tmp_err_code += serialize.startElement(&testStrm, qname); // <binaryTest>
+	tmp_err_code += serialize.startElement(&testStrm, qname, &valueType); // <binaryTest>
 
 	if(schemaPtr != NULL)
 	{
@@ -281,7 +282,7 @@ errorCode encode(EXIPSchema* schemaPtr, FILE *outfile, size_t (*outputStream)(vo
 
 	qname.uri = &NS_EMPTY_STR;
 	qname.localName = &ELEM_ENUM_TYPES_STR;
-	tmp_err_code += serialize.startElement(&testStrm, qname); // <enumTest>
+	tmp_err_code += serialize.startElement(&testStrm, qname, &valueType); // <enumTest>
 	tmp_err_code += serialize.stringData(&testStrm, ENUM_DATA_4);
 	tmp_err_code += serialize.endElement(&testStrm); // </enumTest>
 

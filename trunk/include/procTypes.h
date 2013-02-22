@@ -706,7 +706,6 @@ typedef struct DynGrammarRule DynGrammarRule;
 #define GR_PROP_FRAGMENT                 0x8000000 // 0b00001000000000000000000000000000
 #define GR_PROP_NILLABLE                0x10000000 // 0b00010000000000000000000000000000
 #define GR_PROP_NAMED_SUB_TYPE_OR_UNION 0x20000000 // 0b00100000000000000000000000000000
-
 /* There is a content2 rule if there are AT productions
  * that point to the content grammar rule OR the content index is 0. */
 #define GR_PROP_HAS_CONTENT2            0x40000000 // 0b01000000000000000000000000000000

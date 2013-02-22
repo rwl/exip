@@ -38,6 +38,7 @@ START_TEST (test_default_options)
 	char buf[OUTPUT_BUFFER_SIZE];
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	BinaryBuffer buffer;
+	EXITypeClass valueType;
 
 	buffer.buf = buf;
 	buffer.bufContent = 0;
@@ -68,12 +69,12 @@ START_TEST (test_default_options)
 
 	tmp_err_code += asciiToString("http://www.ltu.se/EISLAB/schema-test", &uri, &testStrm.memList, FALSE);
 	tmp_err_code += asciiToString("EXIPEncoder", &ln, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.startElement(&testStrm, qname);
+	tmp_err_code += serialize.startElement(&testStrm, qname, &valueType);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.startElement returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("", &uri, &testStrm.memList, FALSE);
 	tmp_err_code += asciiToString("version", &ln, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING_CLASS);
+	tmp_err_code += serialize.attribute(&testStrm, qname, TRUE, &valueType);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.attribute returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("0.2", &chVal, &testStrm.memList, FALSE);
@@ -82,7 +83,7 @@ START_TEST (test_default_options)
 
 	tmp_err_code += asciiToString("", &uri, &testStrm.memList, FALSE);
 	tmp_err_code += asciiToString("status", &ln, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_STRING_CLASS);
+	tmp_err_code += serialize.attribute(&testStrm, qname, TRUE, &valueType);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.attribute returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("alpha", &chVal, &testStrm.memList, FALSE);
@@ -95,12 +96,12 @@ START_TEST (test_default_options)
 
 	tmp_err_code += asciiToString("", &uri, &testStrm.memList, FALSE);
 	tmp_err_code += asciiToString("xsitypetest", &ln, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.startElement(&testStrm, qname);
+	tmp_err_code += serialize.startElement(&testStrm, qname, &valueType);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.startElement returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("http://www.w3.org/2001/XMLSchema-instance", &uri, &testStrm.memList, FALSE);
 	tmp_err_code += asciiToString("type", &ln, &testStrm.memList, FALSE);
-	tmp_err_code += serialize.attribute(&testStrm, qname, VALUE_TYPE_QNAME_CLASS);
+	tmp_err_code += serialize.attribute(&testStrm, qname, TRUE, &valueType);
 	fail_unless (tmp_err_code == ERR_OK, "serialize.attribute returns an error code %d", tmp_err_code);
 
 	tmp_err_code += asciiToString("http://www.w3.org/2001/XMLSchema", &uri, &testStrm.memList, FALSE);

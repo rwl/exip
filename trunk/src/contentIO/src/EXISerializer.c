@@ -206,17 +206,19 @@ errorCode endDocument(EXIStream* strm)
 	Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">End doc serialization\n"));
 
-	return encodeProduction(strm, EVENT_ED_CLASS, VALUE_TYPE_NONE_CLASS, NULL, &prodHit);
+	return encodeProduction(strm, EVENT_ED_CLASS, TRUE, NULL, &prodHit);
 }
 
-errorCode startElement(EXIStream* strm, QName qname)
+errorCode startElement(EXIStream* strm, QName qname, EXITypeClass* valueType)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Start element serialization\n"));
 
-	tmp_err_code = encodeProduction(strm, EVENT_SE_CLASS, VALUE_TYPE_NONE_CLASS, &qname, &prodHit);
+	*valueType = VALUE_TYPE_NONE_CLASS;
+
+	tmp_err_code = encodeProduction(strm, EVENT_SE_CLASS, TRUE, &qname, &prodHit);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -297,6 +299,21 @@ errorCode startElement(EXIStream* strm, QName qname)
 	else
 		return NOT_IMPLEMENTED_YET;
 
+	if(!IS_BUILT_IN_ELEM(strm->gStack->grammar->props))  // If the current grammar is not build-in Element grammar ...
+	{
+		GrammarRule* currentRule;
+		currentRule = &strm->gStack->grammar->rule[strm->context.currNonTermID];
+		assert(currentRule->production);
+		if(GET_PROD_EXI_EVENT(currentRule->production[currentRule->pCount-1].content) == EVENT_CH)
+		{
+			// This must be simple type grammar
+			if(currentRule->production[currentRule->pCount-1].typeId == INDEX_MAX)
+				*valueType = VALUE_TYPE_UNTYPED_CLASS;
+			else
+				*valueType = GET_VALUE_TYPE_CLASS(GET_EXI_TYPE(strm->schema->simpleTypeTable.sType[currentRule->production[currentRule->pCount-1].typeId].content));
+		}
+	}
+
 	return ERR_OK;
 }
 
@@ -307,7 +324,7 @@ errorCode endElement(EXIStream* strm)
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">End element serialization\n"));
 
-	tmp_err_code = encodeProduction(strm, EVENT_EE_CLASS, VALUE_TYPE_NONE_CLASS, NULL, &prodHit);
+	tmp_err_code = encodeProduction(strm, EVENT_EE_CLASS, TRUE, NULL, &prodHit);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -324,16 +341,21 @@ errorCode endElement(EXIStream* strm)
 	return ERR_OK;
 }
 
-errorCode attribute(EXIStream* strm, QName qname, EXITypeClass exiType)
+errorCode attribute(EXIStream* strm, QName qname, boolean isSchemaType, EXITypeClass* valueType)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Start attribute serialization\n"));
 
-	tmp_err_code = encodeProduction(strm, EVENT_AT_CLASS, exiType, &qname, &prodHit);
+	tmp_err_code = encodeProduction(strm, EVENT_AT_CLASS, isSchemaType, &qname, &prodHit);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
+
+	if(prodHit.typeId == INDEX_MAX)
+		*valueType = VALUE_TYPE_NONE_CLASS;
+	else
+		*valueType = GET_VALUE_TYPE_CLASS(GET_EXI_TYPE(strm->schema->simpleTypeTable.sType[prodHit.typeId].content));
 
 	if(GET_PROD_EXI_EVENT(prodHit.content) == EVENT_AT_ALL)
 	{
@@ -381,7 +403,7 @@ errorCode intData(EXIStream* strm, Integer int_val)
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
 		Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
-		tmp_err_code = encodeProduction(strm, EVENT_CH_CLASS, VALUE_TYPE_INTEGER_CLASS, NULL, &prodHit);
+		tmp_err_code = encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, &prodHit);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -410,7 +432,7 @@ errorCode booleanData(EXIStream* strm, boolean bool_val)
 	{
 		Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
-		tmp_err_code = encodeProduction(strm, EVENT_CH_CLASS, VALUE_TYPE_BOOLEAN_CLASS, NULL, &prodHit);
+		tmp_err_code = encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, &prodHit);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -446,7 +468,7 @@ errorCode stringData(EXIStream* strm, const String str_val)
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
 		Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
-		tmp_err_code = encodeProduction(strm, EVENT_CH_CLASS, VALUE_TYPE_STRING_CLASS, NULL, &prodHit);
+		tmp_err_code = encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, &prodHit);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
@@ -470,7 +492,7 @@ errorCode floatData(EXIStream* strm, Float float_val)
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
 		Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
-		tmp_err_code = encodeProduction(strm, EVENT_CH_CLASS, VALUE_TYPE_FLOAT_CLASS, NULL, &prodHit);
+		tmp_err_code = encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, &prodHit);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -491,7 +513,7 @@ errorCode binaryData(EXIStream* strm, const char* binary_val, Index nbytes)
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
 		Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
-		tmp_err_code = encodeProduction(strm, EVENT_CH_CLASS, VALUE_TYPE_BINARY_CLASS, NULL, &prodHit);
+		tmp_err_code = encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, &prodHit);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -512,7 +534,7 @@ errorCode dateTimeData(EXIStream* strm, EXIPDateTime dt_val)
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
 		Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
-		tmp_err_code = encodeProduction(strm, EVENT_CH_CLASS, VALUE_TYPE_DATE_TIME_CLASS, NULL, &prodHit);
+		tmp_err_code = encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, &prodHit);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -542,7 +564,7 @@ errorCode listData(EXIStream* strm, unsigned int itemCount)
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
 		Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
-		tmp_err_code = encodeProduction(strm, EVENT_CH_CLASS, VALUE_TYPE_LIST_CLASS, NULL, &prodHit);
+		tmp_err_code = encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, &prodHit);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
@@ -606,7 +628,7 @@ errorCode namespaceDeclaration(EXIStream* strm, const String ns, const String pr
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start namespace declaration\n"));
 
-	tmp_err_code = encodeProduction(strm, EVENT_NS_CLASS, VALUE_TYPE_NONE_CLASS, NULL, &prodHit);
+	tmp_err_code = encodeProduction(strm, EVENT_NS_CLASS, FALSE, NULL, &prodHit);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
