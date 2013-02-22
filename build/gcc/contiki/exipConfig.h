@@ -6,7 +6,7 @@
 \===================================================================*/
 
 /**
- * Configuration parameters of the EXIP library for the Mulle platform
+ * Configuration parameters of the EXIP library for the contiki operating system
  *
  * @date Sep 13, 2011
  * @author Rumen Kyusakov

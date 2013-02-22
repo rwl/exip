@@ -14,7 +14,7 @@
 # */
 
 .PHONY : clean all dynlib check examples utils doc dist \
-		 test_sets_copy_examples test_sets_copy_utils
+		 copy_headers test_sets_copy_examples test_sets_copy_utils
 
 TARGET ?= pc
 
@@ -142,7 +142,7 @@ UTILS_BINS := $(UTILS_BIN_DIR)/exipg
 COMPILE = $(CC) $(CFLAGS) $(INCDIRS)
 
 # TARGET: (DEFAULT) Building the exip library
-all: $(BIN_DIR) $(LIB_BIN_DIR) $(LIB_OBJECTS) $(LIB_BIN_DIR)/libexip.a
+all: $(BIN_DIR) $(LIB_BIN_DIR) $(LIB_OBJECTS) $(LIB_BIN_DIR)/libexip.a copy_headers
 
 # TARGET: Building exip as dynamic library
 dynlib: COMPILE += -fPIC
@@ -225,6 +225,11 @@ $(UTILS_BIN_DIR):
 		
 $(TESTS_BIN_DIR):
 		mkdir -p $(TESTS_BIN_DIR)
+		
+copy_headers: $(BIN_DIR)
+		mkdir -p $(BIN_DIR)/headers
+		cp $(PROJECT_ROOT)/include/*.h $(BIN_DIR)/headers
+		cp $(TARGET)/*.h $(BIN_DIR)/headers
 
 test_sets_copy_examples:
 		cp $(PROJECT_ROOT)/examples/simpleEncoding/exipe-test-xsd.exi $(EXAMPLES_BIN_DIR)/exipe-test-xsd.exi

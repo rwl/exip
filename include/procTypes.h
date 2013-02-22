@@ -903,7 +903,7 @@ typedef struct UriTable UriTable;
 struct SimpleType {
 	/** The content of the simple type consists of two parts:
 	 * - 8-bits exiType such as VALUE_TYPE_STRING , VALUE_TYPE_FLOAT, VALUE_TYPE_DECIMAL etc. (most significant 8 bits)
-	 * - 24-bits facetPresenceMask - the least significant 32 bits
+	 * - 24-bits facetPresenceMask - the least significant 24 bits
 	 */
 	uint32_t content;
 	/**
