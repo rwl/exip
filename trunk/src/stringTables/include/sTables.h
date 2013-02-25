@@ -138,9 +138,9 @@ errorCode createUriTableEntries(UriTable* uriTable, boolean withSchema);
  * @param[in] uriTable URI table to be searched
  * @param[in] uriStr The string searched for
  * @param[out] uriEntryId If found, ID of the UriEntry with that string
- * @return 0-not found, 1 found
+ * @return FALSE-not found, TRUE found
  */
-char lookupUri(UriTable* uriTable, String uriStr, SmallIndex* uriEntryId);
+boolean lookupUri(UriTable* uriTable, String uriStr, SmallIndex* uriEntryId);
 
 /**
  * @brief Search the local names table for a particular string value
@@ -150,9 +150,9 @@ char lookupUri(UriTable* uriTable, String uriStr, SmallIndex* uriEntryId);
  * @param[in] lnTable Local names table to be searched
  * @param[in] lnStr The local name string searched for
  * @param[out] lnEntryId if found, ID of the LnEntry with that string
- * @return 0-not found, 1 found
+ * @return FALSE-not found, TRUE found
  */
-char lookupLn(LnTable* lnTable, String lnStr, Index* lnEntryId);
+boolean lookupLn(LnTable* lnTable, String lnStr, Index* lnEntryId);
 
 /**
  * @brief Search the Prefix table for a particular string value
@@ -161,9 +161,9 @@ char lookupLn(LnTable* lnTable, String lnStr, Index* lnEntryId);
  * @param[in] pfxTable Prefix table to be searched
  * @param[in] pfxStr The string searched for
  * @param[out] pfxEntryId if found, ID of the Prefix row with that string
- * @return 0-not found, 1 found
+ * @return FALSE-not found, TRUE found
  */
-char lookupPfx(PfxTable* pfxTable, String pfxStr, SmallIndex* pfxEntryId);
+boolean lookupPfx(PfxTable* pfxTable, String pfxStr, SmallIndex* pfxEntryId);
 
 /**
  * @brief Search the value cross table for a particular string value
@@ -175,9 +175,9 @@ char lookupPfx(PfxTable* pfxTable, String pfxStr, SmallIndex* pfxEntryId);
  * @param[in] vxTable Value cross table - local partition of the Value table to be searched
  * @param[in] valueStr The string searched for
  * @param[out] vxEntryId if found, ID of the VxEntry with that string
- * @return 0-not found, 1 found
+ * @return FALSE-not found, TRUE found
  */
-char lookupVx(ValueTable* valueTable, VxTable* vxTable, String valueStr, Index* vxEntryId);
+boolean lookupVx(ValueTable* valueTable, VxTable* vxTable, String valueStr, Index* vxEntryId);
 
 /**
  * @brief Search the global Value table for a particular string value
@@ -187,8 +187,8 @@ char lookupVx(ValueTable* valueTable, VxTable* vxTable, String valueStr, Index* 
  * @param[in] valueTable Global Value table to be searched
  * @param[in] valueStr The string searched for
  * @param[out] valueEntryId if found, ID of the ValueEntry with that string
- * @return 0-not found, 1 found
+ * @return FALSE-not found, TRUE found
  */
-char lookupValue(ValueTable* valueTable, String valueStr, Index* valueEntryId);
+boolean lookupValue(ValueTable* valueTable, String valueStr, Index* valueEntryId);
 
 #endif /* STABLES_H_ */

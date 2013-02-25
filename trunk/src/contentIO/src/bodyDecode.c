@@ -919,7 +919,8 @@ errorCode decodeStringValue(EXIStream* strm, QNameID qnameID, String* value)
 		unsigned char vxBits;
 		VxTable* vxTable;
 
-		vxTable = &GET_LN_URI_QNAME(strm->schema->uriTable, qnameID).vxTable;
+		vxTable = GET_LN_URI_QNAME(strm->schema->uriTable, qnameID).vxTable;
+		assert(vxTable);
 		vxBits = getBitsNumber(vxTable->count - 1);
 		tmp_err_code = decodeNBitUnsignedInteger(strm, vxBits, &vxEntryId);
 		if(tmp_err_code != ERR_OK)

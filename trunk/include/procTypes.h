@@ -824,7 +824,7 @@ struct PfxTable {
 typedef struct PfxTable PfxTable;
 
 struct LnEntry {
-	VxTable vxTable;
+	VxTable* vxTable;
 	String lnStr;
 	/** Global element grammar with uriStr:lnStr qname.
 	 *  Either Index of a global element grammar in the SchemaGrammarTable OR

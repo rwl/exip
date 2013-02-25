@@ -2026,22 +2026,22 @@ static CONST PfxTable ops_pfxTable_1 =
 static CONST LnEntry ops_LnEntry_1[4] =
 {
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_1_0, 4},
         INDEX_MAX, INDEX_MAX
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_1_1, 2},
         INDEX_MAX, INDEX_MAX
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_1_2, 4},
         INDEX_MAX, INDEX_MAX
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_1_3, 5},
         INDEX_MAX, INDEX_MAX
     }
@@ -2061,12 +2061,12 @@ static CONST PfxTable ops_pfxTable_2 =
 static CONST LnEntry ops_LnEntry_2[2] =
 {
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_2_0, 3},
         INDEX_MAX, INDEX_MAX
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_2_1, 4},
         INDEX_MAX, INDEX_MAX
     }
@@ -2075,232 +2075,232 @@ static CONST LnEntry ops_LnEntry_2[2] =
 static CONST LnEntry ops_LnEntry_3[46] =
 {
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_0, 8},
         INDEX_MAX, 0
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_1, 6},
         INDEX_MAX, 1
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_2, 2},
         INDEX_MAX, 2
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_3, 5},
         INDEX_MAX, 3
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_4, 6},
         INDEX_MAX, 4
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_5, 6},
         INDEX_MAX, 5
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_6, 7},
         INDEX_MAX, 6
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_7, 8},
         INDEX_MAX, 7
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_8, 8},
         INDEX_MAX, 8
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_9, 4},
         INDEX_MAX, 9
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_10, 5},
         INDEX_MAX, 10
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_11, 13},
         INDEX_MAX, 11
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_12, 7},
         INDEX_MAX, 12
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_13, 6},
         INDEX_MAX, 13
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_14, 12},
         INDEX_MAX, 14
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_15, 7},
         INDEX_MAX, 15
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_16, 4},
         INDEX_MAX, 16
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_17, 4},
         INDEX_MAX, 17
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_18, 8},
         INDEX_MAX, 18
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_19, 7},
         INDEX_MAX, 19
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_20, 6},
         INDEX_MAX, 20
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_21, 8},
         INDEX_MAX, 21
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_22, 5},
         INDEX_MAX, 22
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_23, 4},
         INDEX_MAX, 23
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_24, 6},
         INDEX_MAX, 24
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_25, 9},
         INDEX_MAX, 25
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_26, 5},
         INDEX_MAX, 26
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_27, 10},
         INDEX_MAX, 27
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_28, 9},
         INDEX_MAX, 28
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_29, 3},
         INDEX_MAX, 29
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_30, 7},
         INDEX_MAX, 30
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_31, 8},
         INDEX_MAX, 31
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_32, 4},
         INDEX_MAX, 32
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_33, 15},
         INDEX_MAX, 33
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_34, 18},
         INDEX_MAX, 34
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_35, 18},
         INDEX_MAX, 35
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_36, 16},
         INDEX_MAX, 36
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_37, 15},
         INDEX_MAX, 37
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_38, 5},
         INDEX_MAX, 38
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_39, 6},
         INDEX_MAX, 39
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_40, 4},
         INDEX_MAX, 40
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_41, 5},
         INDEX_MAX, 41
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_42, 12},
         INDEX_MAX, 42
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_43, 11},
         INDEX_MAX, 43
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_44, 12},
         INDEX_MAX, 44
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_3_45, 13},
         INDEX_MAX, 45
     }
@@ -2309,197 +2309,197 @@ static CONST LnEntry ops_LnEntry_3[46] =
 static CONST LnEntry ops_LnEntry_4[39] =
 {
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_0, 9},
         INDEX_MAX, INDEX_MAX
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_1, 12},
         INDEX_MAX, 58
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_2, 9},
         INDEX_MAX, INDEX_MAX
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_3, 7},
         INDEX_MAX, 60
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_4, 4},
         INDEX_MAX, INDEX_MAX
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_5, 8},
         INDEX_MAX, INDEX_MAX
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_6, 6},
         INDEX_MAX, INDEX_MAX
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_7, 11},
         INDEX_MAX, INDEX_MAX
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_8, 25},
         INDEX_MAX, INDEX_MAX
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_9, 4},
         INDEX_MAX, 66
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_10, 8},
         INDEX_MAX, 65
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_11, 7},
         INDEX_MAX, 61
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_12, 6},
         INDEX_MAX, 62
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_13, 3},
         INDEX_MAX, INDEX_MAX
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_14, 8},
         INDEX_MAX, INDEX_MAX
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_15, 4},
         INDEX_MAX, 72
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_16, 6},
         INDEX_MAX, 71
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_17, 9},
         INDEX_MAX, 69
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_18, 5},
         INDEX_MAX, 70
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_19, 10},
         INDEX_MAX, 68
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_20, 6},
         57, INDEX_MAX
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_21, 9},
         INDEX_MAX, 59
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_22, 12},
         INDEX_MAX, 73
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_23, 12},
         INDEX_MAX, 74
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_24, 7},
         INDEX_MAX, 63
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_25, 10},
         INDEX_MAX, INDEX_MAX
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_26, 13},
         INDEX_MAX, INDEX_MAX
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_27, 3},
         INDEX_MAX, INDEX_MAX
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_28, 12},
         INDEX_MAX, INDEX_MAX
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_29, 8},
         INDEX_MAX, INDEX_MAX
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_30, 8},
         INDEX_MAX, INDEX_MAX
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_31, 8},
         INDEX_MAX, INDEX_MAX
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_32, 13},
         INDEX_MAX, INDEX_MAX
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_33, 6},
         INDEX_MAX, INDEX_MAX
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_34, 6},
         INDEX_MAX, 64
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_35, 4},
         INDEX_MAX, 67
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_36, 8},
         INDEX_MAX, INDEX_MAX
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_37, 14},
         INDEX_MAX, INDEX_MAX
     },
     {
-        {{sizeof(VxEntry), 0, 0}, NULL, 0},
+        NULL,
         {ops_LN_4_38, 22},
         INDEX_MAX, INDEX_MAX
     }

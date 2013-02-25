@@ -80,12 +80,12 @@ void freeAllMem(EXIStream* strm)
 	{
 		for(j = 0; j < strm->schema->uriTable.uri[i].lnTable.count; j++)
 		{
-			if(GET_LN_URI_IDS(strm->schema->uriTable, i, j).vxTable.vx != NULL)
+			if(GET_LN_URI_IDS(strm->schema->uriTable, i, j).vxTable != NULL)
 			{
-				destroyDynArray(&GET_LN_URI_IDS(strm->schema->uriTable, i, j).vxTable.dynArray);
+				assert(GET_LN_URI_IDS(strm->schema->uriTable, i, j).vxTable->vx);
+				destroyDynArray(&GET_LN_URI_IDS(strm->schema->uriTable, i, j).vxTable->dynArray);
+				GET_LN_URI_IDS(strm->schema->uriTable, i, j).vxTable = NULL;
 			}
-			strm->schema->uriTable.uri[i].lnTable.ln[j].vxTable.vx = NULL;
-			strm->schema->uriTable.uri[i].lnTable.ln[j].vxTable.count = 0;
 		}
 	}
 

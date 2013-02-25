@@ -209,9 +209,8 @@ errorCode addLnEntry(LnTable* lnTable, String lnStr, Index* lnEntryId)
 	lnEntry->lnStr = lnStr;
 	lnEntry->elemGrammar = INDEX_MAX;
 	lnEntry->typeGrammar = INDEX_MAX;
-	// Additions to value cross table are done when a value is inserted in the value table
-	lnEntry->vxTable.vx = NULL;
-	lnEntry->vxTable.count = 0;
+	// The Vx table is created on-demand (additions to value cross table are done when a value is inserted in the value table)
+	lnEntry->vxTable = NULL;
 
 	return ERR_OK;
 }
@@ -229,16 +228,22 @@ errorCode addValueEntry(EXIStream* strm, String valueStr, QNameID qnameID)
 	lnEntry = &GET_LN_URI_QNAME(strm->schema->uriTable, qnameID);
 
 	// Add entry to the local name entry's value cross table (vxTable)
-	if(lnEntry->vxTable.vx == NULL)
+	if(lnEntry->vxTable == NULL)
 	{
+		lnEntry->vxTable = memManagedAllocate(&strm->memList, sizeof(VxTable));
+		if(lnEntry->vxTable == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+
 		// First value entry - create the vxTable
-		tmp_err_code = createDynArray(&lnEntry->vxTable.dynArray, sizeof(VxEntry), DEFAULT_VX_ENTRIES_NUMBER);
+		tmp_err_code = createDynArray(&lnEntry->vxTable->dynArray, sizeof(VxEntry), DEFAULT_VX_ENTRIES_NUMBER);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 	}
 
+	assert(lnEntry->vxTable->vx);
+
 	// Add an entry - will fill in later
-	tmp_err_code = addEmptyDynEntry(&lnEntry->vxTable.dynArray, (void**)&vxEntry, &vxEntryId);
+	tmp_err_code = addEmptyDynEntry(&lnEntry->vxTable->dynArray, (void**)&vxEntry, &vxEntryId);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -249,8 +254,10 @@ errorCode addValueEntry(EXIStream* strm, String valueStr, QNameID qnameID)
 		// Get the existing value entry
 		valueEntry = &strm->valueTable.value[strm->valueTable.globalId];
 
+		assert(GET_LN_URI_QNAME(strm->schema->uriTable, valueEntry->locValuePartition.forQNameId).vxTable);
+
 		// Null out the existing cross table entry
-		GET_LN_URI_QNAME(strm->schema->uriTable, valueEntry->locValuePartition.forQNameId).vxTable.vx[valueEntry->locValuePartition.vxEntryId].globalId = INDEX_MAX;
+		GET_LN_URI_QNAME(strm->schema->uriTable, valueEntry->locValuePartition.forQNameId).vxTable->vx[valueEntry->locValuePartition.vxEntryId].globalId = INDEX_MAX;
 
 #if HASH_TABLE_USE == ON
 		// Remove existing value string from hash table (if present)
@@ -406,67 +413,67 @@ errorCode createUriTableEntries(UriTable* uriTable, boolean withSchema)
 	return ERR_OK;
 }
 
-char lookupUri(UriTable* uriTable, String uriStr, SmallIndex* uriEntryId)
+boolean lookupUri(UriTable* uriTable, String uriStr, SmallIndex* uriEntryId)
 {
 	SmallIndex i;
 
 	if(uriTable == NULL)
-		return 0;
+		return FALSE;
 
 	for(i = 0; i < uriTable->count; i++)
 	{
 		if(stringEqual(uriTable->uri[i].uriStr, uriStr))
 		{
 			*uriEntryId = i;
-			return 1;
+			return TRUE;
 		}
 	}
-	return 0;
+	return FALSE;
 }
 
-char lookupLn(LnTable* lnTable, String lnStr, Index* lnEntryId)
+boolean lookupLn(LnTable* lnTable, String lnStr, Index* lnEntryId)
 {
 	Index i;
 
 	if(lnTable == NULL)
-		return 0;
+		return FALSE;
 	for(i = 0; i < lnTable->count; i++)
 	{
 		if(stringEqual(lnTable->ln[i].lnStr, lnStr))
 		{
 			*lnEntryId = i;
-			return 1;
+			return TRUE;
 		}
 	}
-	return 0;
+	return FALSE;
 }
 
-char lookupPfx(PfxTable* pfxTable, String pfxStr, SmallIndex* pfxEntryId)
+boolean lookupPfx(PfxTable* pfxTable, String pfxStr, SmallIndex* pfxEntryId)
 {
 	SmallIndex i;
 
 	if(pfxTable == NULL)
-		return 0;
+		return FALSE;
 
 	for(i = 0; i < pfxTable->count; i++)
 	{
 		if(stringEqual(pfxTable->pfxStr[i], pfxStr))
 		{
 			*pfxEntryId = i;
-			return 1;
+			return TRUE;
 		}
 	}
-	return 0;
+	return FALSE;
 }
 
-char lookupVx(ValueTable* valueTable, VxTable* vxTable, String valueStr, Index* vxEntryId)
+boolean lookupVx(ValueTable* valueTable, VxTable* vxTable, String valueStr, Index* vxEntryId)
 {
 	Index i;
 	VxEntry* vxEntry;
 	ValueEntry* valueEntry;
 
-	if((vxTable == NULL) || (vxTable->vx == NULL))
-		return 0;
+	if(vxTable == NULL || vxTable->vx == NULL)
+		return FALSE;
 
 	for(i = 0; i < vxTable->count; i++)
 	{
@@ -477,13 +484,13 @@ char lookupVx(ValueTable* valueTable, VxTable* vxTable, String valueStr, Index* 
 		if(stringEqual(valueEntry->valueStr, valueStr))
 		{
 			*vxEntryId = i;
-			return 1;
+			return TRUE;
 		}
 	}
-	return 0;
+	return FALSE;
 }
 
-char lookupValue(ValueTable* valueTable, String valueStr, Index* valueEntryId)
+boolean lookupValue(ValueTable* valueTable, String valueStr, Index* valueEntryId)
 {
 	Index i;
 	ValueEntry* valueEntry;
@@ -498,7 +505,7 @@ char lookupValue(ValueTable* valueTable, String valueStr, Index* valueEntryId)
 		if(i != INDEX_MAX)
 		{
 			*valueEntryId = i;
-			return 1;
+			return TRUE;
 		}
 	}
 	else
@@ -511,10 +518,10 @@ char lookupValue(ValueTable* valueTable, String valueStr, Index* valueEntryId)
 			if(stringEqual(valueEntry->valueStr, valueStr))
 			{
 				*valueEntryId = i;
-				return 1;
+				return TRUE;
 			}
 		}
 	}
 
-	return 0;
+	return FALSE;
 }
