@@ -34,9 +34,9 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 errorCode encodeStringData(EXIStream* strm, String strng, QNameID qnameID, Index typeId)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	boolean flag_StringLiteralsPartition = 0;
+	boolean flag_StringLiteralsPartition = FALSE;
 	Index vxEntryId = 0;
-	VxTable* vxTable = &GET_LN_URI_QNAME(strm->schema->uriTable, qnameID).vxTable;
+	VxTable* vxTable = GET_LN_URI_QNAME(strm->schema->uriTable, qnameID).vxTable;
 
 	/* ENUMERATION CHECK */
 	if(typeId != INDEX_MAX && HAS_TYPE_FACET(strm->schema->simpleTypeTable.sType[typeId].content,TYPE_FACET_ENUMERATION))
