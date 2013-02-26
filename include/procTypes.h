@@ -430,21 +430,11 @@ typedef struct dynArray DynArray;
  *
  * @section e_codes Event codes representation
  * The event codes in a production are represented as follow: <br/>
- * For every grammar rule there are 3 arrays of grammar productions -
- * represented with GrammarRulePart type.
- * The first one is for productions with event codes with length 1 -
- * they have only one part.
- * The second one is for productions with events codes with length 2 and
- * the third for productions with three-part event codes.
- * The last production in a production array has event code
- * 0, the production before it 1 etc. - that is in reverse order.<br/>
- * For example, the third production in the first rule of G with event code
- * 1.1.0 is the only production in the GrammarRulePart for 3 parts
- * productions so the last part is 0.
- * The number of productions in the second GrammarRulePart is also 1
- * so the second part is 1.
- * The number of productions in the first GrammarRulePart is also 1
- * so the first part is 1.
+ * For every grammar rule there is an array of grammar productions.
+ * It contains the productions with event codes with length 1 (having only one part).
+ * The last production in the production array has event code
+ * 0, the production before it 1 etc. - that is they are
+ * stored in reverse order
  */
 
 /**

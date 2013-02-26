@@ -147,8 +147,6 @@ errorCode booleanData(EXIStream* strm, boolean bool_val);
  * @brief Encodes string data for element or attribute
  *
  * @param[in, out] strm EXI stream object
- * @param[in] isSchemaType for schema mode, define if the value
- * is conforming to the type defined in the schema. If in schemaless it should be TRUE;
  * @param[in] str_val value to be encoded
  * @return Error handling code
  */
@@ -289,7 +287,7 @@ errorCode closeEXIStream(EXIStream* strm);
  * and when efficiency is of high importance
  *
  * @param[in, out] strm EXI stream
- * @param[in] EventCode EXI event code of the production
+ * @param[in] ec EXI event code of the production
  * @param[in] qname used only for SE(*), AT(*), SE(uri:*), AT(uri:*) and when
  * a new prefix should be serialized in SE(QName) and AT(QName); NULL otherwise
  * @return Error handling code

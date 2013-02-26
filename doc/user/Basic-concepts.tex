@@ -66,19 +66,17 @@ while the examples and other utils are compiled in separate subfolders
  \item \texttt{build/} - this folder contains the build scripts of the project. The current release
 provides a MS VS 2010 build under \texttt{build/vs2010/} and \emph{GCC} toolchain builds under \texttt{build/gcc/}.
 The \texttt{build/gcc/} folder further contains platform-dependent parameters and
-headers located in subfolders - \texttt{build/gcc/mulle} for the Mulle sensor platform,
-\texttt{build/gcc/oe-armv5te} for OpenEmbedded Linux on ARMv5te and the default
-\texttt{build/gcc/pc} for descktop PCs. The build is started from \texttt{build/gcc/} with the following
+headers located in subfolders - \texttt{build/gcc/contiki} for the Contiki sensor platform OS and
+\texttt{build/gcc/pc} for desktop PCs. The build is started from \texttt{build/gcc/} with the following
 \texttt{make} build targets available:
 \begin{description}
  \item[all] compiles the EXIP library. The default target platform is PC. To change the target
-platform to Mulle for example, add \texttt{target=mulle} as an argument of \texttt{make}
+platform to Contiki for example, add \texttt{TARGET=contiki} as an argument of \texttt{make}
  \item[check] invokes the Check unit tests
  \item[clean] removes the \texttt{bin/} folder
  \item[doc] generates the project Doxygen documentation. The output directory is set to \texttt{doc/dev/doxygen/}
  \item[examples] compiles and builds the example executables
  \item[utils] compiles and builds the utils executables
- \item[lib] generates a static library libexip.a in \texttt{bin/lib}
  \item[dynlib] generates a dynamic library libexip.so in \texttt{bin/lib}
  \end{description}
 
@@ -115,7 +113,7 @@ declared in this header file defines what type of characters are supported in th
 For example, \texttt{ASCII\_stringManipulate.c} implements the strings as ASCII character arrays.
 
 One way of increasing the compactness defined in the EXI specification is through the use of string tables.
-The string tables are partitioned dictionary that stores and indexes the strings that occur in particular
+The string tables are partitioned dictionaries that store and index the strings that occur in particular
 EXI document. In such way, when a string has been used once in the document it is added to the string tables.
 Every other occurrence of the same string in the document is represented by its index in the string tables.
 
