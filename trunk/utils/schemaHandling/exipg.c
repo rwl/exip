@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
 static void printfHelp()
 {
     printf("\n" );
-    printf("  EXIP     Copyright (c) 2010 - 2012, EISLAB - Luleå University of Technology Version 0.4.1 \n");
+    printf("  EXIP     Copyright (c) 2010 - 2012, EISLAB - Luleå University of Technology Version 0.5 \n");
     printf("           Author: Rumen Kyusakov\n");
     printf("  Usage:   exipg [options] -schema=<xsd_in> [grammar_out] \n\n");
     printf("           Options: [-help | [[-exip | -text | -dynamic | -static] [-pfx=<prefix>] [-ops=<ops_mask>]] ] \n");
@@ -206,11 +206,10 @@ static void printfHelp()
     printf("           -pfx         :   When in -dynamic or -static mode, this option allows you to specify a unique prefix for the\n");
     printf("                            generated global types. The default is \"prfx_\"\n");
     printf("           ops_mask     :   The format is: <STRICT><SELF_CONTAINED><dtd><prefixes><lexicalValues><comments><pis> := <0|1><0|1><0|1><0|1><0|1><0|1><0|1>\n");
-    printf("                            No options are specified in the header of the <xsd_in> EXI encoded schema files but some options are used during encoding.\n");
-    printf("                            This option is useful for generating the Options grammar where STRICT is set and the rest are default options. \n");
-    printf("                            In this way the bootstrapping of the code is easier. The mask to use for EXIOptions-xsd.exi is -ops=1000000 \n");
-    printf("                            Only documents for the specified values for this options will be able to\n");
-    printf("                            successfully process by the EXIP instance.\n\n");
+    printf("                            Use this argument only for specifying out-of-band options. That is if no options are specified in the header of the <xsd_in>");
+    printf("                            EXI encoded schema files but some options are used during encoding.\n");
+    printf("                            This argument is useful for generating the \"EXI Options\" grammar where STRICT is set and the rest are default options. \n");
+    printf("                            In this way the bootstrapping of the code is easier. The mask to use for EXIOptions-xsd.exi is -ops=0001000 \n");
     printf("           -schema      :   The source schema definitions - all referenced schema files should be included in <xsd_in>\n");
     printf("           xsd_in       :   Comma-separated list of schema documents encoded in EXI with Preserve.prefixes. The first schema is the main one and\n");
     printf("                            the rest are schemas that are referenced from the main one through the <xs:import> statement.\n");

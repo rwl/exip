@@ -52,12 +52,11 @@
 			<tr><td><a href="doxygen/index.html" target="_blank">Developers documentation</a></td></tr>
 			<tr><td><br/></td></tr>
 			<tr><td><span class="title">Change log</span></td></tr>
-			<tr><td>Version 0.4.1 (Alpha release)
+			<tr><td>Version 0.5 (Alpha release)
 					<ul>
 						<li> Bug fixes</li>
-						<li> Better unit-test coverage</li>
-				        <li> Support for schema-enabled processing</li>
-				        <li> Schema parser for EXI encoded XML Schemes</li>
+						<li> New, more compact EXI grammar representation </li>
+				        <li> Support for byte-alignment </li>
 				   </ul>
 				
 				   Features:
@@ -70,15 +69,16 @@
 				   	  <li> SchemaId </li> 	
  	  				  <li> ValueMaxLength </li>
   				   	  <li> ValuePartitionCapacity </li>
+  				   	  <li> Schema parser for EXI encoded XML Schemas </li>
 				   </ul>
 				
 				   Known issues:
 				   <ul>
-				      <li> Only bit-packed alignment. Byte-alignment and pre-compression are not supported </li>
-				      <li> Compression is not supported </li>
+				      <li> Compression and pre-compression are not supported </li>
 				      <li> Preserving lexicalValues is not supported </li>
 				      <li> Random access through selfContained option is not supported </li>
 				      <li> Datatype Representation Map is not supported </li>
+    				  <li> Recursive definitions in XML schema lead to infinite loop </li>
 				      <li> Some exotic XML schema constructs are not implemented yet (e.g. string pattern facets for Restricted Character Sets, Substitution groups) </li>
 				   </ul>   
 				</td></tr>

@@ -32,23 +32,29 @@ There are three modes defining the output of the tool:
 	    This option is currently not implemented.
  \item[text] In this mode the grammar definitions are printed in human readable form. This mode is
 	    useful for debugging purposes.
- \item[src] In this mode the grammar definitions are generated in \texttt{C} source code. The code
-	    can use either static definitions (everything is in the programming memory) or
-	    dynamic definitions (dynamic memory allocations). The dynamic definitions are
-	    not supported in this release.
+ \item[static] In this mode the grammar definitions are generated in static \texttt{C} source code.
  \end{description}
 As an example, the command line arguments used to generate the EXI Options document grammars are:
 \begin{lstlisting}
-exipg -src=static -pfx=ops_ -mask=1000000 EXIOptions-xsd.exi staticEXIOptions.c
+exipg -static -pfx=ops_ -ops=0001000 -schema=EXIOptions-xsd.exi staticEXIOptions.c
 \end{lstlisting}
+Note that the \texttt{-ops=} argument is required when the EXI options used during encoding of
+the XSD into EXI are not included in the EXI header i.e.\ they are communicated
+out-of-band.
 
 \subsection{Converting XML Schema files to EXI}
 Currently, there are no XML Schema editing tools that are capable of saving the document in EXI format.
 For that reason it is required that you convert the text XML Schema to EXI encoding before using it
-with EXIP. You can use any of the open source Java implementations of EXI for that purpose. Particularly
-convenient for use is the \href{http://sourceforge.net/projects/exiprocessor/files/}{ExiProcessor} command line utility.
-The correct arguments to be passed to the utility for converting the EXIOptions.xsd are:
+with EXIP. You can use any of the open source Java implementations of EXI for that purpose.
+The latest distribution of the exip library includes a convenient GUI tool from OpenEXI project
+that can be used to encode XSD schema files into EXI representation. The tool is located
+under \texttt{externalTools/} folder of the source tree. OpenEXI graphical tool can
+be started with the following command:
 \begin{lstlisting}
-java -jar ExiProcessor.jar -header_options -preserve_prefixes
-  -xml_in EXIOptions.xsd -exi_out EXIOptions-xsd.exi
+java -jar OpenEXIGUI.jar
 \end{lstlisting}
+When encoding the XML Schema file you should use schema-less mode indicated by ``Use Schema: None''
+and also set the Preserve.prefixes option by checking the ``Preserve Namespace Declarations''
+checkbox. It is recommended to encode these options in the header by setting
+``Include options'' checkbox. If you leave the ``Include options'' unchecked, you need to use the \texttt{-ops=} argument
+of the exipg utility to specify the out-of-band options.

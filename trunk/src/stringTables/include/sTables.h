@@ -111,7 +111,6 @@ errorCode addPfxEntry(PfxTable* pfxTable, String pfxStr, SmallIndex* pfxEntryId)
  * @param[in] pfx prefix string
  * @param[in] lnBase Character array representing array of local names, or NULL if not present
  * @param[in] lnSize Number of local names in array at lnBase
- * @param[in, out] memList A list storing the memory allocations
  * @return Error handling code
  */
 errorCode createUriTableEntry(UriTable* uriTable, const String uri, int createPfx,
