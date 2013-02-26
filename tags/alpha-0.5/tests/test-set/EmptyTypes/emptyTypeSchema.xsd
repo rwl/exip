@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.example.org/emptyTypeSchema" xmlns:tns="http://www.example.org/emptyTypeSchema" elementFormDefault="qualified">
+	<complexType name="testEmpty">
+		<sequence>
+			<element name="nilabElem" nillable="true" type="tns:nilElemType"/>
+		</sequence>
+		<attribute name="basis" type="string"/>
+	</complexType>
+	
+	<complexType name="nilElemType">
+		<sequence>
+			<element name="someEl" type="decimal"/>
+			<element name="someOtherEl" type="float"/>
+		</sequence>
+		<attribute name="bass" type="string"/>
+		<attribute name="foo" type="int" use="required"/>
+	</complexType>
+	
+	<element name="rootElem" type="tns:testEmpty"/>
+</schema>
