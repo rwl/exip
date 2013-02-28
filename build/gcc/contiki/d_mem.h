@@ -24,7 +24,7 @@
 #define D_MEM_H_
 
 #include <stdint.h>
-#define D_MEM_HEAP_SIZE 3500
+#define D_MEM_HEAP_SIZE 4095
 
 // align on this number of byte boundarie#s
 #define D_MEM_ALIGN   2

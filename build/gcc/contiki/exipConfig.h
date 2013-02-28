@@ -70,4 +70,10 @@ struct ThinFloat
 #define DEFAULT_GRAMMAR_TABLE         40
 #define DEFAULT_SIMPLE_GRAMMAR_TABLE  55
 
+#define EXIP_INDEX size_t
+#define EXIP_INDEX_MAX SIZE_MAX
+
+#define EXIP_SMALL_INDEX uint8_t
+#define EXIP_SMALL_INDEX_MAX UINT8_MAX
+
 #endif /* EXIPCONFIG_H_ */
