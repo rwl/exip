@@ -491,7 +491,7 @@ START_TEST (test_recursive_defs)
 	// II: Set any options in the header, if different from the defaults
 	testStrm.header.has_options = TRUE;
 	SET_STRICT(testStrm.header.opts.enumOpt);
-//	testStrm.header.opts.valuePartitionCapacity = 0;
+	SET_ALIGNMENT(testStrm.header.opts.enumOpt, BYTE_ALIGNMENT);
 
 	// III: Define an external stream for the output if any
 	buffer.ioStrm.readWriteToStream = NULL;
@@ -659,7 +659,7 @@ START_TEST (test_recursive_defs)
 
 	// IV: Parse the header of the stream
 
-	tmp_err_code = parseHeader(&testParser, TRUE);
+	tmp_err_code = parseHeader(&testParser, FALSE);
 	fail_unless (tmp_err_code == ERR_OK, "parsing the header returns an error code %d", tmp_err_code);
 
 	// V: Parse the body of the EXI stream
