@@ -306,7 +306,17 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 					ec.part[1] = 0;
 				strm->context.currNonTermID = GR_ELEMENT_CONTENT;
 
-				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, GR_ELEMENT_CONTENT, &strm->context.currElem, 1);
+				if(!lookupUri(&strm->schema->uriTable, *qname->uri, &qnameID.uriId))
+				{
+					qnameID.uriId = strm->schema->uriTable.count;
+					qnameID.lnId = 0;
+				}
+				else if(!lookupLn(&strm->schema->uriTable.uri[qnameID.uriId].lnTable, *qname->localName,  &qnameID.lnId))
+				{
+					qnameID.lnId = strm->schema->uriTable.uri[qnameID.uriId].lnTable.count;
+				}
+
+				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, GR_ELEMENT_CONTENT, &qnameID, 1);
 				if(tmp_err_code != ERR_OK)
 					return tmp_err_code;
 			break;
