@@ -227,17 +227,17 @@ errorCode startElement(EXIStream* strm, QName qname, EXITypeClass* valueType)
 	{
 		EXIGrammar* elemGrammar = NULL;
 
+		strm->gStack->lastNonTermID = strm->context.currNonTermID;
 		tmp_err_code = encodeQName(strm, qname, EVENT_SE_ALL, &strm->context.currElem);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
-		strm->gStack->lastNonTermID = strm->context.currNonTermID;
 		// New element grammar is pushed on the stack
 		elemGrammar = GET_ELEM_GRAMMAR_QNAMEID(strm->schema, strm->context.currElem);
+		strm->context.currNonTermID = GR_START_TAG_CONTENT;
 
 		if(elemGrammar != NULL) // The grammar is found
 		{
-			strm->context.currNonTermID = GR_START_TAG_CONTENT;
 			tmp_err_code = pushGrammar(&(strm->gStack), elemGrammar);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
@@ -255,8 +255,6 @@ errorCode startElement(EXIStream* strm, QName qname, EXITypeClass* valueType)
 				return tmp_err_code;
 
 			GET_LN_URI_QNAME(strm->schema->uriTable, strm->context.currElem).elemGrammar = dynArrIndx;
-
-			strm->context.currNonTermID = GR_START_TAG_CONTENT;
 			tmp_err_code = pushGrammar(&(strm->gStack), &strm->schema->grammarTable.grammar[dynArrIndx]);
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
