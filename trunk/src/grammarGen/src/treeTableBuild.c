@@ -743,6 +743,7 @@ static void initEntryContext(TreeTableEntry* entry)
 	entry->child.entry = NULL;
 	entry->child.treeT = NULL;
 	entry->element = ELEMENT_VOID;
+	entry->loopDetection = 0;
 
 	for(i = 0; i < ATTRIBUTE_CONTEXT_ARRAY_SIZE; i++)
 	{

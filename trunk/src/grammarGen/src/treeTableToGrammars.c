@@ -480,40 +480,6 @@ static errorCode handleElementEl(BuildContext* ctx, TreeTable* treeT, TreeTableE
 	printString(&entry->attributePointers[ATTRIBUTE_TYPE]);
 #endif
 
-	/*======== COMMENT #SCHEMA# ========*/
-	/* TODO: Because of the possible recursive loops in the XML schema definitions this needs to be fixed */
-	/* The below code is a temporary fix for the XML schema processing in schema mode */
-//	if(stringEqualToAscii(entry->attributePointers[ATTRIBUTE_REF], "xs:restriction"))
-//	{
-//		*grIndex = 109;
-//		return ERR_OK;
-//	}
-//	else if(stringEqualToAscii(entry->attributePointers[ATTRIBUTE_REF], "xs:list"))
-//	{
-//		*grIndex = 110;
-//		return ERR_OK;
-//	}
-//	else if(stringEqualToAscii(entry->attributePointers[ATTRIBUTE_REF], "xs:union"))
-//	{
-//		*grIndex = 111;
-//		return ERR_OK;
-//	}
-//	else if(stringEqualToAscii(entry->attributePointers[ATTRIBUTE_REF], "xs:all"))
-//	{
-//		*grIndex = 106;
-//		return ERR_OK;
-//	}
-//	else if(stringEqualToAscii(entry->attributePointers[ATTRIBUTE_REF], "xs:choice"))
-//	{
-//		*grIndex = 105;
-//		return ERR_OK;
-//	}
-//	else if(stringEqualToAscii(entry->attributePointers[ATTRIBUTE_REF], "xs:sequence"))
-//	{
-//		*grIndex = 105;
-//		return ERR_OK;
-//	}
-
 	type = entry->attributePointers[ATTRIBUTE_TYPE];
 
 	// Validation checks
@@ -596,10 +562,57 @@ static errorCode handleElementEl(BuildContext* ctx, TreeTable* treeT, TreeTableE
 		else
 			return UNEXPECTED_ERROR;
 
-		tmp_err_code = storeGrammar(ctx, elQNameID, pg, isNillable, grIndex);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		if(entry->child.entry->loopDetection != 0 && entry->child.entry->loopDetection != INDEX_MAX)
+		{
+			// This should be the case only for entry->child.entry->element == ELEMENT_COMPLEX_TYPE
+			*grIndex = entry->child.entry->loopDetection;
 
+			if(pg != NULL)
+			{
+				EXIGrammar exiGr;
+
+				assignCodes(pg);
+				tmp_err_code = convertProtoGrammar(&ctx->schema->memList, pg, &exiGr);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+
+				// The grammar has a content2 grammar if and only if there are AT
+				// productions that point to the content grammar rule OR the content index is 0.
+				if(GET_CONTENT_INDEX(exiGr.props) == 0)
+					SET_HAS_CONTENT2(exiGr.props);
+				else
+				{
+					Index r, p;
+					boolean prodFound = FALSE;
+					for(r = 0; r < GET_CONTENT_INDEX(exiGr.props); r++)
+					{
+						for(p = 0; p < RULE_GET_AT_COUNT(exiGr.rule[r].meta); p++)
+						{
+							if(GET_PROD_NON_TERM(exiGr.rule[r].production[exiGr.rule[r].pCount-1-p].content) == GET_CONTENT_INDEX(exiGr.props))
+							{
+								SET_HAS_CONTENT2(exiGr.props);
+								prodFound = TRUE;
+								break;
+							}
+						}
+						if(prodFound)
+							break;
+					}
+				}
+
+				ctx->schema->grammarTable.grammar[*grIndex].count = exiGr.count;
+				ctx->schema->grammarTable.grammar[*grIndex].props = exiGr.props;
+				ctx->schema->grammarTable.grammar[*grIndex].rule = exiGr.rule;
+
+				destroyProtoGrammar(pg);
+			}
+		}
+		else
+		{
+			tmp_err_code = storeGrammar(ctx, elQNameID, pg, isNillable, grIndex);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
 		/* If the element is globally defined -> store the index of its grammar in the
 		 * LnEntry in the string tables */
 		if(isGlobal == TRUE)
@@ -640,9 +653,57 @@ static errorCode handleElementEl(BuildContext* ctx, TreeTable* treeT, TreeTableE
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			tmp_err_code = storeGrammar(ctx, typeQNameID, pg, isNillable, grIndex);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			if(entry->child.entry->loopDetection != 0 && entry->child.entry->loopDetection != INDEX_MAX)
+			{
+				// This should be the case only for entry->child.entry->element == ELEMENT_COMPLEX_TYPE
+				*grIndex = entry->child.entry->loopDetection;
+
+				if(pg != NULL)
+				{
+					EXIGrammar exiGr;
+
+					assignCodes(pg);
+					tmp_err_code = convertProtoGrammar(&ctx->schema->memList, pg, &exiGr);
+					if(tmp_err_code != ERR_OK)
+						return tmp_err_code;
+
+					// The grammar has a content2 grammar if and only if there are AT
+					// productions that point to the content grammar rule OR the content index is 0.
+					if(GET_CONTENT_INDEX(exiGr.props) == 0)
+						SET_HAS_CONTENT2(exiGr.props);
+					else
+					{
+						Index r, p;
+						boolean prodFound = FALSE;
+						for(r = 0; r < GET_CONTENT_INDEX(exiGr.props); r++)
+						{
+							for(p = 0; p < RULE_GET_AT_COUNT(exiGr.rule[r].meta); p++)
+							{
+								if(GET_PROD_NON_TERM(exiGr.rule[r].production[exiGr.rule[r].pCount-1-p].content) == GET_CONTENT_INDEX(exiGr.props))
+								{
+									SET_HAS_CONTENT2(exiGr.props);
+									prodFound = TRUE;
+									break;
+								}
+							}
+							if(prodFound)
+								break;
+						}
+					}
+
+					ctx->schema->grammarTable.grammar[*grIndex].count = exiGr.count;
+					ctx->schema->grammarTable.grammar[*grIndex].props = exiGr.props;
+					ctx->schema->grammarTable.grammar[*grIndex].rule = exiGr.rule;
+
+					destroyProtoGrammar(pg);
+				}
+			}
+			else
+			{
+				tmp_err_code = storeGrammar(ctx, typeQNameID, pg, isNillable, grIndex);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
 
 			/* Store the index of the type grammar in the
 			 * LnEntry in the string tables */
@@ -663,13 +724,15 @@ static errorCode handleElementEl(BuildContext* ctx, TreeTable* treeT, TreeTableE
 	 * add it to the GlobalElemQNameTable.
 	 * This table is used to generate the schema-informed document grammar.
 	 */
-	if(isGlobal && treeT->globalDefs.isMain == TRUE)
+	if(isGlobal && treeT->globalDefs.isMain == TRUE && entry->loopDetection == 0)
 	{
 		Index dynElID;
 
 		tmp_err_code = addDynEntry(&ctx->gElTbl.dynArray, &elQNameID, &dynElID);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
+
+		entry->loopDetection = INDEX_MAX;
 	}
 
 	return ERR_OK;
@@ -1070,6 +1133,28 @@ static errorCode getComplexTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 	boolean isMixedContent = FALSE;
 	Index i;
 
+	if(complEntry->loopDetection == 0)
+	{
+		// The complexType entry has not been processed before
+		complEntry->loopDetection = INDEX_MAX;
+	}
+	else if(complEntry->loopDetection == INDEX_MAX)
+	{
+		// The complexType has already been processed once.
+		// Add dummy grammar to the grammarTable that will be replaced by the real one later
+		tmp_err_code = addDynEntry(&ctx->schema->grammarTable.dynArray, &static_grammar_empty, &complEntry->loopDetection);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+		*complType = NULL;
+		return ERR_OK;
+	}
+	else
+	{
+		// The complexType entry has already been processed at least twice
+		*complType = NULL;
+		return ERR_OK;
+	}
+
 	if(!isStringEmpty(&complEntry->attributePointers[ATTRIBUTE_MIXED])
 			&& stringEqualToAscii(complEntry->attributePointers[ATTRIBUTE_MIXED], "true"))
 	{
@@ -1233,9 +1318,56 @@ static errorCode handleComplexTypeEl(BuildContext* ctx, TreeTable* treeT, TreeTa
 			if(tmp_err_code != ERR_OK)
 				return tmp_err_code;
 
-			tmp_err_code = storeGrammar(ctx, ctQNameID, complType, FALSE, &grIndex);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			if(entry->loopDetection != 0 && entry->loopDetection != INDEX_MAX)
+			{
+				// This should be the case only for entry->element == ELEMENT_COMPLEX_TYPE
+				grIndex = entry->loopDetection;
+				if(complType != NULL)
+				{
+					EXIGrammar exiGr;
+
+					assignCodes(complType);
+					tmp_err_code = convertProtoGrammar(&ctx->schema->memList, complType, &exiGr);
+					if(tmp_err_code != ERR_OK)
+						return tmp_err_code;
+
+					// The grammar has a content2 grammar if and only if there are AT
+					// productions that point to the content grammar rule OR the content index is 0.
+					if(GET_CONTENT_INDEX(exiGr.props) == 0)
+						SET_HAS_CONTENT2(exiGr.props);
+					else
+					{
+						Index r, p;
+						boolean prodFound = FALSE;
+						for(r = 0; r < GET_CONTENT_INDEX(exiGr.props); r++)
+						{
+							for(p = 0; p < RULE_GET_AT_COUNT(exiGr.rule[r].meta); p++)
+							{
+								if(GET_PROD_NON_TERM(exiGr.rule[r].production[exiGr.rule[r].pCount-1-p].content) == GET_CONTENT_INDEX(exiGr.props))
+								{
+									SET_HAS_CONTENT2(exiGr.props);
+									prodFound = TRUE;
+									break;
+								}
+							}
+							if(prodFound)
+								break;
+						}
+					}
+
+					ctx->schema->grammarTable.grammar[grIndex].count = exiGr.count;
+					ctx->schema->grammarTable.grammar[grIndex].props = exiGr.props;
+					ctx->schema->grammarTable.grammar[grIndex].rule = exiGr.rule;
+
+					destroyProtoGrammar(complType);
+				}
+			}
+			else
+			{
+				tmp_err_code = storeGrammar(ctx, ctQNameID, complType, FALSE, &grIndex);
+				if(tmp_err_code != ERR_OK)
+					return tmp_err_code;
+			}
 
 			GET_LN_URI_QNAME(ctx->schema->uriTable, ctQNameID).typeGrammar = grIndex;
 
