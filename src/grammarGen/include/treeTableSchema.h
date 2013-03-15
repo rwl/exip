@@ -171,6 +171,21 @@ struct TreeTableEntry
 	/** In case of attributes that are part of the definition, their values are stored as a string
 	 * in this array. The index is the code of the attribute whose value is stored. */
 	String attributePointers[ATTRIBUTE_CONTEXT_ARRAY_SIZE];
+
+	/**
+	 * Loops occur in the XSD due to <xs:element ref="element-containing-recursive-declaration" ...>
+	 * in a complex type. When the code in treeTableToGrammars.c handleElementEl() starts processing such element it has to perform two things:
+	 * 1) create a grammar production SE(qname)
+	 * 2) link the grammar that describes this element to that production.
+	 * When such grammar does not exists it tries to build it. But in order to build it it ends up at the same <xs:element ref="element-containing-recursive-declaration" ...>
+	 * due to the recursive declaration.
+	 * The idea to solve it: break the second try to process the complex type that contains
+	 * <xs:element ref="element-containing-recursive-declaration" ...>
+	 * loopDetection == 0 -> the first time the TreeTableEntry is processed
+	 * loopDetection == INDEX_MAX -> the TreeTableEntry was processed once
+	 * 0 < loopDetection < INDEX_MAX -> GrammarIndex of the Grammar table for complex grammar
+	 */
+	Index loopDetection;
 };
 
 typedef struct TreeTableEntry TreeTableEntry;
