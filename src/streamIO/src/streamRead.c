@@ -28,7 +28,6 @@ const unsigned char BIT_MASK[] = {	(char) 0x00,	// 0b00000000
 									(char) 0x7F,	// 0b01111111
 									(char) 0xFF	};	// 0b11111111
 
-
 errorCode readNextBit(EXIStream* strm, boolean* bit_val)
 {
 	if(strm->buffer.bufContent <= strm->context.bufferIndx) // the whole buffer is parsed! read another portion
@@ -50,13 +49,11 @@ errorCode readNextBit(EXIStream* strm, boolean* bit_val)
 
 errorCode readBits(EXIStream* strm, unsigned char n, unsigned int* bits_val)
 {
-	unsigned int numBitsRead = 0; // Number of the bits read so far
-	unsigned int tmp = 0;
-	unsigned int bits_in_byte = 0; // Number of bits read in one iteration
-	unsigned int numBytesToBeRead = ((unsigned int) n) / 8 + (8 - strm->context.bitPointer < n % 8 );
-	*bits_val = 0;
+	unsigned int numBytesToBeRead = 1 + ((n + strm->context.bitPointer - 1) / 8);
+	unsigned int byteIndx = 1;
+	unsigned char *buf;
 
-	if(strm->buffer.bufContent <= strm->context.bufferIndx + numBytesToBeRead)
+	if(strm->buffer.bufContent < strm->context.bufferIndx + numBytesToBeRead)
 	{
 		// The buffer end is reached: there are fewer than n bits left unparsed
 		char leftOverBits[16];
@@ -76,27 +73,21 @@ errorCode readBits(EXIStream* strm, unsigned char n, unsigned int* bits_val)
 		strm->context.bufferIndx = 0;
 	}
 
-	while(numBitsRead < n)
-	{
-		tmp = 0;
-		if((unsigned int)(n - numBitsRead) <= (unsigned int)(8 - strm->context.bitPointer)) // The rest of the unread bits are located in the current byte from the stream
-		{
-			int tmp_shift;
-			bits_in_byte = n - numBitsRead;
-			tmp_shift = 8 - strm->context.bitPointer - bits_in_byte;
-			tmp = (strm->buffer.buf[strm->context.bufferIndx] >> tmp_shift) & BIT_MASK[bits_in_byte];
-		}
-		else // The rest of the unread bits are located in multiple bytes from the stream
-		{
-			bits_in_byte = 8 - strm->context.bitPointer;
-			tmp = strm->buffer.buf[strm->context.bufferIndx] & BIT_MASK[bits_in_byte];
-		}
-		numBitsRead += bits_in_byte;
-		tmp = tmp << (n - numBitsRead);
-		*bits_val = *bits_val | tmp;
+	buf = (unsigned char *) strm->buffer.buf + strm->context.bufferIndx;
 
-		moveBitPointer(strm, bits_in_byte);
+	*bits_val = (buf[0] & BIT_MASK[8 - strm->context.bitPointer])<<((numBytesToBeRead-1)*8);
+
+	while(byteIndx < numBytesToBeRead)
+	{
+		*bits_val += (unsigned int) (buf[byteIndx])<<((numBytesToBeRead-byteIndx-1)*8);
+		byteIndx++;
 	}
+	*bits_val = *bits_val << strm->context.bitPointer;
+	*bits_val = *bits_val >> (numBytesToBeRead*8-n);
+
+	n += strm->context.bitPointer;
+	strm->context.bufferIndx += n / 8;
+	strm->context.bitPointer = n % 8;
 	return ERR_OK;
 }
 
