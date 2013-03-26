@@ -74,7 +74,7 @@ errorCode encode(EXIPSchema* schemaPtr, FILE *outfile, size_t (*outputStream)(vo
 	// I: First initialize the header of the stream
 	serialize.initHeader(&testStrm);
 
-	// II: Set any options in the header, if different from the defaults
+	// II: Set any options in the header (including schemaID and schemaIDMode), if different from the defaults.
 	testStrm.header.has_cookie = TRUE;
 	testStrm.header.has_options = TRUE;
 	testStrm.header.opts.valueMaxLength = 300;
@@ -86,7 +86,7 @@ errorCode encode(EXIPSchema* schemaPtr, FILE *outfile, size_t (*outputStream)(vo
 	buffer.ioStrm.stream = outfile;
 
 	// IV: Initialize the stream
-	tmp_err_code = serialize.initStream(&testStrm, buffer, schemaPtr, SCHEMA_ID_ABSENT, NULL);
+	tmp_err_code = serialize.initStream(&testStrm, buffer, schemaPtr);
 	if(tmp_err_code != ERR_OK)
 	{
 		serialize.closeEXIStream(&testStrm);

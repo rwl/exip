@@ -15,6 +15,7 @@
  * @par[Revision] $Id$
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <check.h>
 #include "procTypes.h"
@@ -23,7 +24,14 @@
 #include "stringManipulate.h"
 #include "grammarGenerator.h"
 
+#define MAX_PATH_LEN 200
 #define OUTPUT_BUFFER_SIZE 2000
+/* Location for external test data */
+static char *dataDir;
+
+static size_t writeFileOutputStream(void* buf, size_t readSize, void* stream);
+static size_t readFileInputStream(void* buf, size_t readSize, void* stream);
+static void parseSchema(const char* fileName, EXIPSchema* schema);
 
 /* BEGIN: SchemaLess tests */
 
@@ -56,7 +64,7 @@ START_TEST (test_default_options)
 	// III: Define an external stream for the output if any
 
 	// IV: Initialize the stream
-	tmp_err_code = serialize.initStream(&testStrm, buffer, NULL, SCHEMA_ID_ABSENT, NULL);
+	tmp_err_code = serialize.initStream(&testStrm, buffer, NULL);
 	fail_unless (tmp_err_code == ERR_OK, "initStream returns an error code %d", tmp_err_code);
 
 	// V: Start building the stream step by step: header, document, element etc...
@@ -109,7 +117,7 @@ START_TEST (test_default_options)
 	// I: First, define an external stream for the input to the parser if any
 
 	// II: Second, initialize the parser object
-	tmp_err_code = initParser(&testParser, buffer, NULL, NULL);
+	tmp_err_code = initParser(&testParser, buffer, NULL);
 	fail_unless (tmp_err_code == ERR_OK, "initParser returns an error code %d", tmp_err_code);
 
 	// III: Initialize the parsing data and hook the callback handlers to the parser object
@@ -118,6 +126,9 @@ START_TEST (test_default_options)
 
 	tmp_err_code = parseHeader(&testParser, TRUE);
 	fail_unless (tmp_err_code == ERR_OK, "parsing the header returns an error code %d", tmp_err_code);
+
+	tmp_err_code = setSchema(&testParser, NULL);
+	fail_unless (tmp_err_code == ERR_OK, "setSchema() returns an error code %d", tmp_err_code);
 
 	// V: Parse the body of the EXI stream
 
@@ -165,7 +176,7 @@ START_TEST (test_fragment_option)
 	// III: Define an external stream for the output if any
 
 	// IV: Initialize the stream
-	tmp_err_code = serialize.initStream(&testStrm, buffer, NULL, SCHEMA_ID_ABSENT, NULL);
+	tmp_err_code = serialize.initStream(&testStrm, buffer, NULL);
 	fail_unless (tmp_err_code == ERR_OK, "initStream returns an error code %d", tmp_err_code);
 
 	// V: Start building the stream step by step: header, document, element etc...
@@ -238,7 +249,7 @@ START_TEST (test_fragment_option)
 	// I: First, define an external stream for the input to the parser if any
 
 	// II: Second, initialize the parser object
-	tmp_err_code = initParser(&testParser, buffer, NULL, NULL);
+	tmp_err_code = initParser(&testParser, buffer, NULL);
 	fail_unless (tmp_err_code == ERR_OK, "initParser returns an error code %d", tmp_err_code);
 
 	// III: Initialize the parsing data and hook the callback handlers to the parser object
@@ -248,6 +259,8 @@ START_TEST (test_fragment_option)
 	tmp_err_code = parseHeader(&testParser, FALSE);
 	fail_unless (tmp_err_code == ERR_OK, "parsing the header returns an error code %d", tmp_err_code);
 
+	tmp_err_code = setSchema(&testParser, NULL);
+	fail_unless (tmp_err_code == ERR_OK, "setSchema() returns an error code %d", tmp_err_code);
 	// V: Parse the body of the EXI stream
 
 	while(tmp_err_code == ERR_OK)
@@ -309,7 +322,7 @@ START_TEST (test_value_part_zero)
 	buffer.ioStrm.stream = NULL;
 
 	// IV: Initialize the stream
-	tmp_err_code = serialize.initStream(&testStrm, buffer, NULL, SCHEMA_ID_ABSENT, NULL);
+	tmp_err_code = serialize.initStream(&testStrm, buffer, NULL);
 	fail_unless (tmp_err_code == ERR_OK, "initStream returns an error code %d", tmp_err_code);
 
 	// V: Start building the stream step by step: header, document, element etc...
@@ -431,7 +444,7 @@ START_TEST (test_value_part_zero)
 	// I: First, define an external stream for the input to the parser if any
 
 	// II: Second, initialize the parser object
-	tmp_err_code = initParser(&testParser, buffer, NULL, NULL);
+	tmp_err_code = initParser(&testParser, buffer, NULL);
 	fail_unless (tmp_err_code == ERR_OK, "initParser returns an error code %d", tmp_err_code);
 
 	// III: Initialize the parsing data and hook the callback handlers to the parser object
@@ -441,6 +454,8 @@ START_TEST (test_value_part_zero)
 	tmp_err_code = parseHeader(&testParser, TRUE);
 	fail_unless (tmp_err_code == ERR_OK, "parsing the header returns an error code %d", tmp_err_code);
 
+	tmp_err_code = setSchema(&testParser, NULL);
+	fail_unless (tmp_err_code == ERR_OK, "setSchema() returns an error code %d", tmp_err_code);
 	// V: Parse the body of the EXI stream
 
 	while(tmp_err_code == ERR_OK)
@@ -498,7 +513,7 @@ START_TEST (test_recursive_defs)
 	buffer.ioStrm.stream = NULL;
 
 	// IV: Initialize the stream
-	tmp_err_code = serialize.initStream(&testStrm, buffer, NULL, SCHEMA_ID_ABSENT, NULL);
+	tmp_err_code = serialize.initStream(&testStrm, buffer, NULL);
 	fail_unless (tmp_err_code == ERR_OK, "initStream returns an error code %d", tmp_err_code);
 
 	// V: Start building the stream step by step: header, document, element etc...
@@ -652,7 +667,7 @@ START_TEST (test_recursive_defs)
 	// I: First, define an external stream for the input to the parser if any
 
 	// II: Second, initialize the parser object
-	tmp_err_code = initParser(&testParser, buffer, NULL, NULL);
+	tmp_err_code = initParser(&testParser, buffer, NULL);
 	fail_unless (tmp_err_code == ERR_OK, "initParser returns an error code %d", tmp_err_code);
 
 	// III: Initialize the parsing data and hook the callback handlers to the parser object
@@ -661,6 +676,9 @@ START_TEST (test_recursive_defs)
 
 	tmp_err_code = parseHeader(&testParser, FALSE);
 	fail_unless (tmp_err_code == ERR_OK, "parsing the header returns an error code %d", tmp_err_code);
+
+	tmp_err_code = setSchema(&testParser, NULL);
+	fail_unless (tmp_err_code == ERR_OK, "setSchema() returns an error code %d", tmp_err_code);
 
 	// V: Parse the body of the EXI stream
 
@@ -678,28 +696,486 @@ END_TEST
 
 /* END: SchemaLess tests */
 
+#define OUTPUT_BUFFER_SIZE_LARGE_DOC 20000
+#define MAX_XSD_FILES_COUNT 10 // up to 10 XSD files
+
+/* BEGIN: Schema-mode tests */
+START_TEST (test_large_doc_str_pattern)
+{
+	const String NS_EMPTY_STR = {NULL, 0};
+
+	const String ELEM_CONFIGURATION = {"configuration", 13};
+	const String ELEM_CAPSWITCH = {"capable-switch", 14};
+	const String ELEM_RESOURCES = {"resources", 9};
+	const String ELEM_PORT = {"port", 4};
+	const String ELEM_RESID = {"resource-id", 11};
+	const String ELEM_ADMIN_STATE = {"admin-state", 11};
+	const String ELEM_NORECEIVE = {"no-receive", 10};
+	const String ELEM_NOFORWARD = {"no-forward", 10};
+	const String ELEM_NOPACKET = {"no-packet-in", 12};
+
+	const String ELEM_LOGSWITCHES = {"logical-switches", 16};
+	const String ELEM_SWITCH = {"switch", 6};
+	const String ELEM_ID = {"id", 2};
+	const String ELEM_DATAPATHID = {"datapath-id", 11};
+	const String ELEM_ENABLED = {"enabled", 7};
+	const String ELEM_LOSTCONNBEH = {"lost-connection-behavior", 24};
+	const String ELEM_CONTROLLERS = {"controllers", 11};
+	const String ELEM_CONTROLLER = {"controller", 10};
+	const String ELEM_ROLE = {"role", 4};
+	const String ELEM_IPADDR = {"ip-address", 10};
+	const String ELEM_PROTOCOL = {"protocol", 8};
+	const String ELEM_STATE = {"state", 5};
+	const String ELEM_CONNSTATE = {"connection-state", 16};
+	const String ELEM_CURRVER = {"current-version", 15};
+
+	const char * PORT_STR = "port";
+	const char * SWITCH_STR = "switch";
+	const char * STATE_UP_STR = "up";
+	const char * DATAPATH_STR = "10:14:56:7C:89:46:7A:";
+	const char * LOST_CONN_BEHAVIOR_STR = "failSecureMode";
+	const char * CTRL_STR = "ctrl";
+	const char * ROLE_STR = "equal";
+	const char * IPADDR_STR = "10.10.10.";
+	const char * PROTOCOL_STR = "tcp";
+	const char * VER_STR = "1.0";
+
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	FILE *outfile;
+	char* sourceFile = "testOutputFile.exi";
+	EXIPSchema schema;
+//	struct timespec start;
+//	struct timespec end;
+	const char* schemafname = "exip/schema_demo.exi";
+	EXIStream testStrm;
+	String uri;
+	String ln;
+	QName qname = {&uri, &ln, NULL};
+	String chVal;
+	char buf[OUTPUT_BUFFER_SIZE_LARGE_DOC];
+	BinaryBuffer buffer;
+	int i, j;
+	char strbuffer[32];
+
+	buffer.buf = buf;
+	buffer.bufLen = OUTPUT_BUFFER_SIZE_LARGE_DOC;
+	buffer.bufContent = 0;
+
+	parseSchema(schemafname, &schema);
+
+	outfile = fopen(sourceFile, "wb" );
+	fail_if(!outfile, "Unable to open file %s", sourceFile);
+
+	// Serialization steps:
+
+	// I: First initialize the header of the stream
+	serialize.initHeader(&testStrm);
+
+	// II: Set any options in the header, if different from the defaults
+	testStrm.header.has_cookie = TRUE;
+	testStrm.header.has_options = TRUE;
+	testStrm.header.opts.valueMaxLength = 300;
+	testStrm.header.opts.valuePartitionCapacity = INDEX_MAX;
+	SET_STRICT(testStrm.header.opts.enumOpt);
+
+	// III: Define an external stream for the output if any
+	buffer.ioStrm.readWriteToStream = writeFileOutputStream;
+	buffer.ioStrm.stream = outfile;
+	//buffer.ioStrm.readWriteToStream = NULL;
+	//buffer.ioStrm.stream = NULL;
+// printf("line:%d: %d\n", __LINE__, tmp_err_code);
+	//clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
+	// IV: Initialize the stream
+	tmp_err_code = serialize.initStream(&testStrm, buffer, &schema);
+	fail_unless(tmp_err_code == ERR_OK);
+
+//printf("line:%d: %d\n", __LINE__, tmp_err_code);
+//                clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
+
+	// V: Start building the stream step by step: header, document, element etc...
+	tmp_err_code += serialize.exiHeader(&testStrm);
+// printf("line:%d: %d\n", __LINE__, tmp_err_code);
+	tmp_err_code += serialize.startDocument(&testStrm);
+// printf("line:%d: %d\n", __LINE__, tmp_err_code);
+	qname.uri = &NS_EMPTY_STR;
+	qname.localName = &ELEM_CONFIGURATION;
+	EXITypeClass typeClass;
+	tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+
+	qname.uri = &NS_EMPTY_STR;
+	qname.localName = &ELEM_CAPSWITCH;
+	tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+
+	qname.uri = &NS_EMPTY_STR;
+	qname.localName = &ELEM_RESOURCES;
+	tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+
+// printf("line:%d: %d\n", __LINE__, tmp_err_code);
+	for (i = 0; i < 100; i++)
+	{
+		qname.uri = &NS_EMPTY_STR;
+	    qname.localName = &ELEM_PORT;
+	    tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+
+	    qname.uri = &NS_EMPTY_STR;
+	    qname.localName = &ELEM_RESID;
+	    tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+
+	    sprintf(strbuffer, "%s%d", PORT_STR, i);
+	    tmp_err_code += asciiToString(strbuffer, &chVal, &testStrm.memList, FALSE);
+	    tmp_err_code += serialize.stringData(&testStrm, chVal);
+		tmp_err_code += serialize.endElement(&testStrm);
+
+	    qname.uri = &NS_EMPTY_STR;
+	    qname.localName = &ELEM_CONFIGURATION;
+	    tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+
+	    qname.uri = &NS_EMPTY_STR;
+	    qname.localName = &ELEM_ADMIN_STATE;
+	    tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+	    tmp_err_code += asciiToString(STATE_UP_STR, &chVal, &testStrm.memList, FALSE);
+	    tmp_err_code += serialize.stringData(&testStrm, chVal);
+		tmp_err_code += serialize.endElement(&testStrm);
+
+	    qname.uri = &NS_EMPTY_STR;
+	    qname.localName = &ELEM_NORECEIVE;
+	    tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+	    tmp_err_code += serialize.booleanData(&testStrm, FALSE);
+		tmp_err_code += serialize.endElement(&testStrm);
+
+	    qname.uri = &NS_EMPTY_STR;
+	    qname.localName = &ELEM_NOFORWARD;
+	    tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+	    tmp_err_code += serialize.booleanData(&testStrm, FALSE);
+		tmp_err_code += serialize.endElement(&testStrm);
+
+	    qname.uri = &NS_EMPTY_STR;
+	    qname.localName = &ELEM_NOPACKET;
+	    tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+	    tmp_err_code += serialize.booleanData(&testStrm, TRUE);
+		tmp_err_code += serialize.endElement(&testStrm);
+
+		tmp_err_code += serialize.endElement(&testStrm);
+
+		tmp_err_code += serialize.endElement(&testStrm);
+	}
+	tmp_err_code += serialize.endElement(&testStrm);
+
+	qname.uri = &NS_EMPTY_STR;
+	qname.localName = &ELEM_LOGSWITCHES;
+	tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+
+	for (i = 0; i < 20; i++)
+	{
+	    qname.uri = &NS_EMPTY_STR;
+	    qname.localName = &ELEM_SWITCH;
+	    tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+
+	    qname.uri = &NS_EMPTY_STR;
+	    qname.localName = &ELEM_ID;
+	    tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+
+		sprintf(strbuffer, "%s%d", SWITCH_STR, i);
+	    tmp_err_code += asciiToString(strbuffer, &chVal, &testStrm.memList, FALSE);
+	    tmp_err_code += serialize.stringData(&testStrm, chVal);
+		tmp_err_code += serialize.endElement(&testStrm);
+
+	    qname.uri = &NS_EMPTY_STR;
+	    qname.localName = &ELEM_DATAPATHID;
+	    tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+
+		sprintf(strbuffer, "%s%d", DATAPATH_STR, 10 + i);
+	    tmp_err_code += asciiToString(strbuffer, &chVal, &testStrm.memList, FALSE);
+	    tmp_err_code += serialize.stringData(&testStrm, chVal);
+		tmp_err_code += serialize.endElement(&testStrm);
+
+	    qname.uri = &NS_EMPTY_STR;
+	    qname.localName = &ELEM_ENABLED;
+	    tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+	    tmp_err_code += asciiToString("true", &chVal, &testStrm.memList, FALSE);
+	    tmp_err_code += serialize.stringData(&testStrm, chVal);
+		tmp_err_code += serialize.endElement(&testStrm);
+
+	    qname.uri = &NS_EMPTY_STR;
+	    qname.localName = &ELEM_LOSTCONNBEH;
+	    tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+	    tmp_err_code += asciiToString(LOST_CONN_BEHAVIOR_STR, &chVal, &testStrm.memList, FALSE);
+	    tmp_err_code += serialize.stringData(&testStrm, chVal);
+		tmp_err_code += serialize.endElement(&testStrm);
+// printf("in loop(%d) line:%d: %d\n", i, __LINE__, tmp_err_code);
+//		if ( i == 0 )
+//		{
+	        qname.uri = &NS_EMPTY_STR;
+	        qname.localName = &ELEM_RESOURCES;
+	        tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+
+			for (j = 0; j < 100; j++)
+			{
+	            qname.uri = &NS_EMPTY_STR;
+	            qname.localName = &ELEM_PORT;
+	            tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+
+				sprintf(strbuffer, "%s%d", PORT_STR, j);
+	            tmp_err_code += asciiToString(strbuffer, &chVal, &testStrm.memList, FALSE);
+	            tmp_err_code += serialize.stringData(&testStrm, chVal);
+				tmp_err_code += serialize.endElement(&testStrm);
+			}
+			tmp_err_code += serialize.endElement(&testStrm);
+//		}
+// printf("in loop(%d) line:%d: %d\n", i, __LINE__, tmp_err_code);
+	    qname.uri = &NS_EMPTY_STR;
+	    qname.localName = &ELEM_CONTROLLERS;
+	    tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+// printf("in loop(%d) line:%d: %d\n", i, __LINE__, tmp_err_code);
+	    qname.uri = &NS_EMPTY_STR;
+	    qname.localName = &ELEM_CONTROLLER;
+	    tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+// printf("in loop(%d) line:%d: %d\n", i, __LINE__, tmp_err_code);
+	    qname.uri = &NS_EMPTY_STR;
+	    qname.localName = &ELEM_ID;
+	    tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+// printf("in loop(%d) line:%d: %d\n", i, __LINE__, tmp_err_code);
+		sprintf(strbuffer, "%s%d", CTRL_STR, i);
+	    tmp_err_code += asciiToString(strbuffer, &chVal, &testStrm.memList, FALSE);
+	    tmp_err_code += serialize.stringData(&testStrm, chVal);
+		tmp_err_code += serialize.endElement(&testStrm);
+// printf("in loop(%d) line:%d: %d\n", i, __LINE__, tmp_err_code);
+	    qname.uri = &NS_EMPTY_STR;
+	    qname.localName = &ELEM_ROLE;
+	    tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+	    tmp_err_code += asciiToString(ROLE_STR, &chVal, &testStrm.memList, FALSE);
+	    tmp_err_code += serialize.stringData(&testStrm, chVal);
+		tmp_err_code += serialize.endElement(&testStrm);
+
+	    qname.uri = &NS_EMPTY_STR;
+	    qname.localName = &ELEM_IPADDR;
+	    tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+		sprintf(strbuffer, "%s%d", IPADDR_STR, i);
+	    tmp_err_code += asciiToString(strbuffer, &chVal, &testStrm.memList, FALSE);
+	    tmp_err_code += serialize.stringData(&testStrm, chVal);
+		tmp_err_code += serialize.endElement(&testStrm);
+
+	    qname.uri = &NS_EMPTY_STR;
+	    qname.localName = &ELEM_PORT;
+	    tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+		sprintf(strbuffer, "%d", 6620 + i);
+	    tmp_err_code += asciiToString(strbuffer, &chVal, &testStrm.memList, FALSE);
+	    tmp_err_code += serialize.stringData(&testStrm, chVal);
+		tmp_err_code += serialize.endElement(&testStrm);
+
+	    qname.uri = &NS_EMPTY_STR;
+	    qname.localName = &ELEM_PROTOCOL;
+	    tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+	    tmp_err_code += asciiToString(PROTOCOL_STR, &chVal, &testStrm.memList, FALSE);
+	    tmp_err_code += serialize.stringData(&testStrm, chVal);
+		tmp_err_code += serialize.endElement(&testStrm);
+
+	    qname.uri = &NS_EMPTY_STR;
+	    qname.localName = &ELEM_STATE;
+	    tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+
+	    qname.uri = &NS_EMPTY_STR;
+	    qname.localName = &ELEM_CONNSTATE;
+	    tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+	    tmp_err_code += asciiToString(STATE_UP_STR, &chVal, &testStrm.memList, FALSE);
+	    tmp_err_code += serialize.stringData(&testStrm, chVal);
+		tmp_err_code += serialize.endElement(&testStrm);
+
+// printf("in loop(%d) line:%d: %d\n", i, __LINE__, tmp_err_code);
+	    qname.uri = &NS_EMPTY_STR;
+	    qname.localName = &ELEM_CURRVER;
+	    tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
+// printf("in loop(%d) line:%d: %d\n", i, __LINE__, tmp_err_code);
+	    tmp_err_code += asciiToString(VER_STR, &chVal, &testStrm.memList, FALSE);
+
+	    tmp_err_code += serialize.stringData(&testStrm, chVal);
+		tmp_err_code += serialize.endElement(&testStrm);
+
+		tmp_err_code += serialize.endElement(&testStrm);
+
+		tmp_err_code += serialize.endElement(&testStrm);
+
+		tmp_err_code += serialize.endElement(&testStrm);
+
+		tmp_err_code += serialize.endElement(&testStrm);
+	}
+
+	tmp_err_code += serialize.endElement(&testStrm);
+
+	tmp_err_code += serialize.endElement(&testStrm);
+
+	tmp_err_code += serialize.endElement(&testStrm);
+	tmp_err_code += serialize.endDocument(&testStrm);
+	fail_unless(tmp_err_code == ERR_OK);
+
+//	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end);
+
+	// VI: Free the memory allocated by the EXI stream object
+	tmp_err_code = serialize.closeEXIStream(&testStrm);
+
+//                        clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end);
+//                total += ((end.tv_sec * SEC2NANO) + end.tv_nsec) - ((start.tv_sec * SEC2NANO) + start.tv_nsec);
+
+    fclose(outfile);
+
+    /* DECODE */
+    {
+    	Parser testParser;
+    	FILE *infile;
+
+    	buffer.buf = buf;
+    	buffer.bufContent = 0;
+    	buffer.bufLen = OUTPUT_BUFFER_SIZE_LARGE_DOC;
+    	unsigned int eventCount;
+
+    	// Parsing steps:
+
+    	// I.A: First, read in the schema
+    	parseSchema(schemafname, &schema);
+
+    	// I.B: Define an external stream for the input to the parser if any
+    	infile = fopen(sourceFile, "rb" );
+    	if(!infile)
+    		fail("Unable to open file %s", sourceFile);
+
+    	buffer.ioStrm.readWriteToStream = readFileInputStream;
+    	buffer.ioStrm.stream = infile;
+
+    	// II: Second, initialize the parser object
+    	tmp_err_code = initParser(&testParser, buffer, &eventCount);
+    	fail_unless (tmp_err_code == ERR_OK, "initParser returns an error code %d", tmp_err_code);
+
+    	// IV: Parse the header of the stream
+		tmp_err_code = parseHeader(&testParser, FALSE);
+		fail_unless (tmp_err_code == ERR_OK, "parsing the header returns an error code %d", tmp_err_code);
+
+		tmp_err_code = setSchema(&testParser, &schema);
+		fail_unless (tmp_err_code == ERR_OK, "setSchema() returns an error code %d", tmp_err_code);
+
+		// V: Parse the body of the EXI stream
+		while(tmp_err_code == ERR_OK)
+		{
+			tmp_err_code = parseNext(&testParser);
+		}
+
+		// VI: Free the memory allocated by the parser object
+		destroyParser(&testParser);
+		fclose(infile);
+		fail_unless (tmp_err_code == PARSING_COMPLETE, "Error during parsing of the EXI body %d", tmp_err_code);
+    }
+
+    remove(sourceFile);
+	destroySchema(&schema);
+}
+END_TEST
+
+/* END: Schema-mode tests */
+
+/* Helper functions */
+static size_t writeFileOutputStream(void* buf, size_t readSize, void* stream)
+{
+	FILE *outfile = (FILE*) stream;
+	return fwrite(buf, 1, readSize, outfile);
+}
+
+static size_t readFileInputStream(void* buf, size_t readSize, void* stream)
+{
+	FILE *infile = (FILE*) stream;
+	return fread(buf, 1, readSize, infile);
+}
+
+static void parseSchema(const char* fileName, EXIPSchema* schema)
+{
+	FILE *schemaFile;
+	BinaryBuffer buffer;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	size_t pathlen = strlen(dataDir);
+	char exipath[MAX_PATH_LEN + strlen(fileName)];
+
+	memcpy(exipath, dataDir, pathlen);
+	exipath[pathlen] = '/';
+	memcpy(&exipath[pathlen+1], fileName, strlen(fileName)+1);
+	schemaFile = fopen(exipath, "rb" );
+	if(!schemaFile)
+	{
+		fail("Unable to open file %s", exipath);
+	}
+	else
+	{
+		//Get file length
+		fseek(schemaFile, 0, SEEK_END);
+		buffer.bufLen = ftell(schemaFile) + 1;
+		fseek(schemaFile, 0, SEEK_SET);
+
+		//Allocate memory
+		buffer.buf = (char *)malloc(buffer.bufLen);
+		if (!buffer.buf)
+		{
+			fclose(schemaFile);
+			fail("Memory allocation error!");
+		}
+
+		//Read file contents into buffer
+		fread(buffer.buf, buffer.bufLen, 1, schemaFile);
+		fclose(schemaFile);
+
+		buffer.bufContent = buffer.bufLen;
+		buffer.ioStrm.readWriteToStream = NULL;
+		buffer.ioStrm.stream = NULL;
+
+		tmp_err_code = generateSchemaInformedGrammars(&buffer, 1, SCHEMA_FORMAT_XSD_EXI, NULL, schema);
+
+		if(tmp_err_code != ERR_OK)
+		{
+			fail("\n Error reading schema: %d", tmp_err_code);
+		}
+
+		free(buffer.buf);
+	}
+}
+
+
 Suite* exip_suite(void)
 {
 	Suite *s = suite_create("EXIP");
-
 	{
-	  /* Schema-less test case */
-	  TCase *tc_SchLess = tcase_create ("SchemaLess");
-	  tcase_add_test (tc_SchLess, test_default_options);
-	  tcase_add_test (tc_SchLess, test_fragment_option);
-	  tcase_add_test (tc_SchLess, test_value_part_zero);
-	  tcase_add_test (tc_SchLess, test_recursive_defs);
-	  suite_add_tcase (s, tc_SchLess);
+		/* Schema-less test case */
+		TCase *tc_SchLess = tcase_create ("SchemaLess");
+		tcase_add_test (tc_SchLess, test_default_options);
+		tcase_add_test (tc_SchLess, test_fragment_option);
+		tcase_add_test (tc_SchLess, test_value_part_zero);
+		tcase_add_test (tc_SchLess, test_recursive_defs);
+		suite_add_tcase (s, tc_SchLess);
+	}
+	{
+		/* Schema-mode test case */
+		TCase *tc_Schema = tcase_create ("Schema-mode");
+		tcase_add_test (tc_Schema, test_large_doc_str_pattern);
+		suite_add_tcase (s, tc_Schema);
 	}
 
 	return s;
 }
 
-int main (void)
+int main (int argc, char *argv[])
 {
 	int number_failed;
 	Suite *s = exip_suite();
 	SRunner *sr = srunner_create (s);
+
+	if (argc < 2)
+	{
+		printf("ERR: Expected test data directory\n");
+		exit(1);
+	}
+	if (strlen(argv[1]) > MAX_PATH_LEN)
+	{
+		printf("ERR: Test data pathname too long: %u", (unsigned int) strlen(argv[1]));
+		exit(1);
+	}
+
+	dataDir = argv[1];
+
 #ifdef _MSC_VER
 	srunner_set_fork_status(sr, CK_NOFORK);
 #endif

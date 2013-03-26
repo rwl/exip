@@ -333,7 +333,7 @@ errorCode encodeHeader(EXIStream* strm)
 		}
 
 		// common options if any...
-		if(WITH_COMPRESSION(strm->header.opts.enumOpt) || WITH_FRAGMENT(strm->header.opts.enumOpt) || !isStringEmpty(&strm->header.opts.schemaID))
+		if(WITH_COMPRESSION(strm->header.opts.enumOpt) || WITH_FRAGMENT(strm->header.opts.enumOpt) || strm->header.opts.schemaIDMode != SCHEMA_ID_ABSENT)
 		{
 			hasCommon = TRUE;
 		}
@@ -367,16 +367,19 @@ errorCode encodeHeader(EXIStream* strm)
 				tmpEvCode.bits[0] = 0;
 				tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.endElement <fragment>
 			}
-			if(strm->header.opts.schemaID.length != 0) // SchemaID modes are encoded in the length part
+			if(strm->header.opts.schemaIDMode != SCHEMA_ID_ABSENT)
 			{
 				tmpEvCode.length = 1;
 				tmpEvCode.part[0] = 2 - ruleContext;
 				tmpEvCode.bits[0] = 2 - (ruleContext == 2);
 				tmp_err_code += serializeEvent(&options_strm, tmpEvCode, NULL); // serialize.startElement <schemaId>
 				ruleContext = 3;
-				if(strm->header.opts.schemaID.str != NULL)
+
+				if(strm->header.opts.schemaIDMode == SCHEMA_ID_EMPTY)
 				{
-					tmp_err_code += serialize.stringData(&options_strm, strm->header.opts.schemaID);
+					String empty;
+					getEmptyString(&empty);
+					tmp_err_code += serialize.stringData(&options_strm, empty);
 				}
 				else if(strm->header.opts.schemaID.length == SCHEMA_ID_NIL)
 				{
@@ -392,11 +395,9 @@ errorCode encodeHeader(EXIStream* strm)
 					tmp_err_code += serializeEvent(&options_strm, tmpEvCode, &nil); // serialize.attribute nil="true"
 					tmp_err_code += serialize.booleanData(&options_strm, TRUE);
 				}
-				else if(strm->header.opts.schemaID.length == SCHEMA_ID_EMPTY)
+				else
 				{
-					String empty;
-					getEmptyString(&empty);
-					tmp_err_code += serialize.stringData(&options_strm, empty);
+					tmp_err_code += serialize.stringData(&options_strm, strm->header.opts.schemaID);
 				}
 
 				tmpEvCode.length = 1;

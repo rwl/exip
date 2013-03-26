@@ -48,14 +48,7 @@ struct ops_AppData
 	AllocList* permanentAllocList;
 	unsigned char prevElementUriID;
 	unsigned char prevElementLnID;
-	unsigned char schemaIDOptions;
 };
-
-#define SCHEMA_ID_NO_ELEMENT  0
-#define SCHEMA_ID_EL_NIL      1
-#define SCHEMA_ID_EL_NIL_TRUE 2
-#define SCHEMA_ID_EL_EMPTY    3
-#define SCHEMA_ID_EL_STRING   4
 
 errorCode decodeHeader(EXIStream* strm, boolean outOfBandOpts)
 {
@@ -163,12 +156,13 @@ errorCode decodeHeader(EXIStream* strm, boolean outOfBandOpts)
 		Parser optionsParser;
 		struct ops_AppData appD;
 
-		tmp_err_code = initParser(&optionsParser, strm->buffer, (EXIPSchema*) &ops_schema, &appD);
+		tmp_err_code = initParser(&optionsParser, strm->buffer, &appD);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;
 
 		optionsParser.strm.context.bitPointer = strm->context.bitPointer;
 		optionsParser.strm.context.bufferIndx = strm->context.bufferIndx;
+		optionsParser.strm.gStack = NULL;
 
 		makeDefaultOpts(&optionsParser.strm.header.opts);
 		SET_STRICT(optionsParser.strm.header.opts.enumOpt);
@@ -188,12 +182,9 @@ errorCode decodeHeader(EXIStream* strm, boolean outOfBandOpts)
 		appD.parsed_ops = &strm->header.opts;
 		appD.prevElementLnID = 0;
 		appD.prevElementUriID = 0;
-		appD.schemaIDOptions = SCHEMA_ID_NO_ELEMENT;
 		appD.permanentAllocList = &strm->memList;
 
-		optionsParser.strm.gStack = NULL;
-
-		tmp_err_code = pushGrammar(&optionsParser.strm.gStack, (EXIGrammar*) &ops_schema.docGrammar);
+		tmp_err_code = setSchema(&optionsParser, (EXIPSchema*) &ops_schema);
 		if(tmp_err_code != ERR_OK)
 		{
 			destroyParser(&optionsParser);
@@ -229,39 +220,6 @@ errorCode decodeHeader(EXIStream* strm, boolean outOfBandOpts)
 			{
 				strm->context.bitPointer = 0;
 				strm->context.bufferIndx += 1;
-			}
-		}
-
-		// When the "schemaId" element in the EXI options document contains the xsi:nil attribute
-		// with its value set to true, no schema information is used for processing the EXI body
-		// (i.e. a schema-less EXI stream)
-		if(appD.schemaIDOptions == SCHEMA_ID_EL_NIL_TRUE)
-		{
-			strm->schema = NULL;
-		}
-		else if(appD.schemaIDOptions == SCHEMA_ID_EL_EMPTY)
-		{
-			// When the value of the "schemaId" element is empty, no user defined schema information
-			// is used for processing the EXI body; however, the built-in XML schema types are available for use in the EXI body
-			strm->schema = memManagedAllocate(&strm->memList, sizeof(EXIPSchema));
-			if(strm->schema == NULL)
-				return MEMORY_ALLOCATION_ERROR;
-
-			tmp_err_code = initSchema(strm->schema, INIT_SCHEMA_BUILD_IN_TYPES);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-
-			if(WITH_FRAGMENT(strm->header.opts.enumOpt))
-			{
-				tmp_err_code = createFragmentGrammar(strm->schema, NULL, 0);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
-			}
-			else
-			{
-				tmp_err_code = createDocGrammar(strm->schema, NULL, 0);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
 			}
 		}
 	}
@@ -303,7 +261,7 @@ static char ops_startElement(QName qname, void* app_data)
 			break;
 			case 31:	// schemaId
 				o_appD->prevElementLnID = 31;
-				o_appD->schemaIDOptions = SCHEMA_ID_EL_EMPTY;
+				o_appD->parsed_ops->schemaIDMode = SCHEMA_ID_EMPTY;
 			break;
 			case 7:		// compression
 				SET_COMPRESSION(o_appD->parsed_ops->enumOpt);
@@ -389,7 +347,7 @@ static char ops_attribute(QName qname, void* app_data)
 		{
 			if(o_appD->o_strm->context.currAttr.uriId == XML_SCHEMA_INSTANCE_ID && o_appD->o_strm->context.currAttr.lnId == XML_SCHEMA_INSTANCE_NIL_ID) // xsi:nil
 			{
-				o_appD->schemaIDOptions = SCHEMA_ID_EL_NIL;
+				o_appD->parsed_ops->schemaIDMode = SCHEMA_ID_NIL;
 			}
 			else
 			{
@@ -421,11 +379,11 @@ static char ops_stringData(const String value, void* app_data)
 		{
 			if(isStringEmpty(&value))
 			{
-				o_appD->schemaIDOptions = SCHEMA_ID_EL_EMPTY;
+				o_appD->parsed_ops->schemaIDMode = SCHEMA_ID_EMPTY;
 			}
 			else
 			{
-				o_appD->schemaIDOptions = SCHEMA_ID_EL_STRING;
+				o_appD->parsed_ops->schemaIDMode = SCHEMA_ID_SET;
 				if(cloneStringManaged(&value, &o_appD->parsed_ops->schemaID, o_appD->permanentAllocList) != ERR_OK)
 				{
 					DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Memory error\n"));
@@ -465,12 +423,10 @@ static char ops_boolData(boolean bool_val, void* app_data)
 {
 	struct ops_AppData* o_appD = (struct ops_AppData*) app_data;
 
-	if(o_appD->schemaIDOptions == SCHEMA_ID_EL_NIL) // xsi:nil attribute
+	if(o_appD->parsed_ops->schemaIDMode == SCHEMA_ID_NIL) // xsi:nil attribute
 	{
-		if(bool_val == TRUE)
-			o_appD->schemaIDOptions = SCHEMA_ID_EL_NIL_TRUE;
-		else
-			o_appD->schemaIDOptions = SCHEMA_ID_EL_EMPTY;
+		if(bool_val == FALSE)
+			o_appD->parsed_ops->schemaIDMode = SCHEMA_ID_EMPTY;
 	}
 	else
 	{

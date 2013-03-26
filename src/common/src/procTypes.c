@@ -26,6 +26,7 @@ void makeDefaultOpts(EXIOptions* opts)
 	opts->valueMaxLength = INDEX_MAX;
 	opts->valuePartitionCapacity = INDEX_MAX;
 	opts->user_defined_data = NULL;
+	opts->schemaIDMode = SCHEMA_ID_ABSENT;
 	opts->schemaID.str = NULL;
 	opts->schemaID.length = 0;
 	opts->drMap = NULL;

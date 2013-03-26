@@ -303,7 +303,7 @@ START_TEST (test_acceptance_for_A_01)
 	buffer.ioStrm.stream = infile;
 
 	// II: Second, initialize the parser object
-	tmp_err_code = initParser(&testParser, buffer, &schema, &parsingData);
+	tmp_err_code = initParser(&testParser, buffer, &parsingData);
 	fail_unless (tmp_err_code == ERR_OK, "initParser returns an error code %d", tmp_err_code);
 
 	// III: Initialize the parsing data and hook the callback handlers to the parser object
@@ -329,6 +329,8 @@ START_TEST (test_acceptance_for_A_01)
 	tmp_err_code = parseHeader(&testParser, FALSE);
 	fail_unless (tmp_err_code == ERR_OK, "parsing the header returns an error code %d", tmp_err_code);
 
+	tmp_err_code = setSchema(&testParser,  &schema);
+	fail_unless (tmp_err_code == ERR_OK, "setSchema() returns an error code %d", tmp_err_code);
 	// V: Parse the body of the EXI stream
 	while(tmp_err_code == ERR_OK)
 	{
@@ -463,7 +465,7 @@ START_TEST (test_acceptance_for_A_01_exip1)
 	buffer.ioStrm.stream = infile;
 
 	// II: Second, initialize the parser object
-	tmp_err_code = initParser(&testParser, buffer, &schema, &parsingData);
+	tmp_err_code = initParser(&testParser, buffer, &parsingData);
 	fail_unless (tmp_err_code == ERR_OK, "initParser returns an error code %d", tmp_err_code);
 
 	// III: Initialize the parsing data and hook the callback handlers to the parser object
@@ -487,6 +489,9 @@ START_TEST (test_acceptance_for_A_01_exip1)
 	// IV: Parse the header of the stream
 	tmp_err_code = parseHeader(&testParser, FALSE);
 	fail_unless (tmp_err_code == ERR_OK, "parsing the header returns an error code %d", tmp_err_code);
+
+	tmp_err_code = setSchema(&testParser, &schema);
+	fail_unless (tmp_err_code == ERR_OK, "setSchema() returns an error code %d", tmp_err_code);
 
 	// V: Parse the body of the EXI stream
 	while(tmp_err_code == ERR_OK)
@@ -583,7 +588,7 @@ START_TEST (test_acceptance_for_A_01b)
 	buffer.ioStrm.stream = NULL;
 
 	// IV: Initialize the stream
-	tmp_err_code = serialize.initStream(&testStrm, buffer, &schema, SCHEMA_ID_ABSENT, NULL);
+	tmp_err_code = serialize.initStream(&testStrm, buffer, &schema);
 	fail_unless (tmp_err_code == ERR_OK, "initStream returns an error code %d", tmp_err_code);
 
 	// V: Start building the stream step by step: header, document, element etc...
@@ -837,7 +842,7 @@ static error_code serializeIOMsg(char* buf, unsigned int buf_size, unsigned int*
 	buffer.ioStrm.readWriteToStream = NULL;
 
 	// IV: Initialize the stream
-	tmp_err_code = serialize.initStream(&strm, buffer, &lkab_schema, SCHEMA_ID_ABSENT, NULL);
+	tmp_err_code = serialize.initStream(&strm, buffer, &lkab_schema);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -941,7 +946,7 @@ static error_code serializeDevDescMsg(char* buf, unsigned int buf_size, unsigned
 	buffer.ioStrm.readWriteToStream = NULL;
 
 	// IV: Initialize the stream
-	tmp_err_code = serialize.initStream(&strm, buffer, &lkab_schema, SCHEMA_ID_ABSENT, NULL);
+	tmp_err_code = serialize.initStream(&strm, buffer, &lkab_schema);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1072,7 +1077,7 @@ static error_code parseIOMsg(char* buf, unsigned int buf_size, BoolValue *val)
 	buffer.ioStrm.stream = NULL;
 
 	// II: Second, initialize the parser object
-	tmp_err_code = initParser(&lkabParser, buffer, &lkab_schema, &parsingData);
+	tmp_err_code = initParser(&lkabParser, buffer, &parsingData);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1101,6 +1106,7 @@ static error_code parseIOMsg(char* buf, unsigned int buf_size, BoolValue *val)
 
 	tmp_err_code = parseHeader(&lkabParser, FALSE);
 
+	tmp_err_code = setSchema(&lkabParser, &lkab_schema);
 	// V: Parse the body of the EXI stream
 
 	while(tmp_err_code == ERR_OK)
@@ -1144,7 +1150,7 @@ static error_code parseDevDescMsg(char* buf, unsigned int buf_size, DevDescribti
 	buffer.ioStrm.stream = NULL;
 
 	// II: Second, initialize the parser object
-	tmp_err_code = initParser(&lkabParser, buffer, &lkab_schema, &parsingData);
+	tmp_err_code = initParser(&lkabParser, buffer, &parsingData);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -1171,6 +1177,7 @@ static error_code parseDevDescMsg(char* buf, unsigned int buf_size, DevDescribti
 
 	tmp_err_code = parseHeader(&lkabParser, FALSE);
 
+	tmp_err_code = setSchema(&lkabParser, &lkab_schema);
 	// V: Parse the body of the EXI stream
 
 	while(tmp_err_code == ERR_OK)

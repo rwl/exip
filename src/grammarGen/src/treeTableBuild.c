@@ -152,7 +152,7 @@ errorCode generateTreeTable(BinaryBuffer buffer, SchemaFormat schemaFormat, EXIO
 	if(schemaFormat != SCHEMA_FORMAT_XSD_EXI)
 		return NOT_IMPLEMENTED_YET;
 
-	tmp_err_code = initParser(&xsdParser, buffer, NULL, &ttpd);
+	tmp_err_code = initParser(&xsdParser, buffer, &ttpd);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
 
@@ -207,6 +207,9 @@ errorCode generateTreeTable(BinaryBuffer buffer, SchemaFormat schemaFormat, EXIO
 	}
 
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">XML Schema header parsed\n"));
+
+	// TODO: add the XSD schema here - will be used when the EXI encoded XSD is in schema mode
+ 	tmp_err_code = setSchema(&xsdParser, NULL);
 
 	while(tmp_err_code == ERR_OK)
 	{
