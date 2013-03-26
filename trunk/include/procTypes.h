@@ -1146,8 +1146,14 @@ struct EXIOptions
 	 */
 	unsigned char preserve;
 
+	/** schemaID mode, default SCHEMA_ID_ABSENT */
+	SchemaIdMode schemaIDMode;
+
 	/**
-	 * Identify the schema information, if any, used to encode the body
+	 * Identify the schema information, if any, used to encode the body.
+	 * It the schemaID field is absent or empty, then schemaID is
+	 * an empty string. Use schemaIDMode to check/set the exact schemaID mode
+	 * of operation
 	 */
 	String schemaID;
 

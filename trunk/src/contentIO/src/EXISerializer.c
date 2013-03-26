@@ -60,7 +60,7 @@ void initHeader(EXIStream* strm)
 	makeDefaultOpts(&strm->header.opts);
 }
 
-errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema, SchemaIdMode schemaIdMode, String* schemaID)
+errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
@@ -88,7 +88,7 @@ errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema, S
 	strm->gStack = NULL;
 	strm->valueTable.value = NULL;
 	strm->valueTable.count = 0;
-	strm->schema = schema;
+	strm->schema = NULL;
 
 	if(strm->header.opts.valuePartitionCapacity > 0)
 	{
@@ -97,10 +97,54 @@ errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema, S
 			return tmp_err_code;
 	}
 
-	if(schema != NULL) // schema enabled encoding
+	if(strm->header.opts.schemaIDMode == SCHEMA_ID_NIL)
 	{
-		if(schemaIdMode == SCHEMA_ID_NIL || schemaIdMode == SCHEMA_ID_EMPTY)
-			return INVALID_EXIP_CONFIGURATION;
+		// When the "schemaId" element in the EXI options document contains the xsi:nil attribute
+		// with its value set to true, no schema information is used for processing the EXI body
+		// (i.e. a schema-less EXI stream)
+		strm->schema = NULL;
+#if DEBUG_CONTENT_IO == ON && EXIP_DEBUG_LEVEL <= WARNING
+		if(schema != NULL)
+			DEBUG_MSG(WARNING, DEBUG_CONTENT_IO, ("\n> Ignored schema information - SCHEMA_ID_NIL mode required"));
+#endif
+	}
+	else if(strm->header.opts.schemaIDMode == SCHEMA_ID_EMPTY)
+	{
+		// When the value of the "schemaId" element is empty, no user defined schema information
+		// is used for processing the EXI body; however, the built-in XML schema types are available for use in the EXI body
+#if DEBUG_CONTENT_IO == ON && EXIP_DEBUG_LEVEL <= WARNING
+		if(schema != NULL)
+			DEBUG_MSG(WARNING, DEBUG_CONTENT_IO, ("\n> Ignored out-of-band schema information. Schema mode built-in types required"));
+#endif
+		strm->schema = memManagedAllocate(&strm->memList, sizeof(EXIPSchema));
+		if(strm->schema == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+
+		tmp_err_code = initSchema(strm->schema, INIT_SCHEMA_BUILD_IN_TYPES);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
+
+		if(WITH_FRAGMENT(strm->header.opts.enumOpt))
+		{
+			tmp_err_code = createFragmentGrammar(strm->schema, NULL, 0);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+		else
+		{
+			tmp_err_code = createDocGrammar(strm->schema, NULL, 0);
+			if(tmp_err_code != ERR_OK)
+				return tmp_err_code;
+		}
+	}
+	else if(schema != NULL)
+	{
+		/* Schema enabled mode*/
+		if(strm->header.opts.schemaIDMode == SCHEMA_ID_SET)
+		{
+			if(isStringEmpty(&strm->header.opts.schemaID))
+				return INVALID_EXIP_CONFIGURATION;
+		}
 
 		if(WITH_FRAGMENT(strm->header.opts.enumOpt))
 		{
@@ -108,28 +152,28 @@ errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema, S
 			// TODO: create a Schema-informed Fragment Grammar from the EXIP schema object
 			return NOT_IMPLEMENTED_YET;
 		}
+		else
+		{
+			strm->schema = schema;
+		}
 	}
-	else
+
+	if(strm->schema == NULL)
 	{
-		// schema-less encoding
+		// Schema-less mode
+		if(strm->header.opts.schemaIDMode == SCHEMA_ID_SET)
+		{
+			DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, ("\n> SCHEMA_ID_SET mode required, but NULL schema set"));
+			return INVALID_EXIP_CONFIGURATION;
+		}
+
 		strm->schema = memManagedAllocate(&strm->memList, sizeof(EXIPSchema));
 		if(strm->schema == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		if(schemaIdMode != SCHEMA_ID_EMPTY)
-		{
-			// fully schema-less - no built-in XML schema types
-			tmp_err_code = initSchema(strm->schema, INIT_SCHEMA_SCHEMA_LESS_MODE);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-		}
-		else
-		{
-			// no user defined schema information, only built-in XML schema types
-			tmp_err_code = initSchema(strm->schema, INIT_SCHEMA_BUILD_IN_TYPES);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-		}
+		tmp_err_code = initSchema(strm->schema, INIT_SCHEMA_SCHEMA_LESS_MODE);
+		if(tmp_err_code != ERR_OK)
+			return tmp_err_code;
 
 		if(WITH_FRAGMENT(strm->header.opts.enumOpt))
 		{
@@ -148,30 +192,6 @@ errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema, S
 	tmp_err_code = pushGrammar(&strm->gStack, &strm->schema->docGrammar);
 	if(tmp_err_code != ERR_OK)
 		return tmp_err_code;
-
-	// EXI schemaID handling
-
-	if(schemaIdMode == SCHEMA_ID_ABSENT)
-	{
-		if(schemaID != NULL)
-			return INVALID_EXIP_CONFIGURATION;
-	}
-	else if(schemaIdMode == SCHEMA_ID_SET)
-	{
-		if(schemaID == NULL)
-			return INVALID_EXIP_CONFIGURATION;
-		tmp_err_code = cloneStringManaged(schemaID, &strm->header.opts.schemaID, &strm->memList);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-	}
-	else if(schemaIdMode == SCHEMA_ID_NIL)
-	{
-		strm->header.opts.schemaID.length = SCHEMA_ID_NIL;
-	}
-	else if(schemaIdMode == SCHEMA_ID_EMPTY)
-	{
-		strm->header.opts.schemaID.length = SCHEMA_ID_EMPTY;
-	}
 
 	// #DOCUMENT#
 	// Hashtable for fast look-up of global values in the table.

@@ -53,11 +53,12 @@ START_TEST (test_default_options)
 
 	// II: Set any options in the header, if different from the defaults
 	testStrm.header.has_options = TRUE;
+	testStrm.header.opts.schemaIDMode = SCHEMA_ID_EMPTY;
 
 	// III: Define an external stream for the output if any
 
 	// IV: Initialize the stream
-	tmp_err_code = serialize.initStream(&testStrm, buffer, NULL, SCHEMA_ID_EMPTY, NULL);
+	tmp_err_code = serialize.initStream(&testStrm, buffer, NULL);
 	fail_unless (tmp_err_code == ERR_OK, "initStream returns an error code %d", tmp_err_code);
 
 	// V: Start building the stream step by step: header, document, element etc...
@@ -131,7 +132,7 @@ START_TEST (test_default_options)
 	// I: First, define an external stream for the input to the parser if any
 
 	// II: Second, initialize the parser object
-	tmp_err_code = initParser(&testParser, buffer, NULL, NULL);
+	tmp_err_code = initParser(&testParser, buffer, NULL);
 	fail_unless (tmp_err_code == ERR_OK, "initParser returns an error code %d", tmp_err_code);
 
 	// III: Initialize the parsing data and hook the callback handlers to the parser object
@@ -140,6 +141,9 @@ START_TEST (test_default_options)
 
 	tmp_err_code = parseHeader(&testParser, FALSE);
 	fail_unless (tmp_err_code == ERR_OK, "parsing the header returns an error code %d", tmp_err_code);
+
+	tmp_err_code = setSchema(&testParser, NULL);
+	fail_unless (tmp_err_code == ERR_OK, "setSchema() returns an error code %d", tmp_err_code);
 
 	// V: Parse the body of the EXI stream
 

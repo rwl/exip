@@ -51,7 +51,7 @@ struct EXISerializer
 
 	// EXIP specific
 	void (*initHeader)(EXIStream* strm);
-	errorCode (*initStream)(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema, SchemaIdMode schemaIdMode, String* schemaID);
+	errorCode (*initStream)(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema);
 	errorCode (*closeEXIStream)(EXIStream* strm);
 };
 
@@ -262,12 +262,9 @@ void initHeader(EXIStream* strm);
  * @param[in, out] strm EXI stream
  * @param[in, out] buffer output buffer for storing the encoded EXI stream
  * @param[in] schema a compiled schema information to be used for schema enabled processing, NULL if no schema is available
- * @param[in] schemaIdMode one of SCHEMA_ID_ABSENT, SCHEMA_ID_SET, SCHEMA_ID_NIL or SCHEMA_ID_EMPTY
- * @param[in] schemaID if in SCHEMA_ID_SET a valid string representing the schemaID, NULL otherwise
  * @return Error handling code
  */
-errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema *schema,
-						SchemaIdMode schemaIdMode, String* schemaID);
+errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema *schema);
 
 /**
  * @brief Destroy an EXI stream object releasing all the allocated memory for it
