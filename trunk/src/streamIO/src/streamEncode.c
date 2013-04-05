@@ -110,7 +110,7 @@ errorCode encodeStringOnly(EXIStream* strm, const String* string_val)
 	//TODO: Handle the case when Restricted Character Set is defined
 
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	uint32_t tmp_val= 0;
+	uint32_t tmp_val = 0;
 	Index i = 0;
 	Index readerPosition = 0;
 #if DEBUG_STREAM_IO == ON && EXIP_DEBUG_LEVEL == INFO
@@ -121,9 +121,8 @@ errorCode encodeStringOnly(EXIStream* strm, const String* string_val)
 	
 	for(i = 0; i < string_val->length; i++)
 	{
-		tmp_err_code = readCharFromString(string_val, &readerPosition, &tmp_val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		tmp_val = readCharFromString(string_val, &readerPosition);
+
 		tmp_err_code = encodeUnsignedInteger(strm, (UnsignedInteger) tmp_val);
 		if(tmp_err_code != ERR_OK)
 			return tmp_err_code;

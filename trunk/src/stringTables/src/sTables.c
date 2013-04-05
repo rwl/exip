@@ -312,7 +312,7 @@ errorCode addValueEntry(EXIStream* strm, String valueStr, QNameID qnameID)
 errorCode addPfxEntry(PfxTable* pfxTable, String pfxStr, SmallIndex* pfxEntryId)
 {
 	if(pfxTable->count >= MAXIMUM_NUMBER_OF_PREFIXES_PER_URI)
-		return TOO_MUCH_PREFIXES_PER_URI;
+		return TOO_MANY_PREFIXES_PER_URI;
 
 	pfxTable->pfxStr[pfxTable->count].length = pfxStr.length;
 	pfxTable->pfxStr[pfxTable->count].str = pfxStr.str;

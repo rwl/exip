@@ -477,7 +477,7 @@ START_TEST (test_recursive_defs)
 	const String ELEM_STR_STR = {"str", 3};
 	const String ELEM_LIST_STR = {"list", 4};
 
-	const String ATTR_XMLNS_STR = {"xmlns", 5};
+	const String ATTR_XSTR_STR = {"xsss", 4};
 	const String ATTR_XTEMP_STR = {"x-template", 10};
 	const String ATTR_NAME_STR = {"name", 4};
 	const String ATTR_VAL_STR = {"val", 3};
@@ -527,8 +527,8 @@ START_TEST (test_recursive_defs)
 	qname.localName = &ELEM_OBJ_STR;
 	tmp_err_code += serialize.startElement(&testStrm, qname, &valueType); // <obj>
 	fail_unless (tmp_err_code == ERR_OK, "serialize.* returns an error code %d", tmp_err_code);
-	qname.localName = &ATTR_XMLNS_STR;
-	tmp_err_code += serialize.attribute(&testStrm, qname, TRUE, &valueType); // xmlns="..."
+	qname.localName = &ATTR_XSTR_STR;
+	tmp_err_code += serialize.attribute(&testStrm, qname, TRUE, &valueType); // xsss="..."
 	fail_unless (tmp_err_code == ERR_OK, "serialize.* returns an error code %d", tmp_err_code);
 	sprintf(valStr, "%s", "http://obix.org/ns/schema/1.1");
 	chVal.str = valStr;

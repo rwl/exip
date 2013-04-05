@@ -144,3 +144,31 @@ void popFromStackPersistent(GenericStack** stack, void** item)
 		(*item) = node->item;
 	}
 }
+
+#if EXIP_DEBUG == ON
+// IMPORTANT: remember to keep in sync with "enum errorCode" in errorHandle.h!
+	const char* errorCodeStrings[] =
+	{
+		"ERR_OK",
+		"NOT_IMPLEMENTED_YET",
+		"UNEXPECTED_ERROR",
+		"HASH_TABLE_ERROR",
+		"OUT_OF_BOUND_BUFFER",
+		"NULL_POINTER_REF",
+		"MEMORY_ALLOCATION_ERROR",
+		"INVALID_EXI_HEADER",
+		"INCONSISTENT_PROC_STATE",
+		"INVALID_EXI_INPUT",
+		"BUFFER_END_REACHED",
+		"EVENT_CODE_MISSING",
+		"HANDLER_STOP_RECEIVED",
+		"INVALID_OPERATION",
+		"EMPTY_COLLECTION",
+		"PARSING_COMPLETE",
+		"TOO_MANY_PREFIXES_PER_URI",
+		"INVALID_EXIP_CONFIGURATION",
+		"NO_PREFIXES_PRESERVED_XML_SCHEMA",
+		"INVALID_STRING_OPERATION",
+		"HEADER_OPTIONS_MISMATCH"
+	};
+#endif
