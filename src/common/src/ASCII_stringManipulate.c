@@ -145,16 +145,11 @@ int stringCompare(const String str1, const String str2)
 	}
 }
 
-// TODO: consider removing the OUT_OF_BOUND_BUFFER check: the length of the string must be valid
-// => return void
-
-errorCode readCharFromString(const String* str, Index* readerPosition, uint32_t* UCScp)
+uint32_t readCharFromString(const String* str, Index* readerPosition)
 {
-	if(*readerPosition >= str->length)
-		return OUT_OF_BOUND_BUFFER;
-	*UCScp = (uint32_t) str->str[*readerPosition];
+	assert(*readerPosition < str->length);
 	*readerPosition += 1;
-	return ERR_OK;
+	return (uint32_t) str->str[*readerPosition - 1];
 }
 
 errorCode cloneString(const String* src, String* newStr)

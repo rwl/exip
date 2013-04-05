@@ -64,10 +64,9 @@ errorCode writeCharToString(String* str, uint32_t code_point, Index* writerPosit
  * @param[in, out] readerPosition:
  * 				[in] The position that marks the beginning of the character to be read
  * 				[out] The position of the next character to be passed to a subsequent calls to readCharFromString
- * @param[out] UCScp the returned UCS code point
- * @return 1 if the strings are equal, 0 - otherwise
+ * @return UCS code point
  */
-errorCode readCharFromString(const String* str, Index* readerPosition, uint32_t* UCScp);
+uint32_t readCharFromString(const String* str, Index* readerPosition);
 
 /**
  * @brief Creates an empty string
