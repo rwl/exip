@@ -38,10 +38,7 @@ errorCode encodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, unsigned i
 		for(i = 0; i < byte_number; i++)
 		{
 			tmp_byte_buf = (int_val >> (i * 8)) & 0xFF;
-
-			tmp_err_code = writeNBits(strm, 8, tmp_byte_buf);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(writeNBits(strm, 8, tmp_byte_buf));
 		}
 	}
 	return ERR_OK;
@@ -82,9 +79,7 @@ errorCode encodeUnsignedInteger(EXIStream* strm, UnsignedInteger int_val)
 			writeNextBit(strm, 1);
 		}
 
-		tmp_err_code = writeNBits(strm, 7, tmp_byte_buf);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(writeNBits(strm, 7, tmp_byte_buf));
 	}
 	return ERR_OK;
 }
@@ -97,9 +92,7 @@ errorCode encodeString(EXIStream* strm, const String* string_val)
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
 	DEBUG_MSG(INFO, DEBUG_STREAM_IO, (" Prepare to write string"));
-	tmp_err_code = encodeUnsignedInteger(strm, (UnsignedInteger)(string_val->length) );
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(encodeUnsignedInteger(strm, (UnsignedInteger)(string_val->length)));
 
 	return encodeStringOnly(strm, string_val);
 }
@@ -123,9 +116,7 @@ errorCode encodeStringOnly(EXIStream* strm, const String* string_val)
 	{
 		tmp_val = readCharFromString(string_val, &readerPosition);
 
-		tmp_err_code = encodeUnsignedInteger(strm, (UnsignedInteger) tmp_val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(encodeUnsignedInteger(strm, (UnsignedInteger) tmp_val));
 	}
 
 	return ERR_OK;
@@ -136,16 +127,12 @@ errorCode encodeBinary(EXIStream* strm, char* binary_val, Index nbytes)
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	Index i = 0;
 
-	tmp_err_code = encodeUnsignedInteger(strm, (UnsignedInteger) nbytes);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(encodeUnsignedInteger(strm, (UnsignedInteger) nbytes));
 
 	DEBUG_MSG(INFO, DEBUG_STREAM_IO, (" Write %u (binary bytes)\n", (unsigned int) nbytes));
 	for(i = 0; i < nbytes; i++)
 	{
-		tmp_err_code = writeNBits(strm, 8, (unsigned int) binary_val[i]);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(writeNBits(strm, 8, (unsigned int) binary_val[i]));
 	}
 	DEBUG_MSG(INFO, DEBUG_STREAM_IO, ("\n"));
 	return ERR_OK;
@@ -168,10 +155,8 @@ errorCode encodeIntegerValue(EXIStream* strm, Integer sint_val)
 		sign = 1;
 	}
 	DEBUG_MSG(INFO, DEBUG_STREAM_IO, (" Write %ld (signed)", (long int)sint_val));
-	tmp_err_code = writeNextBit(strm, sign);
+	TRY(writeNextBit(strm, sign));
 	DEBUG_MSG(INFO, DEBUG_STREAM_IO, ("\n"));
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
 	return encodeUnsignedInteger(strm, uval);
 }
 
@@ -193,15 +178,9 @@ errorCode encodeDecimalValue(EXIStream* strm, Decimal dec_val)
 		sign = TRUE;
 	}
 
-	tmp_err_code = encodeBoolean(strm, sign);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
+	TRY(encodeBoolean(strm, sign));
 	integr_part = (UnsignedInteger) dec_val;
-
-	tmp_err_code = encodeUnsignedInteger(strm, integr_part);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(encodeUnsignedInteger(strm, integr_part));
 
 	dec_val = dec_val - integr_part;
 
@@ -214,9 +193,7 @@ errorCode encodeDecimalValue(EXIStream* strm, Decimal dec_val)
 		dec_val = dec_val - (UnsignedInteger) dec_val;
 	}
 
-	tmp_err_code = encodeUnsignedInteger(strm, fract_part_rev);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(encodeUnsignedInteger(strm, fract_part_rev));
 
 	return ERR_OK;
 }
@@ -227,13 +204,8 @@ errorCode encodeFloatValue(EXIStream* strm, Float fl_val)
 
 	DEBUG_MSG(ERROR, DEBUG_STREAM_IO, (">Float value: %ldE%d\n", (long int)fl_val.mantissa, fl_val.exponent));
 
-	tmp_err_code = encodeIntegerValue(strm, (Integer) fl_val.mantissa);	//encode mantissa
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	tmp_err_code = encodeIntegerValue(strm, (Integer) fl_val.exponent);	//encode exponent
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(encodeIntegerValue(strm, (Integer) fl_val.mantissa));	//encode mantissa
+	TRY(encodeIntegerValue(strm, (Integer) fl_val.exponent));	//encode exponent
 
 	return ERR_OK;
 }
@@ -249,9 +221,7 @@ errorCode encodeDateTimeValue(EXIStream* strm, EXIPDateTime dt_val)
 	if(IS_PRESENT(dt_val.presenceMask, YEAR_PRESENCE))
 	{
 		/* Year component */
-		tmp_err_code = encodeIntegerValue(strm, (Integer) dt_val.dateTime.tm_year + 100);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(encodeIntegerValue(strm, (Integer) dt_val.dateTime.tm_year + 100));
 	}
 
 	if(IS_PRESENT(dt_val.presenceMask, MON_PRESENCE) || IS_PRESENT(dt_val.presenceMask, MDAY_PRESENCE))
@@ -271,9 +241,7 @@ errorCode encodeDateTimeValue(EXIStream* strm, EXIPDateTime dt_val)
 		else
 			monDay += 1;
 
-		tmp_err_code = encodeNBitUnsignedInteger(strm, 9, monDay);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(encodeNBitUnsignedInteger(strm, 9, monDay));
 	}
 
 	if(IS_PRESENT(dt_val.presenceMask, HOUR_PRESENCE) || IS_PRESENT(dt_val.presenceMask, MIN_PRESENCE) || IS_PRESENT(dt_val.presenceMask, SEC_PRESENCE))
@@ -294,9 +262,7 @@ errorCode encodeDateTimeValue(EXIStream* strm, EXIPDateTime dt_val)
 		if(IS_PRESENT(dt_val.presenceMask, SEC_PRESENCE))
 			timeVal += dt_val.dateTime.tm_sec;
 
-		tmp_err_code = encodeNBitUnsignedInteger(strm, 17, timeVal);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(encodeNBitUnsignedInteger(strm, 17, timeVal));
 	}
 
 	if(IS_PRESENT(dt_val.presenceMask, FRACT_PRESENCE))
@@ -323,19 +289,12 @@ errorCode encodeDateTimeValue(EXIStream* strm, EXIPDateTime dt_val)
 			fSecs = fSecs*10;
 		}
 
-		tmp_err_code = encodeBoolean(strm, TRUE);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = encodeUnsignedInteger(strm, fSecs);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(encodeBoolean(strm, TRUE));
+		TRY(encodeUnsignedInteger(strm, fSecs));
 	}
 	else
 	{
-		tmp_err_code = encodeBoolean(strm, FALSE);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(encodeBoolean(strm, FALSE));
 	}
 
 	if(IS_PRESENT(dt_val.presenceMask, TZONE_PRESENCE))
@@ -344,9 +303,7 @@ errorCode encodeDateTimeValue(EXIStream* strm, EXIPDateTime dt_val)
 	}
 	else
 	{
-		tmp_err_code = encodeBoolean(strm, FALSE);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(encodeBoolean(strm, FALSE));
 	}
 
 	return ERR_OK;
@@ -359,9 +316,7 @@ errorCode writeEventCode(EXIStream* strm, EventCode ec)
 
 	for(i = 0; i < ec.length; i++)
 	{
-		tmp_err_code = encodeNBitUnsignedInteger(strm, ec.bits[i], (unsigned int) ec.part[i]);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(encodeNBitUnsignedInteger(strm, ec.bits[i], (unsigned int) ec.part[i]));
 	}
 
 	return ERR_OK;

@@ -66,14 +66,14 @@ struct TreeTableParsingData
 
 
 // Content Handler API
-static char xsd_fatalError(const char code, const char* msg, void* app_data);
-static char xsd_startDocument(void* app_data);
-static char xsd_endDocument(void* app_data);
-static char xsd_startElement(QName qname, void* app_data);
-static char xsd_endElement(void* app_data);
-static char xsd_attribute(QName qname, void* app_data);
-static char xsd_stringData(const String value, void* app_data);
-static char xsd_namespaceDeclaration(const String ns, const String prefix, boolean isLocalElementNS, void* app_data);
+static errorCode xsd_fatalError(const errorCode code, const char* msg, void* app_data);
+static errorCode xsd_startDocument(void* app_data);
+static errorCode xsd_endDocument(void* app_data);
+static errorCode xsd_startElement(QName qname, void* app_data);
+static errorCode xsd_endElement(void* app_data);
+static errorCode xsd_attribute(QName qname, void* app_data);
+static errorCode xsd_stringData(const String value, void* app_data);
+static errorCode xsd_namespaceDeclaration(const String ns, const String prefix, boolean isLocalElementNS, void* app_data);
 
 //////////// Helper functions
 
@@ -152,9 +152,7 @@ errorCode generateTreeTable(BinaryBuffer buffer, SchemaFormat schemaFormat, EXIO
 	if(schemaFormat != SCHEMA_FORMAT_XSD_EXI)
 		return NOT_IMPLEMENTED_YET;
 
-	tmp_err_code = initParser(&xsdParser, buffer, &ttpd);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(initParser(&xsdParser, buffer, &ttpd));
 
 	xsdParser.handler.fatalError = xsd_fatalError;
 	xsdParser.handler.error = xsd_fatalError;
@@ -183,15 +181,11 @@ errorCode generateTreeTable(BinaryBuffer buffer, SchemaFormat schemaFormat, EXIO
 	if(opt != NULL)
 	{
 		xsdParser.strm.header.opts = *opt;
-		tmp_err_code = parseHeader(&xsdParser, TRUE);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(parseHeader(&xsdParser, TRUE));
 	}
 	else
 	{
-		tmp_err_code = parseHeader(&xsdParser, FALSE);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(parseHeader(&xsdParser, FALSE));
 	}
 
 	if(IS_PRESERVED(xsdParser.strm.header.opts.preserve, PRESERVE_PREFIXES) == FALSE)
@@ -209,7 +203,7 @@ errorCode generateTreeTable(BinaryBuffer buffer, SchemaFormat schemaFormat, EXIO
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">XML Schema header parsed\n"));
 
 	// TODO: add the XSD schema here - will be used when the EXI encoded XSD is in schema mode
- 	tmp_err_code = setSchema(&xsdParser, NULL);
+ 	TRY(setSchema(&xsdParser, NULL));
 
 	while(tmp_err_code == ERR_OK)
 	{
@@ -224,25 +218,25 @@ errorCode generateTreeTable(BinaryBuffer buffer, SchemaFormat schemaFormat, EXIO
 	return tmp_err_code;
 }
 
-static char xsd_fatalError(const char code, const char* msg, void* app_data)
+static errorCode xsd_fatalError(const errorCode code, const char* msg, void* app_data)
 {
 	DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Fatal error occurred during schema processing\n"));
 	return EXIP_HANDLER_STOP;
 }
 
-static char xsd_startDocument(void* app_data)
+static errorCode xsd_startDocument(void* app_data)
 {
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Start XML Schema parsing\n"));
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char xsd_endDocument(void* app_data)
+static errorCode xsd_endDocument(void* app_data)
 {
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End XML Schema parsing\n"));
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char xsd_startElement(QName qname, void* app_data)
+static errorCode xsd_startElement(QName qname, void* app_data)
 {
 	struct TreeTableParsingData* ttpd = (struct TreeTableParsingData*) app_data;
 	if(ttpd->propsStat == INITIAL_STATE) // This should be the first <schema> element
@@ -276,14 +270,10 @@ static char xsd_startElement(QName qname, void* app_data)
 			{
 				String clonedTargetNS;
 
-				tmp_err_code = cloneStringManaged(&ttpd->treeT->globalDefs.targetNs, &clonedTargetNS, &ttpd->schema->memList);
-				if(tmp_err_code != ERR_OK)
-					return EXIP_HANDLER_STOP;
+				TRY(cloneStringManaged(&ttpd->treeT->globalDefs.targetNs, &clonedTargetNS, &ttpd->schema->memList));
 
 				// Add the target namespace to the schema string tables
-				tmp_err_code = addUriEntry(&ttpd->schema->uriTable, clonedTargetNS, &ttpd->targetNsId);
-				if(tmp_err_code != ERR_OK)
-					return EXIP_HANDLER_STOP;
+				TRY(addUriEntry(&ttpd->schema->uriTable, clonedTargetNS, &ttpd->targetNsId));
 			}
 
 			// Setting up the tree table globalDefs
@@ -310,7 +300,7 @@ static char xsd_startElement(QName qname, void* app_data)
 			{
 				// If it is within an ignored element - ignore this one as well
 				ttpd->ignoredElement += 1;
-				return EXIP_HANDLER_OK;
+				return ERR_OK;
 			}
 		}
 
@@ -319,17 +309,17 @@ static char xsd_startElement(QName qname, void* app_data)
 		if(stringEqualToAscii(*qname.localName, elemStrings[ELEMENT_ANNOTATION]))
 		{
 			ttpd->ignoredElement += 1;
-			return EXIP_HANDLER_OK;
+			return ERR_OK;
 		}
 		else if(stringEqualToAscii(*qname.localName, elemStrings[ELEMENT_DOCUMENTATION]))
 		{
 			ttpd->ignoredElement += 1;
-			return EXIP_HANDLER_OK;
+			return ERR_OK;
 		}
 		else if(stringEqualToAscii(*qname.localName, elemStrings[ELEMENT_APPINFO]))
 		{
 			ttpd->ignoredElement += 1;
-			return EXIP_HANDLER_OK;
+			return ERR_OK;
 		}
 		else
 			ttpd->ignoredElement = FALSE;
@@ -340,9 +330,7 @@ static char xsd_startElement(QName qname, void* app_data)
 		if(prevEntry == NULL)
 		{
 			/* At the root level, so create an entry */
-			tmp_err_code = addEmptyDynEntry(&ttpd->treeT->dynArray, (void**)&treeTableEntry, &treeTableId);
-			if(tmp_err_code != ERR_OK)
-				return EXIP_HANDLER_STOP;
+			TRY(addEmptyDynEntry(&ttpd->treeT->dynArray, (void**)&treeTableEntry, &treeTableId));
 		}
 		else
 		{
@@ -406,15 +394,13 @@ static char xsd_startElement(QName qname, void* app_data)
 		}
 
 		/* Push the stream element onto the context stack associated with the stream */
-		tmp_err_code = pushOnStack(&(ttpd->contextStack), treeTableEntry);
-		if(tmp_err_code != ERR_OK)
-			return EXIP_HANDLER_STOP;
+		TRY(pushOnStack(&(ttpd->contextStack), treeTableEntry));
 	}
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char xsd_endElement(void* app_data)
+static errorCode xsd_endElement(void* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	struct TreeTableParsingData* ttpd = (struct TreeTableParsingData*) app_data;
@@ -422,7 +408,7 @@ static char xsd_endElement(void* app_data)
 	if(ttpd->ignoredElement != FALSE)
 	{
 		ttpd->ignoredElement -= 1;
-		return EXIP_HANDLER_OK;
+		return ERR_OK;
 	}
 
 	if(ttpd->contextStack == NULL) // No elements stored in the stack. That is </schema>
@@ -466,14 +452,10 @@ static char xsd_endElement(void* app_data)
 
 			if(!lookupLn(&ttpd->schema->uriTable.uri[uriId].lnTable, *elName, &lnId))
 			{
-				tmp_err_code = cloneStringManaged(elName, &clonedName, &ttpd->schema->memList);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
+				TRY(cloneStringManaged(elName, &clonedName, &ttpd->schema->memList));
 
 				/* Add the element name to the schema string tables. Note this table persists beyond the tree table */
-				tmp_err_code = addLnEntry(&ttpd->schema->uriTable.uri[uriId].lnTable, clonedName, &lnId);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
+				TRY(addLnEntry(&ttpd->schema->uriTable.uri[uriId].lnTable, clonedName, &lnId));
 			}
 
 			if(entry->element == ELEMENT_ANY || entry->element == ELEMENT_ANY_ATTRIBUTE)
@@ -481,9 +463,7 @@ static char xsd_endElement(void* app_data)
 				NsTable nsTable;
 				size_t i;
 
-				tmp_err_code = createDynArray(&nsTable.dynArray, sizeof(String), 5);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
+				TRY(createDynArray(&nsTable.dynArray, sizeof(String), 5));
 
 				if(ERR_OK != getNsList(ttpd->treeT, entry->attributePointers[ATTRIBUTE_NAMESPACE], &nsTable))
 					return	EXIP_HANDLER_STOP;
@@ -492,14 +472,10 @@ static char xsd_endElement(void* app_data)
 				{
 					if(!lookupUri(&ttpd->schema->uriTable, nsTable.base[i], &uriId))
 					{
-						tmp_err_code = cloneStringManaged(&nsTable.base[i], &clonedName, &ttpd->schema->memList);
-						if(tmp_err_code != ERR_OK)
-							return tmp_err_code;
+						TRY(cloneStringManaged(&nsTable.base[i], &clonedName, &ttpd->schema->memList));
 
 						/* Add the namespace to the schema URI string table. Note this table persists beyond the tree table */
-						tmp_err_code = addUriEntry(&ttpd->schema->uriTable, clonedName, &uriId);
-						if(tmp_err_code != ERR_OK)
-							return tmp_err_code;
+						TRY(addUriEntry(&ttpd->schema->uriTable, clonedName, &uriId));
 					}
 				}
 			}
@@ -592,15 +568,15 @@ static char xsd_endElement(void* app_data)
 
 	}
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char xsd_attribute(QName qname, void* app_data)
+static errorCode xsd_attribute(QName qname, void* app_data)
 {
 	struct TreeTableParsingData* ttpd = (struct TreeTableParsingData*) app_data;
 
 	if(ttpd->ignoredElement != FALSE)
-		return EXIP_HANDLER_OK;
+		return ERR_OK;
 
 	if(ttpd->propsStat == SCHEMA_ELEMENT_STATE) // <schema> element attribute
 	{
@@ -656,16 +632,16 @@ static char xsd_attribute(QName qname, void* app_data)
 		}
 	}
 	ttpd->expectingAttr = TRUE;
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char xsd_stringData(const String value, void* app_data)
+static errorCode xsd_stringData(const String value, void* app_data)
 {
 	struct TreeTableParsingData* ttpd = (struct TreeTableParsingData*) app_data;
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
 	if(ttpd->ignoredElement != FALSE)
-		return EXIP_HANDLER_OK;
+		return ERR_OK;
 
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">String data:\n"));
 
@@ -678,12 +654,7 @@ static char xsd_stringData(const String value, void* app_data)
 	{
 		if(ttpd->charDataPtr != NULL)
 		{
-			tmp_err_code = cloneStringManaged(&value, ttpd->charDataPtr, &ttpd->treeT->memList);
-			if(tmp_err_code != ERR_OK)
-			{
-				DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Error cloneString\n"));
-				return EXIP_HANDLER_STOP;
-			}
+			TRY(cloneStringManaged(&value, ttpd->charDataPtr, &ttpd->treeT->memList));
 			ttpd->charDataPtr = NULL;
 		}
 		else
@@ -697,10 +668,10 @@ static char xsd_stringData(const String value, void* app_data)
 		DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Ignored element character data"));
 	}
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char xsd_namespaceDeclaration(const String ns, const String pfx, boolean isLocalElementNS, void* app_data)
+static errorCode xsd_namespaceDeclaration(const String ns, const String pfx, boolean isLocalElementNS, void* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	struct TreeTableParsingData* ttpd = (struct TreeTableParsingData*) app_data;
@@ -708,7 +679,7 @@ static char xsd_namespaceDeclaration(const String ns, const String pfx, boolean 
 	Index entryID;
 
 	if(ttpd->ignoredElement != FALSE)
-		return EXIP_HANDLER_OK;
+		return ERR_OK;
 
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Namespace declaration\n"));
 #if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
@@ -719,22 +690,11 @@ static char xsd_namespaceDeclaration(const String ns, const String pfx, boolean 
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n"));
 #endif
 	
-	tmp_err_code = cloneStringManaged(&ns, &pfxNsEntry.ns, &ttpd->treeT->memList);
-	tmp_err_code += cloneStringManaged(&pfx, &pfxNsEntry.pfx, &ttpd->treeT->memList);
-	if(tmp_err_code != ERR_OK)
-	{
-		DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Error addDynElement\n"));
-		return EXIP_HANDLER_STOP;
-	}
+	TRY(cloneStringManaged(&ns, &pfxNsEntry.ns, &ttpd->treeT->memList));
+	TRY(cloneStringManaged(&pfx, &pfxNsEntry.pfx, &ttpd->treeT->memList));
+	TRY(addDynEntry(&ttpd->treeT->globalDefs.pfxNsTable.dynArray, &pfxNsEntry, &entryID));
 
-	tmp_err_code = addDynEntry(&ttpd->treeT->globalDefs.pfxNsTable.dynArray, &pfxNsEntry, &entryID);
-	if(tmp_err_code != ERR_OK)
-	{
-		DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Error addDynElement\n"));
-		return EXIP_HANDLER_STOP;
-	}
-
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
 static void initEntryContext(TreeTableEntry* entry)

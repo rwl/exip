@@ -149,9 +149,7 @@ errorCode createValueTable(ValueTable* valueTable)
 {
 	errorCode tmp_err_code;
 
-	tmp_err_code = createDynArray(&valueTable->dynArray, sizeof(ValueEntry), DEFAULT_VALUE_ENTRIES_NUMBER);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(createDynArray(&valueTable->dynArray, sizeof(ValueEntry), DEFAULT_VALUE_ENTRIES_NUMBER));
 
 	valueTable->globalId = 0;
 #if HASH_TABLE_USE == ON
@@ -178,9 +176,7 @@ errorCode addUriEntry(UriTable* uriTable, String uriStr, SmallIndex* uriEntryId)
 	UriEntry* uriEntry;
 	Index uriLEntryId;
 
-	tmp_err_code = addEmptyDynEntry(&uriTable->dynArray, (void**)&uriEntry, &uriLEntryId);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(addEmptyDynEntry(&uriTable->dynArray, (void**)&uriEntry, &uriLEntryId));
 
 	// Fill in URI entry
 	uriEntry->uriStr = uriStr;
@@ -188,9 +184,7 @@ errorCode addUriEntry(UriTable* uriTable, String uriStr, SmallIndex* uriEntryId)
 	uriEntry->pfxTable = NULL;
 	// Create local names table for this URI
 	// TODO RCC 20120201: Should this be separate (empty string URI has no local names)?
-	tmp_err_code = createDynArray(&uriEntry->lnTable.dynArray, sizeof(LnEntry), DEFAULT_LN_ENTRIES_NUMBER);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(createDynArray(&uriEntry->lnTable.dynArray, sizeof(LnEntry), DEFAULT_LN_ENTRIES_NUMBER));
 
 	*uriEntryId = (SmallIndex)uriLEntryId;
 	return ERR_OK;
@@ -201,9 +195,7 @@ errorCode addLnEntry(LnTable* lnTable, String lnStr, Index* lnEntryId)
 	errorCode tmp_err_code;
 	LnEntry* lnEntry;
 
-	tmp_err_code = addEmptyDynEntry(&lnTable->dynArray, (void**)&lnEntry, lnEntryId);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(addEmptyDynEntry(&lnTable->dynArray, (void**)&lnEntry, lnEntryId));
 
 	// Fill in local names entry
 	lnEntry->lnStr = lnStr;
@@ -235,17 +227,13 @@ errorCode addValueEntry(EXIStream* strm, String valueStr, QNameID qnameID)
 			return MEMORY_ALLOCATION_ERROR;
 
 		// First value entry - create the vxTable
-		tmp_err_code = createDynArray(&lnEntry->vxTable->dynArray, sizeof(VxEntry), DEFAULT_VX_ENTRIES_NUMBER);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(createDynArray(&lnEntry->vxTable->dynArray, sizeof(VxEntry), DEFAULT_VX_ENTRIES_NUMBER));
 	}
 
 	assert(lnEntry->vxTable->vx);
 
 	// Add an entry - will fill in later
-	tmp_err_code = addEmptyDynEntry(&lnEntry->vxTable->dynArray, (void**)&vxEntry, &vxEntryId);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(addEmptyDynEntry(&lnEntry->vxTable->dynArray, (void**)&vxEntry, &vxEntryId));
 
 	// If the global ID is less than the actual array size, we must have wrapped around
 	// In this case, we must reuse an existing entry
@@ -273,10 +261,7 @@ errorCode addValueEntry(EXIStream* strm, String valueStr, QNameID qnameID)
 	{
 		// We are filling up the array and have not wrapped round yet
 		// See http://www.w3.org/TR/exi/#encodingOptimizedForMisses
-		tmp_err_code = addEmptyDynEntry(&strm->valueTable.dynArray, (void**)&valueEntry, &valueEntryId);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
+		TRY(addEmptyDynEntry(&strm->valueTable.dynArray, (void**)&valueEntry, &valueEntryId));
 	}
 
 	// Set the global ID in the value cross table entry
@@ -291,9 +276,7 @@ errorCode addValueEntry(EXIStream* strm, String valueStr, QNameID qnameID)
 	// Add value string to hash table (if present)
 	if(strm->valueTable.hashTbl != NULL)
 	{
-		tmp_err_code = hashtable_insert(strm->valueTable.hashTbl, valueStr, strm->valueTable.globalId);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(hashtable_insert(strm->valueTable.hashTbl, valueStr, strm->valueTable.globalId));
 	}
 #endif
 
@@ -331,9 +314,7 @@ errorCode createUriTableEntry(UriTable* uriTable, const String uri, int createPf
 	UriEntry* uriEntry;
 
 	// Add resulting String to URI table (creates lnTable as well)
-	tmp_err_code = addUriEntry(uriTable, uri, &uriEntryId);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(addUriEntry(uriTable, uri, &uriEntryId));
 
 	// Get ptr. to URI Entry
 	uriEntry = &uriTable->uri[uriEntryId];
@@ -341,20 +322,13 @@ errorCode createUriTableEntry(UriTable* uriTable, const String uri, int createPf
 	if(createPfx)
 	{
 		// Create the URI's prefix table and add the default prefix
-		tmp_err_code = createPfxTable(&uriEntry->pfxTable);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = addPfxEntry(uriEntry->pfxTable, pfx, &pfxEntryId);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(createPfxTable(&uriEntry->pfxTable));
+		TRY(addPfxEntry(uriEntry->pfxTable, pfx, &pfxEntryId));
 	}
 
 	for(i = 0; i < lnSize; i++)
 	{
-		tmp_err_code = addLnEntry(&uriEntry->lnTable, lnBase[i], &lnEntryId);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(addLnEntry(&uriEntry->lnTable, lnBase[i], &lnEntryId));
 	}
 	return ERR_OK;
 }
@@ -368,46 +342,38 @@ errorCode createUriTableEntries(UriTable* uriTable, boolean withSchema)
 	// See http://www.w3.org/TR/exi/#initialUriValues
 
 	// URI 0: "" (empty string)
-	tmp_err_code = createUriTableEntry(uriTable,
+	TRY(createUriTableEntry(uriTable,
 									   emptyStr,   // Namespace - empty string
 									   TRUE, // Create prefix entry
 									   emptyStr,   // Prefix entry - empty string
 									   NULL, // No local names
-									   0);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+									   0));
 
 	// URI 1: "http://www.w3.org/XML/1998/namespace"
-	tmp_err_code = createUriTableEntry(uriTable,
+	TRY(createUriTableEntry(uriTable,
 									   XML_NAMESPACE,     // URI: "http://www.w3.org/XML/1998/namespace"
 									   TRUE,      // Create prefix entry
 									   URI_1_PFX, // Prefix: "xml"
 									   URI_1_LN,  // Add local names
-									   URI_1_LN_SIZE);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+									   URI_1_LN_SIZE));
 
 	// URI 2: "http://www.w3.org/2001/XMLSchema-instance"
-	tmp_err_code = createUriTableEntry(uriTable,
+	TRY(createUriTableEntry(uriTable,
 									   XML_SCHEMA_INSTANCE,     // URI: "http://www.w3.org/2001/XMLSchema-instance"
 									   TRUE,		// Create prefix entry
 									   URI_2_PFX, // Prefix: "xsi"
 									   URI_2_LN,  // Add local names
-									   URI_2_LN_SIZE);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+									   URI_2_LN_SIZE));
 
 	if(withSchema == TRUE)
 	{
 		// URI 3: "http://www.w3.org/2001/XMLSchema"
-		tmp_err_code = createUriTableEntry(uriTable,
+		TRY(createUriTableEntry(uriTable,
 										   XML_SCHEMA_NAMESPACE,    // URI: "http://www.w3.org/2001/XMLSchema"
 										   FALSE,    // No prefix entry (see http://www.w3.org/TR/exi/#initialPrefixValues) 
 										   emptyStr,     // (no prefix)
 										   URI_3_LN, // Add local names
-										   URI_3_LN_SIZE);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+										   URI_3_LN_SIZE));
 	}
 
 	return ERR_OK;

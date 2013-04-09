@@ -31,15 +31,15 @@
 extern const EXIPSchema ops_schema;
 
 // Content Handler API
-static char ops_fatalError(const char code, const char* msg, void* app_data);
-static char ops_startDocument(void* app_data);
-static char ops_endDocument(void* app_data);
-static char ops_startElement(QName qname, void* app_data);
-static char ops_endElement(void* app_data);
-static char ops_attribute(QName qname, void* app_data);
-static char ops_stringData(const String value, void* app_data);
-static char ops_intData(Integer int_val, void* app_data);
-static char ops_boolData(boolean bool_val, void* app_data);
+static errorCode ops_fatalError(const errorCode code, const char* msg, void* app_data);
+static errorCode ops_startDocument(void* app_data);
+static errorCode ops_endDocument(void* app_data);
+static errorCode ops_startElement(QName qname, void* app_data);
+static errorCode ops_endElement(void* app_data);
+static errorCode ops_attribute(QName qname, void* app_data);
+static errorCode ops_stringData(const String value, void* app_data);
+static errorCode ops_intData(Integer int_val, void* app_data);
+static errorCode ops_boolData(boolean bool_val, void* app_data);
 
 struct ops_AppData
 {
@@ -57,9 +57,7 @@ errorCode decodeHeader(EXIStream* strm, boolean outOfBandOpts)
 	boolean boolVal = FALSE;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start EXI header decoding\n"));
-	tmp_err_code = readBits(strm, 2, &bits_val);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(readBits(strm, 2, &bits_val));
 	if(bits_val == 2)  // The header Distinguishing Bits i.e. no EXI Cookie
 	{
 		strm->header.has_cookie = 0;
@@ -67,32 +65,22 @@ errorCode decodeHeader(EXIStream* strm, boolean outOfBandOpts)
 	}
 	else if(bits_val == 0)// ASCII code for $ = 00100100  (36)
 	{
-		tmp_err_code = readBits(strm, 6, &bits_val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(readBits(strm, 6, &bits_val));
 		if(bits_val != 36)
 			return INVALID_EXI_HEADER;
-		tmp_err_code = readBits(strm, 8, &bits_val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(readBits(strm, 8, &bits_val));
 		if(bits_val != 69)   // ASCII code for E = 01000101  (69)
 			return INVALID_EXI_HEADER;
-		tmp_err_code = readBits(strm, 8, &bits_val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(readBits(strm, 8, &bits_val));
 		if(bits_val != 88)   // ASCII code for X = 01011000  (88)
 			return INVALID_EXI_HEADER;
-		tmp_err_code = readBits(strm, 8, &bits_val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(readBits(strm, 8, &bits_val));
 		if(bits_val != 73)   // ASCII code for I = 01001001  (73)
 			return INVALID_EXI_HEADER;
 
 		strm->header.has_cookie = 1;
 		DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">EXI cookie detected\n"));
-		tmp_err_code = readBits(strm, 2, &bits_val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(readBits(strm, 2, &bits_val));
 		if(bits_val != 2)  // The header Distinguishing Bits are required
 			return INVALID_EXI_HEADER;
 	}
@@ -102,9 +90,7 @@ errorCode decodeHeader(EXIStream* strm, boolean outOfBandOpts)
 	}
 
 	// Read the Presence Bit for EXI Options
-	tmp_err_code = readNextBit(strm, &boolVal);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(readNextBit(strm, &boolVal));
 
 	if(boolVal == TRUE) // There are EXI options
 	{
@@ -132,18 +118,14 @@ errorCode decodeHeader(EXIStream* strm, boolean outOfBandOpts)
 	}
 
 	// Read the Version type
-	tmp_err_code = readNextBit(strm, &boolVal);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(readNextBit(strm, &boolVal));
 
 	strm->header.is_preview_version = boolVal;
 	strm->header.version_number = 1;
 
 	do
 	{
-		tmp_err_code = readBits(strm, 4, &bits_val);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(readBits(strm, 4, &bits_val));
 		strm->header.version_number += bits_val;
 		if(bits_val < 15)
 			break;
@@ -156,9 +138,7 @@ errorCode decodeHeader(EXIStream* strm, boolean outOfBandOpts)
 		Parser optionsParser;
 		struct ops_AppData appD;
 
-		tmp_err_code = initParser(&optionsParser, strm->buffer, &appD);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(initParser(&optionsParser, strm->buffer, &appD));
 
 		optionsParser.strm.context.bitPointer = strm->context.bitPointer;
 		optionsParser.strm.context.bufferIndx = strm->context.bufferIndx;
@@ -184,19 +164,8 @@ errorCode decodeHeader(EXIStream* strm, boolean outOfBandOpts)
 		appD.prevElementUriID = 0;
 		appD.permanentAllocList = &strm->memList;
 
-		tmp_err_code = setSchema(&optionsParser, (EXIPSchema*) &ops_schema);
-		if(tmp_err_code != ERR_OK)
-		{
-			destroyParser(&optionsParser);
-			return tmp_err_code;
-		}
-
-		tmp_err_code = createValueTable(&optionsParser.strm.valueTable);
-		if(tmp_err_code != ERR_OK)
-		{
-			destroyParser(&optionsParser);
-			return tmp_err_code;
-		}
+		TRY_CATCH(setSchema(&optionsParser, (EXIPSchema*) &ops_schema), destroyParser(&optionsParser));
+		TRY_CATCH(createValueTable(&optionsParser.strm.valueTable), destroyParser(&optionsParser));
 
 		while(tmp_err_code == ERR_OK)
 		{
@@ -227,25 +196,25 @@ errorCode decodeHeader(EXIStream* strm, boolean outOfBandOpts)
 	return checkOptionValues(&strm->header.opts);
 }
 
-static char ops_fatalError(const char code, const char* msg, void* app_data)
+static errorCode ops_fatalError(const errorCode code, const char* msg, void* app_data)
 {
 	DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Error during parsing of the EXI Options\n"));
 	return EXIP_HANDLER_STOP;
 }
 
-static char ops_startDocument(void* app_data)
+static errorCode ops_startDocument(void* app_data)
 {
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start parsing the EXI Options\n"));
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char ops_endDocument(void* app_data)
+static errorCode ops_endDocument(void* app_data)
 {
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Complete parsing the EXI Options\n"));
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char ops_startElement(QName qname, void* app_data)
+static errorCode ops_startElement(QName qname, void* app_data)
 {
 	struct ops_AppData* o_appD = (struct ops_AppData*) app_data;
 
@@ -324,15 +293,15 @@ static char ops_startElement(QName qname, void* app_data)
 		// Handle here the user defined meta-data that follows! http://www.w3.org/TR/2011/REC-exi-20110310/#key-userMetaData
 	}
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char ops_endElement(void* app_data)
+static errorCode ops_endElement(void* app_data)
 {
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char ops_attribute(QName qname, void* app_data)
+static errorCode ops_attribute(QName qname, void* app_data)
 {
 	struct ops_AppData* o_appD = (struct ops_AppData*) app_data;
 
@@ -361,10 +330,10 @@ static char ops_attribute(QName qname, void* app_data)
 		// Handle here the user defined meta-data that follows! http://www.w3.org/TR/2011/REC-exi-20110310/#key-userMetaData
 	}
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char ops_stringData(const String value, void* app_data)
+static errorCode ops_stringData(const String value, void* app_data)
 {
 	struct ops_AppData* o_appD = (struct ops_AppData*) app_data;
 
@@ -397,10 +366,10 @@ static char ops_stringData(const String value, void* app_data)
 		// Handle here the user defined meta-data that follows! http://www.w3.org/TR/2011/REC-exi-20110310/#key-userMetaData
 	}
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char ops_intData(Integer int_val, void* app_data)
+static errorCode ops_intData(Integer int_val, void* app_data)
 {
 	struct ops_AppData* o_appD = (struct ops_AppData*) app_data;
 
@@ -416,10 +385,10 @@ static char ops_intData(Integer int_val, void* app_data)
 			o_appD->parsed_ops->blockSize = (unsigned int) int_val;
 		break;
 	}
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char ops_boolData(boolean bool_val, void* app_data)
+static errorCode ops_boolData(boolean bool_val, void* app_data)
 {
 	struct ops_AppData* o_appD = (struct ops_AppData*) app_data;
 
@@ -433,5 +402,5 @@ static char ops_boolData(boolean bool_val, void* app_data)
 		// Handle here the user defined meta-data that follows! http://www.w3.org/TR/2011/REC-exi-20110310/#key-userMetaData
 	}
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }

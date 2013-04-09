@@ -44,23 +44,16 @@ errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int buf
 
 	for(i = 0; i < bufCount; i++)
 	{
-		tmp_err_code = initTreeTable(&treeT[i]);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(initTreeTable(&treeT[i]));
 	}
 
 	/** Set the first tree table to be the main XSD */
 	treeT[0].globalDefs.isMain = TRUE;
-
-	tmp_err_code = initSchema(schema, INIT_SCHEMA_SCHEMA_ENABLED);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(initSchema(schema, INIT_SCHEMA_SCHEMA_ENABLED));
 
 	for(i = 0; i < bufCount; i++)
 	{
-		tmp_err_code = generateTreeTable(buffers[i], schemaFormat, opt, &treeT[i], schema);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(generateTreeTable(buffers[i], schemaFormat, opt, &treeT[i], schema));
 	}
 
 #if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
@@ -109,9 +102,7 @@ errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int buf
 			return UNEXPECTED_ERROR;
 	}
 
-	tmp_err_code = resolveTypeHierarchy(schema, treeT, bufCount);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(resolveTypeHierarchy(schema, treeT, bufCount));
 
 #if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
 	{
@@ -129,9 +120,7 @@ errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int buf
 	}
 #endif
 
-	tmp_err_code = convertTreeTablesToExipSchema(treeT, bufCount, schema);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(convertTreeTablesToExipSchema(treeT, bufCount, schema));
 
 	for(i = 0; i < bufCount; i++)
 	{

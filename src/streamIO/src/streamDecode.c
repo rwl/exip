@@ -79,7 +79,6 @@ errorCode decodeString(EXIStream* strm, String* string_val)
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	UnsignedInteger string_length = 0;
 	TRY(decodeUnsignedInteger(strm, &string_length));
-
 	TRY(allocateStringMemoryManaged(&(string_val->str),(Index) string_length, &strm->memList));
 
 	return decodeStringOnly(strm,(Index)  string_length, string_val);
@@ -122,12 +121,7 @@ errorCode decodeBinary(EXIStream* strm, char** binary_val, Index* nbytes)
 
 	for(i = 0; i < length; i++)
 	{
-		tmp_err_code = readBits(strm, 8, &int_val);
-		if(tmp_err_code != ERR_OK)
-		{
-			EXIP_MFREE(*binary_val);
-			return tmp_err_code;
-		}
+		TRY_CATCH(readBits(strm, 8, &int_val), EXIP_MFREE(*binary_val));
 		(*binary_val)[i]=(char) int_val;
 	}
 	return ERR_OK;

@@ -72,19 +72,15 @@ errorCode concatenateGrammars(ProtoGrammar* left, ProtoGrammar* right)
 	for(ruleIterR = 1; ruleIterR < right->count; ruleIterR++)
 	{
 		/* Create new rule entry in LHS proto grammar */
-		tmp_err_code = addProtoRule(left, right->rule[ruleIterR].count, &pRuleEntry);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(addProtoRule(left, right->rule[ruleIterR].count, &pRuleEntry));
 
 		/* Copy the RHS productions into the new rule entry, adjusting the non terminal ID */
 		for(prodIterR = 0; prodIterR < right->rule[ruleIterR].count; prodIterR++)
 		{
-			tmp_err_code = addProduction(pRuleEntry, GET_PROD_EXI_EVENT(right->rule[ruleIterR].prod[prodIterR].content),
+			TRY(addProduction(pRuleEntry, GET_PROD_EXI_EVENT(right->rule[ruleIterR].prod[prodIterR].content),
 										 right->rule[ruleIterR].prod[prodIterR].typeId,
 										 right->rule[ruleIterR].prod[prodIterR].qnameId,
-										 GET_PROD_NON_TERM(right->rule[ruleIterR].prod[prodIterR].content) + ((GET_PROD_EXI_EVENT(right->rule[ruleIterR].prod[prodIterR].content) == EVENT_EE)?0:(initialLeftRulesCount-1)));
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+										 GET_PROD_NON_TERM(right->rule[ruleIterR].prod[prodIterR].content) + ((GET_PROD_EXI_EVENT(right->rule[ruleIterR].prod[prodIterR].content) == EVENT_EE)?0:(initialLeftRulesCount-1))));
 		}
 	}
 
@@ -106,26 +102,22 @@ errorCode concatenateGrammars(ProtoGrammar* left, ProtoGrammar* right)
 						// Just copy all the production...
 						for(prodIterR = 0; prodIterR < right->rule[0].count; prodIterR++)
 						{
-							tmp_err_code = addProduction(&left->rule[ruleIterL],
+							TRY(addProduction(&left->rule[ruleIterL],
 														 GET_PROD_EXI_EVENT(right->rule[0].prod[prodIterR].content),
 														 right->rule[0].prod[prodIterR].typeId,
 														 right->rule[0].prod[prodIterR].qnameId,
-														 GET_PROD_NON_TERM(right->rule[0].prod[prodIterR].content) + ((GET_PROD_EXI_EVENT(right->rule[0].prod[prodIterR].content) == EVENT_EE)?0:(initialLeftRulesCount-1)));
-							if(tmp_err_code != ERR_OK)
-								return tmp_err_code;
+														 GET_PROD_NON_TERM(right->rule[0].prod[prodIterR].content) + ((GET_PROD_EXI_EVENT(right->rule[0].prod[prodIterR].content) == EVENT_EE)?0:(initialLeftRulesCount-1))));
 						}
 					}
 					else
 					{
 						/* Merge productions from RHS rule 0 into each left rule */
-						tmp_err_code = addProductionsToARule(left,
-															 ruleIterL,
-															 right,
-															 0,
-															 &currRuleIndex,
-															 initialLeftRulesCount - 1);
-						if(tmp_err_code != ERR_OK)
-							return tmp_err_code;
+						TRY(addProductionsToARule(left,
+												 ruleIterL,
+												 right,
+												 0,
+												 &currRuleIndex,
+												 initialLeftRulesCount - 1));
 					}
 				}
 				break;
@@ -216,18 +208,14 @@ static errorCode addProductionsToARule(ProtoGrammar* left, Index ruleIndxL, Prot
 					nonTermRight = *currRuleIndex;
 
 					/* Create new rule entry in LHS proto grammar */
-					tmp_err_code = addProtoRule(left, right->rule[ruleIndxR].count, &pRuleEntry);
-					if(tmp_err_code != ERR_OK)
-						return tmp_err_code;
+					TRY(addProtoRule(left, right->rule[ruleIndxR].count, &pRuleEntry));
 
 					/* Copy the RHS productions into the new rule entry, adjusting the non terminal ID */
 					for(tmpIterR = 0; tmpIterR < right->rule[ruleIndxR].count; tmpIterR++)
 					{
-						tmp_err_code = addProduction(pRuleEntry, GET_PROD_EXI_EVENT(right->rule[ruleIndxR].prod[tmpIterR].content),
+						TRY(addProduction(pRuleEntry, GET_PROD_EXI_EVENT(right->rule[ruleIndxR].prod[tmpIterR].content),
 								right->rule[ruleIndxR].prod[tmpIterR].typeId, right->rule[ruleIndxR].prod[tmpIterR].qnameId,
-													 GET_PROD_NON_TERM(right->rule[ruleIndxR].prod[tmpIterR].content) + ((GET_PROD_EXI_EVENT(right->rule[ruleIndxR].prod[tmpIterR].content) == EVENT_EE)?0:(initialLeftRulesCount-1)));
-						if(tmp_err_code != ERR_OK)
-							return tmp_err_code;
+													 GET_PROD_NON_TERM(right->rule[ruleIndxR].prod[tmpIterR].content) + ((GET_PROD_EXI_EVENT(right->rule[ruleIndxR].prod[tmpIterR].content) == EVENT_EE)?0:(initialLeftRulesCount-1))));
 					}
 
 					*currRuleIndex += 1;
@@ -285,13 +273,11 @@ static errorCode addProductionsToARule(ProtoGrammar* left, Index ruleIndxL, Prot
 			 * We have been through all LHS productions and there were no clashes
 			 * so just add the production
 			 */
-			tmp_err_code = addProduction(&left->rule[ruleIndxL],
+			TRY(addProduction(&left->rule[ruleIndxL],
 										 GET_PROD_EXI_EVENT(right->rule[ruleIndxR].prod[prodIterR].content),
 										 right->rule[ruleIndxR].prod[prodIterR].typeId,
 										 right->rule[ruleIndxR].prod[prodIterR].qnameId,
-										 nonTermRight);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+										 nonTermRight));
 		}
 	}
 	return ERR_OK;
@@ -303,25 +289,12 @@ errorCode createSimpleTypeGrammar(Index typeId, ProtoGrammar* simpleGrammar)
 	QNameID qnameID = {URI_MAX, LN_MAX};
 	ProtoRuleEntry* pRuleEntry;
 
-	tmp_err_code = createProtoGrammar(2, simpleGrammar);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(createProtoGrammar(2, simpleGrammar));
 
-	tmp_err_code = addProtoRule(simpleGrammar, 3, &pRuleEntry);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	tmp_err_code = addProduction(pRuleEntry, EVENT_CH, typeId, qnameID, 1);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	tmp_err_code = addProtoRule(simpleGrammar, 2, &pRuleEntry);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	tmp_err_code = addEEProduction(pRuleEntry);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(addProtoRule(simpleGrammar, 3, &pRuleEntry));
+	TRY(addProduction(pRuleEntry, EVENT_CH, typeId, qnameID, 1));
+	TRY(addProtoRule(simpleGrammar, 2, &pRuleEntry));
+	TRY(addEEProduction(pRuleEntry));
 
 	return ERR_OK;
 }
@@ -341,9 +314,7 @@ errorCode createComplexTypeGrammar(ProtoGrammarArray* attrUseArray, ProtoGrammar
 		QNameID dummyQId = {URI_MAX, LN_MAX};
 		for(i = 0; i < contentTypeGrammar->count; i++)
 		{
-			tmp_err_code = addProduction(&contentTypeGrammar->rule[i], EVENT_CH, INDEX_MAX, dummyQId, i);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(addProduction(&contentTypeGrammar->rule[i], EVENT_CH, INDEX_MAX, dummyQId, i));
 		}
 	}
 
@@ -351,41 +322,27 @@ errorCode createComplexTypeGrammar(ProtoGrammarArray* attrUseArray, ProtoGrammar
 	{
 		ProtoRuleEntry* pRuleEntry;
 
-		tmp_err_code = createProtoGrammar(10, complexGrammar);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = addProtoRule(complexGrammar, 10, &pRuleEntry);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = addEEProduction(pRuleEntry);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(createProtoGrammar(10, complexGrammar));
+		TRY(addProtoRule(complexGrammar, 10, &pRuleEntry));
+		TRY(addEEProduction(pRuleEntry));
 
 		for(i = 0; i < attrUseArray->count; i++)
 		{
-			tmp_err_code = concatenateGrammars(complexGrammar, attrUseArray->pg[i]);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(concatenateGrammars(complexGrammar, attrUseArray->pg[i]));
 		}
 
 		complexGrammar->contentIndex = complexGrammar->count - 1;
 
 		if(contentTypeGrammar != NULL)
 		{
-			tmp_err_code = concatenateGrammars(complexGrammar, contentTypeGrammar);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(concatenateGrammars(complexGrammar, contentTypeGrammar));
 		}
 	}
 	else
 	{
 		if(contentTypeGrammar != NULL)
 		{
-			tmp_err_code = cloneProtoGrammar(contentTypeGrammar, complexGrammar);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(cloneProtoGrammar(contentTypeGrammar, complexGrammar));
 		}
 		complexGrammar->contentIndex = 0;
 	}
@@ -404,32 +361,18 @@ errorCode createAttributeUseGrammar(boolean required, Index typeId,
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	ProtoRuleEntry* pRuleEntry;
 
-	tmp_err_code = createProtoGrammar(2, attrGrammar);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(createProtoGrammar(2, attrGrammar));
 
-	tmp_err_code = addProtoRule(attrGrammar, 4, &pRuleEntry);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	tmp_err_code = addProduction(pRuleEntry, EVENT_AT_QNAME, typeId, qnameID, 1);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(addProtoRule(attrGrammar, 4, &pRuleEntry));
+	TRY(addProduction(pRuleEntry, EVENT_AT_QNAME, typeId, qnameID, 1));
 
 	if(!required)
 	{
-		tmp_err_code = addEEProduction(pRuleEntry);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(addEEProduction(pRuleEntry));
 	}
 
-	tmp_err_code = addProtoRule(attrGrammar, 4, &pRuleEntry);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	tmp_err_code = addEEProduction(pRuleEntry);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(addProtoRule(attrGrammar, 4, &pRuleEntry));
+	TRY(addEEProduction(pRuleEntry));
 
 	return ERR_OK;
 }
@@ -441,23 +384,14 @@ errorCode createParticleGrammar(int minOccurs, int maxOccurs,
 	ProtoRuleEntry* pRuleEntry;
 	int i;
 
-	tmp_err_code = createProtoGrammar(minOccurs + 10, particleGrammar);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(createProtoGrammar(minOccurs + 10, particleGrammar));
 
-	tmp_err_code = addProtoRule(particleGrammar, 5, &pRuleEntry);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	tmp_err_code = addEEProduction(pRuleEntry);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(addProtoRule(particleGrammar, 5, &pRuleEntry));
+	TRY(addEEProduction(pRuleEntry));
 
 	for(i = 0; i < minOccurs; i++)
 	{
-		tmp_err_code = concatenateGrammars(particleGrammar, termGrammar);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(concatenateGrammars(particleGrammar, termGrammar));
 	}
 
 	if(maxOccurs - minOccurs > 0 || maxOccurs < 0) // Only if maxOccurs is unbounded or maxOccurs > minOccurs
@@ -473,18 +407,14 @@ errorCode createParticleGrammar(int minOccurs, int maxOccurs,
 		}
 		if(prodEEFound == FALSE) //	There is no production Gi,0 : EE so add one
 		{
-			tmp_err_code = addEEProduction(&termGrammar->rule[0]);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(addEEProduction(&termGrammar->rule[0]));
 		}
 
 		if(maxOccurs >= 0) // {max occurs} is not unbounded
 		{
 			for(i = 0; i < maxOccurs - minOccurs; i++)
 			{
-				tmp_err_code = concatenateGrammars(particleGrammar, termGrammar);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
+				TRY(concatenateGrammars(particleGrammar, termGrammar));
 			}
 		}
 		else // {max occurs} is unbounded
@@ -510,26 +440,22 @@ errorCode createParticleGrammar(int minOccurs, int maxOccurs,
 								// Just copy all the production...
 								for(prodIterR = 0; prodIterR < termGrammar->rule[0].count; prodIterR++)
 								{
-									tmp_err_code = addProduction(&termGrammar->rule[i],
+									TRY(addProduction(&termGrammar->rule[i],
 																 GET_PROD_EXI_EVENT(termGrammar->rule[0].prod[prodIterR].content),
 																 termGrammar->rule[0].prod[prodIterR].typeId,
 																 termGrammar->rule[0].prod[prodIterR].qnameId,
-																 GET_PROD_NON_TERM(termGrammar->rule[0].prod[prodIterR].content));
-									if(tmp_err_code != ERR_OK)
-										return tmp_err_code;
+																 GET_PROD_NON_TERM(termGrammar->rule[0].prod[prodIterR].content)));
 								}
 							}
 							else
 							{
 								/* Merge productions from RHS rule 0 into each left rule */
-								tmp_err_code = addProductionsToARule(termGrammar,
+								TRY(addProductionsToARule(termGrammar,
 																	 i,
 																	 termGrammar,
 																	 0,
 																	 &currRuleIndex,
-																	 0);
-								if(tmp_err_code != ERR_OK)
-									return tmp_err_code;
+																	 0));
 							}
 						}
 						break;
@@ -537,9 +463,7 @@ errorCode createParticleGrammar(int minOccurs, int maxOccurs,
 				}
 			}
 
-			tmp_err_code = concatenateGrammars(particleGrammar, termGrammar);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(concatenateGrammars(particleGrammar, termGrammar));
 		}
 	}
 
@@ -552,25 +476,12 @@ errorCode createElementTermGrammar(ProtoGrammar* elemGrammar, QNameID qnameID, I
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	ProtoRuleEntry* pRuleEntry;
 
-	tmp_err_code = createProtoGrammar(2, elemGrammar);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(createProtoGrammar(2, elemGrammar));
 
-	tmp_err_code = addProtoRule(elemGrammar, 3, &pRuleEntry);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	tmp_err_code = addProduction(pRuleEntry, EVENT_SE_QNAME, grIndex, qnameID, 1);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	tmp_err_code = addProtoRule(elemGrammar, 3, &pRuleEntry);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	tmp_err_code = addEEProduction(pRuleEntry);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(addProtoRule(elemGrammar, 3, &pRuleEntry));
+	TRY(addProduction(pRuleEntry, EVENT_SE_QNAME, grIndex, qnameID, 1));
+	TRY(addProtoRule(elemGrammar, 3, &pRuleEntry));
+	TRY(addEEProduction(pRuleEntry));
 
 	return ERR_OK;
 }
@@ -581,14 +492,9 @@ errorCode createWildcardTermGrammar(String* wildcardArray, Index wildcardArraySi
 	ProtoRuleEntry* pRuleEntry;
 	QNameID qnameID;
 
-	tmp_err_code = createProtoGrammar(2, wildcardGrammar);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(createProtoGrammar(2, wildcardGrammar));
 
-	tmp_err_code = addProtoRule(wildcardGrammar, wildcardArraySize + 1, &pRuleEntry);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
+	TRY(addProtoRule(wildcardGrammar, wildcardArraySize + 1, &pRuleEntry));
 	if(wildcardArraySize == 0 ||		// default is "##any"
 		(wildcardArraySize == 1 &&
 				(stringEqualToAscii(wildcardArray[0], "##any") || stringEqualToAscii(wildcardArray[0], "##other"))
@@ -597,9 +503,7 @@ errorCode createWildcardTermGrammar(String* wildcardArray, Index wildcardArraySi
 	{
 		qnameID.uriId = URI_MAX;
 		qnameID.lnId = LN_MAX;
-		tmp_err_code = addProduction(pRuleEntry, EVENT_SE_ALL, INDEX_MAX, qnameID, 1);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(addProduction(pRuleEntry, EVENT_SE_ALL, INDEX_MAX, qnameID, 1));
 	}
 	else if(wildcardArraySize >= 1)
 	{
@@ -610,21 +514,14 @@ errorCode createWildcardTermGrammar(String* wildcardArray, Index wildcardArraySi
 		{
 			if(!lookupUri(uriT, wildcardArray[i], &qnameID.uriId))
 			 	return UNEXPECTED_ERROR;
-			tmp_err_code = addProduction(pRuleEntry, EVENT_SE_URI, INDEX_MAX, qnameID, 1);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(addProduction(pRuleEntry, EVENT_SE_URI, INDEX_MAX, qnameID, 1));
 		}
 	}
 	else
 		return UNEXPECTED_ERROR;
 
-	tmp_err_code = addProtoRule(wildcardGrammar, 2, &pRuleEntry);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	tmp_err_code = addEEProduction(pRuleEntry);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(addProtoRule(wildcardGrammar, 2, &pRuleEntry));
+	TRY(addEEProduction(pRuleEntry));
 
 	return ERR_OK;
 }
@@ -636,39 +533,21 @@ errorCode createSequenceModelGroupsGrammar(ProtoGrammar** grArray, unsigned int 
 
 	if(arrSize == 0)
 	{
-		tmp_err_code = createProtoGrammar(3, seqGrammar);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = addProtoRule(seqGrammar, 3, &pRuleEntry);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = addEEProduction(pRuleEntry);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(createProtoGrammar(3, seqGrammar));
+		TRY(addProtoRule(seqGrammar, 3, &pRuleEntry));
+		TRY(addEEProduction(pRuleEntry));
 	}
 	else
 	{
 		unsigned int i;
 
-		tmp_err_code = createProtoGrammar(10, seqGrammar);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = addProtoRule(seqGrammar, 5, &pRuleEntry);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = addEEProduction(pRuleEntry);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(createProtoGrammar(10, seqGrammar));
+		TRY(addProtoRule(seqGrammar, 5, &pRuleEntry));
+		TRY(addEEProduction(pRuleEntry));
 
 		for(i = 0; i < arrSize; i++)
 		{
-			tmp_err_code = concatenateGrammars(seqGrammar, grArray[i]);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(concatenateGrammars(seqGrammar, grArray[i]));
 		}
 	}
 	return ERR_OK;
@@ -685,25 +564,16 @@ errorCode createChoiceModelGroupsGrammar(ProtoGrammarArray* pgArray, ProtoGramma
 	ProtoGrammar* tmpGrammar;
 	ProtoRuleEntry* pRuleEntry;
 
-	tmp_err_code = createProtoGrammar(10, modGrpGrammar);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(createProtoGrammar(10, modGrpGrammar));
 
-	tmp_err_code = addProtoRule(modGrpGrammar, 5, &pRuleEntry);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	tmp_err_code = addEEProduction(pRuleEntry);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(addProtoRule(modGrpGrammar, 5, &pRuleEntry));
+	TRY(addEEProduction(pRuleEntry));
 
 	tmpGrammar = pgArray->pg[0];
 	if(tmpGrammar == NULL)
 		return NULL_POINTER_REF;
 
-	tmp_err_code = concatenateGrammars(modGrpGrammar, tmpGrammar);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(concatenateGrammars(modGrpGrammar, tmpGrammar));
 
 	for(i = 1; i < pgArray->count; i++)
 	{
@@ -717,19 +587,15 @@ errorCode createChoiceModelGroupsGrammar(ProtoGrammarArray* pgArray, ProtoGramma
 
 		for(ruleIterTerm = 1; ruleIterTerm < tmpGrammar->count; ruleIterTerm++)
 		{
-			tmp_err_code = addProtoRule(modGrpGrammar, 5, &pRuleEntry);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(addProtoRule(modGrpGrammar, 5, &pRuleEntry));
 
 			for(prodIterTerm = 0; prodIterTerm < tmpGrammar->rule[ruleIterTerm].count; prodIterTerm++)
 			{
-				tmp_err_code = addProduction(pRuleEntry,
+				TRY(addProduction(pRuleEntry,
 											 GET_PROD_EXI_EVENT(tmpGrammar->rule[ruleIterTerm].prod[prodIterTerm].content),
 											 tmpGrammar->rule[ruleIterTerm].prod[prodIterTerm].typeId,
 											 tmpGrammar->rule[ruleIterTerm].prod[prodIterTerm].qnameId,
-											 GET_PROD_NON_TERM(tmpGrammar->rule[ruleIterTerm].prod[prodIterTerm].content) + ((GET_PROD_EXI_EVENT(tmpGrammar->rule[ruleIterTerm].prod[prodIterTerm].content) == EVENT_EE)?0:(initialResultRulesCount-1)));
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
+											 GET_PROD_NON_TERM(tmpGrammar->rule[ruleIterTerm].prod[prodIterTerm].content) + ((GET_PROD_EXI_EVENT(tmpGrammar->rule[ruleIterTerm].prod[prodIterTerm].content) == EVENT_EE)?0:(initialResultRulesCount-1))));
 			}
 		}
 
@@ -743,26 +609,22 @@ errorCode createChoiceModelGroupsGrammar(ProtoGrammarArray* pgArray, ProtoGramma
 				// Just copy all the production...
 				for(prodIterR = 0; prodIterR < tmpGrammar->rule[0].count; prodIterR++)
 				{
-					tmp_err_code = addProduction(&modGrpGrammar->rule[0],
+					TRY(addProduction(&modGrpGrammar->rule[0],
 												 GET_PROD_EXI_EVENT(tmpGrammar->rule[0].prod[prodIterR].content),
 												 tmpGrammar->rule[0].prod[prodIterR].typeId,
 												 tmpGrammar->rule[0].prod[prodIterR].qnameId,
-												 GET_PROD_NON_TERM(tmpGrammar->rule[0].prod[prodIterR].content) + ((GET_PROD_EXI_EVENT(tmpGrammar->rule[0].prod[prodIterR].content) == EVENT_EE)?0:(initialResultRulesCount-1)));
-					if(tmp_err_code != ERR_OK)
-						return tmp_err_code;
+												 GET_PROD_NON_TERM(tmpGrammar->rule[0].prod[prodIterR].content) + ((GET_PROD_EXI_EVENT(tmpGrammar->rule[0].prod[prodIterR].content) == EVENT_EE)?0:(initialResultRulesCount-1))));
 				}
 			}
 			else
 			{
 				/* Merge productions from RHS rule 0 into each left rule */
-				tmp_err_code = addProductionsToARule(modGrpGrammar,
+				TRY(addProductionsToARule(modGrpGrammar,
 													 0,
 													 tmpGrammar,
 													 0,
 													 &currRuleIndex,
-													 initialResultRulesCount - 1);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
+													 initialResultRulesCount - 1));
 			}
 		}
 	}
@@ -781,9 +643,7 @@ errorCode addEEProduction(ProtoRuleEntry* rule)
 	Production *prod;
 	Index prodId;
 
-	tmp_err_code = addEmptyDynEntry(&rule->dynArray, (void**)&prod, &prodId);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(addEmptyDynEntry(&rule->dynArray, (void**)&prod, &prodId));
 
 	SET_PROD_EXI_EVENT(prod->content, EVENT_EE);
 	prod->typeId = INDEX_MAX;

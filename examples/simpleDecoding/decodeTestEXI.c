@@ -53,19 +53,19 @@ static char lookupPrefix(struct appData* aData, String ns, unsigned char* prxHit
 // ******************************************
 
 // Content Handler API
-static char sample_fatalError(const char code, const char* msg, void* app_data);
-static char sample_startDocument(void* app_data);
-static char sample_endDocument(void* app_data);
-static char sample_startElement(QName qname, void* app_data);
-static char sample_endElement(void* app_data);
-static char sample_attribute(QName qname, void* app_data);
-static char sample_stringData(const String value, void* app_data);
-static char sample_decimalData(Decimal value, void* app_data);
-static char sample_intData(Integer int_val, void* app_data);
-static char sample_floatData(Float fl_val, void* app_data);
-static char sample_booleanData(boolean bool_val, void* app_data);
-static char sample_dateTimeData(EXIPDateTime dt_val, void* app_data);
-static char sample_binaryData(const char* binary_val, Index nbytes, void* app_data);
+static errorCode sample_fatalError(const errorCode code, const char* msg, void* app_data);
+static errorCode sample_startDocument(void* app_data);
+static errorCode sample_endDocument(void* app_data);
+static errorCode sample_startElement(QName qname, void* app_data);
+static errorCode sample_endElement(void* app_data);
+static errorCode sample_attribute(QName qname, void* app_data);
+static errorCode sample_stringData(const String value, void* app_data);
+static errorCode sample_decimalData(Decimal value, void* app_data);
+static errorCode sample_intData(Integer int_val, void* app_data);
+static errorCode sample_floatData(Float fl_val, void* app_data);
+static errorCode sample_booleanData(boolean bool_val, void* app_data);
+static errorCode sample_dateTimeData(EXIPDateTime dt_val, void* app_data);
+static errorCode sample_binaryData(const char* binary_val, Index nbytes, void* app_data);
 
 errorCode decode(EXIPSchema* schemaPtr, unsigned char outFlag, FILE *infile, size_t (*inputStream)(void* buf, size_t size, void* stream))
 {
@@ -139,13 +139,13 @@ errorCode decode(EXIPSchema* schemaPtr, unsigned char outFlag, FILE *infile, siz
 		return tmp_err_code;
 }
 
-static char sample_fatalError(const char code, const char* msg, void* app_data)
+static errorCode sample_fatalError(const errorCode code, const char* msg, void* app_data)
 {
 	printf("\n%d : FATAL ERROR: %s\n", code, msg);
 	return EXIP_HANDLER_STOP;
 }
 
-static char sample_startDocument(void* app_data)
+static errorCode sample_startDocument(void* app_data)
 {
 	struct appData* appD = (struct appData*) app_data;
 	if(appD->outputFormat == OUT_EXI)
@@ -153,10 +153,10 @@ static char sample_startDocument(void* app_data)
 	else if(appD->outputFormat == OUT_XML)
 		printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char sample_endDocument(void* app_data)
+static errorCode sample_endDocument(void* app_data)
 {
 	struct appData* appD = (struct appData*) app_data;
 	if(appD->outputFormat == OUT_EXI)
@@ -164,10 +164,10 @@ static char sample_endDocument(void* app_data)
 	else if(appD->outputFormat == OUT_XML)
 		printf("\n");
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char sample_startElement(QName qname, void* app_data)
+static errorCode sample_startElement(QName qname, void* app_data)
 {
 	struct appData* appD = (struct appData*) app_data;
 	if(appD->outputFormat == OUT_EXI)
@@ -217,10 +217,10 @@ static char sample_startElement(QName qname, void* app_data)
 		appD->unclosedElement = 1;
 	}
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char sample_endElement(void* app_data)
+static errorCode sample_endElement(void* app_data)
 {
 	struct appData* appD = (struct appData*) app_data;
 	if(appD->outputFormat == OUT_EXI)
@@ -237,10 +237,10 @@ static char sample_endElement(void* app_data)
 		destroyElement(el);
 	}
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char sample_attribute(QName qname, void* app_data)
+static errorCode sample_attribute(QName qname, void* app_data)
 {
 	struct appData* appD = (struct appData*) app_data;
 	if(appD->outputFormat == OUT_EXI)
@@ -264,10 +264,10 @@ static char sample_attribute(QName qname, void* app_data)
 	}
 	appD->expectAttributeData = 1;
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char sample_stringData(const String value, void* app_data)
+static errorCode sample_stringData(const String value, void* app_data)
 {
 	struct appData* appD = (struct appData*) app_data;
 	if(appD->outputFormat == OUT_EXI)
@@ -303,10 +303,10 @@ static char sample_stringData(const String value, void* app_data)
 		}
 	}
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char sample_decimalData(Decimal value, void* app_data)
+static errorCode sample_decimalData(Decimal value, void* app_data)
 {
 	struct appData* appD = (struct appData*) app_data;
 	if(appD->outputFormat == OUT_EXI)
@@ -337,10 +337,10 @@ static char sample_decimalData(Decimal value, void* app_data)
 		}
 	}
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char sample_intData(Integer int_val, void* app_data)
+static errorCode sample_intData(Integer int_val, void* app_data)
 {
 	struct appData* appD = (struct appData*) app_data;
 	char tmp_buf[30];
@@ -381,10 +381,10 @@ static char sample_intData(Integer int_val, void* app_data)
 		}
 	}
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char sample_booleanData(boolean bool_val, void* app_data)
+static errorCode sample_booleanData(boolean bool_val, void* app_data)
 {
 	struct appData* appD = (struct appData*) app_data;
 
@@ -431,10 +431,10 @@ static char sample_booleanData(boolean bool_val, void* app_data)
 		}
 	}
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char sample_floatData(Float fl_val, void* app_data)
+static errorCode sample_floatData(Float fl_val, void* app_data)
 {
 	struct appData* appD = (struct appData*) app_data;
 	char tmp_buf[30];
@@ -475,10 +475,10 @@ static char sample_floatData(Float fl_val, void* app_data)
 		}
 	}
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char sample_dateTimeData(EXIPDateTime dt_val, void* app_data)
+static errorCode sample_dateTimeData(EXIPDateTime dt_val, void* app_data)
 {
 	struct appData* appD = (struct appData*) app_data;
 	char fsecBuf[30];
@@ -551,10 +551,10 @@ static char sample_dateTimeData(EXIPDateTime dt_val, void* app_data)
 		}
 	}
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char sample_binaryData(const char* binary_val, Index nbytes, void* app_data)
+static errorCode sample_binaryData(const char* binary_val, Index nbytes, void* app_data)
 {
 	struct appData* appD = (struct appData*) app_data;
 
@@ -591,7 +591,7 @@ static char sample_binaryData(const char* binary_val, Index nbytes, void* app_da
 		}
 	}
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
 // Stuff needed for the OUT_XML Output Format

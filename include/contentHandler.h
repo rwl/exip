@@ -22,44 +22,40 @@
 
 #include "procTypes.h"
 
-/** Macros for the returning code from the ContentHandler callbacks */
-#define EXIP_HANDLER_OK   0
-#define EXIP_HANDLER_STOP 1
-
 /**
  * Simple container for function pointers for document events.
  */
 struct ContentHandler
 {
 	// For handling the meta-data (document structure)
-	char (*startDocument)(void* app_data);
-	char (*endDocument)(void* app_data);
-	char (*startElement)(QName qname, void* app_data);
-	char (*endElement)(void* app_data);
-	char (*attribute)(QName qname, void* app_data);
+	errorCode (*startDocument)(void* app_data);
+	errorCode (*endDocument)(void* app_data);
+	errorCode (*startElement)(QName qname, void* app_data);
+	errorCode (*endElement)(void* app_data);
+	errorCode (*attribute)(QName qname, void* app_data);
 
 	// For handling the data
-	char (*intData)(Integer int_val, void* app_data);
-	char (*booleanData)(boolean bool_val, void* app_data);
-	char (*stringData)(const String str_val, void* app_data);
-	char (*floatData)(Float float_val, void* app_data);
-	char (*binaryData)(const char* binary_val, Index nbytes, void* app_data);
-	char (*dateTimeData)(EXIPDateTime dt_val, void* app_data);
-	char (*decimalData)(Decimal dec_val, void* app_data);
-	char (*listData)(EXITypeClass exiType, unsigned int itemCount, void* app_data);
-	char (*qnameData)(const QName qname, void* app_data); // xsi:type value only
+	errorCode (*intData)(Integer int_val, void* app_data);
+	errorCode (*booleanData)(boolean bool_val, void* app_data);
+	errorCode (*stringData)(const String str_val, void* app_data);
+	errorCode (*floatData)(Float float_val, void* app_data);
+	errorCode (*binaryData)(const char* binary_val, Index nbytes, void* app_data);
+	errorCode (*dateTimeData)(EXIPDateTime dt_val, void* app_data);
+	errorCode (*decimalData)(Decimal dec_val, void* app_data);
+	errorCode (*listData)(EXITypeClass exiType, unsigned int itemCount, void* app_data);
+	errorCode (*qnameData)(const QName qname, void* app_data); // xsi:type value only
 
 	// Miscellaneous
-	char (*processingInstruction)(void* app_data); // TODO: define the parameters!
-	char (*namespaceDeclaration)(const String ns, const String prefix, boolean isLocalElementNS, void* app_data);
+	errorCode (*processingInstruction)(void* app_data); // TODO: define the parameters!
+	errorCode (*namespaceDeclaration)(const String ns, const String prefix, boolean isLocalElementNS, void* app_data);
 
 	// For error handling
-	char (*warning)(const char code, const char* msg, void* app_data);
-	char (*error)(const char code, const char* msg, void* app_data);
-	char (*fatalError)(const char code, const char* msg, void* app_data);
+	errorCode (*warning)(const errorCode code, const char* msg, void* app_data);
+	errorCode (*error)(const errorCode code, const char* msg, void* app_data);
+	errorCode (*fatalError)(const errorCode code, const char* msg, void* app_data);
 
 	// EXI specific
-	char (*selfContained)(void* app_data);  // Used for indexing independent elements for random access
+	errorCode (*selfContained)(void* app_data);  // Used for indexing independent elements for random access
 };
 
 typedef struct ContentHandler ContentHandler;

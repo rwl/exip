@@ -48,18 +48,18 @@ size_t readFileInputStream(void* buf, size_t readSize, void* stream)
 
 /* Document callbacks */
 
-static char sample_fatalError(const char code, const char* msg, void* app_data)
+static errorCode sample_fatalError(const errorCode code, const char* msg, void* app_data)
 {
 	printf("\n%d : FATAL ERROR: %s\n", code, msg);
 	return EXIP_HANDLER_STOP;
 }
 
-static char sample_attribute(QName qname, void* app_data)
+static errorCode sample_attribute(QName qname, void* app_data)
 {
 	struct appData* appD = (struct appData*) app_data;
 	appD->attributeCount++;
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
 
