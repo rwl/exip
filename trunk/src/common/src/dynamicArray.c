@@ -68,9 +68,7 @@ errorCode addDynEntry(DynArray* dynArray, void* entry, Index* entryID)
 	errorCode tmp_err_code;
 	void *emptyEntry;
 
-	tmp_err_code = addEmptyDynEntry(dynArray, &emptyEntry, entryID);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(addEmptyDynEntry(dynArray, &emptyEntry, entryID));
 
 	memcpy(emptyEntry, entry, dynArray->entrySize);
 	return ERR_OK;

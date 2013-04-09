@@ -67,13 +67,9 @@ errorCode encodeStringData(EXIStream* strm, String strng, QNameID qnameID, Index
 	{
 		unsigned char vxBits;
 
-		tmp_err_code = encodeUnsignedInteger(strm, 0);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(encodeUnsignedInteger(strm, 0));
 		vxBits = getBitsNumber(vxTable->count - 1);
-		tmp_err_code = encodeNBitUnsignedInteger(strm, vxBits, vxEntryId);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(encodeNBitUnsignedInteger(strm, vxBits, vxEntryId));
 	}
 	else //  "local" value partition table miss
 	{
@@ -83,35 +79,22 @@ errorCode encodeStringData(EXIStream* strm, String strng, QNameID qnameID, Index
 		{
 			unsigned char valueBits;
 
-			tmp_err_code = encodeUnsignedInteger(strm, 1);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(encodeUnsignedInteger(strm, 1));
 			valueBits = getBitsNumber((unsigned int)(strm->valueTable.count - 1));
-			tmp_err_code = encodeNBitUnsignedInteger(strm, valueBits, (unsigned int)(valueEntryId) );
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(encodeNBitUnsignedInteger(strm, valueBits, (unsigned int)(valueEntryId)));
 		}
 		else // "local" value partition and global value partition table miss
 		{
-			tmp_err_code = encodeUnsignedInteger(strm, (UnsignedInteger)(strng.length + 2));
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
-			tmp_err_code = encodeStringOnly(strm, &strng);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(encodeUnsignedInteger(strm, (UnsignedInteger)(strng.length + 2)));
+			TRY(encodeStringOnly(strm, &strng));
 
 			if(strng.length > 0 && strng.length <= strm->header.opts.valueMaxLength && strm->header.opts.valuePartitionCapacity > 0)
 			{
 				// The value should be added in the value partitions of the string tables
 				String clonedValue;
 
-				tmp_err_code = cloneString(&strng, &clonedValue);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
-
-				tmp_err_code = addValueEntry(strm, clonedValue, qnameID);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
+				TRY(cloneString(&strng, &clonedValue));
+				TRY(addValueEntry(strm, clonedValue, qnameID));
 			}
 		}
 	}
@@ -164,12 +147,7 @@ errorCode encodeProduction(EXIStream* strm, EventTypeClass eventClass, boolean i
 #if DEBUG_CONTENT_IO == ON
 	{
 		errorCode tmp_err_code = UNEXPECTED_ERROR;
-		tmp_err_code = printGrammarRule(strm->context.currNonTermID, currentRule, strm->schema);
-		if(tmp_err_code != ERR_OK)
-		{
-			DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Error printing grammar rule\n"));
-			return tmp_err_code;
-		}
+		TRY(printGrammarRule(strm->context.currNonTermID, currentRule, strm->schema));
 	}
 #endif
 
@@ -261,9 +239,7 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 				strm->context.currNonTermID = GR_VOID_NON_TERMINAL;
 
 				// #1# COMMENT and #2# COMMENT
-				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_EE, GR_VOID_NON_TERMINAL, &voidQnameID, 1);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
+				TRY(insertZeroProduction((DynGrammarRule*) currentRule, EVENT_EE, GR_VOID_NON_TERMINAL, &voidQnameID, 1));
 			break;
 			case EVENT_AT_CLASS:
 				if(strm->context.currNonTermID != GR_START_TAG_CONTENT)
@@ -283,9 +259,7 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 					qnameID.lnId = strm->schema->uriTable.uri[qnameID.uriId].lnTable.count;
 				}
 
-				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_AT_QNAME, GR_START_TAG_CONTENT, &qnameID, 1);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
+				TRY(insertZeroProduction((DynGrammarRule*) currentRule, EVENT_AT_QNAME, GR_START_TAG_CONTENT, &qnameID, 1));
 			break;
 			case EVENT_NS_CLASS:
 				if(strm->context.currNonTermID != GR_START_TAG_CONTENT || !IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES))
@@ -316,9 +290,7 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 					qnameID.lnId = strm->schema->uriTable.uri[qnameID.uriId].lnTable.count;
 				}
 
-				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, GR_ELEMENT_CONTENT, &qnameID, 1);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
+				TRY(insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, GR_ELEMENT_CONTENT, &qnameID, 1));
 			break;
 			case EVENT_CH_CLASS:
 				SET_PROD_EXI_EVENT(prodHit->content, EVENT_CH);
@@ -329,9 +301,7 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 				strm->context.currNonTermID = GR_ELEMENT_CONTENT;
 
 				// #1# COMMENT and #2# COMMENT
-				tmp_err_code = insertZeroProduction((DynGrammarRule*) currentRule, EVENT_CH, GR_ELEMENT_CONTENT, &voidQnameID, 1);
-				if(tmp_err_code != ERR_OK)
-					return tmp_err_code;
+				TRY(insertZeroProduction((DynGrammarRule*) currentRule, EVENT_CH, GR_ELEMENT_CONTENT, &voidQnameID, 1));
 			break;
 			case EVENT_ER_CLASS:
 				return NOT_IMPLEMENTED_YET;
@@ -549,15 +519,11 @@ errorCode encodeQName(EXIStream* strm, QName qname, EventType eventT, QNameID* q
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Encoding QName\n"));
 
 /******* Start: URI **********/
-	tmp_err_code = encodeUri(strm, (String*) qname.uri, &qnameID->uriId);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(encodeUri(strm, (String*) qname.uri, &qnameID->uriId));
 /******* End: URI **********/
 
 /******* Start: Local name **********/
-	tmp_err_code = encodeLn(strm, (String*) qname.localName, qnameID);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(encodeLn(strm, (String*) qname.localName, qnameID));
 /******* End: Local name **********/
 
 	return encodePfxQName(strm, &qname, eventT, qnameID->uriId);
@@ -570,27 +536,15 @@ errorCode encodeUri(EXIStream* strm, String* uri, SmallIndex* uriId)
 
 	if(lookupUri(&strm->schema->uriTable, *uri, uriId)) // uri hit
 	{
-		tmp_err_code = encodeNBitUnsignedInteger(strm, uriBits, *uriId + 1);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(encodeNBitUnsignedInteger(strm, uriBits, *uriId + 1));
 	}
 	else  // uri miss
 	{
 		String copiedURI;
-		tmp_err_code = encodeNBitUnsignedInteger(strm, uriBits, 0);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		tmp_err_code = encodeString(strm, uri);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = cloneStringManaged(uri, &copiedURI, &strm->memList);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = addUriEntry(&strm->schema->uriTable, copiedURI, uriId);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(encodeNBitUnsignedInteger(strm, uriBits, 0));
+		TRY(encodeString(strm, uri));
+		TRY(cloneStringManaged(uri, &copiedURI, &strm->memList));
+		TRY(addUriEntry(&strm->schema->uriTable, copiedURI, uriId));
 	}
 
 	return ERR_OK;
@@ -603,40 +557,23 @@ errorCode encodeLn(EXIStream* strm, String* ln, QNameID* qnameID)
 	if(lookupLn(&strm->schema->uriTable.uri[qnameID->uriId].lnTable, *ln, &qnameID->lnId)) // local-name table hit
 	{
 		unsigned char lnBits = getBitsNumber((unsigned int)(strm->schema->uriTable.uri[qnameID->uriId].lnTable.count - 1));
-		tmp_err_code = encodeUnsignedInteger(strm, 0);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = encodeNBitUnsignedInteger(strm, lnBits, (unsigned int)(qnameID->lnId) );
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(encodeUnsignedInteger(strm, 0));
+		TRY(encodeNBitUnsignedInteger(strm, lnBits, (unsigned int)(qnameID->lnId)));
 	}
 	else // local-name table miss
 	{
 		String copiedLN;
-		tmp_err_code = encodeUnsignedInteger(strm, (UnsignedInteger)(ln->length + 1) );
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = encodeStringOnly(strm,  ln);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(encodeUnsignedInteger(strm, (UnsignedInteger)(ln->length + 1)));
+		TRY(encodeStringOnly(strm,  ln));
 
 		if(strm->schema->uriTable.uri[qnameID->uriId].lnTable.ln == NULL)
 		{
 			// Create local name table for this URI entry
-			tmp_err_code = createDynArray(&strm->schema->uriTable.uri[qnameID->uriId].lnTable.dynArray, sizeof(LnEntry), DEFAULT_LN_ENTRIES_NUMBER);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(createDynArray(&strm->schema->uriTable.uri[qnameID->uriId].lnTable.dynArray, sizeof(LnEntry), DEFAULT_LN_ENTRIES_NUMBER));
 		}
 
-		tmp_err_code = cloneStringManaged(ln, &copiedLN, &strm->memList);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = addLnEntry(&strm->schema->uriTable.uri[qnameID->uriId].lnTable, copiedLN, &qnameID->lnId);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(cloneStringManaged(ln, &copiedLN, &strm->memList));
+		TRY(addLnEntry(&strm->schema->uriTable.uri[qnameID->uriId].lnTable, copiedLN, &qnameID->lnId));
 	}
 
 	return ERR_OK;
@@ -663,18 +600,14 @@ errorCode encodePfxQName(EXIStream* strm, QName* qname, EventType eventT, SmallI
 
 		if(lookupPfx(strm->schema->uriTable.uri[uriId].pfxTable, *qname->prefix, &prefixID) == TRUE)
 		{
-			tmp_err_code = encodeNBitUnsignedInteger(strm, prefixBits, (unsigned int) prefixID);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(encodeNBitUnsignedInteger(strm, prefixBits, (unsigned int) prefixID));
 		}
 		else
 		{
 			if(eventT != EVENT_SE_ALL)
 				return INCONSISTENT_PROC_STATE;
 
-			tmp_err_code = encodeNBitUnsignedInteger(strm, prefixBits, 0);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(encodeNBitUnsignedInteger(strm, prefixBits, 0));
 		}
 	}
 
@@ -689,27 +622,15 @@ errorCode encodePfx(EXIStream* strm, SmallIndex uriId, String* prefix)
 
 	if(lookupPfx(strm->schema->uriTable.uri[uriId].pfxTable, *prefix, &pfxId)) // prefix hit
 	{
-		tmp_err_code = encodeNBitUnsignedInteger(strm, pfxBits, pfxId + 1);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(encodeNBitUnsignedInteger(strm, pfxBits, pfxId + 1));
 	}
 	else  // prefix miss
 	{
 		String copiedPrefix;
-		tmp_err_code = encodeNBitUnsignedInteger(strm, pfxBits, 0);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-		tmp_err_code = encodeString(strm, prefix);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = cloneStringManaged(prefix, &copiedPrefix, &strm->memList);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
-
-		tmp_err_code = addPfxEntry(strm->schema->uriTable.uri[uriId].pfxTable, copiedPrefix, &pfxId);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(encodeNBitUnsignedInteger(strm, pfxBits, 0));
+		TRY(encodeString(strm, prefix));
+		TRY(cloneStringManaged(prefix, &copiedPrefix, &strm->memList));
+		TRY(addPfxEntry(strm->schema->uriTable.uri[uriId].pfxTable, copiedPrefix, &pfxId));
 	}
 
 	return ERR_OK;

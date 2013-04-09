@@ -85,9 +85,7 @@ errorCode decode(EXIPSchema* schemaPtr, unsigned char outFlag, FILE *infile, siz
 	buffer.ioStrm.stream = infile;
 
 	// II: Second, initialize the parser object
-	tmp_err_code = initParser(&testParser, buffer, &parsingData);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(initParser(&testParser, buffer, &parsingData));
 
 	// III: Initialize the parsing data and hook the callback handlers to the parser object.
 	//      If out-of-band options are defined use testParser.strm.header.opts to set them
@@ -114,9 +112,7 @@ errorCode decode(EXIPSchema* schemaPtr, unsigned char outFlag, FILE *infile, siz
 
 	// IV: Parse the header of the stream
 
-	tmp_err_code = parseHeader(&testParser, FALSE);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(parseHeader(&testParser, FALSE));
 
 	// IV.1: Set the schema to be used for parsing.
 	// The schemaID mode and schemaID field can be read at
@@ -124,7 +120,7 @@ errorCode decode(EXIPSchema* schemaPtr, unsigned char outFlag, FILE *infile, siz
 	// parser.strm.header.opts.schemaID respectively
 	// If schemaless mode, use setSchema(&parser, NULL);
 
-	tmp_err_code = setSchema(&testParser, schemaPtr);
+	TRY(setSchema(&testParser, schemaPtr));
 
 	// V: Parse the body of the EXI stream
 
