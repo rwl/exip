@@ -109,47 +109,47 @@ static void parseSchema(const char* fileName, EXIPSchema* schema)
 
 /* Document callbacks */
 
-static char sample_fatalError(const char code, const char* msg, void* app_data)
+static errorCode sample_fatalError(const errorCode code, const char* msg, void* app_data)
 {
 	printf("\n%3d : FATAL ERROR: %s\n", code, msg);
 	return EXIP_HANDLER_STOP;
 }
 
-static char sample_startDocument(void* app_data)
+static errorCode sample_startDocument(void* app_data)
 {
 	appData* appD = (appData*) app_data;
 	asciiToString("SD", &appD->eventCode, &appD->allocList, TRUE);
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char sample_endDocument(void* app_data)
+static errorCode sample_endDocument(void* app_data)
 {
 	appData* appD = (appData*) app_data;
 	asciiToString("ED", &appD->eventCode, &appD->allocList, TRUE);
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char sample_startElement(QName qname, void* app_data)
+static errorCode sample_startElement(QName qname, void* app_data)
 {
 	appData* appD = (appData*) app_data;
 	asciiToString("SE", &appD->eventCode, &appD->allocList, TRUE);
 	cloneStringManaged(qname.uri, &appD->uri, &appD->allocList);
 	cloneStringManaged(qname.localName, &appD->localName, &appD->allocList);
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char sample_endElement(void* app_data)
+static errorCode sample_endElement(void* app_data)
 {
 	appData* appD = (appData*) app_data;
 	asciiToString("EE", &appD->eventCode, &appD->allocList, TRUE);
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char sample_attribute(QName qname, void* app_data)
+static errorCode sample_attribute(QName qname, void* app_data)
 {
 	appData* appD = (appData*) app_data;
 	asciiToString("AT", &appD->eventCode, &appD->allocList, TRUE);
@@ -163,10 +163,10 @@ static char sample_attribute(QName qname, void* app_data)
 	
 	appD->expectAttributeData = 1;
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char sample_stringData(const String value, void* app_data)
+static errorCode sample_stringData(const String value, void* app_data)
 {
 	appData* appD = (appData*) app_data;
 	if(appD->expectAttributeData)
@@ -187,10 +187,10 @@ static char sample_stringData(const String value, void* app_data)
 		*/
 	}
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char sample_decimalData(Decimal value, void* app_data)
+static errorCode sample_decimalData(Decimal value, void* app_data)
 {
 	appData* appD = (appData*) app_data;
 	if(appD->expectAttributeData)
@@ -206,10 +206,10 @@ static char sample_decimalData(Decimal value, void* app_data)
 		asciiToString("CH", &appD->eventCode, &appD->allocList, TRUE);
 	}
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char sample_intData(Integer int_val, void* app_data)
+static errorCode sample_intData(Integer int_val, void* app_data)
 {
 	appData* appD = (appData*) app_data;
 	/* char tmp_buf[30]; */
@@ -233,10 +233,10 @@ static char sample_intData(Integer int_val, void* app_data)
 		*/
 	}
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char sample_floatData(Float fl_val, void* app_data)
+static errorCode sample_floatData(Float fl_val, void* app_data)
 {
 	appData* appD = (appData*) app_data;
 	/* char tmp_buf[30]; */
@@ -261,7 +261,7 @@ static char sample_floatData(Float fl_val, void* app_data)
 		*/
 	}
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
 /* Tests */
@@ -755,15 +755,15 @@ struct appDataLKAB
 };
 
 // Content Handler API
-static char lkab_fatalError(const char code, const char* msg, void* app_data);
-static char lkab_startElement_io(QName qname, void* app_data);
-static char lkab_startElement_desc(QName qname, void* app_data);
-static char lkab_endElement(void* app_data);
-static char lkab_stringData_io(const String value, void* app_data);
-static char lkab_stringData_desc(const String value, void* app_data);
-static char lkab_booleanData_io(boolean bool_val, void* app_data);
-static char lkab_booleanData_desc(boolean bool_val, void* app_data);
-static char lkab_dateTimeData(EXIPDateTime dt_val, void* app_data);
+static errorCode lkab_fatalError(const errorCode code, const char* msg, void* app_data);
+static errorCode lkab_startElement_io(QName qname, void* app_data);
+static errorCode lkab_startElement_desc(QName qname, void* app_data);
+static errorCode lkab_endElement(void* app_data);
+static errorCode lkab_stringData_io(const String value, void* app_data);
+static errorCode lkab_stringData_desc(const String value, void* app_data);
+static errorCode lkab_booleanData_io(boolean bool_val, void* app_data);
+static errorCode lkab_booleanData_desc(boolean bool_val, void* app_data);
+static errorCode lkab_dateTimeData(EXIPDateTime dt_val, void* app_data);
 
 /**
  * @brief Reads the time-stamp and value data from a EXI message
@@ -1204,12 +1204,12 @@ static error_code parseDevDescMsg(char* buf, unsigned int buf_size, DevDescribti
 		return tmp_err_code;
 }
 
-static char lkab_fatalError(const char code, const char* msg, void* app_data)
+static errorCode lkab_fatalError(const errorCode code, const char* msg, void* app_data)
 {
 	return EXIP_HANDLER_STOP;
 }
 
-static char lkab_startElement_io(QName qname, void* app_data)
+static errorCode lkab_startElement_io(QName qname, void* app_data)
 {
 	struct appDataLKAB* appD = (struct appDataLKAB*) app_data;
 	QName expectedElem;
@@ -1242,10 +1242,10 @@ static char lkab_startElement_io(QName qname, void* app_data)
 		return EXIP_HANDLER_STOP;
 	}
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char lkab_startElement_desc(QName qname, void* app_data)
+static errorCode lkab_startElement_desc(QName qname, void* app_data)
 {
 	struct appDataLKAB* appD = (struct appDataLKAB*) app_data;
 	QName expectedElem;
@@ -1296,15 +1296,15 @@ static char lkab_startElement_desc(QName qname, void* app_data)
 		return EXIP_HANDLER_STOP;
 	}
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char lkab_endElement(void* app_data)
+static errorCode lkab_endElement(void* app_data)
 {
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char lkab_stringData_io(const String value, void* app_data)
+static errorCode lkab_stringData_io(const String value, void* app_data)
 {
 	struct appDataLKAB* appD = (struct appDataLKAB*) app_data;
 
@@ -1318,14 +1318,14 @@ static char lkab_stringData_io(const String value, void* app_data)
 			if(stringEqual(ENUM_DATA_QUALITY[i], value))
 			{
 				appD->val.quality = i;
-				return EXIP_HANDLER_OK;
+				return ERR_OK;
 			}
 		}
 		return EXIP_HANDLER_STOP;
 	}
 }
 
-static char lkab_stringData_desc(const String value, void* app_data)
+static errorCode lkab_stringData_desc(const String value, void* app_data)
 {
 	struct appDataLKAB* appD = (struct appDataLKAB*) app_data;
 
@@ -1368,10 +1368,10 @@ static char lkab_stringData_desc(const String value, void* app_data)
 		break;
 	}
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char lkab_booleanData_io(boolean bool_val, void* app_data)
+static errorCode lkab_booleanData_io(boolean bool_val, void* app_data)
 {
 	struct appDataLKAB* appD = (struct appDataLKAB*) app_data;
 
@@ -1382,10 +1382,10 @@ static char lkab_booleanData_io(boolean bool_val, void* app_data)
 		appD->val.val = bool_val;
 	}
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char lkab_booleanData_desc(boolean bool_val, void* app_data)
+static errorCode lkab_booleanData_desc(boolean bool_val, void* app_data)
 {
 	struct appDataLKAB* appD = (struct appDataLKAB*) app_data;
 
@@ -1396,10 +1396,10 @@ static char lkab_booleanData_desc(boolean bool_val, void* app_data)
 		appD->devDesc.processValue.isReadOnly = bool_val;
 	}
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char lkab_dateTimeData(EXIPDateTime dt_val, void* app_data)
+static errorCode lkab_dateTimeData(EXIPDateTime dt_val, void* app_data)
 {
 	struct appDataLKAB* appD = (struct appDataLKAB*) app_data;
 
@@ -1411,7 +1411,7 @@ static char lkab_dateTimeData(EXIPDateTime dt_val, void* app_data)
 	appD->val.ts.sec = dt_val.dateTime.tm_sec;
 	appD->val.ts.msec = dt_val.fSecs.value;
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
 #define LKAB_BUFFER_SIZE 1000

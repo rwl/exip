@@ -97,13 +97,13 @@ static void parseSchema(const char* fileName, EXIPSchema* schema)
 
 /* Document callbacks */
 
-static char sample_fatalError(const char code, const char* msg, void* app_data)
+static errorCode sample_fatalError(const errorCode code, const char* msg, void* app_data)
 {
 	printf("\n%3d : FATAL ERROR: %s\n", code, msg);
 	return EXIP_HANDLER_STOP;
 }
 
-static char sample_startElement(QName qname, void* app_data)
+static errorCode sample_startElement(QName qname, void* app_data)
 {
 	appData* appD = (appData*) app_data;
 
@@ -136,10 +136,10 @@ static char sample_startElement(QName qname, void* app_data)
 			return EXIP_HANDLER_STOP;
 			break;
 	}
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char sample_attribute(QName qname, void* app_data)
+static errorCode sample_attribute(QName qname, void* app_data)
 {
 	appData* appD = (appData*) app_data;
 
@@ -183,10 +183,10 @@ static char sample_attribute(QName qname, void* app_data)
 			return EXIP_HANDLER_STOP;
 			break;
 	}
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char sample_stringData(const String value, void* app_data)
+static errorCode sample_stringData(const String value, void* app_data)
 {
 	appData* appD = (appData*) app_data;
 
@@ -211,10 +211,10 @@ static char sample_stringData(const String value, void* app_data)
 			return EXIP_HANDLER_STOP;
 			break;
 	}
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
-static char sample_intData(Integer int_val, void* app_data)
+static errorCode sample_intData(Integer int_val, void* app_data)
 {
 	if(int_val != 11)
 	{
@@ -222,7 +222,7 @@ static char sample_intData(Integer int_val, void* app_data)
 		return EXIP_HANDLER_STOP;
 	}
 
-	return EXIP_HANDLER_OK;
+	return ERR_OK;
 }
 
 START_TEST (test_default_options)

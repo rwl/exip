@@ -195,7 +195,12 @@ enum errorCode
 	  * fidelity option is true (see 6.3 Fidelity Options), or when the EXI stream is a schema-less EXI stream.
 	  * 5) Presence Bit for EXI Options not set and no out-of-band options set
 	  */
-	 HEADER_OPTIONS_MISMATCH                =20
+	 HEADER_OPTIONS_MISMATCH                =20,
+	 /**
+	  * Send a signal to the EXIP parser from a content handler callback
+	  * for gracefully stopping the EXI stream parsing.
+	  */
+	 EXIP_HANDLER_STOP                      =21
 };
 
 typedef enum errorCode errorCode;

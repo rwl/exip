@@ -27,9 +27,7 @@
 errorCode initParser(Parser* parser, BinaryBuffer buffer, void* app_data)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	tmp_err_code = initAllocList(&parser->strm.memList);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(initAllocList(&parser->strm.memList));
 
 	parser->strm.buffer = buffer;
 	parser->strm.context.bitPointer = 0;
@@ -62,16 +60,12 @@ errorCode parseHeader(Parser* parser, boolean outOfBandOpts)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
-	tmp_err_code = decodeHeader(&parser->strm, outOfBandOpts);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(decodeHeader(&parser->strm, outOfBandOpts));
 
 
 	if(parser->strm.header.opts.valuePartitionCapacity > 0)
 	{
-		tmp_err_code = createValueTable(&parser->strm.valueTable);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(createValueTable(&parser->strm.valueTable));
 	}
 
 	// The parsing of the header is successful
@@ -112,21 +106,15 @@ errorCode setSchema(Parser* parser, EXIPSchema* schema)
 		if(parser->strm.schema == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		tmp_err_code = initSchema(parser->strm.schema, INIT_SCHEMA_BUILD_IN_TYPES);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(initSchema(parser->strm.schema, INIT_SCHEMA_BUILD_IN_TYPES));
 
 		if(WITH_FRAGMENT(parser->strm.header.opts.enumOpt))
 		{
-			tmp_err_code = createFragmentGrammar(parser->strm.schema, NULL, 0);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(createFragmentGrammar(parser->strm.schema, NULL, 0));
 		}
 		else
 		{
-			tmp_err_code = createDocGrammar(parser->strm.schema, NULL, 0);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(createDocGrammar(parser->strm.schema, NULL, 0));
 		}
 	}
 	else if(schema != NULL)
@@ -157,27 +145,19 @@ errorCode setSchema(Parser* parser, EXIPSchema* schema)
 		if(parser->strm.schema == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
-		tmp_err_code = initSchema(parser->strm.schema, INIT_SCHEMA_SCHEMA_LESS_MODE);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(initSchema(parser->strm.schema, INIT_SCHEMA_SCHEMA_LESS_MODE));
 
 		if(WITH_FRAGMENT(parser->strm.header.opts.enumOpt))
 		{
-			tmp_err_code = createFragmentGrammar(parser->strm.schema, NULL, 0);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(createFragmentGrammar(parser->strm.schema, NULL, 0));
 		}
 		else
 		{
-			tmp_err_code = createDocGrammar(parser->strm.schema, NULL, 0);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(createDocGrammar(parser->strm.schema, NULL, 0));
 		}
 	}
 
-	tmp_err_code = pushGrammar(&parser->strm.gStack, &parser->strm.schema->docGrammar);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(pushGrammar(&parser->strm.gStack, &parser->strm.schema->docGrammar));
 
 	return ERR_OK;
 }
@@ -187,9 +167,7 @@ errorCode parseNext(Parser* parser)
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	SmallIndex tmpNonTermID = GR_VOID_NON_TERMINAL;
 
-	tmp_err_code = processNextProduction(&parser->strm, &tmpNonTermID, &parser->handler, parser->app_data);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(processNextProduction(&parser->strm, &tmpNonTermID, &parser->handler, parser->app_data));
 
 	if(tmpNonTermID == GR_VOID_NON_TERMINAL)
 	{

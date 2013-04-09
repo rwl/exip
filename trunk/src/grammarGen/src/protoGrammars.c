@@ -34,9 +34,7 @@ errorCode addProtoRule(ProtoGrammar* pg, Index prodDim, ProtoRuleEntry** ruleEnt
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	Index ruleId;
 
-	tmp_err_code = addEmptyDynEntry(&pg->dynArray, (void **) ruleEntry, &ruleId);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(addEmptyDynEntry(&pg->dynArray, (void **) ruleEntry, &ruleId));
 
 	return createDynArray(&((*ruleEntry)->dynArray), sizeof(Production), prodDim);
 }
@@ -47,9 +45,7 @@ errorCode addProduction(ProtoRuleEntry* ruleEntry, EventType eventType, Index ty
 	Production *newProd;
 	Index newProdId;
 
-	tmp_err_code = addEmptyDynEntry(&ruleEntry->dynArray, (void**)&newProd, &newProdId);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(addEmptyDynEntry(&ruleEntry->dynArray, (void**)&newProd, &newProdId));
 
 	SET_PROD_EXI_EVENT(newProd->content, eventType);
 	newProd->typeId = typeId;
@@ -111,22 +107,16 @@ errorCode cloneProtoGrammar(ProtoGrammar* src, ProtoGrammar* dest)
 	Index i;
 	Index j;
 
-	tmp_err_code = createProtoGrammar(src->count, dest);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(createProtoGrammar(src->count, dest));
 
 	dest->contentIndex = src->contentIndex;
 	for (i = 0; i < src->count; i++)
 	{
-		tmp_err_code = addProtoRule(dest, src->rule[i].count, &pRuleEntry);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(addProtoRule(dest, src->rule[i].count, &pRuleEntry));
 
 		for (j = 0; j < src->rule[i].count; j++)
 		{
-			tmp_err_code = addProduction(pRuleEntry, GET_PROD_EXI_EVENT(src->rule[i].prod[j].content), src->rule[i].prod[j].typeId, src->rule[i].prod[j].qnameId, GET_PROD_NON_TERM(src->rule[i].prod[j].content));
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(addProduction(pRuleEntry, GET_PROD_EXI_EVENT(src->rule[i].prod[j].content), src->rule[i].prod[j].typeId, src->rule[i].prod[j].qnameId, GET_PROD_NON_TERM(src->rule[i].prod[j].content)));
 		}
 	}
 

@@ -60,17 +60,10 @@ errorCode initTreeTable(TreeTable* treeT)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 
-	tmp_err_code = initAllocList(&treeT->memList);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(initAllocList(&treeT->memList));
 
-	tmp_err_code = createDynArray(&treeT->dynArray, sizeof(TreeTableEntry), TREE_TABLE_ENTRY_COUNT);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
-
-	tmp_err_code = createDynArray(&treeT->globalDefs.pfxNsTable.dynArray, sizeof(PfxNsEntry), 10);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(createDynArray(&treeT->dynArray, sizeof(TreeTableEntry), TREE_TABLE_ENTRY_COUNT));
+	TRY(createDynArray(&treeT->globalDefs.pfxNsTable.dynArray, sizeof(PfxNsEntry), 10));
 
 	treeT->globalDefs.isMain = FALSE;
 	treeT->globalDefs.attrFormDefault = UNQUALIFIED;
@@ -141,9 +134,7 @@ errorCode resolveTypeHierarchy(EXIPSchema* schema, TreeTable* treeT, unsigned in
 		/* For every three table global entry */
 		for(j = 0; j < treeT[i].count; j++)
 		{
-			tmp_err_code = resolveEntry(schema, treeT, count, i, &treeT[i].tree[j]);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(resolveEntry(schema, treeT, count, i, &treeT[i].tree[j]));
 		}
 	}
 	return ERR_OK;
@@ -156,17 +147,13 @@ static errorCode resolveEntry(EXIPSchema* schema, TreeTable* treeT, unsigned int
 	/* Recursively resolve entries through children first */
 	if(entry->child.entry != NULL)
 	{
-		tmp_err_code = resolveEntry(schema, treeT, count, currTreeT, entry->child.entry);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(resolveEntry(schema, treeT, count, currTreeT, entry->child.entry));
 	}
 
 	/* Then through groups (linked by next pointer) */
 	if(entry->next != NULL)
 	{
-		tmp_err_code = resolveEntry(schema, treeT, count, currTreeT, entry->next);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(resolveEntry(schema, treeT, count, currTreeT, entry->next));
 	}
 
 	/* If elements, attributes, groups or attributeGroups -> link type to global types or link ref to global definitions */
@@ -180,18 +167,14 @@ static errorCode resolveEntry(EXIPSchema* schema, TreeTable* treeT, unsigned int
 			if(entry->child.entry != NULL) // TODO: add debug info
 				return UNEXPECTED_ERROR;
 
-			tmp_err_code = lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_TYPE], LOOKUP_TYPE, entry);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_TYPE], LOOKUP_TYPE, entry));
 		}
 		else if(!isStringEmpty(&entry->attributePointers[ATTRIBUTE_REF]))
 		{
 			if(entry->child.entry != NULL) // TODO: add debug info
 				return UNEXPECTED_ERROR;
 
-			tmp_err_code = lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_REF], LOOKUP_REF, entry);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_REF], LOOKUP_REF, entry));
 		}
 	}
 	/* If there are extensions or restrictions, link their base type to the supertype pointer */
@@ -202,9 +185,7 @@ static errorCode resolveEntry(EXIPSchema* schema, TreeTable* treeT, unsigned int
 			if(entry->supertype.entry != NULL) // TODO: add debug info
 				return UNEXPECTED_ERROR;
 
-			tmp_err_code = lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_BASE], LOOKUP_SUPER_TYPE, entry);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_BASE], LOOKUP_SUPER_TYPE, entry));
 		}
 	}
 	/* If there is a list, link its itemType to the supertype pointer */
@@ -215,9 +196,7 @@ static errorCode resolveEntry(EXIPSchema* schema, TreeTable* treeT, unsigned int
 			if(entry->supertype.entry != NULL) // TODO: add debug info
 				return UNEXPECTED_ERROR;
 
-			tmp_err_code = lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_ITEM_TYPE], LOOKUP_SUPER_TYPE, entry);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_ITEM_TYPE], LOOKUP_SUPER_TYPE, entry));
 		}
 	}
 
@@ -232,9 +211,7 @@ static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, un
 	QNameID typeQnameID;
 	unsigned int j;
 
-	tmp_err_code = getTypeQName(schema, &treeT[currTreeT], *eName, &typeQnameID);
-	if(tmp_err_code != ERR_OK)
-		return tmp_err_code;
+	TRY(getTypeQName(schema, &treeT[currTreeT], *eName, &typeQnameID));
 
 	for(i = 0; i < count; i++)
 	{
@@ -492,9 +469,7 @@ errorCode getNsList(TreeTable* treeT, String nsList, NsTable* nsTable)
 				getEmptyString(&tmpNS);
 			}
 
-			tmp_err_code = addDynEntry(&nsTable->dynArray, &tmpNS, &dummy_elemID);
-			if(tmp_err_code != ERR_OK)
-				return tmp_err_code;
+			TRY(addDynEntry(&nsTable->dynArray, &tmpNS, &dummy_elemID));
 
 			attrNamespece.length = attrNamespece.length - sChIndex - 1;
 			attrNamespece.str = attrNamespece.str + sChIndex + 1;
@@ -502,9 +477,7 @@ errorCode getNsList(TreeTable* treeT, String nsList, NsTable* nsTable)
 			sChIndex = getIndexOfChar(&attrNamespece, ' ');
 		}
 
-		tmp_err_code = addDynEntry(&nsTable->dynArray, &attrNamespece, &dummy_elemID);
-		if(tmp_err_code != ERR_OK)
-			return tmp_err_code;
+		TRY(addDynEntry(&nsTable->dynArray, &attrNamespece, &dummy_elemID));
 	}
 	return ERR_OK;
 }
