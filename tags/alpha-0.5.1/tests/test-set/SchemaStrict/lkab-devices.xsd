@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="http://imc-aesop.eu/lkab-demo"
+		elementFormDefault="qualified"
+		xmlns="http://www.w3.org/2001/XMLSchema"
+		xmlns:tns="http://imc-aesop.eu/lkab-demo">
+		
+	<complexType name="DeviceDescription">
+		<sequence>
+			<element name="id" type="string"/>
+			<element name="name" type="string"/>
+			<element name="type" type="string"/>
+			<element name="location" type="string"/>
+			<element name="processValues" type="tns:ProcessValueDescription" minOccurs="0" maxOccurs="unbounded"/>
+			<element name="parameters" type="tns:ParameterDescription" minOccurs="0" maxOccurs="unbounded"/>
+			<element name="commands" type="tns:CommandDescription" minOccurs="0" maxOccurs="unbounded"/>
+			<element name="Alarms" type="tns:AlarmDescription" minOccurs="0" maxOccurs="unbounded"/>
+		</sequence>
+	</complexType>
+	
+	<complexType name="ProcessValueDescription">
+		<sequence>
+			<element name="name" type="string"/>
+			<element name="type" type="tns:ValueType"/>
+			<element name="isReadOnly" type="boolean"/>
+			<element name="description" type="string"/>
+		</sequence>
+	</complexType>
+	
+	<complexType name="ParameterDescription">
+		<sequence>
+			<element name="name" type="string"/>
+			<element name="type" type="tns:ValueType"/>
+			<element name="description" type="string"/>
+		</sequence>
+	</complexType>
+	
+	<complexType name="CommandDescription">
+		<sequence>
+			<element name="name" type="string"/>
+			<element name="description" type="string"/>
+		</sequence>
+	</complexType>
+	
+	<complexType name="AlarmDescription">
+		<sequence>
+			<element name="name" type="string"/>
+			<element name="description" type="string"/>
+		</sequence>
+	</complexType>
+	
+	<simpleType name="ValueType">
+		<restriction base="string">
+			<enumeration value="Bool"/>
+			<enumeration value="Long"/>
+		</restriction>
+	</simpleType>
+	
+	<complexType name="AbstractValue">
+		<annotation>
+		 <documentation>Note that the suggested String ValueName is not included!</documentation>
+		</annotation>
+		<sequence>
+			<element name="timestamp" type="dateTime" minOccurs="0"/>
+			<element name="quality" type="tns:Quality" minOccurs="0" />
+		</sequence>
+	</complexType>
+	
+	<complexType name="BoolValue">
+		<complexContent>
+			<extension base="tns:AbstractValue">
+				<sequence>
+					<element name="value" type="boolean"/>
+				</sequence>
+			</extension>
+		</complexContent>
+	</complexType>
+	
+	<complexType name="LongValue">
+		<complexContent>
+			<extension base="tns:AbstractValue">
+				<sequence>
+					<element name="value" type="long"/>
+				</sequence>
+			</extension>
+		</complexContent>
+	</complexType>
+	
+	<simpleType name="Quality">
+		<restriction base="string">
+			<enumeration value="Good"/>
+			<enumeration value="Good_LocalOverride"/>
+			<enumeration value="Uncertain"/>
+			<enumeration value="Uncertain_LastUsable"/>
+			<enumeration value="Uncertain_SensorCal"/>
+			<enumeration value="Uncertain_EGUExeeded"/>
+			<enumeration value="Uncertain_SubNormal"/>
+			<enumeration value="Bad"/>
+			<enumeration value="Bad_ConfigError"/>
+			<enumeration value="Bad_NotConnected"/>
+			<enumeration value="Bad_DeviceFailure"/>
+			<enumeration value="Bad_SensorFailure"/>
+			<enumeration value="Bad_CommFailureLastKnownAvailable"/>
+			<enumeration value="Bad_CommFailure"/>
+			<enumeration value="Bad_OutOfService"/>
+		</restriction>
+	</simpleType>
+	
+	<element name="DeviceDescription" type="tns:DeviceDescription"/>
+	<element name="BoolValue" type="tns:BoolValue"/>
+	<element name="LongValue" type="tns:LongValue"/>
+	
+</schema>

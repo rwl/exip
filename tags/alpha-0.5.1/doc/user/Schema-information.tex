@@ -1,0 +1,60 @@
+\section{Schema Information}
+\label{sec:Schema-Infromation}
+
+This section examines different ways of constructing \texttt{EXIPSchema} object
+containing the XML schema definitions and constrains. The header file \texttt{grammarGenerator.h}
+defines a function \texttt{generateSchemaInformedGrammars()} that takes a XML schema document(s) and converts them to 
+\texttt{EXIPSchema} object. This function can be used to dynamically (at run-time)
+parse a schema and generate the EXI grammar constructs for schema-enabled
+parsing and serialization. The \texttt{EXIPSchema} object can be used to process
+multiple EXI streams. After the processing is done, the schema object can be destroyed
+to free the allocated memory with the \texttt{destroySchema()} function.
+
+As mentioned earlier, the EXIP library currently supports
+only XML schema definitions represented in EXI format. Moreover, the fidelity option \texttt{Preserve.prefixes} must be
+set in order to decode the QNames in the value items correctly (see the EXI specification for
+more information on that).
+
+When the XML schemes are static (only used at
+compile time) the \texttt{grammarGen} module is not needed and can be excluded from the build.
+In this case the \texttt{EXIPSchema} object can be build from automatically generated source code
+by the \texttt{exipg} utility implemented in \texttt{utils/schemaHandling/createGrammars.c}.
+
+\subsection{Using exipg utility}
+The \texttt{exipg} utility is a command line tool for generating EXI grammar definitions
+for schema-enabled EXI processing based on XML schemes.
+It uses the grammar generation
+function in \texttt{grammarGenerator.h} and as such also requires EXI encoded XML schemes.
+There are three modes defining the output of the tool:
+\begin{description}
+ \item[exip] In this mode the XML schema is serialized into an EXIP specific format. The output is
+	    an EXI document that later can be loaded into the EXIP library for schema-enabled processing.
+	    This option is currently not implemented.
+ \item[text] In this mode the grammar definitions are printed in human readable form. This mode is
+	    useful for debugging purposes.
+ \item[static] In this mode the grammar definitions are generated in static \texttt{C} source code.
+ \end{description}
+As an example, the command line arguments used to generate the EXI Options document grammars are:
+\begin{lstlisting}
+exipg -static -pfx=ops_ -ops=0001000 -schema=EXIOptions-xsd.exi staticEXIOptions.c
+\end{lstlisting}
+Note that the \texttt{-ops=} argument is required when the EXI options used during encoding of
+the XSD into EXI are not included in the EXI header i.e.\ they are communicated
+out-of-band.
+
+\subsection{Converting XML Schema files to EXI}
+Currently, there are no XML Schema editing tools that are capable of saving the document in EXI format.
+For that reason it is required that you convert the text XML Schema to EXI encoding before using it
+with EXIP. You can use any of the open source Java implementations of EXI for that purpose.
+The latest distribution of the exip library includes a convenient GUI tool from OpenEXI project
+that can be used to encode XSD schema files into EXI representation. The tool is located
+under \texttt{externalTools/} folder of the source tree. OpenEXI graphical tool can
+be started with the following command:
+\begin{lstlisting}
+java -jar OpenEXIGUI.jar
+\end{lstlisting}
+When encoding the XML Schema file you should use schema-less mode indicated by ``Use Schema: None''
+and also set the Preserve.prefixes option by checking the ``Preserve Namespace Declarations''
+checkbox. It is recommended to encode these options in the header by setting
+``Include options'' checkbox. If you leave the ``Include options'' unchecked, you need to use the \texttt{-ops=} argument
+of the exipg utility to specify the out-of-band options.

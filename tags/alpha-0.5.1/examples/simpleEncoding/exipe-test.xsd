@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="http://www.ltu.se/EISLAB/schema-test" elementFormDefault="qualified"
+		xmlns="http://www.w3.org/2001/XMLSchema"
+		xmlns:tns="http://www.ltu.se/EISLAB/schema-test"
+		xmlns:nst="http://www.ltu.se/EISLAB/nested-xsd"
+		xmlns:ttt="http://www.ltu.se/EISLAB/types">
+
+	<import namespace="http://www.ltu.se/EISLAB/nested-xsd"/>
+	<import namespace="http://www.ltu.se/EISLAB/types"/>
+
+    <element name="EXIPEncoder">
+    	<complexType>
+    		<simpleContent>
+    			<extension base="string">
+    				<attribute name="version" type="string"></attribute>
+    				<attribute name="testByte" use="optional" type="byte"></attribute>
+    			</extension>
+    		</simpleContent>
+    	</complexType>
+    </element>
+    
+    <element name="MultipleXSDsTest">
+    	<complexType>
+    		<sequence>
+    			<element ref="tns:EXIPEncoder"/>
+    			<element name="description" type="string"/>
+    			<element ref="nst:testSetup"></element>
+    			<element name="type-test" type="nst:basicType"/>
+    			<element name="extendedTypeTest" type="ttt:typesTest" minOccurs="0"/>
+    		</sequence>
+    	</complexType>
+    </element>
+    
+</schema>
