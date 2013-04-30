@@ -29,7 +29,7 @@ CFLAGS += $(DEBUGGING)
 CFLAGS += $(ADDITIONAL_CFLAGS)
 
 # Library version
-EXIP_VERSION = 0.5
+EXIP_VERSION = 0.5.1
 
 # The project root directory
 PROJECT_ROOT = ../..
