@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
 static void printfHelp()
 {
     printf("\n" );
-    printf("  EXIP     Copyright (c) 2010 - 2012, EISLAB - Luleå University of Technology Version 0.5 \n");
+    printf("  EXIP     Copyright (c) 2010 - 2012, EISLAB - Luleå University of Technology Version 0.5.1 \n");
     printf("           Author: Rumen Kyusakov\n");
     printf("  Usage:   exipg [options] -schema=<xsd_in> [grammar_out] \n\n");
     printf("           Options: [-help | [[-exip | -text | -dynamic | -static] [-pfx=<prefix>] [-ops=<ops_mask>]] ] \n");
