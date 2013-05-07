@@ -810,6 +810,7 @@ errorCode decodeStringValue(EXIStream* strm, QNameID qnameID, String* value)
 
 	if(tmpVar == 0) // "local" value partition table hit
 	{
+#if VALUE_CROSSTABLE_USE
 		unsigned int vxEntryId = 0;
 		unsigned char vxBits;
 		VxTable* vxTable;
@@ -820,6 +821,10 @@ errorCode decodeStringValue(EXIStream* strm, QNameID qnameID, String* value)
 		TRY(decodeNBitUnsignedInteger(strm, vxBits, &vxEntryId));
 
 		*value = strm->valueTable.value[vxTable->vx[vxEntryId].globalId].valueStr;
+#else
+		DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, ("> Local-value partition table hit but VALUE_CROSSTABLE_USE disabled \n"));
+		return INCONSISTENT_PROC_STATE;
+#endif
 	}
 	else if(tmpVar == 1)// global value partition table hit
 	{

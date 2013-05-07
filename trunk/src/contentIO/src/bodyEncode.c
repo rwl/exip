@@ -35,8 +35,6 @@ errorCode encodeStringData(EXIStream* strm, String strng, QNameID qnameID, Index
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	boolean flag_StringLiteralsPartition = FALSE;
-	Index vxEntryId = 0;
-	VxTable* vxTable = GET_LN_URI_QNAME(strm->schema->uriTable, qnameID).vxTable;
 
 	/* ENUMERATION CHECK */
 	if(typeId != INDEX_MAX && HAS_TYPE_FACET(strm->schema->simpleTypeTable.sType[typeId].content,TYPE_FACET_ENUMERATION))
@@ -61,18 +59,23 @@ errorCode encodeStringData(EXIStream* strm, String strng, QNameID qnameID, Index
 		/* The enum value is not found! */
 		return UNEXPECTED_ERROR;
 	}
-
-	flag_StringLiteralsPartition = lookupVx(&strm->valueTable, vxTable, strng, &vxEntryId);
-	if(flag_StringLiteralsPartition && vxTable->vx[vxEntryId].globalId != INDEX_MAX) //  "local" value partition table hit; when INDEX_MAX -> compact identifier permanently unassigned
+#if VALUE_CROSSTABLE_USE
 	{
-		unsigned char vxBits;
+		VxTable* vxTable = GET_LN_URI_QNAME(strm->schema->uriTable, qnameID).vxTable;
+		Index vxEntryId = 0;
+		flag_StringLiteralsPartition = lookupVx(&strm->valueTable, vxTable, strng, &vxEntryId);
+		if(flag_StringLiteralsPartition && vxTable->vx[vxEntryId].globalId != INDEX_MAX) //  "local" value partition table hit; when INDEX_MAX -> compact identifier permanently unassigned
+		{
+			unsigned char vxBits;
 
-		TRY(encodeUnsignedInteger(strm, 0));
-		vxBits = getBitsNumber(vxTable->count - 1);
-		TRY(encodeNBitUnsignedInteger(strm, vxBits, vxEntryId));
+			TRY(encodeUnsignedInteger(strm, 0));
+			vxBits = getBitsNumber(vxTable->count - 1);
+			TRY(encodeNBitUnsignedInteger(strm, vxBits, vxEntryId));
+			return ERR_OK;
+		}
 	}
-	else //  "local" value partition table miss
-	{
+#endif
+	{ //  "local" value partition table miss
 		Index valueEntryId = 0;
 		flag_StringLiteralsPartition = lookupValue(&strm->valueTable, strng, &valueEntryId);
 		if(flag_StringLiteralsPartition) // global value partition table hit

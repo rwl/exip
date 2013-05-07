@@ -251,7 +251,7 @@ void staticLnEntriesOutput(LnTable* lnTbl, char* prefix, Index uriId, FILE* out)
 			else
 				sprintf(typeGrammar, "%u", (unsigned int) lnTbl->ln[lnIter].typeGrammar);
 
-			fprintf(out, "    {\n        NULL,\n");
+			fprintf(out, "    {\n#if VALUE_CROSSTABLE_USE\n         NULL,\n#endif\n");
 			if(lnTbl->ln[lnIter].lnStr.length > 0)
 				fprintf(out, "        {%sLN_%u_%u, %u},\n        %s, %s\n", prefix, (unsigned int) uriId, (unsigned int) lnIter, (unsigned int) lnTbl->ln[lnIter].lnStr.length, elemGrammar, typeGrammar);
 			else

@@ -755,18 +755,14 @@ typedef struct GrammarStackNode EXIGrammarStack;
 /** @name String Table Types */
 /**@{*/
 
-struct VxEntry {
-	Index globalId;
-};
-
-typedef struct VxEntry VxEntry;
-
 struct ValueEntry {
+#if VALUE_CROSSTABLE_USE
 	struct
 	{
 		QNameID forQNameId;
 		Index vxEntryId;
 	} locValuePartition; // A reference to the VxEntry for that global value
+#endif
 	String valueStr;
 };
 
@@ -778,7 +774,7 @@ struct ValueTable {
 #endif
 	ValueEntry* value;
 	Index count;
-#if HASH_TABLE_USE == ON
+#if HASH_TABLE_USE
 	/**
 	 * Hashtable for fast look-up of global values in the table.
 	 * Only used when:
@@ -795,15 +791,23 @@ struct ValueTable {
 
 typedef struct ValueTable ValueTable;
 
-struct VxTable {
-#if DYN_ARRAY_USE == ON
-	DynArray dynArray;
-#endif
-	VxEntry* vx;
-	Index count;
-};
+#if VALUE_CROSSTABLE_USE
+	struct VxEntry {
+		Index globalId;
+	};
 
-typedef struct VxTable VxTable;
+	typedef struct VxEntry VxEntry;
+
+	struct VxTable {
+	#if DYN_ARRAY_USE == ON
+		DynArray dynArray;
+	#endif
+		VxEntry* vx;
+		Index count;
+	};
+
+	typedef struct VxTable VxTable;
+#endif
 
 struct PfxTable {
 	/** The number of entries */
@@ -814,7 +818,9 @@ struct PfxTable {
 typedef struct PfxTable PfxTable;
 
 struct LnEntry {
+#if VALUE_CROSSTABLE_USE
 	VxTable* vxTable;
+#endif
 	String lnStr;
 	/** Global element grammar with uriStr:lnStr qname.
 	 *  Either Index of a global element grammar in the SchemaGrammarTable OR

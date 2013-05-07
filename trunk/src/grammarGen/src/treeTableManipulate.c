@@ -71,7 +71,7 @@ errorCode initTreeTable(TreeTable* treeT)
 	treeT->count = 0;
 	treeT->globalDefs.targetNsId = 0;
 
-#if HASH_TABLE_USE == ON
+#if HASH_TABLE_USE
 	// TODO: conditionally create the table, only if the schema is big.
 	// How to determine when the schema is big?
 	treeT->typeTbl = create_hashtable(INITIAL_HASH_TABLE_SIZE, djbHash, stringEqual);
@@ -103,7 +103,7 @@ void destroyTreeTable(TreeTable* treeT)
 	destroyDynArray(&treeT->dynArray);
 	destroyDynArray(&treeT->globalDefs.pfxNsTable.dynArray);
 
-#if HASH_TABLE_USE == ON
+#if HASH_TABLE_USE
 	if(treeT->typeTbl != NULL)
 		hashtable_destroy(treeT->typeTbl);
 
@@ -232,7 +232,7 @@ static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, un
 	}
 	else
 	{
-#if HASH_TABLE_USE == ON
+#if HASH_TABLE_USE
 		/* Use the hash table to do a fast lookup of the tree table index matching the global name */
 		if(treeT[i].typeTbl != NULL && treeT[i].elemTbl != NULL && treeT[i].attrTbl != NULL &&
 				treeT[i].groupTbl != NULL && treeT[i].attrGroupTbl != NULL)

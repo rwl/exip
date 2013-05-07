@@ -164,6 +164,7 @@ boolean lookupLn(LnTable* lnTable, String lnStr, Index* lnEntryId);
  */
 boolean lookupPfx(PfxTable* pfxTable, String pfxStr, SmallIndex* pfxEntryId);
 
+#if VALUE_CROSSTABLE_USE
 /**
  * @brief Search the value cross table for a particular string value
  * Search the value cross table (local partition of the value table) for a particular string value
@@ -177,6 +178,7 @@ boolean lookupPfx(PfxTable* pfxTable, String pfxStr, SmallIndex* pfxEntryId);
  * @return FALSE-not found, TRUE found
  */
 boolean lookupVx(ValueTable* valueTable, VxTable* vxTable, String valueStr, Index* vxEntryId);
+#endif
 
 /**
  * @brief Search the global Value table for a particular string value

@@ -125,7 +125,9 @@ START_TEST (test_addLnEntry)
 	fail_unless (entryId == 0,
 				"addLnEntry returned wrong entryId: %d", entryId);
 
+#if VALUE_CROSSTABLE_USE
 	fail_if(lnTable.ln[0].vxTable != NULL);
+#endif
 
 	lnTable.count = DEFAULT_LN_ENTRIES_NUMBER;
 
@@ -140,9 +142,9 @@ START_TEST (test_addLnEntry)
 						"addLnEntry changed the lnStr");
 	fail_unless (entryId == DEFAULT_LN_ENTRIES_NUMBER,
 				"addLnEntry returned wrong entryId: %d", entryId);
-
+#if VALUE_CROSSTABLE_USE
 	fail_if(lnTable.ln[DEFAULT_LN_ENTRIES_NUMBER].vxTable != NULL);
-
+#endif
 	destroyDynArray(&lnTable.dynArray);
 }
 END_TEST
@@ -175,8 +177,10 @@ START_TEST (test_addValueEntry)
 	tmp_err_code = addValueEntry(&testStrm, testStr, testStrm.context.currElem);
 
 	fail_unless (tmp_err_code == ERR_OK, "addValueEntry returns an error code %d", tmp_err_code);
+#if VALUE_CROSSTABLE_USE
 	fail_unless (testStrm.schema->uriTable.uri[testStrm.context.currElem.uriId].lnTable.ln[testStrm.context.currElem.lnId].vxTable != NULL, "addValueEntry does not create vxTable");
 	fail_unless (testStrm.schema->uriTable.uri[testStrm.context.currElem.uriId].lnTable.ln[testStrm.context.currElem.lnId].vxTable->count == 1, "addValueEntry does not create correct vxTable");
+#endif
 	fail_unless (testStrm.valueTable.count == 1, "addValueEntry does not create global value entry");
 
 	destroyDynArray(&testStrm.valueTable.dynArray);
