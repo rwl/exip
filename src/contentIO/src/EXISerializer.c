@@ -96,6 +96,11 @@ errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema)
 		// with its value set to true, no schema information is used for processing the EXI body
 		// (i.e. a schema-less EXI stream)
 		strm->schema = NULL;
+#if EXI_PROFILE_DEFAULT
+		DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, ("\n> EXI Profile mode require schema mode processing"));
+		return INVALID_EXI_INPUT;
+#endif
+
 #if DEBUG_CONTENT_IO == ON && EXIP_DEBUG_LEVEL <= WARNING
 		if(schema != NULL)
 			DEBUG_MSG(WARNING, DEBUG_CONTENT_IO, ("\n> Ignored schema information - SCHEMA_ID_NIL mode required"));
@@ -154,6 +159,11 @@ errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema)
 			return INVALID_EXIP_CONFIGURATION;
 		}
 
+#if EXI_PROFILE_DEFAULT
+		DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, ("\n> EXI Profile mode require schema mode processing"));
+		return INVALID_EXI_INPUT;
+#endif
+
 		strm->schema = memManagedAllocate(&strm->memList, sizeof(EXIPSchema));
 		if(strm->schema == NULL)
 			return MEMORY_ALLOCATION_ERROR;
@@ -179,7 +189,7 @@ errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema)
 	// valuePartitionCapacity > 50  &&   //for small table full-scan will work better
 	// valueMaxLength > 0 && // this is essentially equal to valuePartitionCapacity == 0
 	// HASH_TABLE_USE == ON // build configuration parameter
-#if HASH_TABLE_USE == ON
+#if HASH_TABLE_USE
 	if(strm->header.opts.valuePartitionCapacity > DEFAULT_VALUE_ENTRIES_NUMBER &&
 			strm->header.opts.valueMaxLength > 0)
 	{

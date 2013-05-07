@@ -1,4 +1,4 @@
-/** AUTO-GENERATED: Mon Feb 25 11:55:25 2013
+/** AUTO-GENERATED: Mon May  6 18:29:55 2013
   * Copyright (c) 2010 - 2011, Rumen Kyusakov, EISLAB, LTU
   * $Id$ */
 
@@ -2026,22 +2026,30 @@ static CONST PfxTable ops_pfxTable_1 =
 static CONST LnEntry ops_LnEntry_1[4] =
 {
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_1_0, 4},
         INDEX_MAX, INDEX_MAX
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_1_1, 2},
         INDEX_MAX, INDEX_MAX
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_1_2, 4},
         INDEX_MAX, INDEX_MAX
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_1_3, 5},
         INDEX_MAX, INDEX_MAX
     }
@@ -2061,12 +2069,16 @@ static CONST PfxTable ops_pfxTable_2 =
 static CONST LnEntry ops_LnEntry_2[2] =
 {
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_2_0, 3},
         INDEX_MAX, INDEX_MAX
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_2_1, 4},
         INDEX_MAX, INDEX_MAX
     }
@@ -2075,232 +2087,324 @@ static CONST LnEntry ops_LnEntry_2[2] =
 static CONST LnEntry ops_LnEntry_3[46] =
 {
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_0, 8},
         INDEX_MAX, 0
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_1, 6},
         INDEX_MAX, 1
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_2, 2},
         INDEX_MAX, 2
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_3, 5},
         INDEX_MAX, 3
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_4, 6},
         INDEX_MAX, 4
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_5, 6},
         INDEX_MAX, 5
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_6, 7},
         INDEX_MAX, 6
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_7, 8},
         INDEX_MAX, 7
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_8, 8},
         INDEX_MAX, 8
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_9, 4},
         INDEX_MAX, 9
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_10, 5},
         INDEX_MAX, 10
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_11, 13},
         INDEX_MAX, 11
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_12, 7},
         INDEX_MAX, 12
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_13, 6},
         INDEX_MAX, 13
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_14, 12},
         INDEX_MAX, 14
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_15, 7},
         INDEX_MAX, 15
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_16, 4},
         INDEX_MAX, 16
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_17, 4},
         INDEX_MAX, 17
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_18, 8},
         INDEX_MAX, 18
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_19, 7},
         INDEX_MAX, 19
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_20, 6},
         INDEX_MAX, 20
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_21, 8},
         INDEX_MAX, 21
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_22, 5},
         INDEX_MAX, 22
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_23, 4},
         INDEX_MAX, 23
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_24, 6},
         INDEX_MAX, 24
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_25, 9},
         INDEX_MAX, 25
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_26, 5},
         INDEX_MAX, 26
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_27, 10},
         INDEX_MAX, 27
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_28, 9},
         INDEX_MAX, 28
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_29, 3},
         INDEX_MAX, 29
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_30, 7},
         INDEX_MAX, 30
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_31, 8},
         INDEX_MAX, 31
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_32, 4},
         INDEX_MAX, 32
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_33, 15},
         INDEX_MAX, 33
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_34, 18},
         INDEX_MAX, 34
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_35, 18},
         INDEX_MAX, 35
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_36, 16},
         INDEX_MAX, 36
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_37, 15},
         INDEX_MAX, 37
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_38, 5},
         INDEX_MAX, 38
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_39, 6},
         INDEX_MAX, 39
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_40, 4},
         INDEX_MAX, 40
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_41, 5},
         INDEX_MAX, 41
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_42, 12},
         INDEX_MAX, 42
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_43, 11},
         INDEX_MAX, 43
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_44, 12},
         INDEX_MAX, 44
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_3_45, 13},
         INDEX_MAX, 45
     }
@@ -2309,197 +2413,275 @@ static CONST LnEntry ops_LnEntry_3[46] =
 static CONST LnEntry ops_LnEntry_4[39] =
 {
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_0, 9},
         INDEX_MAX, INDEX_MAX
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_1, 12},
         INDEX_MAX, 58
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_2, 9},
         INDEX_MAX, INDEX_MAX
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_3, 7},
         INDEX_MAX, 60
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_4, 4},
         INDEX_MAX, INDEX_MAX
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_5, 8},
         INDEX_MAX, INDEX_MAX
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_6, 6},
         INDEX_MAX, INDEX_MAX
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_7, 11},
         INDEX_MAX, INDEX_MAX
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_8, 25},
         INDEX_MAX, INDEX_MAX
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_9, 4},
         INDEX_MAX, 66
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_10, 8},
         INDEX_MAX, 65
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_11, 7},
         INDEX_MAX, 61
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_12, 6},
         INDEX_MAX, 62
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_13, 3},
         INDEX_MAX, INDEX_MAX
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_14, 8},
         INDEX_MAX, INDEX_MAX
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_15, 4},
         INDEX_MAX, 72
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_16, 6},
         INDEX_MAX, 71
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_17, 9},
         INDEX_MAX, 69
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_18, 5},
         INDEX_MAX, 70
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_19, 10},
         INDEX_MAX, 68
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_20, 6},
         57, INDEX_MAX
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_21, 9},
         INDEX_MAX, 59
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_22, 12},
         INDEX_MAX, 73
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_23, 12},
         INDEX_MAX, 74
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_24, 7},
         INDEX_MAX, 63
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_25, 10},
         INDEX_MAX, INDEX_MAX
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_26, 13},
         INDEX_MAX, INDEX_MAX
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_27, 3},
         INDEX_MAX, INDEX_MAX
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_28, 12},
         INDEX_MAX, INDEX_MAX
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_29, 8},
         INDEX_MAX, INDEX_MAX
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_30, 8},
         INDEX_MAX, INDEX_MAX
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_31, 8},
         INDEX_MAX, INDEX_MAX
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_32, 13},
         INDEX_MAX, INDEX_MAX
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_33, 6},
         INDEX_MAX, INDEX_MAX
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_34, 6},
         INDEX_MAX, 64
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_35, 4},
         INDEX_MAX, 67
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_36, 8},
         INDEX_MAX, INDEX_MAX
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_37, 14},
         INDEX_MAX, INDEX_MAX
     },
     {
-        NULL,
+#if VALUE_CROSSTABLE_USE
+         NULL,
+#endif
         {ops_LN_4_38, 22},
         INDEX_MAX, INDEX_MAX
     }

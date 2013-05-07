@@ -480,7 +480,7 @@ static errorCode xsd_endElement(void* app_data)
 				}
 			}
 
-#if HASH_TABLE_USE == ON
+#if HASH_TABLE_USE
 			/*
 			 * The hash tables are used to look up global definitions easily when it comes to resolving the tree table
 			 * For example, an element local to another element may be declared with a type definition which is global.

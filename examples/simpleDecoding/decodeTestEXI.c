@@ -296,10 +296,9 @@ static errorCode sample_stringData(const String value, void* app_data)
 		else
 		{
 			if(appD->unclosedElement)
-				printf(">\n");
+				printf(">");
 			appD->unclosedElement = 0;
 			printString(&value);
-			printf("\n");
 		}
 	}
 
@@ -331,9 +330,9 @@ static errorCode sample_decimalData(Decimal value, void* app_data)
 		else
 		{
 			if(appD->unclosedElement)
-				printf(">\n");
+				printf(">");
 			appD->unclosedElement = 0;
-			printf("%.1f \n", (double) value);
+			printf("%.1f", (double) value);
 		}
 	}
 
@@ -373,11 +372,10 @@ static errorCode sample_intData(Integer int_val, void* app_data)
 		else
 		{
 			if(appD->unclosedElement)
-				printf(">\n");
+				printf(">");
 			appD->unclosedElement = 0;
 			sprintf(tmp_buf, "%lld", (long long int) int_val);
 			printf("%s", tmp_buf);
-			printf("\n");
 		}
 	}
 
@@ -421,13 +419,13 @@ static errorCode sample_booleanData(boolean bool_val, void* app_data)
 		else
 		{
 			if(appD->unclosedElement)
-				printf(">\n");
+				printf(">");
 			appD->unclosedElement = 0;
 
 			if(bool_val)
-				printf("true\n");
+				printf("true");
 			else
-				printf("false\n");
+				printf("false");
 		}
 	}
 
@@ -467,11 +465,10 @@ static errorCode sample_floatData(Float fl_val, void* app_data)
 		else
 		{
 			if(appD->unclosedElement)
-				printf(">\n");
+				printf(">");
 			appD->unclosedElement = 0;
 			sprintf(tmp_buf, "%lldE%d", (long long int) fl_val.mantissa, fl_val.exponent);
 			printf("%s", tmp_buf);
-			printf("\n");
 		}
 	}
 
@@ -541,13 +538,12 @@ static errorCode sample_dateTimeData(EXIPDateTime dt_val, void* app_data)
 		else
 		{
 			if(appD->unclosedElement)
-				printf(">\n");
+				printf(">");
 			appD->unclosedElement = 0;
 			printf("%04d-%02d-%02dT%02d:%02d:%02d%s", dt_val.dateTime.tm_year + 1900,
 					dt_val.dateTime.tm_mon + 1, dt_val.dateTime.tm_mday,
 					dt_val.dateTime.tm_hour, dt_val.dateTime.tm_min,
 					dt_val.dateTime.tm_sec, fsecBuf);
-			printf("\n");
 		}
 	}
 
@@ -584,10 +580,9 @@ static errorCode sample_binaryData(const char* binary_val, Index nbytes, void* a
 		else
 		{
 			if(appD->unclosedElement)
-				printf(">\n");
+				printf(">");
 			appD->unclosedElement = 0;
 			printf("[binary: %d bytes]", (int) nbytes);
-			printf("\n");
 		}
 	}
 

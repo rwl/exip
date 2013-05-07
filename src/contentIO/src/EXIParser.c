@@ -49,7 +49,7 @@ errorCode initParser(Parser* parser, BinaryBuffer buffer, void* app_data)
 
 	initContentHandler(&parser->handler);
 
-#if HASH_TABLE_USE == ON
+#if HASH_TABLE_USE
 	parser->strm.valueTable.hashTbl = NULL;
 #endif
 
@@ -89,6 +89,10 @@ errorCode setSchema(Parser* parser, EXIPSchema* schema)
 		// with its value set to true, no schema information is used for processing the EXI body
 		// (i.e. a schema-less EXI stream)
 		parser->strm.schema = NULL;
+#if EXI_PROFILE_DEFAULT
+		DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, ("\n> EXI Profile mode require schema mode processing"));
+		return INVALID_EXI_INPUT;
+#endif
 #if DEBUG_CONTENT_IO == ON && EXIP_DEBUG_LEVEL <= WARNING
 		if(schema != NULL)
 			DEBUG_MSG(WARNING, DEBUG_CONTENT_IO, ("\n> Ignored out-of-band schema information. Schema-less mode required"));
@@ -140,6 +144,11 @@ errorCode setSchema(Parser* parser, EXIPSchema* schema)
 			DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, ("\n> Schema mode required, but NULL schema set"));
 			return INVALID_EXIP_CONFIGURATION;
 		}
+
+#if EXI_PROFILE_DEFAULT
+		DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, ("\n> EXI Profile mode require schema mode processing"));
+		return INVALID_EXI_INPUT;
+#endif
 
 		parser->strm.schema = memManagedAllocate(&parser->strm.memList, sizeof(EXIPSchema));
 		if(parser->strm.schema == NULL)

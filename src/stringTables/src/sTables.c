@@ -152,7 +152,7 @@ errorCode createValueTable(ValueTable* valueTable)
 	TRY(createDynArray(&valueTable->dynArray, sizeof(ValueEntry), DEFAULT_VALUE_ENTRIES_NUMBER));
 
 	valueTable->globalId = 0;
-#if HASH_TABLE_USE == ON
+#if HASH_TABLE_USE
 	valueTable->hashTbl = NULL;
 #endif
 	return ERR_OK;
@@ -201,39 +201,48 @@ errorCode addLnEntry(LnTable* lnTable, String lnStr, Index* lnEntryId)
 	lnEntry->lnStr = lnStr;
 	lnEntry->elemGrammar = INDEX_MAX;
 	lnEntry->typeGrammar = INDEX_MAX;
+#if VALUE_CROSSTABLE_USE
 	// The Vx table is created on-demand (additions to value cross table are done when a value is inserted in the value table)
 	lnEntry->vxTable = NULL;
-
+#endif
 	return ERR_OK;
 }
 
 errorCode addValueEntry(EXIStream* strm, String valueStr, QNameID qnameID)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	VxEntry* vxEntry = NULL;
 	ValueEntry* valueEntry = NULL;
-	Index vxEntryId;
 	Index valueEntryId;
-	struct LnEntry* lnEntry;
 
-	// Find the local name entry from QNameID
-	lnEntry = &GET_LN_URI_QNAME(strm->schema->uriTable, qnameID);
-
-	// Add entry to the local name entry's value cross table (vxTable)
-	if(lnEntry->vxTable == NULL)
+#if VALUE_CROSSTABLE_USE
+	Index vxEntryId;
 	{
-		lnEntry->vxTable = memManagedAllocate(&strm->memList, sizeof(VxTable));
+		struct LnEntry* lnEntry;
+		VxEntry vxEntry;
+
+		// Find the local name entry from QNameID
+		lnEntry = &GET_LN_URI_QNAME(strm->schema->uriTable, qnameID);
+
+		// Add entry to the local name entry's value cross table (vxTable)
 		if(lnEntry->vxTable == NULL)
-			return MEMORY_ALLOCATION_ERROR;
+		{
+			lnEntry->vxTable = memManagedAllocate(&strm->memList, sizeof(VxTable));
+			if(lnEntry->vxTable == NULL)
+				return MEMORY_ALLOCATION_ERROR;
 
-		// First value entry - create the vxTable
-		TRY(createDynArray(&lnEntry->vxTable->dynArray, sizeof(VxEntry), DEFAULT_VX_ENTRIES_NUMBER));
+			// First value entry - create the vxTable
+			TRY(createDynArray(&lnEntry->vxTable->dynArray, sizeof(VxEntry), DEFAULT_VX_ENTRIES_NUMBER));
+		}
+
+		assert(lnEntry->vxTable->vx);
+
+		// Set the global ID in the value cross table entry
+		vxEntry.globalId = strm->valueTable.globalId;
+
+		// Add the entry
+		TRY(addDynEntry(&lnEntry->vxTable->dynArray, (void*) &vxEntry, &vxEntryId));
 	}
-
-	assert(lnEntry->vxTable->vx);
-
-	// Add an entry - will fill in later
-	TRY(addEmptyDynEntry(&lnEntry->vxTable->dynArray, (void**)&vxEntry, &vxEntryId));
+#endif
 
 	// If the global ID is less than the actual array size, we must have wrapped around
 	// In this case, we must reuse an existing entry
@@ -242,12 +251,13 @@ errorCode addValueEntry(EXIStream* strm, String valueStr, QNameID qnameID)
 		// Get the existing value entry
 		valueEntry = &strm->valueTable.value[strm->valueTable.globalId];
 
+#if VALUE_CROSSTABLE_USE
 		assert(GET_LN_URI_QNAME(strm->schema->uriTable, valueEntry->locValuePartition.forQNameId).vxTable);
-
 		// Null out the existing cross table entry
 		GET_LN_URI_QNAME(strm->schema->uriTable, valueEntry->locValuePartition.forQNameId).vxTable->vx[valueEntry->locValuePartition.vxEntryId].globalId = INDEX_MAX;
+#endif
 
-#if HASH_TABLE_USE == ON
+#if HASH_TABLE_USE
 		// Remove existing value string from hash table (if present)
 		if(strm->valueTable.hashTbl != NULL)
 		{
@@ -264,15 +274,14 @@ errorCode addValueEntry(EXIStream* strm, String valueStr, QNameID qnameID)
 		TRY(addEmptyDynEntry(&strm->valueTable.dynArray, (void**)&valueEntry, &valueEntryId));
 	}
 
-	// Set the global ID in the value cross table entry
-	vxEntry->globalId = strm->valueTable.globalId;
-
 	// Set the value entry fields
 	valueEntry->valueStr = valueStr;
+#if VALUE_CROSSTABLE_USE
 	valueEntry->locValuePartition.forQNameId = qnameID;
 	valueEntry->locValuePartition.vxEntryId = vxEntryId;
+#endif
 
-#if HASH_TABLE_USE == ON
+#if HASH_TABLE_USE
 	// Add value string to hash table (if present)
 	if(strm->valueTable.hashTbl != NULL)
 	{
@@ -432,6 +441,7 @@ boolean lookupPfx(PfxTable* pfxTable, String pfxStr, SmallIndex* pfxEntryId)
 	return FALSE;
 }
 
+#if VALUE_CROSSTABLE_USE
 boolean lookupVx(ValueTable* valueTable, VxTable* vxTable, String valueStr, Index* vxEntryId)
 {
 	Index i;
@@ -455,6 +465,7 @@ boolean lookupVx(ValueTable* valueTable, VxTable* vxTable, String valueStr, Inde
 	}
 	return FALSE;
 }
+#endif
 
 boolean lookupValue(ValueTable* valueTable, String valueStr, Index* valueEntryId)
 {
@@ -463,7 +474,7 @@ boolean lookupValue(ValueTable* valueTable, String valueStr, Index* valueEntryId
 
 	assert(valueTable);
 
-#if HASH_TABLE_USE == ON
+#if HASH_TABLE_USE
 	if(valueTable->hashTbl != NULL)
 	{
 		// Use hash table search

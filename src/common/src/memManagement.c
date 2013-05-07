@@ -57,47 +57,74 @@ void* memManagedAllocate(AllocList* list, size_t size)
 
 void freeAllMem(EXIStream* strm)
 {
-	Index g, i, j;
+	Index g, i;
 	DynGrammarRule* tmp_rule;
 
-	// Explicitly free the memory for any build-in grammars
-	for(g = strm->schema->staticGrCount; g < strm->schema->grammarTable.count; g++)
+	if(strm->schema != NULL) // can be, in case of error during EXIStream initialization
 	{
-		for(i = 0; i < strm->schema->grammarTable.grammar[g].count; i++)
+		// Explicitly free the memory for any build-in grammars
+		for(g = strm->schema->staticGrCount; g < strm->schema->grammarTable.count; g++)
 		{
-			tmp_rule = &((DynGrammarRule*) strm->schema->grammarTable.grammar[g].rule)[i];
-			if(tmp_rule->production != NULL)
-				EXIP_MFREE(tmp_rule->production);
-		}
-		EXIP_MFREE(strm->schema->grammarTable.grammar[g].rule);
-	}
-
-	strm->schema->grammarTable.count = strm->schema->staticGrCount;
-
-	// Freeing the value cross tables
-
-	for(i = 0; i < strm->schema->uriTable.count; i++)
-	{
-		for(j = 0; j < strm->schema->uriTable.uri[i].lnTable.count; j++)
-		{
-			if(GET_LN_URI_IDS(strm->schema->uriTable, i, j).vxTable != NULL)
+			for(i = 0; i < strm->schema->grammarTable.grammar[g].count; i++)
 			{
-				assert(GET_LN_URI_IDS(strm->schema->uriTable, i, j).vxTable->vx);
-				destroyDynArray(&GET_LN_URI_IDS(strm->schema->uriTable, i, j).vxTable->dynArray);
-				GET_LN_URI_IDS(strm->schema->uriTable, i, j).vxTable = NULL;
+				tmp_rule = &((DynGrammarRule*) strm->schema->grammarTable.grammar[g].rule)[i];
+				if(tmp_rule->production != NULL)
+					EXIP_MFREE(tmp_rule->production);
 			}
+			EXIP_MFREE(strm->schema->grammarTable.grammar[g].rule);
+		}
+
+		strm->schema->grammarTable.count = strm->schema->staticGrCount;
+
+#if VALUE_CROSSTABLE_USE
+		// Freeing the value cross tables
+		{
+		Index j;
+		for(i = 0; i < strm->schema->uriTable.count; i++)
+		{
+			for(j = 0; j < strm->schema->uriTable.uri[i].lnTable.count; j++)
+			{
+				if(GET_LN_URI_IDS(strm->schema->uriTable, i, j).vxTable != NULL)
+				{
+					assert(GET_LN_URI_IDS(strm->schema->uriTable, i, j).vxTable->vx);
+					destroyDynArray(&GET_LN_URI_IDS(strm->schema->uriTable, i, j).vxTable->dynArray);
+					GET_LN_URI_IDS(strm->schema->uriTable, i, j).vxTable = NULL;
+				}
+			}
+		}
+		}
+#endif
+
+		// In case a default schema was used for this stream
+		if(strm->schema->staticGrCount <= SIMPLE_TYPE_COUNT)
+		{
+			// No schema-informed grammars. This is an empty EXIPSchema container that needs to be freed
+			// Freeing the string tables
+
+			for(i = 0; i < strm->schema->uriTable.count; i++)
+			{
+				if(strm->schema->uriTable.uri[i].pfxTable != NULL)
+					EXIP_MFREE(strm->schema->uriTable.uri[i].pfxTable);
+
+				destroyDynArray(&strm->schema->uriTable.uri[i].lnTable.dynArray);
+			}
+
+			destroyDynArray(&strm->schema->uriTable.dynArray);
+			destroyDynArray(&strm->schema->grammarTable.dynArray);
+			if(strm->schema->simpleTypeTable.sType != NULL)
+				destroyDynArray(&strm->schema->simpleTypeTable.dynArray);
+			freeAllocList(&strm->schema->memList);
 		}
 	}
 
 	// Hash tables are freed separately
 	// #DOCUMENT#
-#if HASH_TABLE_USE == ON
+#if HASH_TABLE_USE
 	if(strm->valueTable.hashTbl != NULL)
 		hashtable_destroy(strm->valueTable.hashTbl);
 #endif
 
 	// Freeing the value table if present
-
 	if(strm->valueTable.value != NULL)
 	{
 		Index i;
@@ -107,27 +134,6 @@ void freeAllMem(EXIStream* strm)
 		}
 
 		destroyDynArray(&strm->valueTable.dynArray);
-	}
-
-	// In case a default schema was used for this stream
-	if(strm->schema->staticGrCount <= SIMPLE_TYPE_COUNT)
-	{
-		// No schema-informed grammars. This is an empty EXIPSchema container that needs to be freed
-		// Freeing the string tables
-
-		for(i = 0; i < strm->schema->uriTable.count; i++)
-		{
-			if(strm->schema->uriTable.uri[i].pfxTable != NULL)
-				EXIP_MFREE(strm->schema->uriTable.uri[i].pfxTable);
-
-			destroyDynArray(&strm->schema->uriTable.uri[i].lnTable.dynArray);
-		}
-
-		destroyDynArray(&strm->schema->uriTable.dynArray);
-		destroyDynArray(&strm->schema->grammarTable.dynArray);
-		if(strm->schema->simpleTypeTable.sType != NULL)
-			destroyDynArray(&strm->schema->simpleTypeTable.dynArray);
-		freeAllocList(&strm->schema->memList);
 	}
 
 	freeAllocList(&(strm->memList));

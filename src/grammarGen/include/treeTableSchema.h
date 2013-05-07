@@ -218,7 +218,7 @@ struct TreeTable
 
 	AllocList memList; // Holding the memory allocations for the TreeTable
 
-#if HASH_TABLE_USE == ON
+#if HASH_TABLE_USE
 	/**
 	 * Used for fast lookups of global types when linking types' base types (extensions & restrictions)
 	 * and element types to global types.
