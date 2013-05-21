@@ -648,27 +648,29 @@ typedef struct GrammarRule GrammarRule;
 #define RULE_SET_AT_COUNT(meta, ac) (meta = meta | (ac<<1))
 #define RULE_GET_AT_COUNT(meta) (meta>>1)
 
-/**
- * Extension to the GrammarRule. In the DynGrammarRule the production array is a dynamic array.
- * The dynamic GrammarRule is used for Built-in Element Grammar and Built-in Fragment Grammar
- */
-struct DynGrammarRule
-{
-	/** Array of grammar productions with event code length 1 */
-    Production* production;
+#if BUILD_IN_GRAMMARS_USE
+	/**
+	 * Extension to the GrammarRule. In the DynGrammarRule the production array is a dynamic array.
+	 * The dynamic GrammarRule is used for Built-in Element Grammar and Built-in Fragment Grammar
+	 */
+	struct DynGrammarRule
+	{
+		/** Array of grammar productions with event code length 1 */
+		Production* production;
 
-    /** The number of productions */
-    Index pCount;
+		/** The number of productions */
+		Index pCount;
 
-    /** Meta information for the grammar rule:
-     * - most significant 10 bits contain the number of AT(qname)[schema-typed value]  productions
-     * - least significant 5 bits contain the number of bits for productions event codes */
-    uint16_t meta;
+		/** Meta information for the grammar rule:
+		 * - most significant 10 bits contain the number of AT(qname)[schema-typed value]  productions
+		 * - least significant 5 bits contain the number of bits for productions event codes */
+		uint16_t meta;
 
-   /** Additional field */
-   Index prodDim; // The size of the productions Dynamic production array /allocated space for Productions in it/
-};
-typedef struct DynGrammarRule DynGrammarRule;
+	   /** Additional field */
+	   Index prodDim; // The size of the productions Dynamic production array /allocated space for Productions in it/
+	};
+	typedef struct DynGrammarRule DynGrammarRule;
+#endif
 
 /**
  * @name EXIGrammar properties handling

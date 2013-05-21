@@ -41,9 +41,11 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 	if(strm->context.currNonTermID >=  strm->gStack->grammar->count)
 		return INCONSISTENT_PROC_STATE;
 
+#if BUILD_IN_GRAMMARS_USE
 	if(IS_BUILT_IN_ELEM(strm->gStack->grammar->props))  // If the current grammar is build-in Element grammar ...
 		currentRule = (GrammarRule*) &((DynGrammarRule*) strm->gStack->grammar->rule)[strm->context.currNonTermID];
 	else
+#endif
 		currentRule = &strm->gStack->grammar->rule[strm->context.currNonTermID];
 
 #if DEBUG_CONTENT_IO == ON
@@ -168,11 +170,12 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	unsigned int prodCnt = 0;
 	unsigned int tmp_bits_val = 0;
-	QNameID voidQnameID = {URI_MAX, LN_MAX};
 
 	if(IS_BUILT_IN_ELEM(strm->gStack->grammar->props))
 	{
 		// Built-in element grammar
+#if BUILD_IN_GRAMMARS_USE
+		QNameID voidQnameID = {URI_MAX, LN_MAX};
 
 		/* There are 8 possible states to exit the state machine: EE, AT (*), NS etc.
 		 * The state depends on the input event code from the stream and the
@@ -288,6 +291,11 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 			default:
 				return INCONSISTENT_PROC_STATE;
 		}
+#else
+		DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
+		assert(FALSE);
+		return INCONSISTENT_PROC_STATE;
+#endif
 	}
 	else if(IS_DOCUMENT(strm->gStack->grammar->props))
 	{
@@ -1216,7 +1224,6 @@ errorCode decodeSEWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallI
 	EXIGrammar* elemGrammar = NULL;
 	QName qname;
 	QNameID qnameId = {URI_MAX, LN_MAX};
-	Index dynArrIndx;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">SE(*) event\n"));
 
@@ -1240,12 +1247,65 @@ errorCode decodeSEWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallI
 	}
 	else
 	{
+#if BUILD_IN_GRAMMARS_USE
+		Index dynArrIndx;
 		EXIGrammar newElementGrammar;
 		TRY(createBuiltInElementGrammar(&newElementGrammar, strm));
 		TRY(addDynEntry(&strm->schema->grammarTable.dynArray, &newElementGrammar, &dynArrIndx));
 
 		GET_LN_URI_QNAME(strm->schema->uriTable, qnameId).elemGrammar = dynArrIndx;
 		TRY(pushGrammar(&(strm->gStack), &strm->schema->grammarTable.grammar[dynArrIndx]));
+#elif EXI_PROFILE_DEFAULT
+		{
+			unsigned int prodCnt = 4;
+			unsigned int tmp_bits_val = 0;
+			QName attrQname;
+			QNameID attrQnameId = {URI_MAX, LN_MAX};
+
+			prodCnt += IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES);
+			prodCnt += WITH_SELF_CONTAINED(strm->header.opts.enumOpt);
+			prodCnt += IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD);
+			prodCnt += (IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) || IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS));
+
+			// There should be a valid xsi:type switch, otherwise rise an error
+			TRY(decodeNBitUnsignedInteger(strm, getBitsNumber(prodCnt  - 1), &tmp_bits_val));
+			if(tmp_bits_val != 1)
+			{
+				DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
+				return INCONSISTENT_PROC_STATE;
+			}
+
+			TRY(decodeQName(strm, &attrQname, &attrQnameId));
+			if(attrQnameId.uriId != XML_SCHEMA_INSTANCE_ID || attrQnameId.lnId != XML_SCHEMA_INSTANCE_TYPE_ID)
+			{
+				DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
+				return INCONSISTENT_PROC_STATE;
+			}
+
+			TRY(decodeQName(strm, &attrQname, &attrQnameId));
+
+			// New element grammar is pushed on the stack
+			elemGrammar = GET_ELEM_GRAMMAR_QNAMEID(strm->schema, attrQnameId);
+
+			if(elemGrammar != NULL)
+			{
+				// The grammar is found
+				*nonTermID_out = GR_START_TAG_CONTENT;
+				TRY(pushGrammar(&(strm->gStack), elemGrammar));
+				strm->context.currElem = attrQnameId;
+				return ERR_OK;
+			}
+			else
+			{
+				DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
+				return INCONSISTENT_PROC_STATE;
+			}
+		}
+#else
+		DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
+		assert(FALSE);
+		return INCONSISTENT_PROC_STATE;
+#endif
 	}
 
 	strm->context.currElem = qnameId;
@@ -1290,7 +1350,7 @@ static errorCode decodeQNameValue(EXIStream* strm, ContentHandler* handler, Smal
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	QName qname;
 	QNameID qnameId;
-	EXIGrammar* newGrammar = NULL;;
+	EXIGrammar* newGrammar = NULL;
 
 	TRY(decodeQName(strm, &qname, &qnameId));
 

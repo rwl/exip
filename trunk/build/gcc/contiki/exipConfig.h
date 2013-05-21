@@ -99,7 +99,9 @@ struct ThinFloat
 
 /* Whether to implement the local value string table.
  * NOTE: EXI streams that are not encoded using this option cannot be decoded correctly
- * and will return an error. Disabling the local values indexing is used in EXI Profile
+ * and will return an error. The opposite is true however - a stream encoded with no
+ * local value tables is valid EXI stream can be decoded with full-fledged EXI processor.
+ * Disabling the local values indexing is used in EXI Profile
  * and can possibly found use in other application profiles of the EXI spec. */
 #define VALUE_CROSSTABLE_USE  ON
 

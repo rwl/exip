@@ -122,6 +122,7 @@ errorCode createDocGrammar(EXIPSchema* schema, QNameID* elQnameArr, Index qnameC
 	return ERR_OK;
 }
 
+#if BUILD_IN_GRAMMARS_USE
 errorCode createBuiltInElementGrammar(EXIGrammar* elementGrammar, EXIStream* strm)
 {
 	DynGrammarRule* tmp_rule;
@@ -186,6 +187,28 @@ errorCode createBuiltInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 
 	return ERR_OK;
 }
+
+errorCode insertZeroProduction(DynGrammarRule* rule, EventType eventType, SmallIndex nonTermID, QNameID* qnameId, boolean hasSecondLevelProd)
+{
+	if(rule->pCount == rule->prodDim) // The dynamic array rule->production needs to be resized
+	{
+		void* ptr = EXIP_REALLOC(rule->production, sizeof(Production)*(rule->prodDim + DEFAULT_PROD_ARRAY_DIM));
+		if(ptr == NULL)
+			return MEMORY_ALLOCATION_ERROR;
+
+		rule->production = ptr;
+		rule->prodDim += DEFAULT_PROD_ARRAY_DIM;
+	}
+
+	SET_PROD_EXI_EVENT(rule->production[rule->pCount].content, eventType);
+	SET_PROD_NON_TERM(rule->production[rule->pCount].content, nonTermID);
+	rule->production[rule->pCount].typeId = INDEX_MAX;
+	rule->production[rule->pCount].qnameId = *qnameId;
+
+	rule->pCount += 1;
+	return ERR_OK;
+}
+#endif
 
 errorCode pushGrammar(EXIGrammarStack** gStack, EXIGrammar* grammar)
 {
@@ -294,27 +317,6 @@ errorCode createFragmentGrammar(EXIPSchema* schema, QNameID* elQnameArr, Index q
 	tmp_rule->production[1].qnameId.uriId = URI_MAX;
 	tmp_rule->production[1].qnameId.lnId = LN_MAX;
 
-	return ERR_OK;
-}
-
-errorCode insertZeroProduction(DynGrammarRule* rule, EventType eventType, SmallIndex nonTermID, QNameID* qnameId, boolean hasSecondLevelProd)
-{
-	if(rule->pCount == rule->prodDim) // The dynamic array rule->production needs to be resized
-	{
-		void* ptr = EXIP_REALLOC(rule->production, sizeof(Production)*(rule->prodDim + DEFAULT_PROD_ARRAY_DIM));
-		if(ptr == NULL)
-			return MEMORY_ALLOCATION_ERROR;
-
-		rule->production = ptr;
-		rule->prodDim += DEFAULT_PROD_ARRAY_DIM;
-	}
-
-	SET_PROD_EXI_EVENT(rule->production[rule->pCount].content, eventType);
-	SET_PROD_NON_TERM(rule->production[rule->pCount].content, nonTermID);
-	rule->production[rule->pCount].typeId = INDEX_MAX;
-	rule->production[rule->pCount].qnameId = *qnameId;
-
-	rule->pCount += 1;
 	return ERR_OK;
 }
 

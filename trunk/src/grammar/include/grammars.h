@@ -81,30 +81,31 @@ errorCode createDocGrammar(EXIPSchema* schema, QNameID* elQnameArr, Index qnameC
  */
 errorCode createFragmentGrammar(EXIPSchema* schema, QNameID* elQnameArr, Index qnameCount);
 
-/**
- * @brief Creates an instance of EXI Built-in Element Grammar
- * 
- * @param[in] elementGrammar empty grammar container
- * @param[in, out] strm EXI stream for which the allocation is made
- * @return Error handling code
- */
-errorCode createBuiltInElementGrammar(EXIGrammar* elementGrammar, EXIStream* strm);
+#if BUILD_IN_GRAMMARS_USE
+	/**
+	 * @brief Creates an instance of EXI Built-in Element Grammar
+	 *
+	 * @param[in] elementGrammar empty grammar container
+	 * @param[in, out] strm EXI stream for which the allocation is made
+	 * @return Error handling code
+	 */
+	errorCode createBuiltInElementGrammar(EXIGrammar* elementGrammar, EXIStream* strm);
 
-
-/**
- * @brief Inserts a Production to a Grammar Rule (with LeftHandSide) with an event code 0
- * Note! It increments the first part of the event code of each production
- * in the current grammar with the non-terminal LeftHandSide on the left-hand side
- * Used only for Built-in Document Grammar and Built-in Fragment Grammar
- * @param[in, out] rule a Grammar Rule
- * @param[in] evnt event type
- * @param[in] nonTermID unique identifier of right-hand side Non-terminal
- * @param[in] qname qname identifier of the Event Type corresponding to the inserted production
- * @param[in] hasSecondLevelProd FALSE if there are no second level productions (only possible in Fragment Grammar);
- * otherwise TRUE
- * @return Error handling code
- */
-errorCode insertZeroProduction(DynGrammarRule* rule, EventType evnt, SmallIndex nonTermID, QNameID* qname, boolean hasSecondLevelProd);
+	/**
+	 * @brief Inserts a Production to a Grammar Rule (with LeftHandSide) with an event code 0
+	 * Note! It increments the first part of the event code of each production
+	 * in the current grammar with the non-terminal LeftHandSide on the left-hand side
+	 * Used only for Built-in Document Grammar and Built-in Fragment Grammar
+	 * @param[in, out] rule a Grammar Rule
+	 * @param[in] evnt event type
+	 * @param[in] nonTermID unique identifier of right-hand side Non-terminal
+	 * @param[in] qname qname identifier of the Event Type corresponding to the inserted production
+	 * @param[in] hasSecondLevelProd FALSE if there are no second level productions (only possible in Fragment Grammar);
+	 * otherwise TRUE
+	 * @return Error handling code
+	 */
+	errorCode insertZeroProduction(DynGrammarRule* rule, EventType evnt, SmallIndex nonTermID, QNameID* qname, boolean hasSecondLevelProd);
+#endif
 
 /**
  * @brief For a given grammar and a rule from it, returns the number of bits needed to encode a production from that rule

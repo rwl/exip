@@ -91,7 +91,7 @@ static const String URI_2_PFX = {ops_PFX_2_0, 3};
 static const String URI_1_LN[] = {{ops_LN_1_0, 4}, {ops_LN_1_1, 2}, {ops_LN_1_2, 4}, {ops_LN_1_3, 5}};
 
 #define URI_2_LN_SIZE 2
-static const String URI_2_LN[] = {{ops_LN_2_0, 3}, {ops_LN_2_1, 4}};
+const String URI_2_LN[] = {{ops_LN_2_0, 3}, {ops_LN_2_1, 4}};
 
 #define URI_3_LN_SIZE 46
 static const String URI_3_LN[] = {
