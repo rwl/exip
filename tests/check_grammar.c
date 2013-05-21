@@ -89,15 +89,17 @@ START_TEST (test_pushGrammar)
 	makeDefaultOpts(&strm.header.opts);
 	initAllocList(&strm.memList);
 
+#if BUILD_IN_GRAMMARS_USE
 	err = createBuiltInElementGrammar(&testElementGrammar1, &strm);
 	fail_if(err != ERR_OK);
+
+	err = createBuiltInElementGrammar(&testElementGrammar, &strm);
+	fail_if(err != ERR_OK);
+#endif
 
 	err = pushGrammar(&testGrStack, &testElementGrammar1);
 	fail_unless (err == ERR_OK, "pushGrammar returns error code %d", err);
 	fail_if(testGrStack->nextInStack != NULL);
-
-	err = createBuiltInElementGrammar(&testElementGrammar, &strm);
-	fail_if(err != ERR_OK);
 
 	err = pushGrammar(&testGrStack, &testElementGrammar);
 	fail_unless (err == ERR_OK, "pushGrammar returns error code %d", err);
@@ -120,14 +122,16 @@ START_TEST (test_popGrammar)
 	makeDefaultOpts(&strm.header.opts);
 	initAllocList(&strm.memList);
 
+#if BUILD_IN_GRAMMARS_USE
 	err = createBuiltInElementGrammar(&testElementGrammar1, &strm);
 	fail_if(err != ERR_OK);
 
-	err = pushGrammar(&testGrStack, &testElementGrammar1);
-	fail_unless (err == ERR_OK, "pushGrammar returns error code %d", err);
-
 	err = createBuiltInElementGrammar(&testElementGrammar, &strm);
 	fail_if(err != ERR_OK);
+#endif
+
+	err = pushGrammar(&testGrStack, &testElementGrammar1);
+	fail_unless (err == ERR_OK, "pushGrammar returns error code %d", err);
 
 	err = pushGrammar(&testGrStack, &testElementGrammar);
 	fail_unless (err == ERR_OK, "pushGrammar returns error code %d", err);
@@ -140,6 +144,7 @@ START_TEST (test_popGrammar)
 }
 END_TEST
 
+#if BUILD_IN_GRAMMARS_USE
 START_TEST (test_createBuiltInElementGrammar)
 {
 	errorCode err = UNEXPECTED_ERROR;
@@ -154,6 +159,7 @@ START_TEST (test_createBuiltInElementGrammar)
 
 }
 END_TEST
+#endif
 
 /* END: grammars tests */
 
@@ -165,6 +171,7 @@ END_TEST
 
 /* BEGIN: rules tests */
 
+#if BUILD_IN_GRAMMARS_USE
 START_TEST (test_insertZeroProduction)
 {
 	DynGrammarRule rule;
@@ -181,7 +188,7 @@ START_TEST (test_insertZeroProduction)
 	fail_unless (rule.pCount == 1);
 }
 END_TEST
-
+#endif
 /* END: rules tests */
 
 
@@ -196,7 +203,9 @@ Suite * grammar_suite (void)
 	  tcase_add_test (tc_gGrammars, test_processNextProduction);
 	  tcase_add_test (tc_gGrammars, test_pushGrammar);
 	  tcase_add_test (tc_gGrammars, test_popGrammar);
+#if BUILD_IN_GRAMMARS_USE
 	  tcase_add_test (tc_gGrammars, test_createBuiltInElementGrammar);
+#endif
 	  suite_add_tcase (s, tc_gGrammars);
   }
 
@@ -209,7 +218,9 @@ Suite * grammar_suite (void)
   {
 	  /* Rules test case */
 	  TCase *tc_gRules = tcase_create ("Rules");
+#if BUILD_IN_GRAMMARS_USE
 	  tcase_add_test (tc_gRules, test_insertZeroProduction);
+#endif
 	  suite_add_tcase (s, tc_gRules);
   }
 

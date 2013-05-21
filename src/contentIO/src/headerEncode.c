@@ -24,6 +24,7 @@
 #include "stringManipulate.h"
 #include "bodyEncode.h"
 #include "ioUtil.h"
+#include "streamEncode.h"
 
 /** This is the statically generated EXIP schema definition for the EXI Options document*/
 extern const EXIPSchema ops_schema;
@@ -137,6 +138,11 @@ static errorCode serializeOptionsStream(EXIStream* options_strm, EXIOptions* opt
 	tmpEvCode.bits[0] = 1;
 	TRY(serializeEvent(options_strm, tmpEvCode, NULL)); // serialize.startElement <header>
 
+#if EXI_PROFILE_DEFAULT
+	// hasUncommon element for encoding the profile <p> parameters element
+	hasUncommon = TRUE;
+	hasLesscommon = TRUE;
+#else
 	// uncommon options
 	if(GET_ALIGNMENT(opts->enumOpt) != BIT_PACKED ||
 			WITH_SELF_CONTAINED(opts->enumOpt) ||
@@ -152,6 +158,7 @@ static errorCode serializeOptionsStream(EXIStream* options_strm, EXIOptions* opt
 		// lesscommon options
 		hasLesscommon = TRUE;
 	}
+#endif
 
 	if(hasLesscommon)
 	{
@@ -166,6 +173,27 @@ static errorCode serializeOptionsStream(EXIStream* options_strm, EXIOptions* opt
 			tmpEvCode.bits[0] = 2;
 			TRY(serializeEvent(options_strm, tmpEvCode, NULL)); // serialize.startElement <uncommon>
 			ruleContext = 0;
+#if EXI_PROFILE_DEFAULT
+			{
+			String uri, ln;
+			QName pQname = {&uri, &ln, NULL};
+			QNameID qnameID;
+			tmpEvCode.length = 1;
+			tmpEvCode.part[0] = 5;
+			tmpEvCode.bits[0] = 3;
+			// serialize SE(*)
+			TRY(writeEventCode(options_strm, tmpEvCode));
+			// serialize <p>
+			getEmptyString((String*) pQname.uri);
+			TRY(asciiToString("p",(String*) pQname.localName, &options_strm->memList, FALSE));
+			TRY(encodeQName(options_strm, pQname, EVENT_SE_ALL, &qnameID));
+			// serialize </p>
+			tmpEvCode.length = 1;
+			tmpEvCode.part[0] = 0;
+			tmpEvCode.bits[0] = 2;
+			TRY(writeEventCode(options_strm, tmpEvCode));
+			}
+#endif
 			if(GET_ALIGNMENT(opts->enumOpt) != BIT_PACKED)
 			{
 				tmpEvCode.length = 1;

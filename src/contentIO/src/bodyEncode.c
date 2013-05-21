@@ -118,12 +118,14 @@ errorCode encodeProduction(EXIStream* strm, EventTypeClass eventClass, boolean i
 	if(strm->context.currNonTermID >=  strm->gStack->grammar->count)
 		return INCONSISTENT_PROC_STATE;
 
+#if BUILD_IN_GRAMMARS_USE
 	if(IS_BUILT_IN_ELEM(strm->gStack->grammar->props))  // If the current grammar is build-in Element grammar ...
 	{
 		currentRule = (GrammarRule*) &((DynGrammarRule*) strm->gStack->grammar->rule)[strm->context.currNonTermID];
 		prodCount = currentRule->pCount;
 	}
 	else
+#endif
 	{
 		currentRule = &strm->gStack->grammar->rule[strm->context.currNonTermID];
 
@@ -207,14 +209,14 @@ errorCode encodeProduction(EXIStream* strm, EventTypeClass eventClass, boolean i
 static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventClass,
 						GrammarRule* currentRule, QName* qname, EventCode ec, Production* prodHit)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	QNameID voidQnameID = {SMALL_INDEX_MAX, INDEX_MAX};
 	QNameID qnameID;
 
 	if(IS_BUILT_IN_ELEM(strm->gStack->grammar->props))
 	{
 		// Built-in element grammar
-
+#if BUILD_IN_GRAMMARS_USE
+		errorCode tmp_err_code = UNEXPECTED_ERROR;
+		QNameID voidQnameID = {SMALL_INDEX_MAX, INDEX_MAX};
 		if(strm->context.currNonTermID == GR_START_TAG_CONTENT)
 		{
 			ec.bits[1] = getBitsNumber(3 +
@@ -318,6 +320,11 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 			default:
 				return INCONSISTENT_PROC_STATE;
 		}
+#else
+		DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
+		assert(FALSE);
+		return INCONSISTENT_PROC_STATE;
+#endif
 	}
 	else if(IS_DOCUMENT(strm->gStack->grammar->props))
 	{

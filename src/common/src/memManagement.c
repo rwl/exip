@@ -57,11 +57,14 @@ void* memManagedAllocate(AllocList* list, size_t size)
 
 void freeAllMem(EXIStream* strm)
 {
-	Index g, i;
-	DynGrammarRule* tmp_rule;
+	Index i;
 
 	if(strm->schema != NULL) // can be, in case of error during EXIStream initialization
 	{
+#if BUILD_IN_GRAMMARS_USE
+		{
+		Index g;
+		DynGrammarRule* tmp_rule;
 		// Explicitly free the memory for any build-in grammars
 		for(g = strm->schema->staticGrCount; g < strm->schema->grammarTable.count; g++)
 		{
@@ -75,6 +78,10 @@ void freeAllMem(EXIStream* strm)
 		}
 
 		strm->schema->grammarTable.count = strm->schema->staticGrCount;
+		}
+#else
+		assert(strm->schema->grammarTable.count == strm->schema->staticGrCount);
+#endif
 
 #if VALUE_CROSSTABLE_USE
 		// Freeing the value cross tables

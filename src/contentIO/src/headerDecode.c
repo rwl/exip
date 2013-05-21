@@ -277,6 +277,40 @@ static errorCode ops_startElement(QName qname, void* app_data)
 			break;
 			case 36:	// uncommon
 				o_appD->prevElementLnID = 36;
+#if EXI_PROFILE_DEFAULT
+				{
+				// If the EXI Profile default behaviour is followed, then we expect
+				// SE(*) <p/> indicating default EXI Profile parameters
+				// If this is not the case rise an error
+				// SE(*) has event code 5 in the uncommon grammar
+				unsigned int tmp_bits_val;
+				errorCode tmp_err_code = UNEXPECTED_ERROR;
+				QName qname;
+				QNameID qnameId = {URI_MAX, LN_MAX};
+
+				// Next event code must be SE(*)
+				TRY(decodeNBitUnsignedInteger(o_appD->o_strm, 3, &tmp_bits_val));
+				if(tmp_bits_val != 5)
+				{
+					DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">EXI Profile default active but <p> element missing\n"));
+					return INVALID_EXIP_CONFIGURATION;
+				}
+				// The element QName must be "p"
+				TRY(decodeQName(o_appD->o_strm, &qname, &qnameId));
+				if(!isStringEmpty(qname.uri) || !stringEqualToAscii(*qname.localName, "p"))
+				{
+					DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">EXI Profile default active but <p> element missing\n"));
+					return INVALID_EXIP_CONFIGURATION;
+				}
+				// The next event code must be EE -> 0.0
+				TRY(decodeNBitUnsignedInteger(o_appD->o_strm, 2, &tmp_bits_val));
+				if(tmp_bits_val != 0)
+				{
+					DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">EXI Profile default active but <p> element is not empty\n"));
+					return INVALID_EXIP_CONFIGURATION;
+				}
+				}
+#endif
 			break;
 		}
 	}
