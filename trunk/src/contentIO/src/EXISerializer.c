@@ -397,7 +397,7 @@ errorCode attribute(EXIStream* strm, QName qname, boolean isSchemaType, EXITypeC
 	{
 		// if qname == xsi:type
 		if(stringEqual(*qname.uri, XML_SCHEMA_INSTANCE) &&
-				stringEqual(*qname.uri, URI_2_LN[XML_SCHEMA_INSTANCE_TYPE_ID]))
+				stringEqual(*qname.localName, URI_2_LN[XML_SCHEMA_INSTANCE_TYPE_ID]))
 		{
 			// Encode the xsi:type and wait for a QName type serialization;
 			// Leave the current grammar NULL
@@ -979,21 +979,22 @@ static errorCode encodeATXsiType(EXIStream* strm)
 	TRY(encodeNBitUnsignedInteger(strm, getBitsNumber(strm->schema->uriTable.count), XML_SCHEMA_INSTANCE_ID + 1));
 	TRY(encodeUnsignedInteger(strm, 0));
 	TRY(encodeNBitUnsignedInteger(strm, getBitsNumber((unsigned int)(strm->schema->uriTable.uri[XML_SCHEMA_INSTANCE_ID].lnTable.count - 1)), XML_SCHEMA_INSTANCE_TYPE_ID));
-	// serialize "xs:anyType"
-	TRY(encodeNBitUnsignedInteger(strm, getBitsNumber(strm->schema->uriTable.count), XML_SCHEMA_NAMESPACE_ID + 1));
-	TRY(encodeUnsignedInteger(strm, 0));
-	TRY(encodeNBitUnsignedInteger(strm, getBitsNumber((unsigned int)(strm->schema->uriTable.uri[XML_SCHEMA_NAMESPACE_ID].lnTable.count - 1)), SIMPLE_TYPE_ANY_TYPE));
 
 	return ERR_OK;
 }
 
 static errorCode encodeAnyType(EXIStream* strm)
 {
-	// "xs:anyType" grammar is pushed on the stack instead of the NULL one
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	EXIGrammar* anyGrammar = NULL;
 	QNameID anyTypeId;
 
+	// serialize "xs:anyType"
+	TRY(encodeNBitUnsignedInteger(strm, getBitsNumber(strm->schema->uriTable.count), XML_SCHEMA_NAMESPACE_ID + 1));
+	TRY(encodeUnsignedInteger(strm, 0));
+	TRY(encodeNBitUnsignedInteger(strm, getBitsNumber((unsigned int)(strm->schema->uriTable.uri[XML_SCHEMA_NAMESPACE_ID].lnTable.count - 1)), SIMPLE_TYPE_ANY_TYPE));
+
+	// "xs:anyType" grammar is pushed on the stack instead of the NULL one
 	popGrammar(&(strm->gStack), &anyGrammar);
 	anyTypeId.uriId = XML_SCHEMA_NAMESPACE_ID;
 	anyTypeId.lnId = SIMPLE_TYPE_ANY_TYPE;
