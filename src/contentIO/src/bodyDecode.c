@@ -1285,15 +1285,13 @@ errorCode decodeSEWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallI
 			TRY(decodeQName(strm, &attrQname, &attrQnameId));
 
 			// New element grammar is pushed on the stack
-			elemGrammar = GET_ELEM_GRAMMAR_QNAMEID(strm->schema, attrQnameId);
+			elemGrammar = GET_TYPE_GRAMMAR_QNAMEID(strm->schema, attrQnameId);
 
 			if(elemGrammar != NULL)
 			{
 				// The grammar is found
 				*nonTermID_out = GR_START_TAG_CONTENT;
 				TRY(pushGrammar(&(strm->gStack), elemGrammar));
-				strm->context.currElem = attrQnameId;
-				return ERR_OK;
 			}
 			else
 			{
