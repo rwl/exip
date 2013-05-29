@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.exemple.com/XMLNameSpace"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:tns="http://www.exemple.com/XMLNameSpace">
+
+<complexType name="ProductType">
+  <sequence>
+    <element name="number" type="integer" minOccurs="0"/>
+    <element name="name" type="string" minOccurs="0"/>
+  </sequence>
+  <attribute name="appId" type="anyURI"/>
+</complexType>
+<element name="product" type="tns:ProductType"/>
+
+<complexType name="ShirtType">
+  <complexContent>
+    <extension base="tns:ProductType">
+      <sequence>
+        <element name="size" type="integer" minOccurs="0"/>
+        <element name="color" type="string" minOccurs="0"/>
+      </sequence>
+    </extension>
+  </complexContent>
+</complexType>
+<element name="shirt" type="tns:ShirtType"/>
+
+</schema>
