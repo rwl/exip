@@ -458,6 +458,17 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 				{
 					case 0:
 						// AT(xsi:type) event
+						DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">AT(xsi:type) event\n"));
+						strm->context.currAttr.uriId = XML_SCHEMA_INSTANCE_ID;
+						strm->context.currAttr.lnId = XML_SCHEMA_INSTANCE_TYPE_ID;
+						qname.uri = &strm->schema->uriTable.uri[strm->context.currAttr.uriId].uriStr;
+						qname.localName = &GET_LN_URI_QNAME(strm->schema->uriTable, strm->context.currAttr).lnStr;
+
+						if(handler->attribute != NULL)  // Invoke handler method
+						{
+							if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
+								return HANDLER_STOP_RECEIVED;
+						}
 						TRY(decodeQNameValue(strm, handler, nonTermID_out, app_data));
 					break;
 					case 1:
@@ -588,6 +599,17 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 				break;
 				case 1:
 					// AT(xsi:type) event
+					DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">AT(xsi:type) event\n"));
+					strm->context.currAttr.uriId = XML_SCHEMA_INSTANCE_ID;
+					strm->context.currAttr.lnId = XML_SCHEMA_INSTANCE_TYPE_ID;
+					qname.uri = &strm->schema->uriTable.uri[strm->context.currAttr.uriId].uriStr;
+					qname.localName = &GET_LN_URI_QNAME(strm->schema->uriTable, strm->context.currAttr).lnStr;
+
+					if(handler->attribute != NULL)  // Invoke handler method
+					{
+						if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
+							return HANDLER_STOP_RECEIVED;
+					}
 					TRY(decodeQNameValue(strm, handler, nonTermID_out, app_data));
 				break;
 				case 2:
