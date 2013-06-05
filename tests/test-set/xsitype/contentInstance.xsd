@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://uri.etsi.org/m2m" xmlns:tns="http://uri.etsi.org/m2m" xmlns:xmlmime="http://www.w3.org/2005/05/xmlmime">
+
+	<include schemaLocation="common.xsd" />
+
+	<import namespace="http://www.w3.org/2005/05/xmlmime" schemaLocation="http://www.w3.org/2005/05/xmlmime.xsd" />
+
+	<element name="contentInstance" type="tns:ContentInstance" />
+	
+	<complexType name="ContentInstance">
+		<sequence>
+			<element ref="tns:creationTime" minOccurs="0" />
+			<element ref="tns:lastModifiedTime" minOccurs="0" />
+			<element ref="tns:delayTolerance" minOccurs="0" />
+			<element ref="tns:contentTypes" minOccurs="0" />
+			<element ref="tns:contentSize" minOccurs="0" />
+			<element ref="tns:content" minOccurs="0" />
+		</sequence>
+		<attribute ref="tns:id" />
+		<attribute name="href" type="anyURI" />
+	</complexType>
+
+	<element name="content" type="xmlmime:base64Binary" />
+	<element name="contentSize" type="long" />
+	<element name="contentTypes" type="tns:ContentTypes" />
+	
+	<complexType name="ContentTypes">
+		<sequence>
+			<element ref="tns:contentType" maxOccurs="unbounded" />
+		</sequence>
+	</complexType>
+</schema>
