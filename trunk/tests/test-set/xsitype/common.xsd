@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://uri.etsi.org/m2m"
+	xmlns:tns="http://uri.etsi.org/m2m" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+	<attribute name="name" type="NMTOKEN" />
+	<attribute name="id" type="anyURI" />
+
+	<element name="accessRightID" type="anyURI" />
+
+	<element name="creationTime" type="dateTime" />
+
+	<element name="lastModifiedTime" type="dateTime" />
+
+	<element name="expirationTime" type="dateTime" />
+
+	<element name="searchStrings" type="tns:SearchStrings" />
+
+	<complexType name="SearchStrings">
+		<sequence>
+			<element ref="tns:searchString" minOccurs="0" maxOccurs="unbounded" />
+		</sequence>
+	</complexType>
+
+
+	<element name="searchString" type="string" />
+
+	<element name="filterCriteria" type="tns:FilterCriteriaType" />
+
+	<complexType name="FilterCriteriaType">
+		<sequence>
+			<element name="ifModifiedSince" type="dateTime" minOccurs="0" />
+			<element name="ifUnmodifiedSince" type="dateTime" minOccurs="0" />
+			<element name="ifMatch" type="string" minOccurs="0"
+				maxOccurs="unbounded" />
+			<element name="ifNoneMatch" type="string" minOccurs="0"
+				maxOccurs="unbounded" />
+		</sequence>
+	</complexType>
+
+
+	<complexType name="AnyURIList">
+		<sequence>
+			<element name="reference" type="anyURI" minOccurs="0"
+				maxOccurs="unbounded" />
+		</sequence>
+	</complexType>
+
+	<element name="announceTo" type="tns:AnnounceTo" />
+
+	<complexType name="AnnounceTo">
+		<sequence>
+			<element ref="tns:activated" minOccurs="0" />
+			<element ref="tns:sclList" />
+			<element ref='tns:global' minOccurs="0" />
+		</sequence>
+	</complexType>
+
+	<element name="activated" type="boolean" />
+	<element name="sclList" type="tns:AnyURIList" />
+	<element name="global" type="boolean" />
+
+	<element name="delayTolerance" type="dateTime" />
+
+	<element name="link" type="anyURI" />
+
+	<element name="subscriptionsReference" type="anyURI" />
+	<element name="groupsReference" type="anyURI" />
+	<element name="applicationsReference" type="anyURI" />
+	<element name="containersReference" type="anyURI" />
+
+	<element name="accessRightsReference" type="anyURI" />
+	<element name="notificationChannelsReference" type="anyURI" />
+	<element name="mgmtObjsReference" type="anyURI" />
+
+	<element name="contentInstancesReference" type="anyURI" />
+
+	<complexType name="NamedReferenceCollection">
+		<sequence>
+			<element ref="tns:namedReference" minOccurs="0" maxOccurs="unbounded" />
+		</sequence>
+	</complexType>
+
+	<complexType name="ReferenceToNamedResource">
+		<simpleContent>
+			<extension base="anyURI">
+				<attribute name="id" />
+			</extension>
+		</simpleContent>
+	</complexType>
+
+	<element name="namedReference" type="tns:ReferenceToNamedResource" />
+
+	<element name="contentType" type="string" />
+
+	<complexType name="Schedule">
+		<sequence>
+			<element name="scheduleString" type="string" minOccurs="0"
+				maxOccurs="unbounded" />
+		</sequence>
+	</complexType>
+
+	<element name="onlineStatus" type="tns:OnlineStatus" />
+
+	<simpleType name="OnlineStatus">
+		<restriction base="string">
+			<enumeration value="ONLINE"></enumeration>
+			<enumeration value="OFFLINE"></enumeration>
+			<enumeration value="NOT_REACHABLE"></enumeration>
+		</restriction>
+	</simpleType>
+
+	<element name="contactURI" type="anyURI" />
+
+	<simpleType name="RcatType">
+		<restriction base="string">
+			<enumeration value="RCAT_0"></enumeration>
+			<enumeration value="RCAT_1"></enumeration>
+			<enumeration value="RCAT_2"></enumeration>
+			<enumeration value="RCAT_3"></enumeration>
+			<enumeration value="RCAT_4"></enumeration>
+			<enumeration value="RCAT_5"></enumeration>
+			<enumeration value="RCAT_6"></enumeration>
+			<enumeration value="RCAT_7"></enumeration>
+		</restriction>
+	</simpleType>
+
+	<complexType name="TrpdtType">
+		<choice>
+			<element name="tolerableDelay" type="duration" minOccurs="0"
+				maxOccurs="1" />
+			<element name="tolerableTime" type="time" minOccurs="0"
+				maxOccurs="1" />
+		</choice>
+	</complexType>
+	
+		<element name="statusCode" type="tns:StatusCode" />
+	<simpleType name="StatusCode">
+		<restriction base="string">
+			<enumeration value="STATUS_OK" />
+			<enumeration value="STATUS_ACCEPTED" />
+			<enumeration value="STATUS_BAD_REQUEST" />
+			<enumeration value="STATUS_PERMISSION_DENIED" />
+			<enumeration value="STATUS_FORBIDDEN" />
+			<enumeration value="STATUS_NOT_FOUND" />
+			<enumeration value="STATUS_METHOD_NOT_ALLOWED" />
+			<enumeration value="STATUS_NOT_ACCEPTABLE" />
+			<enumeration value="STATUS_REQUEST_TIMEOUT" />
+			<enumeration value="STATUS_CONFLICT" />
+			<enumeration value="STATUS_UNSUPPORTED_MEDIA_TYPE" />
+			<enumeration value="STATUS_INTERNAL_SERVER_ERROR" />
+			<enumeration value="STATUS_NOT_IMPLEMENTED" />
+			<enumeration value="STATUS_BAD_GATEWAY" />
+			<enumeration value="STATUS_SERVICE_UNAVAILABLE" />
+			<enumeration value="STATUS_GATEWAY_TIMEOUT" />
+			<enumeration value="STATUS_DELETED" />
+			<enumeration value="STATUS_EXPIRED" />
+		</restriction>
+	</simpleType>
+	
+	<element name="aPocHandling" type="tns:APocHandling" />
+	
+	<simpleType name="APocHandling">
+		<restriction base="string">
+			<enumeration value="SHALLOW" />
+			<enumeration value="DEEP" />
+		</restriction>
+	</simpleType>
+	
+	<element name="appId" type="anyURI"/>
+	<element name="sclId" type="anyURI"/>
+</schema>
