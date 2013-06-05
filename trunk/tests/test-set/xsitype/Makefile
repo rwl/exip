@@ -9,10 +9,13 @@ CFLAGS += -I$(EXIP)/src/grammar/include -I$(EXIP)/include -I$(EXIP)/build/gcc/pc
 LIB = $(EXIP)/bin/lib/libexip.so -lmxml -lpthread
 LDFLAGS += -L/usr/local/lib -s
 
-all	: schemaConvert.x Product.exs xsitypeProduct.x
+all	: schemaConvert.x Product.exs xsitypeProduct.x xsitypeM2M.x
 
 xsitypeProduct.x : xsitypeProduct.o
 	$(CC) -o xsitypeProduct.x xsitypeProduct.o $(LDFLAGS) $(LIB)
+
+xsitypeM2M.x : xsitypeM2M.o
+	$(CC) -o xsitypeM2M.x xsitypeM2M.o $(LDFLAGS) $(LIB)
 
 schemaConvert.x : schemaConvert.o
 	$(CC) -o schemaConvert.x schemaConvert.o

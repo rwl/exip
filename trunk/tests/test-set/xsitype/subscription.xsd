@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://uri.etsi.org/m2m" xmlns:tns="http://uri.etsi.org/m2m"
+	xmlns:xmlmime="http://www.w3.org/2005/05/xmlmime">
+
+	<include schemaLocation="common.xsd" />
+	<import namespace="http://www.w3.org/2005/05/xmlmime" schemaLocation="http://www.w3.org/2005/05/xmlmime.xsd" />
+
+
+
+	<element name="subscription" type="tns:Subscription" />
+
+	<complexType name="Subscription">
+		<sequence>
+			<element ref="tns:expirationTime" minOccurs="0" />
+			<choice minOccurs="0">
+				<element ref="tns:minimalTimeBetweenNotifications" />
+				<element ref="tns:delayTolerance" />
+			</choice>
+			<element ref="tns:creationTime" minOccurs="0" />
+			<element ref="tns:lastModifiedTime" minOccurs="0" />
+			<element ref="tns:filterCriteria" minOccurs="0" />
+			<element ref="tns:subscriptionType" minOccurs="0" />
+			<element ref="tns:contact" minOccurs="0" />
+			<!-- subresources -->
+		</sequence>
+		<attribute ref="tns:id"/>
+	</complexType>
+
+	<element name="minimalTimeBetweenNotifications" type="long">
+		<annotation>
+			<documentation>
+				In milliseconds.
+			</documentation>
+		</annotation>
+	</element>
+
+	<element name="subscriptionType" type="tns:SubscriptionType" />
+	<element name="contact" type="anyURI" />
+
+	<simpleType name="SubscriptionType">
+		<restriction base="string">
+			<enumeration value="ASYNCHRONOUS" />
+			<enumeration value="SYNCHRONOUS" />
+		</restriction>
+	</simpleType>
+
+</schema>

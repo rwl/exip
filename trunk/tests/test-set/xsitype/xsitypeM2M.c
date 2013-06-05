@@ -1,14 +1,38 @@
-/*==================================================================*\
-|                EXIP - Embeddable EXI Processor in C                |
-|--------------------------------------------------------------------|
-|          This work is licensed under BSD 3-Clause License          |
-|  The full license terms and conditions are located in LICENSE.txt  |
-\===================================================================*/
+/*
+* Copyright (C) Actility, SA. All Rights Reserved.
+* DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License version
+* 2 only, as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but
+* WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+* General Public License version 2 for more details (a copy is
+* included at /legal/license.txt).
+*
+* You should have received a copy of the GNU General Public License
+* version 2 along with this work; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+* 02110-1301 USA
+*
+* Please contact Actility, SA.,  4, rue Ampere 22300 LANNION FRANCE
+* or visit www.actility.com if you need additional
+* information or have any questions.
+*/
+
 
 /*
  Based on tests/check_xsi_type.c, this program encodes an EXI containing xsi:type
- and then decodes it
+ and then decodes it :
 
+<?xml version="1.0" encoding="UTF-8"?>
+<m2m:subscription xmlns:m2m="http://uri.etsi.org/m2m" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <m2m:filterCriteria xsi:type="m2m:ContentInstanceFilterCriteriaType">
+    <creator>http://www.creator.org/</creator>
+  </m2m:filterCriteria>
+</m2m:subscription>
 */
 
 #include <stdio.h>
@@ -19,14 +43,14 @@
 #include "stringManipulate.h"
 #include "grammarGenerator.h"
 
-#define OUTPUT_BUFFER_SIZE 2000
+#define OUTPUT_BUFFER_SIZE 64*1024
 #define check(str)	if (tmp_err_code != ERR_OK) { printf ("  =====> Err line %d (%s) code:%d\n", __LINE__, str, tmp_err_code); exit(0); }
 
 static int parseSchema(char* xsdList, EXIPSchema* schema);
 
 char *XSI = "http://www.w3.org/2001/XMLSchema-instance";
 char *XS = "http://www.w3.org/2001/XMLSchema";
-char *EXEMPLE = "http://www.exemple.com/XMLNameSpace";
+char *M2M = "http://uri.etsi.org/m2m";
 
 
 static errorCode sample_fatalError(const errorCode code, const char* msg, void* app_data);
@@ -55,24 +79,17 @@ int main(int ac, char **av) {
 	errorCode tmp_err_code = 0;
 	BinaryBuffer buffer;
 	EXITypeClass valueType;
-	int opt;
-	char files[1000] = "";
-
-	while ((opt = getopt(ac, av, "s")) != -1) {
-		switch (opt) {
-		case 's' :
-			strcpy (files, "Product.exs");
-			break;
-		}
-	}
-
-	printf ("### %s\n", av[0]);
 
 	buffer.buf = buf;
 	buffer.bufContent = 0;
 	buffer.bufLen = OUTPUT_BUFFER_SIZE;
 	buffer.ioStrm.readWriteToStream = NULL;
 	buffer.ioStrm.stream = NULL;
+
+	char files[256] = "";
+	if	(ac == 2 && !strcmp(av[1], "-s")) {
+		strcpy (files, "common.exs,subscription.exs,contentInstances.exs,contentInstance.exs,mime.exs");
+	}
 
 	if	(*files && parseSchema(files, &schema) == 0) {
 		schemaPtr	= &schema;
@@ -82,90 +99,64 @@ int main(int ac, char **av) {
 
 	testStrm.header.has_options = TRUE;
 
-	testStrm.header.opts.schemaIDMode = SCHEMA_ID_EMPTY;
-
 	if	(schemaPtr) {
-		tmp_err_code = asciiToString("product", &testStrm.header.opts.schemaID, &testStrm.memList, FALSE); check("")
+		tmp_err_code = asciiToString("subscription", &testStrm.header.opts.schemaID, &testStrm.memList, FALSE); check("")
 		testStrm.header.opts.schemaIDMode = SCHEMA_ID_SET;
-		printf ("### schemaId %s\n", "product");
+		printf ("schemaId %s\n", "subscription");
+	}
+	else {
+		testStrm.header.opts.schemaIDMode = SCHEMA_ID_EMPTY;
 	}
 
 	tmp_err_code = serialize.initStream(&testStrm, buffer, schemaPtr); check("")
 	tmp_err_code = serialize.exiHeader(&testStrm); check("")
 	tmp_err_code = serialize.startDocument(&testStrm); check("SD")
 
-	printf ("### startElement %s:%s\n", EXEMPLE, "product");
-	tmp_err_code += asciiToString(EXEMPLE, &uri, &testStrm.memList, FALSE); check("")
-	tmp_err_code += asciiToString("product", &ln, &testStrm.memList, FALSE); check("")
-	tmp_err_code += serialize.startElement(&testStrm, qname, &valueType); check("SE exe:product")
+	printf ("### startElement %s:%s\n", M2M, "subscription");
+	tmp_err_code += asciiToString(M2M, &uri, &testStrm.memList, FALSE); check("")
+	tmp_err_code += asciiToString("subscription", &ln, &testStrm.memList, FALSE); check("")
+	tmp_err_code += serialize.startElement(&testStrm, qname, &valueType); check("SE m2m:subscription")
 
-	printf ("### startElement %s:%s\n", EXEMPLE, "subproduct");
-	tmp_err_code += asciiToString("", &uri, &testStrm.memList, FALSE); check("")
-	tmp_err_code += asciiToString("subproduct", &ln, &testStrm.memList, FALSE); check("")
-	tmp_err_code += serialize.startElement(&testStrm, qname, &valueType); check("SE exe:subproduct")
+	printf ("### startElement %s:%s\n", M2M, "filterCriteria");
+	tmp_err_code += asciiToString(M2M, &uri, &testStrm.memList, FALSE); check("")
+	tmp_err_code += asciiToString("filterCriteria", &ln, &testStrm.memList, FALSE); check("")
+	tmp_err_code += serialize.startElement(&testStrm, qname, &valueType); check("SE m2m:filterCriteria")
 
 	printf ("### attribute %s:%s\n", XSI, "type");
 	tmp_err_code += asciiToString(XSI, &uri, &testStrm.memList, FALSE); check("")
 	tmp_err_code += asciiToString("type", &ln, &testStrm.memList, FALSE); check("")
 	tmp_err_code += serialize.attribute(&testStrm, qname, TRUE, &valueType); check("xsi:type")
 
-	printf ("### qnameData %s:%s\n", EXEMPLE, "ShirtType");
-	tmp_err_code += asciiToString(EXEMPLE, &uri, &testStrm.memList, FALSE); check("")
-	tmp_err_code += asciiToString("ShirtType", &ln, &testStrm.memList, FALSE); check("")
-	tmp_err_code += serialize.qnameData(&testStrm, qname); check("qnameData exe:ShirtType")
+	printf ("### qnameData %s:%s\n", M2M, "ContentInstanceFilterCriteriaType");
+	tmp_err_code += asciiToString(M2M, &uri, &testStrm.memList, FALSE); check("")
+	tmp_err_code += asciiToString("ContentInstanceFilterCriteriaType", &ln, &testStrm.memList, FALSE); check("")
+	tmp_err_code += serialize.qnameData(&testStrm, qname); check("qnameData m2m:ContentInstanceFilterCriteriaType")
 
-	printf ("### startElement %s:%s valueType=%d\n", "", "number", valueType);
+	// <creator>http://www.creator.org/</creator>
+	printf ("### startElement %s:%s valueType=%d\n", "", "creator", valueType);
 	tmp_err_code += asciiToString("", &uri, &testStrm.memList, FALSE); check("")
-	tmp_err_code += asciiToString("number", &ln, &testStrm.memList, FALSE); check("")
-	tmp_err_code += serialize.startElement(&testStrm, qname, &valueType); check("SE number")
+	tmp_err_code += asciiToString("creator", &ln, &testStrm.memList, FALSE); check("")
+	tmp_err_code += serialize.startElement(&testStrm, qname, &valueType); check("SE creator")
 
-	if	(schemaPtr) {
-		printf ("### intData %s\n", "12345");
-		tmp_err_code += serialize.intData(&testStrm, 12345);
-	}
-	else {
-		printf ("### stringData %s\n", "12345");
-		tmp_err_code += asciiToString("12345", &chVal, &testStrm.memList, FALSE);
-		tmp_err_code += serialize.stringData(&testStrm, chVal); check("CH")
-	}
+	printf ("### stringData %s\n", "http://www.creator.org");
+	tmp_err_code += asciiToString("http://www.creator.org", &chVal, &testStrm.memList, FALSE);
+	tmp_err_code += serialize.stringData(&testStrm, chVal); check("CH")
 
-	printf ("### EE\n");
-	tmp_err_code += serialize.endElement(&testStrm); check("EE number")
+	tmp_err_code += serialize.endElement(&testStrm); check("EE creator")
 
-	printf ("### startElement %s:%s valueType=%d\n", "", "size", valueType);
-	tmp_err_code += asciiToString("", &uri, &testStrm.memList, FALSE); check("")
-	tmp_err_code += asciiToString("size", &ln, &testStrm.memList, FALSE); check("")
-	tmp_err_code += serialize.startElement(&testStrm, qname, &valueType); check("SE size")
+	tmp_err_code += serialize.endElement(&testStrm); check("EE filterCriteria")
 
-	if	(schemaPtr) {
-		printf ("### intData %s\n", "33");
-		tmp_err_code += serialize.intData(&testStrm, 33);
-	}
-	else {
-		printf ("### stringData %s\n", "33");
-		tmp_err_code += asciiToString("33", &chVal, &testStrm.memList, FALSE);
-		tmp_err_code += serialize.stringData(&testStrm, chVal); check("CH")
-	}
+	tmp_err_code += serialize.endElement(&testStrm); check("EE subscription")
 
-	printf ("### EE\n");
-	tmp_err_code += serialize.endElement(&testStrm); check("EE size")
-
-	printf ("### EE\n");
-	tmp_err_code += serialize.endElement(&testStrm); check("EE product")
-
-	printf ("### EE\n");
-	tmp_err_code += serialize.endElement(&testStrm); check("EE subproduct")
-
-	printf ("### ED\n");
 	tmp_err_code += serialize.endDocument(&testStrm); check("ED")
 
 	// V: Free the memory allocated by the EXI stream object
 	tmp_err_code = serialize.closeEXIStream(&testStrm); check("")
 
 	if	(tmp_err_code == ERR_OK)
-		printf ("### ENCODING SUCCESS sz=%d\n", testStrm.context.bufferIndx + 1);
+		printf ("ENCODING SUCCESS sz=%d\n", testStrm.context.bufferIndx + 1);
 
-	printf ("### START PARSING\n");
+	printf ("START PARSING\n");
 
 	//	DECODING
 
@@ -208,9 +199,9 @@ int main(int ac, char **av) {
 	destroyParser(&testParser);
 
 	if	(tmp_err_code == PARSING_COMPLETE)
-		printf ("### PARSING SUCCESS\n");
+		printf ("PARSING SUCCESS\n");
 	else
-		printf ("### tmp_err_code = %d\n", tmp_err_code);
+		printf ("tmp_err_code = %d\n", tmp_err_code);
 
 	return	0;
 }
@@ -220,8 +211,8 @@ static void printURI(const String *str) {
 		printf ("xsi");
 	else if	(stringEqualToAscii(*str, XS))
 		printf ("xs");
-	else if	(stringEqualToAscii(*str, EXEMPLE))
-		printf ("ABC");
+	else if	(stringEqualToAscii(*str, M2M))
+		printf ("m2m");
 	else
 		fwrite (str->str, sizeof(CharType), str->length, stdout);
 }
@@ -234,25 +225,25 @@ void printQName(const QName qname) {
 
 static errorCode sample_fatalError(const errorCode code, const char* msg, void* app_data)
 {
-	printf("\n### %d : FATAL ERROR: %s\n", code, msg);
+	printf("\n%d : FATAL ERROR: %s\n", code, msg);
 	return EXIP_HANDLER_STOP;
 }
 
 static errorCode sample_startDocument(void* app_data)
 {
-	printf("### SD\n");
+	printf("SD\n");
 	return ERR_OK;
 }
 
 static errorCode sample_endDocument(void* app_data)
 {
-	printf("### ED\n");
+	printf("ED\n");
 	return ERR_OK;
 }
 
 static errorCode sample_startElement(QName qname, void* app_data)
 {
-	printf("### SE ");
+	printf("SE ");
 	printQName (qname);
 	printf("\n");
 	return ERR_OK;
@@ -260,7 +251,7 @@ static errorCode sample_startElement(QName qname, void* app_data)
 
 static errorCode sample_endElement(void* app_data)
 {
-	printf("### EE\n");
+	printf("EE\n");
 	return ERR_OK;
 }
 
@@ -268,7 +259,7 @@ int expectAttributeData = 0;
 
 static errorCode sample_attribute(QName qname, void* app_data)
 {
-	printf("### AT ");
+	printf("AT ");
 	printQName (qname);
 	printf("=\"");
 	expectAttributeData = 1;
@@ -285,7 +276,7 @@ static errorCode sample_stringData(const String value, void* app_data)
 	}
 	else
 	{
-		printf("### CH ");
+		printf("CH ");
 		printString(&value);
 		printf("\n");
 	}
@@ -303,13 +294,13 @@ static errorCode sample_intData(Integer int_val, void* app_data)
 	if(expectAttributeData)
 	{
 		sprintf(tmp_buf, "%lld", (long long int) int_val);
-		printf("### intData %s", tmp_buf);
+		printf("intData %s", tmp_buf);
 		printf("\"\n");
 		expectAttributeData = 0;
 	}
 	else
 	{
-		printf("### intData ");
+		printf("intData ");
 		sprintf(tmp_buf, "%lld", (long long int) int_val);
 		printf("%s", tmp_buf);
 		printf("\n");
@@ -341,7 +332,7 @@ static errorCode sample_qnameData(const QName qname, void* app_data)
 {
 	//if(expectAttributeData)
 	{
-		printf ("### qnameData : ");
+		printf ("qnameData : ");
 		printQName (qname);
 		printf("\"\n");
 		expectAttributeData = 0;
@@ -364,7 +355,7 @@ static int parseSchema(char* xsdList, EXIPSchema* schema)
 
 	for (token = strtok(xsdList, "=,"), i = 0; token != NULL; token = strtok(NULL, "=,"), i++)
 	{
-printf ("### %d %s\n", i, token);
+printf ("%d %s\n", i, token);
 		schemaFilesCount++;
 		if(schemaFilesCount > MAX_XSD_FILES_COUNT)
 		{
@@ -414,8 +405,8 @@ printf ("### %d %s\n", i, token);
 	}
 
 	if(tmp_err_code != ERR_OK)
-		printf("\n### Grammar generation error occurred: %d\n", tmp_err_code);
+		printf("\nGrammar generation error occurred: %d\n", tmp_err_code);
 	else
-		printf("### Grammar generation SUCCESS\n");
+		printf("Grammar generation SUCCESS\n");
 	return 0;
 }

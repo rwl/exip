@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://uri.etsi.org/m2m" xmlns:tns="http://uri.etsi.org/m2m">
+
+<!--
+	<include schemaLocation="common.xsd" />
+	<include schemaLocation="contentInstance.xsd" />
+
+	<element name="contentInstances" type="tns:ContentInstances" />
+
+	<complexType name="ContentInstances">
+		<sequence>
+			<element ref="tns:creationTime" minOccurs="0" />
+			<element ref="tns:lastModifiedTime" minOccurs="0" />
+			<element ref="tns:currentNrOfInstances" minOccurs="0" />
+			<element ref="tns:currentByteSize" minOccurs="0" />
+
+			<element ref="tns:contentInstanceCollection" minOccurs="0" />
+			<element ref="tns:latest" minOccurs="0" />
+			<element ref="tns:oldest" minOccurs="0" />
+			<element ref="tns:subscriptionsReference" minOccurs="0" />
+		</sequence>
+	</complexType>
+
+	<element name="currentNrOfInstances" type="long" />
+	<element name="currentByteSize" type="long" />
+
+	<element name="latest" type="tns:ReferenceToNamedResource" />
+	<element name="oldest" type="tns:ReferenceToNamedResource" />
+
+	<element name="contentInstanceCollection" type="tns:ContentInstanceCollection" />
+
+	<complexType name="ContentInstanceCollection">
+		<sequence>
+			<element ref="tns:contentInstance" minOccurs="0" maxOccurs="unbounded" />
+		</sequence>
+	</complexType>
+-->
+
+	<complexType name="ContentInstanceFilterCriteriaType">
+		<complexContent>
+			<extension base="tns:FilterCriteriaType">
+				<sequence>
+					<element name="creator" type="anyURI" minOccurs="0"/>
+					<element name="searchString" type="string" minOccurs="0" maxOccurs="unbounded"/>
+					<element name="createdSince" type="dateTime" minOccurs="0"/>
+					<element name="createdUntil" type="dateTime" minOccurs="0"/>
+					<element name="sizeFrom" type="int" minOccurs="0"/>
+					<element name="sizeUntil" type="int" minOccurs="0"/>
+					<element name="contentType" type="string" minOccurs="0" maxOccurs="unbounded"/>
+					<element name="metaDataOnly" type="boolean" minOccurs="0" maxOccurs="1"/>
+					<element name="attributeAccessor" type="anyURI" minOccurs="0" maxOccurs="1"/>
+				</sequence>
+			</extension>
+		</complexContent>
+	</complexType>
+</schema>

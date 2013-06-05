@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://uri.etsi.org/m2m" xmlns:tns="http://uri.etsi.org/m2m">
+
+	<include schemaLocation="common.xsd" />
+	
+	<element name="subscriptions" type="tns:Subscriptions" />
+
+	<complexType name="Subscriptions">
+		<sequence>
+			<!-- subresources -->
+			<element ref="tns:subscriptionCollection" minOccurs="0" />
+		</sequence>
+	</complexType>
+
+	<element name="subscriptionCollection" type="tns:NamedReferenceCollection" />
+
+
+</schema>
