@@ -441,9 +441,6 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 				break;
 				case EVENT_AT_CLASS:
 
-					if(strm->context.currNonTermID >= GET_CONTENT_INDEX(strm->gStack->grammar->props))
-						return INCONSISTENT_PROC_STATE;
-
 					if(!lookupUri(&strm->schema->uriTable, *qname->uri, &qnameID.uriId))
 					{
 						qnameID.uriId = strm->schema->uriTable.count;
