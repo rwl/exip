@@ -175,18 +175,27 @@ static errorCode serializeOptionsStream(EXIStream* options_strm, EXIOptions* opt
 			ruleContext = 0;
 #if EXI_PROFILE_DEFAULT
 			{
-			String uri, ln;
-			QName pQname = {&uri, &ln, NULL};
-			QNameID qnameID;
+			String pLn;
 			tmpEvCode.length = 1;
 			tmpEvCode.part[0] = 5;
 			tmpEvCode.bits[0] = 3;
 			// serialize SE(*)
 			TRY(writeEventCode(options_strm, tmpEvCode));
 			// serialize <p>
-			getEmptyString((String*) pQname.uri);
-			TRY(asciiToString("p",(String*) pQname.localName, &options_strm->memList, FALSE));
-			TRY(encodeQName(options_strm, pQname, EVENT_SE_ALL, &qnameID));
+			// first the EXI uri: http://www.w3.org/2009/exi
+			// It is with id 4 in the string table
+			TRY(encodeNBitUnsignedInteger(options_strm, getBitsNumber(options_strm->schema->uriTable.count), 4 + 1));
+			// then the p local name
+			{
+				TRY(asciiToString("p", &pLn, &options_strm->memList, TRUE));
+				TRY(encodeUnsignedInteger(options_strm, (UnsignedInteger)(pLn.length + 1)));
+				TRY(encodeStringOnly(options_strm, &pLn));
+				// NOTE: the "p" local name is in purpose not added to the
+				// local name table of the http://www.w3.org/2009/exi uri, although it should be.
+				// If there are more strings (24 or more) added there in the future
+				// or the <p> element is encoded more than once - both are highly unlikely,
+				// then there will be a problem with the encoding.
+			}
 			// serialize </p>
 			tmpEvCode.length = 1;
 			tmpEvCode.part[0] = 0;

@@ -284,8 +284,9 @@ static errorCode ops_startElement(QName qname, void* app_data)
 				// If this is not the case rise an error
 				// SE(*) has event code 5 in the uncommon grammar
 				unsigned int tmp_bits_val;
+				UnsignedInteger lnLen = 0;
 				errorCode tmp_err_code = UNEXPECTED_ERROR;
-				QName qname;
+				String lnStr;
 				QNameID qnameId = {URI_MAX, LN_MAX};
 
 				// Next event code must be SE(*)
@@ -295,9 +296,21 @@ static errorCode ops_startElement(QName qname, void* app_data)
 					DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">EXI Profile default active but <p> element missing\n"));
 					return INVALID_EXIP_CONFIGURATION;
 				}
-				// The element QName must be "p"
-				TRY(decodeQName(o_appD->o_strm, &qname, &qnameId));
-				if(!isStringEmpty(qname.uri) || !stringEqualToAscii(*qname.localName, "p"))
+				// The <p> element QName must be "http://www.w3.org/2009/exi:p"
+				TRY(decodeUri(o_appD->o_strm, &qnameId.uriId));
+				TRY(decodeUnsignedInteger(o_appD->o_strm, &lnLen));
+				if(lnLen == 0) // local-name table hit -> should not be the case to have "p" in the local string table
+					return INVALID_EXIP_CONFIGURATION;
+
+				TRY(allocateStringMemoryManaged(&(lnStr.str),(Index) (lnLen - 1), &o_appD->o_strm->memList));
+				TRY(decodeStringOnly(o_appD->o_strm, (Index)lnLen - 1, &lnStr));
+				// NOTE: the "p" local name is in purpose not added to the
+				// local name table of the http://www.w3.org/2009/exi uri, although it should be.
+				// If there are more strings (24 or more) added there in the future
+				// or the <p> element is encoded more than once - both are highly unlikely,
+				// then there will be a problem with the encoding.
+
+				if(qnameId.uriId != 4 || !stringEqualToAscii(lnStr, "p"))
 				{
 					DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">EXI Profile default active but <p> element missing\n"));
 					return INVALID_EXIP_CONFIGURATION;
