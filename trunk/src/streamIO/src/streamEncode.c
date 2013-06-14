@@ -299,7 +299,8 @@ errorCode encodeDateTimeValue(EXIStream* strm, EXIPDateTime dt_val)
 
 	if(IS_PRESENT(dt_val.presenceMask, TZONE_PRESENCE))
 	{
-		return NOT_IMPLEMENTED_YET;
+		TRY(encodeBoolean(strm, TRUE));
+		TRY(encodeNBitUnsignedInteger(strm, 11, dt_val.TimeZone));
 	}
 	else
 	{

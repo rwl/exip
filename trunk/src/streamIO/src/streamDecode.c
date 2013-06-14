@@ -291,7 +291,10 @@ errorCode decodeDateTimeValue(EXIStream* strm, EXIPDateTime* dt_val)
 
 	if(presence)
 	{
-		return NOT_IMPLEMENTED_YET;
+		unsigned int tzone = 0;
+		dt_val->presenceMask = dt_val->presenceMask | TZONE_PRESENCE;
+		TRY(decodeNBitUnsignedInteger(strm, 11, &tzone));
+		dt_val->TimeZone = tzone;
 	}
 
 	return ERR_OK;
