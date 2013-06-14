@@ -31,6 +31,8 @@ enum boolean
 	TRUE  = 1
 };
 
+#define EXIP_VERSION 294
+
 typedef enum boolean boolean;
 
 #ifndef NULL
@@ -169,6 +171,7 @@ struct EXIPDateTime
 	 */
 	struct tm dateTime;
 	FractionalSecs fSecs;
+	int16_t TimeZone; // TZHours * 64 + TZMinutes
 
 	/**
 	 * Defines which fields of the DateTime are included.
