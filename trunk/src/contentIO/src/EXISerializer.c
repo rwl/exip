@@ -208,6 +208,8 @@ errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema)
 		if(strm->valueTable.hashTbl == NULL)
 			return HASH_TABLE_ERROR;
 	}
+	else
+		strm->valueTable.hashTbl = NULL;
 #endif
 	return ERR_OK;
 }

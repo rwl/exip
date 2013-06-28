@@ -100,8 +100,7 @@ errorCode generateBuiltInTypesGrammars(EXIPSchema* schema)
 		if(HAS_TYPE_FACET(schema->simpleTypeTable.sType[typeId].content, TYPE_FACET_NAMED_SUBTYPE_UNION))
 			SET_NAMED_SUB_TYPE_OR_UNION(grammar.props);
 
-		// One more rule slot for grammar augmentation when strict == FASLE
-		grammar.rule = (GrammarRule*)memManagedAllocate(&schema->memList, sizeof(GrammarRule)*(grammar.count + 1));
+		grammar.rule = (GrammarRule*) memManagedAllocate(&schema->memList, sizeof(GrammarRule)*(grammar.count));
 		if(grammar.rule == NULL)
 			return MEMORY_ALLOCATION_ERROR;
 
@@ -139,6 +138,8 @@ errorCode generateBuiltInTypesGrammars(EXIPSchema* schema)
 			grammar.rule[0].production[0].qnameId.lnId = LN_MAX;
 
 			grammar.rule[0].pCount = 4;
+			grammar.rule[0].meta = 0;
+			RULE_SET_CONTAIN_EE(grammar.rule[0].meta);
 
 			grammar.rule[1].production = memManagedAllocate(&schema->memList, sizeof(Production)*3);
 			if(grammar.rule[1].production == NULL)
@@ -163,6 +164,8 @@ errorCode generateBuiltInTypesGrammars(EXIPSchema* schema)
 			grammar.rule[1].production[0].qnameId.lnId = LN_MAX;
 
 			grammar.rule[1].pCount = 3;
+			grammar.rule[1].meta = 0;
+			RULE_SET_CONTAIN_EE(grammar.rule[1].meta);
 		}
 		else // a regular simple type
 		{
@@ -176,6 +179,7 @@ errorCode generateBuiltInTypesGrammars(EXIPSchema* schema)
 			grammar.rule[0].production[0].qnameId.uriId = URI_MAX;
 			grammar.rule[0].production[0].qnameId.lnId = LN_MAX;
 			grammar.rule[0].pCount = 1;
+			grammar.rule[0].meta = 0;
 
 			grammar.rule[1].production = memManagedAllocate(&schema->memList, sizeof(Production));
 			if(grammar.rule[1].production == NULL)
@@ -187,6 +191,8 @@ errorCode generateBuiltInTypesGrammars(EXIPSchema* schema)
 			grammar.rule[1].production[0].qnameId.uriId = URI_MAX;
 			grammar.rule[1].production[0].qnameId.lnId = LN_MAX;
 			grammar.rule[1].pCount = 1;
+			grammar.rule[1].meta = 0;
+			RULE_SET_CONTAIN_EE(grammar.rule[1].meta);
 		}
 
 		/** Add the grammar to the schema grammar table */
