@@ -206,7 +206,7 @@ static void printfHelp()
     printf("           -pfx         :   When in -dynamic or -static mode, this option allows you to specify a unique prefix for the\n");
     printf("                            generated global types. The default is \"prfx_\"\n");
     printf("           ops_mask     :   The format is: <STRICT><SELF_CONTAINED><dtd><prefixes><lexicalValues><comments><pis> := <0|1><0|1><0|1><0|1><0|1><0|1><0|1>\n");
-    printf("                            Use this argument only for specifying out-of-band options. That is if no options are specified in the header of the <xsd_in>");
+    printf("                            Use this argument only for specifying out-of-band options. That is if no options are specified in the header of the <xsd_in>\n");
     printf("                            EXI encoded schema files but some options are used during encoding.\n");
     printf("                            This argument is useful for generating the \"EXI Options\" grammar where STRICT is set and the rest are default options. \n");
     printf("                            In this way the bootstrapping of the code is easier. The mask to use for EXIOptions-xsd.exi is -ops=0001000 \n");
