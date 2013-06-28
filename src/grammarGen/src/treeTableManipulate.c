@@ -65,7 +65,6 @@ errorCode initTreeTable(TreeTable* treeT)
 	TRY(createDynArray(&treeT->dynArray, sizeof(TreeTableEntry), TREE_TABLE_ENTRY_COUNT));
 	TRY(createDynArray(&treeT->globalDefs.pfxNsTable.dynArray, sizeof(PfxNsEntry), 10));
 
-	treeT->globalDefs.isMain = FALSE;
 	treeT->globalDefs.attrFormDefault = UNQUALIFIED;
 	treeT->globalDefs.elemFormDefault = UNQUALIFIED;
 	treeT->count = 0;

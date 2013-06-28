@@ -683,11 +683,11 @@ static errorCode handleElementEl(BuildContext* ctx, TreeTable* treeT, TreeTableE
 	}
 
 	/*
-	 * If the element is global and it is part of the main tree table,
+	 * If the element is global and it is not recursively added already,
 	 * add it to the GlobalElemQNameTable.
 	 * This table is used to generate the schema-informed document grammar.
 	 */
-	if(isGlobal && treeT->globalDefs.isMain == TRUE && entry->loopDetection == 0)
+	if(isGlobal && entry->loopDetection == 0)
 	{
 		Index dynElID;
 

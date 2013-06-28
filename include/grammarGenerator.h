@@ -40,8 +40,6 @@ typedef enum SchemaFormat SchemaFormat;
  *
  * @param[in] buffers an array of input buffers holding the representation of the schema.
  * 			  Each buffer refers to one schema file.
- * 			  The first buffer (buffers[0]) MUST be the main XSD document and the other buffers
- * 			  should be all the XSDs that are referenced from the main XSD document.
  * @param[in] bufCount the number of buffers in the array
  * @param[in] schemaFormat EXI, XSD, DTD or any other schema representation supported
  * @param[in] opt options used for EXI schemaFormat - otherwise NULL. If options are set then they will be used
