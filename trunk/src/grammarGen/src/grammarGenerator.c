@@ -47,8 +47,6 @@ errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int buf
 		TRY(initTreeTable(&treeT[i]));
 	}
 
-	/** Set the first tree table to be the main XSD */
-	treeT[0].globalDefs.isMain = TRUE;
 	TRY(initSchema(schema, INIT_SCHEMA_SCHEMA_ENABLED));
 
 	for(i = 0; i < bufCount; i++)

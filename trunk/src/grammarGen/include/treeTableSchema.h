@@ -202,8 +202,6 @@ struct TreeTable
 
 	struct
 	{
-		/** Whether the tree corresponds to the main XSD of the schema definitions */
-		boolean isMain;
 		/** targetNamespace for that TreeTable */
 		String targetNs;
 		/** Identifies the target namespace in the EXIP Schema URI Table */
