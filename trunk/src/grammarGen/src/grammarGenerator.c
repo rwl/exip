@@ -30,10 +30,12 @@ static int compareUri(const void* uriRow1, const void* uriRow2);
  */
 static void sortUriTable(UriTable* uriTable);
 
-errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int bufCount, SchemaFormat schemaFormat, EXIOptions* opt, EXIPSchema* schema)
+errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int bufCount, SchemaFormat schemaFormat, EXIOptions* opt, EXIPSchema* schema,
+		errorCode (*loadSchemaHandler) (String* namespace, String* schemaLocation, BinaryBuffer** buffers, unsigned int* bufCount, SchemaFormat* schemaFormat, EXIOptions** opt))
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	TreeTable* treeT;
+	unsigned int treeTCount = bufCount;
 	unsigned int i = 0;
 
 	// TODO: again in error cases all the memory must be released
@@ -54,10 +56,12 @@ errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int buf
 		TRY(generateTreeTable(buffers[i], schemaFormat, opt, &treeT[i], schema));
 	}
 
+	TRY(resolveIncludeImportReferences(&treeT, &treeTCount, loadSchemaHandler));
+
 #if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
 	{
 		unsigned int j;
-		for(i = 0; i < bufCount; i++)
+		for(i = 0; i < treeTCount; i++)
 		{
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\nElement tree %d before resolving:\n", i));
 			for(j = 0; j < treeT[i].count; j++)
@@ -94,19 +98,19 @@ errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int buf
 	sortUriTable(&schema->uriTable);
 
 	// Find the correct targetNsId in the string tables for each TreeTable
-	for(i = 0; i < bufCount; i++)
+	for(i = 0; i < treeTCount; i++)
 	{
 		if(!lookupUri(&schema->uriTable, treeT[i].globalDefs.targetNs, &treeT[i].globalDefs.targetNsId))
 			return UNEXPECTED_ERROR;
 	}
 
-	TRY(resolveTypeHierarchy(schema, treeT, bufCount));
+	TRY(resolveTypeHierarchy(schema, treeT, treeTCount));
 
 #if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
 	{
 		unsigned int j;
 
-		for(i = 0; i < bufCount; i++)
+		for(i = 0; i < treeTCount; i++)
 		{
 			DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\nElement tree %d after resolving:\n", i));
 			for(j = 0; j < treeT[i].count; j++)
@@ -118,9 +122,9 @@ errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int buf
 	}
 #endif
 
-	TRY(convertTreeTablesToExipSchema(treeT, bufCount, schema));
+	TRY(convertTreeTablesToExipSchema(treeT, treeTCount, schema));
 
-	for(i = 0; i < bufCount; i++)
+	for(i = 0; i < treeTCount; i++)
 	{
 		destroyTreeTable(&treeT[i]);
 	}

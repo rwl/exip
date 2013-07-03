@@ -140,7 +140,8 @@ static const char* attrStrings[] =
 	"nillable",
 	"itemType",
 	"memberTypes",
-	"mixed"
+	"mixed",
+	"schemaLocation"
 };
 
 errorCode generateTreeTable(BinaryBuffer buffer, SchemaFormat schemaFormat, EXIOptions* opt, TreeTable* treeT, EXIPSchema* schema)

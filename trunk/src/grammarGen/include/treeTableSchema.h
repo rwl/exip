@@ -82,22 +82,23 @@ typedef enum ElemEnum ElemEnum;
 /** Codes for the attributes found in the schema */
 enum AttrEnum
 {
-	ATTRIBUTE_NAME           =0,
-	ATTRIBUTE_TYPE           =1,
-	ATTRIBUTE_REF            =2,
-	ATTRIBUTE_MIN_OCCURS     =3,
-	ATTRIBUTE_MAX_OCCURS     =4,
-	ATTRIBUTE_FORM           =5,
-	ATTRIBUTE_BASE           =6,
-	ATTRIBUTE_USE            =7,
-	ATTRIBUTE_NAMESPACE      =8,
-	ATTRIBUTE_PROC_CONTENTS  =9,
-	ATTRIBUTE_VALUE          =10,
-	ATTRIBUTE_NILLABLE       =11,
-	ATTRIBUTE_ITEM_TYPE      =12,
-	ATTRIBUTE_MEMBER_TYPES   =13,
-	ATTRIBUTE_MIXED          =14,
-	ATTRIBUTE_CONTEXT_ARRAY_SIZE =15
+	ATTRIBUTE_NAME               =0,
+	ATTRIBUTE_TYPE               =1,
+	ATTRIBUTE_REF                =2,
+	ATTRIBUTE_MIN_OCCURS         =3,
+	ATTRIBUTE_MAX_OCCURS         =4,
+	ATTRIBUTE_FORM               =5,
+	ATTRIBUTE_BASE               =6,
+	ATTRIBUTE_USE                =7,
+	ATTRIBUTE_NAMESPACE          =8,
+	ATTRIBUTE_PROC_CONTENTS      =9,
+	ATTRIBUTE_VALUE              =10,
+	ATTRIBUTE_NILLABLE           =11,
+	ATTRIBUTE_ITEM_TYPE          =12,
+	ATTRIBUTE_MEMBER_TYPES       =13,
+	ATTRIBUTE_MIXED              =14,
+	ATTRIBUTE_SCHEMA_LOCATION    =15,
+	ATTRIBUTE_CONTEXT_ARRAY_SIZE =16
 };
 
 typedef enum AttrEnum AttrEnum;
@@ -303,6 +304,19 @@ void destroyTreeTable(TreeTable* treeT);
  * @return Error handling code
  */
 errorCode generateTreeTable(BinaryBuffer buffer, SchemaFormat schemaFormat, EXIOptions* opt, TreeTable* treeT, EXIPSchema* schema);
+
+/**
+ * @brief Given a set of TreeTable instances, resolve the <include> or <import> dependencies
+ *
+ * @param[in, out] treeT a pointer to an array of tree table objects (can be RE-ALLOCED!)
+ * @param[in, out] count the number of tree table objects
+ * @param[in] loadSchemaHandler Call-back handler for loading <include>-ed or <import>-ed schema files; Can be left NULL
+ * if no <include> or <import> statements are used in the XML schema.
+ *
+ * @return Error handling code
+ */
+errorCode resolveIncludeImportReferences(TreeTable** treeT, unsigned int* count,
+		errorCode (*loadSchemaHandler) (String* namespace, String* schemaLocation, BinaryBuffer** buffers, unsigned int* bufCount, SchemaFormat* schemaFormat, EXIOptions** opt));
 
 /**
  * @brief Links derived types to base types, elements to types and references to global elements

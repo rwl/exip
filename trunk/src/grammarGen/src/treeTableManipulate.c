@@ -43,6 +43,17 @@ static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, un
  */
 static boolean checkForImportWithNs(TreeTable* treeT, String ns);
 
+errorCode resolveIncludeImportReferences(TreeTable** treeT, unsigned int* count,
+		errorCode (*loadSchemaHandler) (String* namespace, String* schemaLocation, BinaryBuffer** buffers, unsigned int* bufCount, SchemaFormat* schemaFormat, EXIOptions** opt))
+{
+	// TODO: check if all <include> & <import> are refering to treeTable instances. If not call loadSchemaHandler
+	// for each unresolved referece. Build new corresponding treeTable incstance and add it to treeT array
+	// Use realloc and update the array count argument
+
+	return ERR_OK;
+}
+
+
 /**
  * Resolve all the TreeTable entries linked to a global TreeTable entry
  * Performs a Depth-first search (DFS) of the tree formed by the global entry and for all nested entries do:
@@ -202,7 +213,6 @@ static errorCode resolveEntry(EXIPSchema* schema, TreeTable* treeT, unsigned int
 	return ERR_OK;
 }
 
-#if 0
 static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, unsigned int count, unsigned int currTreeT, String* eName, unsigned char elType, TreeTableEntry* entry)
 {
 	Index i;
@@ -217,7 +227,40 @@ static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, un
 	{
 		if(treeT[i].globalDefs.targetNsId == typeQnameID.uriId)
 		{
-			break;
+#if HASH_TABLE_USE
+			/* Use the hash table to do a fast lookup of the tree table index matching the global name */
+			if(treeT[i].typeTbl != NULL && treeT[i].elemTbl != NULL && treeT[i].attrTbl != NULL &&
+					treeT[i].groupTbl != NULL && treeT[i].attrGroupTbl != NULL)
+			{
+				if(elType == LOOKUP_TYPE || elType == LOOKUP_SUPER_TYPE)
+					globalIndex = hashtable_search(treeT[i].typeTbl, GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
+				else if(entry->element == ELEMENT_ELEMENT) // LOOKUP_REF ELEMENT
+					globalIndex = hashtable_search(treeT[i].elemTbl, GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
+				else if(entry->element == ELEMENT_ATTRIBUTE) // LOOKUP_REF ATTRIBUTE
+					globalIndex = hashtable_search(treeT[i].attrTbl, GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
+				else if(entry->element == ELEMENT_GROUP) // LOOKUP_REF GROUP
+					globalIndex = hashtable_search(treeT[i].groupTbl, GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
+				else if(entry->element == ELEMENT_ATTRIBUTE_GROUP) // LOOKUP_REF ATTRIBUTE_GROUP
+					globalIndex = hashtable_search(treeT[i].attrGroupTbl, GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
+
+			}
+			else
+#endif
+			{
+				/* Do a linear search through the tree table entry until we find it */
+				for(j = 0; j < treeT[i].count; j++)
+				{
+					if(stringEqual(treeT[i].tree[j].attributePointers[ATTRIBUTE_NAME], GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr) &&
+							((elType == LOOKUP_REF && treeT[i].tree[j].element == entry->element) ||
+							(elType != LOOKUP_REF && (treeT[i].tree[j].element == ELEMENT_SIMPLE_TYPE || treeT[i].tree[j].element == ELEMENT_COMPLEX_TYPE))))
+					{
+						globalIndex = j;
+						break;
+					}
+				}
+			}
+			if(globalIndex != INDEX_MAX)
+				break;
 		}
 	}
 
@@ -228,41 +271,6 @@ static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, un
 		{
 			// The requested target namespace is not a built-in type namespace
 			return UNEXPECTED_ERROR;
-		}
-	}
-	else
-	{
-#if HASH_TABLE_USE
-		/* Use the hash table to do a fast lookup of the tree table index matching the global name */
-		if(treeT[i].typeTbl != NULL && treeT[i].elemTbl != NULL && treeT[i].attrTbl != NULL &&
-				treeT[i].groupTbl != NULL && treeT[i].attrGroupTbl != NULL)
-		{
-			if(elType == LOOKUP_TYPE || elType == LOOKUP_SUPER_TYPE)
-				globalIndex = hashtable_search(treeT[i].typeTbl, GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
-			else if(entry->element == ELEMENT_ELEMENT) // LOOKUP_REF ELEMENT
-				globalIndex = hashtable_search(treeT[i].elemTbl, GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
-			else if(entry->element == ELEMENT_ATTRIBUTE) // LOOKUP_REF ATTRIBUTE
-				globalIndex = hashtable_search(treeT[i].attrTbl, GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
-			else if(entry->element == ELEMENT_GROUP) // LOOKUP_REF GROUP
-				globalIndex = hashtable_search(treeT[i].groupTbl, GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
-			else if(entry->element == ELEMENT_ATTRIBUTE_GROUP) // LOOKUP_REF ATTRIBUTE_GROUP
-				globalIndex = hashtable_search(treeT[i].attrGroupTbl, GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
-
-		}
-		else
-#endif
-		{
-			/* Do a linear search through the tree table entry until we find it */
-			for(j = 0; j < treeT[i].count; j++)
-			{
-				if(stringEqual(treeT[i].tree[j].attributePointers[ATTRIBUTE_NAME], GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr) &&
-						((elType == LOOKUP_REF && treeT[i].tree[j].element == entry->element) ||
-						(elType != LOOKUP_REF && (treeT[i].tree[j].element == ELEMENT_SIMPLE_TYPE || treeT[i].tree[j].element == ELEMENT_COMPLEX_TYPE))))
-				{
-					globalIndex = j;
-					break;
-				}
-			}
 		}
 	}
 
@@ -284,77 +292,6 @@ static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, un
 			entry->child.treeT = &treeT[i];
 			entry->child.entry = &treeT[i].tree[globalIndex];
 		}
-	}
-
-	return ERR_OK;
-}
-#endif
-
-static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, unsigned int count, unsigned int currTreeT, String* eName, unsigned char elType, TreeTableEntry* entry)
-{
-	Index i;
-	Index globalIndex = INDEX_MAX;
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
-	QNameID typeQnameID;
-	unsigned int j;
-
-//printString(eName);
-	TRY(getTypeQName(schema, &treeT[currTreeT], *eName, &typeQnameID));
-
-	for(i = 0; i < count; i++)
-	{
-#if HASH_TABLE_USE
-		/* Use the hash table to do a fast lookup of the tree table index matching the global name */
-		if(treeT[i].typeTbl != NULL && treeT[i].elemTbl != NULL && treeT[i].attrTbl != NULL &&
-				treeT[i].groupTbl != NULL && treeT[i].attrGroupTbl != NULL)
-		{
-			if(elType == LOOKUP_TYPE || elType == LOOKUP_SUPER_TYPE)
-				globalIndex = hashtable_search(treeT[i].typeTbl, GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
-			else if(entry->element == ELEMENT_ELEMENT) // LOOKUP_REF ELEMENT
-				globalIndex = hashtable_search(treeT[i].elemTbl, GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
-			else if(entry->element == ELEMENT_ATTRIBUTE) // LOOKUP_REF ATTRIBUTE
-				globalIndex = hashtable_search(treeT[i].attrTbl, GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
-			else if(entry->element == ELEMENT_GROUP) // LOOKUP_REF GROUP
-				globalIndex = hashtable_search(treeT[i].groupTbl, GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
-			else if(entry->element == ELEMENT_ATTRIBUTE_GROUP) // LOOKUP_REF ATTRIBUTE_GROUP
-				globalIndex = hashtable_search(treeT[i].attrGroupTbl, GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
-
-		}
-		else
-#endif
-		{
-			/* Do a linear search through the tree table entry until we find it */
-			for(j = 0; j < treeT[i].count; j++)
-			{
-				if(stringEqual(treeT[i].tree[j].attributePointers[ATTRIBUTE_NAME], GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr) &&
-						((elType == LOOKUP_REF && treeT[i].tree[j].element == entry->element) ||
-						(elType != LOOKUP_REF && (treeT[i].tree[j].element == ELEMENT_SIMPLE_TYPE || treeT[i].tree[j].element == ELEMENT_COMPLEX_TYPE))))
-				{
-					globalIndex = j;
-					break;
-				}
-			}
-		}
-		if	(globalIndex != INDEX_MAX) {
-			if(elType == LOOKUP_SUPER_TYPE)
-			{
-				entry->supertype.treeT = &treeT[i];
-				entry->supertype.entry = &treeT[i].tree[globalIndex];
-			}
-			else
-			{
-				entry->child.treeT = &treeT[i];
-				entry->child.entry = &treeT[i].tree[globalIndex];
-			}
-			break;
-		}
-	}
-
-	if(globalIndex == INDEX_MAX)
-	{
-		// The type must be build-in or the schema is buggy - do nothing here; it will be checked later
-		if(elType == LOOKUP_REF)
-			return UNEXPECTED_ERROR; // TODO: add debug info
 	}
 
 	return ERR_OK;
