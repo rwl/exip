@@ -519,7 +519,7 @@ static void parseSchema(const char* fileName, EXIPSchema* schema)
 		buffer.ioStrm.readWriteToStream = NULL;
 		buffer.ioStrm.stream = NULL;
 
-		tmp_err_code = generateSchemaInformedGrammars(&buffer, 1, SCHEMA_FORMAT_XSD_EXI, NULL, schema);
+		tmp_err_code = generateSchemaInformedGrammars(&buffer, 1, SCHEMA_FORMAT_XSD_EXI, NULL, schema, NULL);
 
 		if(tmp_err_code != ERR_OK)
 		{
