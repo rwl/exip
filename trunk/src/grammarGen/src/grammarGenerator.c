@@ -56,7 +56,7 @@ errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int buf
 		TRY(generateTreeTable(buffers[i], schemaFormat, opt, &treeT[i], schema));
 	}
 
-	TRY(resolveIncludeImportReferences(&treeT, &treeTCount, loadSchemaHandler));
+	TRY(resolveIncludeImportReferences(schema, &treeT, &treeTCount, loadSchemaHandler));
 
 #if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
 	{
