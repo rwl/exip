@@ -308,6 +308,7 @@ errorCode generateTreeTable(BinaryBuffer buffer, SchemaFormat schemaFormat, EXIO
 /**
  * @brief Given a set of TreeTable instances, resolve the <include> or <import> dependencies
  *
+ * @param[in, out] schema the EXIPSchema object
  * @param[in, out] treeT a pointer to an array of tree table objects (can be RE-ALLOCED!)
  * @param[in, out] count the number of tree table objects
  * @param[in] loadSchemaHandler Call-back handler for loading <include>-ed or <import>-ed schema files; Can be left NULL
@@ -315,7 +316,7 @@ errorCode generateTreeTable(BinaryBuffer buffer, SchemaFormat schemaFormat, EXIO
  *
  * @return Error handling code
  */
-errorCode resolveIncludeImportReferences(TreeTable** treeT, unsigned int* count,
+errorCode resolveIncludeImportReferences(EXIPSchema* schema, TreeTable** treeT, unsigned int* count,
 		errorCode (*loadSchemaHandler) (String* namespace, String* schemaLocation, BinaryBuffer** buffers, unsigned int* bufCount, SchemaFormat* schemaFormat, EXIOptions** opt));
 
 /**

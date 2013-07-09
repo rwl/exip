@@ -32,6 +32,8 @@ extern const String XML_SCHEMA_NAMESPACE;
 
 extern const String URI_1_PFX; // The 'xml' prefix string
 
+#define MAX_INCLUDE_COUNT 50
+
 /**
  * Finds a global TreeEntry corresponding to a entry-name eName and links it to the entry child or supertype
  * depending on the elType (LOOKUP_ELEMENT_TYPE_TYPE, LOOKUP_ELEMENT_TYPE_ELEMENT or LOOKUP_ELEMENT_TYPE_SUPER_TYPE)
@@ -43,12 +45,167 @@ static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, un
  */
 static boolean checkForImportWithNs(TreeTable* treeT, String ns);
 
-errorCode resolveIncludeImportReferences(TreeTable** treeT, unsigned int* count,
+errorCode resolveIncludeImportReferences(EXIPSchema* schema, TreeTable** treeT, unsigned int* count,
 		errorCode (*loadSchemaHandler) (String* namespace, String* schemaLocation, BinaryBuffer** buffers, unsigned int* bufCount, SchemaFormat* schemaFormat, EXIOptions** opt))
 {
-	// TODO: check if all <include> & <import> are refering to treeTable instances. If not call loadSchemaHandler
+	// check if all <include> & <import> are refering to treeTable instances. If not call loadSchemaHandler
 	// for each unresolved referece. Build new corresponding treeTable incstance and add it to treeT array
 	// Use realloc and update the array count argument
+
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	unsigned int i, j;
+	boolean treeTfound = FALSE;
+	Index g;
+	BinaryBuffer* newBuffers;
+	unsigned int bufCount = 0;
+	SchemaFormat schemaFormat;
+	EXIOptions* options;
+	unsigned int includeTblIndex[MAX_INCLUDE_COUNT];
+	unsigned int includeCnt, tmpInclCnt;
+
+
+	for(i = 0; i < *count; i++)
+	{
+		includeCnt = 0;
+		for (g = 0; g < (*treeT)[i].count; ++g)
+		{
+			if((*treeT)[i].tree[g].element == ELEMENT_REDEFINE ||
+				(*treeT)[i].tree[g].element == ELEMENT_ANNOTATION)
+			{
+				continue;
+			}
+			else if((*treeT)[i].tree[g].element == ELEMENT_INCLUDE)
+			{
+				if(includeCnt >= MAX_INCLUDE_COUNT)
+					return OUT_OF_BOUND_BUFFER;
+				includeTblIndex[includeCnt] = g;
+				includeCnt++;
+			}
+			else if((*treeT)[i].tree[g].element == ELEMENT_IMPORT)
+			{
+				treeTfound = FALSE;
+				for(j = 0; j < *count; j++)
+				{
+					if(j != i && stringEqual((*treeT)[i].tree[g].attributePointers[ATTRIBUTE_NAMESPACE], (*treeT)[j].globalDefs.targetNs))
+					{
+						treeTfound = TRUE;
+						break;
+					}
+				}
+
+				if(treeTfound == FALSE)
+				{
+					if(loadSchemaHandler != NULL)
+					{
+						TRY(loadSchemaHandler(&(*treeT)[i].tree[g].attributePointers[ATTRIBUTE_NAMESPACE], &(*treeT)[i].tree[g].attributePointers[ATTRIBUTE_SCHEMA_LOCATION], &newBuffers,
+								&bufCount, &schemaFormat, &options));
+
+						if(bufCount > 0)
+						{
+							void *tmpPtr;
+							unsigned int n;
+
+							tmpPtr = EXIP_REALLOC(*treeT, sizeof(TreeTable)*(*count + bufCount));
+							if(tmpPtr == NULL)
+								return MEMORY_ALLOCATION_ERROR;
+
+							*treeT = tmpPtr;
+
+							for(n = *count; n < *count + bufCount; n++)
+							{
+								TRY(initTreeTable(&(*treeT[n])));
+							}
+
+							for(n = *count; n < *count + bufCount; n++)
+							{
+								TRY(generateTreeTable(newBuffers[n-*count], schemaFormat, options, &(*treeT[n]), schema));
+							}
+
+							*count = (*count + bufCount);
+						}
+						else
+						{
+							DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, ("> loadSchemaHandler returns an empty list of BinaryBuffers"));
+						}
+					}
+					else
+					{
+						DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, ("> An <import> statement in schema cannot be resolved"));
+						return INVALID_EXIP_CONFIGURATION;
+					}
+				}
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		if(includeCnt > 0)
+		{
+			treeTfound = FALSE;
+			tmpInclCnt = 0;
+			for(j = 0; j < *count; j++)
+			{
+				if(j != i && stringEqual((*treeT)[i].globalDefs.targetNs, (*treeT)[j].globalDefs.targetNs))
+				{
+					tmpInclCnt++;
+					if(tmpInclCnt < includeCnt)
+						continue;
+					else
+					{
+						treeTfound = TRUE;
+						break;
+					}
+				}
+			}
+
+			if(treeTfound == FALSE)
+			{
+				if(loadSchemaHandler != NULL)
+				{
+					for(j = tmpInclCnt; j < includeCnt; j++)
+					{
+						TRY(loadSchemaHandler(NULL, &(*treeT)[i].tree[includeTblIndex[j]].attributePointers[ATTRIBUTE_SCHEMA_LOCATION], &newBuffers,
+								&bufCount, &schemaFormat, &options));
+
+						if(bufCount > 0)
+						{
+							void *tmpPtr;
+							unsigned int n;
+
+							tmpPtr = EXIP_REALLOC(*treeT, sizeof(TreeTable)*(*count + bufCount));
+							if(tmpPtr == NULL)
+								return MEMORY_ALLOCATION_ERROR;
+
+							*treeT = tmpPtr;
+
+							for(n = *count; n < *count + bufCount; n++)
+							{
+								TRY(initTreeTable(&(*treeT[n])));
+							}
+
+							for(n = *count; n < *count + bufCount; n++)
+							{
+								TRY(generateTreeTable(newBuffers[n-*count], schemaFormat, options, &(*treeT[n]), schema));
+							}
+
+							*count = (*count + bufCount);
+						}
+						else
+						{
+							DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, ("> loadSchemaHandler returns an empty list of BinaryBuffers"));
+						}
+					}
+				}
+				else
+				{
+					DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, ("> An <include> statement in schema cannot be resolved"));
+					return INVALID_EXIP_CONFIGURATION;
+				}
+			}
+		}
+	}
 
 	return ERR_OK;
 }
