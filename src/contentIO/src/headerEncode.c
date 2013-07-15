@@ -77,9 +77,6 @@ errorCode encodeHeader(EXIStream* strm)
 		options_strm.buffer = strm->buffer;
 		options_strm.context.bitPointer = strm->context.bitPointer;
 		options_strm.context.bufferIndx = strm->context.bufferIndx;
-		options_strm.context.currNonTermID = GR_DOC_CONTENT;
-		options_strm.context.currElem.lnId = LN_MAX;
-		options_strm.context.currElem.uriId = URI_MAX;
 		options_strm.context.currAttr.lnId = LN_MAX;
 		options_strm.context.currAttr.uriId = URI_MAX;
 		options_strm.context.expectATData = FALSE;

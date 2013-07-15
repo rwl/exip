@@ -31,8 +31,6 @@ enum boolean
 	TRUE  = 1
 };
 
-#define EXIP_VERSION 294
-
 typedef enum boolean boolean;
 
 #ifndef NULL
@@ -748,7 +746,14 @@ typedef struct EXIGrammar EXIGrammar;
 struct GrammarStackNode
 {
 	EXIGrammar* grammar;
-	SmallIndex lastNonTermID; // Stores the last NonTermID before another grammar is added on top of the stack
+
+	/**
+	 * Current (left-hand side) non-terminal ID that identifies the current grammar rule.
+	 * Defines the context/processor state.
+	 */
+	SmallIndex currNonTermID;
+	/** The qname of the current element being parsed/serialized */
+	QNameID currQNameID;
 	struct GrammarStackNode* nextInStack;
 };
 
@@ -1089,15 +1094,6 @@ struct StreamContext
 	 * 7 is the least significant bit position in the byte.
 	 */
 	unsigned char bitPointer;
-
-	/**
-	 * Current (left-hand side) non-terminal ID that identifies the current grammar rule. 
-	 * Defines the context/processor state.
-	 */
-	SmallIndex currNonTermID;
-
-	/** The qname of the current element being parsed/serialized */
-	QNameID currElem;
 
 	/** The qname of the current attribute */
 	QNameID currAttr;

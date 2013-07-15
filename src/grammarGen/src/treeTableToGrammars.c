@@ -1413,6 +1413,8 @@ static errorCode getAnyProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTab
 	TRY(createParticleGrammar(minOccurs, maxOccurs, &wildTermGrammar, wildParticleGrammar));
 
 	destroyProtoGrammar(&wildTermGrammar);
+	destroyDynArray(&nsTable.dynArray);
+
 	*any = wildParticleGrammar;
 
 	return ERR_OK;
@@ -1950,6 +1952,8 @@ static errorCode getAnonymousTypeId(BuildContext* ctx, TreeTableEntry* typeEntry
 		return UNEXPECTED_ERROR;
 
 	*typeId = tmpGr->rule[0].prod[0].typeId;
+
+	destroyProtoGrammar(tmpGr);
 
 	return ERR_OK;
 }

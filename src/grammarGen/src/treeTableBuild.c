@@ -425,7 +425,8 @@ static errorCode xsd_endElement(void* app_data)
 
 		elName = &entry->attributePointers[ATTRIBUTE_NAME];
 
-		if(!isStringEmpty(elName))
+		if(entry->element != ELEMENT_NOTATION &&
+				entry->element != ELEMENT_KEY && !isStringEmpty(elName))
 		{
 			Index lnId;
 			SmallIndex uriId = 0; // URI	0	"" [empty string]
@@ -566,7 +567,6 @@ static errorCode xsd_endElement(void* app_data)
 			}
 #endif
 		}
-
 	}
 
 	return ERR_OK;

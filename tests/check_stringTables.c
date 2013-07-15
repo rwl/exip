@@ -171,15 +171,15 @@ START_TEST (test_addValueEntry)
 	}
 	fail_unless (tmp_err_code == ERR_OK, "initStream returns an error code %d", tmp_err_code);
 
-	testStrm.context.currElem.uriId = 1; // http://www.w3.org/XML/1998/namespace
-	testStrm.context.currElem.lnId = 2; // lang
+	testStrm.gStack->currQNameID.uriId = 1; // http://www.w3.org/XML/1998/namespace
+	testStrm.gStack->currQNameID.lnId = 2; // lang
 
-	tmp_err_code = addValueEntry(&testStrm, testStr, testStrm.context.currElem);
+	tmp_err_code = addValueEntry(&testStrm, testStr, testStrm.gStack->currQNameID);
 
 	fail_unless (tmp_err_code == ERR_OK, "addValueEntry returns an error code %d", tmp_err_code);
 #if VALUE_CROSSTABLE_USE
-	fail_unless (testStrm.schema->uriTable.uri[testStrm.context.currElem.uriId].lnTable.ln[testStrm.context.currElem.lnId].vxTable != NULL, "addValueEntry does not create vxTable");
-	fail_unless (testStrm.schema->uriTable.uri[testStrm.context.currElem.uriId].lnTable.ln[testStrm.context.currElem.lnId].vxTable->count == 1, "addValueEntry does not create correct vxTable");
+	fail_unless (testStrm.schema->uriTable.uri[testStrm.gStack->currQNameID.uriId].lnTable.ln[testStrm.gStack->currQNameID.lnId].vxTable != NULL, "addValueEntry does not create vxTable");
+	fail_unless (testStrm.schema->uriTable.uri[testStrm.gStack->currQNameID.uriId].lnTable.ln[testStrm.gStack->currQNameID.lnId].vxTable->count == 1, "addValueEntry does not create correct vxTable");
 #endif
 	fail_unless (testStrm.valueTable.count == 1, "addValueEntry does not create global value entry");
 

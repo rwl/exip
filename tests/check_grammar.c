@@ -69,7 +69,7 @@ START_TEST (test_processNextProduction)
 	err = pushGrammar(&strm.gStack, &schema.docGrammar);
 	fail_unless (err == ERR_OK, "pushGrammar returns an error code %d", err);
 
-	strm.context.currNonTermID = 4;
+	strm.gStack->currNonTermID = 4;
 	err = processNextProduction(&strm, &nonTermID_out, &handler, NULL);
 	fail_unless (err == INCONSISTENT_PROC_STATE, "processNextProduction does not return the correct error code");
 

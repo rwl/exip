@@ -218,11 +218,11 @@ static errorCode ops_startElement(QName qname, void* app_data)
 {
 	struct ops_AppData* o_appD = (struct ops_AppData*) app_data;
 
-	if(o_appD->o_strm->context.currElem.uriId == 4) // URI == http://www.w3.org/2009/exi
+	if(o_appD->o_strm->gStack->currQNameID.uriId == 4) // URI == http://www.w3.org/2009/exi
 	{
 		o_appD->prevElementUriID = 4;
 
-		switch(o_appD->o_strm->context.currElem.lnId)
+		switch(o_appD->o_strm->gStack->currQNameID.lnId)
 		{
 			case 33:	// strict
 				SET_STRICT(o_appD->parsed_ops->enumOpt);
@@ -420,7 +420,7 @@ static errorCode ops_intData(Integer int_val, void* app_data)
 {
 	struct ops_AppData* o_appD = (struct ops_AppData*) app_data;
 
-	switch(o_appD->o_strm->context.currElem.lnId)
+	switch(o_appD->o_strm->gStack->currQNameID.lnId)
 	{
 		case 37:	// valueMaxLength
 			o_appD->parsed_ops->valueMaxLength = (unsigned int) int_val;
