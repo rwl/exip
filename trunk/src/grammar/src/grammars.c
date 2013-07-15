@@ -217,7 +217,9 @@ errorCode pushGrammar(EXIGrammarStack** gStack, EXIGrammar* grammar)
 		return MEMORY_ALLOCATION_ERROR;
 
 	node->grammar = grammar;
-	node->lastNonTermID = GR_VOID_NON_TERMINAL;
+	node->currNonTermID = GR_START_TAG_CONTENT;
+	node->currQNameID.uriId = URI_MAX;
+	node->currQNameID.uriId = LN_MAX;
 	node->nextInStack = *gStack;
 	*gStack = node;
 	return ERR_OK;

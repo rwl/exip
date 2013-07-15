@@ -22,6 +22,7 @@
 
 errorCode decodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, unsigned int* int_val)
 {
+	DEBUG_MSG(INFO, DEBUG_STREAM_IO, (">> (%d-bits uint)", n));
 	if(WITH_COMPRESSION(strm->header.opts.enumOpt) == FALSE && GET_ALIGNMENT(strm->header.opts.enumOpt) == BIT_PACKED)
 	{
 		return readBits(strm, n, int_val);
@@ -47,6 +48,7 @@ errorCode decodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, unsigned i
 errorCode decodeBoolean(EXIStream* strm, boolean* bool_val)
 {
 	//TODO:  when pattern facets are available in the schema datatype - handle it differently
+	DEBUG_MSG(INFO, DEBUG_STREAM_IO, (">> (bool)"));
 	return readNextBit(strm, bool_val);
 }
 
@@ -60,6 +62,7 @@ errorCode decodeUnsignedInteger(EXIStream* strm, UnsignedInteger* int_val)
 	unsigned int more_bytes_to_read = 0;
 	*int_val = 0;
 
+	DEBUG_MSG(INFO, DEBUG_STREAM_IO, (">> (uint)"));
 	do
 	{
 		TRY(readBits(strm, 8, &tmp_byte_buf));
@@ -78,6 +81,7 @@ errorCode decodeString(EXIStream* strm, String* string_val)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	UnsignedInteger string_length = 0;
+	DEBUG_MSG(INFO, DEBUG_STREAM_IO, (">> (string)"));
 	TRY(decodeUnsignedInteger(strm, &string_length));
 	TRY(allocateStringMemoryManaged(&(string_val->str),(Index) string_length, &strm->memList));
 
@@ -113,6 +117,7 @@ errorCode decodeBinary(EXIStream* strm, char** binary_val, Index* nbytes)
 	unsigned int int_val = 0;
 	UnsignedInteger i = 0;
 
+	DEBUG_MSG(INFO, DEBUG_STREAM_IO, (">> (binary)"));
 	TRY(decodeUnsignedInteger(strm, &length));
 	*nbytes = (Index) length;
 	(*binary_val) = (char*) EXIP_MALLOC(length); // This memory should be manually freed after the content handler is invoked
@@ -134,8 +139,10 @@ errorCode decodeIntegerValue(EXIStream* strm, Integer* sint_val)
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	boolean bool_val = 0;
 	UnsignedInteger val;
-	TRY(decodeBoolean(strm, &bool_val));
 
+	DEBUG_MSG(INFO, DEBUG_STREAM_IO, (">> (int)"));
+
+	TRY(decodeBoolean(strm, &bool_val));
 	TRY(decodeUnsignedInteger(strm, &val));
 
 	if(bool_val == 0) // A sign value of zero (0) is used to represent positive integers
@@ -161,10 +168,10 @@ errorCode decodeDecimalValue(EXIStream* strm, Decimal* dec_val)
 	unsigned int fraction_digits = 1;
 	UnsignedInteger fract_part_rev = 0;
 
+	DEBUG_MSG(INFO, DEBUG_STREAM_IO, (">> (decimal)"));
+
 	TRY(decodeBoolean(strm, &sign));
-
 	TRY(decodeUnsignedInteger(strm, &integr_part));
-
 	TRY(decodeUnsignedInteger(strm, &fract_part));
 
 	fract_part_rev = 0;
@@ -191,6 +198,8 @@ errorCode decodeFloatValue(EXIStream* strm, Float* fl_val)
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	Integer mantissa;
 	Integer exponent;
+
+	DEBUG_MSG(INFO, DEBUG_STREAM_IO, (">> (float)"));
 
 	TRY(decodeIntegerValue(strm, &mantissa));	//decode mantissa
 	TRY(decodeIntegerValue(strm, &exponent));	//decode exponent
@@ -224,6 +233,7 @@ errorCode decodeDateTimeValue(EXIStream* strm, EXIPDateTime* dt_val)
 
 	dt_val->presenceMask = 0;
 
+	DEBUG_MSG(INFO, DEBUG_STREAM_IO, (">> (dateTime)"));
 
 	// TODO: currently only the xs:dateTime is implemented.
 	//       The other types (gYear, gYearMonth, date, dateTime etc.)

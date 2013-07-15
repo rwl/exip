@@ -83,9 +83,6 @@ errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema)
 	strm->buffer = buffer;
 	strm->context.bitPointer = 0;
 	strm->context.bufferIndx = 0;
-	strm->context.currNonTermID = GR_DOC_CONTENT;
-	strm->context.currElem.uriId = URI_MAX;
-	strm->context.currElem.lnId = LN_MAX;
 	strm->context.currAttr.uriId = URI_MAX;
 	strm->context.currAttr.lnId = LN_MAX;
 	strm->context.expectATData = FALSE;
@@ -218,7 +215,7 @@ errorCode startDocument(EXIStream* strm)
 {
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start doc serialization\n"));
 
-	if(strm->gStack->grammar == NULL && strm->context.currNonTermID != GR_DOC_CONTENT)
+	if(strm->gStack->grammar == NULL && strm->gStack->currNonTermID != GR_DOC_CONTENT)
 		return INCONSISTENT_PROC_STATE;
 
 	return ERR_OK;
@@ -261,13 +258,12 @@ errorCode startElement(EXIStream* strm, QName qname, EXITypeClass* valueType)
 	if(GET_PROD_EXI_EVENT(prodHit.content) == EVENT_SE_ALL)
 	{
 		EXIGrammar* elemGrammar = NULL;
+		QNameID tmpQid;
 
-		strm->gStack->lastNonTermID = strm->context.currNonTermID;
-		TRY(encodeQName(strm, qname, EVENT_SE_ALL, &strm->context.currElem));
+		TRY(encodeQName(strm, qname, EVENT_SE_ALL, &tmpQid));
 
 		// New element grammar is pushed on the stack
-		elemGrammar = GET_ELEM_GRAMMAR_QNAMEID(strm->schema, strm->context.currElem);
-		strm->context.currNonTermID = GR_START_TAG_CONTENT;
+		elemGrammar = GET_ELEM_GRAMMAR_QNAMEID(strm->schema, tmpQid);
 
 		if(elemGrammar != NULL) // The grammar is found
 		{
@@ -282,7 +278,7 @@ errorCode startElement(EXIStream* strm, QName qname, EXITypeClass* valueType)
 
 			TRY(addDynEntry(&strm->schema->grammarTable.dynArray, &newElementGrammar, &dynArrIndx));
 
-			GET_LN_URI_QNAME(strm->schema->uriTable, strm->context.currElem).elemGrammar = dynArrIndx;
+			GET_LN_URI_QNAME(strm->schema->uriTable, tmpQid).elemGrammar = dynArrIndx;
 			TRY(pushGrammar(&(strm->gStack), &strm->schema->grammarTable.grammar[dynArrIndx]));
 #elif EXI_PROFILE_DEFAULT
 			// Leave the grammar NULL - if the next event is valid AT(xsi:type)
@@ -297,22 +293,19 @@ errorCode startElement(EXIStream* strm, QName qname, EXITypeClass* valueType)
 			return INCONSISTENT_PROC_STATE;
 #endif
 		}
+
+		strm->gStack->currQNameID = tmpQid;
 	}
 	else if(GET_PROD_EXI_EVENT(prodHit.content) == EVENT_SE_QNAME)
 	{
 		EXIGrammar* elemGrammar = NULL;
 
-		strm->context.currElem.uriId = prodHit.qnameId.uriId;
-		strm->context.currElem.lnId = prodHit.qnameId.lnId;
-
 		TRY(encodePfxQName(strm, &qname, EVENT_SE_QNAME, prodHit.qnameId.uriId));
-
-		strm->gStack->lastNonTermID = strm->context.currNonTermID;
 
 		// New element grammar is pushed on the stack
 		if(IS_BUILT_IN_ELEM(strm->gStack->grammar->props))  // If the current grammar is build-in Element grammar ...
 		{
-			elemGrammar = GET_ELEM_GRAMMAR_QNAMEID(strm->schema, strm->context.currElem);
+			elemGrammar = GET_ELEM_GRAMMAR_QNAMEID(strm->schema, prodHit.qnameId);
 		}
 		else
 		{
@@ -321,13 +314,15 @@ errorCode startElement(EXIStream* strm, QName qname, EXITypeClass* valueType)
 
 		if(elemGrammar != NULL) // The grammar is found
 		{
-			strm->context.currNonTermID = GR_START_TAG_CONTENT;
 			TRY(pushGrammar(&(strm->gStack), elemGrammar));
 		}
 		else
 		{
 			return INCONSISTENT_PROC_STATE;  // The event require the presence of Element Grammar previously created
 		}
+
+		strm->gStack->currQNameID.uriId = prodHit.qnameId.uriId;
+		strm->gStack->currQNameID.lnId = prodHit.qnameId.lnId;
 	}
 	else
 		return NOT_IMPLEMENTED_YET;
@@ -335,7 +330,7 @@ errorCode startElement(EXIStream* strm, QName qname, EXITypeClass* valueType)
 	if(!IS_BUILT_IN_ELEM(strm->gStack->grammar->props))  // If the current grammar is not build-in Element grammar ...
 	{
 		GrammarRule* currentRule;
-		currentRule = &strm->gStack->grammar->rule[strm->context.currNonTermID];
+		currentRule = &strm->gStack->grammar->rule[strm->gStack->currNonTermID];
 		assert(currentRule->production);
 		if(GET_PROD_EXI_EVENT(currentRule->production[currentRule->pCount-1].content) == EVENT_CH)
 		{
@@ -371,12 +366,10 @@ errorCode endElement(EXIStream* strm)
 
 	TRY(encodeProduction(strm, EVENT_EE_CLASS, TRUE, NULL, &prodHit));
 
-	if(strm->context.currNonTermID == GR_VOID_NON_TERMINAL)
+	if(strm->gStack->currNonTermID == GR_VOID_NON_TERMINAL)
 	{
 		EXIGrammar* grammar;
 		popGrammar(&(strm->gStack), &grammar);
-		if(strm->gStack != NULL) // There is more grammars in the stack
-			strm->context.currNonTermID = strm->gStack->lastNonTermID;
 	}
 	else
 		return INCONSISTENT_PROC_STATE;
@@ -540,7 +533,7 @@ errorCode booleanData(EXIStream* strm, boolean bool_val)
 	{
 		// In a schema-informed grammar && xsi:nil == TRUE
 		strm->context.isNilType = TRUE;
-		strm->context.currNonTermID = GR_START_TAG_CONTENT;
+		strm->gStack->currNonTermID = GR_START_TAG_CONTENT;
 	}
 
 	return ERR_OK;
@@ -577,7 +570,7 @@ errorCode stringData(EXIStream* strm, const String str_val)
 
 		TRY(encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, &prodHit));
 
-		qnameID = strm->context.currElem;
+		qnameID = strm->gStack->currQNameID;
 		typeId = prodHit.typeId;
 	}
 
@@ -710,8 +703,6 @@ errorCode qnameData(EXIStream* strm, QName qname)
 			EXIGrammar* currGr;
 
 			popGrammar(&(strm->gStack), &currGr);
-
-			strm->context.currNonTermID = GR_START_TAG_CONTENT;
 			TRY(pushGrammar(&(strm->gStack), newGrammar));
 		}
 		else if(strm->gStack->grammar == NULL)
@@ -792,15 +783,15 @@ errorCode serializeEvent(EXIStream* strm, EventCode ec, QName* qname)
 	GrammarRule* currentRule;
 	Production* tmpProd = NULL;
 
-	if(strm->context.currNonTermID >=  strm->gStack->grammar->count)
+	if(strm->gStack->currNonTermID >=  strm->gStack->grammar->count)
 		return INCONSISTENT_PROC_STATE;
 
 #if BUILD_IN_GRAMMARS_USE
 	if(IS_BUILT_IN_ELEM(strm->gStack->grammar->props))  // If the current grammar is build-in Element grammar ...
-		currentRule = (GrammarRule*) &((DynGrammarRule*) strm->gStack->grammar->rule)[strm->context.currNonTermID];
+		currentRule = (GrammarRule*) &((DynGrammarRule*) strm->gStack->grammar->rule)[strm->gStack->currNonTermID];
 	else
 #endif
-		currentRule = &strm->gStack->grammar->rule[strm->context.currNonTermID];
+		currentRule = &strm->gStack->grammar->rule[strm->gStack->currNonTermID];
 
 	TRY(writeEventCode(strm, ec));
 
@@ -813,7 +804,7 @@ errorCode serializeEvent(EXIStream* strm, EventCode ec, QName* qname)
 	else // length == 3
 		return NOT_IMPLEMENTED_YET;
 
-	strm->context.currNonTermID = GET_PROD_NON_TERM(tmpProd->content);
+	strm->gStack->currNonTermID = GET_PROD_NON_TERM(tmpProd->content);
 
 	switch(GET_PROD_EXI_EVENT(tmpProd->content))
 	{
@@ -850,17 +841,12 @@ errorCode serializeEvent(EXIStream* strm, EventCode ec, QName* qname)
 		{
 			EXIGrammar* elemGrammar = NULL;
 
-			strm->context.currElem.uriId = tmpProd->qnameId.uriId;
-			strm->context.currElem.lnId = tmpProd->qnameId.lnId;
-
 			TRY(encodePfxQName(strm, qname, EVENT_SE_QNAME, tmpProd->qnameId.uriId));
-
-			strm->gStack->lastNonTermID = strm->context.currNonTermID;
 
 			// New element grammar is pushed on the stack
 			if(IS_BUILT_IN_ELEM(strm->gStack->grammar->props))  // If the current grammar is build-in Element grammar ...
 			{
-				elemGrammar = GET_ELEM_GRAMMAR_QNAMEID(strm->schema, strm->context.currElem);
+				elemGrammar = GET_ELEM_GRAMMAR_QNAMEID(strm->schema, strm->gStack->currQNameID);
 			}
 			else
 			{
@@ -869,13 +855,15 @@ errorCode serializeEvent(EXIStream* strm, EventCode ec, QName* qname)
 
 			if(elemGrammar != NULL) // The grammar is found
 			{
-				strm->context.currNonTermID = GR_START_TAG_CONTENT;
 				TRY(pushGrammar(&(strm->gStack), elemGrammar));
 			}
 			else
 			{
 				return INCONSISTENT_PROC_STATE;  // The event require the presence of Element Grammar previously created
 			}
+
+			strm->gStack->currQNameID.uriId = tmpProd->qnameId.uriId;
+			strm->gStack->currQNameID.lnId = tmpProd->qnameId.lnId;
 		}
 		break;
 		case EVENT_SE_URI:
@@ -884,19 +872,18 @@ errorCode serializeEvent(EXIStream* strm, EventCode ec, QName* qname)
 		case EVENT_SE_ALL:
 		{
 			EXIGrammar* elemGrammar = NULL;
+			QNameID tmpQid;
 
 			if(qname == NULL)
 				return NULL_POINTER_REF;
 
-			TRY(encodeQName(strm, *qname, EVENT_SE_ALL, &strm->context.currElem));
+			TRY(encodeQName(strm, *qname, EVENT_SE_ALL, &tmpQid));
 
-			strm->gStack->lastNonTermID = strm->context.currNonTermID;
 			// New element grammar is pushed on the stack
-			elemGrammar = GET_ELEM_GRAMMAR_QNAMEID(strm->schema, strm->context.currElem);
+			elemGrammar = GET_ELEM_GRAMMAR_QNAMEID(strm->schema, tmpQid);
 
 			if(elemGrammar != NULL) // The grammar is found
 			{
-				strm->context.currNonTermID = GR_START_TAG_CONTENT;
 				TRY(pushGrammar(&(strm->gStack), elemGrammar));
 			}
 			else
@@ -908,9 +895,8 @@ errorCode serializeEvent(EXIStream* strm, EventCode ec, QName* qname)
 
 				TRY(addDynEntry(&strm->schema->grammarTable.dynArray, &newElementGrammar, &dynArrIndx));
 
-				GET_LN_URI_QNAME(strm->schema->uriTable, strm->context.currElem).elemGrammar = dynArrIndx;
+				GET_LN_URI_QNAME(strm->schema->uriTable, tmpQid).elemGrammar = dynArrIndx;
 
-				strm->context.currNonTermID = GR_START_TAG_CONTENT;
 				TRY(pushGrammar(&(strm->gStack), &strm->schema->grammarTable.grammar[dynArrIndx]));
 #elif EXI_PROFILE_DEFAULT
 				// Leave the grammar NULL - if the next event is valid AT(xsi:type)
@@ -925,15 +911,15 @@ errorCode serializeEvent(EXIStream* strm, EventCode ec, QName* qname)
 				return INCONSISTENT_PROC_STATE;
 #endif
 			}
+
+			strm->gStack->currQNameID = tmpQid;
 		}
 		break;
 		case EVENT_EE:
-			assert(strm->context.currNonTermID == GR_VOID_NON_TERMINAL);
+			assert(strm->gStack->currNonTermID == GR_VOID_NON_TERMINAL);
 
 			EXIGrammar* grammar;
 			popGrammar(&(strm->gStack), &grammar);
-			if(strm->gStack != NULL) // There is more grammars in the stack
-				strm->context.currNonTermID = strm->gStack->lastNonTermID;
 		break;
 		case EVENT_CH:
 			return NOT_IMPLEMENTED_YET;
@@ -1002,7 +988,7 @@ static errorCode encodeAnyType(EXIStream* strm)
 	anyTypeId.lnId = SIMPLE_TYPE_ANY_TYPE;
 	anyGrammar = GET_TYPE_GRAMMAR_QNAMEID(strm->schema, anyTypeId);
 	assert(anyGrammar != NULL);
-	strm->context.currNonTermID = GR_START_TAG_CONTENT;
+
 	TRY(pushGrammar(&(strm->gStack), anyGrammar));
 
 	return ERR_OK;

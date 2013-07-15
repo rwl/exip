@@ -36,20 +36,20 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 	GrammarRule* currentRule;
 	Index prodCount;
 
-	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Next production non-term-id: %u\n", (unsigned int) strm->context.currNonTermID));
+	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Next production non-term-id: %u\n", (unsigned int) strm->gStack->currNonTermID));
 
-	if(strm->context.currNonTermID >=  strm->gStack->grammar->count)
+	if(strm->gStack->currNonTermID >=  strm->gStack->grammar->count)
 		return INCONSISTENT_PROC_STATE;
 
 #if BUILD_IN_GRAMMARS_USE
 	if(IS_BUILT_IN_ELEM(strm->gStack->grammar->props))  // If the current grammar is build-in Element grammar ...
-		currentRule = (GrammarRule*) &((DynGrammarRule*) strm->gStack->grammar->rule)[strm->context.currNonTermID];
+		currentRule = (GrammarRule*) &((DynGrammarRule*) strm->gStack->grammar->rule)[strm->gStack->currNonTermID];
 	else
 #endif
-		currentRule = &strm->gStack->grammar->rule[strm->context.currNonTermID];
+		currentRule = &strm->gStack->grammar->rule[strm->gStack->currNonTermID];
 
 #if DEBUG_CONTENT_IO == ON
-	TRY(printGrammarRule(strm->context.currNonTermID, currentRule, strm->schema));
+	TRY(printGrammarRule(strm->gStack->currNonTermID, currentRule, strm->schema));
 #endif
 
 	if(strm->context.isNilType == FALSE)
@@ -57,7 +57,7 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 	else
 	{
 		prodCount = RULE_GET_AT_COUNT(currentRule->meta) + RULE_CONTAIN_EE(currentRule->meta);
-		if(strm->context.currNonTermID >= GET_CONTENT_INDEX(strm->gStack->grammar->props))
+		if(strm->gStack->currNonTermID >= GET_CONTENT_INDEX(strm->gStack->grammar->props))
 		{
 			// Instead of content we have a single EE production encoded with zero bits because of xsi:nil=TRUE
 			strm->context.isNilType = FALSE;
@@ -71,7 +71,7 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 		}
 	}
 
-	bitCount = getBitsFirstPartCode(strm->header.opts, strm->gStack->grammar, currentRule, strm->context.currNonTermID, strm->context.isNilType);
+	bitCount = getBitsFirstPartCode(strm->header.opts, strm->gStack->grammar, currentRule, strm->gStack->currNonTermID, strm->context.isNilType);
 
 	if(prodCount > 0)
 	{
@@ -195,7 +195,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 		state_mask[4] = TRUE;
 		state_mask[5] = TRUE;
 
-		if(strm->context.currNonTermID == GR_START_TAG_CONTENT)
+		if(strm->gStack->currNonTermID == GR_START_TAG_CONTENT)
 		{
 			prodCnt += 2; // EE, AT, position 0, 1
 			state_mask[0] = TRUE;
@@ -266,10 +266,10 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 			break;
 			case 4:
 				// SE(*) event
-				strm->gStack->lastNonTermID = GR_ELEMENT_CONTENT;
+				strm->gStack->currNonTermID = GR_ELEMENT_CONTENT;
 
 				TRY(decodeSEWildcardEvent(strm, handler, nonTermID_out, app_data));
-				TRY(insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, GR_ELEMENT_CONTENT, &strm->context.currElem, 1));
+				TRY(insertZeroProduction((DynGrammarRule*) currentRule, EVENT_SE_QNAME, GR_ELEMENT_CONTENT, &strm->gStack->currQNameID, 1));
 			break;
 			case 5:
 				// CH event
@@ -277,7 +277,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 
 				*nonTermID_out = GR_ELEMENT_CONTENT;
 
-				TRY(decodeValueItem(strm, INDEX_MAX, handler, nonTermID_out, strm->context.currElem, app_data));
+				TRY(decodeValueItem(strm, INDEX_MAX, handler, nonTermID_out, strm->gStack->currQNameID, app_data));
 				TRY(insertZeroProduction((DynGrammarRule*) currentRule, EVENT_CH, *nonTermID_out, &voidQnameID, 1));
 			break;
 			case 6:
@@ -306,7 +306,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 		unsigned int state = 0;
 		unsigned int level3ProdCnt = 0;
 
-		if(strm->context.currNonTermID == GR_DOC_CONTENT)
+		if(strm->gStack->currNonTermID == GR_DOC_CONTENT)
 		{
 			if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
 				prodCnt += 1; // DT event
@@ -421,7 +421,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 			// Strict mode
 
 			// Only available second level event if it is an entry grammar rule and is not Nil type grammar
-			if(strm->context.currNonTermID == GR_START_TAG_CONTENT && strm->context.isNilType == FALSE)
+			if(strm->gStack->currNonTermID == GR_START_TAG_CONTENT && strm->context.isNilType == FALSE)
 			{
 				/* There are 2 possible states to exit the state machine: AT(xsi:type) and AT(xsi:nil)
 				 * (Note this is the state for level 2 productions) */
@@ -523,7 +523,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 			// equal the content grammar
 			boolean isContent2Grammar = FALSE;
 
-			if(strm->context.currNonTermID == GET_CONTENT_INDEX(strm->gStack->grammar->props)
+			if(strm->gStack->currNonTermID == GET_CONTENT_INDEX(strm->gStack->grammar->props)
 					&& HAS_CONTENT2(strm->gStack->grammar->props))
 			{
 				isContent2Grammar = TRUE;
@@ -533,7 +533,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 			state_mask[7] = TRUE;
 			state_mask[8] = TRUE;
 			if(isContent2Grammar ||
-					strm->context.currNonTermID < GET_CONTENT_INDEX(strm->gStack->grammar->props))
+					strm->gStack->currNonTermID < GET_CONTENT_INDEX(strm->gStack->grammar->props))
 			{
 				prodCnt += 2; // AT(*), AT(untyped) third level, position 3 and 4
 				state_mask[3] = TRUE;
@@ -546,7 +546,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 				state_mask[0] = TRUE;
 			}
 
-			if(strm->context.currNonTermID == GR_START_TAG_CONTENT)
+			if(strm->gStack->currNonTermID == GR_START_TAG_CONTENT)
 			{
 				prodCnt += 2; // AT(xsi:type), AT(xsi:nil), position 1 and 2
 				state_mask[1] = TRUE;
@@ -641,7 +641,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 				break;
 				case 3:
 					// AT(*)
-					*nonTermID_out = strm->context.currNonTermID;
+					*nonTermID_out = strm->gStack->currNonTermID;
 					TRY(decodeATWildcardEvent(strm, handler, nonTermID_out, app_data));
 				break;
 				case 4:
@@ -658,14 +658,14 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 				break;
 				case 7:
 					// SE(*) content
-					strm->gStack->lastNonTermID = GET_CONTENT_INDEX(strm->gStack->grammar->props);
+					strm->gStack->currNonTermID = GET_CONTENT_INDEX(strm->gStack->grammar->props);
 					TRY(decodeSEWildcardEvent(strm, handler, nonTermID_out, app_data));
 				break;
 				case 8:
 					// CH [untyped value] content
 					DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">CH event\n"));
 					*nonTermID_out = GET_CONTENT_INDEX(strm->gStack->grammar->props);
-					TRY(decodeValueItem(strm, INDEX_MAX, handler, nonTermID_out, strm->context.currElem, app_data));
+					TRY(decodeValueItem(strm, INDEX_MAX, handler, nonTermID_out, strm->gStack->currQNameID, app_data));
 				break;
 				case 9:
 					// ER event
@@ -893,7 +893,7 @@ errorCode decodeEventContent(EXIStream* strm, Production* prodHit, ContentHandle
 	switch(GET_PROD_EXI_EVENT(prodHit->content))
 	{
 		case EVENT_SE_ALL:
-			strm->gStack->lastNonTermID = GET_PROD_NON_TERM(prodHit->content);
+			strm->gStack->currNonTermID = GET_PROD_NON_TERM(prodHit->content);
 			assert(strm->context.isNilType == FALSE);
 
 			TRY(decodeSEWildcardEvent(strm, handler, nonTermID_out, app_data));
@@ -907,7 +907,7 @@ errorCode decodeEventContent(EXIStream* strm, Production* prodHit, ContentHandle
 
 			DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">SE(qname) event: \n"));
 			assert(strm->context.isNilType == FALSE);
-			strm->context.currElem = prodHit->qnameId;
+
 			qname.uri = &(strm->schema->uriTable.uri[prodHit->qnameId.uriId].uriStr);
 			qname.localName = &(GET_LN_URI_QNAME(strm->schema->uriTable, prodHit->qnameId).lnStr);
 #if DEBUG_CONTENT_IO == ON && EXIP_DEBUG_LEVEL == INFO
@@ -918,13 +918,7 @@ errorCode decodeEventContent(EXIStream* strm, Production* prodHit, ContentHandle
 #endif
 			TRY(decodePfxQname(strm, &qname, prodHit->qnameId.uriId));
 
-			if(handler->startElement != NULL)  // Invoke handler method passing the element qname
-			{
-				if(handler->startElement(qname, app_data) == EXIP_HANDLER_STOP)
-					return HANDLER_STOP_RECEIVED;
-			}
-
-			strm->gStack->lastNonTermID = *nonTermID_out;
+			strm->gStack->currNonTermID = *nonTermID_out;
 
 			// New element grammar is pushed on the stack
 			if(IS_BUILT_IN_ELEM(strm->gStack->grammar->props))  // If the current grammar is build-in Element grammar ...
@@ -944,6 +938,14 @@ errorCode decodeEventContent(EXIStream* strm, Production* prodHit, ContentHandle
 			else
 			{
 				return INCONSISTENT_PROC_STATE;  // The event require the presence of Element Grammar previously created
+			}
+
+			strm->gStack->currQNameID = prodHit->qnameId;
+
+			if(handler->startElement != NULL)  // Invoke handler method passing the element qname
+			{
+				if(handler->startElement(qname, app_data) == EXIP_HANDLER_STOP)
+					return HANDLER_STOP_RECEIVED;
 			}
 		}
 		break;
@@ -972,7 +974,7 @@ errorCode decodeEventContent(EXIStream* strm, Production* prodHit, ContentHandle
 		{
 			DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">CH event\n"));
 			assert(strm->context.isNilType == FALSE);
-			TRY(decodeValueItem(strm, prodHit->typeId, handler, nonTermID_out, strm->context.currElem, app_data));
+			TRY(decodeValueItem(strm, prodHit->typeId, handler, nonTermID_out, strm->gStack->currQNameID, app_data));
 		}
 		break;
 		case EVENT_NS:
@@ -1194,7 +1196,7 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 			{
 				TRY(decodeStringValue(strm, localQNameID, &value));
 
-				if(value.length > strm->header.opts.valueMaxLength || strm->header.opts.valuePartitionCapacity == 0)
+				if(value.length == 0 || value.length > strm->header.opts.valueMaxLength || strm->header.opts.valuePartitionCapacity == 0)
 					freeable = TRUE;
 			}
 
@@ -1328,7 +1330,7 @@ errorCode decodeSEWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallI
 #endif
 	}
 
-	strm->context.currElem = qnameId;
+	strm->gStack->currQNameID = qnameId;
 	return ERR_OK;
 }
 

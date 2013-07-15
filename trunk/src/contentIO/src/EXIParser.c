@@ -32,9 +32,6 @@ errorCode initParser(Parser* parser, BinaryBuffer buffer, void* app_data)
 	parser->strm.buffer = buffer;
 	parser->strm.context.bitPointer = 0;
 	parser->strm.context.bufferIndx = 0;
-	parser->strm.context.currNonTermID = GR_DOC_CONTENT;
-	parser->strm.context.currElem.lnId = 0;
-	parser->strm.context.currElem.uriId = 0;
 	parser->strm.context.currAttr.lnId = 0;
 	parser->strm.context.currAttr.uriId = 0;
 	parser->strm.context.expectATData = FALSE;
@@ -184,20 +181,13 @@ errorCode parseNext(Parser* parser)
 		popGrammar(&(parser->strm.gStack), &grammar);
 		if(parser->strm.gStack == NULL) // There is no more grammars in the stack
 		{
-			parser->strm.context.currNonTermID = GR_VOID_NON_TERMINAL; // The stream is parsed
-		}
-		else
-		{
-			parser->strm.context.currNonTermID = parser->strm.gStack->lastNonTermID;
+			return PARSING_COMPLETE; // The stream is parsed
 		}
 	}
 	else
 	{
-		parser->strm.context.currNonTermID = tmpNonTermID;
+		parser->strm.gStack->currNonTermID = tmpNonTermID;
 	}
-
-	if(parser->strm.context.currNonTermID == GR_VOID_NON_TERMINAL)
-		return PARSING_COMPLETE;
 
 	return ERR_OK;
 }

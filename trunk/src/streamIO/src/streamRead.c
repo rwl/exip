@@ -44,6 +44,7 @@ errorCode readNextBit(EXIStream* strm, boolean* bit_val)
 	*bit_val = (strm->buffer.buf[strm->context.bufferIndx] & (1<<REVERSE_BIT_POSITION(strm->context.bitPointer))) != 0;
 
 	moveBitPointer(strm, 1);
+	DEBUG_MSG(INFO, DEBUG_STREAM_IO, ("  @%u:%u", (unsigned int) strm->context.bufferIndx, strm->context.bitPointer));
 	return ERR_OK;
 }
 
@@ -85,9 +86,14 @@ errorCode readBits(EXIStream* strm, unsigned char n, unsigned int* bits_val)
 	*bits_val = *bits_val << strm->context.bitPointer;
 	*bits_val = *bits_val >> (numBytesToBeRead*8-n);
 
+	DEBUG_MSG(INFO, DEBUG_STREAM_IO, (">> %d [0x%X] (%u bits)", *bits_val, *bits_val, n));
+
 	n += strm->context.bitPointer;
 	strm->context.bufferIndx += n / 8;
 	strm->context.bitPointer = n % 8;
+
+	DEBUG_MSG(INFO, DEBUG_STREAM_IO, ("  @%u:%u\n", (unsigned int) strm->context.bufferIndx, strm->context.bitPointer));
+
 	return ERR_OK;
 }
 
