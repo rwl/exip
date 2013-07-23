@@ -83,6 +83,9 @@ GRAMMAR_SRC = $(notdir $(wildcard $(PROJECT_ROOT)/src/grammar/src/*.c))
 
 # Source files for the grammar generation module
 GRAMMAR_GEN_SRC = $(notdir $(wildcard $(PROJECT_ROOT)/src/grammarGen/src/*.c))
+
+# Source files for the schema grammar generation module
+GRAMMAR_GEN_SCHEMA_SRC = $(notdir $(wildcard $(PROJECT_ROOT)/src/grammarGen/xmlSchema/*.c))
 		
 STREAM_IO_SRC =	$(notdir $(wildcard $(PROJECT_ROOT)/src/streamIO/src/*.c))
 
@@ -102,7 +105,12 @@ EXIPD_EXAMPLE_SRC = $(notdir $(wildcard $(PROJECT_ROOT)/examples/simpleDecoding/
 LIB_SOURCES = $(COMMON_SRC) $(CONTENT_IO_SRC) $(GRAMMAR_SRC) $(STREAM_IO_SRC) $(STRING_TABLES_SRC) $(notdir $(wildcard $(TARGET)/*.c))
 
 ifeq ($(INCLUDE_GRAMMAR_GENERATION), true)
-   LIB_SOURCES += $(GRAMMAR_GEN_SRC)
+  LIB_SOURCES += $(GRAMMAR_GEN_SRC)
+ifeq ($(INCLUDE_SCHEMA_EXI_GRAMMAR_GENERATION), true)
+  LIB_SOURCES += $(GRAMMAR_GEN_SCHEMA_SRC)
+  VPATH += $(PROJECT_ROOT)/src/grammarGen/xmlSchema
+  CFLAGS += -DGRAMMAR_GEN_SCHEMA
+endif
 endif
 
 EXIPE_OBJECTS=$(EXIPE_EXAMPLE_SRC:%.c=$(BIN_DIR)/%.o)

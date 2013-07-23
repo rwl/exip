@@ -32,6 +32,17 @@
 #include "hashtable.h"
 #include "grammarGenerator.h"
 
+/**
+ * @page XMLSchemaID SchemaID of XML Schema files
+ *
+ * The value of the SchemaID field of the EXI header
+ * that should be used when processing EXI encoded XML schemas
+ * in schema mode by exip is the XML Schema target namespace:
+ * @code
+ *	http://www.w3.org/2001/XMLSchema
+ * @endcode
+ */
+
 /** Enumeration of elements found in the schema */
 enum ElemEnum
 {

@@ -31,6 +31,13 @@
 
 extern const String XML_SCHEMA_NAMESPACE;
 
+#ifdef GRAMMAR_GEN_SCHEMA
+	// INCLUDE_SCHEMA_EXI_GRAMMAR_GENERATION in build-params is true
+	// Enables parsing of EXI encoded XMLSchema files in EXI schema-mode
+
+	extern EXIPSchema xmlscm_schema;
+#endif
+
 /**
  * State required when parsing a schema to build a TreeTable.
  */
@@ -203,8 +210,20 @@ errorCode generateTreeTable(BinaryBuffer buffer, SchemaFormat schemaFormat, EXIO
 
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">XML Schema header parsed\n"));
 
-	// TODO: add the XSD schema here - will be used when the EXI encoded XSD is in schema mode
- 	TRY(setSchema(&xsdParser, NULL));
+#ifdef GRAMMAR_GEN_SCHEMA
+	if(stringEqual(xsdParser.strm.header.opts.schemaID, XML_SCHEMA_NAMESPACE))
+	{
+		// EXI encoded XML schema in schema mode
+		TRY(setSchema(&xsdParser, &xmlscm_schema));
+	}
+	else
+	{
+#else
+	{
+#endif
+		// EXI encoded XML schema in schema-less mode
+		TRY(setSchema(&xsdParser, NULL));
+	}
 
 	while(tmp_err_code == ERR_OK)
 	{

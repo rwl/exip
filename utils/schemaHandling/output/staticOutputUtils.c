@@ -340,21 +340,39 @@ void staticEnumTableOutput(EXIPSchema* schema, char* prefix, FILE* out)
 			} break;
 			case VALUE_TYPE_BOOLEAN:
 				// NOT_IMPLEMENTED
+				assert(FALSE);
 				break;
 			case VALUE_TYPE_DATE_TIME:
 				// NOT_IMPLEMENTED
+				assert(FALSE);
 				break;
 			case VALUE_TYPE_DECIMAL:
 				// NOT_IMPLEMENTED
+				assert(FALSE);
 				break;
 			case VALUE_TYPE_FLOAT:
 				// NOT_IMPLEMENTED
+				assert(FALSE);
 				break;
 			case VALUE_TYPE_INTEGER:
 				// NOT_IMPLEMENTED
+				assert(FALSE);
 				break;
 			case VALUE_TYPE_SMALL_INTEGER:
 				// NOT_IMPLEMENTED
+				assert(FALSE);
+				break;
+			case VALUE_TYPE_NON_NEGATIVE_INT:
+				fprintf(out, "\nstatic CONST UnsignedInteger %senumValues_%u[%u] = { \n", prefix, (unsigned int) i, (unsigned int) tmpDef->count);
+				for(j = 0; j < tmpDef->count; j++)
+				{
+					fprintf(out, "   0x%016lX", (long unsigned) ((UnsignedInteger*) tmpDef->values)[j]);
+
+					if(j < tmpDef->count - 1)
+						fprintf(out, ",\n");
+					else
+						fprintf(out, "\n};\n\n");
+				}
 				break;
 		}
 	}
