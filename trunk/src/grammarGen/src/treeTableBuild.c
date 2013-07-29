@@ -81,6 +81,8 @@ static errorCode xsd_endElement(void* app_data);
 static errorCode xsd_attribute(QName qname, void* app_data);
 static errorCode xsd_stringData(const String value, void* app_data);
 static errorCode xsd_namespaceDeclaration(const String ns, const String prefix, boolean isLocalElementNS, void* app_data);
+static errorCode xsd_boolData(boolean bool_val, void* app_data);
+static errorCode xsd_intData(Integer int_val, void* app_data);
 
 //////////// Helper functions
 
@@ -151,6 +153,9 @@ static const char* attrStrings[] =
 	"schemaLocation"
 };
 
+static const char TRUE_CHAR_STR[] = "true";
+static const char FALSE_CHAR_STR[] = "false";
+
 errorCode generateTreeTable(BinaryBuffer buffer, SchemaFormat schemaFormat, EXIOptions* opt, TreeTable* treeT, EXIPSchema* schema)
 {
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
@@ -171,6 +176,8 @@ errorCode generateTreeTable(BinaryBuffer buffer, SchemaFormat schemaFormat, EXIO
 	xsdParser.handler.stringData = xsd_stringData;
 	xsdParser.handler.endElement = xsd_endElement;
 	xsdParser.handler.namespaceDeclaration = xsd_namespaceDeclaration;
+	xsdParser.handler.booleanData = xsd_boolData;
+	xsdParser.handler.intData = xsd_intData;
 
 	ttpd.propsStat = INITIAL_STATE;
 	ttpd.expectingAttr = FALSE;
@@ -686,6 +693,72 @@ static errorCode xsd_stringData(const String value, void* app_data)
 	else
 	{
 		DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Ignored element character data"));
+	}
+
+	return ERR_OK;
+}
+
+static errorCode xsd_boolData(boolean bool_val, void* app_data)
+{
+	struct TreeTableParsingData* ttpd = (struct TreeTableParsingData*) app_data;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	if(ttpd->ignoredElement != FALSE)
+		return ERR_OK;
+
+	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Bool data: %s\n", bool_val == TRUE?TRUE_CHAR_STR:FALSE_CHAR_STR));
+
+	if(ttpd->expectingAttr)
+	{
+		if(ttpd->charDataPtr != NULL)
+		{
+			if(bool_val == TRUE)
+				TRY(asciiToString(TRUE_CHAR_STR, ttpd->charDataPtr, &ttpd->treeT->memList, TRUE));
+			else
+				TRY(asciiToString(FALSE_CHAR_STR, ttpd->charDataPtr, &ttpd->treeT->memList, TRUE));
+			ttpd->charDataPtr = NULL;
+		}
+		else
+		{
+			DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, (">Ignored element attribute value\n"));
+		}
+		ttpd->expectingAttr = FALSE;
+	}
+	else
+	{
+		DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, ("\n>Ignored element bool data"));
+	}
+
+	return ERR_OK;
+}
+
+static errorCode xsd_intData(Integer int_val, void* app_data)
+{
+	struct TreeTableParsingData* ttpd = (struct TreeTableParsingData*) app_data;
+	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	char tmp_str[15];
+	if(ttpd->ignoredElement != FALSE)
+		return ERR_OK;
+
+	sprintf(tmp_str, "%ld", (long) int_val);
+
+	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Integer data: %s\n", tmp_str));
+
+	if(ttpd->expectingAttr)
+	{
+		if(ttpd->charDataPtr != NULL)
+		{
+			TRY(asciiToString(tmp_str, ttpd->charDataPtr, &ttpd->treeT->memList, TRUE));
+			ttpd->charDataPtr = NULL;
+		}
+		else
+		{
+			DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, (">Ignored element attribute value\n"));
+		}
+		ttpd->expectingAttr = FALSE;
+	}
+	else
+	{
+		DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, ("\n>Ignored element int data"));
 	}
 
 	return ERR_OK;

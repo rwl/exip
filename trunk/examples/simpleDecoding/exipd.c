@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 		infile = fopen(sourceFileName, "rb" );
 		if(!infile)
 		{
-			fprintf(stderr, "Unable to open file %s", sourceFileName);
+			fprintf(stderr, "Unable to open file %s\n", sourceFileName);
 			exit(1);
 		}
 	}
@@ -98,12 +98,12 @@ int main(int argc, char *argv[])
 
 	if(tmp_err_code != ERR_OK)
 	{
-		printf("\nError (code: %d) during parsing of the EXI stream: %s", tmp_err_code, sourceFileName);
+		printf("\nError (code: %d) during parsing of the EXI stream: %s\n", tmp_err_code, sourceFileName);
 		return 1;
 	}
 	else
 	{
-		printf("\nSuccessful parsing of the EXI stream: %s", sourceFileName);
+		printf("\nSuccessful parsing of the EXI stream: %s\n", sourceFileName);
 		return 0;
 	}
 }

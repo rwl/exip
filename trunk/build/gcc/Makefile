@@ -242,6 +242,7 @@ copy_headers: $(BIN_DIR)
 test_sets_copy_examples:
 		cp $(PROJECT_ROOT)/examples/simpleEncoding/exipe-test-xsd.exi $(EXAMPLES_BIN_DIR)/exipe-test-xsd.exi
 		cp $(PROJECT_ROOT)/examples/simpleDecoding/exipd-test-xsd.exi $(EXAMPLES_BIN_DIR)/exipd-test-xsd.exi
+		cp $(PROJECT_ROOT)/examples/simpleDecoding/exipd-test-schema-xsd.exi $(EXAMPLES_BIN_DIR)/exipd-test-schema-xsd.exi
 		cp $(PROJECT_ROOT)/examples/simpleDecoding/exipd-test.exi $(EXAMPLES_BIN_DIR)/exipd-test.exi
 		cp $(PROJECT_ROOT)/examples/simpleDecoding/exipd-test-schema.exi $(EXAMPLES_BIN_DIR)/exipd-test-schema.exi
 		
