@@ -411,6 +411,10 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 		{
 			unsigned int prod2Count = 0;
 
+			// TODO: Implement the case with schema deviations.
+			// This includes proper handling of content2 grammar rule.
+			// Similar to the decoding case
+
 			prod2Count += 5; // EE, AT (*), AT (*) [untyped value], SE (*), CH [untyped value]
 			if(!RULE_CONTAIN_EE(currentRule->meta))
 				prod2Count += 1;

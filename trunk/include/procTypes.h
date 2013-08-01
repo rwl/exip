@@ -617,6 +617,7 @@ typedef struct EventCode EventCode;
 
 #define GR_START_TAG_CONTENT 0
 #define GR_ELEMENT_CONTENT   1
+#define GR_CONTENT_2 (GR_VOID_NON_TERMINAL-1)
 
 #define GR_FRAGMENT_CONTENT  0
 /**@}*/
