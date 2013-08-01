@@ -59,7 +59,6 @@ errorCode parseHeader(Parser* parser, boolean outOfBandOpts)
 
 	TRY(decodeHeader(&parser->strm, outOfBandOpts));
 
-
 	if(parser->strm.header.opts.valuePartitionCapacity > 0)
 	{
 		TRY(createValueTable(&parser->strm.valueTable));

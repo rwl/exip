@@ -35,21 +35,25 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 	unsigned int tmp_bits_val = 0;
 	GrammarRule* currentRule;
 	Index prodCount;
+	SmallIndex currNonTermID = strm->gStack->currNonTermID;
 
-	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Next production non-term-id: %u\n", (unsigned int) strm->gStack->currNonTermID));
+	if(currNonTermID == GR_CONTENT_2)
+		currNonTermID = GET_CONTENT_INDEX(strm->gStack->grammar->props);
 
-	if(strm->gStack->currNonTermID >=  strm->gStack->grammar->count)
+	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Next production non-term-id: %u\n", (unsigned int) currNonTermID));
+
+	if(currNonTermID >=  strm->gStack->grammar->count)
 		return INCONSISTENT_PROC_STATE;
 
 #if BUILD_IN_GRAMMARS_USE
 	if(IS_BUILT_IN_ELEM(strm->gStack->grammar->props))  // If the current grammar is build-in Element grammar ...
-		currentRule = (GrammarRule*) &((DynGrammarRule*) strm->gStack->grammar->rule)[strm->gStack->currNonTermID];
+		currentRule = (GrammarRule*) &((DynGrammarRule*) strm->gStack->grammar->rule)[currNonTermID];
 	else
 #endif
-		currentRule = &strm->gStack->grammar->rule[strm->gStack->currNonTermID];
+		currentRule = &strm->gStack->grammar->rule[currNonTermID];
 
 #if DEBUG_CONTENT_IO == ON
-	TRY(printGrammarRule(strm->gStack->currNonTermID, currentRule, strm->schema));
+	TRY(printGrammarRule(currNonTermID, currentRule, strm->schema));
 #endif
 
 	if(strm->context.isNilType == FALSE)
@@ -57,7 +61,7 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 	else
 	{
 		prodCount = RULE_GET_AT_COUNT(currentRule->meta) + RULE_CONTAIN_EE(currentRule->meta);
-		if(strm->gStack->currNonTermID >= GET_CONTENT_INDEX(strm->gStack->grammar->props))
+		if(currNonTermID >= GET_CONTENT_INDEX(strm->gStack->grammar->props))
 		{
 			// Instead of content we have a single EE production encoded with zero bits because of xsi:nil=TRUE
 			strm->context.isNilType = FALSE;
@@ -71,7 +75,7 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 		}
 	}
 
-	bitCount = getBitsFirstPartCode(strm->header.opts, strm->gStack->grammar, currentRule, strm->gStack->currNonTermID, strm->context.isNilType);
+	bitCount = getBitsFirstPartCode(strm->header.opts, strm->gStack->grammar, currentRule, currNonTermID, strm->context.isNilType);
 
 	if(prodCount > 0)
 	{
@@ -520,13 +524,22 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 			// Create a copy of the content grammar if and only if there are AT
 			// productions that point to the content grammar rule OR the content index is 0.
 			// The content2 grammar rule is only needed in case the current rule is
-			// equal the content grammar
+			// equal the content grammar rule. Note that when content index is 0, the entry grammar
+			// is the content2 grammar rule and by default the GR_START_TAG_CONTENT is pointing
+			// to the content2 while GR_CONTENT_2 is pointing to content i.e. the roles are
+			// reversed in this situation. It is implemented in this way in order to keep
+			// all the rule processing in tact in the other parts of the implementation.
 			boolean isContent2Grammar = FALSE;
 
-			if(strm->gStack->currNonTermID == GET_CONTENT_INDEX(strm->gStack->grammar->props)
-					&& HAS_CONTENT2(strm->gStack->grammar->props))
+			if(strm->gStack->currNonTermID == GR_CONTENT_2)
 			{
-				isContent2Grammar = TRUE;
+				if(GET_CONTENT_INDEX(strm->gStack->grammar->props) != GR_START_TAG_CONTENT)
+					isContent2Grammar = TRUE;
+			}
+			else if(GET_CONTENT_INDEX(strm->gStack->grammar->props) == GR_START_TAG_CONTENT &&
+					strm->gStack->currNonTermID == GR_START_TAG_CONTENT)
+			{
+					isContent2Grammar = TRUE;
 			}
 
 			prodCnt = 2; // SE(*), CH(untyped) always available, position 7 and 8
@@ -657,14 +670,30 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 					return NOT_IMPLEMENTED_YET;
 				break;
 				case 7:
-					// SE(*) content
-					strm->gStack->currNonTermID = GET_CONTENT_INDEX(strm->gStack->grammar->props);
+					// SE(*) content|same_rule
+					if(isContent2Grammar || strm->gStack->currNonTermID < GET_CONTENT_INDEX(strm->gStack->grammar->props))
+					{
+						// currNonTermID should point to the content grammar rule
+						if(GET_CONTENT_INDEX(strm->gStack->grammar->props) == GR_START_TAG_CONTENT)
+							strm->gStack->currNonTermID = GR_CONTENT_2;
+						else
+							strm->gStack->currNonTermID = GET_CONTENT_INDEX(strm->gStack->grammar->props);
+					}
 					TRY(decodeSEWildcardEvent(strm, handler, nonTermID_out, app_data));
 				break;
 				case 8:
-					// CH [untyped value] content
+					// CH [untyped value] content|same_rule
 					DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">CH event\n"));
-					*nonTermID_out = GET_CONTENT_INDEX(strm->gStack->grammar->props);
+					if(isContent2Grammar || strm->gStack->currNonTermID < GET_CONTENT_INDEX(strm->gStack->grammar->props))
+					{
+						// nonTermID_out should point to the content grammar rule
+						if(GET_CONTENT_INDEX(strm->gStack->grammar->props) == GR_START_TAG_CONTENT)
+							*nonTermID_out = GR_CONTENT_2;
+						else
+							*nonTermID_out = GET_CONTENT_INDEX(strm->gStack->grammar->props);
+					}
+					else
+						*nonTermID_out = strm->gStack->currNonTermID;
 					TRY(decodeValueItem(strm, INDEX_MAX, handler, nonTermID_out, strm->gStack->currQNameID, app_data));
 				break;
 				case 9:
