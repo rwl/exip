@@ -28,7 +28,7 @@ size_t readFileInputStream(void* buf, size_t readSize, void* stream);
 int main(int argc, char *argv[])
 {
 	FILE *infile = stdin;
-	char sourceFileName[100];
+	char sourceFileName[500];
 	EXIPSchema schema;
 	EXIPSchema* schemaPtr = NULL;
 	unsigned char outFlag = OUT_EXI; // Default output option
@@ -137,7 +137,7 @@ static void parseSchema(char* xsdList, EXIPSchema* schema)
 	errorCode tmp_err_code = UNEXPECTED_ERROR;
 	FILE *schemaFile;
 	BinaryBuffer buffer[MAX_XSD_FILES_COUNT]; // up to 10 XSD files
-	char schemaFileName[50];
+	char schemaFileName[500];
 	unsigned int schemaFilesCount = 0;
 	unsigned int i;
 	char *token;
