@@ -1,0 +1,7 @@
+<root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <a>valid a</a>
+    <a>invalid valid</a>
+    <x xsi:type="xsd:int" >567</x>
+    <b>23</b>
+</root>
