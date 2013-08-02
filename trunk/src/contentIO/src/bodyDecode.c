@@ -37,6 +37,10 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 	Index prodCount;
 	SmallIndex currNonTermID = strm->gStack->currNonTermID;
 
+	// TODO: GR_CONTENT_2 is only needed when schema deviations are allowed.
+	//       Here and in many other places when schema deviations are fully disabled
+	//       many parts of the code can be pruned during compile time using macro parameters in the build.
+	//       This includes the EXI Profile features itself (excluding localValueCapping)
 	if(currNonTermID == GR_CONTENT_2)
 		currNonTermID = GET_CONTENT_INDEX(strm->gStack->grammar->props);
 
