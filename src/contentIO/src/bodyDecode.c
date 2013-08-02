@@ -30,7 +30,7 @@ static errorCode decodeQNameValue(EXIStream* strm, ContentHandler* handler, Smal
 
 errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, ContentHandler* handler, void* app_data)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	unsigned int bitCount;
 	unsigned int tmp_bits_val = 0;
 	GrammarRule* currentRule;
@@ -43,7 +43,7 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Next production non-term-id: %u\n", (unsigned int) currNonTermID));
 
 	if(currNonTermID >=  strm->gStack->grammar->count)
-		return INCONSISTENT_PROC_STATE;
+		return EXIP_INCONSISTENT_PROC_STATE;
 
 #if BUILD_IN_GRAMMARS_USE
 	if(IS_BUILT_IN_ELEM(strm->gStack->grammar->props))  // If the current grammar is build-in Element grammar ...
@@ -67,11 +67,10 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 			strm->context.isNilType = FALSE;
 			if(handler->endElement != NULL)
 			{
-				if(handler->endElement(app_data) == EXIP_HANDLER_STOP)
-					return HANDLER_STOP_RECEIVED;
+				TRY(handler->endElement(app_data));
 			}
 
-			return ERR_OK;
+			return EXIP_ERR_OK;
 		}
 	}
 
@@ -99,11 +98,10 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 						strm->context.isNilType = FALSE;
 						if(handler->endElement != NULL)
 						{
-							if(handler->endElement(app_data) == EXIP_HANDLER_STOP)
-								return HANDLER_STOP_RECEIVED;
+							TRY(handler->endElement(app_data));
 						}
 
-						return ERR_OK;
+						return EXIP_ERR_OK;
 					}
 				}
 
@@ -117,11 +115,10 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 		strm->context.isNilType = FALSE;
 		if(handler->endElement != NULL)
 		{
-			if(handler->endElement(app_data) == EXIP_HANDLER_STOP)
-				return HANDLER_STOP_RECEIVED;
+			TRY(handler->endElement(app_data));
 		}
 
-		return ERR_OK;
+		return EXIP_ERR_OK;
 	}
 
 	// Production with length code 1 not found: search second or third level productions
@@ -132,6 +129,7 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 
 static errorCode handleProduction(EXIStream* strm, Production* prodHit, SmallIndex* nonTermID_out, ContentHandler* handler, void* app_data)
 {
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	*nonTermID_out = GET_PROD_NON_TERM(prodHit->content);
 
 	switch(GET_PROD_EXI_EVENT(prodHit->content))
@@ -140,8 +138,7 @@ static errorCode handleProduction(EXIStream* strm, Production* prodHit, SmallInd
 			DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("> ED event:\n"));
 			if(handler->endDocument != NULL)
 			{
-				if(handler->endDocument(app_data) == EXIP_HANDLER_STOP)
-					return HANDLER_STOP_RECEIVED;
+				TRY(handler->endDocument(app_data));
 			}
 		break;
 		case EVENT_EE:
@@ -149,16 +146,14 @@ static errorCode handleProduction(EXIStream* strm, Production* prodHit, SmallInd
 			strm->context.isNilType = FALSE;
 			if(handler->endElement != NULL)
 			{
-				if(handler->endElement(app_data) == EXIP_HANDLER_STOP)
-					return HANDLER_STOP_RECEIVED;
+				TRY(handler->endElement(app_data));
 			}
 		break;
 		case EVENT_SC:
 			DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("> SC event:\n"));
 			if(handler->selfContained != NULL)
 			{
-				if(handler->selfContained(app_data) == EXIP_HANDLER_STOP)
-					return HANDLER_STOP_RECEIVED;
+				TRY(handler->selfContained(app_data));
 			}
 		break;
 		default: // The event has content!
@@ -166,12 +161,12 @@ static errorCode handleProduction(EXIStream* strm, Production* prodHit, SmallInd
 		break;
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRule, SmallIndex* nonTermID_out, ContentHandler* handler, void* app_data)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	unsigned int prodCnt = 0;
 	unsigned int tmp_bits_val = 0;
 
@@ -245,8 +240,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 				strm->context.isNilType = FALSE;
 				if(handler->endElement != NULL)
 				{
-					if(handler->endElement(app_data) == EXIP_HANDLER_STOP)
-						return HANDLER_STOP_RECEIVED;
+					TRY(handler->endElement(app_data));
 				}
 
 				*nonTermID_out = GR_VOID_NON_TERMINAL;
@@ -266,7 +260,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 			break;
 			case 3:
 				// StartTagContent : SC event
-				return NOT_IMPLEMENTED_YET;
+				return EXIP_NOT_IMPLEMENTED_YET;
 			break;
 			case 4:
 				// SE(*) event
@@ -286,19 +280,19 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 			break;
 			case 6:
 				// ER event
-				return NOT_IMPLEMENTED_YET;
+				return EXIP_NOT_IMPLEMENTED_YET;
 			break;
 			case 7:
 				// CM or PI event
-				return NOT_IMPLEMENTED_YET;
+				return EXIP_NOT_IMPLEMENTED_YET;
 			break;
 			default:
-				return INCONSISTENT_PROC_STATE;
+				return EXIP_INCONSISTENT_PROC_STATE;
 		}
 #else
 		DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
 		assert(FALSE);
-		return INCONSISTENT_PROC_STATE;
+		return EXIP_INCONSISTENT_PROC_STATE;
 #endif
 	}
 	else if(IS_DOCUMENT(strm->gStack->grammar->props))
@@ -342,10 +336,10 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 						state = !IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) + 1;
 					}
 					else
-						return INCONSISTENT_PROC_STATE;
+						return EXIP_INCONSISTENT_PROC_STATE;
 				}
 				else
-					return INCONSISTENT_PROC_STATE;
+					return EXIP_INCONSISTENT_PROC_STATE;
 			}
 			else if(prodCnt == 1)
 			{
@@ -364,11 +358,11 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 						state = !IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) + 1;
 					}
 					else
-						return INCONSISTENT_PROC_STATE;
+						return EXIP_INCONSISTENT_PROC_STATE;
 				}
 			}
 			else
-				return INCONSISTENT_PROC_STATE;
+				return EXIP_INCONSISTENT_PROC_STATE;
 		}
 		else
 		{
@@ -388,32 +382,32 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 				state = !IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) + 1;
 			}
 			else
-				return INCONSISTENT_PROC_STATE;
+				return EXIP_INCONSISTENT_PROC_STATE;
 		}
 
 		switch(state)
 		{
 			case 0:
 				// DT event
-				return NOT_IMPLEMENTED_YET;
+				return EXIP_NOT_IMPLEMENTED_YET;
 			break;
 			case 1:
 				// CM event
-				return NOT_IMPLEMENTED_YET;
+				return EXIP_NOT_IMPLEMENTED_YET;
 			break;
 			case 2:
 				// PI event
-				return NOT_IMPLEMENTED_YET;
+				return EXIP_NOT_IMPLEMENTED_YET;
 			break;
 			default:
-				return INCONSISTENT_PROC_STATE;
+				return EXIP_INCONSISTENT_PROC_STATE;
 		}
 	}
 	else if(IS_FRAGMENT(strm->gStack->grammar->props))
 	{
 		// Fragment grammar
 		// CM or PI event
-		return NOT_IMPLEMENTED_YET;
+		return EXIP_NOT_IMPLEMENTED_YET;
 	}
 	else
 	{
@@ -443,7 +437,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 				{
 					TRY(decodeNBitUnsignedInteger(strm, 1, &tmp_bits_val));
 					if(tmp_bits_val > 1)
-						return INCONSISTENT_PROC_STATE;
+						return EXIP_INCONSISTENT_PROC_STATE;
 				}
 				else if(prodCnt == 1)
 				{
@@ -451,7 +445,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 					tmp_bits_val = 0;
 				}
 				else
-					return INCONSISTENT_PROC_STATE;
+					return EXIP_INCONSISTENT_PROC_STATE;
 
 				state = tmp_bits_val;
 
@@ -470,8 +464,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 
 						if(handler->attribute != NULL)  // Invoke handler method
 						{
-							if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
-								return HANDLER_STOP_RECEIVED;
+							TRY(handler->attribute(qname, app_data));
 						}
 						TRY(decodeQNameValue(strm, handler, nonTermID_out, app_data));
 					break;
@@ -489,22 +482,20 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 
 						if(handler->attribute != NULL)  // Invoke handler method
 						{
-							if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
-								return HANDLER_STOP_RECEIVED;
+							TRY(handler->attribute(qname, app_data));
 						}
 
 						if(handler->booleanData != NULL)  // Invoke handler method
 						{
-							if(handler->booleanData(nil, app_data) == EXIP_HANDLER_STOP)
-								return HANDLER_STOP_RECEIVED;
+							TRY(handler->booleanData(nil, app_data));
 						}
 					break;
 					default:
-						return INCONSISTENT_PROC_STATE;
+						return EXIP_INCONSISTENT_PROC_STATE;
 				}
 			}
 			else
-				return INCONSISTENT_PROC_STATE;
+				return EXIP_INCONSISTENT_PROC_STATE;
 		}
 		else // Non-strict mode
 		{
@@ -605,8 +596,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 					strm->context.isNilType = FALSE;
 					if(handler->endElement != NULL)
 					{
-						if(handler->endElement(app_data) == EXIP_HANDLER_STOP)
-							return HANDLER_STOP_RECEIVED;
+						TRY(handler->endElement(app_data));
 					}
 					*nonTermID_out = GR_VOID_NON_TERMINAL;
 				break;
@@ -620,8 +610,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 
 					if(handler->attribute != NULL)  // Invoke handler method
 					{
-						if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
-							return HANDLER_STOP_RECEIVED;
+						TRY(handler->attribute(qname, app_data));
 					}
 					TRY(decodeQNameValue(strm, handler, nonTermID_out, app_data));
 				break;
@@ -641,14 +630,12 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 
 						if(handler->attribute != NULL)  // Invoke handler method
 						{
-							if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
-								return HANDLER_STOP_RECEIVED;
+							TRY(handler->attribute(qname, app_data));
 						}
 
 						if(handler->booleanData != NULL)  // Invoke handler method
 						{
-							if(handler->booleanData(nil, app_data) == EXIP_HANDLER_STOP)
-								return HANDLER_STOP_RECEIVED;
+							TRY(handler->booleanData(nil, app_data));
 						}
 					}
 				break;
@@ -659,7 +646,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 				break;
 				case 4:
 					// third level AT: eighter AT (qname) [untyped value] or AT (*) [untyped value]
-					return NOT_IMPLEMENTED_YET;
+					return EXIP_NOT_IMPLEMENTED_YET;
 				break;
 				case 5:
 					// NS Element i, 0
@@ -667,7 +654,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 				break;
 				case 6:
 					// SC event
-					return NOT_IMPLEMENTED_YET;
+					return EXIP_NOT_IMPLEMENTED_YET;
 				break;
 				case 7:
 					// SE(*) content|same_rule
@@ -698,19 +685,19 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 				break;
 				case 9:
 					// ER event
-					return NOT_IMPLEMENTED_YET;
+					return EXIP_NOT_IMPLEMENTED_YET;
 				break;
 				case 10:
 					// third level: CM or PI event
-					return NOT_IMPLEMENTED_YET;
+					return EXIP_NOT_IMPLEMENTED_YET;
 				break;
 				default:
-					return INCONSISTENT_PROC_STATE;
+					return EXIP_INCONSISTENT_PROC_STATE;
 			}
 		}
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 /*
@@ -732,7 +719,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 
 errorCode decodeQName(EXIStream* strm, QName* qname, QNameID* qnameID)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Decoding QName\n"));
 
@@ -746,7 +733,7 @@ errorCode decodeQName(EXIStream* strm, QName* qname, QNameID* qnameID)
 
 errorCode decodeUri(EXIStream* strm, SmallIndex* uriId)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	unsigned int tmp_val_buf = 0;
 	unsigned char uriBits = getBitsNumber(strm->schema->uriTable.count);
 
@@ -763,15 +750,15 @@ errorCode decodeUri(EXIStream* strm, SmallIndex* uriId)
 		DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">URI hit\n"));
 		*uriId = tmp_val_buf - 1;
 		if(*uriId >= strm->schema->uriTable.count)
-			return INVALID_EXI_INPUT;
+			return EXIP_INVALID_EXI_INPUT;
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode decodeLn(EXIStream* strm, Index uriId, Index* lnId)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	UnsignedInteger tmpVar = 0;
 
 	TRY(decodeUnsignedInteger(strm, &tmpVar));
@@ -784,7 +771,7 @@ errorCode decodeLn(EXIStream* strm, Index uriId, Index* lnId)
 		TRY(decodeNBitUnsignedInteger(strm, lnBits, &l_lnId));
 
 		if(l_lnId >= strm->schema->uriTable.uri[uriId].lnTable.count)
-			return INVALID_EXI_INPUT;
+			return EXIP_INVALID_EXI_INPUT;
 		*lnId = l_lnId;
 	}
 	else // local-name table miss
@@ -803,22 +790,22 @@ errorCode decodeLn(EXIStream* strm, Index uriId, Index* lnId)
 		TRY(addLnEntry(&strm->schema->uriTable.uri[uriId].lnTable, lnStr, lnId));
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode decodePfxQname(EXIStream* strm, QName* qname, SmallIndex uriId)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	unsigned char prefixBits = 0;
 	unsigned int prefixID = 0;
 
 	qname->prefix = NULL;
 
 	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) == FALSE)
-		return ERR_OK;
+		return EXIP_ERR_OK;
 
 	if(strm->schema->uriTable.uri[uriId].pfxTable == NULL || strm->schema->uriTable.uri[uriId].pfxTable->count == 0)
-		return ERR_OK;
+		return EXIP_ERR_OK;
 
 	prefixBits = getBitsNumber(strm->schema->uriTable.uri[uriId].pfxTable->count - 1);
 
@@ -827,17 +814,17 @@ errorCode decodePfxQname(EXIStream* strm, QName* qname, SmallIndex uriId)
 		TRY(decodeNBitUnsignedInteger(strm, prefixBits, &prefixID));
 
 		if(prefixID >= strm->schema->uriTable.uri[uriId].pfxTable->count)
-			return INVALID_EXI_INPUT;
+			return EXIP_INVALID_EXI_INPUT;
 	}
 
 	qname->prefix = &strm->schema->uriTable.uri[uriId].pfxTable->pfxStr[prefixID];
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode decodePfx(EXIStream* strm, SmallIndex uriId, SmallIndex* pfxId)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	unsigned int tmp_val_buf = 0;
 	unsigned char prfxBits = getBitsNumber(strm->schema->uriTable.uri[uriId].pfxTable->count);
 
@@ -855,15 +842,15 @@ errorCode decodePfx(EXIStream* strm, SmallIndex uriId, SmallIndex* pfxId)
 		DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Prefix hit\n"));
 		*pfxId = tmp_val_buf-1;
 		if(*pfxId >= strm->schema->uriTable.uri[uriId].pfxTable->count)
-			return INVALID_EXI_INPUT;
+			return EXIP_INVALID_EXI_INPUT;
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode decodeStringValue(EXIStream* strm, QNameID qnameID, String* value)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	UnsignedInteger tmpVar = 0;
 	TRY(decodeUnsignedInteger(strm, &tmpVar));
 
@@ -882,7 +869,7 @@ errorCode decodeStringValue(EXIStream* strm, QNameID qnameID, String* value)
 		*value = strm->valueTable.value[vxTable->vx[vxEntryId].globalId].valueStr;
 #else
 		DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, ("> Local-value partition table hit but VALUE_CROSSTABLE_USE disabled \n"));
-		return INCONSISTENT_PROC_STATE;
+		return EXIP_INCONSISTENT_PROC_STATE;
 #endif
 	}
 	else if(tmpVar == 1)// global value partition table hit
@@ -908,13 +895,13 @@ errorCode decodeStringValue(EXIStream* strm, QNameID qnameID, String* value)
 			TRY(addValueEntry(strm, *value, qnameID));
 		}
 	}
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode decodeEventContent(EXIStream* strm, Production* prodHit, ContentHandler* handler,
 							SmallIndex* nonTermID_out, void* app_data)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	QName qname;
 
 	// TODO: implement all cases of events such as PI, CM etc.
@@ -966,15 +953,14 @@ errorCode decodeEventContent(EXIStream* strm, Production* prodHit, ContentHandle
 			}
 			else
 			{
-				return INCONSISTENT_PROC_STATE;  // The event require the presence of Element Grammar previously created
+				return EXIP_INCONSISTENT_PROC_STATE;  // The event require the presence of Element Grammar previously created
 			}
 
 			strm->gStack->currQNameID = prodHit->qnameId;
 
 			if(handler->startElement != NULL)  // Invoke handler method passing the element qname
 			{
-				if(handler->startElement(qname, app_data) == EXIP_HANDLER_STOP)
-					return HANDLER_STOP_RECEIVED;
+				TRY(handler->startElement(qname, app_data));
 			}
 		}
 		break;
@@ -993,8 +979,7 @@ errorCode decodeEventContent(EXIStream* strm, Production* prodHit, ContentHandle
 			TRY(decodePfxQname(strm, &qname, prodHit->qnameId.uriId));
 			if(handler->attribute != NULL)  // Invoke handler method
 			{
-				if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
-					return HANDLER_STOP_RECEIVED;
+				TRY(handler->attribute(qname, app_data));
 			}
 			TRY(decodeValueItem(strm, prodHit->typeId, handler, nonTermID_out, prodHit->qnameId, app_data));
 		}
@@ -1010,15 +995,15 @@ errorCode decodeEventContent(EXIStream* strm, Production* prodHit, ContentHandle
 			TRY(decodeNSEvent(strm, handler, nonTermID_out, app_data));
 		break;
 		default:
-			return NOT_IMPLEMENTED_YET;
+			return EXIP_NOT_IMPLEMENTED_YET;
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler, SmallIndex* nonTermID_out, QNameID localQNameID, void* app_data)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	EXIType exiType = VALUE_TYPE_NONE;
 
 	if(typeId != INDEX_MAX)
@@ -1039,8 +1024,7 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 			if(handler->intData != NULL)  // Invoke handler method
 			{
 				// TODO: the cast to signed int can introduce errors. Check first!
-				if(handler->intData((Integer) uintVal, app_data) == EXIP_HANDLER_STOP)
-					return HANDLER_STOP_RECEIVED;
+				TRY(handler->intData((Integer) uintVal, app_data));
 			}
 		}
 		break;
@@ -1050,8 +1034,7 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 			TRY(decodeIntegerValue(strm, &sintVal));
 			if(handler->intData != NULL)  // Invoke handler method
 			{
-				if(handler->intData(sintVal, app_data) == EXIP_HANDLER_STOP)
-					return HANDLER_STOP_RECEIVED;
+				TRY(handler->intData(sintVal, app_data));
 			}
 		}
 		break;
@@ -1062,30 +1045,29 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 			int64_t upLimit;
 
 			if(typeId >= strm->schema->simpleTypeTable.count)
-				return INVALID_EXI_INPUT;
+				return EXIP_INVALID_EXI_INPUT;
 
 			if(!HAS_TYPE_FACET(strm->schema->simpleTypeTable.sType[typeId].content, TYPE_FACET_MIN_INCLUSIVE)
 					&& !HAS_TYPE_FACET(strm->schema->simpleTypeTable.sType[typeId].content, TYPE_FACET_MIN_EXCLUSIVE))
-				return INVALID_EXI_INPUT;
+				return EXIP_INVALID_EXI_INPUT;
 			if(!HAS_TYPE_FACET(strm->schema->simpleTypeTable.sType[typeId].content, TYPE_FACET_MAX_INCLUSIVE)
 					&& !HAS_TYPE_FACET(strm->schema->simpleTypeTable.sType[typeId].content, TYPE_FACET_MAX_EXCLUSIVE))
-				return INVALID_EXI_INPUT;
+				return EXIP_INVALID_EXI_INPUT;
 
 			if(HAS_TYPE_FACET(strm->schema->simpleTypeTable.sType[typeId].content, TYPE_FACET_MIN_INCLUSIVE))
 				base = strm->schema->simpleTypeTable.sType[typeId].min;
 			else
-				return NOT_IMPLEMENTED_YET;
+				return EXIP_NOT_IMPLEMENTED_YET;
 
 			if(HAS_TYPE_FACET(strm->schema->simpleTypeTable.sType[typeId].content, TYPE_FACET_MAX_INCLUSIVE))
 				upLimit = strm->schema->simpleTypeTable.sType[typeId].max;
 			else
-				return NOT_IMPLEMENTED_YET;
+				return EXIP_NOT_IMPLEMENTED_YET;
 
 			TRY(decodeNBitUnsignedInteger(strm, getBitsNumber(upLimit - base), &uintVal));
 			if(handler->intData != NULL)  // Invoke handler method
 			{
-				if(handler->intData((Integer) (base + uintVal), app_data) == EXIP_HANDLER_STOP)
-					return HANDLER_STOP_RECEIVED;
+				TRY(handler->intData((Integer) (base + uintVal), app_data));
 			}
 		}
 		break;
@@ -1096,8 +1078,7 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 			TRY(decodeFloatValue(strm, &flVal));
 			if(handler->floatData != NULL)  // Invoke handler method
 			{
-				if(handler->floatData(flVal, app_data) == EXIP_HANDLER_STOP)
-					return HANDLER_STOP_RECEIVED;
+				TRY(handler->floatData(flVal, app_data));
 			}
 		}
 		break;
@@ -1107,8 +1088,7 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 			TRY(decodeBoolean(strm, &bool_val));
 			if(handler->booleanData != NULL)  // Invoke handler method
 			{
-				if(handler->booleanData(bool_val, app_data) == EXIP_HANDLER_STOP)
-					return HANDLER_STOP_RECEIVED;
+				TRY(handler->booleanData(bool_val, app_data));
 			}
 
 			// handle xsi:nil attribute
@@ -1132,12 +1112,7 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 
 			if(handler->binaryData != NULL)  // Invoke handler method
 			{
-				if(handler->binaryData(binary_val, nbytes, app_data) == EXIP_HANDLER_STOP)
-				{
-					/* Free the memory allocated by decodeBinary() */
-					EXIP_MFREE(binary_val);
-					return HANDLER_STOP_RECEIVED;
-				}
+				TRY_CATCH(handler->binaryData(binary_val, nbytes, app_data), EXIP_MFREE(binary_val));
 			}
 			
 			/* Free the memory allocated by decodeBinary() */
@@ -1151,8 +1126,7 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 			TRY(decodeDecimalValue(strm, &decVal));
 			if(handler->decimalData != NULL)  // Invoke handler method
 			{
-				if(handler->decimalData(decVal, app_data) == EXIP_HANDLER_STOP)
-					return HANDLER_STOP_RECEIVED;
+				TRY(handler->decimalData(decVal, app_data));
 			}
 		}
 		break;
@@ -1163,8 +1137,7 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 			TRY(decodeDateTimeValue(strm, &dtVal));
 			if(handler->dateTimeData != NULL)  // Invoke handler method
 			{
-				if(handler->dateTimeData(dtVal, app_data) == EXIP_HANDLER_STOP)
-					return HANDLER_STOP_RECEIVED;
+				TRY(handler->dateTimeData(dtVal, app_data));
 			}
 		}
 		break;
@@ -1178,12 +1151,11 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 
 			itemTypeId = strm->schema->simpleTypeTable.sType[typeId].length; // The item typeID must be encoded in the length field
 			if(itemTypeId >= strm->schema->simpleTypeTable.count)
-				return UNEXPECTED_ERROR;
+				return EXIP_UNEXPECTED_ERROR;
 
 			if(handler->listData != NULL)  // Invoke handler method
 			{
-				if(handler->listData(GET_EXI_TYPE(strm->schema->simpleTypeTable.sType[itemTypeId].content), (unsigned int) itemCount, app_data) == EXIP_HANDLER_STOP)
-					return HANDLER_STOP_RECEIVED;
+				TRY(handler->listData(GET_EXI_TYPE(strm->schema->simpleTypeTable.sType[itemTypeId].content), (unsigned int) itemCount, app_data));
 			}
 
 			for(i = 0; i < itemCount; i++)
@@ -1215,7 +1187,7 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 				eDefSearch.typeId = typeId;
 				eDefFound = bsearch(&eDefSearch, strm->schema->enumTable.enumDef, strm->schema->enumTable.count, sizeof(EnumDefinition), compareEnumDefs);
 				if(eDefFound == NULL)
-					return UNEXPECTED_ERROR;
+					return EXIP_UNEXPECTED_ERROR;
 
 				TRY(decodeNBitUnsignedInteger(strm, getBitsNumber(eDefFound->count - 1), &indx));
 				value = ((String*) eDefFound->values)[indx];
@@ -1231,8 +1203,7 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 
 			if(handler->stringData != NULL)  // Invoke handler method
 			{
-				if(handler->stringData(value, app_data) == EXIP_HANDLER_STOP)
-					return HANDLER_STOP_RECEIVED;
+				TRY(handler->stringData(value, app_data));
 			}
 
 			if(freeable)
@@ -1240,12 +1211,12 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 		} break;
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode decodeNSEvent(EXIStream* strm, ContentHandler* handler, SmallIndex* nonTermID_out, void* app_data)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	SmallIndex ns_uriId;
 	SmallIndex pfxId;
 	boolean bool = FALSE;
@@ -1265,15 +1236,14 @@ errorCode decodeNSEvent(EXIStream* strm, ContentHandler* handler, SmallIndex* no
 
 	if(handler->namespaceDeclaration != NULL)  // Invoke handler method
 	{
-		if(handler->namespaceDeclaration(strm->schema->uriTable.uri[ns_uriId].uriStr, strm->schema->uriTable.uri[ns_uriId].pfxTable->pfxStr[pfxId], bool, app_data) == EXIP_HANDLER_STOP)
-			return HANDLER_STOP_RECEIVED;
+		TRY(handler->namespaceDeclaration(strm->schema->uriTable.uri[ns_uriId].uriStr, strm->schema->uriTable.uri[ns_uriId].pfxTable->pfxStr[pfxId], bool, app_data));
 	}
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode decodeSEWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallIndex* nonTermID_out, void* app_data)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	EXIGrammar* elemGrammar = NULL;
 	QName qname;
 	QNameID qnameId = {URI_MAX, LN_MAX};
@@ -1285,8 +1255,7 @@ errorCode decodeSEWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallI
 
 	if(handler->startElement != NULL)  // Invoke handler method passing the element qname
 	{
-		if(handler->startElement(qname, app_data) == EXIP_HANDLER_STOP)
-			return HANDLER_STOP_RECEIVED;
+		TRY(handler->startElement(qname, app_data));
 	}
 
 	// New element grammar is pushed on the stack
@@ -1325,28 +1294,26 @@ errorCode decodeSEWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallI
 			if(tmp_bits_val != 1)
 			{
 				DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
-				return INCONSISTENT_PROC_STATE;
+				return EXIP_INCONSISTENT_PROC_STATE;
 			}
 
 			TRY(decodeQName(strm, &attrQname, &attrQnameId));
 			if(attrQnameId.uriId != XML_SCHEMA_INSTANCE_ID || attrQnameId.lnId != XML_SCHEMA_INSTANCE_TYPE_ID)
 			{
 				DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
-				return INCONSISTENT_PROC_STATE;
+				return EXIP_INCONSISTENT_PROC_STATE;
 			}
 
 			if(handler->attribute != NULL)  // Invoke handler method for xsi:type
 			{
-				if(handler->attribute(attrQname, app_data) == EXIP_HANDLER_STOP)
-					return HANDLER_STOP_RECEIVED;
+				TRY(handler->attribute(attrQname, app_data));
 			}
 
 			TRY(decodeQName(strm, &attrQname, &attrQnameId));
 
 			if(handler->qnameData != NULL)  // Invoke handler method for the QName value of xsi:type
 			{
-				if(handler->qnameData(attrQname, app_data) == EXIP_HANDLER_STOP)
-					return HANDLER_STOP_RECEIVED;
+				TRY(handler->qnameData(attrQname, app_data));
 			}
 
 			// New element grammar is pushed on the stack
@@ -1361,23 +1328,23 @@ errorCode decodeSEWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallI
 			else
 			{
 				DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
-				return INCONSISTENT_PROC_STATE;
+				return EXIP_INCONSISTENT_PROC_STATE;
 			}
 		}
 #else
 		DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
 		assert(FALSE);
-		return INCONSISTENT_PROC_STATE;
+		return EXIP_INCONSISTENT_PROC_STATE;
 #endif
 	}
 
 	strm->gStack->currQNameID = qnameId;
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode decodeATWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallIndex* nonTermID_out, void* app_data)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	QName qname;
 	QNameID qnameId = {URI_MAX, LN_MAX};
 
@@ -1391,26 +1358,25 @@ errorCode decodeATWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallI
 		if(IS_SCHEMA(strm->gStack->grammar->props))
 		{
 			DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">In schema-informed grammars, xsi:type and xsi:nil attributes MUST NOT be represented using AT(*) terminal\n"));
-			return INCONSISTENT_PROC_STATE;
+			return EXIP_INCONSISTENT_PROC_STATE;
 		}
 	}
 
 	if(handler->attribute != NULL)  // Invoke handler method
 	{
-		if(handler->attribute(qname, app_data) == EXIP_HANDLER_STOP)
-			return HANDLER_STOP_RECEIVED;
+		TRY(handler->attribute(qname, app_data));
 	}
 
 	TRY(decodeValueItem(strm, INDEX_MAX, handler, nonTermID_out, qnameId, app_data));
 	strm->context.currAttr = qnameId;
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode decodeQNameValue(EXIStream* strm, ContentHandler* handler, SmallIndex* nonTermID_out, void* app_data)
 {
 	// TODO: Add the case when Preserve.lexicalValues option value is true - instead of Qname decode it as String
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	QName qname;
 	QNameID qnameId;
 	EXIGrammar* newGrammar = NULL;
@@ -1419,8 +1385,7 @@ static errorCode decodeQNameValue(EXIStream* strm, ContentHandler* handler, Smal
 
 	if(handler->qnameData != NULL)  // Invoke handler method
 	{
-		if(handler->qnameData(qname, app_data) == EXIP_HANDLER_STOP)
-			return HANDLER_STOP_RECEIVED;
+		TRY(handler->qnameData(qname, app_data));
 	}
 
 	// New type grammar is pushed on the stack if it exists
@@ -1437,5 +1402,5 @@ static errorCode decodeQNameValue(EXIStream* strm, ContentHandler* handler, Smal
 		TRY(pushGrammar(&(strm->gStack), newGrammar));
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }

@@ -34,7 +34,7 @@ static errorCode serializeOptionsStream(EXIStream* options_strm, EXIOptions* opt
 
 errorCode encodeHeader(EXIStream* strm)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start EXI header encoding\n"));
 
@@ -107,7 +107,7 @@ errorCode encodeHeader(EXIStream* strm)
 		closeOptionsStream(&options_strm);
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static void closeOptionsStream(EXIStream* strm)
@@ -122,7 +122,7 @@ static void closeOptionsStream(EXIStream* strm)
 
 static errorCode serializeOptionsStream(EXIStream* options_strm, EXIOptions* opts, UriTable* uriTbl)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	EventCode tmpEvCode;
 	boolean hasUncommon = FALSE;
 	boolean hasLesscommon = FALSE;
@@ -273,7 +273,7 @@ static errorCode serializeOptionsStream(EXIStream* options_strm, EXIOptions* opt
 				TRY(serializeEvent(options_strm, tmpEvCode, NULL)); // serialize.startElement <datatypeRepresentationMap>
 				ruleContext = 5;
 				// TODO: not ready yet!
-				return NOT_IMPLEMENTED_YET;
+				return EXIP_NOT_IMPLEMENTED_YET;
 			}
 			tmpEvCode.length = 1;
 			tmpEvCode.part[0] = 6 - ruleContext - (ruleContext > 0);

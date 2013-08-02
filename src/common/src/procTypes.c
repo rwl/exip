@@ -48,7 +48,7 @@ errorCode checkOptionValues(EXIOptions* opts)
 	if(GET_ALIGNMENT(opts->enumOpt) != BIT_PACKED && WITH_COMPRESSION(opts->enumOpt))
 	{
 		DEBUG_MSG(ERROR, DEBUG_COMMON, ("\n>EXI Options mismatch: both \"alignment\" and \"compression\" set"));
-		return HEADER_OPTIONS_MISMATCH;
+		return EXIP_HEADER_OPTIONS_MISMATCH;
 	}
 	else if(WITH_STRICT(opts->enumOpt) &&
 			(IS_PRESERVED(opts->preserve, PRESERVE_DTD) ||
@@ -59,12 +59,12 @@ errorCode checkOptionValues(EXIOptions* opts)
 			)
 	{
 		DEBUG_MSG(ERROR, DEBUG_COMMON, ("\n>EXI Options mismatch: both \"strict\" and one or more of \"dtd\", \"prefixes\", \"comments\", \"pis\" or \"selfContained\" are set"));
-		return HEADER_OPTIONS_MISMATCH;
+		return EXIP_HEADER_OPTIONS_MISMATCH;
 	}
 	else if(WITH_SELF_CONTAINED(opts->enumOpt) && (WITH_COMPRESSION(opts->enumOpt) || GET_ALIGNMENT(opts->enumOpt) == PRE_COMPRESSION))
 	{
 		DEBUG_MSG(ERROR, DEBUG_COMMON, ("\n>EXI Options mismatch: both \"selfContained\" and (\"compression\" or \"pre-compression\") are set"));
-		return HEADER_OPTIONS_MISMATCH;
+		return EXIP_HEADER_OPTIONS_MISMATCH;
 	}
 
 	if(opts->drMap != NULL && (IS_PRESERVED(opts->preserve, PRESERVE_LEXVALUES)))
@@ -72,19 +72,19 @@ errorCode checkOptionValues(EXIOptions* opts)
 		DEBUG_MSG(WARNING, DEBUG_COMMON, ("\n>The datatypeRepresentationMap option specified but has no effect"));
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode pushOnStack(GenericStack** stack, void* item)
 {
 	struct stackNode* node = (struct stackNode*)EXIP_MALLOC(sizeof(struct stackNode));
 	if(node == NULL)
-		return MEMORY_ALLOCATION_ERROR;
+		return EXIP_MEMORY_ALLOCATION_ERROR;
 
 	node->item = item;
 	node->nextInStack = *stack;
 	*stack = node;
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 void popFromStack(GenericStack** stack, void** item)
@@ -121,12 +121,12 @@ errorCode pushOnStackPersistent(GenericStack** stack, void* item, AllocList* mem
 {
 	struct stackNode* node = (struct stackNode*)memManagedAllocate(memList, sizeof(struct stackNode));
 	if(node == NULL)
-		return MEMORY_ALLOCATION_ERROR;
+		return EXIP_MEMORY_ALLOCATION_ERROR;
 
 	node->item = item;
 	node->nextInStack = *stack;
 	*stack = node;
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 void popFromStackPersistent(GenericStack** stack, void** item)
@@ -149,27 +149,23 @@ void popFromStackPersistent(GenericStack** stack, void** item)
 // IMPORTANT: remember to keep in sync with "enum errorCode" in errorHandle.h!
 	const char* errorCodeStrings[] =
 	{
-		"ERR_OK",
-		"NOT_IMPLEMENTED_YET",
-		"UNEXPECTED_ERROR",
-		"HASH_TABLE_ERROR",
-		"OUT_OF_BOUND_BUFFER",
-		"NULL_POINTER_REF",
-		"MEMORY_ALLOCATION_ERROR",
-		"INVALID_EXI_HEADER",
-		"INCONSISTENT_PROC_STATE",
-		"INVALID_EXI_INPUT",
-		"BUFFER_END_REACHED",
-		"EVENT_CODE_MISSING",
-		"HANDLER_STOP_RECEIVED",
-		"INVALID_OPERATION",
-		"EMPTY_COLLECTION",
-		"PARSING_COMPLETE",
-		"TOO_MANY_PREFIXES_PER_URI",
-		"INVALID_EXIP_CONFIGURATION",
-		"NO_PREFIXES_PRESERVED_XML_SCHEMA",
-		"INVALID_STRING_OPERATION",
-		"HEADER_OPTIONS_MISMATCH",
-		"EXIP_HANDLER_STOP"
+		"EXIP_ERR_OK",
+		"EXIP_NOT_IMPLEMENTED_YET",
+		"EXIP_UNEXPECTED_ERROR",
+		"EXIP_HASH_TABLE_ERROR",
+		"EXIP_OUT_OF_BOUND_BUFFER",
+		"EXIP_NULL_POINTER_REF",
+		"EXIP_MEMORY_ALLOCATION_ERROR",
+		"EXIP_INVALID_EXI_HEADER",
+		"EXIP_INCONSISTENT_PROC_STATE",
+		"EXIP_INVALID_EXI_INPUT",
+		"EXIP_BUFFER_END_REACHED",
+		"EXIP_PARSING_COMPLETE",
+		"EXIP_TOO_MANY_PREFIXES_PER_URI",
+		"EXIP_INVALID_EXIP_CONFIGURATION",
+		"EXIP_NO_PREFIXES_PRESERVED_XML_SCHEMA",
+		"EXIP_INVALID_STRING_OPERATION",
+		"EXIP_HEADER_OPTIONS_MISMATCH",
+		"HANDLER_STOP"
 	};
 #endif

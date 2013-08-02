@@ -25,7 +25,7 @@
 
 START_TEST (test_createDocGrammar)
 {
-	errorCode err = UNEXPECTED_ERROR;
+	errorCode err = EXIP_UNEXPECTED_ERROR;
 	EXIPSchema schema;
 	EXIStream testStream;
 	char buf[2];
@@ -46,7 +46,7 @@ START_TEST (test_createDocGrammar)
 
 	err = createDocGrammar(&schema, NULL, 0);
 
-	fail_unless (err == ERR_OK, "createDocGrammar returns an error code %d", err);
+	fail_unless (err == EXIP_ERR_OK, "createDocGrammar returns an error code %d", err);
 
 	freeAllocList(&schema.memList);
 }
@@ -54,7 +54,7 @@ END_TEST
 
 START_TEST (test_processNextProduction)
 {
-	errorCode err = UNEXPECTED_ERROR;
+	errorCode err = EXIP_UNEXPECTED_ERROR;
 	EXIStream strm;
 	SmallIndex nonTermID_out;
 	ContentHandler handler;
@@ -64,14 +64,14 @@ START_TEST (test_processNextProduction)
 	initAllocList(&schema.memList);
 
 	err = createDocGrammar(&schema, NULL, 0);
-	fail_unless (err == ERR_OK, "createDocGrammar returns an error code %d", err);
+	fail_unless (err == EXIP_ERR_OK, "createDocGrammar returns an error code %d", err);
 
 	err = pushGrammar(&strm.gStack, &schema.docGrammar);
-	fail_unless (err == ERR_OK, "pushGrammar returns an error code %d", err);
+	fail_unless (err == EXIP_ERR_OK, "pushGrammar returns an error code %d", err);
 
 	strm.gStack->currNonTermID = 4;
 	err = processNextProduction(&strm, &nonTermID_out, &handler, NULL);
-	fail_unless (err == INCONSISTENT_PROC_STATE, "processNextProduction does not return the correct error code");
+	fail_unless (err == EXIP_INCONSISTENT_PROC_STATE, "processNextProduction does not return the correct error code");
 
 	freeAllocList(&strm.memList);
 	freeAllocList(&schema.memList);
@@ -80,7 +80,7 @@ END_TEST
 
 START_TEST (test_pushGrammar)
 {
-	errorCode err = UNEXPECTED_ERROR;
+	errorCode err = EXIP_UNEXPECTED_ERROR;
 	EXIGrammarStack* testGrStack = NULL;
 	EXIStream strm;
 	EXIGrammar testElementGrammar;
@@ -91,18 +91,18 @@ START_TEST (test_pushGrammar)
 
 #if BUILD_IN_GRAMMARS_USE
 	err = createBuiltInElementGrammar(&testElementGrammar1, &strm);
-	fail_if(err != ERR_OK);
+	fail_if(err != EXIP_ERR_OK);
 
 	err = createBuiltInElementGrammar(&testElementGrammar, &strm);
-	fail_if(err != ERR_OK);
+	fail_if(err != EXIP_ERR_OK);
 #endif
 
 	err = pushGrammar(&testGrStack, &testElementGrammar1);
-	fail_unless (err == ERR_OK, "pushGrammar returns error code %d", err);
+	fail_unless (err == EXIP_ERR_OK, "pushGrammar returns error code %d", err);
 	fail_if(testGrStack->nextInStack != NULL);
 
 	err = pushGrammar(&testGrStack, &testElementGrammar);
-	fail_unless (err == ERR_OK, "pushGrammar returns error code %d", err);
+	fail_unless (err == EXIP_ERR_OK, "pushGrammar returns error code %d", err);
 	fail_if(testGrStack->nextInStack == NULL);
 	fail_if(testGrStack->nextInStack->grammar != &testElementGrammar1);
 
@@ -112,7 +112,7 @@ END_TEST
 
 START_TEST (test_popGrammar)
 {
-	errorCode err = UNEXPECTED_ERROR;
+	errorCode err = EXIP_UNEXPECTED_ERROR;
 	EXIGrammarStack* testGrStack = NULL;
 	EXIGrammar testElementGrammar1;
 	EXIStream strm;
@@ -124,17 +124,17 @@ START_TEST (test_popGrammar)
 
 #if BUILD_IN_GRAMMARS_USE
 	err = createBuiltInElementGrammar(&testElementGrammar1, &strm);
-	fail_if(err != ERR_OK);
+	fail_if(err != EXIP_ERR_OK);
 
 	err = createBuiltInElementGrammar(&testElementGrammar, &strm);
-	fail_if(err != ERR_OK);
+	fail_if(err != EXIP_ERR_OK);
 #endif
 
 	err = pushGrammar(&testGrStack, &testElementGrammar1);
-	fail_unless (err == ERR_OK, "pushGrammar returns error code %d", err);
+	fail_unless (err == EXIP_ERR_OK, "pushGrammar returns error code %d", err);
 
 	err = pushGrammar(&testGrStack, &testElementGrammar);
-	fail_unless (err == ERR_OK, "pushGrammar returns error code %d", err);
+	fail_unless (err == EXIP_ERR_OK, "pushGrammar returns error code %d", err);
 	fail_if(testGrStack->nextInStack == NULL);
 
 	popGrammar(&testGrStack, &testGR);
@@ -147,7 +147,7 @@ END_TEST
 #if BUILD_IN_GRAMMARS_USE
 START_TEST (test_createBuiltInElementGrammar)
 {
-	errorCode err = UNEXPECTED_ERROR;
+	errorCode err = EXIP_UNEXPECTED_ERROR;
 	EXIGrammar testElementGrammar;
 	EXIStream strm;
 
@@ -155,7 +155,7 @@ START_TEST (test_createBuiltInElementGrammar)
 	initAllocList(&strm.memList);
 
 	err = createBuiltInElementGrammar(&testElementGrammar, &strm);
-	fail_unless (err == ERR_OK, "createBuildInElementGrammar returns error code %d", err);
+	fail_unless (err == EXIP_ERR_OK, "createBuildInElementGrammar returns error code %d", err);
 
 }
 END_TEST
@@ -175,7 +175,7 @@ END_TEST
 START_TEST (test_insertZeroProduction)
 {
 	DynGrammarRule rule;
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	Production prod0Arr[2];
 	QNameID qname = {0,0};
 
@@ -184,7 +184,7 @@ START_TEST (test_insertZeroProduction)
 	rule.production = prod0Arr;
 
 	tmp_err_code = insertZeroProduction(&rule, EVENT_CH, 5, &qname, FALSE);
-	fail_unless (tmp_err_code == ERR_OK, "insertZeroProduction returns an error code %d", tmp_err_code);
+	fail_unless (tmp_err_code == EXIP_ERR_OK, "insertZeroProduction returns an error code %d", tmp_err_code);
 	fail_unless (rule.pCount == 1);
 }
 END_TEST

@@ -161,14 +161,14 @@ errorCode hashtable_insert(struct hashtable *h, String key, Index value)
         hashtable_expand(h);
     }
     e = (struct entry *)EXIP_MALLOC(sizeof(struct entry));
-    if (NULL == e) { --(h->entrycount); return MEMORY_ALLOCATION_ERROR; } /*oom*/
+    if (NULL == e) { --(h->entrycount); return EXIP_MEMORY_ALLOCATION_ERROR; } /*oom*/
     e->hash = h->hashfn(key); // hash(h,k, len);
     index = indexFor(h->tablelength,e->hash);
     e->key = key;
     e->value = value;
     e->next = h->table[index];
     h->table[index] = e;
-    return ERR_OK;
+    return EXIP_ERR_OK;
 }
 
 /*****************************************************************************/

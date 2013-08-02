@@ -1303,7 +1303,7 @@ void makeDefaultOpts(EXIOptions* opts);
  * @brief Check if the EXI options are set correctly
  *
  * @param[in] opts EXI options structure
- * @returns ERR_OK if the values are correct, otherwise HEADER_OPTIONS_MISMATCH
+ * @returns EXIP_ERR_OK if the values are correct, otherwise EXIP_HEADER_OPTIONS_MISMATCH
  */
 errorCode checkOptionValues(EXIOptions* opts);
 

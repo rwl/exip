@@ -33,7 +33,7 @@ errorCode encodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, unsigned i
 	{
 		unsigned int byte_number = n / 8 + (n % 8 != 0);
 		int tmp_byte_buf = 0;
-		errorCode tmp_err_code = UNEXPECTED_ERROR;
+		errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 		unsigned int i = 0;
 		for(i = 0; i < byte_number; i++)
 		{
@@ -41,7 +41,7 @@ errorCode encodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, unsigned i
 			TRY(writeNBits(strm, 8, tmp_byte_buf));
 		}
 	}
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode encodeBoolean(EXIStream* strm, boolean bool_val)
@@ -53,7 +53,7 @@ errorCode encodeBoolean(EXIStream* strm, boolean bool_val)
 
 errorCode encodeUnsignedInteger(EXIStream* strm, UnsignedInteger int_val)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	unsigned int nbits = getBitsNumber(int_val);
 	unsigned int nbyte7 = nbits / 7 + (nbits % 7 != 0);
 	unsigned int tmp_byte_buf = 0;
@@ -81,7 +81,7 @@ errorCode encodeUnsignedInteger(EXIStream* strm, UnsignedInteger int_val)
 
 		TRY(writeNBits(strm, 7, tmp_byte_buf));
 	}
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode encodeString(EXIStream* strm, const String* string_val)
@@ -89,7 +89,7 @@ errorCode encodeString(EXIStream* strm, const String* string_val)
 	// Assume no Restricted Character Set is defined
 	//TODO: Handle the case when Restricted Character Set is defined
 
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 
 	DEBUG_MSG(INFO, DEBUG_STREAM_IO, (" Prepare to write string"));
 	TRY(encodeUnsignedInteger(strm, (UnsignedInteger)(string_val->length)));
@@ -102,7 +102,7 @@ errorCode encodeStringOnly(EXIStream* strm, const String* string_val)
 	// Assume no Restricted Character Set is defined
 	//TODO: Handle the case when Restricted Character Set is defined
 
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	uint32_t tmp_val = 0;
 	Index i = 0;
 	Index readerPosition = 0;
@@ -119,12 +119,12 @@ errorCode encodeStringOnly(EXIStream* strm, const String* string_val)
 		TRY(encodeUnsignedInteger(strm, (UnsignedInteger) tmp_val));
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode encodeBinary(EXIStream* strm, char* binary_val, Index nbytes)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	Index i = 0;
 
 	TRY(encodeUnsignedInteger(strm, (UnsignedInteger) nbytes));
@@ -135,12 +135,12 @@ errorCode encodeBinary(EXIStream* strm, char* binary_val, Index nbytes)
 		TRY(writeNBits(strm, 8, (unsigned int) binary_val[i]));
 	}
 	DEBUG_MSG(INFO, DEBUG_STREAM_IO, ("\n"));
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode encodeIntegerValue(EXIStream* strm, Integer sint_val)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	UnsignedInteger uval;
 	unsigned char sign;
 	if(sint_val >= 0)
@@ -163,7 +163,7 @@ errorCode encodeIntegerValue(EXIStream* strm, Integer sint_val)
 errorCode encodeDecimalValue(EXIStream* strm, Decimal dec_val)
 {
 	// TODO: Review this. Probably incorrect in some cases and not efficient. Depends on decimal floating point support!
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	boolean sign = FALSE;
 	UnsignedInteger integr_part = 0;
 	UnsignedInteger fract_part_rev = 0;
@@ -195,24 +195,24 @@ errorCode encodeDecimalValue(EXIStream* strm, Decimal dec_val)
 
 	TRY(encodeUnsignedInteger(strm, fract_part_rev));
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode encodeFloatValue(EXIStream* strm, Float fl_val)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 
 	DEBUG_MSG(ERROR, DEBUG_STREAM_IO, (">Float value: %ldE%d\n", (long int)fl_val.mantissa, fl_val.exponent));
 
 	TRY(encodeIntegerValue(strm, (Integer) fl_val.mantissa));	//encode mantissa
 	TRY(encodeIntegerValue(strm, (Integer) fl_val.exponent));	//encode exponent
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode encodeDateTimeValue(EXIStream* strm, EXIPDateTime dt_val)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 
 	// TODO: currently only the xs:dateTime is implemented.
 	//       The other types (gYear, gYearMonth, date, dateTime etc.)
@@ -307,12 +307,12 @@ errorCode encodeDateTimeValue(EXIStream* strm, EXIPDateTime dt_val)
 		TRY(encodeBoolean(strm, FALSE));
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode writeEventCode(EXIStream* strm, EventCode ec)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	int i;
 
 	for(i = 0; i < ec.length; i++)
@@ -320,5 +320,5 @@ errorCode writeEventCode(EXIStream* strm, EventCode ec)
 		TRY(encodeNBitUnsignedInteger(strm, ec.bits[i], (unsigned int) ec.part[i]));
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }

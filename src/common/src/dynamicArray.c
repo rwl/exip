@@ -25,14 +25,14 @@ errorCode createDynArray(DynArray* dynArray, size_t entrySize, uint16_t chunkEnt
 
 	*base = EXIP_MALLOC(entrySize*chunkEntries);
 	if(*base == NULL)
-		return MEMORY_ALLOCATION_ERROR;
+		return EXIP_MEMORY_ALLOCATION_ERROR;
 
 	dynArray->entrySize = entrySize;
 	*count = 0;
 	dynArray->chunkEntries = chunkEntries;
 	dynArray->arrayEntries = chunkEntries;
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode addEmptyDynEntry(DynArray* dynArray, void** entry, Index* entryID)
@@ -41,7 +41,7 @@ errorCode addEmptyDynEntry(DynArray* dynArray, void** entry, Index* entryID)
 	Index* count;
 
 	if(dynArray == NULL)
-		return NULL_POINTER_REF;
+		return EXIP_NULL_POINTER_REF;
 
 	base = (void **)(dynArray + 1);
 	count = (Index*)(base + 1);
@@ -49,7 +49,7 @@ errorCode addEmptyDynEntry(DynArray* dynArray, void** entry, Index* entryID)
 	{
 		void* ptr = EXIP_REALLOC(*base, dynArray->entrySize * (*count + dynArray->chunkEntries));
 		if(ptr == NULL)
-			return MEMORY_ALLOCATION_ERROR;
+			return EXIP_MEMORY_ALLOCATION_ERROR;
 
 		*base = ptr;
 		dynArray->arrayEntries = dynArray->arrayEntries + dynArray->chunkEntries;
@@ -60,7 +60,7 @@ errorCode addEmptyDynEntry(DynArray* dynArray, void** entry, Index* entryID)
 	*entryID = *count;
 
 	*count += 1;
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode addDynEntry(DynArray* dynArray, void* entry, Index* entryID)
@@ -71,7 +71,7 @@ errorCode addDynEntry(DynArray* dynArray, void* entry, Index* entryID)
 	TRY(addEmptyDynEntry(dynArray, &emptyEntry, entryID));
 
 	memcpy(emptyEntry, entry, dynArray->entrySize);
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode delDynEntry(DynArray* dynArray, Index entryID)
@@ -80,7 +80,7 @@ errorCode delDynEntry(DynArray* dynArray, Index entryID)
 	Index* count;
 
 	if(dynArray == NULL)
-		return NULL_POINTER_REF;
+		return EXIP_NULL_POINTER_REF;
 
 	base = (void **)(dynArray + 1);
 	count = (Index*)(base + 1);
@@ -98,9 +98,9 @@ errorCode delDynEntry(DynArray* dynArray, Index entryID)
 		*count -= 1;
 	}
 	else
-		return OUT_OF_BOUND_BUFFER;
+		return EXIP_OUT_OF_BOUND_BUFFER;
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 void destroyDynArray(DynArray* dynArray)

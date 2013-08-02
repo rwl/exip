@@ -20,7 +20,7 @@
 #include "grammarGenerator.h"
 
 #define OUTPUT_BUFFER_SIZE 2000
-#define check(str)	if (tmp_err_code != ERR_OK) { printf ("  =====> Err line %d (%s) code:%d\n", __LINE__, str, tmp_err_code); exit(0); }
+#define check(str)	if (tmp_err_code != EXIP_ERR_OK) { printf ("  =====> Err line %d (%s) code:%d\n", __LINE__, str, tmp_err_code); exit(0); }
 
 static int parseSchema(char* xsdList, EXIPSchema* schema);
 
@@ -162,7 +162,7 @@ int main(int ac, char **av) {
 	// V: Free the memory allocated by the EXI stream object
 	tmp_err_code = serialize.closeEXIStream(&testStrm); check("")
 
-	if	(tmp_err_code == ERR_OK)
+	if	(tmp_err_code == EXIP_ERR_OK)
 		printf ("### ENCODING SUCCESS sz=%d\n", testStrm.context.bufferIndx + 1);
 
 	printf ("### START PARSING\n");
@@ -200,14 +200,14 @@ int main(int ac, char **av) {
 
 	TRY(setSchema(&testParser, schemaPtr));
 
-	while(tmp_err_code == ERR_OK)
+	while(tmp_err_code == EXIP_ERR_OK)
 	{
 		tmp_err_code = parseNext(&testParser);
 	}
 
 	destroyParser(&testParser);
 
-	if	(tmp_err_code == PARSING_COMPLETE)
+	if	(tmp_err_code == EXIP_PARSING_COMPLETE)
 		printf ("### PARSING SUCCESS\n");
 	else
 		printf ("### tmp_err_code = %d\n", tmp_err_code);
@@ -241,13 +241,13 @@ static errorCode sample_fatalError(const errorCode code, const char* msg, void* 
 static errorCode sample_startDocument(void* app_data)
 {
 	printf("### SD\n");
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode sample_endDocument(void* app_data)
 {
 	printf("### ED\n");
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode sample_startElement(QName qname, void* app_data)
@@ -255,13 +255,13 @@ static errorCode sample_startElement(QName qname, void* app_data)
 	printf("### SE ");
 	printQName (qname);
 	printf("\n");
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode sample_endElement(void* app_data)
 {
 	printf("### EE\n");
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 int expectAttributeData = 0;
@@ -272,7 +272,7 @@ static errorCode sample_attribute(QName qname, void* app_data)
 	printQName (qname);
 	printf("=\"");
 	expectAttributeData = 1;
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode sample_stringData(const String value, void* app_data)
@@ -289,12 +289,12 @@ static errorCode sample_stringData(const String value, void* app_data)
 		printString(&value);
 		printf("\n");
 	}
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode sample_decimalData(Decimal value, void* app_data)
 {
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode sample_intData(Integer int_val, void* app_data)
@@ -314,27 +314,27 @@ static errorCode sample_intData(Integer int_val, void* app_data)
 		printf("%s", tmp_buf);
 		printf("\n");
 	}
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode sample_booleanData(boolean bool_val, void* app_data)
 {
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode sample_floatData(Float fl_val, void* app_data)
 {
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode sample_dateTimeData(EXIPDateTime dt_val, void* app_data)
 {
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode sample_binaryData(const char* binary_val, Index nbytes, void* app_data)
 {
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode sample_qnameData(const QName qname, void* app_data)
@@ -346,7 +346,7 @@ static errorCode sample_qnameData(const QName qname, void* app_data)
 		printf("\"\n");
 		expectAttributeData = 0;
 	}
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 
@@ -354,7 +354,7 @@ static errorCode sample_qnameData(const QName qname, void* app_data)
 
 static int parseSchema(char* xsdList, EXIPSchema* schema)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	FILE *schemaFile;
 	BinaryBuffer buffer[MAX_XSD_FILES_COUNT]; // up to 10 XSD files
 	char schemaFileName[50];
@@ -413,7 +413,7 @@ printf ("### %d %s\n", i, token);
 		free(buffer[i].buf);
 	}
 
-	if(tmp_err_code != ERR_OK)
+	if(tmp_err_code != EXIP_ERR_OK)
 		printf("\n### Grammar generation error occurred: %d\n", tmp_err_code);
 	else
 		printf("### Grammar generation SUCCESS\n");

@@ -33,7 +33,7 @@
 
 errorCode initSchema(EXIPSchema* schema, InitSchemaType initializationType)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 
 	TRY(initAllocList(&schema->memList));
 
@@ -102,7 +102,7 @@ errorCode generateBuiltInTypesGrammars(EXIPSchema* schema)
 
 		grammar.rule = (GrammarRule*) memManagedAllocate(&schema->memList, sizeof(GrammarRule)*(grammar.count));
 		if(grammar.rule == NULL)
-			return MEMORY_ALLOCATION_ERROR;
+			return EXIP_MEMORY_ALLOCATION_ERROR;
 
 		if(typeId == SIMPLE_TYPE_ANY_TYPE)
 		{
@@ -111,7 +111,7 @@ errorCode generateBuiltInTypesGrammars(EXIPSchema* schema)
 
 			grammar.rule[0].production = memManagedAllocate(&schema->memList, sizeof(Production)*4);
 			if(grammar.rule[0].production == NULL)
-				return MEMORY_ALLOCATION_ERROR;
+				return EXIP_MEMORY_ALLOCATION_ERROR;
 
 			SET_PROD_EXI_EVENT(grammar.rule[0].production[3].content, EVENT_AT_ALL);
 			SET_PROD_NON_TERM(grammar.rule[0].production[3].content, 0);
@@ -143,7 +143,7 @@ errorCode generateBuiltInTypesGrammars(EXIPSchema* schema)
 
 			grammar.rule[1].production = memManagedAllocate(&schema->memList, sizeof(Production)*3);
 			if(grammar.rule[1].production == NULL)
-				return MEMORY_ALLOCATION_ERROR;
+				return EXIP_MEMORY_ALLOCATION_ERROR;
 
 			SET_PROD_EXI_EVENT(grammar.rule[1].production[2].content, EVENT_SE_ALL);
 			SET_PROD_NON_TERM(grammar.rule[1].production[2].content, 1);
@@ -171,7 +171,7 @@ errorCode generateBuiltInTypesGrammars(EXIPSchema* schema)
 		{
 			grammar.rule[0].production = memManagedAllocate(&schema->memList, sizeof(Production));
 			if(grammar.rule[0].production == NULL)
-				return MEMORY_ALLOCATION_ERROR;
+				return EXIP_MEMORY_ALLOCATION_ERROR;
 
 			SET_PROD_EXI_EVENT(grammar.rule[0].production[0].content, EVENT_CH);
 			SET_PROD_NON_TERM(grammar.rule[0].production[0].content, 1);
@@ -183,7 +183,7 @@ errorCode generateBuiltInTypesGrammars(EXIPSchema* schema)
 
 			grammar.rule[1].production = memManagedAllocate(&schema->memList, sizeof(Production));
 			if(grammar.rule[1].production == NULL)
-				return MEMORY_ALLOCATION_ERROR;
+				return EXIP_MEMORY_ALLOCATION_ERROR;
 
 			SET_PROD_EXI_EVENT(grammar.rule[1].production[0].content, EVENT_EE);
 			SET_PROD_NON_TERM(grammar.rule[1].production[0].content, GR_VOID_NON_TERMINAL);
@@ -200,12 +200,12 @@ errorCode generateBuiltInTypesGrammars(EXIPSchema* schema)
 		schema->uriTable.uri[3].lnTable.ln[i].typeGrammar = dynArrId;
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocList* memList)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	SimpleType sType;
 	Index elID;
 
@@ -611,5 +611,5 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.length = 0;
 	TRY(addDynEntry(&simpleTypeTable->dynArray, &sType, &elID));
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }

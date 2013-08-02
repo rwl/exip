@@ -31,7 +31,7 @@ errorCode decodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, unsigned i
 	{
 		unsigned int byte_number = ((unsigned int) n) / 8 + (n % 8 != 0);
 		unsigned int tmp_byte_buf = 0;
-		errorCode tmp_err_code = UNEXPECTED_ERROR;
+		errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 		unsigned int i = 0;
 
 		*int_val = 0;
@@ -42,7 +42,7 @@ errorCode decodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, unsigned i
 			*int_val = *int_val | tmp_byte_buf;
 		}
 	}
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode decodeBoolean(EXIStream* strm, boolean* bool_val)
@@ -57,7 +57,7 @@ errorCode decodeUnsignedInteger(EXIStream* strm, UnsignedInteger* int_val)
 	unsigned int mask_7bits = 0x7F;
 	unsigned int mask_8th_bit = 0x80;
 	unsigned int i = 0;
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	unsigned int tmp_byte_buf = 0;
 	unsigned int more_bytes_to_read = 0;
 	*int_val = 0;
@@ -74,12 +74,12 @@ errorCode decodeUnsignedInteger(EXIStream* strm, UnsignedInteger* int_val)
 	}
 	while(more_bytes_to_read != 0);
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode decodeString(EXIStream* strm, String* string_val)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	UnsignedInteger string_length = 0;
 	DEBUG_MSG(INFO, DEBUG_STREAM_IO, (">> (string)"));
 	TRY(decodeUnsignedInteger(strm, &string_length));
@@ -95,7 +95,7 @@ errorCode decodeStringOnly(EXIStream* strm, Index str_length, String* string_val
 
 	// The exact size of the string is known at this point. This means that
 	// this is the place to allocate the memory for the  { CharType* str; }!!!
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	Index i = 0;
 	Index writerPosition = 0;
 	UnsignedInteger tmp_code_point = 0;
@@ -107,12 +107,12 @@ errorCode decodeStringOnly(EXIStream* strm, Index str_length, String* string_val
 		TRY(decodeUnsignedInteger(strm, &tmp_code_point));
 		TRY(writeCharToString(string_val, (uint32_t) tmp_code_point, &writerPosition));
 	}
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode decodeBinary(EXIStream* strm, char** binary_val, Index* nbytes)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	UnsignedInteger length = 0;
 	unsigned int int_val = 0;
 	UnsignedInteger i = 0;
@@ -122,21 +122,21 @@ errorCode decodeBinary(EXIStream* strm, char** binary_val, Index* nbytes)
 	*nbytes = (Index) length;
 	(*binary_val) = (char*) EXIP_MALLOC(length); // This memory should be manually freed after the content handler is invoked
 	if((*binary_val) == NULL)
-		return MEMORY_ALLOCATION_ERROR;
+		return EXIP_MEMORY_ALLOCATION_ERROR;
 
 	for(i = 0; i < length; i++)
 	{
 		TRY_CATCH(readBits(strm, 8, &int_val), EXIP_MFREE(*binary_val));
 		(*binary_val)[i]=(char) int_val;
 	}
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode decodeIntegerValue(EXIStream* strm, Integer* sint_val)
 {
 	// TODO: If there is associated schema datatype handle differently!
 	// TODO: check if the result fit into int type
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	boolean bool_val = 0;
 	UnsignedInteger val;
 
@@ -153,15 +153,15 @@ errorCode decodeIntegerValue(EXIStream* strm, Integer* sint_val)
 		*sint_val = -((Integer) val);
 	}
 	else
-		return UNEXPECTED_ERROR;
-	return ERR_OK;
+		return EXIP_UNEXPECTED_ERROR;
+	return EXIP_ERR_OK;
 }
 
 errorCode decodeDecimalValue(EXIStream* strm, Decimal* dec_val)
 {
 	// TODO: Review this. Probably can be more efficient. Depends on decimal floating point support!
 	// Ref: http://gcc.gnu.org/onlinedocs/gccint/Decimal-float-library-routines.html
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	boolean sign;
 	UnsignedInteger integr_part = 0;
 	UnsignedInteger fract_part = 0;
@@ -190,12 +190,12 @@ errorCode decodeDecimalValue(EXIStream* strm, Decimal* dec_val)
 
 	*dec_val = *dec_val + integr_part;
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode decodeFloatValue(EXIStream* strm, Float* fl_val)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	Integer mantissa;
 	Integer exponent;
 
@@ -214,18 +214,18 @@ errorCode decodeFloatValue(EXIStream* strm, Float* fl_val)
 //			)
 //	{
 //		DEBUG_MSG(ERROR, DEBUG_STREAM_IO, (">Invalid float value: %lldE%lld\n", mantissa, exponent));
-//		return INVALID_EXI_INPUT;
+//		return EXIP_INVALID_EXI_INPUT;
 //	}
 
 	fl_val->mantissa = mantissa;
 	fl_val->exponent = (int16_t)exponent; /* TODO not using exip_config.h */
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode decodeDateTimeValue(EXIStream* strm, EXIPDateTime* dt_val)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	Integer year;
 	unsigned int monDay = 0;
 	unsigned int timeVal = 0;
@@ -307,5 +307,5 @@ errorCode decodeDateTimeValue(EXIStream* strm, EXIPDateTime* dt_val)
 		dt_val->TimeZone = tzone;
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }

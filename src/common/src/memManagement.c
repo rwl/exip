@@ -24,12 +24,12 @@ errorCode initAllocList(AllocList* list)
 {
 	list->firstBlock = EXIP_MALLOC(sizeof(struct allocBlock));
 	if(list->firstBlock == NULL)
-		return MEMORY_ALLOCATION_ERROR;
+		return EXIP_MEMORY_ALLOCATION_ERROR;
 	list->firstBlock->nextBlock = NULL;
 	list->lastBlock = list->firstBlock;
 	list->currAllocSlot = 0;
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 void* memManagedAllocate(AllocList* list, size_t size)

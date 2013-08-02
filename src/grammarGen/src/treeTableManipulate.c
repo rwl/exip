@@ -52,7 +52,7 @@ errorCode resolveIncludeImportReferences(EXIPSchema* schema, TreeTable** treeT, 
 	// for each unresolved referece. Build new corresponding treeTable incstance and add it to treeT array
 	// Use realloc and update the array count argument
 
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	unsigned int i, j;
 	boolean treeTfound = FALSE;
 	Index g;
@@ -77,7 +77,7 @@ errorCode resolveIncludeImportReferences(EXIPSchema* schema, TreeTable** treeT, 
 			else if((*treeT)[i].tree[g].element == ELEMENT_INCLUDE)
 			{
 				if(includeCnt >= MAX_INCLUDE_COUNT)
-					return OUT_OF_BOUND_BUFFER;
+					return EXIP_OUT_OF_BOUND_BUFFER;
 				includeTblIndex[includeCnt] = g;
 				includeCnt++;
 			}
@@ -107,7 +107,7 @@ errorCode resolveIncludeImportReferences(EXIPSchema* schema, TreeTable** treeT, 
 
 							tmpPtr = EXIP_REALLOC(*treeT, sizeof(TreeTable)*(*count + bufCount));
 							if(tmpPtr == NULL)
-								return MEMORY_ALLOCATION_ERROR;
+								return EXIP_MEMORY_ALLOCATION_ERROR;
 
 							*treeT = tmpPtr;
 
@@ -131,7 +131,7 @@ errorCode resolveIncludeImportReferences(EXIPSchema* schema, TreeTable** treeT, 
 					else
 					{
 						DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, ("> An <import> statement in schema cannot be resolved"));
-						return INVALID_EXIP_CONFIGURATION;
+						return EXIP_INVALID_EXIP_CONFIGURATION;
 					}
 				}
 			}
@@ -176,7 +176,7 @@ errorCode resolveIncludeImportReferences(EXIPSchema* schema, TreeTable** treeT, 
 
 							tmpPtr = EXIP_REALLOC(*treeT, sizeof(TreeTable)*(*count + bufCount));
 							if(tmpPtr == NULL)
-								return MEMORY_ALLOCATION_ERROR;
+								return EXIP_MEMORY_ALLOCATION_ERROR;
 
 							*treeT = tmpPtr;
 
@@ -201,13 +201,13 @@ errorCode resolveIncludeImportReferences(EXIPSchema* schema, TreeTable** treeT, 
 				else
 				{
 					DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, ("> An <include> statement in schema cannot be resolved"));
-					return INVALID_EXIP_CONFIGURATION;
+					return EXIP_INVALID_EXIP_CONFIGURATION;
 				}
 			}
 		}
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 
@@ -226,7 +226,7 @@ static errorCode resolveEntry(EXIPSchema* schema, TreeTable* treeT, unsigned int
 
 errorCode initTreeTable(TreeTable* treeT)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 
 	TRY(initAllocList(&treeT->memList));
 
@@ -243,26 +243,26 @@ errorCode initTreeTable(TreeTable* treeT)
 	// How to determine when the schema is big?
 	treeT->typeTbl = create_hashtable(INITIAL_HASH_TABLE_SIZE, djbHash, stringEqual);
 	if(treeT->typeTbl == NULL)
-		return HASH_TABLE_ERROR;
+		return EXIP_HASH_TABLE_ERROR;
 
 	treeT->elemTbl = create_hashtable(INITIAL_HASH_TABLE_SIZE, djbHash, stringEqual);
 	if(treeT->elemTbl == NULL)
-		return HASH_TABLE_ERROR;
+		return EXIP_HASH_TABLE_ERROR;
 
 	treeT->attrTbl = create_hashtable(INITIAL_HASH_TABLE_SIZE, djbHash, stringEqual);
 	if(treeT->attrTbl == NULL)
-		return HASH_TABLE_ERROR;
+		return EXIP_HASH_TABLE_ERROR;
 
 	treeT->groupTbl = create_hashtable(INITIAL_HASH_TABLE_SIZE, djbHash, stringEqual);
 	if(treeT->groupTbl == NULL)
-		return HASH_TABLE_ERROR;
+		return EXIP_HASH_TABLE_ERROR;
 
 	treeT->attrGroupTbl = create_hashtable(INITIAL_HASH_TABLE_SIZE, djbHash, stringEqual);
 	if(treeT->attrGroupTbl == NULL)
-		return HASH_TABLE_ERROR;
+		return EXIP_HASH_TABLE_ERROR;
 #endif
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 void destroyTreeTable(TreeTable* treeT)
@@ -291,7 +291,7 @@ void destroyTreeTable(TreeTable* treeT)
 
 errorCode resolveTypeHierarchy(EXIPSchema* schema, TreeTable* treeT, unsigned int count)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	Index j;
 	unsigned int i;
 
@@ -304,12 +304,12 @@ errorCode resolveTypeHierarchy(EXIPSchema* schema, TreeTable* treeT, unsigned in
 			TRY(resolveEntry(schema, treeT, count, i, &treeT[i].tree[j]));
 		}
 	}
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode resolveEntry(EXIPSchema* schema, TreeTable* treeT, unsigned int count, unsigned int currTreeT, TreeTableEntry* entry)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 
 	/* Recursively resolve entries through children first */
 	if(entry->child.entry != NULL)
@@ -332,14 +332,14 @@ static errorCode resolveEntry(EXIPSchema* schema, TreeTable* treeT, unsigned int
 		if(!isStringEmpty(&entry->attributePointers[ATTRIBUTE_TYPE]))
 		{
 			if(entry->child.entry != NULL) // TODO: add debug info
-				return UNEXPECTED_ERROR;
+				return EXIP_UNEXPECTED_ERROR;
 
 			TRY(lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_TYPE], LOOKUP_TYPE, entry));
 		}
 		else if(!isStringEmpty(&entry->attributePointers[ATTRIBUTE_REF]))
 		{
 			if(entry->child.entry != NULL) // TODO: add debug info
-				return UNEXPECTED_ERROR;
+				return EXIP_UNEXPECTED_ERROR;
 
 			TRY(lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_REF], LOOKUP_REF, entry));
 		}
@@ -350,7 +350,7 @@ static errorCode resolveEntry(EXIPSchema* schema, TreeTable* treeT, unsigned int
 		if(!isStringEmpty(&entry->attributePointers[ATTRIBUTE_BASE]))
 		{
 			if(entry->supertype.entry != NULL) // TODO: add debug info
-				return UNEXPECTED_ERROR;
+				return EXIP_UNEXPECTED_ERROR;
 
 			TRY(lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_BASE], LOOKUP_SUPER_TYPE, entry));
 		}
@@ -361,20 +361,20 @@ static errorCode resolveEntry(EXIPSchema* schema, TreeTable* treeT, unsigned int
 		if(!isStringEmpty(&entry->attributePointers[ATTRIBUTE_ITEM_TYPE]))
 		{
 			if(entry->supertype.entry != NULL) // TODO: add debug info
-				return UNEXPECTED_ERROR;
+				return EXIP_UNEXPECTED_ERROR;
 
 			TRY(lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_ITEM_TYPE], LOOKUP_SUPER_TYPE, entry));
 		}
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, unsigned int count, unsigned int currTreeT, String* eName, unsigned char elType, TreeTableEntry* entry)
 {
 	Index i;
 	Index globalIndex = INDEX_MAX;
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	QNameID typeQnameID;
 	unsigned int j;
 
@@ -427,7 +427,7 @@ static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, un
 		if(typeQnameID.uriId == 0 || typeQnameID.uriId > 3)
 		{
 			// The requested target namespace is not a built-in type namespace
-			return UNEXPECTED_ERROR;
+			return EXIP_UNEXPECTED_ERROR;
 		}
 	}
 
@@ -435,7 +435,7 @@ static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, un
 	{
 		// The type must be build-in or the schema is buggy - do nothing here; it will be checked later
 		if(elType == LOOKUP_REF)
-			return UNEXPECTED_ERROR; // TODO: add debug info
+			return EXIP_UNEXPECTED_ERROR; // TODO: add debug info
 	}
 	else
 	{
@@ -451,7 +451,7 @@ static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, un
 		}
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode getTypeQName(EXIPSchema* schema, TreeTable* treeT, const String typeLiteral, QNameID* qNameID)
@@ -502,7 +502,7 @@ errorCode getTypeQName(EXIPSchema* schema, TreeTable* treeT, const String typeLi
 			else
 			{
 				DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">Invalid schema base type definition\n"));
-				return INVALID_EXI_INPUT;
+				return EXIP_INVALID_EXI_INPUT;
 			}
 		}
 
@@ -539,9 +539,9 @@ errorCode getTypeQName(EXIPSchema* schema, TreeTable* treeT, const String typeLi
 	}
 
 	if(!lookupUri(&schema->uriTable, uriStr, &qNameID->uriId))
-		return INVALID_EXI_INPUT;
+		return EXIP_INVALID_EXI_INPUT;
 	if(!lookupLn(&schema->uriTable.uri[qNameID->uriId].lnTable, lnStr, &qNameID->lnId))
-		return INVALID_EXI_INPUT;
+		return EXIP_INVALID_EXI_INPUT;
 
 	// http://www.w3.org/TR/xmlschema11-1/#sec-src-resolve
 	// Validation checks:
@@ -560,7 +560,7 @@ errorCode getTypeQName(EXIPSchema* schema, TreeTable* treeT, const String typeLi
 		// Check 4.1.1 and 4.1.2
 		if(treeT->globalDefs.targetNsId != 0 && !checkForImportWithNs(treeT, uriStr))
 		{
-			return INVALID_EXI_INPUT;
+			return EXIP_INVALID_EXI_INPUT;
 		}
 	}
 	else if(!stringEqual(uriStr, XML_SCHEMA_NAMESPACE) && !stringEqual(uriStr, XML_SCHEMA_INSTANCE)) // 4.2
@@ -568,11 +568,11 @@ errorCode getTypeQName(EXIPSchema* schema, TreeTable* treeT, const String typeLi
 		// Check 4.2.1 and 4.2.2
 		if(treeT->globalDefs.targetNsId != qNameID->uriId && !checkForImportWithNs(treeT, uriStr))
 		{
-			return INVALID_EXI_INPUT;
+			return EXIP_INVALID_EXI_INPUT;
 		}
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static boolean checkForImportWithNs(TreeTable* treeT, String ns)
@@ -605,11 +605,11 @@ static boolean checkForImportWithNs(TreeTable* treeT, String ns)
 
 errorCode getNsList(TreeTable* treeT, String nsList, NsTable* nsTable)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	Index dummy_elemID;
 
 	if(isStringEmpty(&nsList))
-		return ERR_OK;
+		return EXIP_ERR_OK;
 	else
 	{
 		Index sChIndex;
@@ -644,5 +644,5 @@ errorCode getNsList(TreeTable* treeT, String nsList, NsTable* nsTable)
 
 		TRY(addDynEntry(&nsTable->dynArray, &attrNamespece, &dummy_elemID));
 	}
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }

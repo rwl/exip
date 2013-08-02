@@ -57,7 +57,7 @@ static String ENUM_DATA_4 = {"hej", 3};
 
 errorCode encode(EXIPSchema* schemaPtr, FILE *outfile, size_t (*outputStream)(void* buf, size_t size, void* stream))
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	EXIStream testStrm;
 	String uri;
 	String ln;
