@@ -66,6 +66,7 @@ static errorCode sample_floatData(Float fl_val, void* app_data);
 static errorCode sample_booleanData(boolean bool_val, void* app_data);
 static errorCode sample_dateTimeData(EXIPDateTime dt_val, void* app_data);
 static errorCode sample_binaryData(const char* binary_val, Index nbytes, void* app_data);
+static errorCode sample_qnameData(const QName qname, void* app_data);
 
 errorCode decode(EXIPSchema* schemaPtr, unsigned char outFlag, FILE *infile, size_t (*inputStream)(void* buf, size_t size, void* stream))
 {
@@ -109,6 +110,7 @@ errorCode decode(EXIPSchema* schemaPtr, unsigned char outFlag, FILE *infile, siz
 	testParser.handler.booleanData = sample_booleanData;
 	testParser.handler.dateTimeData = sample_dateTimeData;
 	testParser.handler.binaryData = sample_binaryData;
+	testParser.handler.qnameData = sample_qnameData;
 
 	// IV: Parse the header of the stream
 
@@ -583,6 +585,52 @@ static errorCode sample_binaryData(const char* binary_val, Index nbytes, void* a
 				printf(">");
 			appD->unclosedElement = 0;
 			printf("[binary: %d bytes]", (int) nbytes);
+		}
+	}
+
+	return ERR_OK;
+}
+
+static errorCode sample_qnameData(const QName qname, void* app_data)
+{
+	struct appData* appD = (struct appData*) app_data;
+	if(appD->outputFormat == OUT_EXI)
+	{
+		if(appD->expectAttributeData)
+		{
+			printString(qname.uri);
+			printf(":");
+			printString(qname.localName);
+			printf("\"\n");
+			appD->expectAttributeData = 0;
+		}
+		else
+		{
+			printf("QNAME ");
+			printString(qname.uri);
+			printf(":");
+			printString(qname.localName);
+			printf("\n");
+		}
+	}
+	else if(appD->outputFormat == OUT_XML)
+	{
+		if(appD->expectAttributeData)
+		{
+			printString(qname.uri);
+			printf(":");
+			printString(qname.localName);
+			printf("\"");
+			appD->expectAttributeData = 0;
+		}
+		else
+		{
+			if(appD->unclosedElement)
+				printf(">");
+			appD->unclosedElement = 0;
+			printString(qname.uri);
+			printf(":");
+			printString(qname.localName);
 		}
 	}
 
