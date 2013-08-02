@@ -101,7 +101,7 @@ create_hashtable(unsigned int minsize,
  * @param   h   the hashtable to insert into
  * @param   k   the key - hashtable claims ownership and will free on removal
  * @param   v   the value - does not claim ownership
- * @return      ERR_OK for successful insertion
+ * @return      EXIP_ERR_OK for successful insertion
  *
  * This function will cause the table to expand if the insertion would take
  * the ratio of entries to table size over the maximum load factor.

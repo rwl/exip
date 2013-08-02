@@ -26,7 +26,7 @@
 
 errorCode initParser(Parser* parser, BinaryBuffer buffer, void* app_data)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	TRY(initAllocList(&parser->strm.memList));
 
 	parser->strm.buffer = buffer;
@@ -50,12 +50,12 @@ errorCode initParser(Parser* parser, BinaryBuffer buffer, void* app_data)
 	parser->strm.valueTable.hashTbl = NULL;
 #endif
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode parseHeader(Parser* parser, boolean outOfBandOpts)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 
 	TRY(decodeHeader(&parser->strm, outOfBandOpts));
 
@@ -68,16 +68,15 @@ errorCode parseHeader(Parser* parser, boolean outOfBandOpts)
 	// TODO: Consider removing the startDocument all together instead of invoking it always here?
 	if(parser->handler.startDocument != NULL)
 	{
-		if(parser->handler.startDocument(parser->app_data) == EXIP_HANDLER_STOP)
-			return HANDLER_STOP_RECEIVED;
+		TRY(parser->handler.startDocument(parser->app_data));
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode setSchema(Parser* parser, EXIPSchema* schema)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 
 	if(parser->strm.header.opts.schemaIDMode == SCHEMA_ID_NIL)
 	{
@@ -87,7 +86,7 @@ errorCode setSchema(Parser* parser, EXIPSchema* schema)
 		parser->strm.schema = NULL;
 #if EXI_PROFILE_DEFAULT
 		DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, ("\n> EXI Profile mode require schema mode processing"));
-		return INVALID_EXI_INPUT;
+		return EXIP_INVALID_EXI_INPUT;
 #endif
 #if DEBUG_CONTENT_IO == ON && EXIP_DEBUG_LEVEL <= WARNING
 		if(schema != NULL)
@@ -104,7 +103,7 @@ errorCode setSchema(Parser* parser, EXIPSchema* schema)
 #endif
 		parser->strm.schema = memManagedAllocate(&parser->strm.memList, sizeof(EXIPSchema));
 		if(parser->strm.schema == NULL)
-			return MEMORY_ALLOCATION_ERROR;
+			return EXIP_MEMORY_ALLOCATION_ERROR;
 
 		TRY(initSchema(parser->strm.schema, INIT_SCHEMA_BUILD_IN_TYPES));
 
@@ -124,7 +123,7 @@ errorCode setSchema(Parser* parser, EXIPSchema* schema)
 		{
 			/* Fragment document grammar */
 			// TODO: create a Schema-informed Fragment Grammar from the EXIP schema object
-			return NOT_IMPLEMENTED_YET;
+			return EXIP_NOT_IMPLEMENTED_YET;
 		}
 		else
 		{
@@ -138,17 +137,17 @@ errorCode setSchema(Parser* parser, EXIPSchema* schema)
 		if(parser->strm.header.opts.schemaIDMode == SCHEMA_ID_SET)
 		{
 			DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, ("\n> Schema mode required, but NULL schema set"));
-			return INVALID_EXIP_CONFIGURATION;
+			return EXIP_INVALID_EXIP_CONFIGURATION;
 		}
 
 #if EXI_PROFILE_DEFAULT
 		DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, ("\n> EXI Profile mode require schema mode processing"));
-		return INVALID_EXI_INPUT;
+		return EXIP_INVALID_EXI_INPUT;
 #endif
 
 		parser->strm.schema = memManagedAllocate(&parser->strm.memList, sizeof(EXIPSchema));
 		if(parser->strm.schema == NULL)
-			return MEMORY_ALLOCATION_ERROR;
+			return EXIP_MEMORY_ALLOCATION_ERROR;
 
 		TRY(initSchema(parser->strm.schema, INIT_SCHEMA_SCHEMA_LESS_MODE));
 
@@ -164,12 +163,12 @@ errorCode setSchema(Parser* parser, EXIPSchema* schema)
 
 	TRY(pushGrammar(&parser->strm.gStack, &parser->strm.schema->docGrammar));
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode parseNext(Parser* parser)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	SmallIndex tmpNonTermID = GR_VOID_NON_TERMINAL;
 
 	TRY(processNextProduction(&parser->strm, &tmpNonTermID, &parser->handler, parser->app_data));
@@ -180,7 +179,7 @@ errorCode parseNext(Parser* parser)
 		popGrammar(&(parser->strm.gStack), &grammar);
 		if(parser->strm.gStack == NULL) // There is no more grammars in the stack
 		{
-			return PARSING_COMPLETE; // The stream is parsed
+			return EXIP_PARSING_COMPLETE; // The stream is parsed
 		}
 	}
 	else
@@ -188,7 +187,7 @@ errorCode parseNext(Parser* parser)
 		parser->strm.gStack->currNonTermID = tmpNonTermID;
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 void destroyParser(Parser* parser)

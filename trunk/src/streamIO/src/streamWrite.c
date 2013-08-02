@@ -26,10 +26,10 @@ errorCode writeNextBit(EXIStream* strm, boolean bit_val)
 	{
 		Index numBytesWritten = 0;
 		if(strm->buffer.ioStrm.readWriteToStream == NULL)
-			return BUFFER_END_REACHED;
+			return EXIP_BUFFER_END_REACHED;
 		numBytesWritten = strm->buffer.ioStrm.readWriteToStream(strm->buffer.buf, strm->buffer.bufLen, strm->buffer.ioStrm.stream);
 		if(numBytesWritten < strm->buffer.bufLen)
-			return BUFFER_END_REACHED;
+			return EXIP_BUFFER_END_REACHED;
 		strm->context.bitPointer = 0;
 		strm->context.bufferIndx = 0;
 	}
@@ -41,7 +41,7 @@ errorCode writeNextBit(EXIStream* strm, boolean bit_val)
 
 	moveBitPointer(strm, 1);
 	DEBUG_MSG(INFO, DEBUG_STREAM_IO, ("  @%u:%u", (unsigned int) strm->context.bufferIndx, strm->context.bitPointer));
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode writeBits(EXIStream* strm, unsigned int bits_val)
@@ -63,13 +63,13 @@ errorCode writeNBits(EXIStream* strm, unsigned char nbits, unsigned int bits_val
 		char leftOverBits;
 		Index numBytesWritten = 0;
 		if(strm->buffer.ioStrm.readWriteToStream == NULL)
-			return BUFFER_END_REACHED;
+			return EXIP_BUFFER_END_REACHED;
 
 		leftOverBits = strm->buffer.buf[strm->context.bufferIndx];
 
 		numBytesWritten = strm->buffer.ioStrm.readWriteToStream(strm->buffer.buf, strm->context.bufferIndx, strm->buffer.ioStrm.stream);
 		if(numBytesWritten < strm->context.bufferIndx)
-			return BUFFER_END_REACHED;
+			return EXIP_BUFFER_END_REACHED;
 
 		strm->buffer.buf[0] = leftOverBits;
 		strm->context.bufferIndx = 0;
@@ -92,5 +92,5 @@ errorCode writeNBits(EXIStream* strm, unsigned char nbits, unsigned int bits_val
 	}
 	DEBUG_MSG(INFO, DEBUG_STREAM_IO, ("  @%u:%u\n", (unsigned int) strm->context.bufferIndx, strm->context.bitPointer));
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }

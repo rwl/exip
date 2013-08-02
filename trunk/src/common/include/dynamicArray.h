@@ -72,7 +72,7 @@ errorCode addDynEntry(DynArray* dynArray, void* entry, Index* entryID);
  *
  * @param[in, out] dynArray Untyped Dynamic Array
  * @param[in] entryID the ID of the entry to be deleted
- * @return Error handling code - NULL_POINTER_REF if dArray is NULL; OUT_OF_BOUND_BUFFER if the index is
+ * @return Error handling code - EXIP_NULL_POINTER_REF if dArray is NULL; EXIP_OUT_OF_BOUND_BUFFER if the index is
  * bigger than the array size or the array size is 0
  */
 errorCode delDynEntry(DynArray* dynArray, Index entryID);

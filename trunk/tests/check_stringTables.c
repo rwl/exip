@@ -27,11 +27,11 @@
 START_TEST (test_createValueTable)
 {
 	ValueTable valueTable;
-	errorCode err = UNEXPECTED_ERROR;
+	errorCode err = EXIP_UNEXPECTED_ERROR;
 
 	err = createValueTable(&valueTable);
 
-	fail_unless (err == ERR_OK, "createValueTable returns error code %d", err);
+	fail_unless (err == EXIP_ERR_OK, "createValueTable returns error code %d", err);
 	fail_unless (valueTable.count == 0,
 				"createValueTable populates the valueTable with count: %d", valueTable.count);
 	fail_unless (valueTable.dynArray.arrayEntries == DEFAULT_VALUE_ENTRIES_NUMBER,
@@ -45,11 +45,11 @@ END_TEST
 START_TEST (test_createPfxTable)
 {
 	PfxTable* pfxTable;
-	errorCode err = UNEXPECTED_ERROR;
+	errorCode err = EXIP_UNEXPECTED_ERROR;
 
 	err = createPfxTable(&pfxTable);
 
-	fail_unless (err == ERR_OK, "createPfxTable returns error code %d", err);
+	fail_unless (err == EXIP_ERR_OK, "createPfxTable returns error code %d", err);
 	fail_unless (pfxTable->count == 0,
 				"createPfxTable populates the pfxTable with count: %d", pfxTable->count);
 	fail_if(pfxTable->pfxStr == NULL);
@@ -60,18 +60,18 @@ END_TEST
 
 START_TEST (test_addUriEntry)
 {
-	errorCode err = UNEXPECTED_ERROR;
+	errorCode err = EXIP_UNEXPECTED_ERROR;
 	UriTable uriTable;
 	SmallIndex entryId = 55;
 	String test_uri = {"test_uri_string", 15};
 
 	// Create the URI table
 	err = createDynArray(&uriTable.dynArray, sizeof(UriEntry), DEFAULT_URI_ENTRIES_NUMBER);
-	fail_if(err != ERR_OK);
+	fail_if(err != EXIP_ERR_OK);
 
 	err = addUriEntry(&uriTable, test_uri, &entryId);
 
-	fail_unless (err == ERR_OK, "addUriEntry returns error code %d", err);
+	fail_unless (err == EXIP_ERR_OK, "addUriEntry returns error code %d", err);
 	fail_unless (uriTable.dynArray.arrayEntries == DEFAULT_URI_ENTRIES_NUMBER,
 				"addUriEntry changed the dynArray.arrayEntries unnecessary");
 	fail_unless (uriTable.count == 1,
@@ -87,7 +87,7 @@ START_TEST (test_addUriEntry)
 
 	err = addUriEntry(&uriTable, test_uri, &entryId);
 
-	fail_unless (err == ERR_OK, "addUriEntry returns error code %d", err);
+	fail_unless (err == EXIP_ERR_OK, "addUriEntry returns error code %d", err);
 	fail_unless (uriTable.dynArray.arrayEntries == DEFAULT_URI_ENTRIES_NUMBER*2,
 				"addUriEntry did not update the dynArray.arrayEntries properly");
 	fail_unless (uriTable.count == DEFAULT_URI_ENTRIES_NUMBER + 1,
@@ -105,17 +105,17 @@ END_TEST
 
 START_TEST (test_addLnEntry)
 {
-	errorCode err = UNEXPECTED_ERROR;
+	errorCode err = EXIP_UNEXPECTED_ERROR;
 	LnTable lnTable;
 	Index entryId = 55;
 	String test_ln = {"test_ln_string", 14};
 
 	err = createDynArray(&lnTable.dynArray, sizeof(LnEntry), DEFAULT_LN_ENTRIES_NUMBER);
-	fail_if(err != ERR_OK);
+	fail_if(err != EXIP_ERR_OK);
 
 	err = addLnEntry(&lnTable, test_ln, &entryId);
 
-	fail_unless (err == ERR_OK, "addLnEntry returns error code %d", err);
+	fail_unless (err == EXIP_ERR_OK, "addLnEntry returns error code %d", err);
 	fail_unless (lnTable.dynArray.arrayEntries == DEFAULT_LN_ENTRIES_NUMBER,
 				"addLnEntry changed the dynArray.arrayEntries unnecessary");
 	fail_unless (lnTable.count == 1,
@@ -133,7 +133,7 @@ START_TEST (test_addLnEntry)
 
 	err = addLnEntry(&lnTable, test_ln, &entryId);
 
-	fail_unless (err == ERR_OK, "addLnEntry returns error code %d", err);
+	fail_unless (err == EXIP_ERR_OK, "addLnEntry returns error code %d", err);
 	fail_unless (lnTable.dynArray.arrayEntries == DEFAULT_LN_ENTRIES_NUMBER*2,
 				"addLnEntry did not update the dynArray.arrayEntries properly");
 	fail_unless (lnTable.count == DEFAULT_LN_ENTRIES_NUMBER + 1,
@@ -152,7 +152,7 @@ END_TEST
 START_TEST (test_addValueEntry)
 {
 	EXIStream testStrm;
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	String testStr = {"TEST-007", 8};
 
 	// IV: Initialize the stream
@@ -169,14 +169,14 @@ START_TEST (test_addValueEntry)
 		tmp_err_code += createDynArray(&testStrm.schema->uriTable.dynArray, sizeof(UriEntry), DEFAULT_URI_ENTRIES_NUMBER);
 		tmp_err_code += createUriTableEntries(&testStrm.schema->uriTable, FALSE);
 	}
-	fail_unless (tmp_err_code == ERR_OK, "initStream returns an error code %d", tmp_err_code);
+	fail_unless (tmp_err_code == EXIP_ERR_OK, "initStream returns an error code %d", tmp_err_code);
 
 	testStrm.gStack->currQNameID.uriId = 1; // http://www.w3.org/XML/1998/namespace
 	testStrm.gStack->currQNameID.lnId = 2; // lang
 
 	tmp_err_code = addValueEntry(&testStrm, testStr, testStrm.gStack->currQNameID);
 
-	fail_unless (tmp_err_code == ERR_OK, "addValueEntry returns an error code %d", tmp_err_code);
+	fail_unless (tmp_err_code == EXIP_ERR_OK, "addValueEntry returns an error code %d", tmp_err_code);
 #if VALUE_CROSSTABLE_USE
 	fail_unless (testStrm.schema->uriTable.uri[testStrm.gStack->currQNameID.uriId].lnTable.ln[testStrm.gStack->currQNameID.lnId].vxTable != NULL, "addValueEntry does not create vxTable");
 	fail_unless (testStrm.schema->uriTable.uri[testStrm.gStack->currQNameID.uriId].lnTable.ln[testStrm.gStack->currQNameID.lnId].vxTable->count == 1, "addValueEntry does not create correct vxTable");

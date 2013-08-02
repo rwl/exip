@@ -31,7 +31,7 @@ errorCode createProtoGrammar(Index rulesDim, ProtoGrammar* pg)
 
 errorCode addProtoRule(ProtoGrammar* pg, Index prodDim, ProtoRuleEntry** ruleEntry)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	Index ruleId;
 
 	TRY(addEmptyDynEntry(&pg->dynArray, (void **) ruleEntry, &ruleId));
@@ -41,7 +41,7 @@ errorCode addProtoRule(ProtoGrammar* pg, Index prodDim, ProtoRuleEntry** ruleEnt
 
 errorCode addProduction(ProtoRuleEntry* ruleEntry, EventType eventType, Index typeId, QNameID qnameID, SmallIndex nonTermID)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	Production *newProd;
 	Index newProdId;
 
@@ -52,7 +52,7 @@ errorCode addProduction(ProtoRuleEntry* ruleEntry, EventType eventType, Index ty
 	newProd->qnameId = qnameID;
 	SET_PROD_NON_TERM(newProd->content, nonTermID);
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode convertProtoGrammar(AllocList* memlist, ProtoGrammar* pg, EXIGrammar* exiGrammar)
@@ -69,7 +69,7 @@ errorCode convertProtoGrammar(AllocList* memlist, ProtoGrammar* pg, EXIGrammar* 
 
 	exiGrammar->rule = (GrammarRule*) memManagedAllocate(memlist, sizeof(GrammarRule)*(pg->count));
 	if(exiGrammar->rule == NULL)
-		return MEMORY_ALLOCATION_ERROR;
+		return EXIP_MEMORY_ALLOCATION_ERROR;
 
 	for(ruleIter = 0; ruleIter < pg->count; ruleIter++)
 	{
@@ -78,7 +78,7 @@ errorCode convertProtoGrammar(AllocList* memlist, ProtoGrammar* pg, EXIGrammar* 
 
 		exiGrammar->rule[ruleIter].production = (Production*) memManagedAllocate(memlist, sizeof(Production)*pg->rule[ruleIter].count);
 		if(exiGrammar->rule[ruleIter].production == NULL)
-			return MEMORY_ALLOCATION_ERROR;
+			return EXIP_MEMORY_ALLOCATION_ERROR;
 
 		exiGrammar->rule[ruleIter].pCount = pg->rule[ruleIter].count;
 		exiGrammar->rule[ruleIter].meta = 0;
@@ -97,12 +97,12 @@ errorCode convertProtoGrammar(AllocList* memlist, ProtoGrammar* pg, EXIGrammar* 
 			RULE_SET_CONTAIN_EE(exiGrammar->rule[ruleIter].meta);
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode cloneProtoGrammar(ProtoGrammar* src, ProtoGrammar* dest)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	ProtoRuleEntry* pRuleEntry;
 	Index i;
 	Index j;
@@ -120,7 +120,7 @@ errorCode cloneProtoGrammar(ProtoGrammar* src, ProtoGrammar* dest)
 		}
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 
@@ -205,7 +205,7 @@ errorCode printProtoGrammarRule(SmallIndex nonTermID, ProtoRuleEntry* rule)
 				DEBUG_MSG(INFO, EXIP_DEBUG, (" "));
 				break;
 			default:
-				return UNEXPECTED_ERROR;
+				return EXIP_UNEXPECTED_ERROR;
 		}
 		if(GET_PROD_NON_TERM(tmpProd->content) != GR_VOID_NON_TERMINAL)
 		{
@@ -214,7 +214,7 @@ errorCode printProtoGrammarRule(SmallIndex nonTermID, ProtoRuleEntry* rule)
 
 		DEBUG_MSG(INFO, EXIP_DEBUG, ("\n"));
 	}
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode printProtoGrammar(ProtoGrammar* pgr)
@@ -228,7 +228,7 @@ errorCode printProtoGrammar(ProtoGrammar* pgr)
 		printProtoGrammarRule(j, &pgr->rule[j]);
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 #endif // EXIP_DEBUG

@@ -41,18 +41,18 @@ errorCode dynExipSchemaOutput(EXIPSchema* schema, char* prefix, unsigned char ma
 	// TODO: needs to be fixed
 
 	fprintf(out, "errorCode get_%sSchema(EXIPSchema* schema);\n\n", prefix);
-	fprintf(out, "errorCode get_%sSchema(EXIPSchema* schema)\n{\n\t errorCode tmp_err_code = UNEXPECTED_ERROR;\n\t\n\t", prefix);
-	fprintf(out, "if(schema == NULL)\n\t return NULL_POINTER_REF;\n\t");
+	fprintf(out, "errorCode get_%sSchema(EXIPSchema* schema)\n{\n\t errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;\n\t\n\t", prefix);
+	fprintf(out, "if(schema == NULL)\n\t return EXIP_NULL_POINTER_REF;\n\t");
 
 	fprintf(out, "tmp_err_code = initAllocList(&schema->memList);\n\t");
-	fprintf(out, "if(tmp_err_code != ERR_OK)\n\t return tmp_err_code;\n\t");
+	fprintf(out, "if(tmp_err_code != EXIP_ERR_OK)\n\t return tmp_err_code;\n\t");
 
 	for(uriIter = 0; uriIter < schema->uriTable.count; uriIter++)
 	{
 		if(schema->uriTable.uri[uriIter].pfxTable != NULL)
 		{
 			fprintf(out, "PfxTable* pfxTable_%d = memManagedAllocate(&schema->memList, sizeof(PfxTable));\n\t", uriIter);
-			fprintf(out, "if(pTable_%d == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t", uriIter);
+			fprintf(out, "if(pTable_%d == NULL)\n\t return EXIP_MEMORY_ALLOCATION_ERROR;\n\t", uriIter);
 			fprintf(out, "pTable_%d->rowCount = %d;\n\t", uriIter, schema->uriTable.uri[uriIter].pfxTable->count);
 
 			for(pfxIter = 0; pfxIter < schema->uriTable.uri[uriIter].pfxTable->count; pfxIter++)
@@ -65,7 +65,7 @@ errorCode dynExipSchemaOutput(EXIPSchema* schema, char* prefix, unsigned char ma
 			{
 				fprintf(out, "getEmptyString(&pTable_%d->string_val[%d]);\n\t", uriIter, pfxIter);
 			}
-			fprintf(out, "if(tmp_err_code != ERR_OK)\n\t return UNEXPECTED_ERROR;\n\t");
+			fprintf(out, "if(tmp_err_code != EXIP_ERR_OK)\n\t return EXIP_UNEXPECTED_ERROR;\n\t");
 		}
 
 		for(lnIter = 0; lnIter < schema->uriTable.uri[uriIter].lnTable.count; lnIter++)
@@ -79,7 +79,7 @@ errorCode dynExipSchemaOutput(EXIPSchema* schema, char* prefix, unsigned char ma
 			{
 				if(mask_specified == TRUE)
 				{
-					if(ERR_OK != addUndeclaredProductions(&schema->memList, mask_strict, mask_sc, mask_preserve, tmpGrammar, &schema->simpleTypeTable))
+					if(EXIP_ERR_OK != addUndeclaredProductions(&schema->memList, mask_strict, mask_sc, mask_preserve, tmpGrammar, &schema->simpleTypeTable))
 					{
 						printf("\n ERROR: OUT_SRC_DYN output format!");
 						exit(1);
@@ -93,7 +93,7 @@ errorCode dynExipSchemaOutput(EXIPSchema* schema, char* prefix, unsigned char ma
 						if(tmpGrammar->rule[ruleIter].part[partIter].count > 0)
 						{
 							fprintf(out, "Production* prod_%d_%d_%d_part%d = memManagedAllocate(&schema->memList, %d * sizeof(Production));\n\t", uriIter, lnIter, ruleIter, partIter, tmpGrammar->rule[ruleIter].part[partIter].count);
-							fprintf(out, "if(prod_%d_%d_%d_part%d == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t", uriIter, lnIter, ruleIter, partIter);
+							fprintf(out, "if(prod_%d_%d_%d_part%d == NULL)\n\t return EXIP_MEMORY_ALLOCATION_ERROR;\n\t", uriIter, lnIter, ruleIter, partIter);
 
 							for(prodIter = 0; prodIter < tmpGrammar->rule[ruleIter].part[partIter].count; prodIter++)
 							{
@@ -109,7 +109,7 @@ errorCode dynExipSchemaOutput(EXIPSchema* schema, char* prefix, unsigned char ma
 					}
 				}
 				fprintf(out, "GrammarRule* rule_%d_%d = memManagedAllocate(&schema->memList, %d * sizeof(GrammarRule));\n\t", uriIter, lnIter, tmpGrammar->count);
-				fprintf(out, "if(rule_%d_%d == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t", uriIter, lnIter);
+				fprintf(out, "if(rule_%d_%d == NULL)\n\t return EXIP_MEMORY_ALLOCATION_ERROR;\n\t", uriIter, lnIter);
 
 				for(ruleIter = 0; ruleIter < tmpGrammar->count; ruleIter++)
 				{
@@ -127,7 +127,7 @@ errorCode dynExipSchemaOutput(EXIPSchema* schema, char* prefix, unsigned char ma
 				}
 
 				fprintf(out, "EXIGrammar* grammar_%d_%d = memManagedAllocate(&schema->memList, sizeof(EXIGrammar));\n\t", uriIter, lnIter);
-				fprintf(out, "if(grammar_%d_%d == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t", uriIter, lnIter);
+				fprintf(out, "if(grammar_%d_%d == NULL)\n\t return EXIP_MEMORY_ALLOCATION_ERROR;\n\t", uriIter, lnIter);
 
 				fprintf(out, "grammar_%d_%d->contentIndex = %d;\n\t", uriIter, lnIter, tmpGrammar->contentIndex);
 				fprintf(out, "grammar_%d_%d->props = 0x%02x;\n\t", uriIter, lnIter, tmpGrammar->props);
@@ -140,7 +140,7 @@ errorCode dynExipSchemaOutput(EXIPSchema* schema, char* prefix, unsigned char ma
 					exit(1);
 				}
 
-				if(ERR_OK != hashtable_insert(typeGrammarsHash, &hashKey, tgCount))
+				if(EXIP_ERR_OK != hashtable_insert(typeGrammarsHash, &hashKey, tgCount))
 				{
 					printf("\n ERROR: OUT_SRC_DYN output format!");
 					exit(1);
@@ -151,7 +151,7 @@ errorCode dynExipSchemaOutput(EXIPSchema* schema, char* prefix, unsigned char ma
 			}
 		}
 		fprintf(out, "struct LocalNamesRow* LNrows_%d = memManagedAllocate(&schema->memList, %d * sizeof(struct LocalNamesRow));\n\t", uriIter, schema->uriTable.uri[uriIter].lnTable.count);
-		fprintf(out, "if(LNrows_%d == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t", uriIter);
+		fprintf(out, "if(LNrows_%d == NULL)\n\t return EXIP_MEMORY_ALLOCATION_ERROR;\n\t", uriIter);
 
 		for(lnIter = 0; lnIter < schema->uriTable.uri[uriIter].lnTable.count; lnIter++)
 		{
@@ -175,7 +175,7 @@ errorCode dynExipSchemaOutput(EXIPSchema* schema, char* prefix, unsigned char ma
 		}
 
 		fprintf(out, "LocalNamesTable* lTable_%d = memManagedAllocate(&schema->memList, sizeof(LocalNamesTable));\n\t", uriIter);
-		fprintf(out, "if(lTable_%d == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t", uriIter);
+		fprintf(out, "if(lTable_%d == NULL)\n\t return EXIP_MEMORY_ALLOCATION_ERROR;\n\t", uriIter);
 
 		fprintf(out, "lTable_%d->arrayDimension = %d;\n\t", uriIter, schema->uriTable.uri[uriIter].lnTable.count);
 		fprintf(out, "lTable_%d->rowCount = %d;\n\t", uriIter, schema->uriTable.uri[uriIter].lnTable.count);
@@ -186,7 +186,7 @@ errorCode dynExipSchemaOutput(EXIPSchema* schema, char* prefix, unsigned char ma
 
 	fprintf(out, "struct URIRow* uriRows = memManagedAllocate(&schema->memList, %d * sizeof(struct URIRow));\n\t", schema->uriTable.count);
 
-	fprintf(out, "if(uriRows == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t");
+	fprintf(out, "if(uriRows == NULL)\n\t return EXIP_MEMORY_ALLOCATION_ERROR;\n\t");
 
 
 	for(uriIter = 0; uriIter < schema->uriTable.count; uriIter++)
@@ -204,14 +204,14 @@ errorCode dynExipSchemaOutput(EXIPSchema* schema, char* prefix, unsigned char ma
 	}
 
 	fprintf(out, "URITable* uriTbl = memManagedAllocate(&schema->memList, sizeof(URITable));\n\t");
-	fprintf(out, "if(uriTbl == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t");
+	fprintf(out, "if(uriTbl == NULL)\n\t return EXIP_MEMORY_ALLOCATION_ERROR;\n\t");
 	fprintf(out, "uriTbl->arrayDimension = %d;\n\t", schema->uriTable.dynArray.arrayEntries);
 	fprintf(out, "uriTbl->rowCount = %d;\n\t", schema->uriTable.count);
 	fprintf(out, "uriTbl->rows = uriRows;\n\t");
 	fprintf(out, "uriTbl->memPair.memBlock = NULL;\n\t"); // TO BE fixed!
 	fprintf(out, "uriTbl->memPair.allocIndx = 0;\n\t"); // TO BE fixed!
 	fprintf(out, "QNameID* qnames = memManagedAllocate(&schema->memList, %d * sizeof(QNameID));\n\t", schema->globalElemGrammarTable.count);
-	fprintf(out, "if(qnames == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t");
+	fprintf(out, "if(qnames == NULL)\n\t return EXIP_MEMORY_ALLOCATION_ERROR;\n\t");
 
 	for(uriIter = 0; uriIter < schema->globalElemGrammarTable.count; uriIter++)
 	{
@@ -221,7 +221,7 @@ errorCode dynExipSchemaOutput(EXIPSchema* schema, char* prefix, unsigned char ma
 	}
 
 	fprintf(out, "SimpleType* sTypes = memManagedAllocate(&schema->memList, %d * sizeof(SimpleType));\n\t", schema->simpleTypeTable.count);
-	fprintf(out, "if(sTypes == NULL)\n\t return MEMORY_ALLOCATION_ERROR;\n\t");
+	fprintf(out, "if(sTypes == NULL)\n\t return EXIP_MEMORY_ALLOCATION_ERROR;\n\t");
 
 	for(uriIter = 0; uriIter < schema->simpleTypeTable.count; uriIter++)
 	{
@@ -239,9 +239,9 @@ errorCode dynExipSchemaOutput(EXIPSchema* schema, char* prefix, unsigned char ma
 	fprintf(out, "schema->simpleTypeTable.count = %d;\n\t", schema->simpleTypeTable.count);
 	fprintf(out, "schema->isAugmented = %d;\n\t", mask_specified);
 	fprintf(out, "schema->isStatic = FALSE;\n\t");
-	fprintf(out, "return ERR_OK;\n}");
+	fprintf(out, "return EXIP_ERR_OK;\n}");
 
 	hashtable_destroy(typeGrammarsHash);
 #endif
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }

@@ -155,7 +155,7 @@ errorCode createValueTable(ValueTable* valueTable)
 #if HASH_TABLE_USE
 	valueTable->hashTbl = NULL;
 #endif
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode createPfxTable(PfxTable** pfxTable)
@@ -164,10 +164,10 @@ errorCode createPfxTable(PfxTable** pfxTable)
 	// use a DynArray
 	(*pfxTable) = (PfxTable*) EXIP_MALLOC(sizeof(PfxTable));
 	if(*pfxTable == NULL)
-		return MEMORY_ALLOCATION_ERROR;
+		return EXIP_MEMORY_ALLOCATION_ERROR;
 
 	(*pfxTable)->count = 0;
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode addUriEntry(UriTable* uriTable, String uriStr, SmallIndex* uriEntryId)
@@ -187,7 +187,7 @@ errorCode addUriEntry(UriTable* uriTable, String uriStr, SmallIndex* uriEntryId)
 	TRY(createDynArray(&uriEntry->lnTable.dynArray, sizeof(LnEntry), DEFAULT_LN_ENTRIES_NUMBER));
 
 	*uriEntryId = (SmallIndex)uriLEntryId;
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode addLnEntry(LnTable* lnTable, String lnStr, Index* lnEntryId)
@@ -205,12 +205,12 @@ errorCode addLnEntry(LnTable* lnTable, String lnStr, Index* lnEntryId)
 	// The Vx table is created on-demand (additions to value cross table are done when a value is inserted in the value table)
 	lnEntry->vxTable = NULL;
 #endif
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode addValueEntry(EXIStream* strm, String valueStr, QNameID qnameID)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	ValueEntry* valueEntry = NULL;
 	Index valueEntryId;
 
@@ -228,7 +228,7 @@ errorCode addValueEntry(EXIStream* strm, String valueStr, QNameID qnameID)
 		{
 			lnEntry->vxTable = memManagedAllocate(&strm->memList, sizeof(VxTable));
 			if(lnEntry->vxTable == NULL)
-				return MEMORY_ALLOCATION_ERROR;
+				return EXIP_MEMORY_ALLOCATION_ERROR;
 
 			// First value entry - create the vxTable
 			TRY(createDynArray(&lnEntry->vxTable->dynArray, sizeof(VxEntry), DEFAULT_VX_ENTRIES_NUMBER));
@@ -298,19 +298,19 @@ errorCode addValueEntry(EXIStream* strm, String valueStr, QNameID qnameID)
 	if(strm->valueTable.globalId == strm->header.opts.valuePartitionCapacity)
 		strm->valueTable.globalId = 0;
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode addPfxEntry(PfxTable* pfxTable, String pfxStr, SmallIndex* pfxEntryId)
 {
 	if(pfxTable->count >= MAXIMUM_NUMBER_OF_PREFIXES_PER_URI)
-		return TOO_MANY_PREFIXES_PER_URI;
+		return EXIP_TOO_MANY_PREFIXES_PER_URI;
 
 	pfxTable->pfxStr[pfxTable->count].length = pfxStr.length;
 	pfxTable->pfxStr[pfxTable->count].str = pfxStr.str;
 	*pfxEntryId = pfxTable->count++;
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode createUriTableEntry(UriTable* uriTable, const String uri, int createPfx, const String pfx, const String* lnBase, Index lnSize)
@@ -339,12 +339,12 @@ errorCode createUriTableEntry(UriTable* uriTable, const String uri, int createPf
 	{
 		TRY(addLnEntry(&uriEntry->lnTable, lnBase[i], &lnEntryId));
 	}
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode createUriTableEntries(UriTable* uriTable, boolean withSchema)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	String emptyStr;
 	getEmptyString(&emptyStr);
 
@@ -385,7 +385,7 @@ errorCode createUriTableEntries(UriTable* uriTable, boolean withSchema)
 										   URI_3_LN_SIZE));
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 boolean lookupUri(UriTable* uriTable, String uriStr, SmallIndex* uriEntryId)

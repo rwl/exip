@@ -33,7 +33,7 @@ static void sortUriTable(UriTable* uriTable);
 errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int bufCount, SchemaFormat schemaFormat, EXIOptions* opt, EXIPSchema* schema,
 		errorCode (*loadSchemaHandler) (String* namespace, String* schemaLocation, BinaryBuffer** buffers, unsigned int* bufCount, SchemaFormat* schemaFormat, EXIOptions** opt))
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	TreeTable* treeT;
 	unsigned int treeTCount = bufCount;
 	unsigned int i = 0;
@@ -42,7 +42,7 @@ errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int buf
 
 	treeT = (TreeTable*) EXIP_MALLOC(sizeof(TreeTable)*bufCount);
 	if(treeT == NULL)
-		return MEMORY_ALLOCATION_ERROR;
+		return EXIP_MEMORY_ALLOCATION_ERROR;
 
 	for(i = 0; i < bufCount; i++)
 	{
@@ -101,7 +101,7 @@ errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int buf
 	for(i = 0; i < treeTCount; i++)
 	{
 		if(!lookupUri(&schema->uriTable, treeT[i].globalDefs.targetNs, &treeT[i].globalDefs.targetNsId))
-			return UNEXPECTED_ERROR;
+			return EXIP_UNEXPECTED_ERROR;
 	}
 
 	TRY(resolveTypeHierarchy(schema, treeT, treeTCount));

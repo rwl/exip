@@ -132,57 +132,47 @@
 enum errorCode
 {
 	 /** No error, everything is OK. */
-	 ERR_OK                                 = 0,
+	 EXIP_ERR_OK                                 = 0,
 	 /** The code for this function
 	  * is not yet implemented. */
-	 NOT_IMPLEMENTED_YET                    = 1,
+	 EXIP_NOT_IMPLEMENTED_YET                    = 1,
 	 /** Any error that does not fall
 	  * into the other categories */
-	 UNEXPECTED_ERROR                       = 2,
+	 EXIP_UNEXPECTED_ERROR                       = 2,
 	 /** Hash table error  */
-	 HASH_TABLE_ERROR                       = 3,
+	 EXIP_HASH_TABLE_ERROR                       = 3,
 	 /** Array out of bound  */
-	 OUT_OF_BOUND_BUFFER                    = 4,
+	 EXIP_OUT_OF_BOUND_BUFFER                    = 4,
 	 /** Try to access null pointer */
-	 NULL_POINTER_REF                       = 5,
+	 EXIP_NULL_POINTER_REF                       = 5,
 	 /** Unsuccessful memory allocation */
-	 MEMORY_ALLOCATION_ERROR                = 6,
+	 EXIP_MEMORY_ALLOCATION_ERROR                = 6,
 	 /** Error in the EXI header */
-	 INVALID_EXI_HEADER                     = 7,
+	 EXIP_INVALID_EXI_HEADER                     = 7,
 	 /** Processor state is inconsistent
 	  * with the stream events  */
-	 INCONSISTENT_PROC_STATE                = 8,
+	 EXIP_INCONSISTENT_PROC_STATE                = 8,
 	 /** Received EXI value type or event
 	  * encoding that is invalid according
 	  * to the specification */
-	 INVALID_EXI_INPUT                      = 9,
+	 EXIP_INVALID_EXI_INPUT                      = 9,
 	 /** Buffer end reached  */
-	 BUFFER_END_REACHED                     =10,
-	 /** An event code to be serialized is not
-	  *  found at the current grammar stack */
-	 EVENT_CODE_MISSING                     =11,
-	 /** A command to stop the EXI processing
-	  * received from the application */
-	 HANDLER_STOP_RECEIVED                  =12,
-	 /** Function invocation is invalid for
-	  * the given arguments */
-	 INVALID_OPERATION                      =13,
-     EMPTY_COLLECTION                       =14,
-     PARSING_COMPLETE                       =15,
+	 EXIP_BUFFER_END_REACHED                     =10,
+	 EXIP_PARSING_COMPLETE                       =11,
      /** The number MAXIMUM_NUMBER_OF_PREFIXES_PER_URI
       * is reached - must be increased in the build */
-     TOO_MANY_PREFIXES_PER_URI              =16,
+	 EXIP_TOO_MANY_PREFIXES_PER_URI              =12,
      /** The information passed to
       * the EXIP API is invalid */
-     INVALID_EXIP_CONFIGURATION             =17,
+	 EXIP_INVALID_EXIP_CONFIGURATION             =13,
      /** When encoding XML Schema in EXI the prefixes must be preserved:
       * When qualified namesNS are used in the values of AT or CH events in an EXI Stream,
       * the Preserve.prefixes fidelity option SHOULD be turned on to enable the preservation of
       * the NS prefix declarations used by these values. Note, in particular among other cases,
       * that this practice applies to the use of xsi:type attributes in EXI streams when Preserve.lexicalValues
       * fidelity option is set to true. */
-     NO_PREFIXES_PRESERVED_XML_SCHEMA       =18,
-     INVALID_STRING_OPERATION               =19,
+	 EXIP_NO_PREFIXES_PRESERVED_XML_SCHEMA       =14,
+	 EXIP_INVALID_STRING_OPERATION               =15,
 	 /** Mismatch in the header options.
 	  * This error can be due to:
 	  * 1) The "alignment" element MUST NOT appear in an EXI options document when the "compression" element is present;
@@ -195,12 +185,12 @@ enum errorCode
 	  * fidelity option is true (see 6.3 Fidelity Options), or when the EXI stream is a schema-less EXI stream.
 	  * 5) Presence Bit for EXI Options not set and no out-of-band options set
 	  */
-	 HEADER_OPTIONS_MISMATCH                =20,
+	 EXIP_HEADER_OPTIONS_MISMATCH                =16,
 	 /**
 	  * Send a signal to the EXIP parser from a content handler callback
 	  * for gracefully stopping the EXI stream parsing.
 	  */
-	 EXIP_HANDLER_STOP                      =21
+	 EXIP_HANDLER_STOP                           =17
 };
 
 typedef enum errorCode errorCode;
@@ -213,12 +203,12 @@ typedef enum errorCode errorCode;
 #endif
 
 # define TRY(func) do { tmp_err_code = func;\
-						if (tmp_err_code != ERR_OK) { \
+						if (tmp_err_code != EXIP_ERR_OK) { \
 							DEBUG_MSG(ERROR, EXIP_DEBUG, ("\n>Error %s:%d at %s, line %d", GET_ERR_STRING(tmp_err_code), tmp_err_code, __FILE__, __LINE__)); \
 							return tmp_err_code; } } while(0)
 
 # define TRY_CATCH(func, cblock) do { tmp_err_code = func;\
-									  if (tmp_err_code != ERR_OK) { \
+									  if (tmp_err_code != EXIP_ERR_OK) { \
 									  DEBUG_MSG(ERROR, EXIP_DEBUG, ("\n>Error %s:%d at %s, line %d", GET_ERR_STRING(tmp_err_code), tmp_err_code, __FILE__, __LINE__)); \
 									  cblock;\
 									  return tmp_err_code; } } while(0)

@@ -33,7 +33,7 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 
 errorCode encodeStringData(EXIStream* strm, String strng, QNameID qnameID, Index typeId)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	boolean flag_StringLiteralsPartition = FALSE;
 
 	/* ENUMERATION CHECK */
@@ -47,7 +47,7 @@ errorCode encodeStringData(EXIStream* strm, String strng, QNameID qnameID, Index
 		eDefSearch.typeId = typeId;
 		eDefFound = bsearch(&eDefSearch, strm->schema->enumTable.enumDef, strm->schema->enumTable.count, sizeof(EnumDefinition), compareEnumDefs);
 		if(eDefFound == NULL)
-			return UNEXPECTED_ERROR;
+			return EXIP_UNEXPECTED_ERROR;
 
 		for(i = 0; i < eDefFound->count; i++)
 		{
@@ -57,7 +57,7 @@ errorCode encodeStringData(EXIStream* strm, String strng, QNameID qnameID, Index
 			}
 		}
 		/* The enum value is not found! */
-		return UNEXPECTED_ERROR;
+		return EXIP_UNEXPECTED_ERROR;
 	}
 #if VALUE_CROSSTABLE_USE
 	{
@@ -71,7 +71,7 @@ errorCode encodeStringData(EXIStream* strm, String strng, QNameID qnameID, Index
 			TRY(encodeUnsignedInteger(strm, 0));
 			vxBits = getBitsNumber(vxTable->count - 1);
 			TRY(encodeNBitUnsignedInteger(strm, vxBits, vxEntryId));
-			return ERR_OK;
+			return EXIP_ERR_OK;
 		}
 	}
 #endif
@@ -102,7 +102,7 @@ errorCode encodeStringData(EXIStream* strm, String strng, QNameID qnameID, Index
 		}
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode encodeProduction(EXIStream* strm, EventTypeClass eventClass, boolean isSchemaType, QName* qname, Production* prodHit)
@@ -116,7 +116,7 @@ errorCode encodeProduction(EXIStream* strm, EventTypeClass eventClass, boolean i
 	boolean matchFound = FALSE;
 
 	if(strm->gStack->currNonTermID >=  strm->gStack->grammar->count)
-		return INCONSISTENT_PROC_STATE;
+		return EXIP_INCONSISTENT_PROC_STATE;
 
 #if BUILD_IN_GRAMMARS_USE
 	if(IS_BUILT_IN_ELEM(strm->gStack->grammar->props))  // If the current grammar is build-in Element grammar ...
@@ -151,7 +151,7 @@ errorCode encodeProduction(EXIStream* strm, EventTypeClass eventClass, boolean i
 
 #if DEBUG_CONTENT_IO == ON
 	{
-		errorCode tmp_err_code = UNEXPECTED_ERROR;
+		errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 		TRY(printGrammarRule(strm->gStack->currNonTermID, currentRule, strm->schema));
 	}
 #endif
@@ -215,7 +215,7 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 	{
 		// Built-in element grammar
 #if BUILD_IN_GRAMMARS_USE
-		errorCode tmp_err_code = UNEXPECTED_ERROR;
+		errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 		QNameID voidQnameID = {SMALL_INDEX_MAX, INDEX_MAX};
 		if(strm->gStack->currNonTermID == GR_START_TAG_CONTENT)
 		{
@@ -231,13 +231,13 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 										(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) + IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS) != 0));
 		}
 		else
-			return INCONSISTENT_PROC_STATE;
+			return EXIP_INCONSISTENT_PROC_STATE;
 
 		switch(eventClass)
 		{
 			case EVENT_EE_CLASS:
 				if(strm->gStack->currNonTermID != GR_START_TAG_CONTENT)
-					return INCONSISTENT_PROC_STATE;
+					return EXIP_INCONSISTENT_PROC_STATE;
 
 				SET_PROD_EXI_EVENT(prodHit->content, EVENT_EE);
 				ec.part[1] = 0;
@@ -248,7 +248,7 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 			break;
 			case EVENT_AT_CLASS:
 				if(strm->gStack->currNonTermID != GR_START_TAG_CONTENT)
-					return INCONSISTENT_PROC_STATE;
+					return EXIP_INCONSISTENT_PROC_STATE;
 
 				SET_PROD_EXI_EVENT(prodHit->content, EVENT_AT_ALL);
 				ec.part[1] = 1;
@@ -268,14 +268,14 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 			break;
 			case EVENT_NS_CLASS:
 				if(strm->gStack->currNonTermID != GR_START_TAG_CONTENT || !IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES))
-					return INCONSISTENT_PROC_STATE;
+					return EXIP_INCONSISTENT_PROC_STATE;
 
 				SET_PROD_EXI_EVENT(prodHit->content, EVENT_NS);
 				ec.part[1] = 2;
 				strm->gStack->currNonTermID = GR_START_TAG_CONTENT;
 			break;
 			case EVENT_SC_CLASS:
-				return NOT_IMPLEMENTED_YET;
+				return EXIP_NOT_IMPLEMENTED_YET;
 			break;
 			case EVENT_SE_CLASS:
 				SET_PROD_EXI_EVENT(prodHit->content, EVENT_SE_ALL);
@@ -309,21 +309,21 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 				TRY(insertZeroProduction((DynGrammarRule*) currentRule, EVENT_CH, GR_ELEMENT_CONTENT, &voidQnameID, 1));
 			break;
 			case EVENT_ER_CLASS:
-				return NOT_IMPLEMENTED_YET;
+				return EXIP_NOT_IMPLEMENTED_YET;
 			break;
 			case EVENT_CM_CLASS:
-				return NOT_IMPLEMENTED_YET;
+				return EXIP_NOT_IMPLEMENTED_YET;
 			break;
 			case EVENT_PI_CLASS:
-				return NOT_IMPLEMENTED_YET;
+				return EXIP_NOT_IMPLEMENTED_YET;
 			break;
 			default:
-				return INCONSISTENT_PROC_STATE;
+				return EXIP_INCONSISTENT_PROC_STATE;
 		}
 #else
 		DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
 		assert(FALSE);
-		return INCONSISTENT_PROC_STATE;
+		return EXIP_INCONSISTENT_PROC_STATE;
 #endif
 	}
 	else if(IS_DOCUMENT(strm->gStack->grammar->props))
@@ -332,16 +332,16 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 		switch(eventClass)
 		{
 			case EVENT_DT_CLASS:
-				return NOT_IMPLEMENTED_YET;
+				return EXIP_NOT_IMPLEMENTED_YET;
 			break;
 			case EVENT_CM_CLASS:
-				return NOT_IMPLEMENTED_YET;
+				return EXIP_NOT_IMPLEMENTED_YET;
 			break;
 			case EVENT_PI_CLASS:
-				return NOT_IMPLEMENTED_YET;
+				return EXIP_NOT_IMPLEMENTED_YET;
 			break;
 			default:
-				return INCONSISTENT_PROC_STATE;
+				return EXIP_INCONSISTENT_PROC_STATE;
 		}
 	}
 	else if(IS_FRAGMENT(strm->gStack->grammar->props))
@@ -350,13 +350,13 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 		switch(eventClass)
 		{
 			case EVENT_CM_CLASS:
-				return NOT_IMPLEMENTED_YET;
+				return EXIP_NOT_IMPLEMENTED_YET;
 			break;
 			case EVENT_PI_CLASS:
-				return NOT_IMPLEMENTED_YET;
+				return EXIP_NOT_IMPLEMENTED_YET;
 			break;
 			default:
-				return INCONSISTENT_PROC_STATE;
+				return EXIP_INCONSISTENT_PROC_STATE;
 		}
 	}
 	else
@@ -368,11 +368,11 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 			if(strm->gStack->currNonTermID != GR_START_TAG_CONTENT ||
 					eventClass != EVENT_AT_CLASS ||
 					!stringEqual(*qname->uri, XML_SCHEMA_INSTANCE))
-				return INCONSISTENT_PROC_STATE;
+				return EXIP_INCONSISTENT_PROC_STATE;
 			if(stringEqualToAscii(*qname->localName, "type"))
 			{
 				if(!HAS_NAMED_SUB_TYPE_OR_UNION(strm->gStack->grammar->props))
-					return INCONSISTENT_PROC_STATE;
+					return EXIP_INCONSISTENT_PROC_STATE;
 
 				SET_PROD_EXI_EVENT(prodHit->content, EVENT_AT_QNAME);
 				prodHit->qnameId.uriId = XML_SCHEMA_INSTANCE_ID;
@@ -387,7 +387,7 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 			else if(stringEqualToAscii(*qname->localName, "nil"))
 			{
 				if(!IS_NILLABLE(strm->gStack->grammar->props))
-					return INCONSISTENT_PROC_STATE;
+					return EXIP_INCONSISTENT_PROC_STATE;
 
 				SET_PROD_EXI_EVENT(prodHit->content, EVENT_AT_QNAME);
 				prodHit->qnameId.uriId = XML_SCHEMA_INSTANCE_ID;
@@ -405,7 +405,7 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 				}
 			}
 			else
-				return INCONSISTENT_PROC_STATE;
+				return EXIP_INCONSISTENT_PROC_STATE;
 		}
 		else // Non-strict mode
 		{
@@ -462,7 +462,7 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 						if(qnameID.lnId == XML_SCHEMA_INSTANCE_NIL_ID)
 						{
 							if(strm->gStack->currNonTermID != GR_START_TAG_CONTENT)
-								return INCONSISTENT_PROC_STATE;
+								return EXIP_INCONSISTENT_PROC_STATE;
 
 							SET_PROD_EXI_EVENT(prodHit->content, EVENT_AT_QNAME);
 							ec.length = 2;
@@ -472,7 +472,7 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 						else if(qnameID.lnId == XML_SCHEMA_INSTANCE_TYPE_ID)
 						{
 							if(strm->gStack->currNonTermID != GR_START_TAG_CONTENT)
-								return INCONSISTENT_PROC_STATE;
+								return EXIP_INCONSISTENT_PROC_STATE;
 
 							SET_PROD_EXI_EVENT(prodHit->content, EVENT_AT_QNAME);
 							ec.length = 2;
@@ -480,15 +480,15 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 							ec.bits[1] = getBitsNumber(prod2Count - 1);
 						}
 						else
-							return NOT_IMPLEMENTED_YET;
+							return EXIP_NOT_IMPLEMENTED_YET;
 					}
 					else // All other cases of AT events
-						return NOT_IMPLEMENTED_YET;
+						return EXIP_NOT_IMPLEMENTED_YET;
 				break;
 				case EVENT_NS_CLASS:
 					if(strm->gStack->currNonTermID != GR_START_TAG_CONTENT ||
 						!IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES))
-						return INCONSISTENT_PROC_STATE;
+						return EXIP_INCONSISTENT_PROC_STATE;
 
 					SET_PROD_EXI_EVENT(prodHit->content, EVENT_NS);
 					ec.length = 2;
@@ -497,25 +497,25 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 					strm->gStack->currNonTermID = GR_START_TAG_CONTENT;
 				break;
 				case EVENT_SC_CLASS:
-					return NOT_IMPLEMENTED_YET;
+					return EXIP_NOT_IMPLEMENTED_YET;
 				break;
 				case EVENT_SE_CLASS:
-					return NOT_IMPLEMENTED_YET;
+					return EXIP_NOT_IMPLEMENTED_YET;
 				break;
 				case EVENT_CH_CLASS:
-					return NOT_IMPLEMENTED_YET;
+					return EXIP_NOT_IMPLEMENTED_YET;
 				break;
 				case EVENT_ER_CLASS:
-					return NOT_IMPLEMENTED_YET;
+					return EXIP_NOT_IMPLEMENTED_YET;
 				break;
 				case EVENT_CM_CLASS:
-					return NOT_IMPLEMENTED_YET;
+					return EXIP_NOT_IMPLEMENTED_YET;
 				break;
 				case EVENT_PI_CLASS:
-					return NOT_IMPLEMENTED_YET;
+					return EXIP_NOT_IMPLEMENTED_YET;
 				break;
 				default:
-					return INCONSISTENT_PROC_STATE;
+					return EXIP_INCONSISTENT_PROC_STATE;
 			}
 		}
 	}
@@ -525,7 +525,7 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 
 errorCode encodeQName(EXIStream* strm, QName qname, EventType eventT, QNameID* qnameID)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Encoding QName\n"));
 
@@ -542,7 +542,7 @@ errorCode encodeQName(EXIStream* strm, QName qname, EventType eventT, QNameID* q
 
 errorCode encodeUri(EXIStream* strm, String* uri, SmallIndex* uriId)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	unsigned char uriBits = getBitsNumber(strm->schema->uriTable.count);
 
 	if(lookupUri(&strm->schema->uriTable, *uri, uriId)) // uri hit
@@ -558,12 +558,12 @@ errorCode encodeUri(EXIStream* strm, String* uri, SmallIndex* uriId)
 		TRY(addUriEntry(&strm->schema->uriTable, copiedURI, uriId));
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode encodeLn(EXIStream* strm, String* ln, QNameID* qnameID)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 
 	if(lookupLn(&strm->schema->uriTable.uri[qnameID->uriId].lnTable, *ln, &qnameID->lnId)) // local-name table hit
 	{
@@ -587,27 +587,27 @@ errorCode encodeLn(EXIStream* strm, String* ln, QNameID* qnameID)
 		TRY(addLnEntry(&strm->schema->uriTable.uri[qnameID->uriId].lnTable, copiedLN, &qnameID->lnId));
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode encodePfxQName(EXIStream* strm, QName* qname, EventType eventT, SmallIndex uriId)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	unsigned char prefixBits = 0;
 	SmallIndex prefixID = 0;
 
 	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) == FALSE)
-		return ERR_OK;
+		return EXIP_ERR_OK;
 
 	if(strm->schema->uriTable.uri[uriId].pfxTable == NULL || strm->schema->uriTable.uri[uriId].pfxTable->count == 0)
-		return ERR_OK;
+		return EXIP_ERR_OK;
 
 	prefixBits = getBitsNumber(strm->schema->uriTable.uri[uriId].pfxTable->count - 1);
 
 	if(prefixBits > 0)
 	{
 		if(qname == NULL)
-			return NULL_POINTER_REF;
+			return EXIP_NULL_POINTER_REF;
 
 		if(lookupPfx(strm->schema->uriTable.uri[uriId].pfxTable, *qname->prefix, &prefixID) == TRUE)
 		{
@@ -616,18 +616,18 @@ errorCode encodePfxQName(EXIStream* strm, QName* qname, EventType eventT, SmallI
 		else
 		{
 			if(eventT != EVENT_SE_ALL)
-				return INCONSISTENT_PROC_STATE;
+				return EXIP_INCONSISTENT_PROC_STATE;
 
 			TRY(encodeNBitUnsignedInteger(strm, prefixBits, 0));
 		}
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode encodePfx(EXIStream* strm, SmallIndex uriId, String* prefix)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	SmallIndex pfxId;
 	unsigned char pfxBits = getBitsNumber(strm->schema->uriTable.uri[uriId].pfxTable->count);
 
@@ -644,7 +644,7 @@ errorCode encodePfx(EXIStream* strm, SmallIndex uriId, String* prefix)
 		TRY(addPfxEntry(strm->schema->uriTable.uri[uriId].pfxTable, copiedPrefix, &pfxId));
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode encodeIntData(EXIStream* strm, Integer int_val, Index typeId)
@@ -661,7 +661,7 @@ errorCode encodeIntData(EXIStream* strm, Integer int_val, Index typeId)
 
 		if(int_val > strm->schema->simpleTypeTable.sType[typeId].max ||
 				int_val < strm->schema->simpleTypeTable.sType[typeId].min)
-			return INVALID_EXI_INPUT;
+			return EXIP_INVALID_EXI_INPUT;
 
 		encoded_val = (unsigned int) (int_val - strm->schema->simpleTypeTable.sType[typeId].min);
 		numberOfBits = getBitsNumber(strm->schema->simpleTypeTable.sType[typeId].max - strm->schema->simpleTypeTable.sType[typeId].min);
@@ -678,6 +678,6 @@ errorCode encodeIntData(EXIStream* strm, Integer int_val, Index typeId)
 	}
 	else
 	{
-		return INCONSISTENT_PROC_STATE;
+		return EXIP_INCONSISTENT_PROC_STATE;
 	}
 }

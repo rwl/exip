@@ -33,10 +33,10 @@ errorCode readNextBit(EXIStream* strm, boolean* bit_val)
 	if(strm->buffer.bufContent <= strm->context.bufferIndx) // the whole buffer is parsed! read another portion
 	{
 		if(strm->buffer.ioStrm.readWriteToStream == NULL)
-			return BUFFER_END_REACHED;
+			return EXIP_BUFFER_END_REACHED;
 		strm->buffer.bufContent = strm->buffer.ioStrm.readWriteToStream(strm->buffer.buf, strm->buffer.bufLen, strm->buffer.ioStrm.stream);
 		if(strm->buffer.bufContent == 0)
-			return BUFFER_END_REACHED;
+			return EXIP_BUFFER_END_REACHED;
 		strm->context.bitPointer = 0;
 		strm->context.bufferIndx = 0;
 	}
@@ -45,7 +45,7 @@ errorCode readNextBit(EXIStream* strm, boolean* bit_val)
 
 	moveBitPointer(strm, 1);
 	DEBUG_MSG(INFO, DEBUG_STREAM_IO, ("  @%u:%u", (unsigned int) strm->context.bufferIndx, strm->context.bitPointer));
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 errorCode readBits(EXIStream* strm, unsigned char n, unsigned int* bits_val)
@@ -61,14 +61,14 @@ errorCode readBits(EXIStream* strm, unsigned char n, unsigned int* bits_val)
 		Index bytesCopied = strm->buffer.bufContent - strm->context.bufferIndx;
 		Index bytesRead = 0;
 		if(strm->buffer.ioStrm.readWriteToStream == NULL)
-			return BUFFER_END_REACHED;
+			return EXIP_BUFFER_END_REACHED;
 
 		memcpy(leftOverBits, strm->buffer.buf + strm->context.bufferIndx, bytesCopied);
 
 		bytesRead = strm->buffer.ioStrm.readWriteToStream(strm->buffer.buf + bytesCopied, strm->buffer.bufLen - bytesCopied, strm->buffer.ioStrm.stream);
 		strm->buffer.bufContent = bytesRead + bytesCopied;
 		if(strm->buffer.bufContent < numBytesToBeRead)
-			return BUFFER_END_REACHED;
+			return EXIP_BUFFER_END_REACHED;
 
 		memcpy(strm->buffer.buf, leftOverBits, bytesCopied);
 		strm->context.bufferIndx = 0;
@@ -94,6 +94,6 @@ errorCode readBits(EXIStream* strm, unsigned char n, unsigned int* bits_val)
 
 	DEBUG_MSG(INFO, DEBUG_STREAM_IO, ("  @%u:%u\n", (unsigned int) strm->context.bufferIndx, strm->context.bitPointer));
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 

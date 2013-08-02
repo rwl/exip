@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 	EXIPSchema* schemaPtr = NULL;
 	unsigned char outFlag = OUT_EXI; // Default output option
 	unsigned int argIndex = 1;
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 
 	strcpy(sourceFileName, "stdin");
 
@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
 		destroySchema(schemaPtr);
 	fclose(infile);
 
-	if(tmp_err_code != ERR_OK)
+	if(tmp_err_code != EXIP_ERR_OK)
 	{
 		printf("\nError (code: %d) during parsing of the EXI stream: %s\n", tmp_err_code, sourceFileName);
 		return 1;
@@ -134,7 +134,7 @@ size_t readFileInputStream(void* buf, size_t readSize, void* stream)
 
 static void parseSchema(char* xsdList, EXIPSchema* schema)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	FILE *schemaFile;
 	BinaryBuffer buffer[MAX_XSD_FILES_COUNT]; // up to 10 XSD files
 	char schemaFileName[500];
@@ -192,7 +192,7 @@ static void parseSchema(char* xsdList, EXIPSchema* schema)
 		free(buffer[i].buf);
 	}
 
-	if(tmp_err_code != ERR_OK)
+	if(tmp_err_code != EXIP_ERR_OK)
 	{
 		printf("\nGrammar generation error occurred: %d", tmp_err_code);
 		exit(1);

@@ -73,7 +73,7 @@ errorCode decode(EXIPSchema* schemaPtr, unsigned char outFlag, FILE *infile, siz
 	Parser testParser;
 	char buf[INPUT_BUFFER_SIZE];
 	BinaryBuffer buffer;
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	struct appData parsingData;
 
 	buffer.buf = buf;
@@ -126,7 +126,7 @@ errorCode decode(EXIPSchema* schemaPtr, unsigned char outFlag, FILE *infile, siz
 
 	// V: Parse the body of the EXI stream
 
-	while(tmp_err_code == ERR_OK)
+	while(tmp_err_code == EXIP_ERR_OK)
 	{
 		tmp_err_code = parseNext(&testParser);
 	}
@@ -135,8 +135,8 @@ errorCode decode(EXIPSchema* schemaPtr, unsigned char outFlag, FILE *infile, siz
 
 	destroyParser(&testParser);
 
-	if(tmp_err_code == PARSING_COMPLETE)
-		return ERR_OK;
+	if(tmp_err_code == EXIP_PARSING_COMPLETE)
+		return EXIP_ERR_OK;
 	else
 		return tmp_err_code;
 }
@@ -155,7 +155,7 @@ static errorCode sample_startDocument(void* app_data)
 	else if(appD->outputFormat == OUT_XML)
 		printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode sample_endDocument(void* app_data)
@@ -166,7 +166,7 @@ static errorCode sample_endDocument(void* app_data)
 	else if(appD->outputFormat == OUT_XML)
 		printf("\n");
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode sample_startElement(QName qname, void* app_data)
@@ -219,7 +219,7 @@ static errorCode sample_startElement(QName qname, void* app_data)
 		appD->unclosedElement = 1;
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode sample_endElement(void* app_data)
@@ -239,7 +239,7 @@ static errorCode sample_endElement(void* app_data)
 		destroyElement(el);
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode sample_attribute(QName qname, void* app_data)
@@ -266,7 +266,7 @@ static errorCode sample_attribute(QName qname, void* app_data)
 	}
 	appD->expectAttributeData = 1;
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode sample_stringData(const String value, void* app_data)
@@ -304,7 +304,7 @@ static errorCode sample_stringData(const String value, void* app_data)
 		}
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode sample_decimalData(Decimal value, void* app_data)
@@ -338,7 +338,7 @@ static errorCode sample_decimalData(Decimal value, void* app_data)
 		}
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode sample_intData(Integer int_val, void* app_data)
@@ -381,7 +381,7 @@ static errorCode sample_intData(Integer int_val, void* app_data)
 		}
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode sample_booleanData(boolean bool_val, void* app_data)
@@ -431,7 +431,7 @@ static errorCode sample_booleanData(boolean bool_val, void* app_data)
 		}
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode sample_floatData(Float fl_val, void* app_data)
@@ -474,7 +474,7 @@ static errorCode sample_floatData(Float fl_val, void* app_data)
 		}
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode sample_dateTimeData(EXIPDateTime dt_val, void* app_data)
@@ -549,7 +549,7 @@ static errorCode sample_dateTimeData(EXIPDateTime dt_val, void* app_data)
 		}
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode sample_binaryData(const char* binary_val, Index nbytes, void* app_data)
@@ -588,7 +588,7 @@ static errorCode sample_binaryData(const char* binary_val, Index nbytes, void* a
 		}
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode sample_qnameData(const QName qname, void* app_data)
@@ -634,7 +634,7 @@ static errorCode sample_qnameData(const QName qname, void* app_data)
 		}
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 // Stuff needed for the OUT_XML Output Format

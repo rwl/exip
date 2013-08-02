@@ -158,12 +158,12 @@ static const char FALSE_CHAR_STR[] = "false";
 
 errorCode generateTreeTable(BinaryBuffer buffer, SchemaFormat schemaFormat, EXIOptions* opt, TreeTable* treeT, EXIPSchema* schema)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	Parser xsdParser;
 	struct TreeTableParsingData ttpd;
 
 	if(schemaFormat != SCHEMA_FORMAT_XSD_EXI)
-		return NOT_IMPLEMENTED_YET;
+		return EXIP_NOT_IMPLEMENTED_YET;
 
 	TRY(initParser(&xsdParser, buffer, &ttpd));
 
@@ -212,7 +212,7 @@ errorCode generateTreeTable(BinaryBuffer buffer, SchemaFormat schemaFormat, EXIO
 		 * fidelity option is set to true.*/
 		DEBUG_MSG(ERROR, DEBUG_GRAMMAR_GEN, (">XML Schema must be EXI encoded with the prefixes preserved\n"));
 		destroyParser(&xsdParser);
-		return NO_PREFIXES_PRESERVED_XML_SCHEMA;
+		return EXIP_NO_PREFIXES_PRESERVED_XML_SCHEMA;
 	}
 
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">XML Schema header parsed\n"));
@@ -232,15 +232,15 @@ errorCode generateTreeTable(BinaryBuffer buffer, SchemaFormat schemaFormat, EXIO
 		TRY(setSchema(&xsdParser, NULL));
 	}
 
-	while(tmp_err_code == ERR_OK)
+	while(tmp_err_code == EXIP_ERR_OK)
 	{
 		tmp_err_code = parseNext(&xsdParser);
 	}
 
 	destroyParser(&xsdParser);
 
-	if(tmp_err_code == PARSING_COMPLETE)
-		return ERR_OK;
+	if(tmp_err_code == EXIP_PARSING_COMPLETE)
+		return EXIP_ERR_OK;
 
 	return tmp_err_code;
 }
@@ -254,13 +254,13 @@ static errorCode xsd_fatalError(const errorCode code, const char* msg, void* app
 static errorCode xsd_startDocument(void* app_data)
 {
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Start XML Schema parsing\n"));
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode xsd_endDocument(void* app_data)
 {
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">End XML Schema parsing\n"));
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode xsd_startElement(QName qname, void* app_data)
@@ -284,7 +284,7 @@ static errorCode xsd_startElement(QName qname, void* app_data)
 	{
 		TreeTableEntry* treeTableEntry;
 		TreeTableEntry* prevEntry = NULL;
-		errorCode tmp_err_code = UNEXPECTED_ERROR;
+		errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 		Index treeTableId;
 		int i;
 
@@ -327,7 +327,7 @@ static errorCode xsd_startElement(QName qname, void* app_data)
 			{
 				// If it is within an ignored element - ignore this one as well
 				ttpd->ignoredElement += 1;
-				return ERR_OK;
+				return EXIP_ERR_OK;
 			}
 		}
 
@@ -336,17 +336,17 @@ static errorCode xsd_startElement(QName qname, void* app_data)
 		if(stringEqualToAscii(*qname.localName, elemStrings[ELEMENT_ANNOTATION]))
 		{
 			ttpd->ignoredElement += 1;
-			return ERR_OK;
+			return EXIP_ERR_OK;
 		}
 		else if(stringEqualToAscii(*qname.localName, elemStrings[ELEMENT_DOCUMENTATION]))
 		{
 			ttpd->ignoredElement += 1;
-			return ERR_OK;
+			return EXIP_ERR_OK;
 		}
 		else if(stringEqualToAscii(*qname.localName, elemStrings[ELEMENT_APPINFO]))
 		{
 			ttpd->ignoredElement += 1;
-			return ERR_OK;
+			return EXIP_ERR_OK;
 		}
 		else
 			ttpd->ignoredElement = FALSE;
@@ -424,18 +424,18 @@ static errorCode xsd_startElement(QName qname, void* app_data)
 		TRY(pushOnStack(&(ttpd->contextStack), treeTableEntry));
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode xsd_endElement(void* app_data)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	struct TreeTableParsingData* ttpd = (struct TreeTableParsingData*) app_data;
 
 	if(ttpd->ignoredElement != FALSE)
 	{
 		ttpd->ignoredElement -= 1;
-		return ERR_OK;
+		return EXIP_ERR_OK;
 	}
 
 	if(ttpd->contextStack == NULL) // No elements stored in the stack. That is </schema>
@@ -493,7 +493,7 @@ static errorCode xsd_endElement(void* app_data)
 
 				TRY(createDynArray(&nsTable.dynArray, sizeof(String), 5));
 
-				if(ERR_OK != getNsList(ttpd->treeT, entry->attributePointers[ATTRIBUTE_NAMESPACE], &nsTable))
+				if(EXIP_ERR_OK != getNsList(ttpd->treeT, entry->attributePointers[ATTRIBUTE_NAMESPACE], &nsTable))
 					return	EXIP_HANDLER_STOP;
 
 				for(i = 0; i < nsTable.count; i++)
@@ -530,7 +530,7 @@ static errorCode xsd_endElement(void* app_data)
 							return EXIP_HANDLER_STOP;
 						}
 
-						if(hashtable_insert(ttpd->treeT->elemTbl, lnNameStr, ttpd->treeT->count - 1) != ERR_OK)
+						if(hashtable_insert(ttpd->treeT->elemTbl, lnNameStr, ttpd->treeT->count - 1) != EXIP_ERR_OK)
 							return EXIP_HANDLER_STOP;
 					}
 				}
@@ -544,7 +544,7 @@ static errorCode xsd_endElement(void* app_data)
 							return EXIP_HANDLER_STOP;
 						}
 
-						if(hashtable_insert(ttpd->treeT->typeTbl, lnNameStr, ttpd->treeT->count - 1) != ERR_OK)
+						if(hashtable_insert(ttpd->treeT->typeTbl, lnNameStr, ttpd->treeT->count - 1) != EXIP_ERR_OK)
 							return EXIP_HANDLER_STOP;
 					}
 				}
@@ -558,7 +558,7 @@ static errorCode xsd_endElement(void* app_data)
 							return EXIP_HANDLER_STOP;
 						}
 
-						if(hashtable_insert(ttpd->treeT->attrTbl, lnNameStr, ttpd->treeT->count - 1) != ERR_OK)
+						if(hashtable_insert(ttpd->treeT->attrTbl, lnNameStr, ttpd->treeT->count - 1) != EXIP_ERR_OK)
 							return EXIP_HANDLER_STOP;
 					}
 				}
@@ -572,7 +572,7 @@ static errorCode xsd_endElement(void* app_data)
 							return EXIP_HANDLER_STOP;
 						}
 
-						if(hashtable_insert(ttpd->treeT->groupTbl, lnNameStr, ttpd->treeT->count - 1) != ERR_OK)
+						if(hashtable_insert(ttpd->treeT->groupTbl, lnNameStr, ttpd->treeT->count - 1) != EXIP_ERR_OK)
 							return EXIP_HANDLER_STOP;
 					}
 				}
@@ -586,7 +586,7 @@ static errorCode xsd_endElement(void* app_data)
 							return EXIP_HANDLER_STOP;
 						}
 
-						if(hashtable_insert(ttpd->treeT->attrGroupTbl, lnNameStr, ttpd->treeT->count - 1) != ERR_OK)
+						if(hashtable_insert(ttpd->treeT->attrGroupTbl, lnNameStr, ttpd->treeT->count - 1) != EXIP_ERR_OK)
 							return EXIP_HANDLER_STOP;
 					}
 				}
@@ -595,7 +595,7 @@ static errorCode xsd_endElement(void* app_data)
 		}
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode xsd_attribute(QName qname, void* app_data)
@@ -603,7 +603,7 @@ static errorCode xsd_attribute(QName qname, void* app_data)
 	struct TreeTableParsingData* ttpd = (struct TreeTableParsingData*) app_data;
 
 	if(ttpd->ignoredElement != FALSE)
-		return ERR_OK;
+		return EXIP_ERR_OK;
 
 	if(ttpd->propsStat == SCHEMA_ELEMENT_STATE) // <schema> element attribute
 	{
@@ -659,16 +659,16 @@ static errorCode xsd_attribute(QName qname, void* app_data)
 		}
 	}
 	ttpd->expectingAttr = TRUE;
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode xsd_stringData(const String value, void* app_data)
 {
 	struct TreeTableParsingData* ttpd = (struct TreeTableParsingData*) app_data;
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 
 	if(ttpd->ignoredElement != FALSE)
-		return ERR_OK;
+		return EXIP_ERR_OK;
 
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">String data:\n"));
 
@@ -695,15 +695,15 @@ static errorCode xsd_stringData(const String value, void* app_data)
 		DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Ignored element character data"));
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode xsd_boolData(boolean bool_val, void* app_data)
 {
 	struct TreeTableParsingData* ttpd = (struct TreeTableParsingData*) app_data;
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	if(ttpd->ignoredElement != FALSE)
-		return ERR_OK;
+		return EXIP_ERR_OK;
 
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Bool data: %s\n", bool_val == TRUE?TRUE_CHAR_STR:FALSE_CHAR_STR));
 
@@ -728,16 +728,16 @@ static errorCode xsd_boolData(boolean bool_val, void* app_data)
 		DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, ("\n>Ignored element bool data"));
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode xsd_intData(Integer int_val, void* app_data)
 {
 	struct TreeTableParsingData* ttpd = (struct TreeTableParsingData*) app_data;
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	char tmp_str[15];
 	if(ttpd->ignoredElement != FALSE)
-		return ERR_OK;
+		return EXIP_ERR_OK;
 
 	sprintf(tmp_str, "%ld", (long) int_val);
 
@@ -761,18 +761,18 @@ static errorCode xsd_intData(Integer int_val, void* app_data)
 		DEBUG_MSG(WARNING, DEBUG_GRAMMAR_GEN, ("\n>Ignored element int data"));
 	}
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static errorCode xsd_namespaceDeclaration(const String ns, const String pfx, boolean isLocalElementNS, void* app_data)
 {
-	errorCode tmp_err_code = UNEXPECTED_ERROR;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	struct TreeTableParsingData* ttpd = (struct TreeTableParsingData*) app_data;
 	PfxNsEntry pfxNsEntry;
 	Index entryID;
 
 	if(ttpd->ignoredElement != FALSE)
-		return ERR_OK;
+		return EXIP_ERR_OK;
 
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (">Namespace declaration\n"));
 #if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
@@ -787,7 +787,7 @@ static errorCode xsd_namespaceDeclaration(const String ns, const String pfx, boo
 	TRY(cloneStringManaged(&pfx, &pfxNsEntry.pfx, &ttpd->treeT->memList));
 	TRY(addDynEntry(&ttpd->treeT->globalDefs.pfxNsTable.dynArray, &pfxNsEntry, &entryID));
 
-	return ERR_OK;
+	return EXIP_ERR_OK;
 }
 
 static void initEntryContext(TreeTableEntry* entry)
