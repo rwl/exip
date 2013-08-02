@@ -1,0 +1,5 @@
+<root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" >
+    <a>bla</a>
+    <b>23</b>
+    <d>d element unexpected</d>
+</root>

@@ -1,0 +1,19 @@
+<root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" >
+    <a>
+        <d>a is simple string</d>
+    </a>
+    <b>23</b>
+    <c>
+        <d>d is any</d>
+        <!-- other sub-element with attributes -->
+        <d at1="13.2">
+            <d at2="foo">
+                <x at1="0"></x>
+            </d>
+        </d>
+    </c>
+    <x at2="0">bla</x>
+    <x at1="0">
+        <d at2="oo" at1="invFloat">more..</d>
+    </x>
+</root>
