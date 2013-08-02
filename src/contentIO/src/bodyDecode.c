@@ -1335,7 +1335,19 @@ errorCode decodeSEWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallI
 				return INCONSISTENT_PROC_STATE;
 			}
 
+			if(handler->attribute != NULL)  // Invoke handler method for xsi:type
+			{
+				if(handler->attribute(attrQname, app_data) == EXIP_HANDLER_STOP)
+					return HANDLER_STOP_RECEIVED;
+			}
+
 			TRY(decodeQName(strm, &attrQname, &attrQnameId));
+
+			if(handler->qnameData != NULL)  // Invoke handler method for the QName value of xsi:type
+			{
+				if(handler->qnameData(attrQname, app_data) == EXIP_HANDLER_STOP)
+					return HANDLER_STOP_RECEIVED;
+			}
 
 			// New element grammar is pushed on the stack
 			elemGrammar = GET_TYPE_GRAMMAR_QNAMEID(strm->schema, attrQnameId);
