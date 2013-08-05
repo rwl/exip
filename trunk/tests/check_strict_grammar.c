@@ -97,7 +97,7 @@ static void parseSchema(const char* fileName, EXIPSchema* schema)
 
 		tmp_err_code = generateSchemaInformedGrammars(&buffer, 1, SCHEMA_FORMAT_XSD_EXI, NULL, schema, NULL);
 
-		if(tmp_err_code != EXIP_ERR_OK)
+		if(tmp_err_code != EXIP_OK)
 		{
 			fail("\n Error reading schema: %d", tmp_err_code);
 		}
@@ -120,7 +120,7 @@ static errorCode sample_startDocument(void* app_data)
 	appData* appD = (appData*) app_data;
 	asciiToString("SD", &appD->eventCode, &appD->allocList, TRUE);
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode sample_endDocument(void* app_data)
@@ -128,7 +128,7 @@ static errorCode sample_endDocument(void* app_data)
 	appData* appD = (appData*) app_data;
 	asciiToString("ED", &appD->eventCode, &appD->allocList, TRUE);
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode sample_startElement(QName qname, void* app_data)
@@ -138,7 +138,7 @@ static errorCode sample_startElement(QName qname, void* app_data)
 	cloneStringManaged(qname.uri, &appD->uri, &appD->allocList);
 	cloneStringManaged(qname.localName, &appD->localName, &appD->allocList);
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode sample_endElement(void* app_data)
@@ -146,7 +146,7 @@ static errorCode sample_endElement(void* app_data)
 	appData* appD = (appData*) app_data;
 	asciiToString("EE", &appD->eventCode, &appD->allocList, TRUE);
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode sample_attribute(QName qname, void* app_data)
@@ -163,7 +163,7 @@ static errorCode sample_attribute(QName qname, void* app_data)
 	
 	appD->expectAttributeData = 1;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode sample_stringData(const String value, void* app_data)
@@ -187,7 +187,7 @@ static errorCode sample_stringData(const String value, void* app_data)
 		*/
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode sample_decimalData(Decimal value, void* app_data)
@@ -206,7 +206,7 @@ static errorCode sample_decimalData(Decimal value, void* app_data)
 		asciiToString("CH", &appD->eventCode, &appD->allocList, TRUE);
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode sample_intData(Integer int_val, void* app_data)
@@ -233,7 +233,7 @@ static errorCode sample_intData(Integer int_val, void* app_data)
 		*/
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode sample_floatData(Float fl_val, void* app_data)
@@ -261,7 +261,7 @@ static errorCode sample_floatData(Float fl_val, void* app_data)
 		*/
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 /* Tests */
@@ -304,12 +304,12 @@ START_TEST (test_acceptance_for_A_01)
 
 	// II: Second, initialize the parser object
 	tmp_err_code = initParser(&testParser, buffer, &parsingData);
-	fail_unless (tmp_err_code == EXIP_ERR_OK, "initParser returns an error code %d", tmp_err_code);
+	fail_unless (tmp_err_code == EXIP_OK, "initParser returns an error code %d", tmp_err_code);
 
 	// III: Initialize the parsing data and hook the callback handlers to the parser object
 	parsingData.eventCount = 0;
 	parsingData.expectAttributeData = 0;
-	if (EXIP_ERR_OK != initAllocList(&parsingData.allocList))
+	if (EXIP_OK != initAllocList(&parsingData.allocList))
 		fail("Memory allocation error!");
 
 
@@ -327,12 +327,12 @@ START_TEST (test_acceptance_for_A_01)
 	
 	// IV: Parse the header of the stream
 	tmp_err_code = parseHeader(&testParser, FALSE);
-	fail_unless (tmp_err_code == EXIP_ERR_OK, "parsing the header returns an error code %d", tmp_err_code);
+	fail_unless (tmp_err_code == EXIP_OK, "parsing the header returns an error code %d", tmp_err_code);
 
 	tmp_err_code = setSchema(&testParser,  &schema);
-	fail_unless (tmp_err_code == EXIP_ERR_OK, "setSchema() returns an error code %d", tmp_err_code);
+	fail_unless (tmp_err_code == EXIP_OK, "setSchema() returns an error code %d", tmp_err_code);
 	// V: Parse the body of the EXI stream
-	while(tmp_err_code == EXIP_ERR_OK)
+	while(tmp_err_code == EXIP_OK)
 	{
 		switch (parsingData.eventCount)
 		{
@@ -466,12 +466,12 @@ START_TEST (test_acceptance_for_A_01_exip1)
 
 	// II: Second, initialize the parser object
 	tmp_err_code = initParser(&testParser, buffer, &parsingData);
-	fail_unless (tmp_err_code == EXIP_ERR_OK, "initParser returns an error code %d", tmp_err_code);
+	fail_unless (tmp_err_code == EXIP_OK, "initParser returns an error code %d", tmp_err_code);
 
 	// III: Initialize the parsing data and hook the callback handlers to the parser object
 	parsingData.eventCount = 0;
 	parsingData.expectAttributeData = 0;
-	if (EXIP_ERR_OK != initAllocList(&parsingData.allocList))
+	if (EXIP_OK != initAllocList(&parsingData.allocList))
 		fail("Memory allocation error!");
 
 	testParser.handler.fatalError    = sample_fatalError;
@@ -488,13 +488,13 @@ START_TEST (test_acceptance_for_A_01_exip1)
 	
 	// IV: Parse the header of the stream
 	tmp_err_code = parseHeader(&testParser, FALSE);
-	fail_unless (tmp_err_code == EXIP_ERR_OK, "parsing the header returns an error code %d", tmp_err_code);
+	fail_unless (tmp_err_code == EXIP_OK, "parsing the header returns an error code %d", tmp_err_code);
 
 	tmp_err_code = setSchema(&testParser, &schema);
-	fail_unless (tmp_err_code == EXIP_ERR_OK, "setSchema() returns an error code %d", tmp_err_code);
+	fail_unless (tmp_err_code == EXIP_OK, "setSchema() returns an error code %d", tmp_err_code);
 
 	// V: Parse the body of the EXI stream
-	while(tmp_err_code == EXIP_ERR_OK)
+	while(tmp_err_code == EXIP_OK)
 	{
 		switch (parsingData.eventCount)
 		{
@@ -589,7 +589,7 @@ START_TEST (test_acceptance_for_A_01b)
 
 	// IV: Initialize the stream
 	tmp_err_code = serialize.initStream(&testStrm, buffer, &schema);
-	fail_unless (tmp_err_code == EXIP_ERR_OK, "initStream returns an error code %d", tmp_err_code);
+	fail_unless (tmp_err_code == EXIP_OK, "initStream returns an error code %d", tmp_err_code);
 
 	// V: Start building the stream step by step: header, document, element etc...
 	tmp_err_code += serialize.exiHeader(&testStrm);
@@ -599,24 +599,24 @@ START_TEST (test_acceptance_for_A_01b)
 	qname.uri = &NS_STR;
 	qname.localName = &ELEM_A;
 	tmp_err_code += serialize.startElement(&testStrm, qname, &valueType);
-	fail_unless (tmp_err_code == EXIP_ERR_OK, "serialization returns an error code %d", tmp_err_code);
+	fail_unless (tmp_err_code == EXIP_OK, "serialization returns an error code %d", tmp_err_code);
 
 	qname.localName = &ELEM_AB;
 	tmp_err_code += serialize.startElement(&testStrm, qname, &valueType);
 	tmp_err_code += serialize.stringData(&testStrm, CH);
 	tmp_err_code += serialize.endElement(&testStrm);
-	fail_unless (tmp_err_code == EXIP_ERR_OK, "serialization returns an error code %d", tmp_err_code);
+	fail_unless (tmp_err_code == EXIP_OK, "serialization returns an error code %d", tmp_err_code);
 
 	qname.localName = &ELEM_AC;
 	tmp_err_code += serialize.startElement(&testStrm, qname, &valueType);
 	tmp_err_code += serialize.stringData(&testStrm, CH);
 	tmp_err_code += serialize.endElement(&testStrm);
-	fail_unless (tmp_err_code == EXIP_ERR_OK, "serialization returns an error code %d", tmp_err_code);
+	fail_unless (tmp_err_code == EXIP_OK, "serialization returns an error code %d", tmp_err_code);
 	
 	tmp_err_code += serialize.startElement(&testStrm, qname, &valueType);
 	tmp_err_code += serialize.stringData(&testStrm, CH);
 	tmp_err_code += serialize.endElement(&testStrm);
-	fail_unless (tmp_err_code == EXIP_ERR_OK, "serialization returns an error code %d", tmp_err_code);
+	fail_unless (tmp_err_code == EXIP_OK, "serialization returns an error code %d", tmp_err_code);
 	
 	/* Expect failure when start third AC element */
 	tmp_err_code += serialize.startElement(&testStrm, qname, &valueType);
@@ -843,7 +843,7 @@ static error_code serializeIOMsg(char* buf, unsigned int buf_size, unsigned int*
 
 	// IV: Initialize the stream
 	tmp_err_code = serialize.initStream(&strm, buffer, &lkab_schema);
-	if(tmp_err_code != EXIP_ERR_OK)
+	if(tmp_err_code != EXIP_OK)
 		return tmp_err_code;
 
 	// V: Start building the stream step by step: header, document, element etc...
@@ -901,7 +901,7 @@ static error_code serializeIOMsg(char* buf, unsigned int buf_size, unsigned int*
 
 	tmp_err_code += serialize.endDocument(&strm);
 
-	if(tmp_err_code != EXIP_ERR_OK)
+	if(tmp_err_code != EXIP_OK)
 		return tmp_err_code;
 
 	*msg_size = strm.context.bufferIndx + 1;
@@ -909,7 +909,7 @@ static error_code serializeIOMsg(char* buf, unsigned int buf_size, unsigned int*
 	// VI: Free the memory allocated by the EXI stream object
 	tmp_err_code = serialize.closeEXIStream(&strm);
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static error_code serializeDevDescMsg(char* buf, unsigned int buf_size, unsigned int* msg_size, DevDescribtion devDesc)
@@ -947,7 +947,7 @@ static error_code serializeDevDescMsg(char* buf, unsigned int buf_size, unsigned
 
 	// IV: Initialize the stream
 	tmp_err_code = serialize.initStream(&strm, buffer, &lkab_schema);
-	if(tmp_err_code != EXIP_ERR_OK)
+	if(tmp_err_code != EXIP_OK)
 		return tmp_err_code;
 
 	// V: Start building the stream step by step: header, document, element etc...
@@ -1045,7 +1045,7 @@ static error_code serializeDevDescMsg(char* buf, unsigned int buf_size, unsigned
 
 	tmp_err_code += serialize.endDocument(&strm);
 
-	if(tmp_err_code != EXIP_ERR_OK)
+	if(tmp_err_code != EXIP_OK)
 		return tmp_err_code;
 
 	*msg_size = strm.context.bufferIndx + 1;
@@ -1053,7 +1053,7 @@ static error_code serializeDevDescMsg(char* buf, unsigned int buf_size, unsigned
 	// VI: Free the memory allocated by the EXI stream object
 	tmp_err_code = serialize.closeEXIStream(&strm);
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static error_code parseIOMsg(char* buf, unsigned int buf_size, BoolValue *val)
@@ -1078,7 +1078,7 @@ static error_code parseIOMsg(char* buf, unsigned int buf_size, BoolValue *val)
 
 	// II: Second, initialize the parser object
 	tmp_err_code = initParser(&lkabParser, buffer, &parsingData);
-	if(tmp_err_code != EXIP_ERR_OK)
+	if(tmp_err_code != EXIP_OK)
 		return tmp_err_code;
 
 	// III: Initialize the parsing data and hook the callback handlers to the parser object
@@ -1109,7 +1109,7 @@ static error_code parseIOMsg(char* buf, unsigned int buf_size, BoolValue *val)
 	tmp_err_code = setSchema(&lkabParser, &lkab_schema);
 	// V: Parse the body of the EXI stream
 
-	while(tmp_err_code == EXIP_ERR_OK)
+	while(tmp_err_code == EXIP_OK)
 	{
 		tmp_err_code = parseNext(&lkabParser);
 	}
@@ -1123,7 +1123,7 @@ static error_code parseIOMsg(char* buf, unsigned int buf_size, BoolValue *val)
 	val->quality = parsingData.val.quality;
 
 	if(tmp_err_code == EXIP_PARSING_COMPLETE)
-		return EXIP_ERR_OK;
+		return EXIP_OK;
 	else
 		return tmp_err_code;
 }
@@ -1151,7 +1151,7 @@ static error_code parseDevDescMsg(char* buf, unsigned int buf_size, DevDescribti
 
 	// II: Second, initialize the parser object
 	tmp_err_code = initParser(&lkabParser, buffer, &parsingData);
-	if(tmp_err_code != EXIP_ERR_OK)
+	if(tmp_err_code != EXIP_OK)
 		return tmp_err_code;
 
 	// III: Initialize the parsing data and hook the callback handlers to the parser object
@@ -1180,7 +1180,7 @@ static error_code parseDevDescMsg(char* buf, unsigned int buf_size, DevDescribti
 	tmp_err_code = setSchema(&lkabParser, &lkab_schema);
 	// V: Parse the body of the EXI stream
 
-	while(tmp_err_code == EXIP_ERR_OK)
+	while(tmp_err_code == EXIP_OK)
 	{
 		tmp_err_code = parseNext(&lkabParser);
 	}
@@ -1199,7 +1199,7 @@ static error_code parseDevDescMsg(char* buf, unsigned int buf_size, DevDescribti
 	devDesc->processValue.type = parsingData.devDesc.processValue.type;
 
 	if(tmp_err_code == EXIP_PARSING_COMPLETE)
-		return EXIP_ERR_OK;
+		return EXIP_OK;
 	else
 		return tmp_err_code;
 }
@@ -1242,7 +1242,7 @@ static errorCode lkab_startElement_io(QName qname, void* app_data)
 		return EXIP_HANDLER_STOP;
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode lkab_startElement_desc(QName qname, void* app_data)
@@ -1296,12 +1296,12 @@ static errorCode lkab_startElement_desc(QName qname, void* app_data)
 		return EXIP_HANDLER_STOP;
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode lkab_endElement(void* app_data)
 {
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode lkab_stringData_io(const String value, void* app_data)
@@ -1318,7 +1318,7 @@ static errorCode lkab_stringData_io(const String value, void* app_data)
 			if(stringEqual(ENUM_DATA_QUALITY[i], value))
 			{
 				appD->val.quality = i;
-				return EXIP_ERR_OK;
+				return EXIP_OK;
 			}
 		}
 		return EXIP_HANDLER_STOP;
@@ -1368,7 +1368,7 @@ static errorCode lkab_stringData_desc(const String value, void* app_data)
 		break;
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode lkab_booleanData_io(boolean bool_val, void* app_data)
@@ -1382,7 +1382,7 @@ static errorCode lkab_booleanData_io(boolean bool_val, void* app_data)
 		appD->val.val = bool_val;
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode lkab_booleanData_desc(boolean bool_val, void* app_data)
@@ -1396,7 +1396,7 @@ static errorCode lkab_booleanData_desc(boolean bool_val, void* app_data)
 		appD->devDesc.processValue.isReadOnly = bool_val;
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode lkab_dateTimeData(EXIPDateTime dt_val, void* app_data)
@@ -1411,7 +1411,7 @@ static errorCode lkab_dateTimeData(EXIPDateTime dt_val, void* app_data)
 	appD->val.ts.sec = dt_val.dateTime.tm_sec;
 	appD->val.ts.msec = dt_val.fSecs.value;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 #define LKAB_BUFFER_SIZE 1000
@@ -1438,7 +1438,7 @@ START_TEST (test_lkab_demo_suit)
 
 	err = serializeIOMsg(lkab_buf, LKAB_BUFFER_SIZE, &msg_size, bVal);
 
-	fail_unless (err == EXIP_ERR_OK, "Error during serialization of IO Msg %d", err);
+	fail_unless (err == EXIP_OK, "Error during serialization of IO Msg %d", err);
 	fail_if(msg_size == 0, "0 Length message size");
 
 	bVal.ts.hour = 10;
@@ -1453,7 +1453,7 @@ START_TEST (test_lkab_demo_suit)
 
 	err = parseIOMsg(lkab_buf, LKAB_BUFFER_SIZE, &bVal);
 
-	fail_unless (err == EXIP_ERR_OK, "Error during parsing of IO Msg %d", err);
+	fail_unless (err == EXIP_OK, "Error during parsing of IO Msg %d", err);
 	fail_unless (bVal.quality == Good, "quality not correct");
 	fail_unless (bVal.val == 1, "value not correct");
 	fail_unless (bVal.ts.min == 10, "min not correct");
@@ -1471,7 +1471,7 @@ START_TEST (test_lkab_demo_suit)
 
 	err = serializeDevDescMsg(lkab_buf, LKAB_BUFFER_SIZE, &msg_size, devD);
 
-	fail_unless (err == EXIP_ERR_OK, "Error during serialization of DevDesc Msg %d", err);
+	fail_unless (err == EXIP_OK, "Error during serialization of DevDesc Msg %d", err);
 	fail_if(msg_size == 0, "0 Length message size");
 
 	strcpy(devD.id, "00000000000");
@@ -1485,7 +1485,7 @@ START_TEST (test_lkab_demo_suit)
 
 	err = parseDevDescMsg(lkab_buf, LKAB_BUFFER_SIZE, &devD);
 
-	fail_unless (err == EXIP_ERR_OK, "Error during parsing of DevDesc Msg %d", err);
+	fail_unless (err == EXIP_OK, "Error during parsing of DevDesc Msg %d", err);
 	fail_unless (devD.processValue.isReadOnly == 0, "isReadOnly not correct");
 	fail_unless (devD.processValue.type == Bool, "type not correct");
 	fail_unless (strcmp(devD.id, "AirPS") == 0, "id not correct");

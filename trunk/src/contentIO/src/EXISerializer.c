@@ -208,7 +208,7 @@ errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema)
 	else
 		strm->valueTable.hashTbl = NULL;
 #endif
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode startDocument(EXIStream* strm)
@@ -218,7 +218,7 @@ errorCode startDocument(EXIStream* strm)
 	if(strm->gStack->grammar == NULL && strm->gStack->currNonTermID != GR_DOC_CONTENT)
 		return EXIP_INCONSISTENT_PROC_STATE;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode endDocument(EXIStream* strm)
@@ -286,7 +286,7 @@ errorCode startElement(EXIStream* strm, QName qname, EXITypeClass* valueType)
 			// If the next event is not valid AT(xsi:type) - then the event
 			// AT(xsi:type="anyType") will be inserted beforehand
 			TRY(pushGrammar(&(strm->gStack), elemGrammar));
-			return EXIP_ERR_OK;
+			return EXIP_OK;
 #else
 			DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
 			assert(FALSE);
@@ -342,7 +342,7 @@ errorCode startElement(EXIStream* strm, QName qname, EXITypeClass* valueType)
 		}
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode endElement(EXIStream* strm)
@@ -374,7 +374,7 @@ errorCode endElement(EXIStream* strm)
 	else
 		return EXIP_INCONSISTENT_PROC_STATE;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode attribute(EXIStream* strm, QName qname, boolean isSchemaType, EXITypeClass* valueType)
@@ -402,7 +402,7 @@ errorCode attribute(EXIStream* strm, QName qname, boolean isSchemaType, EXITypeC
 			strm->context.currAttr.lnId = XML_SCHEMA_INSTANCE_TYPE_ID;
 			strm->context.attrTypeId = SIMPLE_TYPE_QNAME;
 			*valueType = VALUE_TYPE_QNAME_CLASS;
-			return EXIP_ERR_OK;
+			return EXIP_OK;
 		}
 		else
 		{
@@ -473,7 +473,7 @@ errorCode attribute(EXIStream* strm, QName qname, boolean isSchemaType, EXITypeC
 	strm->context.expectATData = TRUE;
 	strm->context.attrTypeId = prodHit.typeId;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode intData(EXIStream* strm, Integer int_val)
@@ -536,7 +536,7 @@ errorCode booleanData(EXIStream* strm, boolean bool_val)
 		strm->gStack->currNonTermID = GR_START_TAG_CONTENT;
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode stringData(EXIStream* strm, const String str_val)
@@ -708,7 +708,7 @@ errorCode qnameData(EXIStream* strm, QName qname)
 		else if(strm->gStack->grammar == NULL)
 			return EXIP_INCONSISTENT_PROC_STATE;
 
-		return EXIP_ERR_OK;
+		return EXIP_OK;
 	}
 	else
 		return EXIP_INCONSISTENT_PROC_STATE;
@@ -758,7 +758,7 @@ errorCode selfContained(EXIStream* strm)
 
 errorCode closeEXIStream(EXIStream* strm)
 {
-	errorCode tmp_err_code = EXIP_ERR_OK;
+	errorCode tmp_err_code = EXIP_OK;
 	EXIGrammar* tmp;
 
 	while(strm->gStack != NULL)
@@ -809,10 +809,10 @@ errorCode serializeEvent(EXIStream* strm, EventCode ec, QName* qname)
 	switch(GET_PROD_EXI_EVENT(tmpProd->content))
 	{
 		case EVENT_SD:
-			return EXIP_ERR_OK;
+			return EXIP_OK;
 		break;
 		case EVENT_ED:
-			return EXIP_ERR_OK;
+			return EXIP_OK;
 		break;
 		case EVENT_AT_QNAME:
 
@@ -904,7 +904,7 @@ errorCode serializeEvent(EXIStream* strm, EventCode ec, QName* qname)
 				// If the next event is not valid AT(xsi:type) - then the event
 				// AT(xsi:type="anyType") will be inserted beforehand
 				TRY(pushGrammar(&(strm->gStack), elemGrammar));
-				return EXIP_ERR_OK;
+				return EXIP_OK;
 #else
 				DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
 				assert(FALSE);
@@ -946,7 +946,7 @@ errorCode serializeEvent(EXIStream* strm, EventCode ec, QName* qname)
 			return EXIP_INCONSISTENT_PROC_STATE;
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 #if EXI_PROFILE_DEFAULT
@@ -968,7 +968,7 @@ static errorCode encodeATXsiType(EXIStream* strm)
 	TRY(encodeUnsignedInteger(strm, 0));
 	TRY(encodeNBitUnsignedInteger(strm, getBitsNumber((unsigned int)(strm->schema->uriTable.uri[XML_SCHEMA_INSTANCE_ID].lnTable.count - 1)), XML_SCHEMA_INSTANCE_TYPE_ID));
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode encodeAnyType(EXIStream* strm)
@@ -991,6 +991,6 @@ static errorCode encodeAnyType(EXIStream* strm)
 
 	TRY(pushGrammar(&(strm->gStack), anyGrammar));
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 #endif

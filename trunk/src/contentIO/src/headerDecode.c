@@ -167,7 +167,7 @@ errorCode decodeHeader(EXIStream* strm, boolean outOfBandOpts)
 		TRY_CATCH(setSchema(&optionsParser, (EXIPSchema*) &ops_schema), destroyParser(&optionsParser));
 		TRY_CATCH(createValueTable(&optionsParser.strm.valueTable), destroyParser(&optionsParser));
 
-		while(tmp_err_code == EXIP_ERR_OK)
+		while(tmp_err_code == EXIP_OK)
 		{
 			tmp_err_code = parseNext(&optionsParser);
 		}
@@ -205,13 +205,13 @@ static errorCode ops_fatalError(const errorCode code, const char* msg, void* app
 static errorCode ops_startDocument(void* app_data)
 {
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start parsing the EXI Options\n"));
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode ops_endDocument(void* app_data)
 {
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Complete parsing the EXI Options\n"));
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode ops_startElement(QName qname, void* app_data)
@@ -340,12 +340,12 @@ static errorCode ops_startElement(QName qname, void* app_data)
 		// Handle here the user defined meta-data that follows! http://www.w3.org/TR/2011/REC-exi-20110310/#key-userMetaData
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode ops_endElement(void* app_data)
 {
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode ops_attribute(QName qname, void* app_data)
@@ -377,7 +377,7 @@ static errorCode ops_attribute(QName qname, void* app_data)
 		// Handle here the user defined meta-data that follows! http://www.w3.org/TR/2011/REC-exi-20110310/#key-userMetaData
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode ops_stringData(const String value, void* app_data)
@@ -400,7 +400,7 @@ static errorCode ops_stringData(const String value, void* app_data)
 			else
 			{
 				o_appD->parsed_ops->schemaIDMode = SCHEMA_ID_SET;
-				if(cloneStringManaged(&value, &o_appD->parsed_ops->schemaID, o_appD->permanentAllocList) != EXIP_ERR_OK)
+				if(cloneStringManaged(&value, &o_appD->parsed_ops->schemaID, o_appD->permanentAllocList) != EXIP_OK)
 				{
 					DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Memory error\n"));
 					return EXIP_HANDLER_STOP;
@@ -413,7 +413,7 @@ static errorCode ops_stringData(const String value, void* app_data)
 		// Handle here the user defined meta-data that follows! http://www.w3.org/TR/2011/REC-exi-20110310/#key-userMetaData
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode ops_intData(Integer int_val, void* app_data)
@@ -432,7 +432,7 @@ static errorCode ops_intData(Integer int_val, void* app_data)
 			o_appD->parsed_ops->blockSize = (unsigned int) int_val;
 		break;
 	}
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode ops_boolData(boolean bool_val, void* app_data)
@@ -449,5 +449,5 @@ static errorCode ops_boolData(boolean bool_val, void* app_data)
 		// Handle here the user defined meta-data that follows! http://www.w3.org/TR/2011/REC-exi-20110310/#key-userMetaData
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }

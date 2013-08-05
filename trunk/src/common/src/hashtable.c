@@ -168,7 +168,7 @@ errorCode hashtable_insert(struct hashtable *h, String key, Index value)
     e->value = value;
     e->next = h->table[index];
     h->table[index] = e;
-    return EXIP_ERR_OK;
+    return EXIP_OK;
 }
 
 /*****************************************************************************/

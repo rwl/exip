@@ -74,7 +74,7 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 				TRY(handler->endElement(app_data));
 			}
 
-			return EXIP_ERR_OK;
+			return EXIP_OK;
 		}
 	}
 
@@ -105,7 +105,7 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 							TRY(handler->endElement(app_data));
 						}
 
-						return EXIP_ERR_OK;
+						return EXIP_OK;
 					}
 				}
 
@@ -122,7 +122,7 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 			TRY(handler->endElement(app_data));
 		}
 
-		return EXIP_ERR_OK;
+		return EXIP_OK;
 	}
 
 	// Production with length code 1 not found: search second or third level productions
@@ -165,7 +165,7 @@ static errorCode handleProduction(EXIStream* strm, Production* prodHit, SmallInd
 		break;
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRule, SmallIndex* nonTermID_out, ContentHandler* handler, void* app_data)
@@ -701,7 +701,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 		}
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 /*
@@ -757,7 +757,7 @@ errorCode decodeUri(EXIStream* strm, SmallIndex* uriId)
 			return EXIP_INVALID_EXI_INPUT;
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode decodeLn(EXIStream* strm, Index uriId, Index* lnId)
@@ -794,7 +794,7 @@ errorCode decodeLn(EXIStream* strm, Index uriId, Index* lnId)
 		TRY(addLnEntry(&strm->schema->uriTable.uri[uriId].lnTable, lnStr, lnId));
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode decodePfxQname(EXIStream* strm, QName* qname, SmallIndex uriId)
@@ -806,10 +806,10 @@ errorCode decodePfxQname(EXIStream* strm, QName* qname, SmallIndex uriId)
 	qname->prefix = NULL;
 
 	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) == FALSE)
-		return EXIP_ERR_OK;
+		return EXIP_OK;
 
 	if(strm->schema->uriTable.uri[uriId].pfxTable == NULL || strm->schema->uriTable.uri[uriId].pfxTable->count == 0)
-		return EXIP_ERR_OK;
+		return EXIP_OK;
 
 	prefixBits = getBitsNumber(strm->schema->uriTable.uri[uriId].pfxTable->count - 1);
 
@@ -823,7 +823,7 @@ errorCode decodePfxQname(EXIStream* strm, QName* qname, SmallIndex uriId)
 
 	qname->prefix = &strm->schema->uriTable.uri[uriId].pfxTable->pfxStr[prefixID];
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode decodePfx(EXIStream* strm, SmallIndex uriId, SmallIndex* pfxId)
@@ -849,7 +849,7 @@ errorCode decodePfx(EXIStream* strm, SmallIndex uriId, SmallIndex* pfxId)
 			return EXIP_INVALID_EXI_INPUT;
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode decodeStringValue(EXIStream* strm, QNameID qnameID, String* value)
@@ -899,7 +899,7 @@ errorCode decodeStringValue(EXIStream* strm, QNameID qnameID, String* value)
 			TRY(addValueEntry(strm, *value, qnameID));
 		}
 	}
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode decodeEventContent(EXIStream* strm, Production* prodHit, ContentHandler* handler,
@@ -1002,7 +1002,7 @@ errorCode decodeEventContent(EXIStream* strm, Production* prodHit, ContentHandle
 			return EXIP_NOT_IMPLEMENTED_YET;
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler, SmallIndex* nonTermID_out, QNameID localQNameID, void* app_data)
@@ -1215,7 +1215,7 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 		} break;
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode decodeNSEvent(EXIStream* strm, ContentHandler* handler, SmallIndex* nonTermID_out, void* app_data)
@@ -1242,7 +1242,7 @@ errorCode decodeNSEvent(EXIStream* strm, ContentHandler* handler, SmallIndex* no
 	{
 		TRY(handler->namespaceDeclaration(strm->schema->uriTable.uri[ns_uriId].uriStr, strm->schema->uriTable.uri[ns_uriId].pfxTable->pfxStr[pfxId], bool, app_data));
 	}
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode decodeSEWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallIndex* nonTermID_out, void* app_data)
@@ -1343,7 +1343,7 @@ errorCode decodeSEWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallI
 	}
 
 	strm->gStack->currQNameID = qnameId;
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode decodeATWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallIndex* nonTermID_out, void* app_data)
@@ -1374,7 +1374,7 @@ errorCode decodeATWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallI
 	TRY(decodeValueItem(strm, INDEX_MAX, handler, nonTermID_out, qnameId, app_data));
 	strm->context.currAttr = qnameId;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode decodeQNameValue(EXIStream* strm, ContentHandler* handler, SmallIndex* nonTermID_out, void* app_data)
@@ -1406,5 +1406,5 @@ static errorCode decodeQNameValue(EXIStream* strm, ContentHandler* handler, Smal
 		TRY(pushGrammar(&(strm->gStack), newGrammar));
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }

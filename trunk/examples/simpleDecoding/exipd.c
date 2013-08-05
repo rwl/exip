@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
 		destroySchema(schemaPtr);
 	fclose(infile);
 
-	if(tmp_err_code != EXIP_ERR_OK)
+	if(tmp_err_code != EXIP_OK)
 	{
 		printf("\nError (code: %d) during parsing of the EXI stream: %s\n", tmp_err_code, sourceFileName);
 		return 1;
@@ -192,7 +192,7 @@ static void parseSchema(char* xsdList, EXIPSchema* schema)
 		free(buffer[i].buf);
 	}
 
-	if(tmp_err_code != EXIP_ERR_OK)
+	if(tmp_err_code != EXIP_OK)
 	{
 		printf("\nGrammar generation error occurred: %d", tmp_err_code);
 		exit(1);

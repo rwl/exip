@@ -29,7 +29,7 @@ errorCode initAllocList(AllocList* list)
 	list->lastBlock = list->firstBlock;
 	list->currAllocSlot = 0;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 void* memManagedAllocate(AllocList* list, size_t size)

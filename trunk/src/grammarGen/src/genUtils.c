@@ -43,7 +43,7 @@ errorCode concatenateGrammars(ProtoGrammar* left, ProtoGrammar* right)
 	assert(left);
 
 	if(right == NULL)
-		return EXIP_ERR_OK;
+		return EXIP_OK;
 
 	/* 
 	 * Concatentation works as follows:
@@ -125,7 +125,7 @@ errorCode concatenateGrammars(ProtoGrammar* left, ProtoGrammar* right)
 		}
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode addProductionsToARule(ProtoGrammar* left, Index ruleIndxL, ProtoGrammar* right, Index ruleIndxR,
@@ -280,7 +280,7 @@ static errorCode addProductionsToARule(ProtoGrammar* left, Index ruleIndxL, Prot
 										 nonTermRight));
 		}
 	}
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode createSimpleTypeGrammar(Index typeId, ProtoGrammar* simpleGrammar)
@@ -296,7 +296,7 @@ errorCode createSimpleTypeGrammar(Index typeId, ProtoGrammar* simpleGrammar)
 	TRY(addProtoRule(simpleGrammar, 2, &pRuleEntry));
 	TRY(addEEProduction(pRuleEntry));
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode createComplexTypeGrammar(ProtoGrammarArray* attrUseArray, ProtoGrammar* contentTypeGrammar,
@@ -347,7 +347,7 @@ errorCode createComplexTypeGrammar(ProtoGrammarArray* attrUseArray, ProtoGrammar
 		complexGrammar->contentIndex = 0;
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode createComplexUrTypeGrammar(ProtoGrammar* result)
@@ -374,7 +374,7 @@ errorCode createAttributeUseGrammar(boolean required, Index typeId,
 	TRY(addProtoRule(attrGrammar, 4, &pRuleEntry));
 	TRY(addEEProduction(pRuleEntry));
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode createParticleGrammar(int minOccurs, int maxOccurs,
@@ -467,7 +467,7 @@ errorCode createParticleGrammar(int minOccurs, int maxOccurs,
 		}
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode createElementTermGrammar(ProtoGrammar* elemGrammar, QNameID qnameID, Index grIndex)
@@ -483,7 +483,7 @@ errorCode createElementTermGrammar(ProtoGrammar* elemGrammar, QNameID qnameID, I
 	TRY(addProtoRule(elemGrammar, 3, &pRuleEntry));
 	TRY(addEEProduction(pRuleEntry));
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode createWildcardTermGrammar(String* wildcardArray, Index wildcardArraySize, UriTable* uriT, ProtoGrammar* wildcardGrammar)
@@ -523,7 +523,7 @@ errorCode createWildcardTermGrammar(String* wildcardArray, Index wildcardArraySi
 	TRY(addProtoRule(wildcardGrammar, 2, &pRuleEntry));
 	TRY(addEEProduction(pRuleEntry));
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode createSequenceModelGroupsGrammar(ProtoGrammar** grArray, unsigned int arrSize, ProtoGrammar* seqGrammar)
@@ -550,7 +550,7 @@ errorCode createSequenceModelGroupsGrammar(ProtoGrammar** grArray, unsigned int 
 			TRY(concatenateGrammars(seqGrammar, grArray[i]));
 		}
 	}
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode createChoiceModelGroupsGrammar(ProtoGrammarArray* pgArray, ProtoGrammar* modGrpGrammar)
@@ -629,7 +629,7 @@ errorCode createChoiceModelGroupsGrammar(ProtoGrammarArray* pgArray, ProtoGramma
 		}
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode createAllModelGroupsGrammar(ProtoGrammar* pTermArray, unsigned int pTermArraySize, ProtoGrammar* modGrpGrammar)
@@ -651,7 +651,7 @@ errorCode addEEProduction(ProtoRuleEntry* rule)
 	prod->qnameId.uriId = URI_MAX;
 	prod->qnameId.lnId = LN_MAX;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 int compareQNameID(const void* qnameID1, const void* qnameID2, UriTable* uriTbl)

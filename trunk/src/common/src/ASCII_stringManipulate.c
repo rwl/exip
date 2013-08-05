@@ -25,7 +25,7 @@ errorCode allocateStringMemory(CharType** str, Index UCSchars)
 	*str = EXIP_MALLOC(sizeof(CharType)*UCSchars);
 	if((*str) == NULL)
 		return EXIP_MEMORY_ALLOCATION_ERROR;
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode allocateStringMemoryManaged(CharType** str, Index UCSchars, AllocList* memList)
@@ -33,7 +33,7 @@ errorCode allocateStringMemoryManaged(CharType** str, Index UCSchars, AllocList*
 	(*str) = (CharType*) memManagedAllocate(memList, sizeof(CharType)*UCSchars);
 	if((*str) == NULL)
 		return EXIP_MEMORY_ALLOCATION_ERROR;
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 /**
@@ -45,7 +45,7 @@ errorCode writeCharToString(String* str, uint32_t code_point, Index* writerPosit
 		return EXIP_OUT_OF_BOUND_BUFFER;
 	str->str[*writerPosition] = (CharType) code_point;
 	*writerPosition += 1;
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 void getEmptyString(String* emptyStr)
@@ -69,7 +69,7 @@ errorCode asciiToString(const char* inStr, String* outStr, AllocList* memList, b
 		if(clone == FALSE)
 		{
 			outStr->str = (CharType*) inStr;
-			return EXIP_ERR_OK;
+			return EXIP_OK;
 		}
 		else
 		{
@@ -77,12 +77,12 @@ errorCode asciiToString(const char* inStr, String* outStr, AllocList* memList, b
 			if(outStr->str == NULL)
 				return EXIP_MEMORY_ALLOCATION_ERROR;
 			memcpy(outStr->str, inStr, outStr->length);
-			return EXIP_ERR_OK;
+			return EXIP_OK;
 		}
 	}
 	else
 		outStr->str = NULL;
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 boolean stringEqual(const String str1, const String str2)
@@ -161,7 +161,7 @@ errorCode cloneString(const String* src, String* newStr)
 		return EXIP_MEMORY_ALLOCATION_ERROR;
 	newStr->length = src->length;
 	memcpy(newStr->str, src->str, src->length);
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode cloneStringManaged(const String* src, String* newStr, AllocList* memList)
@@ -173,7 +173,7 @@ errorCode cloneStringManaged(const String* src, String* newStr, AllocList* memLi
 		return EXIP_MEMORY_ALLOCATION_ERROR;
 	newStr->length = src->length;
 	memcpy(newStr->str, src->str, src->length);
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 Index getIndexOfChar(const String* src, CharType sCh)
@@ -210,7 +210,7 @@ errorCode stringToInteger(const String* src, int* number)
 
 	*number = (int) result;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode stringToInt64(const String* src, int64_t* number)
@@ -235,7 +235,7 @@ errorCode stringToInt64(const String* src, int64_t* number)
 
 	*number = (int64_t) result;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 #if EXIP_DEBUG == ON
