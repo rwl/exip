@@ -256,7 +256,20 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 				*nonTermID_out = GR_START_TAG_CONTENT;
 
 				TRY(decodeATWildcardEvent(strm, handler, nonTermID_out, app_data));
-				TRY(insertZeroProduction((DynGrammarRule*) currentRule, EVENT_AT_QNAME, GR_START_TAG_CONTENT, &strm->context.currAttr, 1));
+
+				// If eventType == AT(qname) and qname == xsi:type check first if there is no
+				// such production already at top level (see http://www.w3.org/XML/EXI/exi-10-errata#Substantive20120508)
+				// If there is no -> insert one, otherwise don't insert it
+				if(strm->context.currAttr.uriId == XML_SCHEMA_INSTANCE_ID && strm->context.currAttr.lnId == XML_SCHEMA_INSTANCE_TYPE_ID)
+				{
+					if(!RULE_CONTAIN_XSI_TYPE(((DynGrammarRule*) currentRule)->meta))
+					{
+						RULE_SET_CONTAIN_XSI_TYPE(((DynGrammarRule*) currentRule)->meta);
+						TRY(insertZeroProduction((DynGrammarRule*) currentRule, EVENT_AT_QNAME, GR_START_TAG_CONTENT, &strm->context.currAttr, 1));
+					}
+				}
+				else
+					TRY(insertZeroProduction((DynGrammarRule*) currentRule, EVENT_AT_QNAME, GR_START_TAG_CONTENT, &strm->context.currAttr, 1));
 			break;
 			case 2:
 				// StartTagContent : NS event

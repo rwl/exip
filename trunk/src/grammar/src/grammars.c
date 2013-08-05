@@ -182,6 +182,7 @@ errorCode createBuiltInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 	tmp_rule->production[0].qnameId.uriId = URI_MAX;
 	tmp_rule->production[0].qnameId.lnId = LN_MAX;
 	tmp_rule->pCount = 1;
+	tmp_rule->meta = 0;
 	tmp_rule->prodDim = DEFAULT_PROD_ARRAY_DIM;
 	/* More part 1 productions get added later... */
 

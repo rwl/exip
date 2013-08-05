@@ -264,7 +264,19 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 					qnameID.lnId = strm->schema->uriTable.uri[qnameID.uriId].lnTable.count;
 				}
 
-				TRY(insertZeroProduction((DynGrammarRule*) currentRule, EVENT_AT_QNAME, GR_START_TAG_CONTENT, &qnameID, 1));
+				// If eventType == AT(qname) and qname == xsi:type check first if there is no
+				// such production already at top level (see http://www.w3.org/XML/EXI/exi-10-errata#Substantive20120508)
+				// If there is no -> insert one, otherwise don't insert it
+				if(qnameID.uriId == XML_SCHEMA_INSTANCE_ID && qnameID.lnId == XML_SCHEMA_INSTANCE_TYPE_ID)
+				{
+					if(!RULE_CONTAIN_XSI_TYPE(((DynGrammarRule*) currentRule)->meta))
+					{
+						RULE_SET_CONTAIN_XSI_TYPE(((DynGrammarRule*) currentRule)->meta);
+						TRY(insertZeroProduction((DynGrammarRule*) currentRule, EVENT_AT_QNAME, GR_START_TAG_CONTENT, &qnameID, 1));
+					}
+				}
+				else
+					TRY(insertZeroProduction((DynGrammarRule*) currentRule, EVENT_AT_QNAME, GR_START_TAG_CONTENT, &qnameID, 1));
 			break;
 			case EVENT_NS_CLASS:
 				if(strm->gStack->currNonTermID != GR_START_TAG_CONTENT || !IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES))

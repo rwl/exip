@@ -633,19 +633,22 @@ struct GrammarRule
     /** The number of productions */
     Index pCount;
 
-    // TODO: Think about get rid of that meta info
     /** Meta information for the grammar rule:
      * - most significant 15 bits contain the number of AT(qname)[schema-typed value]  productions
-     * - least significant bit is used to indicate whether it has an EE production */
+     * - least significant bit is used to: (1) indicate whether the rule has an EE production
+     * in case of Schema grammar OR (2) whether the rule contain AT(xsi:type) production in
+     * case of Build-in element grammar */
     uint16_t meta;
 };
 
 typedef struct GrammarRule GrammarRule;
 
-#define RULE_CONTAIN_EE_MASK       0x01 // 0b0000000000000001
+#define RULE_CONTAIN_EE_OR_XSI_TYPE_MASK       0x01 // 0b0000000000000001
 
-#define RULE_CONTAIN_EE(meta) ((meta & RULE_CONTAIN_EE_MASK) != 0)
-#define RULE_SET_CONTAIN_EE(meta) (meta = meta | RULE_CONTAIN_EE_MASK)
+#define RULE_CONTAIN_EE(meta) ((meta & RULE_CONTAIN_EE_OR_XSI_TYPE_MASK) != 0)
+#define RULE_SET_CONTAIN_EE(meta) (meta = meta | RULE_CONTAIN_EE_OR_XSI_TYPE_MASK)
+#define RULE_CONTAIN_XSI_TYPE(meta) ((meta & RULE_CONTAIN_EE_OR_XSI_TYPE_MASK) != 0)
+#define RULE_SET_CONTAIN_XSI_TYPE(meta) (meta = meta | RULE_CONTAIN_EE_OR_XSI_TYPE_MASK)
 
 #define RULE_SET_AT_COUNT(meta, ac) (meta = meta | (ac<<1))
 #define RULE_GET_AT_COUNT(meta) (meta>>1)
