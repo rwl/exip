@@ -1287,14 +1287,32 @@ errorCode decodeSEWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallI
 			unsigned int tmp_bits_val = 0;
 			QName attrQname;
 			QNameID attrQnameId = {URI_MAX, LN_MAX};
+			unsigned int firstLevelProductionFlag = 0;
 
 			prodCnt += IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES);
 			prodCnt += WITH_SELF_CONTAINED(strm->header.opts.enumOpt);
 			prodCnt += IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD);
 			prodCnt += (IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) || IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS));
 
+			// In case xsi:type was used for that QName before, there is one AT(xsi:type) first level production
+			// Check if such production exists:
+			TRY(decodeNBitUnsignedInteger(strm, 1, &tmp_bits_val));
+			if(tmp_bits_val == 0)
+			{
+				// the corresponding grammar is a new built-in element grammar with no top-level production at all
+				firstLevelProductionFlag = 1;
+			}
+			else
+			{
+				// if in byte-aligned mode, we need to look further to determine if there is top level AT(xsi:type) production
+				if(WITH_COMPRESSION(strm->header.opts.enumOpt) == TRUE || GET_ALIGNMENT(strm->header.opts.enumOpt) != BIT_PACKED)
+				{
+					return EXIP_NOT_IMPLEMENTED_YET;
+				}
+			}
+
 			// There should be a valid xsi:type switch, otherwise rise an error
-			TRY(decodeNBitUnsignedInteger(strm, getBitsNumber(prodCnt  - 1), &tmp_bits_val));
+			TRY(decodeNBitUnsignedInteger(strm, getBitsNumber(prodCnt  - 1) - firstLevelProductionFlag, &tmp_bits_val));
 			if(tmp_bits_val != 1)
 			{
 				DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));

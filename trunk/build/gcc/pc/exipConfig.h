@@ -104,7 +104,7 @@
  *
  * @see http://www.w3.org/TR/exi-profile/
  */
-#define EXI_PROFILE_DEFAULT OFF
+#define EXI_PROFILE_DEFAULT ON
 
 #if EXI_PROFILE_DEFAULT
 # define VALUE_CROSSTABLE_USE  OFF

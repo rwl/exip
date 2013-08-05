@@ -957,6 +957,11 @@ static errorCode encodeATXsiType(EXIStream* strm)
 	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	EventCode tmpEvCode;
 
+	// TODO: there are cases when AT(xsi:type) for that Element Qname was already used.
+	// In this case there is a top level AT(xsi:type) production inserted and hence
+	// the first part of the event code with value 1 must be encoded before the second level part of the event code
+	// Note that this requires keeping a state of which QNames have top level AT(xsi:type) production already inserted
+
 	tmpEvCode.length = 1;
 	tmpEvCode.part[0] = 1;
 	tmpEvCode.bits[0] = 2 + (IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) ||
