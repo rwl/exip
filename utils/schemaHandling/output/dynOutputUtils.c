@@ -45,7 +45,7 @@ errorCode dynExipSchemaOutput(EXIPSchema* schema, char* prefix, unsigned char ma
 	fprintf(out, "if(schema == NULL)\n\t return EXIP_NULL_POINTER_REF;\n\t");
 
 	fprintf(out, "tmp_err_code = initAllocList(&schema->memList);\n\t");
-	fprintf(out, "if(tmp_err_code != EXIP_ERR_OK)\n\t return tmp_err_code;\n\t");
+	fprintf(out, "if(tmp_err_code != EXIP_OK)\n\t return tmp_err_code;\n\t");
 
 	for(uriIter = 0; uriIter < schema->uriTable.count; uriIter++)
 	{
@@ -65,7 +65,7 @@ errorCode dynExipSchemaOutput(EXIPSchema* schema, char* prefix, unsigned char ma
 			{
 				fprintf(out, "getEmptyString(&pTable_%d->string_val[%d]);\n\t", uriIter, pfxIter);
 			}
-			fprintf(out, "if(tmp_err_code != EXIP_ERR_OK)\n\t return EXIP_UNEXPECTED_ERROR;\n\t");
+			fprintf(out, "if(tmp_err_code != EXIP_OK)\n\t return EXIP_UNEXPECTED_ERROR;\n\t");
 		}
 
 		for(lnIter = 0; lnIter < schema->uriTable.uri[uriIter].lnTable.count; lnIter++)
@@ -79,7 +79,7 @@ errorCode dynExipSchemaOutput(EXIPSchema* schema, char* prefix, unsigned char ma
 			{
 				if(mask_specified == TRUE)
 				{
-					if(EXIP_ERR_OK != addUndeclaredProductions(&schema->memList, mask_strict, mask_sc, mask_preserve, tmpGrammar, &schema->simpleTypeTable))
+					if(EXIP_OK != addUndeclaredProductions(&schema->memList, mask_strict, mask_sc, mask_preserve, tmpGrammar, &schema->simpleTypeTable))
 					{
 						printf("\n ERROR: OUT_SRC_DYN output format!");
 						exit(1);
@@ -140,7 +140,7 @@ errorCode dynExipSchemaOutput(EXIPSchema* schema, char* prefix, unsigned char ma
 					exit(1);
 				}
 
-				if(EXIP_ERR_OK != hashtable_insert(typeGrammarsHash, &hashKey, tgCount))
+				if(EXIP_OK != hashtable_insert(typeGrammarsHash, &hashKey, tgCount))
 				{
 					printf("\n ERROR: OUT_SRC_DYN output format!");
 					exit(1);
@@ -239,9 +239,9 @@ errorCode dynExipSchemaOutput(EXIPSchema* schema, char* prefix, unsigned char ma
 	fprintf(out, "schema->simpleTypeTable.count = %d;\n\t", schema->simpleTypeTable.count);
 	fprintf(out, "schema->isAugmented = %d;\n\t", mask_specified);
 	fprintf(out, "schema->isStatic = FALSE;\n\t");
-	fprintf(out, "return EXIP_ERR_OK;\n}");
+	fprintf(out, "return EXIP_OK;\n}");
 
 	hashtable_destroy(typeGrammarsHash);
 #endif
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }

@@ -155,7 +155,7 @@ errorCode createValueTable(ValueTable* valueTable)
 #if HASH_TABLE_USE
 	valueTable->hashTbl = NULL;
 #endif
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode createPfxTable(PfxTable** pfxTable)
@@ -167,7 +167,7 @@ errorCode createPfxTable(PfxTable** pfxTable)
 		return EXIP_MEMORY_ALLOCATION_ERROR;
 
 	(*pfxTable)->count = 0;
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode addUriEntry(UriTable* uriTable, String uriStr, SmallIndex* uriEntryId)
@@ -187,7 +187,7 @@ errorCode addUriEntry(UriTable* uriTable, String uriStr, SmallIndex* uriEntryId)
 	TRY(createDynArray(&uriEntry->lnTable.dynArray, sizeof(LnEntry), DEFAULT_LN_ENTRIES_NUMBER));
 
 	*uriEntryId = (SmallIndex)uriLEntryId;
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode addLnEntry(LnTable* lnTable, String lnStr, Index* lnEntryId)
@@ -205,7 +205,7 @@ errorCode addLnEntry(LnTable* lnTable, String lnStr, Index* lnEntryId)
 	// The Vx table is created on-demand (additions to value cross table are done when a value is inserted in the value table)
 	lnEntry->vxTable = NULL;
 #endif
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode addValueEntry(EXIStream* strm, String valueStr, QNameID qnameID)
@@ -298,7 +298,7 @@ errorCode addValueEntry(EXIStream* strm, String valueStr, QNameID qnameID)
 	if(strm->valueTable.globalId == strm->header.opts.valuePartitionCapacity)
 		strm->valueTable.globalId = 0;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode addPfxEntry(PfxTable* pfxTable, String pfxStr, SmallIndex* pfxEntryId)
@@ -310,7 +310,7 @@ errorCode addPfxEntry(PfxTable* pfxTable, String pfxStr, SmallIndex* pfxEntryId)
 	pfxTable->pfxStr[pfxTable->count].str = pfxStr.str;
 	*pfxEntryId = pfxTable->count++;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode createUriTableEntry(UriTable* uriTable, const String uri, int createPfx, const String pfx, const String* lnBase, Index lnSize)
@@ -339,7 +339,7 @@ errorCode createUriTableEntry(UriTable* uriTable, const String uri, int createPf
 	{
 		TRY(addLnEntry(&uriEntry->lnTable, lnBase[i], &lnEntryId));
 	}
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode createUriTableEntries(UriTable* uriTable, boolean withSchema)
@@ -385,7 +385,7 @@ errorCode createUriTableEntries(UriTable* uriTable, boolean withSchema)
 										   URI_3_LN_SIZE));
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 boolean lookupUri(UriTable* uriTable, String uriStr, SmallIndex* uriEntryId)

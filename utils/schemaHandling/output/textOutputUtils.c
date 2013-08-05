@@ -118,7 +118,7 @@ errorCode textGrammarOutput(QNameID qnameid, Index grIndex, EXIGrammar* gr, EXIP
 		fprintf(out, "\n");
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static void writeValueTypeString(FILE* out, EXIType exiType)
@@ -173,7 +173,7 @@ errorCode recursiveTextGrammarOutput(QNameID qnameid, Index grIndex, EXIGrammar*
 	Index r, p;
 
 	tmp_err_code = textGrammarOutput(qnameid, grIndex, gr, schema, out);
-	if(tmp_err_code != EXIP_ERR_OK)
+	if(tmp_err_code != EXIP_OK)
 		return tmp_err_code;
 
 	for(r = 0; r < gr->count; r++)
@@ -184,12 +184,12 @@ errorCode recursiveTextGrammarOutput(QNameID qnameid, Index grIndex, EXIGrammar*
 					gr->rule[r].production[p].typeId != INDEX_MAX)
 			{
 				tmp_err_code = recursiveTextGrammarOutput(gr->rule[r].production[p].qnameId, gr->rule[r].production[p].typeId, &schema->grammarTable.grammar[gr->rule[r].production[p].typeId], schema, out);
-				if(tmp_err_code != EXIP_ERR_OK)
+				if(tmp_err_code != EXIP_OK)
 					return tmp_err_code;
 			}
 		}
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 

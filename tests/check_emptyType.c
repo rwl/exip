@@ -86,7 +86,7 @@ static void parseSchema(const char* fileName, EXIPSchema* schema)
 
 		tmp_err_code = generateSchemaInformedGrammars(&buffer, 1, SCHEMA_FORMAT_XSD_EXI, NULL, schema, NULL);
 
-		if(tmp_err_code != EXIP_ERR_OK)
+		if(tmp_err_code != EXIP_OK)
 		{
 			fail("\n Error reading schema: %d", tmp_err_code);
 		}
@@ -136,7 +136,7 @@ static errorCode sample_startElement(QName qname, void* app_data)
 			return EXIP_HANDLER_STOP;
 			break;
 	}
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode sample_attribute(QName qname, void* app_data)
@@ -183,7 +183,7 @@ static errorCode sample_attribute(QName qname, void* app_data)
 			return EXIP_HANDLER_STOP;
 			break;
 	}
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode sample_stringData(const String value, void* app_data)
@@ -211,7 +211,7 @@ static errorCode sample_stringData(const String value, void* app_data)
 			return EXIP_HANDLER_STOP;
 			break;
 	}
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode sample_intData(Integer int_val, void* app_data)
@@ -222,7 +222,7 @@ static errorCode sample_intData(Integer int_val, void* app_data)
 		return EXIP_HANDLER_STOP;
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 START_TEST (test_default_options)
@@ -263,7 +263,7 @@ START_TEST (test_default_options)
 
 	// II: Second, initialize the parser object
 	tmp_err_code = initParser(&testParser, buffer, &parsingData);
-	fail_unless (tmp_err_code == EXIP_ERR_OK, "initParser returns an error code %d", tmp_err_code);
+	fail_unless (tmp_err_code == EXIP_OK, "initParser returns an error code %d", tmp_err_code);
 
 	// III: Initialize the parsing data and hook the callback handlers to the parser object
 	parsingData.eventCount = 0;
@@ -279,13 +279,13 @@ START_TEST (test_default_options)
 	// IV: Parse the header of the stream
 
 	tmp_err_code = parseHeader(&testParser, TRUE);
-	fail_unless (tmp_err_code == EXIP_ERR_OK, "parsing the header returns an error code %d", tmp_err_code);
+	fail_unless (tmp_err_code == EXIP_OK, "parsing the header returns an error code %d", tmp_err_code);
 
 	tmp_err_code = setSchema(&testParser, &schema);
-	fail_unless (tmp_err_code == EXIP_ERR_OK, "setSchema() returns an error code %d", tmp_err_code);
+	fail_unless (tmp_err_code == EXIP_OK, "setSchema() returns an error code %d", tmp_err_code);
 	// V: Parse the body of the EXI stream
 
-	while(tmp_err_code == EXIP_ERR_OK)
+	while(tmp_err_code == EXIP_OK)
 	{
 		tmp_err_code = parseNext(&testParser);
 	}
@@ -335,7 +335,7 @@ START_TEST (test_strict_option)
 
 	// II: Second, initialize the parser object
 	tmp_err_code = initParser(&testParser, buffer, &parsingData);
-	fail_unless (tmp_err_code == EXIP_ERR_OK, "initParser returns an error code %d", tmp_err_code);
+	fail_unless (tmp_err_code == EXIP_OK, "initParser returns an error code %d", tmp_err_code);
 
 	// III: Initialize the parsing data and hook the callback handlers to the parser object
 	parsingData.eventCount = 0;
@@ -351,14 +351,14 @@ START_TEST (test_strict_option)
 	// IV: Parse the header of the stream
 
 	tmp_err_code = parseHeader(&testParser, FALSE);
-	fail_unless (tmp_err_code == EXIP_ERR_OK, "parsing the header returns an error code %d", tmp_err_code);
+	fail_unless (tmp_err_code == EXIP_OK, "parsing the header returns an error code %d", tmp_err_code);
 
 	tmp_err_code = setSchema(&testParser, &schema);
-	fail_unless (tmp_err_code == EXIP_ERR_OK, "setSchema() returns an error code %d", tmp_err_code);
+	fail_unless (tmp_err_code == EXIP_OK, "setSchema() returns an error code %d", tmp_err_code);
 
 	// V: Parse the body of the EXI stream
 
-	while(tmp_err_code == EXIP_ERR_OK)
+	while(tmp_err_code == EXIP_OK)
 	{
 		tmp_err_code = parseNext(&testParser);
 	}

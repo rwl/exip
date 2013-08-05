@@ -52,7 +52,7 @@ errorCode addProduction(ProtoRuleEntry* ruleEntry, EventType eventType, Index ty
 	newProd->qnameId = qnameID;
 	SET_PROD_NON_TERM(newProd->content, nonTermID);
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode convertProtoGrammar(AllocList* memlist, ProtoGrammar* pg, EXIGrammar* exiGrammar)
@@ -97,7 +97,7 @@ errorCode convertProtoGrammar(AllocList* memlist, ProtoGrammar* pg, EXIGrammar* 
 			RULE_SET_CONTAIN_EE(exiGrammar->rule[ruleIter].meta);
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode cloneProtoGrammar(ProtoGrammar* src, ProtoGrammar* dest)
@@ -120,7 +120,7 @@ errorCode cloneProtoGrammar(ProtoGrammar* src, ProtoGrammar* dest)
 		}
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 
@@ -214,7 +214,7 @@ errorCode printProtoGrammarRule(SmallIndex nonTermID, ProtoRuleEntry* rule)
 
 		DEBUG_MSG(INFO, EXIP_DEBUG, ("\n"));
 	}
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode printProtoGrammar(ProtoGrammar* pgr)
@@ -228,7 +228,7 @@ errorCode printProtoGrammar(ProtoGrammar* pgr)
 		printProtoGrammarRule(j, &pgr->rule[j]);
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 #endif // EXIP_DEBUG

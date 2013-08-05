@@ -309,11 +309,11 @@ errorCode convertTreeTablesToExipSchema(TreeTable* treeT, unsigned int count, EX
 					break;
 				case ELEMENT_GROUP:
 					// The model groups are only needing when referenced within a complex type definition
-					tmp_err_code = EXIP_ERR_OK;
+					tmp_err_code = EXIP_OK;
 					break;
 				case ELEMENT_ATTRIBUTE_GROUP:
 					// The attribute groups are only needing when referenced within a complex type definition
-					tmp_err_code = EXIP_ERR_OK;
+					tmp_err_code = EXIP_OK;
 					break;
 				case ELEMENT_ATTRIBUTE:
 					// AT (*) in schema-informed grammars bears an untyped value unless there is a
@@ -322,28 +322,28 @@ errorCode convertTreeTablesToExipSchema(TreeTable* treeT, unsigned int count, EX
 					// represented according to the datatype of the global attribute.
 					// TODO: There is a need for array of global attributes in the EXIPSchema object.
 					//       This array must be sorted according to qname
-					tmp_err_code = EXIP_ERR_OK;
+					tmp_err_code = EXIP_OK;
 					break;
 				case ELEMENT_IMPORT:
 					//TODO: implement validation checks
 					//		1) the namespace of an <import> element must be a target namespace of some tree table
-					tmp_err_code = EXIP_ERR_OK;
+					tmp_err_code = EXIP_OK;
 					break;
 				case ELEMENT_INCLUDE:
-					tmp_err_code = EXIP_ERR_OK;
+					tmp_err_code = EXIP_OK;
 					break;
 				case ELEMENT_REDEFINE:
-					tmp_err_code = EXIP_ERR_OK;
+					tmp_err_code = EXIP_OK;
 					break;
 				case ELEMENT_NOTATION:
-					tmp_err_code = EXIP_ERR_OK;
+					tmp_err_code = EXIP_OK;
 					break;
 				default:
 					tmp_err_code = EXIP_UNEXPECTED_ERROR;
 					break;
 			}
 
-			if(tmp_err_code != EXIP_ERR_OK)
+			if(tmp_err_code != EXIP_OK)
 			{
 				freeAllocList(&ctx.tmpMemList);
 				return tmp_err_code;
@@ -374,7 +374,7 @@ static errorCode parseOccuranceAttribute(const String occurance, int* outInt)
 		return stringToInteger(&occurance, outInt);
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static int compareAttrUse(const void* attrPG1, const void* attrPG2)
@@ -442,7 +442,7 @@ static errorCode getElementTermProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 
 	*elTerm = elParticleGrammar;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode handleElementEl(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* entry, boolean isGlobal, Index* grIndex)
@@ -492,7 +492,7 @@ static errorCode handleElementEl(BuildContext* ctx, TreeTable* treeT, TreeTableE
 		if(GET_LN_URI_QNAME(ctx->schema->uriTable, elQNameID).elemGrammar != INDEX_MAX)
 		{
 			*grIndex = GET_LN_URI_QNAME(ctx->schema->uriTable, elQNameID).elemGrammar;
-			return EXIP_ERR_OK;
+			return EXIP_OK;
 		}
 	}
 
@@ -519,7 +519,7 @@ static errorCode handleElementEl(BuildContext* ctx, TreeTable* treeT, TreeTableE
 		{
 			*grIndex = GET_LN_URI_IDS(ctx->schema->uriTable, XML_SCHEMA_NAMESPACE_ID, SIMPLE_TYPE_ANY_TYPE).typeGrammar;
 			GET_LN_URI_QNAME(ctx->schema->uriTable, elQNameID).elemGrammar = *grIndex;
-			return EXIP_ERR_OK;
+			return EXIP_OK;
 		}
 		else if(entry->child.entry->element == ELEMENT_SIMPLE_TYPE)
 		{
@@ -695,7 +695,7 @@ static errorCode handleElementEl(BuildContext* ctx, TreeTable* treeT, TreeTableE
 		entry->loopDetection = INDEX_MAX;
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode getAttributeProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* attrEntry, boolean isGlobal, ProtoGrammar** attr)
@@ -768,7 +768,7 @@ static errorCode getAttributeProtoGrammar(BuildContext* ctx, TreeTable* treeT, T
 	
 	TRY(createAttributeUseGrammar(required, typeId, *attr, atQnameID));
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode getSimpleTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* simpleEntry, ProtoGrammar** simplType)
@@ -799,7 +799,7 @@ static errorCode getSimpleTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT, 
 	else
 		return EXIP_UNEXPECTED_ERROR;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode handleSimpleTypeEl(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* entry)
@@ -854,7 +854,7 @@ static errorCode handleSimpleTypeEl(BuildContext* ctx, TreeTable* treeT, TreeTab
 		return EXIP_UNEXPECTED_ERROR;
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode getSimpleContentProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* sContEntry, ProtoGrammar** sCont)
@@ -887,7 +887,7 @@ static errorCode getContentTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 	if(entry->child.entry == NULL)
 	{
 		// empty complex_type or extension element
-		tmp_err_code = EXIP_ERR_OK;
+		tmp_err_code = EXIP_OK;
 	}
 	else if(entry->element == ELEMENT_COMPLEX_TYPE && entry->child.entry->element == ELEMENT_SIMPLE_CONTENT)
 	{
@@ -918,7 +918,7 @@ static errorCode getContentTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 			entry->child.entry->element == ELEMENT_ANY_ATTRIBUTE)
 	{
 		// Ignored -> attributes are handles by getAttributeUseProtoGrammars()
-		tmp_err_code = EXIP_ERR_OK;
+		tmp_err_code = EXIP_OK;
 	}
 	else
 		return EXIP_UNEXPECTED_ERROR;
@@ -1046,7 +1046,7 @@ static errorCode getAttributeUseProtoGrammars(BuildContext* ctx, TreeTable* tree
 	 * XSD specification.
 	 */
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode getComplexTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* complEntry, ProtoGrammar** complType)
@@ -1069,13 +1069,13 @@ static errorCode getComplexTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 		// Add dummy grammar to the grammarTable that will be replaced by the real one later
 		TRY(addDynEntry(&ctx->schema->grammarTable.dynArray, &static_grammar_empty, &complEntry->loopDetection));
 		*complType = NULL;
-		return EXIP_ERR_OK;
+		return EXIP_OK;
 	}
 	else
 	{
 		// The complexType entry has already been processed at least twice
 		*complType = NULL;
-		return EXIP_ERR_OK;
+		return EXIP_OK;
 	}
 
 	if(!isStringEmpty(&complEntry->attributePointers[ATTRIBUTE_MIXED])
@@ -1177,7 +1177,7 @@ static errorCode getComplexTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 
 	destroyDynArray(&attrUseArray.dynArray);
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode handleComplexTypeEl(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* entry)
@@ -1285,7 +1285,7 @@ static errorCode handleComplexTypeEl(BuildContext* ctx, TreeTable* treeT, TreeTa
 		return EXIP_UNEXPECTED_ERROR;
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode getComplexContentProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* cConEntry, ProtoGrammar** cCont)
@@ -1382,7 +1382,7 @@ static errorCode getSequenceProtoGrammar(BuildContext* ctx, TreeTable* treeT, Tr
 	destroyProtoGrammar(&seqGrammar);
 	*seq = seqPartGrammar;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode getAnyProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* anyEntry, ProtoGrammar** any)
@@ -1417,7 +1417,7 @@ static errorCode getAnyProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTab
 
 	*any = wildParticleGrammar;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode getChoiceProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* chEntry, ProtoGrammar** choice)
@@ -1491,7 +1491,7 @@ static errorCode getChoiceProtoGrammar(BuildContext* ctx, TreeTable* treeT, Tree
 	destroyProtoGrammar(&choiceGrammar);
 	*choice = choicePartGrammar;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode getAllProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* allEntry, ProtoGrammar** all)
@@ -1553,7 +1553,7 @@ static errorCode getGroupProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeT
 	destroyProtoGrammar(particleGrammar);
 	*group = grPartGrammar;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode getExtensionSimpleProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* extEntry, ProtoGrammar** ext)
@@ -1580,7 +1580,7 @@ static errorCode getExtensionSimpleProtoGrammar(BuildContext* ctx, TreeTable* tr
 	TRY(createSimpleTypeGrammar(typeId, resultProtoGrammar));
 	*ext = resultProtoGrammar;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode getExtensionComplexProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* extEntry, ProtoGrammar** ext)
@@ -1636,7 +1636,7 @@ static errorCode getExtensionComplexProtoGrammar(BuildContext* ctx, TreeTable* t
 
 	*ext = resultProtoGrammar;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode getRestrictionSimpleProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* resEntry, ProtoGrammar** restr)
@@ -1860,7 +1860,7 @@ static errorCode getRestrictionSimpleProtoGrammar(BuildContext* ctx, TreeTable* 
 	TRY(createSimpleTypeGrammar(simpleTypeId, simpleRestrictedGrammar));
 	*restr = simpleRestrictedGrammar;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode getRestrictionComplexProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* resEntry, ProtoGrammar** restr)
@@ -1889,7 +1889,7 @@ static errorCode getRestrictionComplexProtoGrammar(BuildContext* ctx, TreeTable*
 		return EXIP_UNEXPECTED_ERROR;
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode getTypeId(BuildContext* ctx, const QNameID typeQnameId, TreeTableEntry* typeEntry, TreeTable* treeT, Index* typeId)
@@ -1929,7 +1929,7 @@ static errorCode getTypeId(BuildContext* ctx, const QNameID typeQnameId, TreeTab
 			return EXIP_UNEXPECTED_ERROR;
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode getAnonymousTypeId(BuildContext* ctx, TreeTableEntry* typeEntry, TreeTable* treeT, Index* typeId)
@@ -1955,7 +1955,7 @@ static errorCode getAnonymousTypeId(BuildContext* ctx, TreeTableEntry* typeEntry
 
 	destroyProtoGrammar(tmpGr);
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode getListProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* listEntry, ProtoGrammar** list)
@@ -1998,7 +1998,7 @@ static errorCode getListProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTa
 	TRY(addDynEntry(&ctx->schema->simpleTypeTable.dynArray, &listSimpleType, &listEntrySimplID));
 	TRY(createSimpleTypeGrammar(listEntrySimplID, *list));
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode storeGrammar(BuildContext* ctx, QNameID qnameID, ProtoGrammar* pGrammar, boolean isNillable, Index* grIndex)
@@ -2069,7 +2069,7 @@ static errorCode storeGrammar(BuildContext* ctx, QNameID qnameID, ProtoGrammar* 
 	}
 #endif
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static int compareGlobalElemQName(const void* QNameId1, const void* QNameId2)

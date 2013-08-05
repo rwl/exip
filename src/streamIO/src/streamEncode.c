@@ -41,7 +41,7 @@ errorCode encodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, unsigned i
 			TRY(writeNBits(strm, 8, tmp_byte_buf));
 		}
 	}
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode encodeBoolean(EXIStream* strm, boolean bool_val)
@@ -81,7 +81,7 @@ errorCode encodeUnsignedInteger(EXIStream* strm, UnsignedInteger int_val)
 
 		TRY(writeNBits(strm, 7, tmp_byte_buf));
 	}
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode encodeString(EXIStream* strm, const String* string_val)
@@ -119,7 +119,7 @@ errorCode encodeStringOnly(EXIStream* strm, const String* string_val)
 		TRY(encodeUnsignedInteger(strm, (UnsignedInteger) tmp_val));
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode encodeBinary(EXIStream* strm, char* binary_val, Index nbytes)
@@ -135,7 +135,7 @@ errorCode encodeBinary(EXIStream* strm, char* binary_val, Index nbytes)
 		TRY(writeNBits(strm, 8, (unsigned int) binary_val[i]));
 	}
 	DEBUG_MSG(INFO, DEBUG_STREAM_IO, ("\n"));
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode encodeIntegerValue(EXIStream* strm, Integer sint_val)
@@ -195,7 +195,7 @@ errorCode encodeDecimalValue(EXIStream* strm, Decimal dec_val)
 
 	TRY(encodeUnsignedInteger(strm, fract_part_rev));
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode encodeFloatValue(EXIStream* strm, Float fl_val)
@@ -207,7 +207,7 @@ errorCode encodeFloatValue(EXIStream* strm, Float fl_val)
 	TRY(encodeIntegerValue(strm, (Integer) fl_val.mantissa));	//encode mantissa
 	TRY(encodeIntegerValue(strm, (Integer) fl_val.exponent));	//encode exponent
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode encodeDateTimeValue(EXIStream* strm, EXIPDateTime dt_val)
@@ -307,7 +307,7 @@ errorCode encodeDateTimeValue(EXIStream* strm, EXIPDateTime dt_val)
 		TRY(encodeBoolean(strm, FALSE));
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode writeEventCode(EXIStream* strm, EventCode ec)
@@ -320,5 +320,5 @@ errorCode writeEventCode(EXIStream* strm, EventCode ec)
 		TRY(encodeNBitUnsignedInteger(strm, ec.bits[i], (unsigned int) ec.part[i]));
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }

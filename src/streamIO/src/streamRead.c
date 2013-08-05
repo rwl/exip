@@ -45,7 +45,7 @@ errorCode readNextBit(EXIStream* strm, boolean* bit_val)
 
 	moveBitPointer(strm, 1);
 	DEBUG_MSG(INFO, DEBUG_STREAM_IO, ("  @%u:%u", (unsigned int) strm->context.bufferIndx, strm->context.bitPointer));
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode readBits(EXIStream* strm, unsigned char n, unsigned int* bits_val)
@@ -94,6 +94,6 @@ errorCode readBits(EXIStream* strm, unsigned char n, unsigned int* bits_val)
 
 	DEBUG_MSG(INFO, DEBUG_STREAM_IO, ("  @%u:%u\n", (unsigned int) strm->context.bufferIndx, strm->context.bitPointer));
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 

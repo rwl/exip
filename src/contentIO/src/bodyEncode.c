@@ -71,7 +71,7 @@ errorCode encodeStringData(EXIStream* strm, String strng, QNameID qnameID, Index
 			TRY(encodeUnsignedInteger(strm, 0));
 			vxBits = getBitsNumber(vxTable->count - 1);
 			TRY(encodeNBitUnsignedInteger(strm, vxBits, vxEntryId));
-			return EXIP_ERR_OK;
+			return EXIP_OK;
 		}
 	}
 #endif
@@ -102,7 +102,7 @@ errorCode encodeStringData(EXIStream* strm, String strng, QNameID qnameID, Index
 		}
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode encodeProduction(EXIStream* strm, EventTypeClass eventClass, boolean isSchemaType, QName* qname, Production* prodHit)
@@ -558,7 +558,7 @@ errorCode encodeUri(EXIStream* strm, String* uri, SmallIndex* uriId)
 		TRY(addUriEntry(&strm->schema->uriTable, copiedURI, uriId));
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode encodeLn(EXIStream* strm, String* ln, QNameID* qnameID)
@@ -587,7 +587,7 @@ errorCode encodeLn(EXIStream* strm, String* ln, QNameID* qnameID)
 		TRY(addLnEntry(&strm->schema->uriTable.uri[qnameID->uriId].lnTable, copiedLN, &qnameID->lnId));
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode encodePfxQName(EXIStream* strm, QName* qname, EventType eventT, SmallIndex uriId)
@@ -597,10 +597,10 @@ errorCode encodePfxQName(EXIStream* strm, QName* qname, EventType eventT, SmallI
 	SmallIndex prefixID = 0;
 
 	if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) == FALSE)
-		return EXIP_ERR_OK;
+		return EXIP_OK;
 
 	if(strm->schema->uriTable.uri[uriId].pfxTable == NULL || strm->schema->uriTable.uri[uriId].pfxTable->count == 0)
-		return EXIP_ERR_OK;
+		return EXIP_OK;
 
 	prefixBits = getBitsNumber(strm->schema->uriTable.uri[uriId].pfxTable->count - 1);
 
@@ -622,7 +622,7 @@ errorCode encodePfxQName(EXIStream* strm, QName* qname, EventType eventT, SmallI
 		}
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode encodePfx(EXIStream* strm, SmallIndex uriId, String* prefix)
@@ -644,7 +644,7 @@ errorCode encodePfx(EXIStream* strm, SmallIndex uriId, String* prefix)
 		TRY(addPfxEntry(strm->schema->uriTable.uri[uriId].pfxTable, copiedPrefix, &pfxId));
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode encodeIntData(EXIStream* strm, Integer int_val, Index typeId)

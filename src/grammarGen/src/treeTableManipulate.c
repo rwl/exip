@@ -207,7 +207,7 @@ errorCode resolveIncludeImportReferences(EXIPSchema* schema, TreeTable** treeT, 
 		}
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 
@@ -262,7 +262,7 @@ errorCode initTreeTable(TreeTable* treeT)
 		return EXIP_HASH_TABLE_ERROR;
 #endif
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 void destroyTreeTable(TreeTable* treeT)
@@ -304,7 +304,7 @@ errorCode resolveTypeHierarchy(EXIPSchema* schema, TreeTable* treeT, unsigned in
 			TRY(resolveEntry(schema, treeT, count, i, &treeT[i].tree[j]));
 		}
 	}
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode resolveEntry(EXIPSchema* schema, TreeTable* treeT, unsigned int count, unsigned int currTreeT, TreeTableEntry* entry)
@@ -367,7 +367,7 @@ static errorCode resolveEntry(EXIPSchema* schema, TreeTable* treeT, unsigned int
 		}
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, unsigned int count, unsigned int currTreeT, String* eName, unsigned char elType, TreeTableEntry* entry)
@@ -451,7 +451,7 @@ static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, un
 		}
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode getTypeQName(EXIPSchema* schema, TreeTable* treeT, const String typeLiteral, QNameID* qNameID)
@@ -572,7 +572,7 @@ errorCode getTypeQName(EXIPSchema* schema, TreeTable* treeT, const String typeLi
 		}
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static boolean checkForImportWithNs(TreeTable* treeT, String ns)
@@ -609,7 +609,7 @@ errorCode getNsList(TreeTable* treeT, String nsList, NsTable* nsTable)
 	Index dummy_elemID;
 
 	if(isStringEmpty(&nsList))
-		return EXIP_ERR_OK;
+		return EXIP_OK;
 	else
 	{
 		Index sChIndex;
@@ -644,5 +644,5 @@ errorCode getNsList(TreeTable* treeT, String nsList, NsTable* nsTable)
 
 		TRY(addDynEntry(&nsTable->dynArray, &attrNamespece, &dummy_elemID));
 	}
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }

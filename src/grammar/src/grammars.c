@@ -119,7 +119,7 @@ errorCode createDocGrammar(EXIPSchema* schema, QNameID* elQnameArr, Index qnameC
 	tmp_rule->pCount = 1;
 	tmp_rule->meta = 0;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 #if BUILD_IN_GRAMMARS_USE
@@ -185,7 +185,7 @@ errorCode createBuiltInElementGrammar(EXIGrammar* elementGrammar, EXIStream* str
 	tmp_rule->prodDim = DEFAULT_PROD_ARRAY_DIM;
 	/* More part 1 productions get added later... */
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode insertZeroProduction(DynGrammarRule* rule, EventType eventType, SmallIndex nonTermID, QNameID* qnameId, boolean hasSecondLevelProd)
@@ -206,7 +206,7 @@ errorCode insertZeroProduction(DynGrammarRule* rule, EventType eventType, SmallI
 	rule->production[rule->pCount].qnameId = *qnameId;
 
 	rule->pCount += 1;
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 #endif
 
@@ -222,7 +222,7 @@ errorCode pushGrammar(EXIGrammarStack** gStack, EXIGrammar* grammar)
 	node->currQNameID.uriId = LN_MAX;
 	node->nextInStack = *gStack;
 	*gStack = node;
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 void popGrammar(EXIGrammarStack** gStack, EXIGrammar** grammar)
@@ -319,7 +319,7 @@ errorCode createFragmentGrammar(EXIPSchema* schema, QNameID* elQnameArr, Index q
 	tmp_rule->production[1].qnameId.uriId = URI_MAX;
 	tmp_rule->production[1].qnameId.lnId = LN_MAX;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 unsigned int getBitsFirstPartCode(EXIOptions opts, EXIGrammar* grammar, GrammarRule* currentRule, SmallIndex currentRuleIndx, boolean isNilType)
@@ -527,7 +527,7 @@ errorCode printGrammarRule(SmallIndex nonTermID, GrammarRule* rule, EXIPSchema *
 		}
 		DEBUG_MSG(INFO, EXIP_DEBUG, ("\n"));
 	}
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 #endif // EXIP_DEBUG

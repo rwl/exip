@@ -42,7 +42,7 @@ errorCode decodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, unsigned i
 			*int_val = *int_val | tmp_byte_buf;
 		}
 	}
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode decodeBoolean(EXIStream* strm, boolean* bool_val)
@@ -74,7 +74,7 @@ errorCode decodeUnsignedInteger(EXIStream* strm, UnsignedInteger* int_val)
 	}
 	while(more_bytes_to_read != 0);
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode decodeString(EXIStream* strm, String* string_val)
@@ -107,7 +107,7 @@ errorCode decodeStringOnly(EXIStream* strm, Index str_length, String* string_val
 		TRY(decodeUnsignedInteger(strm, &tmp_code_point));
 		TRY(writeCharToString(string_val, (uint32_t) tmp_code_point, &writerPosition));
 	}
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode decodeBinary(EXIStream* strm, char** binary_val, Index* nbytes)
@@ -129,7 +129,7 @@ errorCode decodeBinary(EXIStream* strm, char** binary_val, Index* nbytes)
 		TRY_CATCH(readBits(strm, 8, &int_val), EXIP_MFREE(*binary_val));
 		(*binary_val)[i]=(char) int_val;
 	}
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode decodeIntegerValue(EXIStream* strm, Integer* sint_val)
@@ -154,7 +154,7 @@ errorCode decodeIntegerValue(EXIStream* strm, Integer* sint_val)
 	}
 	else
 		return EXIP_UNEXPECTED_ERROR;
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode decodeDecimalValue(EXIStream* strm, Decimal* dec_val)
@@ -190,7 +190,7 @@ errorCode decodeDecimalValue(EXIStream* strm, Decimal* dec_val)
 
 	*dec_val = *dec_val + integr_part;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode decodeFloatValue(EXIStream* strm, Float* fl_val)
@@ -220,7 +220,7 @@ errorCode decodeFloatValue(EXIStream* strm, Float* fl_val)
 	fl_val->mantissa = mantissa;
 	fl_val->exponent = (int16_t)exponent; /* TODO not using exip_config.h */
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode decodeDateTimeValue(EXIStream* strm, EXIPDateTime* dt_val)
@@ -307,5 +307,5 @@ errorCode decodeDateTimeValue(EXIStream* strm, EXIPDateTime* dt_val)
 		dt_val->TimeZone = tzone;
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }

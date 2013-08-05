@@ -59,7 +59,7 @@ static errorCode sample_attribute(QName qname, void* app_data)
 	struct appData* appD = (struct appData*) app_data;
 	appD->attributeCount++;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 
@@ -98,7 +98,7 @@ START_TEST (test_decode_ant_example01)
 
 	// II: Second, initialize the parser object
 	tmp_err_code = initParser(&testParser, buffer, &parsingData);
-	fail_unless (tmp_err_code == EXIP_ERR_OK, "initParser returns an error code %d", tmp_err_code);
+	fail_unless (tmp_err_code == EXIP_OK, "initParser returns an error code %d", tmp_err_code);
 
 	// III: Initialize the parsing data and hook the callback handlers to the parser object
 	parsingData.eventCount = 0;
@@ -110,14 +110,14 @@ START_TEST (test_decode_ant_example01)
 
 	// IV: Parse the header of the stream
 	tmp_err_code = parseHeader(&testParser, TRUE);
-	fail_unless (tmp_err_code == EXIP_ERR_OK, "parsing the header returns an error code %d", tmp_err_code);
+	fail_unless (tmp_err_code == EXIP_OK, "parsing the header returns an error code %d", tmp_err_code);
 	parsingData.eventCount++; // SD event is implicit
 
 	tmp_err_code = setSchema(&testParser, NULL);
-	fail_unless (tmp_err_code == EXIP_ERR_OK, "setSchema() returns an error code %d", tmp_err_code);
+	fail_unless (tmp_err_code == EXIP_OK, "setSchema() returns an error code %d", tmp_err_code);
 
 	// V: Parse the body of the EXI stream
-	while(tmp_err_code == EXIP_ERR_OK)
+	while(tmp_err_code == EXIP_OK)
 	{
 		tmp_err_code = parseNext(&testParser);
 		parsingData.eventCount++;

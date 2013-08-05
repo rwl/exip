@@ -50,7 +50,7 @@ errorCode initParser(Parser* parser, BinaryBuffer buffer, void* app_data)
 	parser->strm.valueTable.hashTbl = NULL;
 #endif
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode parseHeader(Parser* parser, boolean outOfBandOpts)
@@ -71,7 +71,7 @@ errorCode parseHeader(Parser* parser, boolean outOfBandOpts)
 		TRY(parser->handler.startDocument(parser->app_data));
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode setSchema(Parser* parser, EXIPSchema* schema)
@@ -163,7 +163,7 @@ errorCode setSchema(Parser* parser, EXIPSchema* schema)
 
 	TRY(pushGrammar(&parser->strm.gStack, &parser->strm.schema->docGrammar));
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode parseNext(Parser* parser)
@@ -187,7 +187,7 @@ errorCode parseNext(Parser* parser)
 		parser->strm.gStack->currNonTermID = tmpNonTermID;
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 void destroyParser(Parser* parser)

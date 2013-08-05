@@ -32,7 +32,7 @@ errorCode createDynArray(DynArray* dynArray, size_t entrySize, uint16_t chunkEnt
 	dynArray->chunkEntries = chunkEntries;
 	dynArray->arrayEntries = chunkEntries;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode addEmptyDynEntry(DynArray* dynArray, void** entry, Index* entryID)
@@ -60,7 +60,7 @@ errorCode addEmptyDynEntry(DynArray* dynArray, void** entry, Index* entryID)
 	*entryID = *count;
 
 	*count += 1;
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode addDynEntry(DynArray* dynArray, void* entry, Index* entryID)
@@ -71,7 +71,7 @@ errorCode addDynEntry(DynArray* dynArray, void* entry, Index* entryID)
 	TRY(addEmptyDynEntry(dynArray, &emptyEntry, entryID));
 
 	memcpy(emptyEntry, entry, dynArray->entrySize);
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode delDynEntry(DynArray* dynArray, Index entryID)
@@ -100,7 +100,7 @@ errorCode delDynEntry(DynArray* dynArray, Index entryID)
 	else
 		return EXIP_OUT_OF_BOUND_BUFFER;
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 void destroyDynArray(DynArray* dynArray)

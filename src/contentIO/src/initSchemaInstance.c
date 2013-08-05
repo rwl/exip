@@ -200,7 +200,7 @@ errorCode generateBuiltInTypesGrammars(EXIPSchema* schema)
 		schema->uriTable.uri[3].lnTable.ln[i].typeGrammar = dynArrId;
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocList* memList)
@@ -611,5 +611,5 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 	sType.length = 0;
 	TRY(addDynEntry(&simpleTypeTable->dynArray, &sType, &elID));
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }

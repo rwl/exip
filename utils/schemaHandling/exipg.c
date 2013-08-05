@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
 
 	destroySchema(&schema);
 
-	if(tmp_err_code != EXIP_ERR_OK)
+	if(tmp_err_code != EXIP_OK)
 	{
 		printf("\nError during grammar output!");
 		exit(1);
@@ -282,7 +282,7 @@ static void parseSchema(char* xsdList, EXIPSchema* schema, unsigned char mask, E
 		free(buffer[i].buf);
 	}
 
-	if(tmp_err_code != EXIP_ERR_OK)
+	if(tmp_err_code != EXIP_OK)
 	{
 		printf("\nGrammar generation error occurred: %d", tmp_err_code);
 		exit(1);

@@ -132,7 +132,7 @@
 enum errorCode
 {
 	 /** No error, everything is OK. */
-	 EXIP_ERR_OK                                 = 0,
+	 EXIP_OK                                     = 0,
 	 /** The code for this function
 	  * is not yet implemented. */
 	 EXIP_NOT_IMPLEMENTED_YET                    = 1,
@@ -203,12 +203,12 @@ typedef enum errorCode errorCode;
 #endif
 
 # define TRY(func) do { tmp_err_code = func;\
-						if (tmp_err_code != EXIP_ERR_OK) { \
+						if (tmp_err_code != EXIP_OK) { \
 							DEBUG_MSG(ERROR, EXIP_DEBUG, ("\n>Error %s:%d at %s, line %d", GET_ERR_STRING(tmp_err_code), tmp_err_code, __FILE__, __LINE__)); \
 							return tmp_err_code; } } while(0)
 
 # define TRY_CATCH(func, cblock) do { tmp_err_code = func;\
-									  if (tmp_err_code != EXIP_ERR_OK) { \
+									  if (tmp_err_code != EXIP_OK) { \
 									  DEBUG_MSG(ERROR, EXIP_DEBUG, ("\n>Error %s:%d at %s, line %d", GET_ERR_STRING(tmp_err_code), tmp_err_code, __FILE__, __LINE__)); \
 									  cblock;\
 									  return tmp_err_code; } } while(0)

@@ -107,7 +107,7 @@ errorCode encodeHeader(EXIStream* strm)
 		closeOptionsStream(&options_strm);
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 static void closeOptionsStream(EXIStream* strm)

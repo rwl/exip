@@ -72,7 +72,7 @@ errorCode checkOptionValues(EXIOptions* opts)
 		DEBUG_MSG(WARNING, DEBUG_COMMON, ("\n>The datatypeRepresentationMap option specified but has no effect"));
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode pushOnStack(GenericStack** stack, void* item)
@@ -84,7 +84,7 @@ errorCode pushOnStack(GenericStack** stack, void* item)
 	node->item = item;
 	node->nextInStack = *stack;
 	*stack = node;
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 void popFromStack(GenericStack** stack, void** item)
@@ -126,7 +126,7 @@ errorCode pushOnStackPersistent(GenericStack** stack, void* item, AllocList* mem
 	node->item = item;
 	node->nextInStack = *stack;
 	*stack = node;
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 void popFromStackPersistent(GenericStack** stack, void** item)
@@ -149,7 +149,7 @@ void popFromStackPersistent(GenericStack** stack, void** item)
 // IMPORTANT: remember to keep in sync with "enum errorCode" in errorHandle.h!
 	const char* errorCodeStrings[] =
 	{
-		"EXIP_ERR_OK",
+		"EXIP_OK",
 		"EXIP_NOT_IMPLEMENTED_YET",
 		"EXIP_UNEXPECTED_ERROR",
 		"EXIP_HASH_TABLE_ERROR",
@@ -166,6 +166,6 @@ void popFromStackPersistent(GenericStack** stack, void** item)
 		"EXIP_NO_PREFIXES_PRESERVED_XML_SCHEMA",
 		"EXIP_INVALID_STRING_OPERATION",
 		"EXIP_HEADER_OPTIONS_MISMATCH",
-		"HANDLER_STOP"
+		"EXIP_HANDLER_STOP"
 	};
 #endif

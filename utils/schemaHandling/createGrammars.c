@@ -36,7 +36,7 @@ errorCode toText(EXIPSchema* schemaPtr, FILE *outfile)
 			tmpGrammar = GET_ELEM_GRAMMAR_QNAMEID(schemaPtr, qnameId);
 			if(tmpGrammar != NULL)
 			{
-				if(EXIP_ERR_OK != recursiveTextGrammarOutput(qnameId, GET_LN_URI_QNAME(schemaPtr->uriTable, qnameId).elemGrammar, tmpGrammar, schemaPtr, outfile))
+				if(EXIP_OK != recursiveTextGrammarOutput(qnameId, GET_LN_URI_QNAME(schemaPtr->uriTable, qnameId).elemGrammar, tmpGrammar, schemaPtr, outfile))
 				{
 					printf("\n ERROR: OUT_TEXT output format!");
 					return EXIP_UNEXPECTED_ERROR;
@@ -53,7 +53,7 @@ errorCode toText(EXIPSchema* schemaPtr, FILE *outfile)
 			tmpGrammar = GET_TYPE_GRAMMAR_QNAMEID(schemaPtr, qnameId);
 			if(tmpGrammar != NULL)
 			{
-				if(EXIP_ERR_OK != textGrammarOutput(qnameId, GET_LN_URI_QNAME(schemaPtr->uriTable, qnameId).typeGrammar, tmpGrammar, schemaPtr, outfile))
+				if(EXIP_OK != textGrammarOutput(qnameId, GET_LN_URI_QNAME(schemaPtr->uriTable, qnameId).typeGrammar, tmpGrammar, schemaPtr, outfile))
 				{
 					printf("\n ERROR: OUT_TEXT output format!");
 					return EXIP_UNEXPECTED_ERROR;
@@ -62,7 +62,7 @@ errorCode toText(EXIPSchema* schemaPtr, FILE *outfile)
 		}
 	}
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode toStaticSrc(EXIPSchema* schemaPtr, char* prefix, FILE *outfile)
@@ -192,7 +192,7 @@ errorCode toStaticSrc(EXIPSchema* schemaPtr, char* prefix, FILE *outfile)
             count == 0?"":prefix, count == 0?"NULL":"enumTable",
 			(unsigned int) count);
 
-	return EXIP_ERR_OK;
+	return EXIP_OK;
 }
 
 errorCode toDynSrc(EXIPSchema* schemaPtr, FILE *outfile)
