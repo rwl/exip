@@ -68,10 +68,10 @@ errorCode initSchema(EXIPSchema* schema, InitSchemaType initializationType)
 		TRY_CATCH(createDynArray(&schema->simpleTypeTable.dynArray, sizeof(SimpleType), DEFAULT_SIMPLE_GRAMMAR_TABLE), freeAllocList(&schema->memList));
 		TRY_CATCH(createBuiltInTypesDefinitions(&schema->simpleTypeTable, &schema->memList), freeAllocList(&schema->memList));
 
+		schema->staticGrCount = SIMPLE_TYPE_COUNT;
+
 		// Must be done after createBuiltInTypesDefinitions()
 		TRY_CATCH(generateBuiltInTypesGrammars(schema), freeAllocList(&schema->memList));
-
-		schema->staticGrCount = SIMPLE_TYPE_COUNT;
 	}
 
 	return tmp_err_code;

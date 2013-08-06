@@ -139,7 +139,7 @@ LDFLAGS += -L$(LIB_BIN_DIR)
 
 # Tests all targets by default. May override in environment to specify checks to run, for example:
 #   $make check CHECK_TARGETS="streamio strict_grammar"
-CHECK_TARGETS ?= streamIO stringTables grammar contentIO exip builtin_grammar strict_grammar emptyType xsi_type
+CHECK_TARGETS ?= streamIO stringTables grammar contentIO exip builtin_grammar strict_grammar emptyType xsi_type profile
 CHECK_BINS := $(foreach acheck, $(CHECK_TARGETS), $(TESTS_BIN_DIR)/test_$(acheck))
 
 EXAMPLE_BINS := $(EXAMPLES_BIN_DIR)/exipd $(EXAMPLES_BIN_DIR)/exipe
