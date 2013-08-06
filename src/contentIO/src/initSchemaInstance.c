@@ -200,6 +200,39 @@ errorCode generateBuiltInTypesGrammars(EXIPSchema* schema)
 		schema->uriTable.uri[3].lnTable.ln[i].typeGrammar = dynArrId;
 	}
 
+#if EXI_PROFILE_DEFAULT
+	// One stub grammar representing build-in grammars
+	// that have the xsi:type switch already enabled:
+	// NT-0: AT(xsi:type) NT-0
+
+	grammar.count = 1;
+	grammar.props = 0;
+
+	grammar.rule = (GrammarRule*) memManagedAllocate(&schema->memList, sizeof(GrammarRule)*(grammar.count));
+	if(grammar.rule == NULL)
+		return EXIP_MEMORY_ALLOCATION_ERROR;
+
+	grammar.rule[0].production = memManagedAllocate(&schema->memList, sizeof(Production));
+	if(grammar.rule[0].production == NULL)
+		return EXIP_MEMORY_ALLOCATION_ERROR;
+
+	SET_PROD_EXI_EVENT(grammar.rule[0].production[0].content, EVENT_AT_QNAME);
+	SET_PROD_NON_TERM(grammar.rule[0].production[0].content, 0);
+	grammar.rule[0].production[0].typeId = INDEX_MAX;
+	grammar.rule[0].production[0].qnameId.uriId = XML_SCHEMA_INSTANCE_ID;
+	grammar.rule[0].production[0].qnameId.lnId = XML_SCHEMA_INSTANCE_TYPE_ID;
+
+	grammar.rule[0].pCount = 1;
+	grammar.rule[0].meta = 0;
+	RULE_SET_CONTAIN_EE(grammar.rule[0].meta);
+
+	/** Add the grammar to the schema grammar table */
+	addDynEntry(&schema->grammarTable.dynArray, &grammar, &dynArrId);
+	assert(EXI_PROFILE_STUB_GRAMMAR_INDX == dynArrId);
+
+	schema->staticGrCount += 1;
+#endif
+
 	return EXIP_OK;
 }
 

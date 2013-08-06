@@ -25,7 +25,7 @@
 #define DEFAULT_GLOBAL_QNAME_COUNT 200
 
 // TODO: check if this empty grammar is needed?
-//       Also this is platform dependent and must be fixed!
+//       Also this is platform dependent and must be fixed! - maybe auto-generation?
 static Production static_grammar_prod_empty[1] = {{0x28FFFFFF, INDEX_MAX, {URI_MAX, LN_MAX}}};
 static GrammarRule static_grammar_rule_empty[1] = {{static_grammar_prod_empty, 1, 0x01}};
 static EXIGrammar static_grammar_empty = {static_grammar_rule_empty, 0x42000000, 1};
