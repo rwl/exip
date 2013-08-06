@@ -265,6 +265,11 @@ errorCode startElement(EXIStream* strm, QName qname, EXITypeClass* valueType)
 		// New element grammar is pushed on the stack
 		elemGrammar = GET_ELEM_GRAMMAR_QNAMEID(strm->schema, tmpQid);
 
+#if EXI_PROFILE_DEFAULT
+		if(GET_LN_URI_QNAME(strm->schema->uriTable, tmpQid).elemGrammar == EXI_PROFILE_STUB_GRAMMAR_INDX)
+			elemGrammar = NULL;
+#endif
+
 		if(elemGrammar != NULL) // The grammar is found
 		{
 			TRY(pushGrammar(&(strm->gStack), elemGrammar));
@@ -286,6 +291,7 @@ errorCode startElement(EXIStream* strm, QName qname, EXITypeClass* valueType)
 			// If the next event is not valid AT(xsi:type) - then the event
 			// AT(xsi:type="anyType") will be inserted beforehand
 			TRY(pushGrammar(&(strm->gStack), elemGrammar));
+			strm->gStack->currQNameID = tmpQid;
 			return EXIP_OK;
 #else
 			DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
@@ -882,6 +888,11 @@ errorCode serializeEvent(EXIStream* strm, EventCode ec, QName* qname)
 			// New element grammar is pushed on the stack
 			elemGrammar = GET_ELEM_GRAMMAR_QNAMEID(strm->schema, tmpQid);
 
+#if EXI_PROFILE_DEFAULT
+			if(GET_LN_URI_QNAME(strm->schema->uriTable, tmpQid).elemGrammar == EXI_PROFILE_STUB_GRAMMAR_INDX)
+				elemGrammar = NULL;
+#endif
+
 			if(elemGrammar != NULL) // The grammar is found
 			{
 				TRY(pushGrammar(&(strm->gStack), elemGrammar));
@@ -904,6 +915,7 @@ errorCode serializeEvent(EXIStream* strm, EventCode ec, QName* qname)
 				// If the next event is not valid AT(xsi:type) - then the event
 				// AT(xsi:type="anyType") will be inserted beforehand
 				TRY(pushGrammar(&(strm->gStack), elemGrammar));
+				strm->gStack->currQNameID = tmpQid;
 				return EXIP_OK;
 #else
 				DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
@@ -957,14 +969,23 @@ static errorCode encodeATXsiType(EXIStream* strm)
 	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	EventCode tmpEvCode;
 
-	// TODO: there are cases when AT(xsi:type) for that Element Qname was already used.
-	// In this case there is a top level AT(xsi:type) production inserted and hence
-	// the first part of the event code with value 1 must be encoded before the second level part of the event code
-	// Note that this requires keeping a state of which QNames have top level AT(xsi:type) production already inserted
+	tmpEvCode.length = 2;
+	if(GET_LN_URI_QNAME(strm->schema->uriTable, strm->gStack->currQNameID).elemGrammar == EXI_PROFILE_STUB_GRAMMAR_INDX)
+	{
+		// This is the case when there is a top level AT(xsi:type) production inserted and hence
+		// the first part of the event code with value 1 must be encoded before the second level part of the event code
+		tmpEvCode.part[0] = 1;
+		tmpEvCode.bits[0] = 1;
+	}
+	else
+	{
+		tmpEvCode.part[0] = 0;
+		tmpEvCode.bits[0] = 0;
+		GET_LN_URI_QNAME(strm->schema->uriTable, strm->gStack->currQNameID).elemGrammar = EXI_PROFILE_STUB_GRAMMAR_INDX;
+	}
 
-	tmpEvCode.length = 1;
-	tmpEvCode.part[0] = 1;
-	tmpEvCode.bits[0] = 2 + (IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) ||
+	tmpEvCode.part[1] = 1;
+	tmpEvCode.bits[1] = 2 + (IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) ||
 			WITH_SELF_CONTAINED(strm->header.opts.enumOpt) || IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD)
 			|| IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) || IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS));
 	// serialize  AT(xsi:type)
