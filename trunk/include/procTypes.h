@@ -1018,9 +1018,8 @@ struct SchemaGrammarTable {
 typedef struct SchemaGrammarTable SchemaGrammarTable;
 
 #if EXI_PROFILE_DEFAULT
-// The index number of the EXI Profile stub grammar in the
-// SchemaGrammarTable
-#  define EXI_PROFILE_STUB_GRAMMAR_INDX SIMPLE_TYPE_COUNT
+// The index of the EXI Profile stub grammar
+#  define EXI_PROFILE_STUB_GRAMMAR_INDX (INDEX_MAX-1)
 #endif
 
 /**

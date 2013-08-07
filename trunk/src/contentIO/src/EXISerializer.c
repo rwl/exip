@@ -263,12 +263,12 @@ errorCode startElement(EXIStream* strm, QName qname, EXITypeClass* valueType)
 		TRY(encodeQName(strm, qname, EVENT_SE_ALL, &tmpQid));
 
 		// New element grammar is pushed on the stack
-		elemGrammar = GET_ELEM_GRAMMAR_QNAMEID(strm->schema, tmpQid);
-
 #if EXI_PROFILE_DEFAULT
 		if(GET_LN_URI_QNAME(strm->schema->uriTable, tmpQid).elemGrammar == EXI_PROFILE_STUB_GRAMMAR_INDX)
 			elemGrammar = NULL;
+		else
 #endif
+		elemGrammar = GET_ELEM_GRAMMAR_QNAMEID(strm->schema, tmpQid);
 
 		if(elemGrammar != NULL) // The grammar is found
 		{
@@ -886,12 +886,12 @@ errorCode serializeEvent(EXIStream* strm, EventCode ec, QName* qname)
 			TRY(encodeQName(strm, *qname, EVENT_SE_ALL, &tmpQid));
 
 			// New element grammar is pushed on the stack
-			elemGrammar = GET_ELEM_GRAMMAR_QNAMEID(strm->schema, tmpQid);
-
 #if EXI_PROFILE_DEFAULT
 			if(GET_LN_URI_QNAME(strm->schema->uriTable, tmpQid).elemGrammar == EXI_PROFILE_STUB_GRAMMAR_INDX)
 				elemGrammar = NULL;
+			else
 #endif
+			elemGrammar = GET_ELEM_GRAMMAR_QNAMEID(strm->schema, tmpQid);
 
 			if(elemGrammar != NULL) // The grammar is found
 			{
