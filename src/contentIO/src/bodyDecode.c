@@ -28,10 +28,6 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 static errorCode handleProduction(EXIStream* strm, Production* prodHit, SmallIndex* nonTermID_out, ContentHandler* handler, void* app_data);
 static errorCode decodeQNameValue(EXIStream* strm, ContentHandler* handler, SmallIndex* nonTermID_out, void* app_data);
 
-#if EXI_PROFILE_DEFAULT
-static errorCode handleBuildInGrammarRequest(EXIStream* strm, ContentHandler* handler, void* app_data);
-#endif
-
 errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, ContentHandler* handler, void* app_data)
 {
 	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
@@ -434,20 +430,6 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 	{
 		// Schema-informed element/type grammar
 		QName qname;
-
-#if EXI_PROFILE_DEFAULT
-		if(!IS_SCHEMA(strm->gStack->grammar->props))
-		{
-			// That grammar must be the EXI Profile stub grammar
-			// First, remove it from the Grammar stack
-			EXIGrammar* stubGrammar;
-
-			popGrammar(&(strm->gStack), &stubGrammar);
-			TRY(handleBuildInGrammarRequest(strm, handler, app_data));
-			*nonTermID_out = GR_START_TAG_CONTENT;
-			return EXIP_OK;
-		}
-#endif
 
 		if(WITH_STRICT(strm->header.opts.enumOpt))
 		{
@@ -1294,6 +1276,11 @@ errorCode decodeSEWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallI
 	}
 
 	// New element grammar is pushed on the stack
+#if EXI_PROFILE_DEFAULT
+	if(GET_LN_URI_QNAME(strm->schema->uriTable, qnameId).elemGrammar == EXI_PROFILE_STUB_GRAMMAR_INDX)
+		elemGrammar = NULL;
+	else
+#endif
 	elemGrammar = GET_ELEM_GRAMMAR_QNAMEID(strm->schema, qnameId);
 	*nonTermID_out = GR_START_TAG_CONTENT;
 
@@ -1314,9 +1301,74 @@ errorCode decodeSEWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallI
 		TRY(pushGrammar(&(strm->gStack), &strm->schema->grammarTable.grammar[dynArrIndx]));
 #elif EXI_PROFILE_DEFAULT
 		{
-			TRY(handleBuildInGrammarRequest(strm, handler, app_data));
-			*nonTermID_out = GR_START_TAG_CONTENT;
-			GET_LN_URI_QNAME(strm->schema->uriTable, qnameId).elemGrammar = EXI_PROFILE_STUB_GRAMMAR_INDX;
+			unsigned int prodCnt = 4;
+			unsigned int tmp_bits_val = 0;
+			QName attrQname;
+			QNameID attrQnameId = {URI_MAX, LN_MAX};
+
+			if(GET_LN_URI_QNAME(strm->schema->uriTable, qnameId).elemGrammar == EXI_PROFILE_STUB_GRAMMAR_INDX)
+			{
+				// This grammar must be the EXI Profile stub grammar.
+				// It indicates that there is a AT(xsi:type) as a top level production
+				// There should be a AT(xsi:type) with event code 0
+				TRY(decodeNBitUnsignedInteger(strm, 1, &tmp_bits_val));
+				if(tmp_bits_val != 1)
+				{
+					DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">AT(xsi:type) should always be represented as AT(*) according to EXI Profile spec\n"));
+					return EXIP_INCONSISTENT_PROC_STATE;
+				}
+			}
+			else
+			{
+				GET_LN_URI_QNAME(strm->schema->uriTable, qnameId).elemGrammar = EXI_PROFILE_STUB_GRAMMAR_INDX;
+			}
+
+			prodCnt += IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES);
+			prodCnt += WITH_SELF_CONTAINED(strm->header.opts.enumOpt);
+			prodCnt += IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD);
+			prodCnt += (IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) || IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS));
+
+			// There should be a valid xsi:type switch, otherwise rise an error
+			TRY(decodeNBitUnsignedInteger(strm, getBitsNumber(prodCnt  - 1), &tmp_bits_val));
+			if(tmp_bits_val != 1)
+			{
+				DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
+				return EXIP_INCONSISTENT_PROC_STATE;
+			}
+
+			TRY(decodeQName(strm, &attrQname, &attrQnameId));
+			if(attrQnameId.uriId != XML_SCHEMA_INSTANCE_ID || attrQnameId.lnId != XML_SCHEMA_INSTANCE_TYPE_ID)
+			{
+				DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
+				return EXIP_INCONSISTENT_PROC_STATE;
+			}
+
+			if(handler->attribute != NULL)  // Invoke handler method for xsi:type
+			{
+				TRY(handler->attribute(attrQname, app_data));
+			}
+
+			TRY(decodeQName(strm, &attrQname, &attrQnameId));
+
+			if(handler->qnameData != NULL)  // Invoke handler method for the QName value of xsi:type
+			{
+				TRY(handler->qnameData(attrQname, app_data));
+			}
+
+			// Successful xsi:type switch
+			// New element grammar is pushed on the stack
+			elemGrammar = GET_TYPE_GRAMMAR_QNAMEID(strm->schema, attrQnameId);
+
+			if(elemGrammar != NULL)
+			{
+				// The grammar is found
+				TRY(pushGrammar(&(strm->gStack), elemGrammar));
+			}
+			else
+			{
+				DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
+				return EXIP_INCONSISTENT_PROC_STATE;
+			}
 		}
 #else
 		DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
@@ -1391,66 +1443,3 @@ static errorCode decodeQNameValue(EXIStream* strm, ContentHandler* handler, Smal
 
 	return EXIP_OK;
 }
-
-#if EXI_PROFILE_DEFAULT
-
-static errorCode handleBuildInGrammarRequest(EXIStream* strm, ContentHandler* handler, void* app_data)
-{
-	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
-	EXIGrammar* elemGrammar = NULL;
-	unsigned int prodCnt = 4;
-	unsigned int tmp_bits_val = 0;
-	QName attrQname;
-	QNameID attrQnameId = {URI_MAX, LN_MAX};
-
-	prodCnt += IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES);
-	prodCnt += WITH_SELF_CONTAINED(strm->header.opts.enumOpt);
-	prodCnt += IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD);
-	prodCnt += (IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) || IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS));
-
-	// There should be a valid xsi:type switch, otherwise rise an error
-	TRY(decodeNBitUnsignedInteger(strm, getBitsNumber(prodCnt  - 1), &tmp_bits_val));
-	if(tmp_bits_val != 1)
-	{
-		DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
-		return EXIP_INCONSISTENT_PROC_STATE;
-	}
-
-	TRY(decodeQName(strm, &attrQname, &attrQnameId));
-	if(attrQnameId.uriId != XML_SCHEMA_INSTANCE_ID || attrQnameId.lnId != XML_SCHEMA_INSTANCE_TYPE_ID)
-	{
-		DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
-		return EXIP_INCONSISTENT_PROC_STATE;
-	}
-
-	if(handler->attribute != NULL)  // Invoke handler method for xsi:type
-	{
-		TRY(handler->attribute(attrQname, app_data));
-	}
-
-	TRY(decodeQName(strm, &attrQname, &attrQnameId));
-
-	if(handler->qnameData != NULL)  // Invoke handler method for the QName value of xsi:type
-	{
-		TRY(handler->qnameData(attrQname, app_data));
-	}
-
-	// Successful xsi:type switch
-	// New element grammar is pushed on the stack
-	elemGrammar = GET_TYPE_GRAMMAR_QNAMEID(strm->schema, attrQnameId);
-
-	if(elemGrammar != NULL)
-	{
-		// The grammar is found
-		TRY(pushGrammar(&(strm->gStack), elemGrammar));
-	}
-	else
-	{
-		DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
-		return EXIP_INCONSISTENT_PROC_STATE;
-	}
-
-	return EXIP_OK;
-}
-
-#endif
