@@ -249,6 +249,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 
 				*nonTermID_out = GR_VOID_NON_TERMINAL;
 
+				// TODO: First you need to check if EE does not already exists, just then insert it
 				TRY(insertZeroProduction((DynGrammarRule*) currentRule, EVENT_EE, GR_VOID_NON_TERMINAL, &voidQnameID, 1));
 			break;
 			case 1:
@@ -293,6 +294,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 				*nonTermID_out = GR_ELEMENT_CONTENT;
 
 				TRY(decodeValueItem(strm, INDEX_MAX, handler, nonTermID_out, strm->gStack->currQNameID, app_data));
+				// TODO: First you need to check if CH does not already exists, just then insert it
 				TRY(insertZeroProduction((DynGrammarRule*) currentRule, EVENT_CH, *nonTermID_out, &voidQnameID, 1));
 			break;
 			case 6:

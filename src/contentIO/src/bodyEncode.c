@@ -244,6 +244,8 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 				strm->gStack->currNonTermID = GR_VOID_NON_TERMINAL;
 
 				// #1# COMMENT and #2# COMMENT
+				// NOTE: In general, first you need to check if EE does not already exists, just then insert it
+				// However, the encodeProduction(); will always use first level EE if exists so no such check is needed here.
 				TRY(insertZeroProduction((DynGrammarRule*) currentRule, EVENT_EE, GR_VOID_NON_TERMINAL, &voidQnameID, 1));
 			break;
 			case EVENT_AT_CLASS:
@@ -318,6 +320,8 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 				strm->gStack->currNonTermID = GR_ELEMENT_CONTENT;
 
 				// #1# COMMENT and #2# COMMENT
+				// NOTE: In general, first you need to check if CH does not already exists, just then insert it
+				// However, the encodeProduction(); will always use first level CH if exists so no such check is needed here.
 				TRY(insertZeroProduction((DynGrammarRule*) currentRule, EVENT_CH, GR_ELEMENT_CONTENT, &voidQnameID, 1));
 			break;
 			case EVENT_ER_CLASS:
