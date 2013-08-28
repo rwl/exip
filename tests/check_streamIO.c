@@ -186,56 +186,6 @@ START_TEST (test_writeNextBit)
 }
 END_TEST
 
-START_TEST (test_writeBits)
-{
-  EXIStream testStream;
-  char buf[2];
-  errorCode err = EXIP_UNEXPECTED_ERROR;
-  int test, test1;
-
-  testStream.context.bitPointer = 0;
-  buf[0] = (char) 0x00; /* 0b00000000 */
-  buf[1] = (char) 0xE0;	/* 0b11100000 */
-  testStream.buffer.buf = buf;
-  testStream.buffer.bufLen = 2;
-  testStream.buffer.bufContent = 2;
-  testStream.buffer.ioStrm.readWriteToStream = NULL;
-  testStream.buffer.ioStrm.stream = NULL;
-  testStream.context.bufferIndx = 0;
-  initAllocList(&testStream.memList);
-
-  err = writeBits(&testStream, 19);
-
-  test = (buf[0] & 0xF8 /* 0b11111000 */ ) >> 3;
-
-  fail_unless (test == 19,
-	       "The number 19 was written as %d", test);
-  fail_unless (err == EXIP_OK,
-	       "writeBits returns error code %d", err);
-  fail_unless (testStream.context.bitPointer == 5,
-  	       "The writeBits function did not move the bit Pointer of the stream correctly");
-
-  // Set the bit pointer to the first byte boundary
-  testStream.context.bitPointer = 7;
-
-  err = writeBits(&testStream, 9);
-
-  test = (buf[0] & 0x01) != 0;
-
-  test1 = (buf[1] & 0xE0 /* 0b11100000 */ ) >> 5;
-
-  fail_unless (test == 1 && test1 == 1,
-		      "writeBits function doesn't write correctly");
-  fail_unless (err == EXIP_OK,
-    	       "writeBits returns error code %d", err);
-  fail_unless (testStream.context.bitPointer == 3 && testStream.context.bufferIndx == 1,
-     	       "The writeBits function did not move the bit Pointer of the stream correctly");
-
-  err = writeBits(&testStream, 32);
-  fail_unless (err == EXIP_BUFFER_END_REACHED, "Incorrect error code");
-}
-END_TEST
-
 START_TEST (test_writeNBits)
 {
   EXIStream testStream;
@@ -1080,7 +1030,6 @@ Suite * streamIO_suite (void)
 	  /* StreamWrite test case */
 	  TCase *tc_sWrite = tcase_create ("StreamWrite");
 	  tcase_add_test (tc_sWrite, test_writeNextBit);
-	  tcase_add_test (tc_sWrite, test_writeBits);
 	  tcase_add_test (tc_sWrite, test_writeNBits);
 	  suite_add_tcase (s, tc_sWrite);
   }

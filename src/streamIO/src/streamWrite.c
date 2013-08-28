@@ -44,12 +44,6 @@ errorCode writeNextBit(EXIStream* strm, boolean bit_val)
 	return EXIP_OK;
 }
 
-errorCode writeBits(EXIStream* strm, unsigned int bits_val)
-{
-	unsigned char nbits = getBitsNumber(bits_val);
-	return writeNBits(strm, nbits, bits_val);
-}
-
 errorCode writeNBits(EXIStream* strm, unsigned char nbits, unsigned int bits_val)
 {
 	unsigned int numBitsWrite = 0; // Number of the bits written so far
