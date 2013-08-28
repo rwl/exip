@@ -102,6 +102,10 @@
  * - maximumNumberOfBuiltInProductions parameter value is set to 0
  * - localValuePartitions parameter value is set to 0.
  *
+ * Note that encoding/decoding the Profile parameters in the header is not supported
+ * and most likely will never be.
+ * Use only out-of-band communication of the EXI Profile default mode!
+ *
  * @see http://www.w3.org/TR/exi-profile/
  */
 #define EXI_PROFILE_DEFAULT OFF

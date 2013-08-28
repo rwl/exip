@@ -261,6 +261,12 @@ static errorCode addProductionsToARule(ProtoGrammar* left, Index ruleIndxL, Prot
 					{
 						// Collision: equal terminals and non-equal non-terminals
 						// We have a collision detected - must be traced why it happens
+						// From analysis of the spec, the only way that to happen is in
+						// <sequence> definition.
+						// When there are adjacent same definitions such as:
+						// <sequence><any> <any></sequence> or
+						// <sequence><element name="test"> <element name="test"></sequence>
+						// TODO: solve that!
 						assert(FALSE);
 					}
 				}
