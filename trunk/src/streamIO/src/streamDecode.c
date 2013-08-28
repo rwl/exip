@@ -49,7 +49,7 @@ errorCode decodeBoolean(EXIStream* strm, boolean* bool_val)
 {
 	//TODO:  when pattern facets are available in the schema datatype - handle it differently
 	DEBUG_MSG(INFO, DEBUG_STREAM_IO, (">> (bool)"));
-	return readNextBit(strm, bool_val);
+	return decodeNBitUnsignedInteger(strm, 1, bool_val);
 }
 
 errorCode decodeUnsignedInteger(EXIStream* strm, UnsignedInteger* int_val)

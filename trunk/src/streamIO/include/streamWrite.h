@@ -30,14 +30,6 @@
 errorCode writeNextBit(EXIStream* strm, boolean bit_val);
 
 /**
- * @brief Writes an unsigned integer value to an EXI stream with the least possible bits
- * and moves the stream current bit pointer to the last bit written.
- * @param[out] strm EXI stream of bits
- * @param[in] bits_val resulting bits value
- */
-errorCode writeBits(EXIStream* strm, unsigned int bits_val);
-
-/**
  * @brief Writes an unsigned integer value to an EXI stream with nbits (possible 0 paddings)
  * and moves the stream current bit pointer to the last bit written.
  * @param[out] strm EXI stream of bits

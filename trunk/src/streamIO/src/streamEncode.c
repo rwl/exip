@@ -48,7 +48,7 @@ errorCode encodeBoolean(EXIStream* strm, boolean bool_val)
 {
 	//TODO:  when pattern facets are available in the schema datatype - handle it differently
 	DEBUG_MSG(INFO, DEBUG_STREAM_IO, (">> 0x%X (bool)", bool_val));
-	return writeNextBit(strm, bool_val);
+	return encodeNBitUnsignedInteger(strm, 1, bool_val);
 }
 
 errorCode encodeUnsignedInteger(EXIStream* strm, UnsignedInteger int_val)
