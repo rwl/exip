@@ -1667,7 +1667,6 @@ static errorCode getRestrictionSimpleProtoGrammar(BuildContext* ctx, TreeTable* 
 		TRY(getTypeId(ctx, baseTypeID, resEntry->supertype.entry, resEntry->supertype.treeT, &typeId));
 	}
 
-	// TODO: check if there are cases when the EXI type changes after restriction
 	newSimpleType.content  = ctx->schema->simpleTypeTable.sType[typeId].content;
 	// remove the presence of named subtype
 	REMOVE_TYPE_FACET(newSimpleType.content, TYPE_FACET_NAMED_SUBTYPE_UNION);
@@ -1682,38 +1681,38 @@ static errorCode getRestrictionSimpleProtoGrammar(BuildContext* ctx, TreeTable* 
 		if(tmpEntry->element == ELEMENT_MIN_INCLUSIVE)
 		{
 			SET_TYPE_FACET(newSimpleType.content, TYPE_FACET_MIN_INCLUSIVE);
-			TRY(stringToInt64(&resEntry->child.entry->attributePointers[ATTRIBUTE_VALUE], &newSimpleType.min));
+			TRY(stringToInt64(&tmpEntry->attributePointers[ATTRIBUTE_VALUE], &newSimpleType.min));
 		}
 		else if(tmpEntry->element == ELEMENT_MIN_EXCLUSIVE)
 		{
 			SET_TYPE_FACET(newSimpleType.content, TYPE_FACET_MIN_EXCLUSIVE);
-			TRY(stringToInt64(&resEntry->child.entry->attributePointers[ATTRIBUTE_VALUE], &newSimpleType.min));
+			TRY(stringToInt64(&tmpEntry->attributePointers[ATTRIBUTE_VALUE], &newSimpleType.min));
 		}
 		else if(tmpEntry->element == ELEMENT_MIN_LENGTH)
 		{
 			SET_TYPE_FACET(newSimpleType.content, TYPE_FACET_MIN_LENGTH);
-			TRY(stringToInt64(&resEntry->child.entry->attributePointers[ATTRIBUTE_VALUE], &newSimpleType.min));
+			TRY(stringToInt64(&tmpEntry->attributePointers[ATTRIBUTE_VALUE], &newSimpleType.min));
 		}
 		else if(tmpEntry->element == ELEMENT_MAX_INCLUSIVE)
 		{
 			SET_TYPE_FACET(newSimpleType.content, TYPE_FACET_MAX_INCLUSIVE);
-			TRY(stringToInt64(&resEntry->child.entry->attributePointers[ATTRIBUTE_VALUE], &newSimpleType.max));
+			TRY(stringToInt64(&tmpEntry->attributePointers[ATTRIBUTE_VALUE], &newSimpleType.max));
 		}
 		else if(tmpEntry->element == ELEMENT_MAX_EXCLUSIVE)
 		{
 			SET_TYPE_FACET(newSimpleType.content, TYPE_FACET_MAX_EXCLUSIVE);
-			TRY(stringToInt64(&resEntry->child.entry->attributePointers[ATTRIBUTE_VALUE], &newSimpleType.max));
+			TRY(stringToInt64(&tmpEntry->attributePointers[ATTRIBUTE_VALUE], &newSimpleType.max));
 		}
 		else if(tmpEntry->element == ELEMENT_MAX_LENGTH)
 		{
 			SET_TYPE_FACET(newSimpleType.content, TYPE_FACET_MAX_LENGTH);
-			TRY(stringToInt64(&resEntry->child.entry->attributePointers[ATTRIBUTE_VALUE], &newSimpleType.max));
+			TRY(stringToInt64(&tmpEntry->attributePointers[ATTRIBUTE_VALUE], &newSimpleType.max));
 		}
 		else if(tmpEntry->element == ELEMENT_LENGTH)
 		{
 			int ml = 0;
 			SET_TYPE_FACET(newSimpleType.content, TYPE_FACET_LENGTH);
-			TRY(stringToInteger(&resEntry->child.entry->attributePointers[ATTRIBUTE_VALUE], &ml));
+			TRY(stringToInteger(&tmpEntry->attributePointers[ATTRIBUTE_VALUE], &ml));
 			newSimpleType.length = (unsigned int) ml;
 		}
 		else if(tmpEntry->element == ELEMENT_TOTAL_DIGITS)
@@ -1746,6 +1745,46 @@ static errorCode getRestrictionSimpleProtoGrammar(BuildContext* ctx, TreeTable* 
 			return EXIP_UNEXPECTED_ERROR;
 
 		tmpEntry = tmpEntry->next;
+	}
+
+	// check if the EXI type has changed after the restrictions
+	// Possible transitions are from VALUE_TYPE_INTEGER to VALUE_TYPE_NON_NEGATIVE_INT or VALUE_TYPE_SMALL_INTEGER
+	// OR from VALUE_TYPE_NON_NEGATIVE_INT to VALUE_TYPE_SMALL_INTEGER
+	if(GET_EXI_TYPE(newSimpleType.content) == VALUE_TYPE_INTEGER || GET_EXI_TYPE(newSimpleType.content) == VALUE_TYPE_NON_NEGATIVE_INT)
+	{
+		if(HAS_TYPE_FACET(newSimpleType.content, TYPE_FACET_MIN_INCLUSIVE))
+		{
+			if(newSimpleType.min >= 0)
+				SET_EXI_TYPE(newSimpleType.content, VALUE_TYPE_NON_NEGATIVE_INT);
+
+			if(HAS_TYPE_FACET(newSimpleType.content, TYPE_FACET_MAX_INCLUSIVE))
+			{
+				if(newSimpleType.max - newSimpleType.min + 1 <= 4096)
+					SET_EXI_TYPE(newSimpleType.content, VALUE_TYPE_SMALL_INTEGER);
+			}
+			else if(HAS_TYPE_FACET(newSimpleType.content, TYPE_FACET_MAX_EXCLUSIVE))
+			{
+				if(newSimpleType.max - newSimpleType.min <= 4096)
+					SET_EXI_TYPE(newSimpleType.content, VALUE_TYPE_SMALL_INTEGER);
+			}
+		}
+		else if(HAS_TYPE_FACET(newSimpleType.content, TYPE_FACET_MIN_EXCLUSIVE))
+		{
+			if(newSimpleType.min >= -1)
+				SET_EXI_TYPE(newSimpleType.content, VALUE_TYPE_NON_NEGATIVE_INT);
+
+			if(HAS_TYPE_FACET(newSimpleType.content, TYPE_FACET_MAX_EXCLUSIVE))
+			{
+				if(newSimpleType.max - newSimpleType.min - 1 <= 4096)
+					SET_EXI_TYPE(newSimpleType.content, VALUE_TYPE_SMALL_INTEGER);
+			}
+			else if(HAS_TYPE_FACET(newSimpleType.content, TYPE_FACET_MAX_INCLUSIVE))
+			{
+				if(newSimpleType.max - newSimpleType.min <= 4096)
+					SET_EXI_TYPE(newSimpleType.content, VALUE_TYPE_SMALL_INTEGER);
+			}
+
+		}
 	}
 
 	// Handling of enumerations
