@@ -114,20 +114,28 @@ errorCode encodeProduction(EXIStream* strm, EventTypeClass eventClass, boolean i
 	Index prodCount;
 	unsigned int bitCount;
 	boolean matchFound = FALSE;
+	SmallIndex currNonTermID = strm->gStack->currNonTermID;
 
-	if(strm->gStack->currNonTermID >=  strm->gStack->grammar->count)
+	// TODO: GR_CONTENT_2 is only needed when schema deviations are allowed.
+	//       Here and in many other places when schema deviations are fully disabled
+	//       many parts of the code can be pruned during compile time using macro parameters in the build.
+	//       This includes the EXI Profile features itself (excluding localValueCapping)
+	if(currNonTermID == GR_CONTENT_2)
+		currNonTermID = GET_CONTENT_INDEX(strm->gStack->grammar->props);
+
+	if(currNonTermID >=  strm->gStack->grammar->count)
 		return EXIP_INCONSISTENT_PROC_STATE;
 
 #if BUILD_IN_GRAMMARS_USE
 	if(IS_BUILT_IN_ELEM(strm->gStack->grammar->props))  // If the current grammar is build-in Element grammar ...
 	{
-		currentRule = (GrammarRule*) &((DynGrammarRule*) strm->gStack->grammar->rule)[strm->gStack->currNonTermID];
+		currentRule = (GrammarRule*) &((DynGrammarRule*) strm->gStack->grammar->rule)[currNonTermID];
 		prodCount = currentRule->pCount;
 	}
 	else
 #endif
 	{
-		currentRule = &strm->gStack->grammar->rule[strm->gStack->currNonTermID];
+		currentRule = &strm->gStack->grammar->rule[currNonTermID];
 
 		if(strm->context.isNilType)
 		{
@@ -140,6 +148,7 @@ errorCode encodeProduction(EXIStream* strm, EventTypeClass eventClass, boolean i
 					ec.part[0] = prodCount;
 					ec.bits[0] = getBitsNumber(prodCount);
 					strm->gStack->currNonTermID = GR_VOID_NON_TERMINAL;
+					strm->context.isNilType = FALSE;
 
 					return writeEventCode(strm, ec);
 				}
@@ -152,11 +161,11 @@ errorCode encodeProduction(EXIStream* strm, EventTypeClass eventClass, boolean i
 #if DEBUG_CONTENT_IO == ON
 	{
 		errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
-		TRY(printGrammarRule(strm->gStack->currNonTermID, currentRule, strm->schema));
+		TRY(printGrammarRule(currNonTermID, currentRule, strm->schema));
 	}
 #endif
 
-	bitCount = getBitsFirstPartCode(strm->header.opts, strm->gStack->grammar, currentRule, strm->gStack->currNonTermID, strm->context.isNilType);
+	bitCount = getBitsFirstPartCode(strm->header.opts, strm->gStack->grammar, currentRule, currNonTermID, strm->context.isNilType);
 
 	if(isSchemaType == TRUE)
 	{
@@ -426,27 +435,52 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 		else // Non-strict mode
 		{
 			unsigned int prod2Count = 0;
+			// Create a copy of the content grammar if and only if there are AT
+			// productions that point to the content grammar rule OR the content index is 0.
+			// The content2 grammar rule is only needed in case the current rule is
+			// equal the content grammar rule. Note that when content index is 0, the entry grammar
+			// is the content2 grammar rule and by default the GR_START_TAG_CONTENT is pointing
+			// to the content2 while GR_CONTENT_2 is pointing to content i.e. the roles are
+			// reversed in this situation. It is implemented in this way in order to keep
+			// all the rule processing in tact in the other parts of the implementation.
+			boolean isContent2Grammar = FALSE;
 
-			// TODO: Implement the case with schema deviations.
-			// This includes proper handling of content2 grammar rule.
-			// Similar to the decoding case
+			if(strm->gStack->currNonTermID == GR_CONTENT_2)
+			{
+				if(GET_CONTENT_INDEX(strm->gStack->grammar->props) != GR_START_TAG_CONTENT)
+					isContent2Grammar = TRUE;
+			}
+			else if(GET_CONTENT_INDEX(strm->gStack->grammar->props) == GR_START_TAG_CONTENT &&
+					strm->gStack->currNonTermID == GR_START_TAG_CONTENT)
+			{
+					isContent2Grammar = TRUE;
+			}
+			prod2Count = 2; // SE(*), CH(untyped) always available
 
-			prod2Count += 5; // EE, AT (*), AT (*) [untyped value], SE (*), CH [untyped value]
+			if(isContent2Grammar ||
+					strm->gStack->currNonTermID < GET_CONTENT_INDEX(strm->gStack->grammar->props))
+			{
+				prod2Count += 2; // AT(*), AT(untyped) third level
+			}
+
 			if(!RULE_CONTAIN_EE(currentRule->meta))
-				prod2Count += 1;
+				prod2Count += 1; // EE
+
 			if(strm->gStack->currNonTermID == GR_START_TAG_CONTENT)
 			{
-				prod2Count += 2; // AT(xsi:type) Element i,0 and AT(xsi:nil) Element i,0
+				prod2Count += 2; // AT(xsi:type), AT(xsi:nil)
+
 				if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES))
 					prod2Count += 1; // NS
-
 				if(WITH_SELF_CONTAINED(strm->header.opts.enumOpt))
 					prod2Count += 1; // SC
 			}
+
 			if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
 				prod2Count += 1; // ER
+
 			if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) || IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
-				prod2Count += 1; // CM & PI
+				prod2Count += 1; // CM or PI
 
 			switch(eventClass)
 			{
@@ -458,6 +492,7 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 					ec.part[1] = 0;
 					ec.bits[1] = getBitsNumber(prod2Count - 1);
 					strm->gStack->currNonTermID = GR_VOID_NON_TERMINAL;
+					strm->context.isNilType = FALSE;
 				break;
 				case EVENT_AT_CLASS:
 
@@ -471,8 +506,6 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 						qnameID.lnId = strm->schema->uriTable.uri[qnameID.uriId].lnTable.count;
 					}
 
-					prodHit->qnameId = qnameID;
-
 					if(qnameID.uriId == XML_SCHEMA_INSTANCE_ID)
 					{
 						if(qnameID.lnId == XML_SCHEMA_INSTANCE_NIL_ID)
@@ -481,9 +514,11 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 								return EXIP_INCONSISTENT_PROC_STATE;
 
 							SET_PROD_EXI_EVENT(prodHit->content, EVENT_AT_QNAME);
+							prodHit->qnameId = qnameID;
 							ec.length = 2;
 							ec.part[1] = 1 + !RULE_CONTAIN_EE(currentRule->meta);
 							ec.bits[1] = getBitsNumber(prod2Count - 1);
+							prodHit->typeId = SIMPLE_TYPE_BOOLEAN;
 						}
 						else if(qnameID.lnId == XML_SCHEMA_INSTANCE_TYPE_ID)
 						{
@@ -491,9 +526,11 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 								return EXIP_INCONSISTENT_PROC_STATE;
 
 							SET_PROD_EXI_EVENT(prodHit->content, EVENT_AT_QNAME);
+							prodHit->qnameId = qnameID;
 							ec.length = 2;
 							ec.part[1] = 0 + !RULE_CONTAIN_EE(currentRule->meta);
 							ec.bits[1] = getBitsNumber(prod2Count - 1);
+							prodHit->typeId = SIMPLE_TYPE_QNAME;
 						}
 						else
 							return EXIP_NOT_IMPLEMENTED_YET;
@@ -516,10 +553,34 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 					return EXIP_NOT_IMPLEMENTED_YET;
 				break;
 				case EVENT_SE_CLASS:
-					return EXIP_NOT_IMPLEMENTED_YET;
+					// SE(*) content|same_rule
+					if(isContent2Grammar || strm->gStack->currNonTermID < GET_CONTENT_INDEX(strm->gStack->grammar->props))
+					{
+						// currNonTermID should point to the content grammar rule
+						if(GET_CONTENT_INDEX(strm->gStack->grammar->props) == GR_START_TAG_CONTENT)
+							strm->gStack->currNonTermID = GR_CONTENT_2;
+						else
+							strm->gStack->currNonTermID = GET_CONTENT_INDEX(strm->gStack->grammar->props);
+					}
+					SET_PROD_EXI_EVENT(prodHit->content, EVENT_SE_ALL);
+					ec.length = 2;
+					ec.part[1] = prod2Count - 2 - (IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD) == TRUE) - (IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) || IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS));
+					ec.bits[1] = getBitsNumber(prod2Count - 1);
 				break;
 				case EVENT_CH_CLASS:
-					return EXIP_NOT_IMPLEMENTED_YET;
+					// CH [untyped value] content|same_rule
+					if(isContent2Grammar || strm->gStack->currNonTermID < GET_CONTENT_INDEX(strm->gStack->grammar->props))
+					{
+						// currNonTermID should point to the content grammar rule
+						if(GET_CONTENT_INDEX(strm->gStack->grammar->props) == GR_START_TAG_CONTENT)
+							strm->gStack->currNonTermID = GR_CONTENT_2;
+						else
+							strm->gStack->currNonTermID = GET_CONTENT_INDEX(strm->gStack->grammar->props);
+					}
+					SET_PROD_EXI_EVENT(prodHit->content, EVENT_CH);
+					ec.length = 2;
+					ec.part[1] = prod2Count - 1 - (IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD) == TRUE) - (IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) || IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS));
+					ec.bits[1] = getBitsNumber(prod2Count - 1);
 				break;
 				case EVENT_ER_CLASS:
 					return EXIP_NOT_IMPLEMENTED_YET;
