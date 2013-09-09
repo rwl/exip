@@ -23,6 +23,6 @@
 #define OUT_EXI 0
 #define OUT_XML 1
 
-errorCode decode(EXIPSchema* schemaPtr, unsigned char outFlag, FILE *infile, size_t (*inputStream)(void* buf, size_t size, void* stream));
+errorCode decode(EXIPSchema* schemaPtr, unsigned char outFlag, FILE *infile, boolean outOfBandOpts, EXIOptions* opts, size_t (*inputStream)(void* buf, size_t size, void* stream));
 
 #endif /* DECODETESTEXI_H_ */

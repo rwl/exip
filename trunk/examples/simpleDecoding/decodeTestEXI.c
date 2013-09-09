@@ -68,7 +68,7 @@ static errorCode sample_dateTimeData(EXIPDateTime dt_val, void* app_data);
 static errorCode sample_binaryData(const char* binary_val, Index nbytes, void* app_data);
 static errorCode sample_qnameData(const QName qname, void* app_data);
 
-errorCode decode(EXIPSchema* schemaPtr, unsigned char outFlag, FILE *infile, size_t (*inputStream)(void* buf, size_t size, void* stream))
+errorCode decode(EXIPSchema* schemaPtr, unsigned char outFlag, FILE *infile, boolean outOfBandOpts, EXIOptions* opts, size_t (*inputStream)(void* buf, size_t size, void* stream))
 {
 	Parser testParser;
 	char buf[INPUT_BUFFER_SIZE];
@@ -95,6 +95,8 @@ errorCode decode(EXIPSchema* schemaPtr, unsigned char outFlag, FILE *infile, siz
 	parsingData.unclosedElement = 0;
 	parsingData.prefixesCount = 0;
 	parsingData.outputFormat = outFlag;
+	if(outOfBandOpts && opts != NULL)
+		testParser.strm.header.opts = *opts;
 
 	testParser.handler.fatalError = sample_fatalError;
 	testParser.handler.error = sample_fatalError;
@@ -114,7 +116,7 @@ errorCode decode(EXIPSchema* schemaPtr, unsigned char outFlag, FILE *infile, siz
 
 	// IV: Parse the header of the stream
 
-	TRY(parseHeader(&testParser, FALSE));
+	TRY(parseHeader(&testParser, outOfBandOpts));
 
 	// IV.1: Set the schema to be used for parsing.
 	// The schemaID mode and schemaID field can be read at
