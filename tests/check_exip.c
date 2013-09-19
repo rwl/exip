@@ -892,8 +892,7 @@ START_TEST (test_large_doc_str_pattern)
 	    qname.uri = &NS_EMPTY_STR;
 	    qname.localName = &ELEM_ENABLED;
 	    tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
-	    tmp_err_code += asciiToString("true", &chVal, &testStrm.memList, FALSE);
-	    tmp_err_code += serialize.stringData(&testStrm, chVal);
+	    tmp_err_code += serialize.booleanData(&testStrm, TRUE);
 		tmp_err_code += serialize.endElement(&testStrm);
 
 	    qname.uri = &NS_EMPTY_STR;
@@ -958,9 +957,7 @@ START_TEST (test_large_doc_str_pattern)
 	    qname.uri = &NS_EMPTY_STR;
 	    qname.localName = &ELEM_PORT;
 	    tmp_err_code += serialize.startElement(&testStrm, qname, &typeClass);
-		sprintf(strbuffer, "%d", 6620 + i);
-	    tmp_err_code += asciiToString(strbuffer, &chVal, &testStrm.memList, FALSE);
-	    tmp_err_code += serialize.stringData(&testStrm, chVal);
+	    tmp_err_code += serialize.intData(&testStrm, 6620);
 		tmp_err_code += serialize.endElement(&testStrm);
 
 	    qname.uri = &NS_EMPTY_STR;

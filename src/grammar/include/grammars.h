@@ -42,18 +42,18 @@
  * @brief Push a grammar on top of the Grammar Stack
  * 
  * @param[in, out] gStack the Grammar Stack
- * @param[in] grammar a grammar
+ * @param[in] currQNameID the currently proccessed element QNameID that is having this grammar
+ * @param[in] grammar a EXI grammar
  * @return Error handling code
  */
-errorCode pushGrammar(EXIGrammarStack** gStack, EXIGrammar* grammar);
+errorCode pushGrammar(EXIGrammarStack** gStack, QNameID currQNameID, EXIGrammar* grammar);
 
 /**
  * @brief Pop a grammar off the top of the Grammar Stack
  * 
  * @param[in, out] gStack the Grammar stack
- * @param[out] grammar the popped out grammar
  */
-void popGrammar(EXIGrammarStack** gStack, EXIGrammar** grammar);
+void popGrammar(EXIGrammarStack** gStack);
 
 /**
  * @brief Creates an instance of the EXI Built-in Document Grammar or Schema-Informed Document Grammar
@@ -109,14 +109,12 @@ errorCode createFragmentGrammar(EXIPSchema* schema, QNameID* elQnameArr, Index q
 
 /**
  * @brief For a given grammar and a rule from it, returns the number of bits needed to encode a production from that rule
- * @param[in] opts a set of options for the EXI stream
- * @param[in] grammar a grammar object
+ * @param[in] strm EXI stream
  * @param[in] currentRule the concrete grammar rule
  * @param[in] currentRuleIndx the index of the concrete grammar rule
- * @param[in] isNilType whether a xsi:nil=TRUE is in the current context
  * @return number of bits needed to encode a production
  */
-unsigned int getBitsFirstPartCode(EXIOptions opts, EXIGrammar* grammar, GrammarRule* currentRule, SmallIndex currentRuleIndx, boolean isNilType);
+unsigned int getBitsFirstPartCode(EXIStream* strm, GrammarRule* currentRule, SmallIndex currentRuleIndx);
 
 #if EXIP_DEBUG == ON
 /**

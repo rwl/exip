@@ -69,6 +69,7 @@ errorCode encodeHeader(EXIStream* strm)
 	if(strm->header.has_options)
 	{
 		EXIStream options_strm;
+		QNameID emptyQnameID = {URI_MAX, LN_MAX};
 
 		makeDefaultOpts(&options_strm.header.opts);
 		SET_STRICT(options_strm.header.opts.enumOpt);
@@ -86,7 +87,7 @@ errorCode encodeHeader(EXIStream* strm)
 		options_strm.schema = (EXIPSchema*) &ops_schema;
 
 		TRY_CATCH(createValueTable(&options_strm.valueTable), closeOptionsStream(&options_strm));
-		TRY_CATCH(pushGrammar(&options_strm.gStack, (EXIGrammar*) &ops_schema.docGrammar), closeOptionsStream(&options_strm));
+		TRY_CATCH(pushGrammar(&options_strm.gStack, emptyQnameID, (EXIGrammar*) &ops_schema.docGrammar), closeOptionsStream(&options_strm));
 		TRY_CATCH(serializeOptionsStream(&options_strm, &strm->header.opts, &strm->schema->uriTable), closeOptionsStream(&options_strm));
 
 		strm->buffer.bufContent = options_strm.buffer.bufContent;
@@ -112,10 +113,9 @@ errorCode encodeHeader(EXIStream* strm)
 
 static void closeOptionsStream(EXIStream* strm)
 {
-	EXIGrammar* tmp;
 	while(strm->gStack != NULL)
 	{
-		popGrammar(&strm->gStack, &tmp);
+		popGrammar(&strm->gStack);
 	}
 	freeAllMem(strm);
 }

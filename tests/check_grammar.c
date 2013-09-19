@@ -59,6 +59,7 @@ START_TEST (test_processNextProduction)
 	SmallIndex nonTermID_out;
 	ContentHandler handler;
 	EXIPSchema schema;
+	QNameID emptyQnameID = {URI_MAX, LN_MAX};
 
 	initAllocList(&strm.memList);
 	initAllocList(&schema.memList);
@@ -66,7 +67,7 @@ START_TEST (test_processNextProduction)
 	err = createDocGrammar(&schema, NULL, 0);
 	fail_unless (err == EXIP_OK, "createDocGrammar returns an error code %d", err);
 
-	err = pushGrammar(&strm.gStack, &schema.docGrammar);
+	err = pushGrammar(&strm.gStack, emptyQnameID, &schema.docGrammar);
 	fail_unless (err == EXIP_OK, "pushGrammar returns an error code %d", err);
 
 	strm.gStack->currNonTermID = 4;
@@ -85,6 +86,7 @@ START_TEST (test_pushGrammar)
 	EXIStream strm;
 	EXIGrammar testElementGrammar;
 	EXIGrammar testElementGrammar1;
+	QNameID emptyQnameID = {URI_MAX, LN_MAX};
 
 	makeDefaultOpts(&strm.header.opts);
 	initAllocList(&strm.memList);
@@ -97,11 +99,11 @@ START_TEST (test_pushGrammar)
 	fail_if(err != EXIP_OK);
 #endif
 
-	err = pushGrammar(&testGrStack, &testElementGrammar1);
+	err = pushGrammar(&testGrStack, emptyQnameID, &testElementGrammar1);
 	fail_unless (err == EXIP_OK, "pushGrammar returns error code %d", err);
 	fail_if(testGrStack->nextInStack != NULL);
 
-	err = pushGrammar(&testGrStack, &testElementGrammar);
+	err = pushGrammar(&testGrStack, emptyQnameID, &testElementGrammar);
 	fail_unless (err == EXIP_OK, "pushGrammar returns error code %d", err);
 	fail_if(testGrStack->nextInStack == NULL);
 	fail_if(testGrStack->nextInStack->grammar != &testElementGrammar1);
@@ -117,7 +119,7 @@ START_TEST (test_popGrammar)
 	EXIGrammar testElementGrammar1;
 	EXIStream strm;
 	EXIGrammar testElementGrammar;
-	EXIGrammar* testGR;
+	QNameID emptyQnameID = {URI_MAX, LN_MAX};
 
 	makeDefaultOpts(&strm.header.opts);
 	initAllocList(&strm.memList);
@@ -130,17 +132,15 @@ START_TEST (test_popGrammar)
 	fail_if(err != EXIP_OK);
 #endif
 
-	err = pushGrammar(&testGrStack, &testElementGrammar1);
+	err = pushGrammar(&testGrStack, emptyQnameID, &testElementGrammar1);
 	fail_unless (err == EXIP_OK, "pushGrammar returns error code %d", err);
 
-	err = pushGrammar(&testGrStack, &testElementGrammar);
+	err = pushGrammar(&testGrStack, emptyQnameID, &testElementGrammar);
 	fail_unless (err == EXIP_OK, "pushGrammar returns error code %d", err);
 	fail_if(testGrStack->nextInStack == NULL);
 
-	popGrammar(&testGrStack, &testGR);
+	popGrammar(&testGrStack);
 	fail_if(testGrStack->nextInStack != NULL);
-	fail_if(testGR == NULL);
-	fail_if(testGR != &testElementGrammar);
 }
 END_TEST
 
