@@ -211,7 +211,7 @@ errorCode insertZeroProduction(DynGrammarRule* rule, EventType eventType, SmallI
 }
 #endif
 
-errorCode pushGrammar(EXIGrammarStack** gStack, EXIGrammar* grammar)
+errorCode pushGrammar(EXIGrammarStack** gStack, QNameID currQNameID, EXIGrammar* grammar)
 {
 	struct GrammarStackNode* node = (struct GrammarStackNode*)EXIP_MALLOC(sizeof(struct GrammarStackNode));
 	if(node == NULL)
@@ -219,26 +219,20 @@ errorCode pushGrammar(EXIGrammarStack** gStack, EXIGrammar* grammar)
 
 	node->grammar = grammar;
 	node->currNonTermID = GR_START_TAG_CONTENT;
-	node->currQNameID.uriId = URI_MAX;
-	node->currQNameID.uriId = LN_MAX;
+	node->currQNameID = currQNameID;
 	node->nextInStack = *gStack;
 	*gStack = node;
 	return EXIP_OK;
 }
 
-void popGrammar(EXIGrammarStack** gStack, EXIGrammar** grammar)
+void popGrammar(EXIGrammarStack** gStack)
 {
 	struct GrammarStackNode* node = *gStack;
-	if((*gStack) == NULL)
-	{
-		(*grammar) = NULL;
-	}
-	else
+	if((*gStack) != NULL)
 	{
 		node = *gStack;
 		*gStack = (*gStack)->nextInStack;
 
-		(*grammar) = node->grammar;
 		EXIP_MFREE(node);
 	}
 }
@@ -323,31 +317,31 @@ errorCode createFragmentGrammar(EXIPSchema* schema, QNameID* elQnameArr, Index q
 	return EXIP_OK;
 }
 
-unsigned int getBitsFirstPartCode(EXIOptions opts, EXIGrammar* grammar, GrammarRule* currentRule, SmallIndex currentRuleIndx, boolean isNilType)
+unsigned int getBitsFirstPartCode(EXIStream* strm, GrammarRule* currentRule, SmallIndex currentRuleIndx)
 {
-	unsigned char secondLevelExists = 0;
+	boolean secondLevelExists = FALSE;
 
-	if(IS_BUILT_IN_ELEM(grammar->props))
+	if(IS_BUILT_IN_ELEM(strm->gStack->grammar->props))
 	{
 		// Built-in element grammar
 		// There is always a second level production
 		return getBitsNumber(currentRule->pCount);
 	}
-	else if(IS_DOCUMENT(grammar->props))
+	else if(IS_DOCUMENT(strm->gStack->grammar->props))
 	{
 		// Document grammar
-		if(IS_PRESERVED(opts.preserve, PRESERVE_COMMENTS) || IS_PRESERVED(opts.preserve, PRESERVE_PIS))
-			secondLevelExists = 1;
-		else if(currentRuleIndx == 0 && IS_PRESERVED(opts.preserve, PRESERVE_DTD))
-			secondLevelExists = 1;
+		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) || IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
+			secondLevelExists = TRUE;
+		else if(currentRuleIndx == 0 && IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
+			secondLevelExists = TRUE;
 
 		return getBitsNumber(currentRule->pCount - 1 + secondLevelExists);
 	}
-	else if(IS_FRAGMENT(grammar->props))
+	else if(IS_FRAGMENT(strm->gStack->grammar->props))
 	{
 		// Fragment grammar
-		if(IS_PRESERVED(opts.preserve, PRESERVE_COMMENTS) || IS_PRESERVED(opts.preserve, PRESERVE_PIS))
-			secondLevelExists = 1;
+		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) || IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
+			secondLevelExists = TRUE;
 		return getBitsNumber(currentRule->pCount - 1 + secondLevelExists);
 	}
 	else
@@ -355,16 +349,26 @@ unsigned int getBitsFirstPartCode(EXIOptions opts, EXIGrammar* grammar, GrammarR
 		// Schema-informed element/type grammar
 		Index prodCount;
 
-		if(isNilType == FALSE)
+		if(strm->context.isNilType == FALSE)
 			prodCount = currentRule->pCount;
 		else
 			prodCount = RULE_GET_AT_COUNT(currentRule->meta) + RULE_CONTAIN_EE(currentRule->meta);
 
-		if(WITH_STRICT(opts.enumOpt))
+		if(WITH_STRICT(strm->header.opts.enumOpt))
 		{
 			// Strict mode
-			if(isNilType == FALSE && currentRuleIndx == 0 && (HAS_NAMED_SUB_TYPE_OR_UNION(grammar->props) || IS_NILLABLE(grammar->props)))
-				secondLevelExists = 1;
+			if(strm->context.isNilType == FALSE && currentRuleIndx == 0)
+			{
+				if(IS_NILLABLE(strm->gStack->grammar->props))
+					secondLevelExists = TRUE;
+				else if(HAS_NAMED_SUB_TYPE_OR_UNION(strm->gStack->grammar->props))
+				{
+					// there is AT(xsi:type) as a second level production only if this
+					// grammar is not already switched using AT(xsi:type)
+					if(strm->gStack->grammar == (GET_ELEM_GRAMMAR_QNAMEID(strm->schema, strm->gStack->currQNameID)))
+						secondLevelExists = TRUE;
+				}
+			}
 			return getBitsNumber(prodCount - 1 + secondLevelExists);
 		}
 		else // Non-strict mode

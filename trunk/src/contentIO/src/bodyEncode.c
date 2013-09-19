@@ -105,7 +105,7 @@ errorCode encodeStringData(EXIStream* strm, String strng, QNameID qnameID, Index
 	return EXIP_OK;
 }
 
-errorCode encodeProduction(EXIStream* strm, EventTypeClass eventClass, boolean isSchemaType, QName* qname, Production* prodHit)
+errorCode encodeProduction(EXIStream* strm, EventTypeClass eventClass, boolean isSchemaType, QName* qname, EXITypeClass chTypeClass, Production* prodHit)
 {
 	GrammarRule* currentRule;
 	EventCode ec;
@@ -165,7 +165,7 @@ errorCode encodeProduction(EXIStream* strm, EventTypeClass eventClass, boolean i
 	}
 #endif
 
-	bitCount = getBitsFirstPartCode(strm->header.opts, strm->gStack->grammar, currentRule, currNonTermID, strm->context.isNilType);
+	bitCount = getBitsFirstPartCode(strm, currentRule, currNonTermID);
 
 	if(isSchemaType == TRUE)
 	{
@@ -184,6 +184,19 @@ errorCode encodeProduction(EXIStream* strm, EventTypeClass eventClass, boolean i
 						matchFound = TRUE;
 						break;
 					}
+				}
+				else if(eventClass == EVENT_CH_CLASS)
+				{
+					EXIType exiType;
+					if(tmpProd->typeId != INDEX_MAX)
+						exiType = GET_EXI_TYPE(strm->schema->simpleTypeTable.sType[tmpProd->typeId].content);
+					else
+						exiType = VALUE_TYPE_NONE;
+
+					if(chTypeClass == GET_VALUE_TYPE_CLASS(exiType))
+						matchFound = TRUE;
+
+					break;
 				}
 				else
 				{
@@ -396,7 +409,11 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 				return EXIP_INCONSISTENT_PROC_STATE;
 			if(stringEqualToAscii(*qname->localName, "type"))
 			{
-				if(!HAS_NAMED_SUB_TYPE_OR_UNION(strm->gStack->grammar->props))
+				// there is AT(xsi:type) as a second level production only if this
+				// grammar is not already switched using AT(xsi:type) and
+				// it has sub-type or is union
+				if(!HAS_NAMED_SUB_TYPE_OR_UNION(strm->gStack->grammar->props) ||
+						strm->gStack->grammar != (GET_ELEM_GRAMMAR_QNAMEID(strm->schema, strm->gStack->currQNameID)))
 					return EXIP_INCONSISTENT_PROC_STATE;
 
 				SET_PROD_EXI_EVENT(prodHit->content, EVENT_AT_QNAME);
@@ -418,7 +435,8 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 				prodHit->qnameId.uriId = XML_SCHEMA_INSTANCE_ID;
 				prodHit->qnameId.lnId = XML_SCHEMA_INSTANCE_NIL_ID;
 
-				if(!HAS_NAMED_SUB_TYPE_OR_UNION(strm->gStack->grammar->props))
+				if(!HAS_NAMED_SUB_TYPE_OR_UNION(strm->gStack->grammar->props) ||
+						strm->gStack->grammar != (GET_ELEM_GRAMMAR_QNAMEID(strm->schema, strm->gStack->currQNameID)))
 				{
 					ec.part[1] = 0;
 					ec.bits[1] = 0;

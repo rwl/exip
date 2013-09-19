@@ -161,7 +161,10 @@ errorCode setSchema(Parser* parser, EXIPSchema* schema)
 		}
 	}
 
-	TRY(pushGrammar(&parser->strm.gStack, &parser->strm.schema->docGrammar));
+	{
+		QNameID emptyQNameID = {URI_MAX, LN_MAX};
+		TRY(pushGrammar(&parser->strm.gStack, emptyQNameID, &parser->strm.schema->docGrammar));
+	}
 
 	return EXIP_OK;
 }
@@ -175,8 +178,7 @@ errorCode parseNext(Parser* parser)
 
 	if(tmpNonTermID == GR_VOID_NON_TERMINAL)
 	{
-		EXIGrammar* grammar;
-		popGrammar(&(parser->strm.gStack), &grammar);
+		popGrammar(&(parser->strm.gStack));
 		if(parser->strm.gStack == NULL) // There is no more grammars in the stack
 		{
 			return EXIP_PARSING_COMPLETE; // The stream is parsed
@@ -192,10 +194,9 @@ errorCode parseNext(Parser* parser)
 
 void destroyParser(Parser* parser)
 {
-	EXIGrammar* tmp;
 	while(parser->strm.gStack != NULL)
 	{
-		popGrammar(&parser->strm.gStack, &tmp);
+		popGrammar(&parser->strm.gStack);
 	}
 
 	freeAllMem(&parser->strm);

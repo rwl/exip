@@ -188,8 +188,10 @@ errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema)
 		}
 	}
 
-	TRY(pushGrammar(&strm->gStack, &strm->schema->docGrammar));
-
+	{
+		QNameID emptyQNameID = {URI_MAX, LN_MAX};
+		TRY(pushGrammar(&strm->gStack, emptyQNameID, &strm->schema->docGrammar));
+	}
 	// #DOCUMENT#
 	// Hashtable for fast look-up of global values in the table.
 	// Only used when:
@@ -229,7 +231,7 @@ errorCode endDocument(EXIStream* strm)
 	if(strm->gStack->grammar == NULL)
 		return EXIP_INCONSISTENT_PROC_STATE;
 
-	return encodeProduction(strm, EVENT_ED_CLASS, TRUE, NULL, &prodHit);
+	return encodeProduction(strm, EVENT_ED_CLASS, TRUE, NULL, VALUE_TYPE_NONE_CLASS, &prodHit);
 }
 
 errorCode startElement(EXIStream* strm, QName qname, EXITypeClass* valueType)
@@ -253,7 +255,7 @@ errorCode startElement(EXIStream* strm, QName qname, EXITypeClass* valueType)
 
 	*valueType = VALUE_TYPE_NONE_CLASS;
 
-	TRY(encodeProduction(strm, EVENT_SE_CLASS, TRUE, &qname, &prodHit));
+	TRY(encodeProduction(strm, EVENT_SE_CLASS, TRUE, &qname, VALUE_TYPE_NONE_CLASS, &prodHit));
 
 	if(GET_PROD_EXI_EVENT(prodHit.content) == EVENT_SE_ALL)
 	{
@@ -272,7 +274,7 @@ errorCode startElement(EXIStream* strm, QName qname, EXITypeClass* valueType)
 
 		if(elemGrammar != NULL) // The grammar is found
 		{
-			TRY(pushGrammar(&(strm->gStack), elemGrammar));
+			TRY(pushGrammar(&(strm->gStack), tmpQid, elemGrammar));
 		}
 		else
 		{
@@ -284,14 +286,14 @@ errorCode startElement(EXIStream* strm, QName qname, EXITypeClass* valueType)
 			TRY(addDynEntry(&strm->schema->grammarTable.dynArray, &newElementGrammar, &dynArrIndx));
 
 			GET_LN_URI_QNAME(strm->schema->uriTable, tmpQid).elemGrammar = dynArrIndx;
-			TRY(pushGrammar(&(strm->gStack), &strm->schema->grammarTable.grammar[dynArrIndx]));
+			TRY(pushGrammar(&(strm->gStack), tmpQid, &strm->schema->grammarTable.grammar[dynArrIndx]));
 #elif EXI_PROFILE_DEFAULT
 			// Leave the grammar NULL - if the next event is valid AT(xsi:type)
 			// then its value will be the next grammar.
 			// If the next event is not valid AT(xsi:type) - then the event
 			// AT(xsi:type="anyType") will be inserted beforehand
-			TRY(pushGrammar(&(strm->gStack), elemGrammar));
-			strm->gStack->currQNameID = tmpQid;
+			TRY(pushGrammar(&(strm->gStack), tmpQid, elemGrammar));
+
 			return EXIP_OK;
 #else
 			DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
@@ -299,8 +301,6 @@ errorCode startElement(EXIStream* strm, QName qname, EXITypeClass* valueType)
 			return EXIP_INCONSISTENT_PROC_STATE;
 #endif
 		}
-
-		strm->gStack->currQNameID = tmpQid;
 	}
 	else if(GET_PROD_EXI_EVENT(prodHit.content) == EVENT_SE_QNAME)
 	{
@@ -319,16 +319,9 @@ errorCode startElement(EXIStream* strm, QName qname, EXITypeClass* valueType)
 		}
 
 		if(elemGrammar != NULL) // The grammar is found
-		{
-			TRY(pushGrammar(&(strm->gStack), elemGrammar));
-		}
+			TRY(pushGrammar(&(strm->gStack), prodHit.qnameId, elemGrammar));
 		else
-		{
 			return EXIP_INCONSISTENT_PROC_STATE;  // The event require the presence of Element Grammar previously created
-		}
-
-		strm->gStack->currQNameID.uriId = prodHit.qnameId.uriId;
-		strm->gStack->currQNameID.lnId = prodHit.qnameId.lnId;
 	}
 	else
 		return EXIP_NOT_IMPLEMENTED_YET;
@@ -370,13 +363,10 @@ errorCode endElement(EXIStream* strm)
 	}
 #endif
 
-	TRY(encodeProduction(strm, EVENT_EE_CLASS, TRUE, NULL, &prodHit));
+	TRY(encodeProduction(strm, EVENT_EE_CLASS, TRUE, NULL, VALUE_TYPE_NONE_CLASS, &prodHit));
 
 	if(strm->gStack->currNonTermID == GR_VOID_NON_TERMINAL)
-	{
-		EXIGrammar* grammar;
-		popGrammar(&(strm->gStack), &grammar);
-	}
+		popGrammar(&(strm->gStack));
 	else
 		return EXIP_INCONSISTENT_PROC_STATE;
 
@@ -448,7 +438,7 @@ errorCode attribute(EXIStream* strm, QName qname, boolean isSchemaType, EXITypeC
 	}
 #endif
 
-	TRY(encodeProduction(strm, EVENT_AT_CLASS, isSchemaType, &qname, &prodHit));
+	TRY(encodeProduction(strm, EVENT_AT_CLASS, isSchemaType, &qname, VALUE_TYPE_NONE_CLASS, &prodHit));
 
 	if(prodHit.typeId == INDEX_MAX)
 		*valueType = VALUE_TYPE_NONE_CLASS;
@@ -500,11 +490,16 @@ errorCode intData(EXIStream* strm, Integer int_val)
 		errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 		Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
-		TRY(encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, &prodHit));
+		// TODO: passing the type class is not enough:
+		// we need to check if the int value (int_val) fits in the
+		// production value content description
+		TRY(encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, VALUE_TYPE_INTEGER_CLASS, &prodHit));
 
 		intTypeId = prodHit.typeId;
 	}
-
+	// TODO: check that the actuall production allows for EXI int data encoding
+	// If the value content of the production is untyped or string then
+	// do a conversion to string, print a warning and encode it as a string
 	return encodeIntData(strm, int_val, intTypeId);
 }
 
@@ -530,9 +525,12 @@ errorCode booleanData(EXIStream* strm, boolean bool_val)
 	{
 		Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
-		TRY(encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, &prodHit));
+		TRY(encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, VALUE_TYPE_BOOLEAN_CLASS, &prodHit));
 	}
 
+	// TODO: check that the actuall production allows for EXI boolean data encoding
+	// If the value content of the production is untyped or string then
+	// do a conversion to string, print a warning and encode it as a string
 	TRY(encodeBoolean(strm, bool_val));
 
 	if(IS_SCHEMA(strm->gStack->grammar->props) && isXsiNilAttr && bool_val)
@@ -574,12 +572,16 @@ errorCode stringData(EXIStream* strm, const String str_val)
 	{
 		Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
-		TRY(encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, &prodHit));
+		TRY(encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, VALUE_TYPE_STRING_CLASS, &prodHit));
 
 		qnameID = strm->gStack->currQNameID;
 		typeId = prodHit.typeId;
 	}
 
+	// TODO: check that the actuall production allows for EXI sting data encoding
+	// If the value content of the production is something else then
+	// do a conversion, print a warning and encode it as a string
+	// OR just raise an error
 	return encodeStringData(strm, str_val, qnameID, typeId);
 }
 
@@ -599,9 +601,12 @@ errorCode floatData(EXIStream* strm, Float float_val)
 		errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 		Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
-		TRY(encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, &prodHit));
+		TRY(encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, VALUE_TYPE_FLOAT_CLASS, &prodHit));
 	}
 
+	// TODO: check that the actuall production allows for EXI float data encoding
+	// If the value content of the production is untyped or string then
+	// do a conversion to string, print a warning and encode it as a string
 	return encodeFloatValue(strm, float_val);
 }
 
@@ -621,9 +626,12 @@ errorCode binaryData(EXIStream* strm, const char* binary_val, Index nbytes)
 		errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 		Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
-		TRY(encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, &prodHit));
+		TRY(encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, VALUE_TYPE_BINARY_CLASS, &prodHit));
 	}
 
+	// TODO: check that the actuall production allows for EXI binary data encoding
+	// If the value content of the production is untyped or string then
+	// do a conversion to string, print a warning and encode it as a string
 	return encodeBinary(strm, (char *)binary_val, nbytes);
 }
 
@@ -643,9 +651,12 @@ errorCode dateTimeData(EXIStream* strm, EXIPDateTime dt_val)
 		errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 		Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
-		TRY(encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, &prodHit));
+		TRY(encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, VALUE_TYPE_DATE_TIME_CLASS, &prodHit));
 	}
 
+	// TODO: check that the actuall production allows for EXI dateTime data encoding
+	// If the value content of the production is untyped or string then
+	// do a conversion to string, print a warning and encode it as a string
 	return encodeDateTimeValue(strm, dt_val);
 }
 
@@ -674,7 +685,7 @@ errorCode listData(EXIStream* strm, unsigned int itemCount)
 		errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 		Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
-		TRY(encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, &prodHit));
+		TRY(encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, VALUE_TYPE_LIST_CLASS, &prodHit));
 	}
 
 	strm->context.expectATData = itemCount;
@@ -706,10 +717,10 @@ errorCode qnameData(EXIStream* strm, QName qname)
 		if(newGrammar != NULL)
 		{
 			// The grammar is found
-			EXIGrammar* currGr;
-
-			popGrammar(&(strm->gStack), &currGr);
-			TRY(pushGrammar(&(strm->gStack), newGrammar));
+			// preserve the currQNameID
+			QNameID currQNameID = strm->gStack->currQNameID;
+			popGrammar(&(strm->gStack));
+			TRY(pushGrammar(&(strm->gStack), currQNameID, newGrammar));
 		}
 		else if(strm->gStack->grammar == NULL)
 			return EXIP_INCONSISTENT_PROC_STATE;
@@ -733,11 +744,43 @@ errorCode namespaceDeclaration(EXIStream* strm, const String ns, const String pr
 
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Start namespace declaration\n"));
 
+	if(!IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES))
+		return EXIP_INVALID_EXI_INPUT;
+
 	if(strm->gStack->grammar == NULL)
 #if EXI_PROFILE_DEFAULT
 	{
-		TRY(encodeATXsiType(strm));
-		TRY(encodeAnyType(strm));
+		EventCode tmpEvCode;
+
+		tmpEvCode.length = 2;
+		if(GET_LN_URI_QNAME(strm->schema->uriTable, strm->gStack->currQNameID).elemGrammar == EXI_PROFILE_STUB_GRAMMAR_INDX)
+		{
+			// This is the case when there is a top level AT(xsi:type) production inserted and hence
+			// the first part of the event code with value 1 must be encoded before the second level part of the event code
+			tmpEvCode.part[0] = 1;
+			tmpEvCode.bits[0] = 1;
+		}
+		else
+		{
+			tmpEvCode.part[0] = 0;
+			tmpEvCode.bits[0] = 0;
+		}
+
+		tmpEvCode.part[1] = 2;
+		tmpEvCode.bits[1] = 2 + (IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) ||
+				WITH_SELF_CONTAINED(strm->header.opts.enumOpt) || IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD)
+				|| IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) || IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS));
+		// serialize  NS event code
+		TRY(writeEventCode(strm, tmpEvCode));
+		// serialize  NS event content
+		TRY(encodeUri(strm, (String*) &ns, &uriId));
+		if(strm->schema->uriTable.uri[uriId].pfxTable == NULL)
+		{
+			TRY(createPfxTable(&strm->schema->uriTable.uri[uriId].pfxTable));
+		}
+		TRY(encodePfx(strm, uriId, (String*) &prefix));
+		// Leave the current grammar NULL
+		return encodeBoolean(strm, isLocalElementNS);
 	}
 #else
 	{
@@ -745,7 +788,7 @@ errorCode namespaceDeclaration(EXIStream* strm, const String ns, const String pr
 	}
 #endif
 
-	TRY(encodeProduction(strm, EVENT_NS_CLASS, FALSE, NULL, &prodHit));
+	TRY(encodeProduction(strm, EVENT_NS_CLASS, FALSE, NULL, VALUE_TYPE_NONE_CLASS, &prodHit));
 	TRY(encodeUri(strm, (String*) &ns, &uriId));
 
 	if(strm->schema->uriTable.uri[uriId].pfxTable == NULL)
@@ -765,11 +808,10 @@ errorCode selfContained(EXIStream* strm)
 errorCode closeEXIStream(EXIStream* strm)
 {
 	errorCode tmp_err_code = EXIP_OK;
-	EXIGrammar* tmp;
 
 	while(strm->gStack != NULL)
 	{
-		popGrammar(&strm->gStack, &tmp);
+		popGrammar(&strm->gStack);
 	}
 
 	// Flush the buffer first if there is an output Stream
@@ -860,16 +902,9 @@ errorCode serializeEvent(EXIStream* strm, EventCode ec, QName* qname)
 			}
 
 			if(elemGrammar != NULL) // The grammar is found
-			{
-				TRY(pushGrammar(&(strm->gStack), elemGrammar));
-			}
+				TRY(pushGrammar(&(strm->gStack), tmpProd->qnameId, elemGrammar));
 			else
-			{
 				return EXIP_INCONSISTENT_PROC_STATE;  // The event require the presence of Element Grammar previously created
-			}
-
-			strm->gStack->currQNameID.uriId = tmpProd->qnameId.uriId;
-			strm->gStack->currQNameID.lnId = tmpProd->qnameId.lnId;
 		}
 		break;
 		case EVENT_SE_URI:
@@ -895,7 +930,7 @@ errorCode serializeEvent(EXIStream* strm, EventCode ec, QName* qname)
 
 			if(elemGrammar != NULL) // The grammar is found
 			{
-				TRY(pushGrammar(&(strm->gStack), elemGrammar));
+				TRY(pushGrammar(&(strm->gStack), tmpQid, elemGrammar));
 			}
 			else
 			{
@@ -908,14 +943,14 @@ errorCode serializeEvent(EXIStream* strm, EventCode ec, QName* qname)
 
 				GET_LN_URI_QNAME(strm->schema->uriTable, tmpQid).elemGrammar = dynArrIndx;
 
-				TRY(pushGrammar(&(strm->gStack), &strm->schema->grammarTable.grammar[dynArrIndx]));
+				TRY(pushGrammar(&(strm->gStack), tmpQid, &strm->schema->grammarTable.grammar[dynArrIndx]));
 #elif EXI_PROFILE_DEFAULT
 				// Leave the grammar NULL - if the next event is valid AT(xsi:type)
 				// then its value will be the next grammar.
 				// If the next event is not valid AT(xsi:type) - then the event
 				// AT(xsi:type="anyType") will be inserted beforehand
-				TRY(pushGrammar(&(strm->gStack), elemGrammar));
-				strm->gStack->currQNameID = tmpQid;
+				TRY(pushGrammar(&(strm->gStack), tmpQid, elemGrammar));
+
 				return EXIP_OK;
 #else
 				DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
@@ -923,15 +958,12 @@ errorCode serializeEvent(EXIStream* strm, EventCode ec, QName* qname)
 				return EXIP_INCONSISTENT_PROC_STATE;
 #endif
 			}
-
-			strm->gStack->currQNameID = tmpQid;
 		}
 		break;
 		case EVENT_EE:
 			assert(strm->gStack->currNonTermID == GR_VOID_NON_TERMINAL);
 
-			EXIGrammar* grammar;
-			popGrammar(&(strm->gStack), &grammar);
+			popGrammar(&(strm->gStack));
 		break;
 		case EVENT_CH:
 			return EXIP_NOT_IMPLEMENTED_YET;
@@ -1002,6 +1034,8 @@ static errorCode encodeAnyType(EXIStream* strm)
 	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	EXIGrammar* anyGrammar = NULL;
 	QNameID anyTypeId;
+	// preserve the currQNameID
+	QNameID currQNameID = strm->gStack->currQNameID;
 
 	// serialize "xs:anyType"
 	TRY(encodeNBitUnsignedInteger(strm, getBitsNumber(strm->schema->uriTable.count), XML_SCHEMA_NAMESPACE_ID + 1));
@@ -1009,13 +1043,13 @@ static errorCode encodeAnyType(EXIStream* strm)
 	TRY(encodeNBitUnsignedInteger(strm, getBitsNumber((unsigned int)(strm->schema->uriTable.uri[XML_SCHEMA_NAMESPACE_ID].lnTable.count - 1)), SIMPLE_TYPE_ANY_TYPE));
 
 	// "xs:anyType" grammar is pushed on the stack instead of the NULL one
-	popGrammar(&(strm->gStack), &anyGrammar);
+	popGrammar(&(strm->gStack));
 	anyTypeId.uriId = XML_SCHEMA_NAMESPACE_ID;
 	anyTypeId.lnId = SIMPLE_TYPE_ANY_TYPE;
 	anyGrammar = GET_TYPE_GRAMMAR_QNAMEID(strm->schema, anyTypeId);
 	assert(anyGrammar != NULL);
 
-	TRY(pushGrammar(&(strm->gStack), anyGrammar));
+	TRY(pushGrammar(&(strm->gStack), currQNameID, anyGrammar));
 
 	return EXIP_OK;
 }

@@ -78,7 +78,7 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 		}
 	}
 
-	bitCount = getBitsFirstPartCode(strm->header.opts, strm->gStack->grammar, currentRule, currNonTermID, strm->context.isNilType);
+	bitCount = getBitsFirstPartCode(strm, currentRule, currNonTermID);
 
 	if(prodCount > 0)
 	{
@@ -442,34 +442,34 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 			{
 				/* There are 2 possible states to exit the state machine: AT(xsi:type) and AT(xsi:nil)
 				 * (Note this is the state for level 2 productions) */
-				unsigned int state = 0;
+				unsigned int state = 1;
 				boolean nil;
 
 				*nonTermID_out = GR_START_TAG_CONTENT;
 
 				if(HAS_NAMED_SUB_TYPE_OR_UNION(strm->gStack->grammar->props))
-					prodCnt += 1;
+				{
+					// there is AT(xsi:type) as a second level production only if this
+					// grammar is not already switched using AT(xsi:type)
+					if(strm->gStack->grammar == (GET_ELEM_GRAMMAR_QNAMEID(strm->schema, strm->gStack->currQNameID)))
+					{
+						prodCnt += 1;
+						state = 0;
+					}
+				}
+
 				if(IS_NILLABLE(strm->gStack->grammar->props))
 					prodCnt += 1;
 
-				if(prodCnt == 2)
+				if(prodCnt == 0)
+					return EXIP_INCONSISTENT_PROC_STATE;
+				else if(prodCnt == 2)
 				{
-					TRY(decodeNBitUnsignedInteger(strm, 1, &tmp_bits_val));
-					if(tmp_bits_val > 1)
+					TRY(decodeNBitUnsignedInteger(strm, 1, &state));
+					if(state > 1)
 						return EXIP_INCONSISTENT_PROC_STATE;
 				}
-				else if(prodCnt == 1)
-				{
-					// zero bit encoded event
-					tmp_bits_val = 0;
-				}
-				else
-					return EXIP_INCONSISTENT_PROC_STATE;
-
-				state = tmp_bits_val;
-
-				if(!HAS_NAMED_SUB_TYPE_OR_UNION(strm->gStack->grammar->props))
-					state += 1;
+				// if prodCnt == 1 -> zero bit encoded event
 
 				switch(state)
 				{
@@ -968,14 +968,12 @@ errorCode decodeEventContent(EXIStream* strm, Production* prodHit, ContentHandle
 			if(elemGrammar != NULL) // The grammar is found
 			{
 				*nonTermID_out = GR_START_TAG_CONTENT;
-				TRY(pushGrammar(&(strm->gStack), elemGrammar));
+				TRY(pushGrammar(&(strm->gStack), prodHit->qnameId, elemGrammar));
 			}
 			else
 			{
 				return EXIP_INCONSISTENT_PROC_STATE;  // The event require the presence of Element Grammar previously created
 			}
-
-			strm->gStack->currQNameID = prodHit->qnameId;
 
 			if(handler->startElement != NULL)  // Invoke handler method passing the element qname
 			{
@@ -1289,7 +1287,7 @@ errorCode decodeSEWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallI
 	if(elemGrammar != NULL)
 	{
 		// The grammar is found
-		TRY(pushGrammar(&(strm->gStack), elemGrammar));
+		TRY(pushGrammar(&(strm->gStack), qnameId, elemGrammar));
 	}
 	else
 	{
@@ -1300,43 +1298,54 @@ errorCode decodeSEWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallI
 		TRY(addDynEntry(&strm->schema->grammarTable.dynArray, &newElementGrammar, &dynArrIndx));
 
 		GET_LN_URI_QNAME(strm->schema->uriTable, qnameId).elemGrammar = dynArrIndx;
-		TRY(pushGrammar(&(strm->gStack), &strm->schema->grammarTable.grammar[dynArrIndx]));
+		TRY(pushGrammar(&(strm->gStack), qnameId, &strm->schema->grammarTable.grammar[dynArrIndx]));
 #elif EXI_PROFILE_DEFAULT
 		{
 			unsigned int prodCnt = 4;
 			unsigned int tmp_bits_val = 0;
 			QName attrQname;
 			QNameID attrQnameId = {URI_MAX, LN_MAX};
-
-			if(GET_LN_URI_QNAME(strm->schema->uriTable, qnameId).elemGrammar == EXI_PROFILE_STUB_GRAMMAR_INDX)
-			{
-				// This grammar must be the EXI Profile stub grammar.
-				// It indicates that there is a AT(xsi:type) as a top level production
-				// There should be a AT(xsi:type) with event code 0
-				TRY(decodeNBitUnsignedInteger(strm, 1, &tmp_bits_val));
-				if(tmp_bits_val != 1)
-				{
-					DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">AT(xsi:type) should always be represented as AT(*) according to EXI Profile spec\n"));
-					return EXIP_INCONSISTENT_PROC_STATE;
-				}
-			}
-			else
-			{
-				GET_LN_URI_QNAME(strm->schema->uriTable, qnameId).elemGrammar = EXI_PROFILE_STUB_GRAMMAR_INDX;
-			}
+			boolean nsProdHit = FALSE;
 
 			prodCnt += IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES);
 			prodCnt += WITH_SELF_CONTAINED(strm->header.opts.enumOpt);
 			prodCnt += IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD);
 			prodCnt += (IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) || IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS));
 
-			// There should be a valid xsi:type switch, otherwise rise an error
-			TRY(decodeNBitUnsignedInteger(strm, getBitsNumber(prodCnt  - 1), &tmp_bits_val));
-			if(tmp_bits_val != 1)
+			do
 			{
-				DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
-				return EXIP_INCONSISTENT_PROC_STATE;
+				if(GET_LN_URI_QNAME(strm->schema->uriTable, qnameId).elemGrammar == EXI_PROFILE_STUB_GRAMMAR_INDX)
+				{
+					// This grammar must be the EXI Profile stub grammar.
+					// It indicates that there is a AT(xsi:type) as a top level production
+					// There should be a AT(xsi:type) with event code 0
+					TRY(decodeNBitUnsignedInteger(strm, 1, &tmp_bits_val));
+					if(tmp_bits_val != 1)
+					{
+						DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">AT(xsi:type) should always be represented as AT(*) according to EXI Profile spec\n"));
+						return EXIP_INCONSISTENT_PROC_STATE;
+					}
+				}
+
+				// There should be a valid xsi:type switch, otherwise rise an error
+				// Note also that there might be NS productions before the xsi:type switch
+				TRY(decodeNBitUnsignedInteger(strm, getBitsNumber(prodCnt  - 1), &tmp_bits_val));
+				if(tmp_bits_val != 1)
+				{
+					if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PREFIXES) && tmp_bits_val == 2)
+					{
+						// NS event(s)
+						TRY(decodeNSEvent(strm, handler, nonTermID_out, app_data));
+						nsProdHit = TRUE;
+					}
+
+					DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, (">Build-in element grammars are not supported by this configuration \n"));
+					return EXIP_INCONSISTENT_PROC_STATE;
+				}
+				else
+					nsProdHit = FALSE;
 			}
+			while(nsProdHit);
 
 			TRY(decodeQName(strm, &attrQname, &attrQnameId));
 			if(attrQnameId.uriId != XML_SCHEMA_INSTANCE_ID || attrQnameId.lnId != XML_SCHEMA_INSTANCE_TYPE_ID)
@@ -1357,6 +1366,8 @@ errorCode decodeSEWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallI
 				TRY(handler->qnameData(attrQname, app_data));
 			}
 
+			GET_LN_URI_QNAME(strm->schema->uriTable, qnameId).elemGrammar = EXI_PROFILE_STUB_GRAMMAR_INDX;
+
 			// Successful xsi:type switch
 			// New element grammar is pushed on the stack
 			elemGrammar = GET_TYPE_GRAMMAR_QNAMEID(strm->schema, attrQnameId);
@@ -1364,7 +1375,7 @@ errorCode decodeSEWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallI
 			if(elemGrammar != NULL)
 			{
 				// The grammar is found
-				TRY(pushGrammar(&(strm->gStack), elemGrammar));
+				TRY(pushGrammar(&(strm->gStack), qnameId, elemGrammar));
 			}
 			else
 			{
@@ -1379,7 +1390,6 @@ errorCode decodeSEWildcardEvent(EXIStream* strm, ContentHandler* handler, SmallI
 #endif
 	}
 
-	strm->gStack->currQNameID = qnameId;
 	return EXIP_OK;
 }
 
@@ -1435,12 +1445,12 @@ static errorCode decodeQNameValue(EXIStream* strm, ContentHandler* handler, Smal
 	if(newGrammar != NULL)
 	{
 		// The grammar is found
-		EXIGrammar* currGr;
-
-		popGrammar(&(strm->gStack), &currGr);
+		// preserve the currQNameID
+		QNameID currQNameID = strm->gStack->currQNameID;
+		popGrammar(&(strm->gStack));
 
 		*nonTermID_out = GR_START_TAG_CONTENT;
-		TRY(pushGrammar(&(strm->gStack), newGrammar));
+		TRY(pushGrammar(&(strm->gStack), currQNameID, newGrammar));
 	}
 
 	return EXIP_OK;

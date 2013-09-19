@@ -26,10 +26,11 @@
  * @param[in] eventClass event class type to be looked up
  * @param[in] isSchemaType determine if the data type should be encoded as non-schema type
  * @param[in] qname element or attribute QName in case of SE or AT events; NULL otherwise
+ * @param[in] chTypeClass the type of the "value" content of CH EXI events; if not CH event then VALUE_TYPE_NONE_CLASS
  * @param[out] prodHit the matched grammar production
  * @return Error handling code
  */
-errorCode encodeProduction(EXIStream* strm, EventTypeClass eventClass, boolean isSchemaType, QName* qname, Production* prodHit);
+errorCode encodeProduction(EXIStream* strm, EventTypeClass eventClass, boolean isSchemaType, QName* qname, EXITypeClass chTypeClass, Production* prodHit);
 
 /**
  * @brief Encodes String value into EXI stream
