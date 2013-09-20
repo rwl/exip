@@ -218,8 +218,10 @@ typedef EXIP_UNSIGNED_INTEGER UnsignedInteger;
 typedef EXIP_INTEGER Integer;
 
 /**
+ * Represents base 10 (decimal) floating-point data.
  * The default Float representation in EXIP.
- * Maps directly to the EXI Float datatype
+ * Maps directly to the EXI Float datatype.
+ * Used for float and decimal data.
  *
  * @see http://www.w3.org/TR/2011/REC-exi-20110310/#encodingFloat
  */
@@ -237,13 +239,19 @@ typedef EXIP_FLOAT Float;
 
 /**
  * Used for the content handler interface for decimal values.
- * Application which require support for different type of decimal values can
- * override this macro.
+ * Application which require support for different type of decimal
+ * representation (IEEE 754 or ISO/IEC/IEEE 60559:2011 standards) can
+ * override this macro and re-define the decimal encoding/decoding
+ * functions (not recommended). Instead:
+ * On platforms supporting decimal floating types the conversion
+ * between EXIP_FLOAT and _Decimal64 or _Decimal128 should be done
+ * in the application code.
+ *
  * @see http://gcc.gnu.org/onlinedocs/gcc/Decimal-Float.html#Decimal-Float
  * @see http://speleotrove.com/decimal/
  */
 #ifndef EXIP_DECIMAL
-# define EXIP_DECIMAL _Decimal64
+# define EXIP_DECIMAL Float
 #endif
 
 typedef EXIP_DECIMAL Decimal;

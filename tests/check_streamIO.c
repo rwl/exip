@@ -582,8 +582,14 @@ START_TEST (test_decodeDecimalValue)
 	EXIStream testStream;
 	char buf[3];
 	errorCode err = EXIP_UNEXPECTED_ERROR;
-	Decimal dec_val = (Decimal)0;
-	Decimal res	= (Decimal)5.001;
+	Decimal dec_val;
+	Decimal res;
+
+	dec_val.mantissa = 0;
+	dec_val.exponent = 0;
+
+	res.mantissa = 5001;
+	res.exponent = -3;
 
 	makeDefaultOpts(&testStream.header.opts);
 
@@ -601,7 +607,7 @@ START_TEST (test_decodeDecimalValue)
 
 	err = decodeDecimalValue(&testStream, &dec_val);
 
-	fail_unless (res == dec_val, "The value 5.001 is decoded as %.3f", (double) dec_val);
+	fail_unless (res.mantissa == dec_val.mantissa && res.exponent == dec_val.exponent, "The value 5.001 is decoded as %d*10^%d", dec_val.mantissa, dec_val.exponent);
 	fail_unless (err == EXIP_OK,
 		   "decodeDecimalValue returns error code %d", err);
 	fail_unless (testStream.context.bitPointer == 1,
@@ -926,8 +932,14 @@ START_TEST (test_encodeDecimalValue)
 	EXIStream testStream;
 	char buf[30];
 	errorCode err = EXIP_UNEXPECTED_ERROR;
-	Decimal dec_val = (Decimal)0;
-	Decimal res	= (Decimal)5.001;
+	Decimal dec_val;
+	Decimal res;
+
+	dec_val.mantissa = 0;
+	dec_val.exponent = 0;
+
+	res.mantissa = 5001;
+	res.exponent = -3;
 
 	makeDefaultOpts(&testStream.header.opts);
 
@@ -955,7 +967,7 @@ START_TEST (test_encodeDecimalValue)
 
 	err = decodeDecimalValue(&testStream, &dec_val);
 
-	fail_unless (res == dec_val, "The value 5.001 is encoded as %.3f", (double) dec_val);
+	fail_unless (res.mantissa == dec_val.mantissa && res.exponent == dec_val.exponent, "The value 5.001 is decoded as %d*10^%d", dec_val.mantissa, dec_val.exponent);
 
 }
 END_TEST

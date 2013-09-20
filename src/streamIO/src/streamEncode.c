@@ -162,35 +162,50 @@ errorCode encodeIntegerValue(EXIStream* strm, Integer sint_val)
 
 errorCode encodeDecimalValue(EXIStream* strm, Decimal dec_val)
 {
-	// TODO: Review this. Probably incorrect in some cases and not efficient. Depends on decimal floating point support!
 	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
-	boolean sign = FALSE;
+	boolean sign;
 	UnsignedInteger integr_part = 0;
 	UnsignedInteger fract_part_rev = 0;
-	unsigned int i = 1;
-	unsigned int d = 0;
+	UnsignedInteger m = dec_val.mantissa;
+	int e = dec_val.exponent;
 
-	if(dec_val >= 0)
+	if(dec_val.mantissa >= 0)
+	{
 		sign = FALSE;
+		integr_part = (UnsignedInteger) dec_val.mantissa;
+	}
 	else
 	{
-		dec_val = -dec_val;
 		sign = TRUE;
+		integr_part = (UnsignedInteger) -dec_val.mantissa;
 	}
 
 	TRY(encodeBoolean(strm, sign));
-	integr_part = (UnsignedInteger) dec_val;
-	TRY(encodeUnsignedInteger(strm, integr_part));
 
-	dec_val = dec_val - integr_part;
-
-	while(dec_val - ((UnsignedInteger) dec_val) != 0)
+	if(dec_val.exponent > 0)
 	{
-		dec_val = dec_val * 10;
-		d = (unsigned int) dec_val;
-		fract_part_rev = fract_part_rev + d*i;
-		i = i*10;
-		dec_val = dec_val - (UnsignedInteger) dec_val;
+		while(e)
+		{
+			integr_part = integr_part*10;
+			e--;
+		}
+	}
+	else if(dec_val.exponent < 0)
+	{
+		while(e)
+		{
+			integr_part = integr_part/10;
+			e++;
+		}
+	}
+
+	TRY(encodeUnsignedInteger(strm, integr_part));
+	e = dec_val.exponent;
+	while(e < 0)
+	{
+		fract_part_rev = fract_part_rev*10 + m%10;
+		m = m/10;
+		e++;
 	}
 
 	TRY(encodeUnsignedInteger(strm, fract_part_rev));
