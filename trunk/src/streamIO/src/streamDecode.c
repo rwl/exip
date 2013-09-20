@@ -159,36 +159,47 @@ errorCode decodeIntegerValue(EXIStream* strm, Integer* sint_val)
 
 errorCode decodeDecimalValue(EXIStream* strm, Decimal* dec_val)
 {
-	// TODO: Review this. Probably can be more efficient. Depends on decimal floating point support!
-	// Ref: http://gcc.gnu.org/onlinedocs/gccint/Decimal-float-library-routines.html
 	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	boolean sign;
 	UnsignedInteger integr_part = 0;
 	UnsignedInteger fract_part = 0;
-	unsigned int fraction_digits = 1;
 	UnsignedInteger fract_part_rev = 0;
+	unsigned int e;
 
 	DEBUG_MSG(INFO, DEBUG_STREAM_IO, (">> (decimal)"));
+
+	// TODO: implement checks on type overflow
 
 	TRY(decodeBoolean(strm, &sign));
 	TRY(decodeUnsignedInteger(strm, &integr_part));
 	TRY(decodeUnsignedInteger(strm, &fract_part));
 
+	dec_val->exponent = 0;
 	fract_part_rev = 0;
 	while(fract_part > 0)
 	{
 		fract_part_rev = fract_part_rev*10 + fract_part%10;
 		fract_part = fract_part/10;
-		fraction_digits = fraction_digits*10;
+		dec_val->exponent -= 1;
 	}
-	*dec_val = (Decimal)fract_part_rev;
 
 	if(sign == TRUE) // negative number
-		*dec_val = -*dec_val;
+		dec_val->mantissa = -1;
+	else
+		dec_val->mantissa = 1;
 
-	*dec_val = *dec_val / fraction_digits;
+	dec_val->mantissa *= integr_part;
+	e = dec_val->exponent;
+	if(e != 0)
+	{
+		while(e)
+		{
+			dec_val->mantissa *= 10;
+			e++;
+		}
 
-	*dec_val = *dec_val + integr_part;
+		dec_val->mantissa += fract_part_rev;
+	}
 
 	return EXIP_OK;
 }

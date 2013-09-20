@@ -311,36 +311,7 @@ static errorCode sample_stringData(const String value, void* app_data)
 
 static errorCode sample_decimalData(Decimal value, void* app_data)
 {
-	struct appData* appD = (struct appData*) app_data;
-	if(appD->outputFormat == OUT_EXI)
-	{
-		if(appD->expectAttributeData)
-		{
-			printf("%.1f\"\n", (double) value);
-			appD->expectAttributeData = 0;
-		}
-		else
-		{
-			printf("CH %.1f \n", (double) value);
-		}
-	}
-	else if(appD->outputFormat == OUT_XML)
-	{
-		if(appD->expectAttributeData)
-		{
-			printf("%.1f \"", (double) value);
-			appD->expectAttributeData = 0;
-		}
-		else
-		{
-			if(appD->unclosedElement)
-				printf(">");
-			appD->unclosedElement = 0;
-			printf("%.1f", (double) value);
-		}
-	}
-
-	return EXIP_OK;
+	return sample_floatData(value, app_data);
 }
 
 static errorCode sample_intData(Integer int_val, void* app_data)

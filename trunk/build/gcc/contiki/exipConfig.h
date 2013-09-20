@@ -52,7 +52,6 @@
 
 
 // Some types in procTypes.h
-#define EXIP_DECIMAL float
 #define EXIP_UNSIGNED_INTEGER uint32_t
 #define EXIP_INTEGER int32_t
 
