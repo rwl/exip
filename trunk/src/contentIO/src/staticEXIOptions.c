@@ -1,4 +1,4 @@
-/** AUTO-GENERATED: Mon May  6 18:29:55 2013
+/** AUTO-GENERATED: Fri Sep 20 16:04:24 2013
   * Copyright (c) 2010 - 2011, Rumen Kyusakov, EISLAB, LTU
   * $Id$ */
 
@@ -125,7 +125,7 @@ static CONST Production ops_prod_0_1[1] =
 static CONST GrammarRule ops_rule_0[2] =
 {
     {ops_prod_0_0, 1, 0},
-    {ops_prod_0_1, 1, 0}
+    {ops_prod_0_1, 1, 1}
 };
 
 static CONST Production ops_prod_1_0[1] =
@@ -145,7 +145,7 @@ static CONST Production ops_prod_1_1[1] =
 static CONST GrammarRule ops_rule_1[2] =
 {
     {ops_prod_1_0, 1, 0},
-    {ops_prod_1_1, 1, 0}
+    {ops_prod_1_1, 1, 1}
 };
 
 static CONST Production ops_prod_2_0[1] =
@@ -165,7 +165,7 @@ static CONST Production ops_prod_2_1[1] =
 static CONST GrammarRule ops_rule_2[2] =
 {
     {ops_prod_2_0, 1, 0},
-    {ops_prod_2_1, 1, 0}
+    {ops_prod_2_1, 1, 1}
 };
 
 static CONST Production ops_prod_3_0[1] =
@@ -185,7 +185,7 @@ static CONST Production ops_prod_3_1[1] =
 static CONST GrammarRule ops_rule_3[2] =
 {
     {ops_prod_3_0, 1, 0},
-    {ops_prod_3_1, 1, 0}
+    {ops_prod_3_1, 1, 1}
 };
 
 static CONST Production ops_prod_4_0[1] =
@@ -205,7 +205,7 @@ static CONST Production ops_prod_4_1[1] =
 static CONST GrammarRule ops_rule_4[2] =
 {
     {ops_prod_4_0, 1, 0},
-    {ops_prod_4_1, 1, 0}
+    {ops_prod_4_1, 1, 1}
 };
 
 static CONST Production ops_prod_5_0[1] =
@@ -225,7 +225,7 @@ static CONST Production ops_prod_5_1[1] =
 static CONST GrammarRule ops_rule_5[2] =
 {
     {ops_prod_5_0, 1, 0},
-    {ops_prod_5_1, 1, 0}
+    {ops_prod_5_1, 1, 1}
 };
 
 static CONST Production ops_prod_6_0[1] =
@@ -245,7 +245,7 @@ static CONST Production ops_prod_6_1[1] =
 static CONST GrammarRule ops_rule_6[2] =
 {
     {ops_prod_6_0, 1, 0},
-    {ops_prod_6_1, 1, 0}
+    {ops_prod_6_1, 1, 1}
 };
 
 static CONST Production ops_prod_7_0[1] =
@@ -265,7 +265,7 @@ static CONST Production ops_prod_7_1[1] =
 static CONST GrammarRule ops_rule_7[2] =
 {
     {ops_prod_7_0, 1, 0},
-    {ops_prod_7_1, 1, 0}
+    {ops_prod_7_1, 1, 1}
 };
 
 static CONST Production ops_prod_8_0[1] =
@@ -285,7 +285,7 @@ static CONST Production ops_prod_8_1[1] =
 static CONST GrammarRule ops_rule_8[2] =
 {
     {ops_prod_8_0, 1, 0},
-    {ops_prod_8_1, 1, 0}
+    {ops_prod_8_1, 1, 1}
 };
 
 static CONST Production ops_prod_9_0[1] =
@@ -305,7 +305,7 @@ static CONST Production ops_prod_9_1[1] =
 static CONST GrammarRule ops_rule_9[2] =
 {
     {ops_prod_9_0, 1, 0},
-    {ops_prod_9_1, 1, 0}
+    {ops_prod_9_1, 1, 1}
 };
 
 static CONST Production ops_prod_10_0[1] =
@@ -325,7 +325,7 @@ static CONST Production ops_prod_10_1[1] =
 static CONST GrammarRule ops_rule_10[2] =
 {
     {ops_prod_10_0, 1, 0},
-    {ops_prod_10_1, 1, 0}
+    {ops_prod_10_1, 1, 1}
 };
 
 static CONST Production ops_prod_11_0[1] =
@@ -345,7 +345,7 @@ static CONST Production ops_prod_11_1[1] =
 static CONST GrammarRule ops_rule_11[2] =
 {
     {ops_prod_11_0, 1, 0},
-    {ops_prod_11_1, 1, 0}
+    {ops_prod_11_1, 1, 1}
 };
 
 static CONST Production ops_prod_12_0[4] =
@@ -379,8 +379,8 @@ static CONST Production ops_prod_12_1[3] =
 
 static CONST GrammarRule ops_rule_12[2] =
 {
-    {ops_prod_12_0, 4, 0},
-    {ops_prod_12_1, 3, 0}
+    {ops_prod_12_0, 4, 1},
+    {ops_prod_12_1, 3, 1}
 };
 
 static CONST Production ops_prod_13_0[1] =
@@ -400,7 +400,7 @@ static CONST Production ops_prod_13_1[1] =
 static CONST GrammarRule ops_rule_13[2] =
 {
     {ops_prod_13_0, 1, 0},
-    {ops_prod_13_1, 1, 0}
+    {ops_prod_13_1, 1, 1}
 };
 
 static CONST Production ops_prod_14_0[1] =
@@ -420,7 +420,7 @@ static CONST Production ops_prod_14_1[1] =
 static CONST GrammarRule ops_rule_14[2] =
 {
     {ops_prod_14_0, 1, 0},
-    {ops_prod_14_1, 1, 0}
+    {ops_prod_14_1, 1, 1}
 };
 
 static CONST Production ops_prod_15_0[1] =
@@ -440,7 +440,7 @@ static CONST Production ops_prod_15_1[1] =
 static CONST GrammarRule ops_rule_15[2] =
 {
     {ops_prod_15_0, 1, 0},
-    {ops_prod_15_1, 1, 0}
+    {ops_prod_15_1, 1, 1}
 };
 
 static CONST Production ops_prod_16_0[1] =
@@ -460,7 +460,7 @@ static CONST Production ops_prod_16_1[1] =
 static CONST GrammarRule ops_rule_16[2] =
 {
     {ops_prod_16_0, 1, 0},
-    {ops_prod_16_1, 1, 0}
+    {ops_prod_16_1, 1, 1}
 };
 
 static CONST Production ops_prod_17_0[1] =
@@ -480,7 +480,7 @@ static CONST Production ops_prod_17_1[1] =
 static CONST GrammarRule ops_rule_17[2] =
 {
     {ops_prod_17_0, 1, 0},
-    {ops_prod_17_1, 1, 0}
+    {ops_prod_17_1, 1, 1}
 };
 
 static CONST Production ops_prod_18_0[1] =
@@ -500,7 +500,7 @@ static CONST Production ops_prod_18_1[1] =
 static CONST GrammarRule ops_rule_18[2] =
 {
     {ops_prod_18_0, 1, 0},
-    {ops_prod_18_1, 1, 0}
+    {ops_prod_18_1, 1, 1}
 };
 
 static CONST Production ops_prod_19_0[1] =
@@ -520,7 +520,7 @@ static CONST Production ops_prod_19_1[1] =
 static CONST GrammarRule ops_rule_19[2] =
 {
     {ops_prod_19_0, 1, 0},
-    {ops_prod_19_1, 1, 0}
+    {ops_prod_19_1, 1, 1}
 };
 
 static CONST Production ops_prod_20_0[1] =
@@ -540,7 +540,7 @@ static CONST Production ops_prod_20_1[1] =
 static CONST GrammarRule ops_rule_20[2] =
 {
     {ops_prod_20_0, 1, 0},
-    {ops_prod_20_1, 1, 0}
+    {ops_prod_20_1, 1, 1}
 };
 
 static CONST Production ops_prod_21_0[1] =
@@ -560,7 +560,7 @@ static CONST Production ops_prod_21_1[1] =
 static CONST GrammarRule ops_rule_21[2] =
 {
     {ops_prod_21_0, 1, 0},
-    {ops_prod_21_1, 1, 0}
+    {ops_prod_21_1, 1, 1}
 };
 
 static CONST Production ops_prod_22_0[1] =
@@ -580,7 +580,7 @@ static CONST Production ops_prod_22_1[1] =
 static CONST GrammarRule ops_rule_22[2] =
 {
     {ops_prod_22_0, 1, 0},
-    {ops_prod_22_1, 1, 0}
+    {ops_prod_22_1, 1, 1}
 };
 
 static CONST Production ops_prod_23_0[1] =
@@ -600,7 +600,7 @@ static CONST Production ops_prod_23_1[1] =
 static CONST GrammarRule ops_rule_23[2] =
 {
     {ops_prod_23_0, 1, 0},
-    {ops_prod_23_1, 1, 0}
+    {ops_prod_23_1, 1, 1}
 };
 
 static CONST Production ops_prod_24_0[1] =
@@ -620,7 +620,7 @@ static CONST Production ops_prod_24_1[1] =
 static CONST GrammarRule ops_rule_24[2] =
 {
     {ops_prod_24_0, 1, 0},
-    {ops_prod_24_1, 1, 0}
+    {ops_prod_24_1, 1, 1}
 };
 
 static CONST Production ops_prod_25_0[1] =
@@ -640,7 +640,7 @@ static CONST Production ops_prod_25_1[1] =
 static CONST GrammarRule ops_rule_25[2] =
 {
     {ops_prod_25_0, 1, 0},
-    {ops_prod_25_1, 1, 0}
+    {ops_prod_25_1, 1, 1}
 };
 
 static CONST Production ops_prod_26_0[1] =
@@ -660,7 +660,7 @@ static CONST Production ops_prod_26_1[1] =
 static CONST GrammarRule ops_rule_26[2] =
 {
     {ops_prod_26_0, 1, 0},
-    {ops_prod_26_1, 1, 0}
+    {ops_prod_26_1, 1, 1}
 };
 
 static CONST Production ops_prod_27_0[1] =
@@ -680,7 +680,7 @@ static CONST Production ops_prod_27_1[1] =
 static CONST GrammarRule ops_rule_27[2] =
 {
     {ops_prod_27_0, 1, 0},
-    {ops_prod_27_1, 1, 0}
+    {ops_prod_27_1, 1, 1}
 };
 
 static CONST Production ops_prod_28_0[1] =
@@ -700,7 +700,7 @@ static CONST Production ops_prod_28_1[1] =
 static CONST GrammarRule ops_rule_28[2] =
 {
     {ops_prod_28_0, 1, 0},
-    {ops_prod_28_1, 1, 0}
+    {ops_prod_28_1, 1, 1}
 };
 
 static CONST Production ops_prod_29_0[1] =
@@ -720,7 +720,7 @@ static CONST Production ops_prod_29_1[1] =
 static CONST GrammarRule ops_rule_29[2] =
 {
     {ops_prod_29_0, 1, 0},
-    {ops_prod_29_1, 1, 0}
+    {ops_prod_29_1, 1, 1}
 };
 
 static CONST Production ops_prod_30_0[1] =
@@ -740,7 +740,7 @@ static CONST Production ops_prod_30_1[1] =
 static CONST GrammarRule ops_rule_30[2] =
 {
     {ops_prod_30_0, 1, 0},
-    {ops_prod_30_1, 1, 0}
+    {ops_prod_30_1, 1, 1}
 };
 
 static CONST Production ops_prod_31_0[1] =
@@ -760,7 +760,7 @@ static CONST Production ops_prod_31_1[1] =
 static CONST GrammarRule ops_rule_31[2] =
 {
     {ops_prod_31_0, 1, 0},
-    {ops_prod_31_1, 1, 0}
+    {ops_prod_31_1, 1, 1}
 };
 
 static CONST Production ops_prod_32_0[1] =
@@ -780,7 +780,7 @@ static CONST Production ops_prod_32_1[1] =
 static CONST GrammarRule ops_rule_32[2] =
 {
     {ops_prod_32_0, 1, 0},
-    {ops_prod_32_1, 1, 0}
+    {ops_prod_32_1, 1, 1}
 };
 
 static CONST Production ops_prod_33_0[1] =
@@ -800,7 +800,7 @@ static CONST Production ops_prod_33_1[1] =
 static CONST GrammarRule ops_rule_33[2] =
 {
     {ops_prod_33_0, 1, 0},
-    {ops_prod_33_1, 1, 0}
+    {ops_prod_33_1, 1, 1}
 };
 
 static CONST Production ops_prod_34_0[1] =
@@ -820,7 +820,7 @@ static CONST Production ops_prod_34_1[1] =
 static CONST GrammarRule ops_rule_34[2] =
 {
     {ops_prod_34_0, 1, 0},
-    {ops_prod_34_1, 1, 0}
+    {ops_prod_34_1, 1, 1}
 };
 
 static CONST Production ops_prod_35_0[1] =
@@ -840,7 +840,7 @@ static CONST Production ops_prod_35_1[1] =
 static CONST GrammarRule ops_rule_35[2] =
 {
     {ops_prod_35_0, 1, 0},
-    {ops_prod_35_1, 1, 0}
+    {ops_prod_35_1, 1, 1}
 };
 
 static CONST Production ops_prod_36_0[1] =
@@ -860,7 +860,7 @@ static CONST Production ops_prod_36_1[1] =
 static CONST GrammarRule ops_rule_36[2] =
 {
     {ops_prod_36_0, 1, 0},
-    {ops_prod_36_1, 1, 0}
+    {ops_prod_36_1, 1, 1}
 };
 
 static CONST Production ops_prod_37_0[1] =
@@ -880,7 +880,7 @@ static CONST Production ops_prod_37_1[1] =
 static CONST GrammarRule ops_rule_37[2] =
 {
     {ops_prod_37_0, 1, 0},
-    {ops_prod_37_1, 1, 0}
+    {ops_prod_37_1, 1, 1}
 };
 
 static CONST Production ops_prod_38_0[1] =
@@ -900,7 +900,7 @@ static CONST Production ops_prod_38_1[1] =
 static CONST GrammarRule ops_rule_38[2] =
 {
     {ops_prod_38_0, 1, 0},
-    {ops_prod_38_1, 1, 0}
+    {ops_prod_38_1, 1, 1}
 };
 
 static CONST Production ops_prod_39_0[1] =
@@ -920,7 +920,7 @@ static CONST Production ops_prod_39_1[1] =
 static CONST GrammarRule ops_rule_39[2] =
 {
     {ops_prod_39_0, 1, 0},
-    {ops_prod_39_1, 1, 0}
+    {ops_prod_39_1, 1, 1}
 };
 
 static CONST Production ops_prod_40_0[1] =
@@ -940,7 +940,7 @@ static CONST Production ops_prod_40_1[1] =
 static CONST GrammarRule ops_rule_40[2] =
 {
     {ops_prod_40_0, 1, 0},
-    {ops_prod_40_1, 1, 0}
+    {ops_prod_40_1, 1, 1}
 };
 
 static CONST Production ops_prod_41_0[1] =
@@ -960,7 +960,7 @@ static CONST Production ops_prod_41_1[1] =
 static CONST GrammarRule ops_rule_41[2] =
 {
     {ops_prod_41_0, 1, 0},
-    {ops_prod_41_1, 1, 0}
+    {ops_prod_41_1, 1, 1}
 };
 
 static CONST Production ops_prod_42_0[1] =
@@ -980,7 +980,7 @@ static CONST Production ops_prod_42_1[1] =
 static CONST GrammarRule ops_rule_42[2] =
 {
     {ops_prod_42_0, 1, 0},
-    {ops_prod_42_1, 1, 0}
+    {ops_prod_42_1, 1, 1}
 };
 
 static CONST Production ops_prod_43_0[1] =
@@ -1000,7 +1000,7 @@ static CONST Production ops_prod_43_1[1] =
 static CONST GrammarRule ops_rule_43[2] =
 {
     {ops_prod_43_0, 1, 0},
-    {ops_prod_43_1, 1, 0}
+    {ops_prod_43_1, 1, 1}
 };
 
 static CONST Production ops_prod_44_0[1] =
@@ -1020,7 +1020,7 @@ static CONST Production ops_prod_44_1[1] =
 static CONST GrammarRule ops_rule_44[2] =
 {
     {ops_prod_44_0, 1, 0},
-    {ops_prod_44_1, 1, 0}
+    {ops_prod_44_1, 1, 1}
 };
 
 static CONST Production ops_prod_45_0[1] =
@@ -1040,7 +1040,7 @@ static CONST Production ops_prod_45_1[1] =
 static CONST GrammarRule ops_rule_45[2] =
 {
     {ops_prod_45_0, 1, 0},
-    {ops_prod_45_1, 1, 0}
+    {ops_prod_45_1, 1, 1}
 };
 
 static CONST Production ops_prod_46_0[1] =
