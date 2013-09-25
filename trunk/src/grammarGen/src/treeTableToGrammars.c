@@ -123,8 +123,10 @@ static errorCode getElementTermProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 /**
  * Given an attribute use entry this function builds the corresponding
  * attribute use proto grammar.
+ * @param[in] isRequired The global attributed does not have a property use (required | optional). When a local attr.
+ * references a global one it passes the use property value. Only used when isGlobal == TRUE
  */
-static errorCode getAttributeProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* attrEntry, boolean isGlobal, ProtoGrammar** attr);
+static errorCode getAttributeProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* attrEntry, boolean isGlobal, boolean isRequired, ProtoGrammar** attr);
 
 /**
  * Given a Simple Type entry this function builds the corresponding
@@ -698,14 +700,18 @@ static errorCode handleElementEl(BuildContext* ctx, TreeTable* treeT, TreeTableE
 	return EXIP_OK;
 }
 
-static errorCode getAttributeProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* attrEntry, boolean isGlobal, ProtoGrammar** attr)
+static errorCode getAttributeProtoGrammar(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* attrEntry, boolean isGlobal, boolean isRequired, ProtoGrammar** attr)
 {
 	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	boolean required = FALSE;
 	Index typeId;
 	QNameID atQnameID;
 
-	if (!isStringEmpty(&(attrEntry->attributePointers[ATTRIBUTE_USE])) &&
+	if(isGlobal)
+	{
+		required = isRequired;
+	}
+	else if (!isStringEmpty(&(attrEntry->attributePointers[ATTRIBUTE_USE])) &&
 			stringEqualToAscii(attrEntry->attributePointers[ATTRIBUTE_USE], "required"))
 	{
 		required = TRUE;
@@ -753,7 +759,7 @@ static errorCode getAttributeProtoGrammar(BuildContext* ctx, TreeTable* treeT, T
 		else if(attrEntry->child.entry->element == ELEMENT_ATTRIBUTE)
 		{
 			// A reference to a global attribute
-			return getAttributeProtoGrammar(ctx, attrEntry->child.treeT, attrEntry->child.entry, TRUE, attr);
+			return getAttributeProtoGrammar(ctx, attrEntry->child.treeT, attrEntry->child.entry, TRUE, required, attr);
 		}
 		else
 		{
@@ -989,7 +995,7 @@ static errorCode getAttributeUseProtoGrammars(BuildContext* ctx, TreeTable* tree
 
 						if(!stringEqualToAscii(attrUse->attributePointers[ATTRIBUTE_USE], "prohibited"))
 						{
-							TRY(getAttributeProtoGrammar(ctx, treeT, attrUse, FALSE, &attrPG));
+							TRY(getAttributeProtoGrammar(ctx, treeT, attrUse, FALSE, FALSE, &attrPG));
 							TRY(addDynEntry(&attrUseArray->dynArray, &attrPG, &entryId));
 						}
 					}
