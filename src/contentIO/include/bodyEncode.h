@@ -97,9 +97,10 @@ errorCode encodePfx(EXIStream* strm, SmallIndex uriID, String* prefix);
  * @brief Encodes Integer value into EXI stream
  * @param[in, out] strm EXI stream
  * @param[in] int_val integer to be written
+ * @param[in] qnameID The uri/ln ids in the URI string table
  * @param[in] typeId index in the type table. It is used to determine the EXI int type and additional restrictions
  * @return Error handling code
  */
-errorCode encodeIntData(EXIStream* strm, Integer int_val, Index typeId);
+errorCode encodeIntData(EXIStream* strm, Integer int_val, QNameID qnameID, Index typeId);
 
 #endif /* BODYENCODE_H_ */

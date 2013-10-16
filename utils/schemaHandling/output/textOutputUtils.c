@@ -138,7 +138,11 @@ static void writeValueTypeString(FILE* out, EXIType exiType)
 			fprintf(out, "[dec] ");
 			break;
 		case VALUE_TYPE_DATE_TIME:
-			fprintf(out, "[date] ");
+		case VALUE_TYPE_YEAR:
+		case VALUE_TYPE_DATE:
+		case VALUE_TYPE_MONTH:
+		case VALUE_TYPE_TIME:
+			fprintf(out, "[dateTime] ");
 			break;
 		case VALUE_TYPE_BOOLEAN:
 			fprintf(out, "[bool] ");

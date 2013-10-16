@@ -158,6 +158,66 @@ errorCode stringToInteger(const String* src, int* number);
  */
 errorCode stringToInt64(const String* src, int64_t* number);
 
+#if EXIP_IMPLICIT_DATA_TYPE_CONVERSION
+
+/**
+ * @brief Converts a integer to string representation.
+ * Uses allocateStringMemory() so make sure to free the
+ * memory allocated for the string manually!
+ *
+ * @param[in] number the source integer
+ * @param[out] outStr the resulting string representation
+ * @return Error handling code
+ */
+errorCode integerToString(Integer number, String* outStr);
+
+/**
+ * @brief Converts a boolean to string representation.
+ * Uses allocateStringMemory() so make sure to free the
+ * memory allocated for the string manually!
+ *
+ * @param[in] b TRUE/FALSE
+ * @param[out] outStr the resulting string representation
+ * @return Error handling code
+ */
+errorCode booleanToString(boolean b, String* outStr);
+
+/**
+ * @brief Converts a float to string representation.
+ * Uses allocateStringMemory() so make sure to free the
+ * memory allocated for the string manually!
+ *
+ * @param[in] f float in EXI format (base 10)
+ * @param[out] outStr the resulting string representation
+ * @return Error handling code
+ */
+errorCode floatToString(Float f, String* outStr);
+
+/**
+ * @brief Converts a decimal to string representation.
+ * Uses allocateStringMemory() so make sure to free the
+ * memory allocated for the string manually!
+ *
+ * @param[in] d the source decimal
+ * @param[out] outStr the resulting string representation
+ * @return Error handling code
+ */
+errorCode decimalToString(Decimal d, String* outStr);
+
+/**
+ * @brief Converts a dateTime value to string representation.
+ * Uses allocateStringMemory() so make sure to free the
+ * memory allocated for the string manually!
+ *
+ * @param[in] dt the source dtValue
+ * @param[out] outStr the resulting string representation
+ * @return Error handling code
+ */
+errorCode dateTimeToString(EXIPDateTime dt, String* outStr);
+
+#endif /* EXIP_IMPLICIT_DATA_TYPE_CONVERSION */
+
+
 #if EXIP_DEBUG == ON
 
 /**

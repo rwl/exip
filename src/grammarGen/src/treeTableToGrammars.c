@@ -1819,6 +1819,10 @@ static errorCode getRestrictionSimpleProtoGrammar(BuildContext* ctx, TreeTable* 
 				valSize = sizeof(char);
 				break;
 			case VALUE_TYPE_DATE_TIME:
+			case VALUE_TYPE_YEAR:
+			case VALUE_TYPE_DATE:
+			case VALUE_TYPE_MONTH:
+			case VALUE_TYPE_TIME:
 				valSize = sizeof(EXIPDateTime);
 				break;
 			case VALUE_TYPE_DECIMAL:
@@ -1863,6 +1867,10 @@ static errorCode getRestrictionSimpleProtoGrammar(BuildContext* ctx, TreeTable* 
 						return EXIP_NOT_IMPLEMENTED_YET;
 						break;
 					case VALUE_TYPE_DATE_TIME:
+					case VALUE_TYPE_YEAR:
+					case VALUE_TYPE_DATE:
+					case VALUE_TYPE_MONTH:
+					case VALUE_TYPE_TIME:
 						return EXIP_NOT_IMPLEMENTED_YET;
 						break;
 					case VALUE_TYPE_DECIMAL:

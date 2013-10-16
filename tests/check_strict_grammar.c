@@ -859,14 +859,7 @@ static error_code serializeIOMsg(char* buf, unsigned int buf_size, unsigned int*
 	qname.localName = &ELEM_TIMESTAMP_STR;
 	tmp_err_code += serialize.startElement(&strm, qname, &valueType); // <timeStamp>
 
-	dt.presenceMask = 0;
-	dt.presenceMask = dt.presenceMask | YEAR_PRESENCE;
-	dt.presenceMask = dt.presenceMask | MON_PRESENCE;
-	dt.presenceMask = dt.presenceMask | MDAY_PRESENCE;
-	dt.presenceMask = dt.presenceMask | HOUR_PRESENCE;
-	dt.presenceMask = dt.presenceMask | MIN_PRESENCE;
-	dt.presenceMask = dt.presenceMask | SEC_PRESENCE;
-	dt.presenceMask = dt.presenceMask | FRACT_PRESENCE;
+	dt.presenceMask = FRACT_PRESENCE;
 
 	dt.dateTime.tm_year = val.ts.year;
 	dt.dateTime.tm_mon = val.ts.month;

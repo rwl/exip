@@ -343,6 +343,10 @@ void staticEnumTableOutput(EXIPSchema* schema, char* prefix, FILE* out)
 				assert(FALSE);
 				break;
 			case VALUE_TYPE_DATE_TIME:
+			case VALUE_TYPE_YEAR:
+			case VALUE_TYPE_DATE:
+			case VALUE_TYPE_MONTH:
+			case VALUE_TYPE_TIME:
 				// NOT_IMPLEMENTED
 				assert(FALSE);
 				break;

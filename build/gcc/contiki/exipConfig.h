@@ -76,6 +76,22 @@ struct ThinFloat
 #define EXIP_SMALL_INDEX_MAX UINT8_MAX
 
 /**
+ * Affects encoding only!
+ * When an untyped value is expected in the EXI stream (encoded with
+ * String according to the spec) passing a typed value diferent from String will require a
+ * conversion. If EXIP_IMPLICIT_DATA_TYPE_CONVERSION is enabled the
+ * EXIP library takes care of that. Otherwise, if disabled, the applications
+ * need to make sure they always pass String typed data when String/untyped value is
+ * expected in the EXI stream. For example, assume a schema-less stream
+ * and a value for an element encoded with serialize.intData():
+ * 1) When EXIP_IMPLICIT_DATA_TYPE_CONVERSION == OFF
+ * serialize.intData() will return an error
+ * 2) When EXIP_IMPLICIT_DATA_TYPE_CONVERSION == ON
+ * serialize.intData() will first convert the int value to
+ * string and then encode it as a string in the EXI stream */
+#define EXIP_IMPLICIT_DATA_TYPE_CONVERSION OFF
+
+/**
  * Whether the EXIP library is conforming to the W3C EXI Profile specification.
  * EXI Profile helps reduce RAM and programming memory and can be used
  * only for schema mode processing. Use SCHEMA_ID_EMPTY schemaId switch to enable
