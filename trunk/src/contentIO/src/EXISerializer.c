@@ -475,6 +475,7 @@ errorCode attribute(EXIStream* strm, QName qname, boolean isSchemaType, EXITypeC
 errorCode intData(EXIStream* strm, Integer int_val)
 {
 	Index intTypeId;
+	QNameID qnameID;
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Start integer data serialization\n"));
 
 	if(strm->gStack->grammar == NULL)
@@ -483,6 +484,7 @@ errorCode intData(EXIStream* strm, Integer int_val)
 	if(strm->context.expectATData > 0) // Value for an attribute or list item
 	{
 		intTypeId = strm->context.attrTypeId;
+		qnameID = strm->context.currAttr;
 		strm->context.expectATData -= 1;
 	}
 	else
@@ -492,21 +494,24 @@ errorCode intData(EXIStream* strm, Integer int_val)
 
 		// TODO: passing the type class is not enough:
 		// we need to check if the int value (int_val) fits in the
-		// production value content description
+		// production value content description.
+		// If it does not fit we need to again use untyped second level production
 		TRY(encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, VALUE_TYPE_INTEGER_CLASS, &prodHit));
-
+		qnameID = strm->gStack->currQNameID;
 		intTypeId = prodHit.typeId;
 	}
-	// TODO: check that the actuall production allows for EXI int data encoding
-	// If the value content of the production is untyped or string then
-	// do a conversion to string, print a warning and encode it as a string
-	return encodeIntData(strm, int_val, intTypeId);
+
+	return encodeIntData(strm, int_val, qnameID, intTypeId);
 }
 
 errorCode booleanData(EXIStream* strm, boolean bool_val)
 {
 	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	boolean isXsiNilAttr = FALSE;
+	Index booleanTypeId;
+	EXIType exiType;
+	QNameID qnameID;
+
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Start boolean data serialization\n"));
 
 	if(strm->gStack->grammar == NULL)
@@ -520,18 +525,48 @@ errorCode booleanData(EXIStream* strm, boolean bool_val)
 			// xsi:nill
 			isXsiNilAttr = TRUE;
 		}
+		booleanTypeId = strm->context.attrTypeId;
+		qnameID = strm->context.currAttr;
 	}
 	else
 	{
 		Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
 		TRY(encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, VALUE_TYPE_BOOLEAN_CLASS, &prodHit));
+		booleanTypeId = prodHit.typeId;
+		qnameID = strm->gStack->currQNameID;
 	}
 
-	// TODO: check that the actuall production allows for EXI boolean data encoding
-	// If the value content of the production is untyped or string then
-	// do a conversion to string, print a warning and encode it as a string
-	TRY(encodeBoolean(strm, bool_val));
+	if(booleanTypeId != INDEX_MAX)
+		exiType = GET_EXI_TYPE(strm->schema->simpleTypeTable.sType[booleanTypeId].content);
+	else
+		exiType = VALUE_TYPE_NONE;
+
+	if(exiType == VALUE_TYPE_BOOLEAN)
+	{
+		TRY(encodeBoolean(strm, bool_val));
+	}
+	else if(exiType == VALUE_TYPE_STRING || exiType == VALUE_TYPE_UNTYPED || exiType == VALUE_TYPE_NONE)
+	{
+		//       1) Print Warning
+		//       2) convert the boolean to sting
+		//       3) encode string
+		String tmpStr;
+
+		DEBUG_MSG(WARNING, DEBUG_CONTENT_IO, ("\n>Boolean to String conversion required \n"));
+#if EXIP_IMPLICIT_DATA_TYPE_CONVERSION
+		TRY(booleanToString(bool_val, &tmpStr));
+		TRY(encodeStringData(strm, tmpStr, qnameID, booleanTypeId));
+		EXIP_MFREE(tmpStr.str);
+#else
+		return EXIP_INVALID_EXI_INPUT;
+#endif
+	}
+	else
+	{
+	    DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, ("\n>Production type is not a boolean\n"));
+		return EXIP_INCONSISTENT_PROC_STATE;
+	}
 
 	if(IS_SCHEMA(strm->gStack->grammar->props) && isXsiNilAttr && bool_val)
 	{
@@ -548,6 +583,8 @@ errorCode stringData(EXIStream* strm, const String str_val)
 	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	QNameID qnameID;
 	Index typeId;
+	EXIType exiType;
+
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Start string data serialization\n"));
 
 	if(strm->gStack->grammar == NULL)
@@ -578,15 +615,28 @@ errorCode stringData(EXIStream* strm, const String str_val)
 		typeId = prodHit.typeId;
 	}
 
-	// TODO: check that the actuall production allows for EXI sting data encoding
-	// If the value content of the production is something else then
-	// do a conversion, print a warning and encode it as a string
-	// OR just raise an error
-	return encodeStringData(strm, str_val, qnameID, typeId);
+	if(typeId != INDEX_MAX)
+		exiType = GET_EXI_TYPE(strm->schema->simpleTypeTable.sType[typeId].content);
+	else
+		exiType = VALUE_TYPE_NONE;
+
+	if(exiType == VALUE_TYPE_STRING || exiType == VALUE_TYPE_UNTYPED || exiType == VALUE_TYPE_NONE)
+	{
+		return encodeStringData(strm, str_val, qnameID, typeId);
+	}
+	else
+	{
+		DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, ("\n>Expected typed data, but string provided\n"));
+		return EXIP_INVALID_EXI_INPUT;
+	}
 }
 
 errorCode floatData(EXIStream* strm, Float float_val)
 {
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
+	Index typeId;
+	QNameID qnameID;
+	EXIType exiType;
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Start float data serialization\n"));
 
 	if(strm->gStack->grammar == NULL)
@@ -595,6 +645,8 @@ errorCode floatData(EXIStream* strm, Float float_val)
 	if(strm->context.expectATData > 0) // Value for an attribute
 	{
 		strm->context.expectATData -= 1;
+		typeId = strm->context.attrTypeId;
+		qnameID = strm->context.currAttr;
 	}
 	else
 	{
@@ -602,17 +654,48 @@ errorCode floatData(EXIStream* strm, Float float_val)
 		Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
 		TRY(encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, VALUE_TYPE_FLOAT_CLASS, &prodHit));
+		qnameID = strm->gStack->currQNameID;
+		typeId = prodHit.typeId;
 	}
 
-	// TODO: check that the actuall production allows for EXI float data encoding
-	// If the value content of the production is untyped or string then
-	// do a conversion to string, print a warning and encode it as a string
-	return encodeFloatValue(strm, float_val);
+	if(typeId != INDEX_MAX)
+		exiType = GET_EXI_TYPE(strm->schema->simpleTypeTable.sType[typeId].content);
+	else
+		exiType = VALUE_TYPE_NONE;
+
+	if(exiType == VALUE_TYPE_FLOAT)
+	{
+		return encodeFloatValue(strm, float_val);
+	}
+	else if(exiType == VALUE_TYPE_STRING || exiType == VALUE_TYPE_UNTYPED || exiType == VALUE_TYPE_NONE)
+	{
+		//       1) Print Warning
+		//       2) convert the float to sting
+		//       3) encode string
+		String tmpStr;
+
+		DEBUG_MSG(WARNING, DEBUG_CONTENT_IO, ("\n>Float to String conversion required \n"));
+#if EXIP_IMPLICIT_DATA_TYPE_CONVERSION
+		TRY(floatToString(float_val, &tmpStr));
+		TRY(encodeStringData(strm, tmpStr, qnameID, typeId));
+		EXIP_MFREE(tmpStr.str);
+#else
+		return EXIP_INVALID_EXI_INPUT;
+#endif
+	}
+	else
+	{
+	    DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, ("\n>Production type is not a float\n"));
+		return EXIP_INCONSISTENT_PROC_STATE;
+	}
+
+	return EXIP_OK;
 }
 
 errorCode binaryData(EXIStream* strm, const char* binary_val, Index nbytes)
 {
-	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Start float data serialization\n"));
+	Index typeId;
+	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Start binary data serialization\n"));
 
 	if(strm->gStack->grammar == NULL)
 		return EXIP_INCONSISTENT_PROC_STATE;
@@ -620,6 +703,7 @@ errorCode binaryData(EXIStream* strm, const char* binary_val, Index nbytes)
 	if(strm->context.expectATData > 0) // Value for an attribute
 	{
 		strm->context.expectATData -= 1;
+		typeId = strm->context.attrTypeId;
 	}
 	else
 	{
@@ -627,16 +711,25 @@ errorCode binaryData(EXIStream* strm, const char* binary_val, Index nbytes)
 		Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
 		TRY(encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, VALUE_TYPE_BINARY_CLASS, &prodHit));
+		typeId = prodHit.typeId;
 	}
 
-	// TODO: check that the actuall production allows for EXI binary data encoding
-	// If the value content of the production is untyped or string then
-	// do a conversion to string, print a warning and encode it as a string
+	if(typeId == INDEX_MAX || GET_EXI_TYPE(strm->schema->simpleTypeTable.sType[typeId].content) != VALUE_TYPE_BINARY)
+	{
+		// Binary to string conversion is not supported
+	    DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, ("\n>Production type is not a binary\n"));
+		return EXIP_INCONSISTENT_PROC_STATE;
+	}
+
 	return encodeBinary(strm, (char *)binary_val, nbytes);
 }
 
 errorCode dateTimeData(EXIStream* strm, EXIPDateTime dt_val)
 {
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
+	Index typeId;
+	QNameID qnameID;
+	EXIType exiType;
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Start dateTime data serialization\n"));
 
 	if(strm->gStack->grammar == NULL)
@@ -645,24 +738,116 @@ errorCode dateTimeData(EXIStream* strm, EXIPDateTime dt_val)
 	if(strm->context.expectATData > 0) // Value for an attribute
 	{
 		strm->context.expectATData -= 1;
+		typeId = strm->context.attrTypeId;
+		qnameID = strm->context.currAttr;
 	}
 	else
 	{
 		errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 		Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 
+		// TODO: passing the type class is not enough:
+		// we need to check if the dt_val value fits in the
+		// production value content description.
+		// If it does not fit we need to again use untyped second level production
 		TRY(encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, VALUE_TYPE_DATE_TIME_CLASS, &prodHit));
+		typeId = prodHit.typeId;
+		qnameID = strm->gStack->currQNameID;
 	}
 
-	// TODO: check that the actuall production allows for EXI dateTime data encoding
-	// If the value content of the production is untyped or string then
-	// do a conversion to string, print a warning and encode it as a string
-	return encodeDateTimeValue(strm, dt_val);
+	if(typeId != INDEX_MAX)
+		exiType = GET_EXI_TYPE(strm->schema->simpleTypeTable.sType[typeId].content);
+	else
+		exiType = VALUE_TYPE_NONE;
+
+	if(GET_EVENT_CLASS(exiType) == VALUE_TYPE_DATE_TIME_CLASS)
+	{
+		return encodeDateTimeValue(strm, exiType, dt_val);
+	}
+	else if(exiType == VALUE_TYPE_STRING || exiType == VALUE_TYPE_UNTYPED || exiType == VALUE_TYPE_NONE)
+	{
+		//       1) Print Warning
+		//       2) convert the dateTime to sting
+		//       3) encode string
+		String tmpStr;
+
+		DEBUG_MSG(WARNING, DEBUG_CONTENT_IO, ("\n>DateTime to String conversion required \n"));
+#if EXIP_IMPLICIT_DATA_TYPE_CONVERSION
+		TRY(dateTimeToString(dt_val, &tmpStr));
+		TRY(encodeStringData(strm, tmpStr, qnameID, typeId));
+		EXIP_MFREE(tmpStr.str);
+#else
+		return EXIP_INVALID_EXI_INPUT;
+#endif
+	}
+	else
+	{
+	    DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, ("\n>Production type is not a dateTime\n"));
+		return EXIP_INCONSISTENT_PROC_STATE;
+	}
+
+	return EXIP_OK;
 }
 
 errorCode decimalData(EXIStream* strm, Decimal dec_val)
 {
-	return EXIP_NOT_IMPLEMENTED_YET;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
+	Index typeId;
+	QNameID qnameID;
+	EXIType exiType;
+	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, ("\n>Start decimal data serialization\n"));
+
+	if(strm->gStack->grammar == NULL)
+		return EXIP_INCONSISTENT_PROC_STATE;
+
+	if(strm->context.expectATData > 0) // Value for an attribute
+	{
+		strm->context.expectATData -= 1;
+		typeId = strm->context.attrTypeId;
+		qnameID = strm->context.currAttr;
+	}
+	else
+	{
+		errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
+		Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
+
+		TRY(encodeProduction(strm, EVENT_CH_CLASS, TRUE, NULL, VALUE_TYPE_DECIMAL_CLASS, &prodHit));
+		qnameID = strm->gStack->currQNameID;
+		typeId = prodHit.typeId;
+	}
+
+	if(typeId != INDEX_MAX)
+		exiType = GET_EXI_TYPE(strm->schema->simpleTypeTable.sType[typeId].content);
+	else
+		exiType = VALUE_TYPE_NONE;
+
+	if(exiType == VALUE_TYPE_DECIMAL)
+	{
+		return encodeDecimalValue(strm, dec_val);
+	}
+	else if(exiType == VALUE_TYPE_STRING || exiType == VALUE_TYPE_UNTYPED || exiType == VALUE_TYPE_NONE)
+	{
+		//       1) Print Warning
+		//       2) convert the float to sting
+		//       3) encode string
+		String tmpStr;
+
+		DEBUG_MSG(WARNING, DEBUG_CONTENT_IO, ("\n>Decimal to String conversion required \n"));
+#if EXIP_IMPLICIT_DATA_TYPE_CONVERSION
+		TRY(decimalToString(dec_val, &tmpStr));
+		TRY(encodeStringData(strm, tmpStr, qnameID, typeId));
+		EXIP_MFREE(tmpStr.str);
+#else
+		return EXIP_INVALID_EXI_INPUT;
+#endif
+	}
+	else
+	{
+	    DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, ("\n>Production type is not a decimal\n"));
+		return EXIP_INCONSISTENT_PROC_STATE;
+	}
+
+	return EXIP_OK;
 }
 
 errorCode listData(EXIStream* strm, unsigned int itemCount)

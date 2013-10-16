@@ -137,9 +137,11 @@ errorCode decodeFloatValue(EXIStream* strm, Float* fl_val);
  * Included Components: Year, MonthDay, Time, presence, [FractionalSecs], presence, [TimeZone]
  *
  * @param[in] strm EXI stream of bits
+ * @param[in] dtType the exact type of the dateTime value. Should be one of
+ * VALUE_TYPE_DATE_TIME, VALUE_TYPE_YEAR, VALUE_TYPE_DATE, VALUE_TYPE_MONTH, VALUE_TYPE_TIME
  * @param[out] dt_val decoded dateTime value as EXIPDateTime
  * @return Error handling code.
  */
-errorCode decodeDateTimeValue(EXIStream* strm, EXIPDateTime* dt_val);
+errorCode decodeDateTimeValue(EXIStream* strm, EXIType dtType, EXIPDateTime* dt_val);
 
 #endif /* STREAMDECODE_H_ */

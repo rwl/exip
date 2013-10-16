@@ -355,7 +355,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 
 	// date
 	sType.content = 0;
-	SET_EXI_TYPE(sType.content, VALUE_TYPE_DATE_TIME);
+	SET_EXI_TYPE(sType.content, VALUE_TYPE_DATE);
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
@@ -404,7 +404,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 
 	// gDay
 	sType.content = 0;
-	SET_EXI_TYPE(sType.content, VALUE_TYPE_DATE_TIME);
+	SET_EXI_TYPE(sType.content, VALUE_TYPE_MONTH);
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
@@ -412,7 +412,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 
 	// gMonth
 	sType.content = 0;
-	SET_EXI_TYPE(sType.content, VALUE_TYPE_DATE_TIME);
+	SET_EXI_TYPE(sType.content, VALUE_TYPE_MONTH);
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
@@ -420,7 +420,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 
 	// gMonthDay
 	sType.content = 0;
-	SET_EXI_TYPE(sType.content, VALUE_TYPE_DATE_TIME);
+	SET_EXI_TYPE(sType.content, VALUE_TYPE_MONTH);
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
@@ -428,7 +428,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 
 	// gYear
 	sType.content = 0;
-	SET_EXI_TYPE(sType.content, VALUE_TYPE_DATE_TIME);
+	SET_EXI_TYPE(sType.content, VALUE_TYPE_YEAR);
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
@@ -436,7 +436,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 
 	// gYearMonth
 	sType.content = 0;
-	SET_EXI_TYPE(sType.content, VALUE_TYPE_DATE_TIME);
+	SET_EXI_TYPE(sType.content, VALUE_TYPE_DATE);
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;
@@ -554,7 +554,7 @@ errorCode createBuiltInTypesDefinitions(SimpleTypeTable* simpleTypeTable, AllocL
 
 	// time
 	sType.content = 0;
-	SET_EXI_TYPE(sType.content, VALUE_TYPE_DATE_TIME);
+	SET_EXI_TYPE(sType.content, VALUE_TYPE_TIME);
 	sType.max = 0;
 	sType.min = 0;
 	sType.length = 0;

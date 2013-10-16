@@ -1148,10 +1148,14 @@ errorCode decodeValueItem(EXIStream* strm, Index typeId, ContentHandler* handler
 		}
 		break;
 		case VALUE_TYPE_DATE_TIME:
+		case VALUE_TYPE_YEAR:
+		case VALUE_TYPE_DATE:
+		case VALUE_TYPE_MONTH:
+		case VALUE_TYPE_TIME:
 		{
 			EXIPDateTime dtVal;
 
-			TRY(decodeDateTimeValue(strm, &dtVal));
+			TRY(decodeDateTimeValue(strm, exiType, &dtVal));
 			if(handler->dateTimeData != NULL)  // Invoke handler method
 			{
 				TRY(handler->dateTimeData(dtVal, app_data));

@@ -133,10 +133,12 @@ errorCode encodeFloatValue(EXIStream* strm, Float fl_val);
  * @brief Encode EXI DateTime type
  *
  * @param[in, out] strm EXI stream of bits
+ * @param[in] dtType the exact type of the dateTime value. Should be one of
+ * VALUE_TYPE_DATE_TIME, VALUE_TYPE_YEAR, VALUE_TYPE_DATE, VALUE_TYPE_MONTH, VALUE_TYPE_TIME
  * @param[in] dt_val DateTime value to be encoded
  * @return Error handling code.
  */
-errorCode encodeDateTimeValue(EXIStream* strm, EXIPDateTime dt_val);
+errorCode encodeDateTimeValue(EXIStream* strm, EXIType dtType, EXIPDateTime dt_val);
 
 /**
  * @brief Serialize an event code to an EXI stream

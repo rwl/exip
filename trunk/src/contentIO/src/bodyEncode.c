@@ -193,9 +193,10 @@ errorCode encodeProduction(EXIStream* strm, EventTypeClass eventClass, boolean i
 					else
 						exiType = VALUE_TYPE_NONE;
 
-					if(chTypeClass == GET_VALUE_TYPE_CLASS(exiType))
+					if(exiType == VALUE_TYPE_NONE || exiType == VALUE_TYPE_UNTYPED)
 						matchFound = TRUE;
-
+					else if(chTypeClass == GET_VALUE_TYPE_CLASS(exiType))
+						matchFound = TRUE;
 					break;
 				}
 				else
@@ -220,6 +221,9 @@ errorCode encodeProduction(EXIStream* strm, EventTypeClass eventClass, boolean i
 	else
 	{
 		// Production not found: encoded as second or third level production
+
+		DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">Secodn/third level production \n"));
+
 		ec.length = 2;
 		ec.part[0] = prodCount;
 		ec.bits[0] = bitCount;
@@ -742,11 +746,15 @@ errorCode encodePfx(EXIStream* strm, SmallIndex uriId, String* prefix)
 	return EXIP_OK;
 }
 
-errorCode encodeIntData(EXIStream* strm, Integer int_val, Index typeId)
+errorCode encodeIntData(EXIStream* strm, Integer int_val, QNameID qnameID, Index typeId)
 {
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	EXIType exiType;
 
-	exiType = GET_EXI_TYPE(strm->schema->simpleTypeTable.sType[typeId].content);
+	if(typeId != INDEX_MAX)
+		exiType = GET_EXI_TYPE(strm->schema->simpleTypeTable.sType[typeId].content);
+	else
+		exiType = VALUE_TYPE_NONE;
 
 	if(exiType == VALUE_TYPE_SMALL_INTEGER)
 	{
@@ -771,8 +779,26 @@ errorCode encodeIntData(EXIStream* strm, Integer int_val, Index typeId)
 	{
 		return encodeIntegerValue(strm, int_val);
 	}
+	else if(exiType == VALUE_TYPE_STRING || exiType == VALUE_TYPE_UNTYPED || exiType == VALUE_TYPE_NONE)
+	{
+		//       1) Print Warning
+		//       2) convert the int to sting
+		//       3) encode string
+		String tmpStr;
+
+		DEBUG_MSG(WARNING, DEBUG_CONTENT_IO, ("\n>Integer to String conversion required \n"));
+#if EXIP_IMPLICIT_DATA_TYPE_CONVERSION
+		TRY(integerToString(int_val, &tmpStr));
+		TRY(encodeStringData(strm, tmpStr, qnameID, typeId));
+		EXIP_MFREE(tmpStr.str);
+#else
+		return EXIP_INVALID_EXI_INPUT;
+#endif
+	}
 	else
 	{
+	    DEBUG_MSG(ERROR, DEBUG_CONTENT_IO, ("\n>Production type is not an Integer\n"));
 		return EXIP_INCONSISTENT_PROC_STATE;
 	}
+	return EXIP_OK;
 }

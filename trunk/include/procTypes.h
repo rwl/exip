@@ -166,17 +166,18 @@ struct EXIPDateTime
 {
 	/**
 	 * As defined in time.h
+	 * @note Decoding functions set negative values (INT_MIN) for the fields that are not available
 	 */
 	struct tm dateTime;
 	FractionalSecs fSecs;
 	int16_t TimeZone; // TZHours * 64 + TZMinutes
 
 	/**
-	 * Defines which fields of the DateTime are included.
-	 * Use SEC_PRESENCE, MIN_PRESENCE etc. (*_PRESENCE) masks
+	 * Whether to included fractional seconds and timeZone information
+	 * Use FRACT_PRESENCE and TZONE_PRESENCE masks
 	 * and IS_PRESENT() macro
 	 */
-	uint16_t presenceMask;
+	uint8_t presenceMask;
 };
 
 typedef struct EXIPDateTime EXIPDateTime;
@@ -186,21 +187,12 @@ typedef struct EXIPDateTime EXIPDateTime;
  *
  * Example usage:
  * @code
- *   IS_PRESENT(presenceMask, YEAR_PRESENCE)
+ *   IS_PRESENT(presenceMask, FRACT_PRESENCE)
  * @endcode
  */
 /**@{*/
-#define SEC_PRESENCE       0x0001 // 0b0000000000000001
-#define MIN_PRESENCE       0x0002 // 0b0000000000000010
-#define HOUR_PRESENCE      0x0004 // 0b0000000000000100
-#define MDAY_PRESENCE      0x0008 // 0b0000000000001000
-#define MON_PRESENCE       0x0010 // 0b0000000000010000
-#define YEAR_PRESENCE      0x0020 // 0b0000000000100000
-#define WDAY_PRESENCE      0x0040 // 0b0000000001000000
-#define YDAY_PRESENCE      0x0080 // 0b0000000010000000
-#define DST_PRESENCE       0x0100 // 0b0000000100000000
-#define TZONE_PRESENCE     0x0200 // 0b0000001000000000
-#define FRACT_PRESENCE     0x0400 // 0b0000010000000000
+#define TZONE_PRESENCE     0x01 // 0b00000001
+#define FRACT_PRESENCE     0x02 // 0b00000010
 
 #define IS_PRESENT(p, mask) (((p) & (mask)) != 0)
 /**@}*/
@@ -279,6 +271,10 @@ typedef EXIP_SMALL_INDEX SmallIndex;
 #endif
 
 #define SMALL_INDEX_MAX EXIP_SMALL_INDEX_MAX
+
+#ifndef EXIP_IMPLICIT_DATA_TYPE_CONVERSION
+# define EXIP_IMPLICIT_DATA_TYPE_CONVERSION ON
+#endif
 
 /**
  * Defines the encoding used for characters.
@@ -526,6 +522,14 @@ enum EXIType
 	VALUE_TYPE_FLOAT            =  20,
 	VALUE_TYPE_DECIMAL          =  30,
 	VALUE_TYPE_DATE_TIME        =  40,
+	/** Used for xs:gYear type*/
+	VALUE_TYPE_YEAR             =  41,
+	/** Used for xs:gYearMonth and xs:date types */
+	VALUE_TYPE_DATE             =  42,
+	/** Used for xs:gMonth, xs:gMonthDay and xs:gDay types */
+	VALUE_TYPE_MONTH            =  43,
+	/** Used for xs:time type */
+	VALUE_TYPE_TIME             =  44,
 	VALUE_TYPE_BOOLEAN          =  50,
 	VALUE_TYPE_BINARY           =  60,
 	VALUE_TYPE_LIST             =  70,

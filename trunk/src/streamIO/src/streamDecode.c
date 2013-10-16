@@ -234,7 +234,7 @@ errorCode decodeFloatValue(EXIStream* strm, Float* fl_val)
 	return EXIP_OK;
 }
 
-errorCode decodeDateTimeValue(EXIStream* strm, EXIPDateTime* dt_val)
+errorCode decodeDateTimeValue(EXIStream* strm, EXIType dtType, EXIPDateTime* dt_val)
 {
 	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	Integer year;
@@ -246,65 +246,72 @@ errorCode decodeDateTimeValue(EXIStream* strm, EXIPDateTime* dt_val)
 
 	DEBUG_MSG(INFO, DEBUG_STREAM_IO, (">> (dateTime)"));
 
-	// TODO: currently only the xs:dateTime is implemented.
-	//       The other types (gYear, gYearMonth, date, dateTime etc.)
-	//       must be known here for correct encoding.
-
-	/* Year component */
-	TRY(decodeIntegerValue(strm, &year));
-
-	dt_val->presenceMask = dt_val->presenceMask | YEAR_PRESENCE;
-	dt_val->dateTime.tm_year = (int)year - 100;
-
-	/* MonthDay component */
-	TRY(decodeNBitUnsignedInteger(strm, 9, &monDay));
-
-	dt_val->presenceMask = dt_val->presenceMask | MON_PRESENCE;
-	dt_val->dateTime.tm_mon = monDay / 32 - 1;
-
-	dt_val->presenceMask = dt_val->presenceMask | MDAY_PRESENCE;
-	dt_val->dateTime.tm_mday = monDay % 32;
-
-	/* Time component */
-	TRY(decodeNBitUnsignedInteger(strm, 17, &timeVal));
-
-	dt_val->presenceMask = dt_val->presenceMask | HOUR_PRESENCE;
-	dt_val->dateTime.tm_hour = (timeVal / 64) / 64;
-
-	dt_val->presenceMask = dt_val->presenceMask | MIN_PRESENCE;
-	dt_val->dateTime.tm_min = (timeVal / 64) % 64;
-
-	dt_val->presenceMask = dt_val->presenceMask | SEC_PRESENCE;
-	dt_val->dateTime.tm_sec = timeVal % 64;
-
-	/* FractionalSecs presence component */
-	TRY(decodeBoolean(strm, &presence));
-
-	if(presence)
+	if(dtType == VALUE_TYPE_DATE_TIME || dtType == VALUE_TYPE_DATE || dtType == VALUE_TYPE_YEAR)
 	{
-		UnsignedInteger fSecs = 0;
-		unsigned int tmp = 0;
+		/* Year component */
+		TRY(decodeIntegerValue(strm, &year));
+		dt_val->dateTime.tm_year = (int)year - 100;
+	}
+	else
+	{
+		dt_val->dateTime.tm_year = INT_MIN;
+	}
 
-		dt_val->presenceMask = dt_val->presenceMask | FRACT_PRESENCE;
-		dt_val->fSecs.offset = 0;
-		dt_val->fSecs.value = 0;
+	if(dtType == VALUE_TYPE_DATE_TIME || dtType == VALUE_TYPE_DATE || dtType == VALUE_TYPE_MONTH)
+	{
+		/* MonthDay component */
+		TRY(decodeNBitUnsignedInteger(strm, 9, &monDay));
+		dt_val->dateTime.tm_mon = monDay / 32 - 1;
+		dt_val->dateTime.tm_mday = monDay % 32;
+	}
+	else
+	{
+		dt_val->dateTime.tm_mon = INT_MIN;
+		dt_val->dateTime.tm_mday = INT_MIN;
+	}
 
-		/* FractionalSecs component */
-		TRY(decodeUnsignedInteger(strm, &fSecs));
+	if(dtType == VALUE_TYPE_DATE_TIME || dtType == VALUE_TYPE_TIME)
+	{
+		/* Time component */
+		TRY(decodeNBitUnsignedInteger(strm, 17, &timeVal));
+		dt_val->dateTime.tm_hour = (timeVal / 64) / 64;
+		dt_val->dateTime.tm_min = (timeVal / 64) % 64;
+		dt_val->dateTime.tm_sec = timeVal % 64;
 
-		while(fSecs != 0)
+		/* FractionalSecs presence component */
+		TRY(decodeBoolean(strm, &presence));
+		if(presence)
 		{
-			tmp = fSecs % 10;
-			dt_val->fSecs.offset++;
+			UnsignedInteger fSecs = 0;
+			unsigned int tmp = 0;
 
-			if(tmp != 0)
+			dt_val->presenceMask = dt_val->presenceMask | FRACT_PRESENCE;
+			dt_val->fSecs.offset = 0;
+			dt_val->fSecs.value = 0;
+
+			/* FractionalSecs component */
+			TRY(decodeUnsignedInteger(strm, &fSecs));
+
+			while(fSecs != 0)
 			{
-				dt_val->fSecs.value = dt_val->fSecs.value*10 + tmp;
-			}
+				tmp = fSecs % 10;
+				dt_val->fSecs.offset++;
 
-			fSecs = fSecs / 10;
+				if(tmp != 0)
+				{
+					dt_val->fSecs.value = dt_val->fSecs.value*10 + tmp;
+				}
+
+				fSecs = fSecs / 10;
+			}
+			dt_val->fSecs.offset -= 1;
 		}
-		dt_val->fSecs.offset -= 1;
+	}
+	else
+	{
+		dt_val->dateTime.tm_hour = INT_MIN;
+		dt_val->dateTime.tm_min = INT_MIN;
+		dt_val->dateTime.tm_sec = INT_MIN;
 	}
 
 	/* TimeZone presence component */

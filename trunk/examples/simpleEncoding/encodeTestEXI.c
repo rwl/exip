@@ -231,14 +231,7 @@ errorCode encode(EXIPSchema* schemaPtr, FILE *outfile, size_t (*outputStream)(vo
 		// schema mode
 		EXIPDateTime dt;
 
-		dt.presenceMask = 0;
-		dt.presenceMask = dt.presenceMask | YEAR_PRESENCE;
-		dt.presenceMask = dt.presenceMask | MON_PRESENCE;
-		dt.presenceMask = dt.presenceMask | MDAY_PRESENCE;
-		dt.presenceMask = dt.presenceMask | HOUR_PRESENCE;
-		dt.presenceMask = dt.presenceMask | MIN_PRESENCE;
-		dt.presenceMask = dt.presenceMask | SEC_PRESENCE;
-		dt.presenceMask = dt.presenceMask | FRACT_PRESENCE;
+		dt.presenceMask = FRACT_PRESENCE;
 
 		dt.dateTime.tm_year = 112; // 2012
 		dt.dateTime.tm_mon = 6;	// July

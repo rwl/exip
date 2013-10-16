@@ -398,7 +398,19 @@ static void writeValueTypeString(EXIType exiType)
 			DEBUG_MSG(INFO, EXIP_DEBUG, ("[dec]"));
 			break;
 		case VALUE_TYPE_DATE_TIME:
+			DEBUG_MSG(INFO, EXIP_DEBUG, ("[dateTime]"));
+			break;
+		case VALUE_TYPE_YEAR:
+			DEBUG_MSG(INFO, EXIP_DEBUG, ("[gYear]"));
+			break;
+		case VALUE_TYPE_DATE:
 			DEBUG_MSG(INFO, EXIP_DEBUG, ("[date]"));
+			break;
+		case VALUE_TYPE_MONTH:
+			DEBUG_MSG(INFO, EXIP_DEBUG, ("[month]"));
+			break;
+		case VALUE_TYPE_TIME:
+			DEBUG_MSG(INFO, EXIP_DEBUG, ("[time]"));
 			break;
 		case VALUE_TYPE_BOOLEAN:
 			DEBUG_MSG(INFO, EXIP_DEBUG, ("[bool]"));

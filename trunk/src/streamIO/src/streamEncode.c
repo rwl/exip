@@ -225,91 +225,74 @@ errorCode encodeFloatValue(EXIStream* strm, Float fl_val)
 	return EXIP_OK;
 }
 
-errorCode encodeDateTimeValue(EXIStream* strm, EXIPDateTime dt_val)
+errorCode encodeDateTimeValue(EXIStream* strm, EXIType dtType, EXIPDateTime dt_val)
 {
 	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 
-	// TODO: currently only the xs:dateTime is implemented.
-	//       The other types (gYear, gYearMonth, date, dateTime etc.)
-	//       must be known here for correct encoding.
-
-	if(IS_PRESENT(dt_val.presenceMask, YEAR_PRESENCE))
+	if(dtType == VALUE_TYPE_DATE_TIME || dtType == VALUE_TYPE_DATE || dtType == VALUE_TYPE_YEAR)
 	{
 		/* Year component */
 		TRY(encodeIntegerValue(strm, (Integer) dt_val.dateTime.tm_year + 100));
 	}
 
-	if(IS_PRESENT(dt_val.presenceMask, MON_PRESENCE) || IS_PRESENT(dt_val.presenceMask, MDAY_PRESENCE))
+	if(dtType == VALUE_TYPE_DATE_TIME || dtType == VALUE_TYPE_DATE || dtType == VALUE_TYPE_MONTH)
 	{
 		/* MonthDay component */
 		unsigned int monDay = 0;
 
-		if(IS_PRESENT(dt_val.presenceMask, MON_PRESENCE))
-			monDay = dt_val.dateTime.tm_mon + 1;
-		else
-			monDay = 1;
-
+		monDay = dt_val.dateTime.tm_mon + 1;
 		monDay = monDay * 32;
 
-		if(IS_PRESENT(dt_val.presenceMask, MDAY_PRESENCE))
-			monDay += dt_val.dateTime.tm_mday;
-		else
-			monDay += 1;
+		monDay += dt_val.dateTime.tm_mday;
 
 		TRY(encodeNBitUnsignedInteger(strm, 9, monDay));
 	}
 
-	if(IS_PRESENT(dt_val.presenceMask, HOUR_PRESENCE) || IS_PRESENT(dt_val.presenceMask, MIN_PRESENCE) || IS_PRESENT(dt_val.presenceMask, SEC_PRESENCE))
+	if(dtType == VALUE_TYPE_DATE_TIME || dtType == VALUE_TYPE_TIME)
 	{
 		/* Time component */
 		unsigned int timeVal = 0;
 
-		if(IS_PRESENT(dt_val.presenceMask, HOUR_PRESENCE))
-			timeVal += dt_val.dateTime.tm_hour;
-
+		timeVal += dt_val.dateTime.tm_hour;
 		timeVal = timeVal * 64;
-
-		if(IS_PRESENT(dt_val.presenceMask, MIN_PRESENCE))
-			timeVal += dt_val.dateTime.tm_min;
-
+		timeVal += dt_val.dateTime.tm_min;
 		timeVal = timeVal * 64;
-
-		if(IS_PRESENT(dt_val.presenceMask, SEC_PRESENCE))
-			timeVal += dt_val.dateTime.tm_sec;
+		timeVal += dt_val.dateTime.tm_sec;
 
 		TRY(encodeNBitUnsignedInteger(strm, 17, timeVal));
-	}
 
-	if(IS_PRESENT(dt_val.presenceMask, FRACT_PRESENCE))
-	{
-		/* FractionalSecs component */
-		UnsignedInteger fSecs = 0;
-		unsigned int tmp;
-		unsigned int i = 1;
-		unsigned int j = 0;
-
-		tmp = dt_val.fSecs.value;
-
-		while(tmp != 0)
+		if(IS_PRESENT(dt_val.presenceMask, FRACT_PRESENCE))
 		{
-			fSecs = fSecs*i + (tmp % 10);
-			tmp = tmp / 10;
+			/* FractionalSecs component */
+			UnsignedInteger fSecs = 0;
+			unsigned int tmp;
+			unsigned int i = 1;
+			unsigned int j = 0;
 
-			i = 10;
-			j++;
+			tmp = dt_val.fSecs.value;
+
+			while(tmp != 0)
+			{
+				fSecs = fSecs*i + (tmp % 10);
+				tmp = tmp / 10;
+
+				i = 10;
+				j++;
+			}
+
+			for(i = 0; i < dt_val.fSecs.offset + 1 - j; j++)
+			{
+				fSecs = fSecs*10;
+			}
+
+			TRY(encodeBoolean(strm, TRUE));
+			TRY(encodeUnsignedInteger(strm, fSecs));
+		}
+		else
+		{
+			TRY(encodeBoolean(strm, FALSE));
 		}
 
-		for(i = 0; i < dt_val.fSecs.offset + 1 - j; j++)
-		{
-			fSecs = fSecs*10;
-		}
-
-		TRY(encodeBoolean(strm, TRUE));
-		TRY(encodeUnsignedInteger(strm, fSecs));
-	}
-	else
-	{
-		TRY(encodeBoolean(strm, FALSE));
 	}
 
 	if(IS_PRESENT(dt_val.presenceMask, TZONE_PRESENCE))

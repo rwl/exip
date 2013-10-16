@@ -238,6 +238,35 @@ errorCode stringToInt64(const String* src, int64_t* number)
 	return EXIP_OK;
 }
 
+#if EXIP_IMPLICIT_DATA_TYPE_CONVERSION
+
+errorCode integerToString(Integer number, String* outStr)
+{
+	return EXIP_NOT_IMPLEMENTED_YET;
+}
+
+errorCode booleanToString(boolean b, String* outStr)
+{
+	return EXIP_NOT_IMPLEMENTED_YET;
+}
+
+errorCode floatToString(Float f, String* outStr)
+{
+	return EXIP_NOT_IMPLEMENTED_YET;
+}
+
+errorCode decimalToString(Decimal d, String* outStr)
+{
+	return EXIP_NOT_IMPLEMENTED_YET;
+}
+
+errorCode dateTimeToString(EXIPDateTime dt, String* outStr)
+{
+	return EXIP_NOT_IMPLEMENTED_YET;
+}
+
+#endif /* EXIP_IMPLICIT_DATA_TYPE_CONVERSION */
+
 #if EXIP_DEBUG == ON
 
 void printString(const String* inStr)
