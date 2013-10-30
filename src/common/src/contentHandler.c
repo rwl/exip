@@ -10,7 +10,7 @@
  * @brief Implementation of help functions for contentHandler interface
  * @date Oct 22, 2010
  * @author Rumen Kyusakov
- * @version 0.4
+ * @version 0.5
  * @par[Revision] $Id$
  */
 

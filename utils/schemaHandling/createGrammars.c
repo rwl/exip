@@ -11,7 +11,7 @@
  *
  * @date Oct 13, 2010
  * @author Rumen Kyusakov
- * @version 0.4
+ * @version 0.5
  * @par[Revision] $Id: decodeTestEXI.c 93 2011-03-30 15:39:41Z kjussakov $
  */
 
