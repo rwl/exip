@@ -13,7 +13,7 @@
  * If you want to use SAX API you should wrap this interface.
  * @date Sep 7, 2010
  * @author Rumen Kyusakov
- * @version 0.4
+ * @version 0.5
  * @par[Revision] $Id$
  */
 

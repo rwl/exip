@@ -11,7 +11,7 @@
  *
  * @date Feb 7, 2013
  * @author Rumen Kyusakov
- * @version 0.4.2
+ * @version 0.5
  * @par[Revision] $Id$
  */
 

@@ -12,7 +12,7 @@
  * @date Aug 18, 2010
  * @author Rumen Kyusakov
  * @author Ashok Gowtham
- * @version 0.4
+ * @version 0.5
  * @par[Revision] $Id$
  */
 
