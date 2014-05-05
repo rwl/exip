@@ -110,11 +110,11 @@ errorCode createFragmentGrammar(EXIPSchema* schema, QNameID* elQnameArr, Index q
 /**
  * @brief For a given grammar and a rule from it, returns the number of bits needed to encode a production from that rule
  * @param[in] strm EXI stream
- * @param[in] currentRule the concrete grammar rule
+ * @param[in] prodCount number of productions in the current grammar rule
  * @param[in] currentRuleIndx the index of the concrete grammar rule
  * @return number of bits needed to encode a production
  */
-unsigned int getBitsFirstPartCode(EXIStream* strm, GrammarRule* currentRule, SmallIndex currentRuleIndx);
+unsigned int getBitsFirstPartCode(EXIStream* strm, Index prodCount, SmallIndex currentRuleIndx);
 
 #if EXIP_DEBUG == ON
 /**

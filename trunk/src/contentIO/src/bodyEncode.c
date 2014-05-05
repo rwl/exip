@@ -138,15 +138,24 @@ errorCode encodeProduction(EXIStream* strm, EventTypeClass eventClass, boolean i
 		currentRule = &strm->gStack->grammar->rule[currNonTermID];
 
 		if(strm->context.isNilType)
-		{
-			prodCount = RULE_GET_AT_COUNT(currentRule->meta);
+		{   /* xsi:nil=true case */
+			prodCount = RULE_GET_AT_COUNT(currentRule->meta) + RULE_CONTAIN_EE(currentRule->meta);
+			if(currNonTermID >= GET_CONTENT_INDEX(strm->gStack->grammar->props))
+			{
+				// Instead of content we have a single EE production in the emptyType grammars
+				prodCount = 1;
+				if(eventClass != EVENT_EE_CLASS)
+					return EXIP_INCONSISTENT_PROC_STATE;
+			}
+
 			if(eventClass == EVENT_EE_CLASS)
 			{
-				if(RULE_CONTAIN_EE(currentRule->meta))
+				if(RULE_CONTAIN_EE(currentRule->meta) || currNonTermID >= GET_CONTENT_INDEX(strm->gStack->grammar->props))
 				{
+					bitCount = getBitsFirstPartCode(strm, prodCount, currNonTermID);
 					ec.length = 1;
-					ec.part[0] = prodCount;
-					ec.bits[0] = getBitsNumber(prodCount);
+					ec.part[0] = prodCount - 1;
+					ec.bits[0] = bitCount;
 					strm->gStack->currNonTermID = GR_VOID_NON_TERMINAL;
 					strm->context.isNilType = FALSE;
 
@@ -165,7 +174,7 @@ errorCode encodeProduction(EXIStream* strm, EventTypeClass eventClass, boolean i
 	}
 #endif
 
-	bitCount = getBitsFirstPartCode(strm, currentRule, currNonTermID);
+	bitCount = getBitsFirstPartCode(strm, prodCount, currNonTermID);
 
 	if(isSchemaType == TRUE)
 	{
