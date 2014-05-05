@@ -31,7 +31,7 @@ static char *dataDir;
 
 static size_t writeFileOutputStream(void* buf, size_t readSize, void* stream);
 static size_t readFileInputStream(void* buf, size_t readSize, void* stream);
-static void parseSchema(const char* fileName, EXIPSchema* schema);
+static void parseSchema(char** xsdList, int count, EXIPSchema* schema);
 
 /* BEGIN: SchemaLess tests */
 
@@ -746,7 +746,7 @@ START_TEST (test_large_doc_str_pattern)
 	EXIPSchema schema;
 //	struct timespec start;
 //	struct timespec end;
-	const char* schemafname = "exip/schema_demo.exi";
+	char* schemafname[1] = {"exip/schema_demo.exi"};
 	EXIStream testStrm;
 	String uri;
 	String ln;
@@ -761,7 +761,7 @@ START_TEST (test_large_doc_str_pattern)
 	buffer.bufLen = OUTPUT_BUFFER_SIZE_LARGE_DOC;
 	buffer.bufContent = 0;
 
-	parseSchema(schemafname, &schema);
+	parseSchema(schemafname, 1, &schema);
 
 	outfile = fopen(sourceFile, "wb" );
 	fail_if(!outfile, "Unable to open file %s", sourceFile);
@@ -1028,7 +1028,7 @@ START_TEST (test_large_doc_str_pattern)
     	// Parsing steps:
 
     	// I.A: First, read in the schema
-    	parseSchema(schemafname, &schema);
+    	parseSchema(schemafname, 1, &schema);
 
     	// I.B: Define an external stream for the input to the parser if any
     	infile = fopen(sourceFile, "rb" );
@@ -1066,6 +1066,75 @@ START_TEST (test_large_doc_str_pattern)
 }
 END_TEST
 
+#define INPUT_BUFFER_SIZE 200
+
+/* Test substitution groups */
+START_TEST (test_substitution_groups)
+{
+	EXIPSchema schema;
+	FILE *infile;
+	Parser testParser;
+	char buf[INPUT_BUFFER_SIZE];
+	char* schemafname[2] = {"exip/subsGroups/root-xsd.exi","exip/subsGroups/sub-xsd.exi"};
+	char *exifname = "exip/subsGroups/root.exi";
+	char exipath[MAX_PATH_LEN + strlen(exifname)];
+	unsigned int eventCount;
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
+	BinaryBuffer buffer;
+
+	buffer.buf = buf;
+	buffer.bufContent = 0;
+	buffer.bufLen = INPUT_BUFFER_SIZE;
+
+	// Parsing steps:
+
+	// I.A: First, read in the schema
+	parseSchema(schemafname, 2, &schema);
+
+	// I.B: Define an external stream for the input to the parser if any
+	size_t pathlen = strlen(dataDir);
+	memcpy(exipath, dataDir, pathlen);
+	exipath[pathlen] = '/';
+	memcpy(&exipath[pathlen+1], exifname, strlen(exifname)+1);
+
+	infile = fopen(exipath, "rb" );
+	if(!infile)
+		fail("Unable to open file %s", exipath);
+
+	buffer.ioStrm.readWriteToStream = readFileInputStream;
+	buffer.ioStrm.stream = infile;
+
+	// II: Second, initialize the parser object
+	tmp_err_code = initParser(&testParser, buffer, &eventCount);
+	fail_unless (tmp_err_code == EXIP_OK, "initParser returns an error code %d", tmp_err_code);
+
+	// III: Initialize the parsing data and hook the callback handlers to the parser object
+	eventCount = 0;
+
+	// IV: Parse the header of the stream
+	tmp_err_code = parseHeader(&testParser, FALSE);
+	fail_unless (tmp_err_code == EXIP_OK, "parsing the header returns an error code %d", tmp_err_code);
+
+	tmp_err_code = setSchema(&testParser,  &schema);
+	fail_unless (tmp_err_code == EXIP_OK, "setSchema() returns an error code %d", tmp_err_code);
+	// V: Parse the body of the EXI stream
+	while(tmp_err_code == EXIP_OK)
+	{
+		tmp_err_code = parseNext(&testParser);
+		eventCount++;
+	}
+
+	fail_unless(eventCount == 38,
+	            "Unexpected event count: %u", eventCount);
+
+	// VI: Free the memory allocated by the parser object
+	destroyParser(&testParser);
+	fclose(infile);
+	fail_unless (tmp_err_code == EXIP_PARSING_COMPLETE, "Error during parsing of the EXI body %d", tmp_err_code);
+}
+END_TEST
+
+
 /* END: Schema-mode tests */
 
 /* Helper functions */
@@ -1081,53 +1150,61 @@ static size_t readFileInputStream(void* buf, size_t readSize, void* stream)
 	return fread(buf, 1, readSize, infile);
 }
 
-static void parseSchema(const char* fileName, EXIPSchema* schema)
+static void parseSchema(char** xsdList, int count, EXIPSchema* schema)
 {
-	FILE *schemaFile;
-	BinaryBuffer buffer;
 	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
+	FILE *schemaFile;
+	BinaryBuffer buffer[MAX_XSD_FILES_COUNT]; // up to 10 XSD files
 	size_t pathlen = strlen(dataDir);
-	char exipath[MAX_PATH_LEN + strlen(fileName)];
+	char exipath[MAX_PATH_LEN + strlen(xsdList[0])];
+	int i;
 
-	memcpy(exipath, dataDir, pathlen);
-	exipath[pathlen] = '/';
-	memcpy(&exipath[pathlen+1], fileName, strlen(fileName)+1);
-	schemaFile = fopen(exipath, "rb" );
-	if(!schemaFile)
+	for (i = 0; i < count; i++)
 	{
-		fail("Unable to open file %s", exipath);
-	}
-	else
-	{
-		//Get file length
-		fseek(schemaFile, 0, SEEK_END);
-		buffer.bufLen = ftell(schemaFile) + 1;
-		fseek(schemaFile, 0, SEEK_SET);
-
-		//Allocate memory
-		buffer.buf = (char *)malloc(buffer.bufLen);
-		if (!buffer.buf)
+		memcpy(exipath, dataDir, pathlen);
+		exipath[pathlen] = '/';
+		memcpy(&exipath[pathlen+1], xsdList[i], strlen(xsdList[i])+1);
+		schemaFile = fopen(exipath, "rb" );
+		if(!schemaFile)
 		{
+			fail("Unable to open file %s", exipath);
+		}
+		else
+		{
+			//Get file length
+			fseek(schemaFile, 0, SEEK_END);
+			buffer[i].bufLen = ftell(schemaFile) + 1;
+			fseek(schemaFile, 0, SEEK_SET);
+
+			//Allocate memory
+			buffer[i].buf = (char *) malloc(buffer[i].bufLen);
+			if (!buffer[i].buf)
+			{
+				fclose(schemaFile);
+				fail("Memory allocation error!");
+			}
+
+			//Read file contents into buffer
+			fread(buffer[i].buf, buffer[i].bufLen, 1, schemaFile);
 			fclose(schemaFile);
-			fail("Memory allocation error!");
+
+			buffer[i].bufContent = buffer[i].bufLen;
+			buffer[i].ioStrm.readWriteToStream = NULL;
+			buffer[i].ioStrm.stream = NULL;
 		}
+	}
 
-		//Read file contents into buffer
-		fread(buffer.buf, buffer.bufLen, 1, schemaFile);
-		fclose(schemaFile);
+	// Generate the EXI grammars based on the schema information
+	tmp_err_code = generateSchemaInformedGrammars(buffer, count, SCHEMA_FORMAT_XSD_EXI, NULL, schema, NULL);
 
-		buffer.bufContent = buffer.bufLen;
-		buffer.ioStrm.readWriteToStream = NULL;
-		buffer.ioStrm.stream = NULL;
+	for(i = 0; i < count; i++)
+	{
+		free(buffer[i].buf);
+	}
 
-		tmp_err_code = generateSchemaInformedGrammars(&buffer, 1, SCHEMA_FORMAT_XSD_EXI, NULL, schema, NULL);
-
-		if(tmp_err_code != EXIP_OK)
-		{
-			fail("\n Error reading schema: %d", tmp_err_code);
-		}
-
-		free(buffer.buf);
+	if(tmp_err_code != EXIP_OK)
+	{
+		fail("\nGrammar generation error occurred: %d", tmp_err_code);
 	}
 }
 
@@ -1148,6 +1225,7 @@ Suite* exip_suite(void)
 		/* Schema-mode test case */
 		TCase *tc_Schema = tcase_create ("Schema-mode");
 		tcase_add_test (tc_Schema, test_large_doc_str_pattern);
+		tcase_add_test (tc_Schema, test_substitution_groups);
 		suite_add_tcase (s, tc_Schema);
 	}
 
