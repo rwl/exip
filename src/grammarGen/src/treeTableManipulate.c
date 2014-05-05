@@ -472,6 +472,7 @@ static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, un
 		{
 			Index s;
 			boolean isHeadFound = FALSE;
+			QualifiedTreeTableEntry qEntry;
 
 			assert(subsTbl != NULL);
 
@@ -490,13 +491,15 @@ static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, un
 			{
 				SubtGroupHead newHead;
 				newHead.headId = typeQnameID;
-				TRY(createDynArray(&newHead.dynArray, sizeof(TreeTableEntry*), 5));
+				TRY(createDynArray(&newHead.dynArray, sizeof(QualifiedTreeTableEntry), 5));
 
 				TRY(addDynEntry(&subsTbl->dynArray, (void*) &newHead, &s));
 			}
 
 			/* III> add the substitute to the head */
-			TRY(addDynEntry(&subsTbl->head[s].dynArray, (void*) entry, &s));
+			qEntry.treeT = &treeT[currTreeT];
+			qEntry.entry = entry;
+			TRY(addDynEntry(&subsTbl->head[s].dynArray, (void*) &qEntry, &s));
 		}
 		else
 		{

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root:one attr="---" subs="0.07" xmlns:root="http://exip.sourceforge.net/"
+xmlns:sub="http://test.org/sub" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://exip.sourceforge.net/ root.xsd ">
+  <sub:sallad>
+    <sub:apple xsi:nil="true"/>
+    <sub:orange>Name</sub:orange>
+    <sub:grapes>0F00</sub:grapes>
+    <sub:apple>true</sub:apple>
+    <sub:orange>Name2</sub:orange>
+    <sub:grapes>0F01</sub:grapes>
+    <sub:apple>false</sub:apple>
+    <sub:orange>Name3</sub:orange>
+    <sub:grapes>0F03</sub:grapes>
+  </sub:sallad>
+  <root:piece>root:piece</root:piece>
+</root:one>

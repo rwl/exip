@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" 
+targetNamespace="http://test.org/sub" xmlns:tns="http://test.org/sub" elementFormDefault="qualified">
+
+<complexType name="fruit">
+	<sequence minOccurs="3" maxOccurs="6">
+		<element name="apple" nillable="true" type="boolean"/>
+		<element name="orange" type="Name"/>
+		<choice>
+			<element name="grapes" type="hexBinary"/>
+			<element name="melon" type="string"/>
+		</choice>
+	</sequence>
+</complexType>
+
+<element name="sallad" type="tns:fruit"/>
+</schema>
