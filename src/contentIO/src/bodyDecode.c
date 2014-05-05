@@ -503,6 +503,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 						{
 							TRY(handler->booleanData(nil, app_data));
 						}
+						*nonTermID_out = GR_START_TAG_CONTENT;
 					break;
 					default:
 						return EXIP_INCONSISTENT_PROC_STATE;
@@ -651,6 +652,7 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 						{
 							TRY(handler->booleanData(nil, app_data));
 						}
+						*nonTermID_out = GR_START_TAG_CONTENT;
 					}
 				break;
 				case 3:
