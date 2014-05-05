@@ -37,9 +37,9 @@ extern const String URI_1_PFX; // The 'xml' prefix string
 
 /**
  * Finds a global TreeEntry corresponding to a entry-name eName and links it to the entry child or supertype
- * depending on the elType (LOOKUP_ELEMENT_TYPE_TYPE, LOOKUP_ELEMENT_TYPE_ELEMENT or LOOKUP_ELEMENT_TYPE_SUPER_TYPE)
+ * depending on the elType (LOOKUP_ELEMENT_TYPE_TYPE, LOOKUP_ELEMENT_TYPE_ELEMENT, LOOKUP_ELEMENT_TYPE_SUPER_TYPE or LOOKUP_SUBSTITUTION)
  */
-static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, unsigned int count, unsigned int currTreeT, String* eName, unsigned char elType, TreeTableEntry* entry);
+static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, unsigned int count, unsigned int currTreeT, String* eName, unsigned char elType, TreeTableEntry* entry, SubstituteTable* subsTbl);
 
 /**
  * Check if there exists an <xs:import> with a given namespace attribute
@@ -268,12 +268,6 @@ errorCode initTreeTable(TreeTable* treeT)
 
 void destroyTreeTable(TreeTable* treeT)
 {
-	Index i;
-	for(i = 0; i < treeT->count; i++)
-	{
-			destroyDynArray(&treeT->tree[i].substitutes.dynArray);
-	}
-
 	destroyDynArray(&treeT->dynArray);
 	destroyDynArray(&treeT->globalDefs.pfxNsTable.dynArray);
 
@@ -296,7 +290,7 @@ void destroyTreeTable(TreeTable* treeT)
 	freeAllocList(&treeT->memList);
 }
 
-errorCode resolveTypeHierarchy(EXIPSchema* schema, TreeTable* treeT, unsigned int count)
+errorCode resolveTypeHierarchy(EXIPSchema* schema, TreeTable* treeT, unsigned int count, SubstituteTable* subsTbl)
 {
 	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	Index j;
@@ -308,6 +302,20 @@ errorCode resolveTypeHierarchy(EXIPSchema* schema, TreeTable* treeT, unsigned in
 		/* For every three table global entry */
 		for(j = 0; j < treeT[i].count; j++)
 		{
+			/* If element and substitution group defined -> add the substitute to the head in SubstituteTable.
+			 * This check is here as the substitution group elements are only global elements by definition */
+			if(treeT[i].tree[j].element == ELEMENT_ELEMENT && !isStringEmpty(&treeT[i].tree[j].attributePointers[ATTRIBUTE_SUBSTITUTION_GROUP]))
+			{
+			#if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
+				DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Substitution group "));
+				printString(&entry->attributePointers[ATTRIBUTE_SUBSTITUTION_GROUP]);
+				DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("  added: "));
+				printString(&entry->attributePointers[ATTRIBUTE_NAME]);
+			#endif
+
+				TRY(lookupGlobalDefinition(schema, treeT, count, i, &treeT[i].tree[j].attributePointers[ATTRIBUTE_SUBSTITUTION_GROUP], LOOKUP_SUBSTITUTION, &treeT[i].tree[j], subsTbl));
+			}
+
 			TRY(resolveEntry(schema, treeT, count, i, &treeT[i].tree[j]));
 		}
 	}
@@ -330,7 +338,8 @@ static errorCode resolveEntry(EXIPSchema* schema, TreeTable* treeT, unsigned int
 		TRY(resolveEntry(schema, treeT, count, currTreeT, entry->next));
 	}
 
-	/* If elements, attributes, groups or attributeGroups -> link type to global types or link ref to global definitions */
+	/* If elements, attributes, groups or attributeGroups -> link type to global types or
+	 * link ref to global definitions. */
 	if((entry->element == ELEMENT_ELEMENT) ||
 		(entry->element == ELEMENT_ATTRIBUTE) ||
 		(entry->element == ELEMENT_GROUP) ||
@@ -341,14 +350,14 @@ static errorCode resolveEntry(EXIPSchema* schema, TreeTable* treeT, unsigned int
 			if(entry->child.entry != NULL) // TODO: add debug info
 				return EXIP_UNEXPECTED_ERROR;
 
-			TRY(lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_TYPE], LOOKUP_TYPE, entry));
+			TRY(lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_TYPE], LOOKUP_TYPE, entry, NULL));
 		}
 		else if(!isStringEmpty(&entry->attributePointers[ATTRIBUTE_REF]))
 		{
 			if(entry->child.entry != NULL) // TODO: add debug info
 				return EXIP_UNEXPECTED_ERROR;
 
-			TRY(lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_REF], LOOKUP_REF, entry));
+			TRY(lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_REF], LOOKUP_REF, entry, NULL));
 		}
 	}
 	/* If there are extensions or restrictions, link their base type to the supertype pointer */
@@ -359,7 +368,7 @@ static errorCode resolveEntry(EXIPSchema* schema, TreeTable* treeT, unsigned int
 			if(entry->supertype.entry != NULL) // TODO: add debug info
 				return EXIP_UNEXPECTED_ERROR;
 
-			TRY(lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_BASE], LOOKUP_SUPER_TYPE, entry));
+			TRY(lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_BASE], LOOKUP_SUPER_TYPE, entry, NULL));
 		}
 	}
 	/* If there is a list, link its itemType to the supertype pointer */
@@ -370,29 +379,14 @@ static errorCode resolveEntry(EXIPSchema* schema, TreeTable* treeT, unsigned int
 			if(entry->supertype.entry != NULL) // TODO: add debug info
 				return EXIP_UNEXPECTED_ERROR;
 
-			TRY(lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_ITEM_TYPE], LOOKUP_SUPER_TYPE, entry));
+			TRY(lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_ITEM_TYPE], LOOKUP_SUPER_TYPE, entry, NULL));
 		}
-	}
-
-	// TODO: Comment the following
-	if(((entry->element == ELEMENT_ELEMENT)) && (!isStringEmpty(&entry->attributePointers[ATTRIBUTE_SUBSTITUTION_GROUP])))
-	{
-
-	#if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
-		DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Substitution group "));
-		printString(&entry->attributePointers[ATTRIBUTE_SUBSTITUTION_GROUP]);
-		DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("  added: "));
-		printString(&entry->attributePointers[ATTRIBUTE_NAME]);
-	#endif
-
-		TRY(lookupGlobalDefinition(schema, treeT, count, currTreeT, &entry->attributePointers[ATTRIBUTE_SUBSTITUTION_GROUP], LOOKUP_SUBSTITUTION, entry));
-
 	}
 
 	return EXIP_OK;
 }
 
-static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, unsigned int count, unsigned int currTreeT, String* eName, unsigned char elType, TreeTableEntry* entry)
+static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, unsigned int count, unsigned int currTreeT, String* eName, unsigned char elType, TreeTableEntry* entry, SubstituteTable* subsTbl)
 {
 	Index i;
 	Index globalIndex = INDEX_MAX;
@@ -429,12 +423,20 @@ static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, un
 				/* Do a linear search through the tree table entry until we find it */
 				for(j = 0; j < treeT[i].count; j++)
 				{
-					if(stringEqual(treeT[i].tree[j].attributePointers[ATTRIBUTE_NAME], GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr) &&
-							((elType == LOOKUP_REF && treeT[i].tree[j].element == entry->element) ||
-							(elType != LOOKUP_REF && (treeT[i].tree[j].element == ELEMENT_SIMPLE_TYPE || treeT[i].tree[j].element == ELEMENT_COMPLEX_TYPE))))
+					if(stringEqual(treeT[i].tree[j].attributePointers[ATTRIBUTE_NAME], GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr))
 					{
-						globalIndex = j;
-						break;
+						/* If search for global type and the found entry is indeed a simple or complex type */
+						if((elType == LOOKUP_TYPE || elType == LOOKUP_SUPER_TYPE) && (treeT[i].tree[j].element == ELEMENT_SIMPLE_TYPE || treeT[i].tree[j].element == ELEMENT_COMPLEX_TYPE))
+						{
+							globalIndex = j;
+							break;
+						}
+						/* Or if search for REF to element/attr/group/groupAttr or substitutionHead => the entry type must be the same as the one we found*/
+						else if((elType == LOOKUP_REF || elType == LOOKUP_SUBSTITUTION) || (treeT[i].tree[j].element == entry->element))
+						{
+							globalIndex = j;
+							break;
+						}
 					}
 				}
 			}
@@ -443,7 +445,7 @@ static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, un
 		}
 	}
 
-	/** There is no TreeTable with the requested target namespace*/
+	/** There is no TreeTable with the requested target namespace */
 	if(i == count)
 	{
 		if(typeQnameID.uriId == 0 || typeQnameID.uriId > 3)
@@ -455,8 +457,8 @@ static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, un
 
 	if(globalIndex == INDEX_MAX)
 	{
-		// The type must be build-in or the schema is buggy - do nothing here; it will be checked later
-		if(elType == LOOKUP_REF)
+		// For types search: The type must be build-in or the schema is buggy - do nothing here; it will be checked later
+		if(elType == LOOKUP_REF || elType == LOOKUP_SUBSTITUTION)
 			return EXIP_UNEXPECTED_ERROR; // TODO: add debug info
 	}
 	else
@@ -466,10 +468,35 @@ static errorCode lookupGlobalDefinition(EXIPSchema* schema, TreeTable* treeT, un
 			entry->supertype.treeT = &treeT[i];
 			entry->supertype.entry = &treeT[i].tree[globalIndex];
 		}
-		else if (elType == LOOKUP_SUBSTITUTION) {
-	 		Index subsTableId;
-	 		TreeTableEntry* entryLocal = entry;
-			TRY(addDynEntry(&treeT[i].tree[globalIndex].substitutes.dynArray, (void**) &entryLocal, &subsTableId));
+		else if (elType == LOOKUP_SUBSTITUTION)
+		{
+			Index s;
+			boolean isHeadFound = FALSE;
+
+			assert(subsTbl != NULL);
+
+			/* I> check if the head already exists in subsTbl*/
+			for(s = 0; s < subsTbl->count; s++)
+			{
+				if(subsTbl->head[s].headId.uriId == typeQnameID.uriId && subsTbl->head[s].headId.lnId == typeQnameID.lnId)
+				{
+					isHeadFound = TRUE;
+					break;
+				}
+			}
+
+			/* II> if no such head exists create one */
+			if(!isHeadFound)
+			{
+				SubtGroupHead newHead;
+				newHead.headId = typeQnameID;
+				TRY(createDynArray(&newHead.dynArray, sizeof(TreeTableEntry*), 5));
+
+				TRY(addDynEntry(&subsTbl->dynArray, (void*) &newHead, &s));
+			}
+
+			/* III> add the substitute to the head */
+			TRY(addDynEntry(&subsTbl->head[s].dynArray, (void*) entry, &s));
 		}
 		else
 		{
@@ -601,61 +628,6 @@ errorCode getTypeQName(EXIPSchema* schema, TreeTable* treeT, const String typeLi
 
 	return EXIP_OK;
 }
-
-errorCode getElementTreeEntryFromQname(EXIPSchema* schema, TreeTable* treeT, unsigned int count, QNameID typeQnameID, TreeTableEntry** entry)
-{
-	Index i;
-	Index globalIndex = INDEX_MAX;
-	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
-	unsigned int j;
-
-	for(i = 0; i < count; i++)
-	{
-		if(treeT[i].globalDefs.targetNsId == typeQnameID.uriId)
-		{
-#if HASH_TABLE_USE
-			/* Use the hash table to do a fast lookup of the tree table index matching the global name */
-			if(treeT[i].typeTbl != NULL && treeT[i].elemTbl != NULL && treeT[i].attrTbl != NULL &&
-					treeT[i].groupTbl != NULL && treeT[i].attrGroupTbl != NULL)
-			{
-					globalIndex = hashtable_search(treeT[i].elemTbl, GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr);
-			}
-			else
-#endif
-			{
-				/* Do a linear search through the tree table entry until we find it */
-				for(j = 0; j < treeT[i].count; j++)
-				{
-					if(stringEqual(treeT[i].tree[j].attributePointers[ATTRIBUTE_NAME], GET_LN_URI_QNAME(schema->uriTable, typeQnameID).lnStr))
-					{
-						globalIndex = j;
-						break;
-					}
-				}
-			}
-			if(globalIndex != INDEX_MAX)
-				break;
-		}
-	}
-
-	/** There is no TreeTable with the requested target namespace*/
-	if(i == count)
-	{
-		if(typeQnameID.uriId == 0 || typeQnameID.uriId > 3)
-		{
-			// The requested target namespace is not a built-in type namespace
-			return EXIP_UNEXPECTED_ERROR;
-		}
-	}
-
-	if(globalIndex == INDEX_MAX)
-		return EXIP_UNEXPECTED_ERROR;
-	else
-		*entry = &treeT[i].tree[globalIndex];
-
-	return EXIP_OK;
-}
-
 
 static boolean checkForImportWithNs(TreeTable* treeT, String ns)
 {

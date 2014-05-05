@@ -476,16 +476,21 @@ errorCode createParticleGrammar(int minOccurs, int maxOccurs,
 	return EXIP_OK;
 }
 
-errorCode createElementTermGrammar(ProtoGrammar* elemGrammar, QNameID qnameID, Index grIndex)
+errorCode createElementTermGrammar(ProtoGrammar* elemGrammar, QNameIDGrIndx* qnameGrArr, Index count)
 {
-	//TODO: enable support for {substitution group affiliation} property of the elements
 	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	ProtoRuleEntry* pRuleEntry;
+	Index i;
+
+	assert(qnameGrArr != NULL);
 
 	TRY(createProtoGrammar(2, elemGrammar));
+	TRY(addProtoRule(elemGrammar, 5, &pRuleEntry));
+	for(i = 0; i < count; i++)
+	{
+		TRY(addProduction(pRuleEntry, EVENT_SE_QNAME, qnameGrArr[i].grIndex, qnameGrArr[i].qnameId, 1));
+	}
 
-	TRY(addProtoRule(elemGrammar, 3, &pRuleEntry));
-	TRY(addProduction(pRuleEntry, EVENT_SE_QNAME, grIndex, qnameID, 1));
 	TRY(addProtoRule(elemGrammar, 3, &pRuleEntry));
 	TRY(addEEProduction(pRuleEntry));
 
