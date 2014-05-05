@@ -12,7 +12,7 @@
  * @date Jul 7, 2010
  * @author Rumen Kyusakov
  * @version 0.5
- * @par[Revision] $Id$
+ * @par[Revision] $Id: errorHandle.h 328 2013-10-30 16:00:10Z kjussakov $
  */
 
 #ifndef ERRORHANDLE_H_
@@ -113,7 +113,7 @@
 #  define DEBUG_CHAR_OUTPUT(character)	do {putchar (character);} while(0)
 # endif
 
-/* Platform specific debugging output */
+/* Platform specific debugging formatted output */
 # ifndef DEBUG_OUTPUT
 #  define DEBUG_OUTPUT(msg)	do {printf msg;} while(0)
 # endif

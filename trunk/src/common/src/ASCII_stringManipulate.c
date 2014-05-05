@@ -12,7 +12,7 @@
  * @date Sep 3, 2010
  * @author Rumen Kyusakov
  * @version 0.5
- * @par[Revision] $Id$
+ * @par[Revision] $Id: ASCII_stringManipulate.c 328 2013-10-30 16:00:10Z kjussakov $
  */
 
 #include "stringManipulate.h"
@@ -271,13 +271,10 @@ errorCode dateTimeToString(EXIPDateTime dt, String* outStr)
 
 void printString(const String* inStr)
 {
-	Index i = 0;
 	if(inStr->length == 0)
 		return;
-	for(i = 0; i < inStr->length; i++)
-	{
-		DEBUG_CHAR_OUTPUT(inStr->str[i]);
-	}
+
+	DEBUG_OUTPUT(("%.*s", inStr->length, inStr->str));
 }
 
 #endif /* EXIP_DEBUG */
