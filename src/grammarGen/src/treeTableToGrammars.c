@@ -113,6 +113,7 @@ static errorCode getContentTypeProtoGrammar(BuildContext* ctx, TreeTable* treeT,
  */
 static errorCode getAttributeUseProtoGrammars(BuildContext* ctx, TreeTable* treeT, TreeTableEntry* entry, ProtoGrammarArray* attrUseArray, String** attrWildcardNS, struct localAttrNames* aNamesTbl);
 
+
 /**
  * For local scope elements, this function builds the Particle Grammar of the element definition
  * that is then used for creating the grammars for
@@ -274,6 +275,69 @@ static void sortEnumTable(EXIPSchema *schema);
  * TRUE: present, FASLE not present */
 static char isAttrAlreadyPresent(String aName, struct localAttrNames* lAttrTbl);
 
+// TODO: Check if here is the right place for this function
+errorCode createSubstitutionMap(TreeTable* treeT, unsigned int count, EXIPSchema* schema)
+{
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
+
+	// 8.5.4.1.6 Element Terms
+
+	unsigned int i;
+	for(i = 0; i < count; i++) // iterate trees
+	{
+		unsigned int j;
+		for(j = 0; j <  treeT[i].count; j++) // iterate elements in a tree
+		{
+			if(treeT[i].tree[j].substitutes.count > 0) {
+				Index indexId;
+				QNameID baseaNameId;
+				TreeTableEntry* entry = &(treeT[i].tree[j]);
+
+				TRY(getTypeQName(schema, &treeT[i], entry->attributePointers[ATTRIBUTE_NAME], &baseaNameId));
+
+				Index indexIdTable;
+				SubstitutionEntry substitution;
+
+				substitution.qNameId.lnId  = baseaNameId.lnId;
+				substitution.qNameId.uriId = baseaNameId.uriId;
+				TRY(createDynArray(&substitution.dynArray, sizeof(QNameID), 1));
+
+				TRY(addDynEntry(&schema->substitutionTable.dynArray, (void**) &substitution, &indexIdTable));
+
+				// add itself to the list as required in 8.5.4.1.6
+				TRY(addDynEntry(&schema->substitutionTable.substitution[indexIdTable].dynArray, (void**) &baseaNameId, &indexId));
+
+				unsigned int k;
+				for(k = 0; k <  treeT[i].tree[j].substitutes.count; k++)
+				{
+					TreeTableEntry* entrySubs = treeT[i].tree[j].substitutes.entry[k];
+
+					QNameID subsqNameId;
+
+					boolean found = FALSE;
+					unsigned int l;
+					for(l= 0; l < count; l++) {
+						if(getTypeQName(schema, &treeT[l], entrySubs->attributePointers[ATTRIBUTE_NAME], &subsqNameId) ==	EXIP_OK) {
+							found = TRUE;
+							break;
+						}
+					}
+
+					if (!found)
+						return EXIP_UNEXPECTED_ERROR;
+
+					Index indexIdSubs;
+					TRY(addDynEntry(&schema->substitutionTable.substitution[indexIdTable].dynArray, (void**) &subsqNameId, &indexIdSubs));
+				}
+
+			}
+		}
+	}
+
+	return EXIP_OK;
+}
+
+
 errorCode convertTreeTablesToExipSchema(TreeTable* treeT, unsigned int count, EXIPSchema* schema)
 {
 	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
@@ -432,7 +496,54 @@ static errorCode getElementTermProtoGrammar(BuildContext* ctx, TreeTable* treeT,
 	if(minOccurs < 0 || maxOccurs < -1)
 		return EXIP_UNEXPECTED_ERROR;
 
-	TRY(createElementTermGrammar(&elTermGrammar, qNameID, grIndex));
+    boolean substFound = FALSE;
+	Index subsI;
+	for(subsI = 0; subsI < ctx->schema->substitutionTable.count; subsI++) { // TODO: Optimize map and search
+
+		if((ctx->schema->substitutionTable.substitution[subsI].qNameId.uriId == qNameID.uriId) &
+				(ctx->schema->substitutionTable.substitution[subsI].qNameId.lnId == qNameID.lnId))
+		{
+			substFound = TRUE;
+			break;
+		}
+	}
+
+	if(substFound) {
+		ProtoRuleEntry* pRuleEntry;
+
+		qsort(ctx->schema->substitutionTable.substitution[subsI].choices, ctx->schema->substitutionTable.substitution[subsI].count, sizeof(QNameID), compareGlobalElemQName); // TODO: sort where qname array is build
+
+		TRY(createProtoGrammar(2, &elTermGrammar));
+		TRY(addProtoRule(&elTermGrammar, 3, &pRuleEntry));
+
+		Index i;
+		Index subsLength = ctx->schema->substitutionTable.substitution[subsI].count;
+
+		for(i = 0; i < subsLength; i++) {
+			QNameID subsQnameID =
+					ctx->schema->substitutionTable.substitution[subsI].choices[subsLength - i -1];
+
+			if((subsQnameID.lnId == 108) && (subsQnameID.uriId == 5))
+				grIndex = GET_LN_P_URI_QNAME(&ctx->schema->uriTable, subsQnameID).elemGrammar;
+
+			grIndex = GET_LN_P_URI_QNAME(&ctx->schema->uriTable, subsQnameID).elemGrammar;
+
+			if(grIndex == INDEX_MAX) {
+				String typeLiteral;
+				TreeTableEntry* elementEntryRef;
+				TRY(getElementTreeEntryFromQname(ctx->schema, treeT, 1, subsQnameID, &elementEntryRef));
+				TRY(handleElementEl(ctx, treeT, elementEntryRef, FALSE, &grIndex));
+			}
+
+			TRY(addProduction(pRuleEntry, EVENT_SE_QNAME, grIndex, subsQnameID, 1));
+		}
+
+		TRY(addProtoRule(&elTermGrammar, 3, &pRuleEntry));
+		TRY(addEEProduction(pRuleEntry));
+
+	}
+    else
+	  TRY(createElementTermGrammar(&elTermGrammar, qNameID, grIndex));
 
 	elParticleGrammar = (ProtoGrammar*) memManagedAllocate(&ctx->tmpMemList, sizeof(ProtoGrammar));
 	if(elParticleGrammar == NULL)

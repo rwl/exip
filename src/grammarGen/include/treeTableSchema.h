@@ -109,7 +109,9 @@ enum AttrEnum
 	ATTRIBUTE_MEMBER_TYPES       =13,
 	ATTRIBUTE_MIXED              =14,
 	ATTRIBUTE_SCHEMA_LOCATION    =15,
-	ATTRIBUTE_CONTEXT_ARRAY_SIZE =16
+	ATTRIBUTE_SUBSTITUTION_GROUP =16,
+	ATTRIBUTE_ABSTRACT           =17,
+	ATTRIBUTE_CONTEXT_ARRAY_SIZE =18
 };
 
 typedef enum AttrEnum AttrEnum;
@@ -142,6 +144,22 @@ enum FormType
 };
 
 typedef enum FormType FormType;
+
+
+typedef struct TreeTableEntry TreeTableEntry;
+
+struct SubstituteTable
+{
+#if DYN_ARRAY_USE == ON
+	DynArray dynArray;
+#endif
+
+	TreeTableEntry** entry;
+	Index count;
+};
+
+typedef struct SubstituteTable SubstituteTable;
+
 
 /**
  * Represents a single definition (i.e XML element) from the XML schema.
@@ -177,6 +195,8 @@ struct TreeTableEntry
 		struct TreeTableEntry* entry;
 	} supertype;
 
+	SubstituteTable substitutes;
+
 	/** The XML schema element. Represented with the codes defined above */
 	ElemEnum element;
 
@@ -200,7 +220,6 @@ struct TreeTableEntry
 	Index loopDetection;
 };
 
-typedef struct TreeTableEntry TreeTableEntry;
 
 /** 
  * Tree structure to store parsed schema structure and attributes; a schema tree.
@@ -348,6 +367,9 @@ errorCode resolveIncludeImportReferences(EXIPSchema* schema, TreeTable** treeT, 
  */
 errorCode resolveTypeHierarchy(EXIPSchema* schema, TreeTable* treeT, unsigned int count);
 
+/** TODO: write a comment! */
+errorCode createSubstitutionMap(TreeTable* treeT, unsigned int count, EXIPSchema* schema);
+
 /**
  * @brief Given types resolved TreeTable objects that are created from a XML schema files,
  * builds the EXIP grammars in the EXIPSchema object.
@@ -372,6 +394,10 @@ errorCode convertTreeTablesToExipSchema(TreeTable* treeT, unsigned int count, EX
  * @return Error handling code
  */
 errorCode getTypeQName(EXIPSchema* schema, TreeTable* treeT, const String typeLiteral, QNameID* qname);
+
+/** TODO: Write a comemnt!*/
+errorCode getElementTreeEntryFromQname(EXIPSchema* schema, TreeTable* treeT, unsigned int count, QNameID typeQnameID, TreeTableEntry** entry);
+
 
 /**
  * @brief Given a namespace="..." attribute containing a list of namespaces as a sting, returns an array of these namespaces

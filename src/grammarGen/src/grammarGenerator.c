@@ -122,6 +122,9 @@ errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int buf
 	}
 #endif
 
+    // Creates the Substitution map when substitution groups are defined
+	TRY(createSubstitutionMap(treeT, treeTCount, schema));
+
 	TRY(convertTreeTablesToExipSchema(treeT, treeTCount, schema));
 
 	for(i = 0; i < treeTCount; i++)
@@ -148,10 +151,17 @@ void destroySchema(EXIPSchema* schema)
 		destroyDynArray(&schema->uriTable.uri[i].lnTable.dynArray);
 	}
 
+	for(i = 0; i < schema->substitutionTable.count; i++)
+	{
+		destroyDynArray(&schema->substitutionTable.substitution[i].dynArray);
+	}
+
 	destroyDynArray(&schema->uriTable.dynArray);
 	destroyDynArray(&schema->grammarTable.dynArray);
 	destroyDynArray(&schema->simpleTypeTable.dynArray);
 	destroyDynArray(&schema->enumTable.dynArray);
+	destroyDynArray(&schema->substitutionTable.dynArray);
+
 	freeAllocList(&schema->memList);
 }
 

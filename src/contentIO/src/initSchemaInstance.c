@@ -73,6 +73,10 @@ errorCode initSchema(EXIPSchema* schema, InitSchemaType initializationType)
 		schema->staticGrCount = SIMPLE_TYPE_COUNT;
 	}
 
+
+	/* Create the substitution table */
+	TRY_CATCH(createDynArray(&schema->substitutionTable.dynArray, sizeof(SubstitutionEntry), 1), freeAllocList(&schema->memList));
+
 	return tmp_err_code;
 }
 
