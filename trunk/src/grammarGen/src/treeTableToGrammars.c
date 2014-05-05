@@ -2267,7 +2267,7 @@ static int compareSubsitutionGroupMembers(const void* elem1, const void* elem2)
 	QNameIDGrIndx* a1 = (QNameIDGrIndx*) elem1;
 	QNameIDGrIndx* a2 = (QNameIDGrIndx*) elem2;
 
-	return compareQNameID(&a1->qnameId, &a2->qnameId, &globalSchemaPtr->uriTable);
+	return -compareQNameID(&a1->qnameId, &a2->qnameId, &globalSchemaPtr->uriTable);
 }
 
 static void sortSubsitutionGroup(struct subsGroupElTbl* subsElGrTbl)
