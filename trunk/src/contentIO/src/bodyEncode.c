@@ -413,11 +413,7 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 				return EXIP_INCONSISTENT_PROC_STATE;
 			if(stringEqualToAscii(*qname->localName, "type"))
 			{
-				// there is AT(xsi:type) as a second level production only if this
-				// grammar is not already switched using AT(xsi:type) and
-				// it has sub-type or is union
-				if(!HAS_NAMED_SUB_TYPE_OR_UNION(strm->gStack->grammar->props) ||
-						strm->gStack->grammar != (GET_ELEM_GRAMMAR_QNAMEID(strm->schema, strm->gStack->currQNameID)))
+				if(!HAS_NAMED_SUB_TYPE_OR_UNION(strm->gStack->grammar->props))
 					return EXIP_INCONSISTENT_PROC_STATE;
 
 				SET_PROD_EXI_EVENT(prodHit->content, EVENT_AT_QNAME);
@@ -439,8 +435,7 @@ static errorCode stateMachineProdEncode(EXIStream* strm, EventTypeClass eventCla
 				prodHit->qnameId.uriId = XML_SCHEMA_INSTANCE_ID;
 				prodHit->qnameId.lnId = XML_SCHEMA_INSTANCE_NIL_ID;
 
-				if(!HAS_NAMED_SUB_TYPE_OR_UNION(strm->gStack->grammar->props) ||
-						strm->gStack->grammar != (GET_ELEM_GRAMMAR_QNAMEID(strm->schema, strm->gStack->currQNameID)))
+				if(!HAS_NAMED_SUB_TYPE_OR_UNION(strm->gStack->grammar->props))
 				{
 					ec.part[1] = 0;
 					ec.bits[1] = 0;

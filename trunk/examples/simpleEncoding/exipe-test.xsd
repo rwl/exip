@@ -5,8 +5,8 @@
 		xmlns:nst="http://www.ltu.se/EISLAB/nested-xsd"
 		xmlns:ttt="http://www.ltu.se/EISLAB/types">
 
-	<import namespace="http://www.ltu.se/EISLAB/nested-xsd"/>
-	<import namespace="http://www.ltu.se/EISLAB/types"/>
+	<import namespace="http://www.ltu.se/EISLAB/nested-xsd" schemaLocation="exipe-test-nested.xsd"/>
+	<import namespace="http://www.ltu.se/EISLAB/types" schemaLocation="exipe-test-types.xsd"/>
 
     <element name="EXIPEncoder">
     	<complexType>
