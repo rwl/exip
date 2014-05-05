@@ -2253,7 +2253,7 @@ static errorCode recursiveSubsitutionGroupAdd(BuildContext* ctx, QNameIDGrIndx h
 	{
 		for(i = 0; i < ctx->subsTbl->head[s].count; i++)
 		{
-			TRY(handleElementEl(ctx, ctx->subsTbl->head[s].substitutes, FALSE, &subsEl));
+			TRY(handleElementEl(ctx, &ctx->subsTbl->head[s].substitutes[i], FALSE, &subsEl));
 			/* First add the substitute itself then check if the substitute is head and if head itself add its substitute too*/
 			TRY(recursiveSubsitutionGroupAdd(ctx, subsEl, subsElGrTbl));
 		}

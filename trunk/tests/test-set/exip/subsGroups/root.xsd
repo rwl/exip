@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://exip.sourceforge.net/"
+xmlns:tns="http://exip.sourceforge.net/" xmlns:sub="http://test.org/sub" elementFormDefault="qualified">
+
+<import namespace="http://test.org/sub" schemaLocation="sub.xsd"/>
+
+<element name="one">
+ <complexType>
+ 	<sequence>
+ 		<element ref="sub:sallad"/>
+	 	<choice>
+	 		<element name="piece" type="string"/>
+	 		<element name="count" type="string"/>
+	 	</choice>
+ 	</sequence>
+ 	<attribute name="attr" type="anySimpleType"/>
+ 	<attribute name="subs" type="float" use="optional"/>
+ </complexType>
+</element>
+
+<element name="coctail" type="sub:fruit" substitutionGroup="sub:sallad"/>
+<element name="juice" type="sub:fruit" substitutionGroup="sub:sallad"/>
+<element name="tropic" type="sub:fruit" substitutionGroup="tns:juice"/>
+
+</schema>
