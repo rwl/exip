@@ -317,7 +317,7 @@ errorCode createFragmentGrammar(EXIPSchema* schema, QNameID* elQnameArr, Index q
 	return EXIP_OK;
 }
 
-unsigned int getBitsFirstPartCode(EXIStream* strm, GrammarRule* currentRule, SmallIndex currentRuleIndx)
+unsigned int getBitsFirstPartCode(EXIStream* strm, Index prodCount, SmallIndex currentRuleIndx)
 {
 	boolean secondLevelExists = FALSE;
 
@@ -325,7 +325,7 @@ unsigned int getBitsFirstPartCode(EXIStream* strm, GrammarRule* currentRule, Sma
 	{
 		// Built-in element grammar
 		// There is always a second level production
-		return getBitsNumber(currentRule->pCount);
+		secondLevelExists = TRUE;
 	}
 	else if(IS_DOCUMENT(strm->gStack->grammar->props))
 	{
@@ -334,26 +334,16 @@ unsigned int getBitsFirstPartCode(EXIStream* strm, GrammarRule* currentRule, Sma
 			secondLevelExists = TRUE;
 		else if(currentRuleIndx == 0 && IS_PRESERVED(strm->header.opts.preserve, PRESERVE_DTD))
 			secondLevelExists = TRUE;
-
-		return getBitsNumber(currentRule->pCount - 1 + secondLevelExists);
 	}
 	else if(IS_FRAGMENT(strm->gStack->grammar->props))
 	{
 		// Fragment grammar
 		if(IS_PRESERVED(strm->header.opts.preserve, PRESERVE_COMMENTS) || IS_PRESERVED(strm->header.opts.preserve, PRESERVE_PIS))
 			secondLevelExists = TRUE;
-		return getBitsNumber(currentRule->pCount - 1 + secondLevelExists);
 	}
 	else
 	{
 		// Schema-informed element/type grammar
-		Index prodCount;
-
-		if(strm->context.isNilType == FALSE)
-			prodCount = currentRule->pCount;
-		else
-			prodCount = RULE_GET_AT_COUNT(currentRule->meta) + RULE_CONTAIN_EE(currentRule->meta);
-
 		if(WITH_STRICT(strm->header.opts.enumOpt))
 		{
 			// Strict mode
@@ -362,15 +352,15 @@ unsigned int getBitsFirstPartCode(EXIStream* strm, GrammarRule* currentRule, Sma
 				if(IS_NILLABLE(strm->gStack->grammar->props) || HAS_NAMED_SUB_TYPE_OR_UNION(strm->gStack->grammar->props))
 					secondLevelExists = TRUE;
 			}
-
-			return getBitsNumber(prodCount - 1 + secondLevelExists);
 		}
 		else // Non-strict mode
 		{
 			// There is always a second level production
-			return getBitsNumber(prodCount);
+			secondLevelExists = TRUE;
 		}
 	}
+
+	return getBitsNumber(prodCount - 1 + secondLevelExists);
 }
 
 #if EXIP_DEBUG == ON

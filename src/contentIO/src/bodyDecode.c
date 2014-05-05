@@ -63,11 +63,15 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 	if(strm->context.isNilType == FALSE)
 		prodCount = currentRule->pCount;
 	else
-	{
+	{   /* xsi:nil=true case */
 		prodCount = RULE_GET_AT_COUNT(currentRule->meta) + RULE_CONTAIN_EE(currentRule->meta);
 		if(currNonTermID >= GET_CONTENT_INDEX(strm->gStack->grammar->props))
 		{
-			// Instead of content we have a single EE production encoded with zero bits because of xsi:nil=TRUE
+			// Instead of content we have a single EE production in the emptyType grammars
+			prodCount = 1;
+			bitCount = getBitsFirstPartCode(strm, prodCount, currNonTermID);
+			if(bitCount > 0)
+				TRY(decodeNBitUnsignedInteger(strm, bitCount, &tmp_bits_val));
 			strm->context.isNilType = FALSE;
 			if(handler->endElement != NULL)
 			{
@@ -78,7 +82,7 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 		}
 	}
 
-	bitCount = getBitsFirstPartCode(strm, currentRule, currNonTermID);
+	bitCount = getBitsFirstPartCode(strm, prodCount, currNonTermID);
 
 	if(prodCount > 0)
 	{
@@ -112,17 +116,6 @@ errorCode processNextProduction(EXIStream* strm, SmallIndex* nonTermID_out, Cont
 				return handleProduction(strm, &currentRule->production[prodCount - 1 - tmp_bits_val], nonTermID_out, handler, app_data);
 			}
 		}
-	}
-	else if(strm->context.isNilType == TRUE)
-	{
-		// There is a single EE production encoded with zero bits
-		strm->context.isNilType = FALSE;
-		if(handler->endElement != NULL)
-		{
-			TRY(handler->endElement(app_data));
-		}
-
-		return EXIP_OK;
 	}
 
 	// Production with length code 1 not found: search second or third level productions
