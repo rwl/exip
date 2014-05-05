@@ -10,7 +10,7 @@
 # * @date Oct 8, 2010
 # * @author Rumen Kyusakov
 # * @version 0.4
-# * @par[Revision] $Id$
+# * @par[Revision] $Id: Makefile 328 2013-10-30 16:00:10Z kjussakov $
 # */
 
 .PHONY : clean all dynlib check examples utils doc dist \
@@ -241,6 +241,8 @@ copy_headers: $(BIN_DIR)
 
 test_sets_copy_examples:
 		cp $(PROJECT_ROOT)/examples/simpleEncoding/exipe-test-xsd.exi $(EXAMPLES_BIN_DIR)/exipe-test-xsd.exi
+		cp $(PROJECT_ROOT)/examples/simpleEncoding/exipe-test-types-xsd.exi $(EXAMPLES_BIN_DIR)/exipe-test-types-xsd.exi
+		cp $(PROJECT_ROOT)/examples/simpleEncoding/exipe-test-nested-xsd.exi $(EXAMPLES_BIN_DIR)/exipe-test-nested-xsd.exi
 		cp $(PROJECT_ROOT)/examples/simpleDecoding/exipd-test-xsd.exi $(EXAMPLES_BIN_DIR)/exipd-test-xsd.exi
 		cp $(PROJECT_ROOT)/examples/simpleDecoding/exipd-test-schema-xsd.exi $(EXAMPLES_BIN_DIR)/exipd-test-schema-xsd.exi
 		cp $(PROJECT_ROOT)/examples/simpleDecoding/exipd-test.exi $(EXAMPLES_BIN_DIR)/exipd-test.exi

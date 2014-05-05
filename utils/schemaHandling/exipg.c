@@ -12,7 +12,7 @@
  * @date Nov 5, 2012
  * @author Rumen Kyusakov
  * @version 0.5
- * @par[Revision] $Id$
+ * @par[Revision] $Id: exipg.c 328 2013-10-30 16:00:10Z kjussakov $
  */
 
 #include "createGrammars.h"
@@ -181,6 +181,8 @@ int main(int argc, char *argv[])
 	}
 
 	destroySchema(&schema);
+
+	fclose(outfile);
 
 	if(tmp_err_code != EXIP_OK)
 	{
