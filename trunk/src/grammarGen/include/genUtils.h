@@ -22,6 +22,7 @@
 #include "dynamicArray.h"
 #include "sTables.h"
 #include "protoGrammars.h"
+#include "treeTableSchema.h"
 
 /**
  * @brief Grammar Concatenation Operator - extends the rules and productions in the left ProtoGrammar
@@ -101,11 +102,12 @@ errorCode createParticleGrammar(int minOccurs, int maxOccurs, ProtoGrammar* term
  * @brief Creates Element Term Proto-Grammar from Particle term that is XML Schema element declaration
  *
  * @param[out] elemGrammar the resulted proto-grammar
- * @param[in] qnameID uri/ln indices in the unsorted string tables
- * @param[in] grIndex the indix of the grammar to be used for processing this SE(qnameID) element
+ * @param[in] qnameGrArr array of uri/ln indices of the element in the string tables and the associated grammar indices
+ * to be used for processing this SE(qnameID) element
+ * @param[in] count
  * @return Error handling code
  */
-errorCode createElementTermGrammar(ProtoGrammar* elemGrammar, QNameID qnameID, Index grIndex);
+errorCode createElementTermGrammar(ProtoGrammar* elemGrammar, QNameIDGrIndx* qnameGrArr, Index count);
 
 /**
  * @brief Creates Wildcard Term Proto-Grammar from Particle term that is XML Schema wildcard

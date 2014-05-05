@@ -145,21 +145,25 @@ enum FormType
 
 typedef enum FormType FormType;
 
-
-typedef struct TreeTableEntry TreeTableEntry;
-
-struct SubstituteTable
+/** uri/ln indices (QNameID) of an element in the string tables and the associated grammar index */
+struct QNameIDGrIndx
 {
-#if DYN_ARRAY_USE == ON
-	DynArray dynArray;
-#endif
-
-	TreeTableEntry** entry;
-	Index count;
+	QNameID qnameId;
+	Index grIndex;
 };
 
-typedef struct SubstituteTable SubstituteTable;
+typedef struct QNameIDGrIndx QNameIDGrIndx;
 
+/**
+ * A TreeTableEntry in particular TreeTable
+ * It is defined from which XML Schema file (TreeTable) it comes from */
+struct QualifiedTreeTableEntry
+{
+	struct TreeTable* treeT;
+	struct TreeTableEntry* entry;
+};
+
+typedef struct QualifiedTreeTableEntry QualifiedTreeTableEntry;
 
 /**
  * Represents a single definition (i.e XML element) from the XML schema.
@@ -175,11 +179,7 @@ struct TreeTableEntry
 	 * a local entry with type="..." (or ref="...") attribute is linked to a
 	 * global entry that defines the corresponding type or referenced element.
 	 * The linked global entry can be located in different tree (XSD file); */
-	struct
-	{
-		struct TreeTable* treeT;
-		struct TreeTableEntry* entry;
-	} child;
+	QualifiedTreeTableEntry child;
 
 	/** Next element in group. For example the
 	 * [element], [attribute], [sequence] are often sibling definitions in a complex type */
@@ -189,13 +189,7 @@ struct TreeTableEntry
 	 * In case of [extension] or [restriction] entries, this pointer links the
 	 * base type to the corresponding global type definition.
 	 * The linked global entry can be located in different tree (XSD file); */
-	struct
-	{
-		struct TreeTable* treeT;
-		struct TreeTableEntry* entry;
-	} supertype;
-
-	SubstituteTable substitutes;
+	QualifiedTreeTableEntry supertype;
 
 	/** The XML schema element. Represented with the codes defined above */
 	ElemEnum element;
@@ -220,6 +214,7 @@ struct TreeTableEntry
 	Index loopDetection;
 };
 
+typedef struct TreeTableEntry TreeTableEntry;
 
 /** 
  * Tree structure to store parsed schema structure and attributes; a schema tree.
@@ -292,10 +287,35 @@ struct NsTable
 {
 	DynArray dynArray;
 	String *base;
-	size_t count;
+	Index count;
 };
 
 typedef struct NsTable NsTable;
+
+/** In case there are Substitution groups in the schema,
+ * this structure represents a Substitution group head. It has the
+ * head QName and an array of all its substitues as a pointer
+ * to their TreeTableEntry */
+struct SubtGroupHead
+{
+	DynArray dynArray;
+	QualifiedTreeTableEntry* substitutes;
+	Index count;
+	QNameID headId;
+};
+
+typedef struct SubtGroupHead SubtGroupHead;
+
+/** In case there are Substitution groups in the schema,
+ * this structure sotres all Substitution group heads. */
+struct SubstituteTable
+{
+	DynArray dynArray;
+	SubtGroupHead* head;
+	Index count;
+};
+
+typedef struct SubstituteTable SubstituteTable;
 
 /**
  * @brief Initialize a TreeTable object
@@ -359,16 +379,17 @@ errorCode resolveIncludeImportReferences(EXIPSchema* schema, TreeTable** treeT, 
  *    child pointer of that entry
  * -# base="..." attribute - finds the corresponding type definition and links it to the
  *    supertype pointer of that entry
+ * -# substitutionGroup="..." attribute - finds the corresponding substituion group head
+ * and adds the head and the substitute in the SubstituteTable
  *
  * @param[in] schema the EXIPSchema object
  * @param[in, out] treeT an array of tree table objects
  * @param[in] count the number of tree table objects
+ * @param[in] subsTbl In case of substitutionGroups in the schema maps the heads of the
+ * substitutionGroups to their members
  * @return Error handling code
  */
-errorCode resolveTypeHierarchy(EXIPSchema* schema, TreeTable* treeT, unsigned int count);
-
-/** TODO: write a comment! */
-errorCode createSubstitutionMap(TreeTable* treeT, unsigned int count, EXIPSchema* schema);
+errorCode resolveTypeHierarchy(EXIPSchema* schema, TreeTable* treeT, unsigned int count, SubstituteTable* subsTbl);
 
 /**
  * @brief Given types resolved TreeTable objects that are created from a XML schema files,
@@ -377,9 +398,11 @@ errorCode createSubstitutionMap(TreeTable* treeT, unsigned int count, EXIPSchema
  * @param[in] treeT an array of tree table objects
  * @param[in] count the number of tree table objects
  * @param[out] schema schema information used for processing EXI streams in schema mode
+ * @param[in] subsTbl In case of substitutionGroups in the schema maps the heads of the
+ * substitutionGroups to their members
  * @return Error handling code
  */
-errorCode convertTreeTablesToExipSchema(TreeTable* treeT, unsigned int count, EXIPSchema* schema);
+errorCode convertTreeTablesToExipSchema(TreeTable* treeT, unsigned int count, EXIPSchema* schema, SubstituteTable* subsTbl);
 
 /**
  * @brief Given a type value encoded as QName string in the form "prefix:localname"
@@ -394,10 +417,6 @@ errorCode convertTreeTablesToExipSchema(TreeTable* treeT, unsigned int count, EX
  * @return Error handling code
  */
 errorCode getTypeQName(EXIPSchema* schema, TreeTable* treeT, const String typeLiteral, QNameID* qname);
-
-/** TODO: Write a comemnt!*/
-errorCode getElementTreeEntryFromQname(EXIPSchema* schema, TreeTable* treeT, unsigned int count, QNameID typeQnameID, TreeTableEntry** entry);
-
 
 /**
  * @brief Given a namespace="..." attribute containing a list of namespaces as a sting, returns an array of these namespaces

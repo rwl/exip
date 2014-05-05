@@ -35,6 +35,7 @@ errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int buf
 {
 	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	TreeTable* treeT;
+	SubstituteTable substituteTbl;
 	unsigned int treeTCount = bufCount;
 	unsigned int i = 0;
 
@@ -43,6 +44,9 @@ errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int buf
 	treeT = (TreeTable*) EXIP_MALLOC(sizeof(TreeTable)*bufCount);
 	if(treeT == NULL)
 		return EXIP_MEMORY_ALLOCATION_ERROR;
+
+	/* Initialize the SubstituteTable in case there are substitution groups defined in the schema */
+	TRY(createDynArray(&substituteTbl.dynArray, sizeof(SubtGroupHead), 5));
 
 	for(i = 0; i < bufCount; i++)
 	{
@@ -104,7 +108,7 @@ errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int buf
 			return EXIP_UNEXPECTED_ERROR;
 	}
 
-	TRY(resolveTypeHierarchy(schema, treeT, treeTCount));
+	TRY(resolveTypeHierarchy(schema, treeT, treeTCount, &substituteTbl));
 
 #if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
 	{
@@ -122,15 +126,22 @@ errorCode generateSchemaInformedGrammars(BinaryBuffer* buffers, unsigned int buf
 	}
 #endif
 
-    // Creates the Substitution map when substitution groups are defined
-	TRY(createSubstitutionMap(treeT, treeTCount, schema));
+	TRY(convertTreeTablesToExipSchema(treeT, treeTCount, schema, &substituteTbl));
 
-	TRY(convertTreeTablesToExipSchema(treeT, treeTCount, schema));
-
+	/* Destroy all tree tables */
 	for(i = 0; i < treeTCount; i++)
 	{
 		destroyTreeTable(&treeT[i]);
 	}
+
+	/* Destroy all substitution group heads if any */
+	for(i = 0; i < substituteTbl.count; i++)
+	{
+		destroyDynArray(&substituteTbl.head[i].dynArray);
+	}
+
+	/* Destroy the substitution group table */
+	destroyDynArray(&substituteTbl.dynArray);
 
 	EXIP_MFREE(treeT);
 
@@ -151,17 +162,10 @@ void destroySchema(EXIPSchema* schema)
 		destroyDynArray(&schema->uriTable.uri[i].lnTable.dynArray);
 	}
 
-	for(i = 0; i < schema->substitutionTable.count; i++)
-	{
-		destroyDynArray(&schema->substitutionTable.substitution[i].dynArray);
-	}
-
 	destroyDynArray(&schema->uriTable.dynArray);
 	destroyDynArray(&schema->grammarTable.dynArray);
 	destroyDynArray(&schema->simpleTypeTable.dynArray);
 	destroyDynArray(&schema->enumTable.dynArray);
-	destroyDynArray(&schema->substitutionTable.dynArray);
-
 	freeAllocList(&schema->memList);
 }
 

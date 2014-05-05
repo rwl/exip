@@ -398,8 +398,6 @@ static errorCode xsd_startElement(QName qname, void* app_data)
 		}
 
 		initEntryContext(treeTableEntry);
-		// Check if this is needed every time
-		TRY(createDynArray(&treeTableEntry->substitutes.dynArray, sizeof(TreeTableEntry*), 1));
 
 		for(i = (int) ELEMENT_ELEMENT; i < (int) ELEMENT_VOID; i++)
 		{
