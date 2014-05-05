@@ -449,13 +449,8 @@ static errorCode stateMachineProdDecode(EXIStream* strm, GrammarRule* currentRul
 
 				if(HAS_NAMED_SUB_TYPE_OR_UNION(strm->gStack->grammar->props))
 				{
-					// there is AT(xsi:type) as a second level production only if this
-					// grammar is not already switched using AT(xsi:type)
-					if(strm->gStack->grammar == (GET_ELEM_GRAMMAR_QNAMEID(strm->schema, strm->gStack->currQNameID)))
-					{
-						prodCnt += 1;
-						state = 0;
-					}
+					prodCnt += 1;
+					state = 0;
 				}
 
 				if(IS_NILLABLE(strm->gStack->grammar->props))

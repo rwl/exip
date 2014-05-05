@@ -359,16 +359,10 @@ unsigned int getBitsFirstPartCode(EXIStream* strm, GrammarRule* currentRule, Sma
 			// Strict mode
 			if(strm->context.isNilType == FALSE && currentRuleIndx == 0)
 			{
-				if(IS_NILLABLE(strm->gStack->grammar->props))
+				if(IS_NILLABLE(strm->gStack->grammar->props) || HAS_NAMED_SUB_TYPE_OR_UNION(strm->gStack->grammar->props))
 					secondLevelExists = TRUE;
-				else if(HAS_NAMED_SUB_TYPE_OR_UNION(strm->gStack->grammar->props))
-				{
-					// there is AT(xsi:type) as a second level production only if this
-					// grammar is not already switched using AT(xsi:type)
-					if(strm->gStack->grammar == (GET_ELEM_GRAMMAR_QNAMEID(strm->schema, strm->gStack->currQNameID)))
-						secondLevelExists = TRUE;
-				}
 			}
+
 			return getBitsNumber(prodCount - 1 + secondLevelExists);
 		}
 		else // Non-strict mode
