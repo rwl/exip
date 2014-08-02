@@ -461,9 +461,9 @@ static errorCode handleElementEl(BuildContext* ctx, QualifiedTreeTableEntry* tre
 
 #if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Handle Element: "));
-	printString(&entry->attributePointers[ATTRIBUTE_NAME]);
+	printString(&treeTEntry->entry->attributePointers[ATTRIBUTE_NAME]);
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, (" of type: "));
-	printString(&entry->attributePointers[ATTRIBUTE_TYPE]);
+	printString(&treeTEntry->entry->attributePointers[ATTRIBUTE_TYPE]);
 #endif
 
 	type = treeTEntry->entry->attributePointers[ATTRIBUTE_TYPE];
@@ -820,7 +820,7 @@ static errorCode handleSimpleTypeEl(BuildContext* ctx, QualifiedTreeTableEntry* 
 
 #if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Handle SimpleType: "));
-	printString(&entry->attributePointers[ATTRIBUTE_NAME]);
+	printString(&stEntry->entry->attributePointers[ATTRIBUTE_NAME]);
 #endif
 
 	if(!isStringEmpty(&stEntry->entry->attributePointers[ATTRIBUTE_NAME]))
@@ -844,20 +844,20 @@ static errorCode handleSimpleTypeEl(BuildContext* ctx, QualifiedTreeTableEntry* 
 			TRY(storeGrammar(ctx, stQNameID, simpleProtoGrammar, FALSE, &grIndex));
 
 			GET_LN_URI_QNAME(ctx->schema->uriTable, stQNameID).typeGrammar = grIndex;
+		}
 
-			// When Strict is True: If Tk either has named sub-types or is a simple type definition of which {variety} is union...
-			if(stEntry->entry->child.entry->element == ELEMENT_RESTRICTION)
-			{
-				QNameID baseTypeQnameId;
+		// When Strict is True: If Tk either has named sub-types or is a simple type definition of which {variety} is union...
+		if(stEntry->entry->child.entry->element == ELEMENT_RESTRICTION)
+		{
+			QNameID baseTypeQnameId;
 
-				TRY(getTypeQName(ctx->schema, stEntry->entry->child.treeT, stEntry->entry->child.entry->attributePointers[ATTRIBUTE_BASE], &baseTypeQnameId));
+			TRY(getTypeQName(ctx->schema, stEntry->entry->child.treeT, stEntry->entry->child.entry->attributePointers[ATTRIBUTE_BASE], &baseTypeQnameId));
 
-				SET_NAMED_SUB_TYPE_OR_UNION((GET_TYPE_GRAMMAR_QNAMEID(ctx->schema, baseTypeQnameId))->props);
-			}
-			else if(stEntry->entry->child.entry->element == ELEMENT_UNION)
-			{
-				SET_NAMED_SUB_TYPE_OR_UNION((GET_TYPE_GRAMMAR_QNAMEID(ctx->schema, stQNameID))->props);
-			}
+			SET_NAMED_SUB_TYPE_OR_UNION((GET_TYPE_GRAMMAR_QNAMEID(ctx->schema, baseTypeQnameId))->props);
+		}
+		else if(stEntry->entry->child.entry->element == ELEMENT_UNION)
+		{
+			SET_NAMED_SUB_TYPE_OR_UNION((GET_TYPE_GRAMMAR_QNAMEID(ctx->schema, stQNameID))->props);
 		}
 	}
 	else
@@ -1202,7 +1202,7 @@ static errorCode handleComplexTypeEl(BuildContext* ctx, QualifiedTreeTableEntry*
 
 #if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Handle ComplexType: "));
-	printString(&entry->attributePointers[ATTRIBUTE_NAME]);
+	printString(&ctEntry->entry->attributePointers[ATTRIBUTE_NAME]);
 #endif
 
 	if(!isStringEmpty(&ctEntry->entry->attributePointers[ATTRIBUTE_NAME]))
@@ -1271,25 +1271,22 @@ static errorCode handleComplexTypeEl(BuildContext* ctx, QualifiedTreeTableEntry*
 			}
 
 			GET_LN_URI_QNAME(ctx->schema->uriTable, ctQNameID).typeGrammar = grIndex;
+		}
 
-			// When Strict is True: If Tk either has named sub-types or is a simple type definition of which {variety} is union...
-			if(ctEntry->entry->child.entry != NULL && ctEntry->entry->child.entry->child.entry != NULL)
+		// When Strict is True: If Tk either has named sub-types or is a simple type definition of which {variety} is union...
+		if(ctEntry->entry->child.entry != NULL && ctEntry->entry->child.entry->child.entry != NULL)
+		{
+			if(ctEntry->entry->child.entry->element == ELEMENT_SIMPLE_CONTENT ||
+					ctEntry->entry->child.entry->element == ELEMENT_COMPLEX_CONTENT)
 			{
-				if(ctEntry->entry->child.entry->element == ELEMENT_SIMPLE_CONTENT ||
-						ctEntry->entry->child.entry->element == ELEMENT_COMPLEX_CONTENT)
+				if(ctEntry->entry->child.entry->child.entry->element == ELEMENT_RESTRICTION ||
+						ctEntry->entry->child.entry->child.entry->element == ELEMENT_EXTENSION)
 				{
-					if(ctEntry->entry->child.entry->child.entry->element == ELEMENT_RESTRICTION)
-					{
-						QNameID baseTypeQnameId;
+					QNameID baseTypeQnameId;
 
-						TRY(getTypeQName(ctx->schema, ctEntry->entry->child.entry->child.treeT, ctEntry->entry->child.entry->child.entry->attributePointers[ATTRIBUTE_BASE], &baseTypeQnameId));
+					TRY(getTypeQName(ctx->schema, ctEntry->entry->child.entry->child.treeT, ctEntry->entry->child.entry->child.entry->attributePointers[ATTRIBUTE_BASE], &baseTypeQnameId));
 
-						SET_NAMED_SUB_TYPE_OR_UNION((GET_TYPE_GRAMMAR_QNAMEID(ctx->schema, baseTypeQnameId))->props);
-					}
-					else if(ctEntry->entry->child.entry->child.entry->element == ELEMENT_EXTENSION)
-					{
-						SET_NAMED_SUB_TYPE_OR_UNION((GET_TYPE_GRAMMAR_QNAMEID(ctx->schema, ctQNameID))->props);
-					}
+					SET_NAMED_SUB_TYPE_OR_UNION((GET_TYPE_GRAMMAR_QNAMEID(ctx->schema, baseTypeQnameId))->props);
 				}
 			}
 		}
@@ -1525,7 +1522,7 @@ static errorCode getGroupProtoGrammar(BuildContext* ctx, QualifiedTreeTableEntry
 
 #if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Handle Group: "));
-	printString(&grEntry->attributePointers[ATTRIBUTE_REF]);
+	printString(&grEntry->entry->attributePointers[ATTRIBUTE_REF]);
 #endif
 
 	TRY(parseOccuranceAttribute(grEntry->entry->attributePointers[ATTRIBUTE_MIN_OCCURS], &minOccurs));
@@ -1581,7 +1578,7 @@ static errorCode getExtensionSimpleProtoGrammar(BuildContext* ctx, QualifiedTree
 
 #if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Handle SimpleContent Extension: "));
-	printString(&extEntry->attributePointers[ATTRIBUTE_BASE]);
+	printString(&extEntry->entry->attributePointers[ATTRIBUTE_BASE]);
 #endif
 
 	TRY(getTypeQName(ctx->schema, extEntry->treeT, extEntry->entry->attributePointers[ATTRIBUTE_BASE], &baseTypeId));
@@ -1611,7 +1608,7 @@ static errorCode getExtensionComplexProtoGrammar(BuildContext* ctx, QualifiedTre
 
 #if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Handle ComplexContent Extension: "));
-	printString(&extEntry->attributePointers[ATTRIBUTE_BASE]);
+	printString(&extEntry->entry->attributePointers[ATTRIBUTE_BASE]);
 #endif
 
 	TRY(getTypeQName(ctx->schema, extEntry->treeT, extEntry->entry->attributePointers[ATTRIBUTE_BASE], &baseTypeId));
@@ -1737,7 +1734,7 @@ static errorCode getRestrictionSimpleProtoGrammar(BuildContext* ctx, QualifiedTr
 			#if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
 				DEBUG_MSG(ERROR, EXIP_DEBUG, ("\n>Total digits type facet constraint checks not implemented: at %s, line %d. Ignore by commenting EXIP_NOT_IMPLEMENTED_YET error.", __FILE__, __LINE__));
 			#endif
-			return EXIP_NOT_IMPLEMENTED_YET;
+			//return EXIP_NOT_IMPLEMENTED_YET;
 		}
 		else if(tmpEntry->element == ELEMENT_FRACTION_DIGITS)
 		{
@@ -1936,7 +1933,7 @@ static errorCode getRestrictionComplexProtoGrammar(BuildContext* ctx, QualifiedT
 
 #if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
 	DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Handle ComplexContent Restriction: "));
-	printString(&resEntry->attributePointers[ATTRIBUTE_BASE]);
+	printString(&resEntry->entry->attributePointers[ATTRIBUTE_BASE]);
 #endif
 
 	TRY(getTypeQName(ctx->schema, resEntry->treeT, resEntry->entry->attributePointers[ATTRIBUTE_BASE], &baseTypeId));

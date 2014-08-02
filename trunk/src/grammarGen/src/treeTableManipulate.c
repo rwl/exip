@@ -308,9 +308,9 @@ errorCode resolveTypeHierarchy(EXIPSchema* schema, TreeTable* treeT, unsigned in
 			{
 			#if DEBUG_GRAMMAR_GEN == ON && EXIP_DEBUG_LEVEL == INFO
 				DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("\n>Substitution group "));
-				printString(&entry->attributePointers[ATTRIBUTE_SUBSTITUTION_GROUP]);
+				printString(&treeT[i].tree[j].attributePointers[ATTRIBUTE_SUBSTITUTION_GROUP]);
 				DEBUG_MSG(INFO, DEBUG_GRAMMAR_GEN, ("  added: "));
-				printString(&entry->attributePointers[ATTRIBUTE_NAME]);
+				printString(&treeT[i].tree[j].attributePointers[ATTRIBUTE_NAME]);
 			#endif
 
 				TRY(lookupGlobalDefinition(schema, treeT, count, i, &treeT[i].tree[j].attributePointers[ATTRIBUTE_SUBSTITUTION_GROUP], LOOKUP_SUBSTITUTION, &treeT[i].tree[j], subsTbl));
