@@ -23,6 +23,12 @@
 errorCode decodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, unsigned int* int_val)
 {
 	DEBUG_MSG(INFO, DEBUG_STREAM_IO, (">> (%d-bits uint)", n));
+	if(n == 0)
+	{
+		*int_val = 0;
+		return EXIP_OK;
+	}
+
 	if(WITH_COMPRESSION(strm->header.opts.enumOpt) == FALSE && GET_ALIGNMENT(strm->header.opts.enumOpt) == BIT_PACKED)
 	{
 		return readBits(strm, n, int_val);

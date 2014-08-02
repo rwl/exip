@@ -73,17 +73,13 @@ int main(int argc, char *argv[])
 		destroySchema(schemaPtr);
 
 	if(tmp_err_code != EXIP_OK)
-	{
 		printf("\nError (code: %d) during encoding of: %s\n", tmp_err_code, sourceFile);
-		exit(1);
-	}
 	else
-	{
 		printf("\nSuccessful encoding in %s\n", sourceFile);
-		exit(1);
-	}
 
 	fclose(outfile);
+
+	return 0;
 }
 
 static void printfHelp()
