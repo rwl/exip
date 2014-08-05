@@ -189,12 +189,8 @@ errorCode decodeDecimalValue(EXIStream* strm, Decimal* dec_val)
 		dec_val->exponent -= 1;
 	}
 
-	if(sign == TRUE) // negative number
-		dec_val->mantissa = -1;
-	else
-		dec_val->mantissa = 1;
+	dec_val->mantissa = integr_part;
 
-	dec_val->mantissa *= integr_part;
 	e = dec_val->exponent;
 	if(e != 0)
 	{
@@ -206,6 +202,9 @@ errorCode decodeDecimalValue(EXIStream* strm, Decimal* dec_val)
 
 		dec_val->mantissa += fract_part_rev;
 	}
+
+	if(sign == TRUE) // negative number
+		dec_val->mantissa = -dec_val->mantissa;
 
 	return EXIP_OK;
 }
@@ -256,7 +255,7 @@ errorCode decodeDateTimeValue(EXIStream* strm, EXIType dtType, EXIPDateTime* dt_
 	{
 		/* Year component */
 		TRY(decodeIntegerValue(strm, &year));
-		dt_val->dateTime.tm_year = (int)year - 100;
+		dt_val->dateTime.tm_year = (int) year + 100;
 	}
 	else
 	{
