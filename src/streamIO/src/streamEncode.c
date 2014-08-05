@@ -166,7 +166,7 @@ errorCode encodeDecimalValue(EXIStream* strm, Decimal dec_val)
 	boolean sign;
 	UnsignedInteger integr_part = 0;
 	UnsignedInteger fract_part_rev = 0;
-	UnsignedInteger m = dec_val.mantissa;
+	UnsignedInteger m;
 	int e = dec_val.exponent;
 
 	if(dec_val.mantissa >= 0)
@@ -179,6 +179,8 @@ errorCode encodeDecimalValue(EXIStream* strm, Decimal dec_val)
 		sign = TRUE;
 		integr_part = (UnsignedInteger) -dec_val.mantissa;
 	}
+
+	m = integr_part;
 
 	TRY(encodeBoolean(strm, sign));
 
@@ -232,7 +234,7 @@ errorCode encodeDateTimeValue(EXIStream* strm, EXIType dtType, EXIPDateTime dt_v
 	if(dtType == VALUE_TYPE_DATE_TIME || dtType == VALUE_TYPE_DATE || dtType == VALUE_TYPE_YEAR)
 	{
 		/* Year component */
-		TRY(encodeIntegerValue(strm, (Integer) dt_val.dateTime.tm_year + 100));
+		TRY(encodeIntegerValue(strm, (Integer) dt_val.dateTime.tm_year - 100));
 	}
 
 	if(dtType == VALUE_TYPE_DATE_TIME || dtType == VALUE_TYPE_DATE || dtType == VALUE_TYPE_MONTH)
