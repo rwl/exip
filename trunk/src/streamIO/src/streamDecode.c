@@ -327,7 +327,14 @@ errorCode decodeDateTimeValue(EXIStream* strm, EXIType dtType, EXIPDateTime* dt_
 		unsigned int tzone = 0;
 		dt_val->presenceMask = dt_val->presenceMask | TZONE_PRESENCE;
 		TRY(decodeNBitUnsignedInteger(strm, 11, &tzone));
-		dt_val->TimeZone = tzone;
+
+		if(tzone > 1851)
+		{
+			tzone = 1851;
+			DEBUG_MSG(WARNING, DEBUG_STREAM_IO, (">Invalid TimeZone value: %d\n", tzone));
+		}
+
+		dt_val->TimeZone = tzone - 896;
 	}
 
 	return EXIP_OK;

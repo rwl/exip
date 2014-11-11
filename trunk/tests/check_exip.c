@@ -33,6 +33,8 @@ static size_t writeFileOutputStream(void* buf, size_t readSize, void* stream);
 static size_t readFileInputStream(void* buf, size_t readSize, void* stream);
 static void parseSchema(char** xsdList, int count, EXIPSchema* schema);
 
+#define TRY_CATCH_ENCODE(func) TRY_CATCH(func, serialize.closeEXIStream(&testStrm))
+
 /* BEGIN: SchemaLess tests */
 
 START_TEST (test_default_options)
@@ -694,6 +696,161 @@ START_TEST (test_recursive_defs)
 }
 END_TEST
 
+errorCode encodeWithDynamicTypes(char* buf, int buf_size, int *strmSize);
+
+/**
+ * Example use of the xsi:type switch for dynamic typing of
+ * element and attribute values. Note that schemaId must be set
+ * to SCHEMA_ID_EMPTY in order to use the built-in schema types.
+ * Encodes the following XML:
+ *
+ * <trivial xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ * xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+ *    <anElement xsi:type="xsd:date">2014-01-31T16:15:25+02:00</anElement>
+ * </trivial>
+ */
+START_TEST (test_built_in_dynamic_types)
+{
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
+	char buf[OUTPUT_BUFFER_SIZE];
+	int strmSize = 0;
+	BinaryBuffer buffer;
+	Parser testParser;
+
+	tmp_err_code = encodeWithDynamicTypes(buf, OUTPUT_BUFFER_SIZE, &strmSize);
+	fail_unless(tmp_err_code == EXIP_OK, "There is an error in the encoding of dynamic types through xsi:type switch.");
+	fail_unless(strmSize > 0, "Encoding of dynamic types through xsi:type switch produces empty streams.");
+
+	buffer.bufContent = strmSize;
+	buffer.buf = buf;
+	buffer.bufLen = OUTPUT_BUFFER_SIZE;
+
+	// Parsing steps:
+
+	// I: First, define an external stream for the input to the parser if any
+
+	// II: Second, initialize the parser object
+	tmp_err_code = initParser(&testParser, buffer, NULL);
+	fail_unless (tmp_err_code == EXIP_OK, "initParser returns an error code %d", tmp_err_code);
+
+	// III: Initialize the parsing data and hook the callback handlers to the parser object
+
+	// IV: Parse the header of the stream
+
+	tmp_err_code = parseHeader(&testParser, FALSE);
+	fail_unless (tmp_err_code == EXIP_OK, "parsing the header returns an error code %d", tmp_err_code);
+
+	tmp_err_code = setSchema(&testParser, NULL);
+	fail_unless (tmp_err_code == EXIP_OK, "setSchema() returns an error code %d", tmp_err_code);
+
+	// V: Parse the body of the EXI stream
+
+	while(tmp_err_code == EXIP_OK)
+	{
+		tmp_err_code = parseNext(&testParser);
+	}
+
+	// VI: Free the memory allocated by the parser object
+
+	destroyParser(&testParser);
+	fail_unless (tmp_err_code == EXIP_PARSING_COMPLETE, "Error during parsing of the EXI body %d", tmp_err_code);
+}
+END_TEST
+
+errorCode encodeWithDynamicTypes(char* buf, int buf_size, int *strmSize)
+{
+	const String NS_EMPTY = {NULL, 0};
+	const String NS_XSI = {"http://www.w3.org/2001/XMLSchema-instance", 41};
+	const String NS_XSD = {"http://www.w3.org/2001/XMLSchema", 32};
+
+	const String ELEM_TRIVIAL = {"trivial", 7};
+	const String ELEM_AN_ELEMENT = {"anElement", 9};
+
+	const String PREFIX_XSI = {"xsi", 3};
+
+	const String ATTR_TYPE = {"type", 4};
+
+	const String VALUE_DATE = {"dateTime", 8};
+
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
+	EXIStream testStrm;
+	String uri;
+	String ln;
+	QName qname = {&uri, &ln, NULL};
+
+	BinaryBuffer buffer;
+	EXITypeClass valueType;
+	EXIPDateTime dt_val;
+
+	buffer.buf = buf;
+	buffer.bufLen = OUTPUT_BUFFER_SIZE;
+	buffer.bufContent = 0;
+
+	// Serialization steps:
+
+	// I: First initialize the header of the stream
+	serialize.initHeader(&testStrm);
+
+	// II: Set any options in the header (including schemaID and schemaIDMode), if different from the defaults.
+	testStrm.header.has_options = TRUE;
+	SET_PRESERVED(testStrm.header.opts.preserve, PRESERVE_PREFIXES);
+	testStrm.header.opts.schemaIDMode = SCHEMA_ID_EMPTY;
+
+	// III: Define an external stream for the output if any, otherwise set to NULL
+	buffer.ioStrm.readWriteToStream = NULL;
+	buffer.ioStrm.stream = NULL;
+
+	// IV: Initialize the stream
+	TRY_CATCH_ENCODE(serialize.initStream(&testStrm, buffer, NULL));
+
+	// V: Start building the stream step by step: header, document, element etc...
+	TRY_CATCH_ENCODE(serialize.exiHeader(&testStrm));
+
+	TRY_CATCH_ENCODE(serialize.startDocument(&testStrm));
+
+	qname.uri = &NS_EMPTY;
+	qname.localName = &ELEM_TRIVIAL;
+	TRY_CATCH_ENCODE(serialize.startElement(&testStrm, qname, &valueType)); // <trivial>
+
+	TRY_CATCH_ENCODE(serialize.namespaceDeclaration(&testStrm, NS_XSI, PREFIX_XSI, FALSE)); // xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+
+	qname.uri = &NS_EMPTY;
+	qname.localName = &ELEM_AN_ELEMENT;
+	TRY_CATCH_ENCODE(serialize.startElement(&testStrm, qname, &valueType)); // <anElement>
+
+	qname.uri = &NS_XSI;
+	qname.localName = &ATTR_TYPE;
+	TRY_CATCH_ENCODE(serialize.attribute(&testStrm, qname, TRUE, &valueType)); // xsi:type="
+
+	qname.uri = &NS_XSD;
+	qname.localName = &VALUE_DATE;
+	TRY_CATCH_ENCODE(serialize.qnameData(&testStrm, qname)); // xsd:date
+
+	dt_val.dateTime.tm_year = 114; // + 1900 offset = 2014
+	dt_val.dateTime.tm_mon = 0; // 0 = Jan
+	dt_val.dateTime.tm_mday = 31;
+	dt_val.dateTime.tm_hour = 16;
+	dt_val.dateTime.tm_min = 15;
+	dt_val.dateTime.tm_sec = 25;
+	dt_val.presenceMask = 0;
+	dt_val.presenceMask |= TZONE_PRESENCE;
+	dt_val.TimeZone = 2*64; // UTC + 2
+	TRY_CATCH_ENCODE(serialize.dateTimeData(&testStrm, dt_val)); // dateTime: 2014-01-31T16:15:25+02:00
+
+	TRY_CATCH_ENCODE(serialize.endElement(&testStrm)); // </anElement>
+	TRY_CATCH_ENCODE(serialize.endElement(&testStrm)); // </trivial>
+
+	TRY_CATCH_ENCODE(serialize.endDocument(&testStrm));
+
+	*strmSize = testStrm.context.bufferIndx + 1;
+
+	// VI: Free the memory allocated by the EXI stream object
+	TRY_CATCH_ENCODE(serialize.closeEXIStream(&testStrm));
+
+	return EXIP_OK;
+}
+
+
 /* END: SchemaLess tests */
 
 #define OUTPUT_BUFFER_SIZE_LARGE_DOC 20000
@@ -1219,6 +1376,7 @@ Suite* exip_suite(void)
 		tcase_add_test (tc_SchLess, test_fragment_option);
 		tcase_add_test (tc_SchLess, test_value_part_zero);
 		tcase_add_test (tc_SchLess, test_recursive_defs);
+		tcase_add_test (tc_SchLess, test_built_in_dynamic_types);
 		suite_add_tcase (s, tc_SchLess);
 	}
 	{
