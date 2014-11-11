@@ -454,6 +454,7 @@ static errorCode sample_dateTimeData(EXIPDateTime dt_val, void* app_data)
 {
 	struct appData* appD = (struct appData*) app_data;
 	char fsecBuf[30];
+	char tzBuf[30];
 	int i;
 
 	if(IS_PRESENT(dt_val.presenceMask, FRACT_PRESENCE))
@@ -478,24 +479,40 @@ static errorCode sample_dateTimeData(EXIPDateTime dt_val, void* app_data)
 		fsecBuf[0] = '\0';
 	}
 
+	if(IS_PRESENT(dt_val.presenceMask, TZONE_PRESENCE))
+	{
+		if(dt_val.TimeZone < 0)
+			tzBuf[0] = '-';
+		else
+			tzBuf[0] = '+';
+		sprintf(tzBuf + 1, "%02d", dt_val.TimeZone/64);
+		tzBuf[3] = ':';
+		sprintf(tzBuf + 4, "%02d", dt_val.TimeZone%64);
+		tzBuf[6] = '\0';
+	}
+	else
+	{
+		tzBuf[0] = '\0';
+	}
+
 	if(appD->outputFormat == OUT_EXI)
 	{
 		if(appD->expectAttributeData)
 		{
-			printf("%04d-%02d-%02dT%02d:%02d:%02d%s", dt_val.dateTime.tm_year + 1900,
+			printf("%04d-%02d-%02dT%02d:%02d:%02d%s%s", dt_val.dateTime.tm_year + 1900,
 					dt_val.dateTime.tm_mon + 1, dt_val.dateTime.tm_mday,
 					dt_val.dateTime.tm_hour, dt_val.dateTime.tm_min,
-					dt_val.dateTime.tm_sec, fsecBuf);
+					dt_val.dateTime.tm_sec, fsecBuf, tzBuf);
 			printf("\"\n");
 			appD->expectAttributeData = 0;
 		}
 		else
 		{
 			printf("CH ");
-			printf("%04d-%02d-%02dT%02d:%02d:%02d%s", dt_val.dateTime.tm_year + 1900,
+			printf("%04d-%02d-%02dT%02d:%02d:%02d%s%s", dt_val.dateTime.tm_year + 1900,
 					dt_val.dateTime.tm_mon + 1, dt_val.dateTime.tm_mday,
 					dt_val.dateTime.tm_hour, dt_val.dateTime.tm_min,
-					dt_val.dateTime.tm_sec, fsecBuf);
+					dt_val.dateTime.tm_sec, fsecBuf, tzBuf);
 			printf("\n");
 		}
 	}
@@ -503,10 +520,10 @@ static errorCode sample_dateTimeData(EXIPDateTime dt_val, void* app_data)
 	{
 		if(appD->expectAttributeData)
 		{
-			printf("%04d-%02d-%02dT%02d:%02d:%02d%s", dt_val.dateTime.tm_year + 1900,
+			printf("%04d-%02d-%02dT%02d:%02d:%02d%s%s", dt_val.dateTime.tm_year + 1900,
 					dt_val.dateTime.tm_mon + 1, dt_val.dateTime.tm_mday,
 					dt_val.dateTime.tm_hour, dt_val.dateTime.tm_min,
-					dt_val.dateTime.tm_sec, fsecBuf);
+					dt_val.dateTime.tm_sec, fsecBuf, tzBuf);
 			printf("\"");
 			appD->expectAttributeData = 0;
 		}
@@ -515,10 +532,10 @@ static errorCode sample_dateTimeData(EXIPDateTime dt_val, void* app_data)
 			if(appD->unclosedElement)
 				printf(">");
 			appD->unclosedElement = 0;
-			printf("%04d-%02d-%02dT%02d:%02d:%02d%s", dt_val.dateTime.tm_year + 1900,
+			printf("%04d-%02d-%02dT%02d:%02d:%02d%s%s", dt_val.dateTime.tm_year + 1900,
 					dt_val.dateTime.tm_mon + 1, dt_val.dateTime.tm_mday,
 					dt_val.dateTime.tm_hour, dt_val.dateTime.tm_min,
-					dt_val.dateTime.tm_sec, fsecBuf);
+					dt_val.dateTime.tm_sec, fsecBuf, tzBuf);
 		}
 	}
 
