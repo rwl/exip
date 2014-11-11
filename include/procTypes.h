@@ -167,15 +167,32 @@ struct EXIPDateTime
 	/**
 	 * As defined in time.h
 	 * @note Decoding functions set negative values (INT_MIN) for the fields that are not available
+	 *
+	 * int    tm_sec   seconds [0,61]
+	 * int    tm_min   minutes [0,59]
+	 * int    tm_hour  hour [0,23]
+	 * int    tm_mday  day of month [1,31]
+	 * int    tm_mon   month of year [0,11]
+	 * int    tm_year  years since 1900
+	 * int    tm_wday  day of week [0,6] (Sunday = 0)
+	 * int    tm_yday  day of year [0,365]
+	 * int    tm_isdst daylight savings flag
 	 */
 	struct tm dateTime;
 	FractionalSecs fSecs;
-	int16_t TimeZone; // TZHours * 64 + TZMinutes
+	/**
+	 * TZHours * 64 + TZMinutes. Where:
+	 * TZHours is a value in the range [-14 .. 14] and represents the
+	 * standard notion of tize zone as an offset from UTC.
+	 * TZMinutes is a value in the range [-59 .. 59] and
+	 * could be used for minute based time zones.
+	 */
+	int16_t TimeZone;
 
 	/**
 	 * Whether to included fractional seconds and timeZone information
 	 * Use FRACT_PRESENCE and TZONE_PRESENCE masks
-	 * and IS_PRESENT() macro
+	 * and IS_PRESENT() macro. Always initialize this to 0;
 	 */
 	uint8_t presenceMask;
 };

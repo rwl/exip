@@ -299,8 +299,22 @@ errorCode encodeDateTimeValue(EXIStream* strm, EXIType dtType, EXIPDateTime dt_v
 
 	if(IS_PRESENT(dt_val.presenceMask, TZONE_PRESENCE))
 	{
+		// 11-bit Unsigned Integer representing a signed integer offset by 896
+		unsigned int timeZone = 896;
 		TRY(encodeBoolean(strm, TRUE));
-		TRY(encodeNBitUnsignedInteger(strm, 11, dt_val.TimeZone));
+		if(dt_val.TimeZone < -896)
+		{
+			timeZone = 0;
+			DEBUG_MSG(WARNING, DEBUG_STREAM_IO, (">Invalid TimeZone value: %d\n", dt_val.TimeZone));
+		}
+		else if(dt_val.TimeZone > 955)
+		{
+			timeZone = 955;
+			DEBUG_MSG(WARNING, DEBUG_STREAM_IO, (">Invalid TimeZone value: %d\n", dt_val.TimeZone));
+		}
+		else
+			timeZone += dt_val.TimeZone;
+		TRY(encodeNBitUnsignedInteger(strm, 11, timeZone));
 	}
 	else
 	{
