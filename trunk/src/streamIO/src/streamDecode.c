@@ -60,12 +60,9 @@ errorCode decodeBoolean(EXIStream* strm, boolean* bool_val)
 
 errorCode decodeUnsignedInteger(EXIStream* strm, UnsignedInteger* int_val)
 {
-	unsigned int mask_7bits = 0x7F;
-	unsigned int mask_8th_bit = 0x80;
-	unsigned int i = 0;
 	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
+	unsigned int i = 0;
 	unsigned int tmp_byte_buf = 0;
-	unsigned int more_bytes_to_read = 0;
 	*int_val = 0;
 
 	DEBUG_MSG(INFO, DEBUG_STREAM_IO, (">> (uint)"));
@@ -73,12 +70,10 @@ errorCode decodeUnsignedInteger(EXIStream* strm, UnsignedInteger* int_val)
 	{
 		TRY(readBits(strm, 8, &tmp_byte_buf));
 
-		more_bytes_to_read = tmp_byte_buf & mask_8th_bit;
-		tmp_byte_buf = tmp_byte_buf & mask_7bits;
-		*int_val += ((UnsignedInteger) tmp_byte_buf) << (7*i);
-		i++;
+		*int_val += ((UnsignedInteger) (tmp_byte_buf & 0x7F)) << i;
+		i += 7;
 	}
-	while(more_bytes_to_read != 0);
+	while(tmp_byte_buf & 0x80);
 
 	return EXIP_OK;
 }
