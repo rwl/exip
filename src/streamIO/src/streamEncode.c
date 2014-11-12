@@ -54,33 +54,21 @@ errorCode encodeBoolean(EXIStream* strm, boolean bool_val)
 errorCode encodeUnsignedInteger(EXIStream* strm, UnsignedInteger int_val)
 {
 	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
-	unsigned int nbits = getBitsNumber(int_val);
-	unsigned int nbyte7 = nbits / 7 + (nbits % 7 != 0);
 	unsigned int tmp_byte_buf = 0;
-	unsigned int i = 0;
 	
-#if DEBUG_STREAM_IO == ON
-	if (nbyte7 > 1)
-		DEBUG_MSG(INFO, DEBUG_STREAM_IO, (" Write %lu (unsigned)\n", (long unsigned int)int_val));
-#endif
-	if(nbyte7 == 0)
-		nbyte7 = 1;  // the 0 Unsigned Integer is encoded with one 7bit byte
-	for(i = 0; i < nbyte7; i++)
+	DEBUG_MSG(INFO, DEBUG_STREAM_IO, (" Write %lu (unsigned)\n", (long unsigned int)int_val));
+	do
 	{
-		tmp_byte_buf = (unsigned int) ((int_val >> (i * 7)) & 0x7F);
-		if(i == nbyte7 - 1)
-		{
-			DEBUG_MSG(INFO, DEBUG_STREAM_IO, (">> 0x%.2X", tmp_byte_buf & 0x7f));
-			writeNextBit(strm, 0);
-		}
-		else
-		{
-			DEBUG_MSG(INFO, DEBUG_STREAM_IO, (">> 0x%.2X", tmp_byte_buf | 0x80));
-			writeNextBit(strm, 1);
-		}
+		tmp_byte_buf = (unsigned int) (int_val & 0x7F);
+		int_val = int_val >> 7;
+		if(int_val)
+			tmp_byte_buf |= 0x80;
 
-		TRY(writeNBits(strm, 7, tmp_byte_buf));
+		DEBUG_MSG(INFO, DEBUG_STREAM_IO, (">> 0x%.2X", tmp_byte_buf));
+		TRY(writeNBits(strm, 8, tmp_byte_buf));
 	}
+	while(int_val);
+
 	return EXIP_OK;
 }
 
