@@ -39,7 +39,6 @@ void moveBitPointer(EXIStream* strm, unsigned int bitPositions);
  */
 unsigned char getBitsNumber(uint64_t val);
 
-
 /**
  * @brief Log2 function. Used to determine the number of bits needed to encode a unsigned integer value
  * The code taken from: http://www-graphics.stanford.edu/~seander/bithacks.html#IntegerLog

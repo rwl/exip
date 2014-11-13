@@ -225,13 +225,19 @@ errorCode startDocument(EXIStream* strm)
 
 errorCode endDocument(EXIStream* strm)
 {
+	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	Production prodHit = {0, INDEX_MAX, {URI_MAX, LN_MAX}};
 	DEBUG_MSG(INFO, DEBUG_CONTENT_IO, (">End doc serialization\n"));
 
 	if(strm->gStack->grammar == NULL)
 		return EXIP_INCONSISTENT_PROC_STATE;
 
-	return encodeProduction(strm, EVENT_ED_CLASS, TRUE, NULL, VALUE_TYPE_NONE_CLASS, &prodHit);
+	tmp_err_code = encodeProduction(strm, EVENT_ED_CLASS, TRUE, NULL, VALUE_TYPE_NONE_CLASS, &prodHit);
+
+	// Store the size of the encoded stream contained in the BinaryBuffer in the BinaryBuffer.bufContent
+	strm->buffer.bufContent = strm->context.bufferIndx + (strm->context.bitPointer > 0);
+
+	return tmp_err_code;
 }
 
 errorCode startElement(EXIStream* strm, QName qname, EXITypeClass* valueType)

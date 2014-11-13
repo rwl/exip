@@ -40,7 +40,7 @@ errorCode readNextBit(EXIStream* strm, boolean* bit_val)
 		strm->context.bitPointer = 0;
 		strm->context.bufferIndx = 0;
 	}
-	*bit_val = 0;
+
 	*bit_val = (strm->buffer.buf[strm->context.bufferIndx] & (1<<REVERSE_BIT_POSITION(strm->context.bitPointer))) != 0;
 
 	moveBitPointer(strm, 1);
@@ -57,20 +57,23 @@ errorCode readBits(EXIStream* strm, unsigned char n, unsigned int* bits_val)
 	if(strm->buffer.bufContent < strm->context.bufferIndx + numBytesToBeRead)
 	{
 		// The buffer end is reached: there are fewer than n bits left unparsed
-		char leftOverBits[16];
 		Index bytesCopied = strm->buffer.bufContent - strm->context.bufferIndx;
 		Index bytesRead = 0;
+
 		if(strm->buffer.ioStrm.readWriteToStream == NULL)
 			return EXIP_BUFFER_END_REACHED;
 
-		memcpy(leftOverBits, strm->buffer.buf + strm->context.bufferIndx, bytesCopied);
+		/* Checks for possible overlaps when copying the left Over Bits, normally should not happen */
+		if(2*bytesCopied > strm->buffer.bufLen)
+			return EXIP_INCONSISTENT_PROC_STATE;
+
+		memcpy(strm->buffer.buf, strm->buffer.buf + strm->context.bufferIndx, bytesCopied);
 
 		bytesRead = strm->buffer.ioStrm.readWriteToStream(strm->buffer.buf + bytesCopied, strm->buffer.bufLen - bytesCopied, strm->buffer.ioStrm.stream);
 		strm->buffer.bufContent = bytesRead + bytesCopied;
 		if(strm->buffer.bufContent < numBytesToBeRead)
 			return EXIP_BUFFER_END_REACHED;
 
-		memcpy(strm->buffer.buf, leftOverBits, bytesCopied);
 		strm->context.bufferIndx = 0;
 	}
 
@@ -83,8 +86,8 @@ errorCode readBits(EXIStream* strm, unsigned char n, unsigned int* bits_val)
 		*bits_val += (unsigned int) (buf[byteIndx])<<((numBytesToBeRead-byteIndx-1)*8);
 		byteIndx++;
 	}
-	*bits_val = *bits_val << strm->context.bitPointer;
-	*bits_val = *bits_val >> (numBytesToBeRead*8-n);
+
+	*bits_val = *bits_val >> (numBytesToBeRead*8 - n - strm->context.bitPointer);
 
 	DEBUG_MSG(INFO, DEBUG_STREAM_IO, (">> %d [0x%X] (%u bits)", *bits_val, *bits_val, n));
 
