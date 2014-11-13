@@ -1273,7 +1273,10 @@ struct BinaryBuffer
 	Index bufLen;
 
 	/**
-	 * The size of the data stored in the buffer - number of bytes
+	 * The size of the data stored in the buffer - number of bytes.
+	 * When parsing, this is the EXI data in the buffer available for parsing.
+	 * When serializing, this is the size of the EXI data encoded in the buffer
+	 * which is set during the call to serialize.endDocument();
 	 */
 	Index bufContent;
 
