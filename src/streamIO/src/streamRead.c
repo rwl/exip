@@ -32,13 +32,14 @@ errorCode readNextBit(EXIStream* strm, boolean* bit_val)
 {
 	if(strm->buffer.bufContent <= strm->context.bufferIndx) // the whole buffer is parsed! read another portion
 	{
+		strm->context.bitPointer = 0;
+		strm->context.bufferIndx = 0;
+		strm->buffer.bufContent = 0;
 		if(strm->buffer.ioStrm.readWriteToStream == NULL)
 			return EXIP_BUFFER_END_REACHED;
 		strm->buffer.bufContent = strm->buffer.ioStrm.readWriteToStream(strm->buffer.buf, strm->buffer.bufLen, strm->buffer.ioStrm.stream);
 		if(strm->buffer.bufContent == 0)
 			return EXIP_BUFFER_END_REACHED;
-		strm->context.bitPointer = 0;
-		strm->context.bufferIndx = 0;
 	}
 
 	*bit_val = (strm->buffer.buf[strm->context.bufferIndx] & (1<<REVERSE_BIT_POSITION(strm->context.bitPointer))) != 0;
@@ -57,24 +58,9 @@ errorCode readBits(EXIStream* strm, unsigned char n, unsigned int* bits_val)
 	if(strm->buffer.bufContent < strm->context.bufferIndx + numBytesToBeRead)
 	{
 		// The buffer end is reached: there are fewer than n bits left unparsed
-		Index bytesCopied = strm->buffer.bufContent - strm->context.bufferIndx;
-		Index bytesRead = 0;
+		errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 
-		if(strm->buffer.ioStrm.readWriteToStream == NULL)
-			return EXIP_BUFFER_END_REACHED;
-
-		/* Checks for possible overlaps when copying the left Over Bits, normally should not happen */
-		if(2*bytesCopied > strm->buffer.bufLen)
-			return EXIP_INCONSISTENT_PROC_STATE;
-
-		memcpy(strm->buffer.buf, strm->buffer.buf + strm->context.bufferIndx, bytesCopied);
-
-		bytesRead = strm->buffer.ioStrm.readWriteToStream(strm->buffer.buf + bytesCopied, strm->buffer.bufLen - bytesCopied, strm->buffer.ioStrm.stream);
-		strm->buffer.bufContent = bytesRead + bytesCopied;
-		if(strm->buffer.bufContent < numBytesToBeRead)
-			return EXIP_BUFFER_END_REACHED;
-
-		strm->context.bufferIndx = 0;
+		TRY(readEXIChunkForParsing(strm, numBytesToBeRead));
 	}
 
 	buf = (unsigned char *) strm->buffer.buf + strm->context.bufferIndx;

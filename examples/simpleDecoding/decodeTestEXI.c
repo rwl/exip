@@ -86,7 +86,7 @@ errorCode decode(EXIPSchema* schemaPtr, unsigned char outFlag, FILE *infile, boo
 	buffer.ioStrm.stream = infile;
 
 	// II: Second, initialize the parser object
-	TRY(initParser(&testParser, buffer, &parsingData));
+	TRY(parse.initParser(&testParser, buffer, &parsingData));
 
 	// III: Initialize the parsing data and hook the callback handlers to the parser object.
 	//      If out-of-band options are defined use testParser.strm.header.opts to set them
@@ -116,7 +116,7 @@ errorCode decode(EXIPSchema* schemaPtr, unsigned char outFlag, FILE *infile, boo
 
 	// IV: Parse the header of the stream
 
-	TRY(parseHeader(&testParser, outOfBandOpts));
+	TRY(parse.parseHeader(&testParser, outOfBandOpts));
 
 	// IV.1: Set the schema to be used for parsing.
 	// The schemaID mode and schemaID field can be read at
@@ -124,18 +124,18 @@ errorCode decode(EXIPSchema* schemaPtr, unsigned char outFlag, FILE *infile, boo
 	// parser.strm.header.opts.schemaID respectively
 	// If schemaless mode, use setSchema(&parser, NULL);
 
-	TRY(setSchema(&testParser, schemaPtr));
+	TRY(parse.setSchema(&testParser, schemaPtr));
 
 	// V: Parse the body of the EXI stream
 
 	while(tmp_err_code == EXIP_OK)
 	{
-		tmp_err_code = parseNext(&testParser);
+		tmp_err_code = parse.parseNext(&testParser);
 	}
 
 	// VI: Free the memory allocated by the parser
 
-	destroyParser(&testParser);
+	parse.destroyParser(&testParser);
 
 	if(tmp_err_code == EXIP_PARSING_COMPLETE)
 		return EXIP_OK;

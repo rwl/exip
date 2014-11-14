@@ -24,6 +24,16 @@
 #include "grammars.h"
 #include "initSchemaInstance.h"
 
+/**
+ * The handler to be used by the applications to parse EXI streams
+ */
+const EXIParser parse ={initParser,
+						parseHeader,
+						setSchema,
+						parseNext,
+						pushEXIData,
+						destroyParser};
+
 errorCode initParser(Parser* parser, BinaryBuffer buffer, void* app_data)
 {
 	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
@@ -188,6 +198,16 @@ errorCode parseNext(Parser* parser)
 	{
 		parser->strm.gStack->currNonTermID = tmpNonTermID;
 	}
+
+	return EXIP_OK;
+}
+
+errorCode pushEXIData(char* inBuf, unsigned int bufSize, Parser* parser)
+{
+	if(bufSize > parser->strm.buffer.bufLen - parser->strm.buffer.bufContent)
+		return EXIP_OUT_OF_BOUND_BUFFER;
+
+	memcpy(parser->strm.buffer.buf + parser->strm.buffer.bufContent, inBuf, bufSize);
 
 	return EXIP_OK;
 }
