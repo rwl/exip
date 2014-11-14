@@ -97,3 +97,30 @@ unsigned int log2INT(uint64_t val)
 	}
 	return r;
 }
+
+errorCode readEXIChunkForParsing(EXIStream* strm, unsigned int numBytesToBeRead)
+{
+	Index bytesCopied = strm->buffer.bufContent - strm->context.bufferIndx;
+	Index bytesRead = 0;
+
+	/* Checks for possible overlaps when copying the left Over Bits,
+	 * normally should not happen when the size of strm->buffer is set
+	 * reasonably (16 bytes or higher) */
+	if(2*bytesCopied > strm->buffer.bufLen)
+		return EXIP_INCONSISTENT_PROC_STATE;
+
+	memcpy(strm->buffer.buf, strm->buffer.buf + strm->context.bufferIndx, bytesCopied);
+
+	strm->context.bufferIndx = 0;
+	strm->buffer.bufContent = bytesCopied;
+
+	if(strm->buffer.ioStrm.readWriteToStream == NULL)
+		return EXIP_BUFFER_END_REACHED;
+
+	bytesRead = strm->buffer.ioStrm.readWriteToStream(strm->buffer.buf + bytesCopied, strm->buffer.bufLen - bytesCopied, strm->buffer.ioStrm.stream);
+	strm->buffer.bufContent = bytesCopied + bytesRead;
+	if(strm->buffer.bufContent < numBytesToBeRead)
+		return EXIP_BUFFER_END_REACHED;
+
+	return EXIP_OK;
+}

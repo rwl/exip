@@ -48,4 +48,13 @@ unsigned char getBitsNumber(uint64_t val);
  */
 unsigned int log2INT(uint64_t val);
 
+/**
+ * @brief Reads an EXI stream chunk using buffer.ioStrm.readWriteToStream if available
+ * @param[in] strm EXI stream of bits
+ * @param[in] numBytesToBeRead the number of bites that are requested for parsing
+ *
+ * @return The number of bits needed
+ */
+errorCode readEXIChunkForParsing(EXIStream* strm, unsigned int numBytesToBeRead);
+
 #endif /* IOUTIL_H_ */

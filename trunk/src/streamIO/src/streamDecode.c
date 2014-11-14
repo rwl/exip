@@ -18,6 +18,7 @@
 #include "streamDecode.h"
 #include "streamRead.h"
 #include "stringManipulate.h"
+#include "ioUtil.h"
 #include <math.h>
 
 errorCode decodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, unsigned int* int_val)
@@ -36,16 +37,23 @@ errorCode decodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, unsigned i
 	else
 	{
 		unsigned int byte_number = ((unsigned int) n) / 8 + (n % 8 != 0);
-		unsigned int tmp_byte_buf = 0;
-		errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
+		unsigned long tmp_byte_buf = 0;
 		unsigned int i = 0;
 
-		*int_val = 0;
-		for(i = 0; i < byte_number; i++)
+		if(strm->buffer.bufContent < strm->context.bufferIndx + byte_number)
 		{
-			TRY(readBits(strm, 8, &tmp_byte_buf));
-			tmp_byte_buf = tmp_byte_buf << (i * 8);
+			// The buffer end is reached: there are fewer than byte_number left unparsed
+			errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
+
+			TRY(readEXIChunkForParsing(strm, byte_number));
+		}
+
+		*int_val = 0;
+		for(i = 0; i < byte_number*8; i += 8)
+		{
+			tmp_byte_buf = strm->buffer.buf[strm->context.bufferIndx] << i;
 			*int_val = *int_val | tmp_byte_buf;
+			strm->context.bufferIndx++;
 		}
 	}
 	return EXIP_OK;
