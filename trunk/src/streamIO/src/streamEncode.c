@@ -32,13 +32,23 @@ errorCode encodeNBitUnsignedInteger(EXIStream* strm, unsigned char n, unsigned i
 	else
 	{
 		unsigned int byte_number = n / 8 + (n % 8 != 0);
-		int tmp_byte_buf = 0;
-		errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
-		unsigned int i = 0;
-		for(i = 0; i < byte_number; i++)
+		int tmp_byte_buf;
+		unsigned int i;
+
+		if(strm->buffer.bufLen < strm->context.bufferIndx + byte_number)
 		{
-			tmp_byte_buf = (int_val >> (i * 8)) & 0xFF;
-			TRY(writeNBits(strm, 8, tmp_byte_buf));
+			// The buffer end is reached: there are fewer than nbits bits left in the buffer
+			// Flush the buffer if possible
+			errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
+
+			TRY(writeEncodedEXIChunk(strm));
+		}
+
+		for(i = 0; i < byte_number*8; i += 8)
+		{
+			tmp_byte_buf = (int_val >> i) & 0xFF;
+			strm->buffer.buf[strm->context.bufferIndx] = tmp_byte_buf;
+			strm->context.bufferIndx++;
 		}
 	}
 	return EXIP_OK;
