@@ -124,3 +124,23 @@ errorCode readEXIChunkForParsing(EXIStream* strm, unsigned int numBytesToBeRead)
 
 	return EXIP_OK;
 }
+
+errorCode writeEncodedEXIChunk(EXIStream* strm)
+{
+	char leftOverBits;
+	Index numBytesWritten = 0;
+
+	if(strm->buffer.ioStrm.readWriteToStream == NULL)
+		return EXIP_BUFFER_END_REACHED;
+
+	leftOverBits = strm->buffer.buf[strm->context.bufferIndx];
+
+	numBytesWritten = strm->buffer.ioStrm.readWriteToStream(strm->buffer.buf, strm->context.bufferIndx, strm->buffer.ioStrm.stream);
+	if(numBytesWritten < strm->context.bufferIndx)
+		return EXIP_BUFFER_END_REACHED;
+
+	strm->buffer.buf[0] = leftOverBits;
+	strm->context.bufferIndx = 0;
+
+	return EXIP_OK;
+}

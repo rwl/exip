@@ -54,19 +54,10 @@ errorCode writeNBits(EXIStream* strm, unsigned char nbits, unsigned int bits_val
 	if(strm->buffer.bufLen <= strm->context.bufferIndx + numBytesToBeWritten)
 	{
 		// The buffer end is reached: there are fewer than nbits bits left in the buffer
-		char leftOverBits;
-		Index numBytesWritten = 0;
-		if(strm->buffer.ioStrm.readWriteToStream == NULL)
-			return EXIP_BUFFER_END_REACHED;
+		// Flush the buffer if possible
+		errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 
-		leftOverBits = strm->buffer.buf[strm->context.bufferIndx];
-
-		numBytesWritten = strm->buffer.ioStrm.readWriteToStream(strm->buffer.buf, strm->context.bufferIndx, strm->buffer.ioStrm.stream);
-		if(numBytesWritten < strm->context.bufferIndx)
-			return EXIP_BUFFER_END_REACHED;
-
-		strm->buffer.buf[0] = leftOverBits;
-		strm->context.bufferIndx = 0;
+		TRY(writeEncodedEXIChunk(strm));
 	}
 
 	while(numBitsWrite < nbits)
