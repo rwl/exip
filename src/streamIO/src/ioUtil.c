@@ -103,6 +103,9 @@ errorCode readEXIChunkForParsing(EXIStream* strm, unsigned int numBytesToBeRead)
 	Index bytesCopied = strm->buffer.bufContent - strm->context.bufferIndx;
 	Index bytesRead = 0;
 
+	if(strm->buffer.ioStrm.readWriteToStream == NULL)
+		return EXIP_BUFFER_END_REACHED;
+
 	/* Checks for possible overlaps when copying the left Over Bits,
 	 * normally should not happen when the size of strm->buffer is set
 	 * reasonably (16 bytes or higher) */
@@ -111,16 +114,12 @@ errorCode readEXIChunkForParsing(EXIStream* strm, unsigned int numBytesToBeRead)
 
 	memcpy(strm->buffer.buf, strm->buffer.buf + strm->context.bufferIndx, bytesCopied);
 
-	strm->context.bufferIndx = 0;
-	strm->buffer.bufContent = bytesCopied;
-
-	if(strm->buffer.ioStrm.readWriteToStream == NULL)
-		return EXIP_BUFFER_END_REACHED;
-
 	bytesRead = strm->buffer.ioStrm.readWriteToStream(strm->buffer.buf + bytesCopied, strm->buffer.bufLen - bytesCopied, strm->buffer.ioStrm.stream);
 	strm->buffer.bufContent = bytesCopied + bytesRead;
 	if(strm->buffer.bufContent < numBytesToBeRead)
-		return EXIP_BUFFER_END_REACHED;
+		return EXIP_UNEXPECTED_ERROR;
+
+	strm->context.bufferIndx = 0;
 
 	return EXIP_OK;
 }
@@ -137,7 +136,7 @@ errorCode writeEncodedEXIChunk(EXIStream* strm)
 
 	numBytesWritten = strm->buffer.ioStrm.readWriteToStream(strm->buffer.buf, strm->context.bufferIndx, strm->buffer.ioStrm.stream);
 	if(numBytesWritten < strm->context.bufferIndx)
-		return EXIP_BUFFER_END_REACHED;
+		return EXIP_UNEXPECTED_ERROR;
 
 	strm->buffer.buf[0] = leftOverBits;
 	strm->context.bufferIndx = 0;

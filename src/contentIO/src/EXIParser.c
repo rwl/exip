@@ -183,8 +183,17 @@ errorCode parseNext(Parser* parser)
 {
 	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;
 	SmallIndex tmpNonTermID = GR_VOID_NON_TERMINAL;
+	StreamContext savedContext = parser->strm.context;
 
-	TRY(processNextProduction(&parser->strm, &tmpNonTermID, &parser->handler, parser->app_data));
+	tmp_err_code = processNextProduction(&parser->strm, &tmpNonTermID, &parser->handler, parser->app_data);
+	if(tmp_err_code == EXIP_BUFFER_END_REACHED)
+		parser->strm.context = savedContext;
+
+	if(tmp_err_code != EXIP_OK)
+	{
+		DEBUG_MSG(ERROR, EXIP_DEBUG, ("\n>Error %s:%d at %s, line %d", GET_ERR_STRING(tmp_err_code), tmp_err_code, __FILE__, __LINE__)); \
+		return tmp_err_code;
+	}
 
 	if(tmpNonTermID == GR_VOID_NON_TERMINAL)
 	{
@@ -204,10 +213,22 @@ errorCode parseNext(Parser* parser)
 
 errorCode pushEXIData(char* inBuf, unsigned int bufSize, Parser* parser)
 {
-	if(bufSize > parser->strm.buffer.bufLen - parser->strm.buffer.bufContent)
+	Index bytesCopied = parser->strm.buffer.bufContent - parser->strm.context.bufferIndx;
+
+	if(bufSize > parser->strm.buffer.bufLen - bytesCopied)
 		return EXIP_OUT_OF_BOUND_BUFFER;
 
-	memcpy(parser->strm.buffer.buf + parser->strm.buffer.bufContent, inBuf, bufSize);
+	/* Checks for possible overlaps when copying the left Over Bits,
+	 * normally should not happen when the size of strm->buffer is set
+	 * reasonably (16 bytes or higher) */
+	if(2*bytesCopied > parser->strm.buffer.bufLen)
+		return EXIP_INCONSISTENT_PROC_STATE;
+
+	memcpy(parser->strm.buffer.buf, parser->strm.buffer.buf + parser->strm.context.bufferIndx, bytesCopied);
+	memcpy(parser->strm.buffer.buf + bytesCopied, inBuf, bufSize);
+
+	parser->strm.context.bufferIndx = 0;
+	parser->strm.buffer.bufContent = bytesCopied + bufSize;
 
 	return EXIP_OK;
 }
