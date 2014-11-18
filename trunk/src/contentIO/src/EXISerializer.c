@@ -1016,6 +1016,25 @@ errorCode closeEXIStream(EXIStream* strm)
 	return tmp_err_code;
 }
 
+errorCode flushEXIData(EXIStream* strm, char* outBuf, unsigned int bufSize, unsigned int* bytesFlush)
+{
+	char leftOverBits;
+
+	if(bufSize < strm->context.bufferIndx)
+		return EXIP_OUT_OF_BOUND_BUFFER;
+
+	leftOverBits = strm->buffer.buf[strm->context.bufferIndx];
+
+	memcpy(outBuf, strm->buffer.buf, strm->context.bufferIndx);
+
+	strm->buffer.buf[0] = leftOverBits;
+	strm->context.bufferIndx = 0;
+
+	*bytesFlush = strm->context.bufferIndx;
+
+	return EXIP_OK;
+}
+
 errorCode serializeEvent(EXIStream* strm, EventCode ec, QName* qname)
 {
 	errorCode tmp_err_code = EXIP_UNEXPECTED_ERROR;

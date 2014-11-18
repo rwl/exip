@@ -53,6 +53,7 @@ struct EXISerializer
 	void (*initHeader)(EXIStream* strm);
 	errorCode (*initStream)(EXIStream* strm, BinaryBuffer buffer, EXIPSchema* schema);
 	errorCode (*closeEXIStream)(EXIStream* strm);
+	errorCode (*flushEXIData)(EXIStream* strm);
 };
 
 typedef struct EXISerializer EXISerializer;
@@ -273,6 +274,34 @@ errorCode initStream(EXIStream* strm, BinaryBuffer buffer, EXIPSchema *schema);
  * @return Error handling code
  */
 errorCode closeEXIStream(EXIStream* strm);
+
+/**
+ * @brief In case the EXI buffer (strm->buffer) is filled this function can be used to
+ * flush it to some external buffer when strm->buffer.ioStrm.readWriteToStream is not available.
+ * This is useful when streaming EXI data, for example, which needs to be implemented
+ * without a blocking call to the flushing interface i.e. strm->buffer.ioStrm.readWriteToStream.
+ *
+ * @warning Padding bits to fill a byte when in bit-packed mode
+ * should not be used as they will be interpreted as if being part
+ * of the EXI stream. This function always flushes the EXI buffer
+ * to the last byte boundary thus making sure the padding is not needed.
+ *
+ * @remark The proper use of this function is as follows:
+ * When building the EXI body, before each call to serialize.*() functions
+ * the context of the EXI stream needs to be saved to a vairable e.g.,
+ * StreamContext savedContext = parser->strm.context;
+ * if the serialize.*() returns EXIP_BUFFER_END_REACHED the state needs to
+ * be restored with: parser->strm.context = savedContext;
+ * Then the flushEXIData() function must be called to flush the
+ * buffer after which the failed serialize.*() call needs to be repeated.
+ *
+ * @param[in, out] strm EXI stream object
+ * @param[out] outBuf the next EXI stream chunk to be parsed
+ * @param[in] bufSize the size in bytes of the inBuf
+ * @param[out] bytesFlush bytes written to the outBuf
+ * @return Error handling code
+ */
+errorCode flushEXIData(EXIStream* strm, char* outBuf, unsigned int bufSize, unsigned int* bytesFlush);
 
 /****  END: Serializer API implementation  ****/
 
