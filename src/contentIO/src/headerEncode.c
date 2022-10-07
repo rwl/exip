@@ -381,7 +381,7 @@ static errorCode serializeOptionsStream(EXIStream* options_strm, EXIOptions* opt
 				getEmptyString(&empty);
 				TRY(serialize.stringData(options_strm, empty));
 			}
-			else if(opts->schemaID.length == SCHEMA_ID_NIL)
+			else if(opts->schemaIDMode == SCHEMA_ID_NIL)
 			{
 				QName nil;
 				nil.uri = &uriTbl->uri[XML_SCHEMA_INSTANCE_ID].uriStr;
