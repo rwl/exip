@@ -1,0 +1,33 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "windows-base",
+            "generator": "Visual Studio 18 2026",
+            "binaryDir": "${sourceDir}/out",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "cl.exe",
+                "CMAKE_CXX_COMPILER": "cl.exe"
+            },
+             "architecture": {
+                "value": "x64"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name" : "linux-base",
+            "generator": "Unix Makefiles",
+            "binaryDir" : "${sourceDir}/out",
+             "cacheVariables": {
+                "CMAKE_BUILD_TYPE" : "Debug",
+                "CMAKE_EXPORT_COMPILE_COMMANDS" : "TRUE",
+                "CMAKE_C_COMPILER" : "/usr/bin/gcc",
+                "CMAKE_CXX_COMPILER" : "/usr/bin/g++"
+            }
+        }
+    ]
+}
