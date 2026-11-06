@@ -3,7 +3,7 @@
     "configurePresets": [
         {
             "name": "windows-base",
-            "generator": "Visual Studio 17 2022",
+            "generator": "Visual Studio 18 2026",
             "binaryDir": "${sourceDir}/out",
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "cl.exe",
